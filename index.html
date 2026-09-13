@@ -245,7 +245,7 @@ button:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 .rrow .bar i{display:block;height:100%;background:linear-gradient(90deg,#5aa9d6,#8fd3ff)}
 .rrow.me{border-color:var(--gold);background:linear-gradient(180deg,rgba(58,44,16,.9),rgba(30,22,8,.92))}
 .rrow.sel{outline:2px solid var(--gold)}
-.statbox{background:linear-gradient(180deg,rgba(28,44,66,.95),rgba(14,24,40,.96));border:1px solid var(--gold);border-radius:12px;padding:11px;margin-top:9px}
+.statbox{background:linear-gradient(180deg,rgba(28,44,66,.95),rgba(14,24,40,.96));border:1px solid var(--gold);border-radius:12px;padding:11px;margin-top:9px}.lbrow{display:flex;align-items:center;gap:7px;padding:4px 2px;border-bottom:1px solid rgba(143,211,255,.12);font-size:12.5px}.lbrow:last-child{border-bottom:0}.lbrow .rk{width:30px;color:var(--gold);font-family:var(--f-display);font-size:11px}.lbrow .hs{width:20px;text-align:center}.lbrow .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lbrow .sc{color:var(--muted);font-variant-numeric:tabular-nums;font-size:11.5px}.lbrow.me{background:rgba(227,182,97,.12);border-radius:6px}
 .statbox .hd{display:flex;align-items:center;gap:10px}
 .statbox .hd b{font-family:var(--f-display);font-size:15px}
 .statbox .gr{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
@@ -280,6 +280,10 @@ button:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
 .hdtop{display:flex;gap:11px;align-items:flex-start}
 .hport{position:relative;flex:0 0 86px;width:86px;height:104px;border-radius:10px;border:3px double #8a6d3b;background:radial-gradient(circle at 50% 35%,#fbf6ea,#d8c9a4);display:flex;align-items:center;justify-content:center;font-size:44px}
 .hport .cr{position:absolute;right:-8px;bottom:-8px}.hport.silver,.htile.silver{border-color:#c9d1da;box-shadow:0 0 0 1px #8d99a8,0 2px 0 #8a6d3b}.hport.gold,.htile.gold{border-color:#d4a017;box-shadow:0 0 0 1px #f3d36b,0 0 10px rgba(212,160,23,.55),0 2px 0 #8a6d3b}.hport .vet{position:absolute;left:50%;top:-9px;transform:translateX(-50%);font-style:normal;font-family:var(--f-display);font-size:7.5px;font-weight:900;letter-spacing:.1em;background:#d4a017;color:#2e2113;border-radius:5px;padding:1px 5px;white-space:nowrap}.sk2.gold{border:1px solid #d4a017;border-radius:8px;background:linear-gradient(90deg,rgba(212,160,23,.16),rgba(212,160,23,0));padding:5px 6px!important;margin:3px 0}
+.hdet .ctal{margin-top:9px;border-top:1px dashed #c9b993;padding-top:7px}.hdet .ctal .tlbl{display:block;font-family:var(--f-display);font-size:10.5px;color:#8a6d3b;margin-bottom:5px;letter-spacing:.03em}
+.hdet .tal2{display:flex;gap:9px;align-items:center;width:100%;text-align:left;padding:7px 8px;border:1px solid #c9b993;border-radius:8px;margin:4px 0;background:#efe6cf;font-size:12px;color:#4a3a22;font-family:inherit;cursor:pointer}
+.hdet .tal2 b{color:#2e2113;font-family:var(--f-display);font-size:12px}.hdet .tal2 .e{font-size:20px;flex:0 0 26px;text-align:center}
+.hdet .tal2.on{border-color:#d4a017;background:linear-gradient(90deg,rgba(212,160,23,.22),rgba(212,160,23,.05));box-shadow:0 0 0 1px rgba(212,160,23,.4)}.hdet .tal2 .tk{color:#d4a017;font-weight:900;flex:0 0 auto}
 .hdinfo{flex:1;min-width:0}
 .hdinfo b{font-family:var(--f-display);font-size:16px;display:block}
 .hdinfo small{display:block;font-size:12px;color:#4a3a22;margin-top:2px}
@@ -527,6 +531,72 @@ const QUOTES={
 const CHAMPS=CH.map(c=>({id:c[0],house:c[1],n:c[2],e:c[3],type:c[4],sk:[c[5],c[6],c[7]]}));
 CHAMPS.forEach((c,i)=>{c.tier=i%7;});
 const CBY={};CHAMPS.forEach(c=>CBY[c.id]=c);
+/* ---------- talents (unlock at champion level 5, one of two, free to swap) ---------- */
+const TALENTS={
+ jon:[{n:'Longclaw\'s Bite',k:'skillmult',sk:'cleave',v:0.25},{n:'Ghost at His Side',k:'skillmult',sk:'shield',v:0.25}],
+ arya:[{n:'A Girl Has No Name',k:'dmg',v:0.18},{n:'Water Dancing',k:'rate',v:0.15}],
+ sansa:[{n:'Queen in the North',k:'skillmult',sk:'goldtouch',v:0.25},{n:'Mother of the North',k:'skillmult',sk:'heal',v:0.25}],
+ bran:[{n:'Three-Eyed Raven',k:'skillmult',sk:'slowaura',v:0.25},{n:'Warg',k:'cdr',v:0.2}],
+ robb:[{n:'King in the North',k:'skillmult',sk:'cleave',v:0.25},{n:'Young Wolf',k:'skillmult',sk:'summon',v:0.25}],
+ ned:[{n:'Warden of the North',k:'block',v:1},{n:'Ned\'s Honor',k:'hp',v:0.2}],
+ brienne:[{n:'Sworn Shield',k:'block',v:1},{n:'Maidenly Valor',k:'skillmult',sk:'stun',v:0.25}],
+ jaime:[{n:'Kingslayer',k:'dmg',v:0.18},{n:'Ser Jaime\'s Feint',k:'skillmult',sk:'stun',v:0.25}],
+ tyrion:[{n:'I Drink and I Know Things',k:'skillmult',sk:'goldtouch',v:0.25},{n:'Wildfire Formula',k:'skillmult',sk:'burn',v:0.25}],
+ cersei:[{n:'Everything Is Gold',k:'skillmult',sk:'goldtouch',v:0.25},{n:'The Lioness\'s Grip',k:'skillmult',sk:'slowaura',v:0.25}],
+ tywin:[{n:'A Lion\'s Command',k:'skillmult',sk:'rally',v:0.25},{n:'The Lion Pays in Gold',k:'goldkill',v:0.2}],
+ bronn:[{n:'Paid to Shoot',k:'range',v:0.15},{n:'Two for One',k:'skillmult',sk:'pierce',v:0.25}],
+ gregor:[{n:'The Mountain That Rides',k:'dmg',v:0.18},{n:'Unkillable',k:'skillmult',sk:'shield',v:0.25}],
+ kevan:[{n:'Steady Hand of the Rock',k:'skillmult',sk:'rally',v:0.25},{n:'Loyal to the Last',k:'skillmult',sk:'heal',v:0.25}],
+ stannis:[{n:'The Rightful King',k:'skillmult',sk:'rally',v:0.25},{n:'The Night Is Dark',k:'cdr',v:0.2}],
+ robert:[{n:'Warhammer',k:'dmg',v:0.18},{n:'Ours Is the Fury',k:'skillmult',sk:'cleave',v:0.25}],
+ renly:[{n:'A King Protects',k:'skillmult',sk:'heal',v:0.25},{n:'The Rainbow Guard',k:'skillmult',sk:'goldtouch',v:0.25}],
+ davos:[{n:'Onion Knight',k:'skillmult',sk:'heal',v:0.25},{n:'The Smuggler\'s Aim',k:'range',v:0.15}],
+ melisandre:[{n:'The Lord of Light',k:'skillmult',sk:'burn',v:0.25},{n:'Shadow Has a Master',k:'cdr',v:0.2}],
+ gendry:[{n:'The Bastard Smith',k:'dmg',v:0.18},{n:'Hammer and Anvil',k:'skillmult',sk:'stun',v:0.25}],
+ barristan:[{n:'The Bold',k:'dmg',v:0.18},{n:'Three Kings\' Guard',k:'skillmult',sk:'shield',v:0.25}],
+ dany:[{n:'Blood of the Dragon',k:'skillmult',sk:'burn',v:0.25},{n:'Dracarys!',k:'skillmult',sk:'dragonstrike',v:0.18}],
+ jorah:[{n:'The Bear and the Maiden',k:'hp',v:0.2},{n:'Andal Steel',k:'skillmult',sk:'cleave',v:0.25}],
+ greyworm:[{n:'Unsullied Discipline',k:'skillmult',sk:'summon',v:0.25},{n:'Trained From Birth',k:'skillmult',sk:'stun',v:0.25}],
+ missandei:[{n:'Valar Dohaeris',k:'skillmult',sk:'heal',v:0.25},{n:'Advisor to the Queen',k:'skillmult',sk:'goldtouch',v:0.25}],
+ daario:[{n:'Second Sons',k:'dmg',v:0.18},{n:'A Knife in the Dark',k:'skillmult',sk:'execute',v:0.25}],
+ drogo:[{n:'Khal of Khals',k:'dmg',v:0.18},{n:'Blood Rider\'s Wrath',k:'skillmult',sk:'cleave',v:0.25}],
+ viserys:[{n:'Beggar King\'s Greed',k:'skillmult',sk:'goldtouch',v:0.25},{n:'Gold for the Crown',k:'goldkill',v:0.2}],
+ theon:[{n:'Prince of Pyke',k:'dmg',v:0.18},{n:'Iron Islands Archer',k:'range',v:0.15}],
+ yara:[{n:'Queen of the Iron Fleet',k:'skillmult',sk:'cleave',v:0.25},{n:'Reavers, to Me',k:'skillmult',sk:'summon',v:0.25}],
+ euron:[{n:'I Am the Storm',k:'skillmult',sk:'slowaura',v:0.25},{n:'The Drowned God\'s Hand',k:'skillmult',sk:'kraken',v:0.18}],
+ balon:[{n:'We Do Not Sow',k:'skillmult',sk:'goldtouch',v:0.25},{n:'Old Kraken\'s Hide',k:'skillmult',sk:'shield',v:0.25}],
+ victarion:[{n:'The Iron Fleet\'s Fury',k:'block',v:1},{n:'Axe and Salt',k:'skillmult',sk:'cleave',v:0.25}],
+ aeron:[{n:'Drowned and Risen',k:'skillmult',sk:'heal',v:0.25},{n:'What Is Dead May Never Die',k:'skillmult',sk:'slowaura',v:0.25}],
+ rodrik:[{n:'The Reader\'s Wisdom',k:'skillmult',sk:'rally',v:0.25},{n:'A Well-Read Kraken',k:'skillmult',sk:'goldtouch',v:0.25}],
+ margaery:[{n:'Growing Strong',k:'skillmult',sk:'goldtouch',v:0.25},{n:'The Rose of Highgarden',k:'skillmult',sk:'heal',v:0.25}],
+ olenna:[{n:'The Queen of Thorns',k:'skillmult',sk:'poison',v:0.25},{n:'Tell Them It Was Me',k:'skillmult',sk:'execute',v:0.25}],
+ loras:[{n:'Knight of Flowers',k:'dmg',v:0.18},{n:'Tourney Champion',k:'skillmult',sk:'stun',v:0.25}],
+ randyll:[{n:'Iron Discipline',k:'skillmult',sk:'rally',v:0.25},{n:'Butcher of the Green Fork',k:'skillmult',sk:'shield',v:0.25}],
+ sam:[{n:'Maester\'s Chains',k:'skillmult',sk:'slowaura',v:0.25},{n:'The Books Said This Works',k:'range',v:0.15}],
+ garlan:[{n:'Garlan the Gallant',k:'dmg',v:0.18},{n:'Rose and Thorn',k:'skillmult',sk:'shield',v:0.25}],
+ mace:[{n:'Highgarden Feeds the Realm',k:'skillmult',sk:'goldtouch',v:0.25},{n:'Lord of the Reach',k:'skillmult',sk:'summon',v:0.25}],
+ oberyn:[{n:'The Red Viper\'s Venom',k:'skillmult',sk:'poison',v:0.25},{n:'Say Her Name',k:'skillmult',sk:'crit',v:0.25}],
+ ellaria:[{n:'Sweet Revenge',k:'skillmult',sk:'poison',v:0.25},{n:'Breathe It In',k:'skillmult',sk:'cloud',v:0.18}],
+ doran:[{n:'Sunspear Stands',k:'skillmult',sk:'heal',v:0.25},{n:'Patience of Dorne',k:'cdr',v:0.2}],
+ areo:[{n:'I Serve',k:'block',v:1},{n:'My Axe Answers',k:'skillmult',sk:'cleave',v:0.25}],
+ obara:[{n:'My Spear Was My Father\'s',k:'range',v:0.15},{n:'First of the Sand Snakes',k:'skillmult',sk:'pierce',v:0.25}],
+ nymeria:[{n:'A Whip Is a Kind of Kiss',k:'skillmult',sk:'stun',v:0.25},{n:'Bound and Broken',k:'skillmult',sk:'crit',v:0.25}],
+ tyene:[{n:'Poison Is a Woman\'s Weapon',k:'skillmult',sk:'poison',v:0.25},{n:'The Long Farewell',k:'skillmult',sk:'cloud',v:0.18}]
+};
+const TAL_E={dmg:'⚔️',hp:'❤️',rate:'⚡',range:'🎯',cdr:'🔄',goldkill:'💰',block:'🛡️'};
+function talEmoji(t){return t.k==='skillmult'?SK[t.sk].e:TAL_E[t.k]||'✨';}
+function talDesc(t){const pct=Math.round(t.v*100);switch(t.k){
+  case'dmg':return `+${pct}% champion damage`;
+  case'hp':return `+${pct}% max health`;
+  case'range':return `+${pct}% attack range`;
+  case'rate':return `-${pct}% attack cooldown (hits faster)`;
+  case'cdr':return `-${pct}% cooldown on skills and ultimate`;
+  case'block':return `Blocks ${t.v} more ${t.v>1?'enemies':'enemy'} in melee`;
+  case'goldkill':return `+${pct}% gold from your kills`;
+  case'skillmult':return `+${pct}% ${SK[t.sk].n} effect`;
+  default:return'';}}
+function heroTalent(champId,slot){return slot?(TALENTS[champId]||[])[slot-1]||null:null;}
+function cdMul(h){return h&&h.tal&&h.tal.k==='cdr'?1-h.tal.v:1;}
 function shortName(c){const w=c.n.split(' ');return w[0]==='The'?w[1]:w[0];}
 const TYPE_LBL={melee:'⚔️ Melee, blocks the road',ranged:'🏹 Ranged, shoots from afar',caster:'🔮 Caster, long reach'};
 const MODS={blizzard:{n:'Blizzard',e:'🌨️',desc:'tower range −15%',range:0.85},longnight:{n:'The Long Night',e:'🌙',desc:'enemies +15% speed',espeed:1.15},clear:{n:'Clear skies',e:'🌤️',desc:'+15% gold from kills',gold:1.15},wildhunt:{n:'Wild Hunt',e:'🦣',desc:'twice the giants',giants:2}};
@@ -659,7 +729,7 @@ const LANGS=[
 {f:'🇰🇷',l:'한국어',c:'South Korea'},{f:'🇦🇺',l:'English',c:'Australia'},{f:'🇲🇽',l:'Español',c:'Mexico'},{f:'🇪🇸',l:'Español',c:'Spain'},
 {f:'🇮🇩',l:'Indonesia',c:'Indonesia'},{f:'🇹🇷',l:'Türkçe',c:'Türkiye'},{f:'🇳🇱',l:'Nederlands',c:'Netherlands'},{f:'🇸🇦',l:'العربية',c:'Saudi Arabia'},
 {f:'🇨🇭',l:'Deutsch',c:'Switzerland'}];
-const VERSION='1.0.35';
+const VERSION='1.0.38';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -790,15 +860,16 @@ function flag(country,w){
   }
 }
 function realmStats(){
-  const rng=mulberry32(hash32('realm'+todayKey));
-  const rows=LANGS.map((L,j)=>({j,f:L.f,c:L.c,l:L.l,players:20+Math.floor(rng()*1400),waves:9000+Math.floor(rng()*1100000)}));
-  if(ACC){const me=rows[ACC.langI]||rows[0];me.waves+=ACC.stats.waves;me.mine=true;}
-  rows.sort((a,b)=>b.waves-a.waves);
+  /* real standings from the leaderboard RPC (cached in localStorage); zeros when nothing has been fetched yet */
+  const lb=cachedLb();const by={};if(lb&&lb.realms)for(const r of lb.realms)by[r.realm]=r;
+  const rows=LANGS.map((L,j)=>{const r=by[j]||{};return{j,f:L.f,c:L.c,l:L.l,players:+r.players||0,waves:+r.waves||0,stars:+r.stars||0,kills:+r.kills||0};});
+  if(ACC){const me=rows[ACC.langI]||rows[0];me.mine=true;}
+  rows.sort((a,b)=>b.waves-a.waves||b.stars-a.stars||b.players-a.players||a.j-b.j);
   rows.forEach((r,i)=>r.rank=i+1);
   return rows;
 }
 function realmRow(r,top,extra){
-  return `<button class="rrow ${r.mine?'me':''} ${extra||''}" data-j="${r.j}"><span class="rk">${r.rank<=3?['🥇','🥈','🥉'][r.rank-1]:'#'+r.rank}</span>${flag(r.c,30)}<span class="nm"><b>${r.c}</b><small>${r.l}</small></span><span class="wv">${r.waves.toLocaleString()} 🌊<span class="bar"><i style="width:${Math.max(4,Math.round(100*r.waves/top))}%"></i></span></span></button>`;
+  return `<button class="rrow ${r.mine?'me':''} ${extra||''}" data-j="${r.j}"><span class="rk">${r.rank<=3&&r.waves>0?['🥇','🥈','🥉'][r.rank-1]:'#'+r.rank}</span>${flag(r.c,30)}<span class="nm"><b>${r.c}</b><small>${r.l}</small></span><span class="wv">${r.waves.toLocaleString()} 🌊<span class="bar"><i style="width:${Math.max(4,Math.round(100*r.waves/top))}%"></i></span></span></button>`;
 }
 /* =========================== SOUND (synthesised, no files) =========================== */
 const SFX=(()=>{
@@ -847,7 +918,7 @@ const newSave=()=>({v:4,cur:-1,slots:[null,null,null]});
 function newAccount(house,langI,diff){return{house,langI,diff:'squire',made:todayKey,intro:0,tut:0,won:{},campaign:{},champs:{},sel:CHAMPS.find(c=>c.house===house).id,gems:80,upg:{},ach:{},stats:{kills:0,builds:0,calls:0,gold:0,fires:0,three:0,king:0,cleared:0,onlineBest:0,waves:0},online:{date:'',attempts:1,doorBonus:0,goldBonus:0,runs:[]}};}
 function lang(a){return LANGS[(a||ACC).langI]||LANGS[0];}
 function DIFF(){return DIFFS[ACC&&ACC.diff||'knight'];}
-function cprog(h,id){const a=h||ACC;if(!a.champs[id])a.champs[id]={lvl:1,sk:[1,1,1]};return a.champs[id];}
+function cprog(h,id){const a=h||ACC;if(!a.champs[id])a.champs[id]={lvl:1,sk:[1,1,1],tal:0};else if(a.champs[id].tal==null)a.champs[id].tal=0;return a.champs[id];}
 function cleared(a){return Object.keys((a||ACC).campaign).length;}
 function starsEarned(a){return Object.values((a||ACC).campaign).reduce((x,y)=>x+y,0);}
 function starsSpent(a){const u=(a||ACC).upg;return UPG.reduce((s,x)=>s+(u[x.id]?x.c:0),0);}
@@ -871,11 +942,58 @@ async function loadSave(){
   if(!raw)raw=lsGet();
   if(raw){try{SAVE=JSON.parse(raw);}catch(e){SAVE=null;}}
   if(!SAVE||SAVE.v!==4)SAVE=newSave();
-  for(const a of SAVE.slots){if(a&&!(a.langI>=0&&a.langI<LANGS.length))a.langI=0;if(a&&a.online.date!==todayKey){a.online.date=todayKey;a.online.attempts=1;a.online.runs=[];}}
-  loadArt();
+  fixSave();loadArt();
   if(SAVE.cur>=0&&SAVE.slots[SAVE.cur])ACC=SAVE.slots[SAVE.cur];
 }
-function persist(){const v=JSON.stringify(SAVE);try{if(window.storage)window.storage.set(SKEY,v,false).catch(()=>{});}catch(e){}lsSet(v);}
+function fixSave(){for(const a of SAVE.slots){if(!a)continue;if(!a.house||!HOUSES[a.house])a.house='stark';if(!a.stats)a.stats={kills:0,builds:0,calls:0,gold:0,fires:0,three:0,king:0,cleared:0,onlineBest:0,waves:0};for(const k of['campaign','champs','upg','ach','won'])if(!a[k]||typeof a[k]!=='object')a[k]={};if(!a.sel||!CBY[a.sel])a.sel=(CHAMPS.find(c=>c.house===a.house)||CHAMPS[0]).id;if(!DIFFS[a.diff])a.diff='squire';if(typeof a.gems!=='number')a.gems=0;if(!(a.langI>=0&&a.langI<LANGS.length))a.langI=0;if(!a.online)a.online={date:'',attempts:1,doorBonus:0,goldBonus:0,runs:[]};if(a.online.date!==todayKey){a.online.date=todayKey;a.online.attempts=1;a.online.runs=[];}}}
+function persist(){SAVE.ver=(SAVE.ver||0)+1;const v=JSON.stringify(SAVE);try{if(window.storage)window.storage.set(SKEY,v,false).catch(()=>{});}catch(e){}lsSet(v);cloudSaveSoon();}
+/* =========================== CLOUD (Supabase) =========================== */
+/* The app only ever calls three security-definer RPCs (tg_login / save_progress / leaderboard); tables are RLS-locked. Off until SB.url/key are set. */
+const SB={url:'https://acimxvnupgpronpohheb.supabase.co',key:'sb_publishable_IdiZ6FC3GwAEZ8AkBeBg0g_doDtulMB'};
+const CLOUD={on:false,token:null,tg_id:null,name:null,ver:0,busy:false,dirty:false,timer:null,lastErr:null,lb:null,lbAt:0,tried:false};
+function sbReady(){return /^https:\/\/|^http:\/\/127\.0\.0\.1/.test(SB.url)&&SB.key.length>20;}
+async function sbRpc(fn,args,opt){
+  if(!sbReady())throw new Error('no backend');opt=opt||{};
+  const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),opt.timeout||9000);
+  try{const r=await fetch(SB.url+'/rest/v1/rpc/'+fn,{method:'POST',headers:{'apikey':SB.key,'Authorization':'Bearer '+SB.key,'Content-Type':'application/json'},body:JSON.stringify(args||{}),signal:ctl.signal,keepalive:!!opt.keepalive});
+    const txt=await r.text();let j=null;try{j=txt?JSON.parse(txt):null;}catch(e){}
+    if(!r.ok)throw new Error((j&&(j.message||j.hint||j.error))||('http '+r.status));
+    return j;}
+  finally{clearTimeout(to);}
+}
+function scoreSummary(){
+  let stars=0,gates=0,waves=0,kills=0;
+  for(const a of SAVE.slots){if(!a)continue;let st=0;for(const k in a.campaign)st+=a.campaign[k]||0;if(a.stg)for(const g in a.stg)for(const x in a.stg[g])st+=a.stg[g][x]||0;
+    stars=Math.max(stars,st);gates=Math.max(gates,Object.keys(a.campaign||{}).length);waves=Math.max(waves,(a.stats&&a.stats.onlineBest)||0);kills+=(a.stats&&a.stats.kills)||0;}
+  return{stars,gates,waves,kills};
+}
+async function cloudLogin(){
+  if(!TG||!sbReady()||CLOUD.tried)return;CLOUD.tried=true;const init=TG.initData;if(!init)return;
+  try{const r=await sbRpc('tg_login',{init_data:init},{timeout:8000});
+    CLOUD.on=true;CLOUD.token=r.token;CLOUD.tg_id=r.tg_id;CLOUD.name=r.name;CLOUD.ver=r.save_ver||0;CLOUD.lastErr=null;
+    const local=(SAVE&&SAVE.ver)||0,remote=r.save_ver||0;
+    if(r.save&&r.save.v===4&&r.save.slots&&remote>local){SAVE=r.save;SAVE.ver=remote;fixSave();ACC=SAVE.cur>=0&&SAVE.slots[SAVE.cur]?SAVE.slots[SAVE.cur]:null;lsSet(JSON.stringify(SAVE));CLOUD.pulled=true;}
+    else if(SAVE.slots.some(x=>x)&&(local>remote||!r.save)){CLOUD.dirty=true;cloudSaveSoon(0);}
+  }catch(e){CLOUD.lastErr=String(e&&e.message||e);}
+}
+function cloudSaveSoon(ms){if(!CLOUD.on)return;CLOUD.dirty=true;clearTimeout(CLOUD.timer);CLOUD.timer=setTimeout(()=>cloudSave(false),ms==null?3000:ms);}
+async function cloudSave(keep){
+  if(!CLOUD.on||!CLOUD.dirty||CLOUD.busy)return;CLOUD.busy=true;CLOUD.dirty=false;clearTimeout(CLOUD.timer);
+  try{const st=scoreSummary();const r=await sbRpc('save_progress',{token:CLOUD.token,save:SAVE,ver:SAVE.ver||0,house:ACC?ACC.house:null,realm:ACC?ACC.langI:0,stars:st.stars,gates:st.gates,waves:st.waves,kills:st.kills},{keepalive:!!keep,timeout:9000});
+    CLOUD.ver=(r&&r.save_ver)||CLOUD.ver;CLOUD.lastErr=null;CLOUD.savedAt=Date.now();}
+  catch(e){CLOUD.dirty=true;CLOUD.lastErr=String(e&&e.message||e);if(/bad session/.test(CLOUD.lastErr)){CLOUD.on=false;CLOUD.tried=false;cloudLogin();}else setTimeout(()=>{if(CLOUD.dirty)cloudSaveSoon(0);},20000);}
+  finally{CLOUD.busy=false;if(CLOUD.dirty&&CLOUD.on&&!CLOUD.lastErr)cloudSaveSoon(2000);}
+}
+function cloudFlush(){if(CLOUD.on&&CLOUD.dirty){clearTimeout(CLOUD.timer);cloudSave(true);}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')cloudFlush();});
+window.addEventListener('pagehide',cloudFlush);
+async function fetchLeaderboard(force){
+  if(!sbReady())return null;if(!force&&CLOUD.lb&&Date.now()-CLOUD.lbAt<60000)return CLOUD.lb;
+  try{const r=await sbRpc('leaderboard',{realm:null,me:CLOUD.tg_id||null},{timeout:8000});CLOUD.lb=r;CLOUD.lbAt=Date.now();try{localStorage.setItem('holdor_lb',JSON.stringify(r));}catch(e){}return r;}
+  catch(e){CLOUD.lbErr=String(e&&e.message||e);return null;}
+}
+function cachedLb(){if(CLOUD.lb)return CLOUD.lb;try{const v=localStorage.getItem('holdor_lb');if(v){CLOUD.lb=JSON.parse(v);return CLOUD.lb;}}catch(e){}return null;}
+function cloudStatus(){if(!sbReady())return 'offline (no backend)';if(!TG)return 'browser: local save only, standings read-only';if(CLOUD.on)return 'on · '+CLOUD.name+(CLOUD.dirty?' · syncing…':CLOUD.savedAt?' · synced':'');return CLOUD.lastErr?'error: '+CLOUD.lastErr:'connecting…';}
 /* =========================== MAP =========================== */
 function distToPath(x,y,segs){let m=1e9;for(const s of segs){const vx=s.b.x-s.a.x,vy=s.b.y-s.a.y;const t=clamp(((x-s.a.x)*vx+(y-s.a.y)*vy)/(s.len*s.len),0,1);m=Math.min(m,dist(x,y,s.a.x+vx*t,s.a.y+vy*t));}return m;}
 function posAt(map,d,r){const R=map.routes?map.routes[r||0]:map;const segs=R.segs,pts=R.pts;if(d<=0){const s=segs[0];return{x:s.a.x,y:s.a.y};}for(const s of segs){if(d<=s.start+s.len){const t=(d-s.start)/s.len;return{x:s.a.x+(s.b.x-s.a.x)*t,y:s.a.y+(s.b.y-s.a.y)*t};}}const l=pts[pts.length-1];return{x:l.x,y:l.y};}
@@ -981,15 +1099,18 @@ function resetRun(map){
 }
 function makeHero(){
   const h=ACC;const c=CBY[h.sel]||CHAMPS.find(x=>x.house===ACC.house);const p=cprog(h,c.id);const L=p.lvl;
+  const tal=L>=5&&p.tal?heroTalent(c.id,p.tal):null;
+  const tm={hp:1,dmg:1,spd:1,range:1,rate:1};
+  if(tal){if(tal.k==='hp')tm.hp+=tal.v;else if(tal.k==='dmg')tm.dmg+=tal.v;else if(tal.k==='spd')tm.spd+=tal.v;else if(tal.k==='range')tm.range+=tal.v;else if(tal.k==='rate')tm.rate-=tal.v;}
   const base=c.type==='melee'?{hp:420,dmg:26,rate:0.6,range:32}:c.type==='ranged'?{hp:300,dmg:22,rate:0.8,range:140}:{hp:280,dmg:18,rate:0.9,range:150};
-  const hp=Math.round(base.hp*(1+0.1*(L-1))*(UP('training')?1.18:1));
-  const hero={c,type:c.type,x:GX,y:GATE_Y-36,tx:null,ty:null,spd:(UP('horse')?88:70)*(c.type==='melee'?1.15:c.type==='caster'?0.9:1),hp,max:hp,dmg:base.dmg*(1+0.08*(L-1)),rate:base.rate,range:base.range,sk:p.sk.slice(),lvl:L,atkT:0,cd:{},shield:0,dead:false,respawnT:0,blocks:2,eng:0,invulnUntil:0,taunts:false,oath:false,oocT:0,skT:{},face:1,bxp:0,bLvl:0,rallyT:1,stepPx:0};
-  hero.blocks=c.sk[0]==='taunt'||c.sk[1]==='taunt'?SK.taunt.v[skLvl(hero,'taunt')-1]:2;hero.taunts=skLvl(hero,'taunt')>0;
-  const u=c.sk[2];hero.cd.ult=0;hero.ultMax=SK[u].cd;
+  const hp=Math.round(base.hp*(1+0.1*(L-1))*(UP('training')?1.18:1)*tm.hp);
+  const hero={c,type:c.type,x:GX,y:GATE_Y-36,tx:null,ty:null,spd:(UP('horse')?88:70)*(c.type==='melee'?1.15:c.type==='caster'?0.9:1)*tm.spd,hp,max:hp,dmg:base.dmg*(1+0.08*(L-1))*tm.dmg,rate:base.rate*tm.rate,range:base.range*tm.range,sk:p.sk.slice(),lvl:L,atkT:0,cd:{},shield:0,dead:false,respawnT:0,blocks:2,eng:0,invulnUntil:0,taunts:false,oath:false,oocT:0,skT:{},face:1,bxp:0,bLvl:0,rallyT:1,stepPx:0,tal};
+  hero.blocks=(c.sk[0]==='taunt'||c.sk[1]==='taunt'?SK.taunt.v[skLvl(hero,'taunt')-1]:2)+(tal&&tal.k==='block'?tal.v:0);hero.taunts=skLvl(hero,'taunt')>0;
+  const u=c.sk[2];hero.cd.ult=0;hero.ultMax=SK[u].cd*cdMul(hero);
   return hero;
 }
 function skLvl(hero,id){const i=hero.c.sk.indexOf(id);return i<0?0:hero.sk[i];}
-function skVal(hero,id){const l=skLvl(hero,id);return l?SK[id].v[l-1]:0;}
+function skVal(hero,id){const l=skLvl(hero,id);if(!l)return 0;let v=SK[id].v[l-1];if(hero.tal&&hero.tal.k==='skillmult'&&hero.tal.sk===id)v=Math.round(v*(1+hero.tal.v));return v;}
 function startGame(o){
   const h=ACC;G.mode=o.mode;G.level=o.level||null;G.runs++;
   let map;
@@ -1070,6 +1191,7 @@ function kill(e,src){
   if(e.dead)return;e.hp=0;e.dead=true;if(e.left)return;
   let g=Math.round(e.gold*(1+0.015*(G.wave-1))*((G.mod&&G.mod.gold)||1)*DIFF().gold*(UP('coin')?1.12:1));
   const q=posE(e);if(src==='hero'&&G.hero&&skLvl(G.hero,'goldtouch')){g=Math.round(g*(1+skVal(G.hero,'goldtouch')/100));addFx({t:'coins',x:q.x,y:q.y-8,life:0.6});}
+  if(src==='hero'&&G.hero&&G.hero.tal&&G.hero.tal.k==='goldkill')g=Math.round(g*(1+G.hero.tal.v));
   G.gold+=g;G.kills++;SFX.play('die',45);if(ACC){ACC.kc=ACC.kc||{};ACC.kc[e.type]=(ACC.kc[e.type]||0)+1;}addText(q.x,q.y-10,'+'+g,'#e3b661');corpseFx(e,q);if(G.hero&&G.heroOn&&!G.tut)heroXp(src==='hero'?1:0.25);
   if(!e.boss&&!e.fly)G.deaths.push({type:e.type,prog:e.prog,t:G.time,route:e.route});
   if(!e.fly&&G.decals.length<70)G.decals.push({x:q.x,y:q.y,r:e.giant?15:e.boss?17:8,ice:!!e.walker,life:9});
@@ -1126,7 +1248,7 @@ function summonAllies(x,y,n,life,fromHero){for(let i=0;i<n;i++){const a=(i/n)*Ma
 function ultCine(h,id){const c=h.c,hh=HOUSES[ACC.house];G.slowmoT=0.5;G.ultCard={t0:performance.now(),ms:1800,id:c.id,e:c.e,name:c.n,ult:SK[id].n,col:hh.col,col2:hh.col2};heroSay(QUOTES[c.id]?QUOTES[c.id][1]:SK[id].n+'!',1900);}
 function castUlt(){
   const h=G.hero;if(G.state!=='play'||!G.heroOn||h.dead||h.cd.ult>0)return;const id=h.c.sk[2],v=skVal(h,id),hc=HOUSES[ACC.house].col;
-  h.cd.ult=SK[id].cd;h.ultMax=SK[id].cd;G.log.push({t:G.tick,a:'ult',id});if(G.tut)tutEvent('ult');SFX.play('ult');
+  h.cd.ult=SK[id].cd*cdMul(h);h.ultMax=h.cd.ult;G.log.push({t:G.tick,a:'ult',id});if(G.tut)tutEvent('ult');SFX.play('ult');
   ultCine(h,id);
   const near=(r)=>G.enemies.filter(e=>e.hp>0&&!e.fly&&dist(posE(e).x,posE(e).y,h.x,h.y)<=r);
   const gate=heldGate();
@@ -1205,11 +1327,11 @@ function step(){
     if(G.heroSayAt!=null&&G.time>=G.heroSayAt){G.heroSayAt=null;heroSay(QUOTES[h.c.id]?QUOTES[h.c.id][0]:'',2400);}
     if(skLvl(h,'rally')){h.rallyT-=dt;if(h.rallyT<=0){h.rallyT=2;for(const s of map.slots)if(s.tower&&TOWERS[s.tower.type].kind!=='barracks'&&dist(s.x,s.y,h.x,h.y)<=90)addFx({t:'pulse',x:h.x,y:h.y-10,tx:s.x,ty:s.y-10,life:0.45,col:'#e3b661'});}}
     h.oocT-=dt;if(h.oocT<=0)h.hp=Math.min(h.max,h.hp+5*dt);
-    for(const id of['cleave','shield','heal','summon']){const l=skLvl(h,id);if(!l)continue;h.skT[id]=(h.skT[id]||SK[id].cd)-dt;if(h.skT[id]>0)continue;
-      if(id==='cleave'){const l2=G.enemies.filter(e=>e.hp>0&&!e.fly&&dist(posE(e).x,posE(e).y,h.x,h.y)<=32+e.r);if(!l2.length)continue;h.skT[id]=SK.cleave.cd;for(const e of l2)dmg(e,SK.cleave.v[l-1],'hero');addFx({t:'cleave',x:h.x,y:h.y-10,life:0.34,col:HOUSES[ACC.house].col});h.strikeT=G.time;SFX.play('slash',120);}
-      else if(id==='shield'){h.skT[id]=SK.shield.cd;if(h.shield<=0)addFx({t:'ring',x:h.x,y:h.y-12,r0:4,r1:24,life:0.4,col:'#8fd3ff'});h.shield=SK.shield.v[l-1];}
-      else if(id==='heal'){h.skT[id]=SK.heal.cd;if(G.doorHp<G.doorMax){G.doorHp=Math.min(G.doorMax,G.doorHp+SK.heal.v[l-1]);const g=heldGate();addFx({t:'wave',x:h.x,y:h.y-10,tx:g.x,ty:GATE_Y-12,life:0.5,col:'#7cff6b'});addText(g.x,GATE_Y-30,'+'+SK.heal.v[l-1],'#7cff6b');}}
-      else if(id==='summon'){h.skT[id]=SK.summon.cd;summonAllies(h.x,h.y+6,SK.summon.v[l-1],12,true);}}
+    for(const id of['cleave','shield','heal','summon']){const l=skLvl(h,id);if(!l)continue;h.skT[id]=(h.skT[id]||SK[id].cd*cdMul(h))-dt;if(h.skT[id]>0)continue;
+      if(id==='cleave'){const l2=G.enemies.filter(e=>e.hp>0&&!e.fly&&dist(posE(e).x,posE(e).y,h.x,h.y)<=32+e.r);if(!l2.length)continue;h.skT[id]=SK.cleave.cd*cdMul(h);for(const e of l2)dmg(e,skVal(h,'cleave'),'hero');addFx({t:'cleave',x:h.x,y:h.y-10,life:0.34,col:HOUSES[ACC.house].col});h.strikeT=G.time;SFX.play('slash',120);}
+      else if(id==='shield'){h.skT[id]=SK.shield.cd*cdMul(h);if(h.shield<=0)addFx({t:'ring',x:h.x,y:h.y-12,r0:4,r1:24,life:0.4,col:'#8fd3ff'});h.shield=skVal(h,'shield');}
+      else if(id==='heal'){h.skT[id]=SK.heal.cd*cdMul(h);if(G.doorHp<G.doorMax){const hv=skVal(h,'heal');G.doorHp=Math.min(G.doorMax,G.doorHp+hv);const g=heldGate();addFx({t:'wave',x:h.x,y:h.y-10,tx:g.x,ty:GATE_Y-12,life:0.5,col:'#7cff6b'});addText(g.x,GATE_Y-30,'+'+hv,'#7cff6b');}}
+      else if(id==='summon'){h.skT[id]=SK.summon.cd*cdMul(h);summonAllies(h.x,h.y+6,skVal(h,'summon'),12,true);}}
     h.atkT-=dt;
     if(h.atkT<=0){
       if(h.type==='melee'){let best=null,bv=-Infinity;for(const e of G.enemies){if(e.hp<=0||e.fly)continue;const p=posE(e);if(dist(p.x,p.y,h.x,h.y)<=h.range+e.r&&-remainOf(e)>bv){bv=-remainOf(e);best=e;}}if(best){h.atkT=h.rate;h.strikeT=G.time;const p=posE(best);setFace(h,p.x<h.x?-1:1);heroHit(best,h.dmg);addFx({t:'arc',x:h.x,y:h.y-12,a:Math.atan2(p.y-h.y,p.x-h.x),r:19,life:0.2,col:HOUSES[ACC.house].col});addFx({t:'hit',x:p.x,y:p.y-8,life:0.15});SFX.play('slash',90);}}
@@ -1566,7 +1688,7 @@ function drawNarrator(now){
 
 /* =========================== SCREENS =========================== */
 function show(html,mode){
-  card.className='card'+(mode==='wide'?' wide':mode==='full'?' full':'');
+  CLOUD.screen=null;card.className='card'+(mode==='wide'?' wide':mode==='full'?' full':'');
   overlay.className=mode==='full'?'full':'';
   card.innerHTML=html;overlay.classList.remove('hidden');card.scrollTop=0;
 }
@@ -1890,18 +2012,19 @@ function afterLoad(){
 }
 function startTutorial(){startGame({mode:'campaign',level:LEVELS[0],tutorial:1});}
 function newLang(i,q,selJ){
-  const rows=realmStats(),top=rows.length?rows[0].waves:1;
+  if(sbReady()&&!CLOUD.lb)fetchLeaderboard(true).then(r=>{if(r&&CLOUD.screen==='newlang'&&$('#q'))newLang(i,$('#q').value,selJ);});
+  const rows=realmStats(),top=rows.length?Math.max(1,rows[0].waves):1;
   const list=rows.filter(r=>!q||(r.c+' '+r.l).toLowerCase().indexOf(q.toLowerCase())>=0);
   const sel=selJ!=null?rows.find(r=>r.j===selJ):null;
   show(fs('realm',`
    <h1>🌍 Your realm</h1>
    <p class="sub">Every wave you survive is added to your country's banner in the global standings.</p>
    <input class="searchbox" id="q" placeholder="Search realm or language" value="${q||''}">
-   ${sel?`<div class="statbox"><div class="hd">${flag(sel.c,42)}<b>${sel.c}</b><span style="margin-left:auto;color:var(--gold);font-family:var(--f-display)">${sel.rank<=3?['🥇','🥈','🥉'][sel.rank-1]:'#'+sel.rank}</span></div>
-     <div class="gr"><div><b>${sel.waves.toLocaleString()}</b><small>waves held</small></div><div><b>${sel.players.toLocaleString()}</b><small>defenders</small></div><div><b>${Math.round(sel.waves/sel.players)}</b><small>per defender</small></div></div>
+   ${sel?`<div class="statbox"><div class="hd">${flag(sel.c,42)}<b>${sel.c}</b><span style="margin-left:auto;color:var(--gold);font-family:var(--f-display)">${sel.rank<=3&&sel.waves>0?['🥇','🥈','🥉'][sel.rank-1]:'#'+sel.rank}</span></div>
+     <div class="gr"><div><b>${sel.waves.toLocaleString()}</b><small>waves held</small></div><div><b>${sel.players.toLocaleString()}</b><small>defenders</small></div><div><b>${sel.players?Math.round(sel.waves/sel.players):0}</b><small>per defender</small></div></div>
      <button class="btn" id="bPick" style="margin-top:9px"><span class="e">${LANGS[sel.j].f==='🌍'?'🌍':'🏳️'}</span> Fight for ${sel.c}</button></div>`:''}
    <div class="grow" style="margin-top:8px">${list.map(r=>realmRow(r,top,r.j===selJ?'sel':'')).join('')||'<p class="m">No realm by that name.</p>'}</div>`,
-   {close:1,art:1}),'full');
+   {close:1,art:1}),'full');CLOUD.screen='newlang';
   $('#bX').addEventListener('click',showSlots);
   $('#bArt').addEventListener('click',()=>showArt(()=>newLang(i,q,selJ)));
   const inp=$('#q');
@@ -2100,24 +2223,32 @@ function showOnlineOver(waves){
 }
 
 /* ---------- realms ---------- */
-function showRealms(fromTitle,q){
-  const rows=realmStats(),top=rows.length?rows[0].waves:1;
-  const mine=ACC?rows.find(r=>r.mine):null;
+function showRealms(fromTitle,q,noFetch){
+  if(!noFetch&&sbReady()&&(!CLOUD.lb||Date.now()-CLOUD.lbAt>60000))fetchLeaderboard(true).then(r=>{if(r&&CLOUD.screen==='realms'&&$('#q'))showRealms(fromTitle,$('#q').value,true);});
+  const rows=realmStats(),top=rows.length?Math.max(1,rows[0].waves):1;
+  const mine=ACC?rows.find(r=>r.mine):null;const lb=cachedLb();
   const list=rows.filter(r=>!q||(r.c+' '+r.l).toLowerCase().indexOf(q.toLowerCase())>=0);
+  const st=!sbReady()?'Standings need the online backend — not connected in this build.':lb?`Live · ${(+lb.total||0).toLocaleString()} defenders · updated ${new Date(CLOUD.lbAt||Date.now()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`:CLOUD.lbErr?'Could not reach the standings ('+CLOUD.lbErr+')':'Loading standings…';
+  const meRow=lb&&lb.me?lb.me:null;
+  const topList=lb&&lb.top&&lb.top.length?`<div class="statbox" style="margin-top:8px"><div class="hd"><b>🏆 Top defenders</b><span style="margin-left:auto;color:var(--gold);font-family:var(--f-display);font-size:11px">⭐ stars · 🌊 waves</span></div>
+     ${lb.top.slice(0,10).map(t=>`<div class="lbrow ${meRow&&t.tg_id===meRow.tg_id?'me':''}"><span class="rk">${t.rank<=3?['🥇','🥈','🥉'][t.rank-1]:'#'+t.rank}</span><span class="hs">${(HOUSES[t.house]||{}).e||'🛡️'}</span><span class="nm">${esc(t.name)}</span><span class="sc">⭐${t.stars} · 🌊${t.waves}</span></div>`).join('')}
+     ${meRow&&meRow.rank>10?`<div class="lbrow me"><span class="rk">#${meRow.rank}</span><span class="hs">${(HOUSES[meRow.house]||{}).e||'🛡️'}</span><span class="nm">${esc(meRow.name)}</span><span class="sc">⭐${meRow.stars} · 🌊${meRow.waves}</span></div>`:''}</div>`:'';
   show(fs('realm',`
    <h1>🌍 Global realm competition</h1>
-   <p class="sub">Join a realm and hold waves for its banner. <span style="color:var(--gold)">Live scoring — coming soon.</span></p>
+   <p class="sub">Every star and every endless wave counts for your realm's banner. <span style="color:var(--gold)">${st}</span></p>
    <input class="searchbox" id="q" placeholder="Search realms or countries" value="${q||''}">
-   ${mine?`<div class="statbox"><div class="hd">${flag(mine.c,42)}<b>${mine.c}</b><span style="margin-left:auto;color:var(--gold);font-family:var(--f-display)">Rank ${mine.rank<=3?['🥇','🥈','🥉'][mine.rank-1]:'#'+mine.rank}</span></div>
-   <div class="gr"><div><b>${mine.waves.toLocaleString()}</b><small>realm waves</small></div><div><b>${ACC.stats.waves}</b><small>your waves</small></div><div><b>${mine.players.toLocaleString()}</b><small>defenders</small></div></div></div>`:''}
+   ${mine?`<div class="statbox"><div class="hd">${flag(mine.c,42)}<b>${mine.c}</b><span style="margin-left:auto;color:var(--gold);font-family:var(--f-display)">Rank ${mine.rank<=3&&mine.waves>0?['🥇','🥈','🥉'][mine.rank-1]:'#'+mine.rank}</span></div>
+   <div class="gr"><div><b>${mine.waves.toLocaleString()}</b><small>realm waves</small></div><div><b>${meRow?'#'+meRow.rank:ACC.stats.onlineBest}</b><small>${meRow?'your world rank':'your best run'}</small></div><div><b>${mine.players.toLocaleString()}</b><small>defenders</small></div></div></div>`:''}
+   ${topList}
    <div class="grow" style="margin-top:8px">${list.map(r=>realmRow(r,top)).join('')}</div>
-   <div class="foot"><p class="m" style="margin:0;font-size:11px">⏳ Coming soon — realm scores are simulated for now. Your realm choice is already saved.</p></div>`,
-   {close:1,art:1}),'full');
+   <div class="foot"><p class="m" style="margin:0;font-size:11px">${CLOUD.on?'☁️ Playing as '+esc(CLOUD.name)+' — progress is saved to your Telegram account.':TG?'☁️ Cloud save: '+esc(cloudStatus()):'Open the game inside Telegram to save progress to your account and enter the standings.'}</p></div>`,
+   {close:1,art:1}),'full');CLOUD.screen='realms';
   $('#bX').addEventListener('click',()=>fromTitle||!ACC?showTitle():showCampaign());
   $('#bArt').addEventListener('click',()=>showArt(()=>showRealms(fromTitle,q)));
   const inp=$('#q');
-  inp.addEventListener('input',()=>{const v=inp.value;showRealms(fromTitle,v);const n=$('#q');if(n){n.focus();n.setSelectionRange(v.length,v.length);}});
+  inp.addEventListener('input',()=>{const v=inp.value;showRealms(fromTitle,v,true);const n=$('#q');if(n){n.focus();n.setSelectionRange(v.length,v.length);}});
 }
+function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 /* ---------- upgrades ---------- */
 function showUpgrades(){
   show(`<div class="topbar"><h1>⭐ Upgrades<small>Stars come from the campaign. Every upgrade is permanent and works online too.</small></h1><button class="back" id="bBack">✖</button></div>
@@ -2152,6 +2283,7 @@ function showHeroRoom(viewId){
         <small>❤️ +10% health and ⚔️ +8% damage per level · ${p.lvl>=10?'gold frame':p.lvl>=5?'silver frame; gold at 10':'silver frame at 5, gold at 10'}</small>`:`<small style="color:var(--gold)">🔒 Unlocks after ${UNLOCK_STAGE[c.tier]} gates held</small>`}</div></div>
     <div class="cskills">${c.sk.map((sk,i)=>{const S=SK[sk],l=p.sk[i];
       return `<div class="sk2 ${l>=3?'gold':''}"><span class="e">${S.e}</span><span style="flex:1"><b>${S.n}</b>${S.ult?' · ULTIMATE':''}<br>${S.d(S.v[l-1])}</span><span style="text-align:right"><span class="pips">${'●'.repeat(l)}${'○'.repeat(3-l)}</span><br><button data-a="sk" data-i="${i}" ${!un||l>=3||ACC.gems<skCost(l)?'disabled':''}>💎${l>=3?'max':skCost(l)}</button></span></div>`;}).join('')}</div>
+    ${un&&p.lvl>=5?`<div class="ctal"><b class="tlbl">⭐ Talent — unlocked at level 5, free to swap</b>${TALENTS[c.id].map((t,i)=>`<button class="tal2 ${p.tal===i+1?'on':''}" data-a="tal" data-i="${i+1}"><span class="e">${talEmoji(t)}</span><span style="flex:1"><b>${t.n}</b><br>${talDesc(t)}</span>${p.tal===i+1?'<span class="tk">✔</span>':''}</button>`).join('')}</div>`:''}
     <div class="cfoot"><button data-a="sel" ${!un||ride?'disabled':''}>${ride?'✔ Riding with you':'✔ Ride with '+shortName(c)}</button></div></div>`;
   show(`<div class="topbar"><h1>${hh.e} Hero room<small>One champion rides with you per battle. Dragonglass buys levels and skills.</small></h1><button class="back" id="bBack">✖</button></div>
   <p class="m">💎 <b style="color:var(--gold)">${ACC.gems}</b> dragonglass · 🚪 ${cleared()}/10 gates held</p>
@@ -2162,6 +2294,7 @@ function showHeroRoom(viewId){
     const id=c.id,a=b.dataset.a;
     if(a==='lvl'){const c0=lvlCost(p);if(ACC.gems>=c0&&p.lvl<10){ACC.gems-=c0;p.lvl++;}}
     else if(a==='sk'){const i=+b.dataset.i,l=p.sk[i],c0=skCost(l);if(l<3&&ACC.gems>=c0){ACC.gems-=c0;p.sk[i]++;}}
+    else if(a==='tal'){p.tal=+b.dataset.i;}
     else ACC.sel=id;
     persist();showHeroRoom(id);
   }));
@@ -2295,7 +2428,7 @@ function showSettings(){
   const hh=HOUSES[ACC.house],L=lang();
   show(`<div class="topbar"><h1>⚙️ More</h1><button class="back" id="bBack">✖</button></div>
   <p>${hh.e} House ${hh.n} · ${flag(L.c,20)} ${L.c} · ${DIFFS[ACC.diff].e} ${DIFFS[ACC.diff].n}<br><span class="m">⭐ ${starsEarned()}/30 · 🚪 ${cleared()}/10 · 💎 ${ACC.gems} · 🏆 ${Object.keys(ACC.ach).length}/${ACHS.length}</span></p>
-  <p class="m">Progress: ${window.storage?'saved to your account':(lsGet()!==null?'saved in this browser':'not available here, lasts until reload')}</p>
+  <p class="m">Progress: ${window.storage?'saved to your account':(lsGet()!==null?'saved in this browser':'not available here, lasts until reload')}<br>☁️ Cloud: ${esc(cloudStatus())}</p>
   <button class="btn sec" id="bAch"><span class="e">🏆</span> Achievements</button>
   <button class="btn sec" id="bRealm"><span class="e">🌍</span> Realm standings</button>
   <button class="btn sec" id="bDiff"><span class="e">${DIFFS[ACC.diff].e}</span> Difficulty</button>
@@ -2766,12 +2899,13 @@ function frame(now){
 async function init(){
   dpr=Math.min(2,window.devicePixelRatio||1);
   await loadSave();
+  if(TG&&sbReady())await Promise.race([cloudLogin(),new Promise(r=>setTimeout(r,4500))]);
   resetRun(buildMap({pts:LEVELS[0].pts,seed:hash32('L1'),biome:'snow'}));
   resize();updateBar();updateHUD();
   setHouseCss();showTitle();
   requestAnimationFrame(frame);
 }
-window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,upCost:t=>TOWERS[t.type].cost[t.lvl]};
+window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,upCost:t=>TOWERS[t.type].cost[t.lvl]};
 init();
 })();
 </script>
