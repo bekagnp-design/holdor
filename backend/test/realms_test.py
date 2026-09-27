@@ -5,7 +5,7 @@ import os, json, subprocess
 from playwright.sync_api import sync_playwright
 HERE = os.path.dirname(os.path.abspath(__file__)); BACK = os.path.dirname(HERE); ROOT = os.path.dirname(BACK)
 SHOTS = os.path.join(ROOT, '.shots'); os.makedirs(SHOTS, exist_ok=True)
-sql = ''.join(open(os.path.join(BACK, f), encoding='utf-8').read() + '\n' for f in ('test/prod_like.sql', 'holdor_v3.sql', 'holdor_v4.sql'))
+sql = ''.join(open(os.path.join(BACK, f), encoding='utf-8').read() + '\n' for f in ('test/prod_like.sql', 'holdor_v3.sql', 'holdor_v4.sql', 'holdor_v5.sql', 'holdor_econ_data.sql'))
 sql += "delete from players where tg_id in (777000123, 555);\n"
 r = subprocess.run(['su', 'postgres', '-c', 'psql -q -v ON_ERROR_STOP=1 -o /dev/null'], input=sql, capture_output=True, text=True)
 if r.returncode: raise SystemExit('load failed: ' + r.stderr[-600:])
@@ -21,7 +21,9 @@ with sync_playwright() as p:
     pg = br.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=2, has_touch=True).new_page(); errs = []
     pg.on('pageerror', lambda x: errs.append(str(x)))
     pg.add_init_script(MOCK); pg.goto('file://' + HERE + '/index_test.html'); pg.wait_for_timeout(2500)
-    check('v1.0.55 logs in', pg.evaluate("HOLDOR.CLOUD.on && HOLDOR.VERSION==='1.0.55'"))
+    import re as _re
+    want = _re.search(r"const VERSION='([^']+)';\", 1", open(os.path.join(ROOT, 'src', 'parts', '01_version.py')).read()).group(1)
+    check('beta logs in', pg.evaluate("HOLDOR.CLOUD.on && HOLDOR.VERSION===" + json.dumps(want)), want)
     # the test user: seat I in Georgia (Stark, 3 stages)
     pg.evaluate("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;a.holdTut=1;a.holdIntro=1;
       a.tours={win:1,battle:1,coll:1,shop:1,hold:1,events:1};a.learn={chest:1,hold:1,champ:1};

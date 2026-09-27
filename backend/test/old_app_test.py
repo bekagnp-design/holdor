@@ -1,5 +1,5 @@
-# The app Telegram opens today (root index.html, v1.0.48 — sends no seat and the best-of-all-seats numbers)
-# against the local backend with v3 + v4: every seat must still get its own honest row.
+# The app Telegram opens today (root index.html — whatever version is live; v1.0.48 sent no seat and the best-of-all-seats
+# numbers) against the local backend (v3 … v5): every seat must still get its own honest row.
 # Needs fakerest.py running and init.txt from prepare.py (see README). Run: python3 backend/test/old_app_test.py
 import os, re, json, subprocess
 from playwright.sync_api import sync_playwright
@@ -29,7 +29,7 @@ with sync_playwright() as p:
     pg.on('pageerror', lambda x: errs.append(str(x)))
     pg.add_init_script(MOCK); pg.goto('file://' + HERE + '/index_old_test.html'); pg.wait_for_timeout(2500)
     st = pg.evaluate("({on:HOLDOR.CLOUD.on,tg:HOLDOR.CLOUD.tg_id,v:HOLDOR.VERSION})")
-    check('old app logs in', st['on'] and st['tg'] == 777000123 and st['v'] == '1.0.48', str(st))
+    check('live app logs in', st['on'] and st['tg'] == 777000123, str(st))
     # seat I: Georgia / Stark, 3 stages
     pg.evaluate("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;a.holdTut=1;a.holdIntro=1;
       a.campaign={1:3,2:3,3:3};a.stats.kills=500;H.SAVE.slots[0]=a;H.SAVE.cur=0;H.setAcc(a);H.persist();})()""")
@@ -41,7 +41,8 @@ with sync_playwright() as p:
       a.campaign={1:3,2:3,3:3,4:3,5:3,6:3};a.stats.kills=2000;H.SAVE.slots[2]=a;H.SAVE.cur=2;H.setAcc(a);H.persist();})()""")
     pg.wait_for_timeout(4200)
     sent = pg.evaluate("HOLDOR.scoreSummary()")
-    check('old app sends the mixed numbers', sent == {'stars': 18, 'gates': 6, 'waves': 0, 'kills': 2500}, str(sent))
+    mixed = st['v'] == '1.0.48'   # before v1.0.49: best of all seats, kills summed
+    check('live app sends ' + ('the mixed numbers' if mixed else 'the seat\'s numbers'), sent == ({'stars': 18, 'gates': 6, 'waves': 0, 'kills': 2500} if mixed else {'stars': 18, 'gates': 6, 'waves': 0, 'kills': 2000}), str(sent))
     got = q("select seat, realm, house, stars, gates, waves, kills from scores where tg_id=777000123 order by seat")
     check('each seat its own row (seat I not overwritten)', got == '0|0|stark|9|3|0|500\n2|3|targaryen|18|6|0|2000', got)
     # Hold run in seat III: hold_result without a seat
