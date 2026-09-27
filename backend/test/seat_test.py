@@ -23,7 +23,7 @@ insert into daily_scores (day,tg_id,seat,name,house,realm,waves,kills,runs) valu
 r = subprocess.run(['su','postgres','-c','psql -q -v ON_ERROR_STOP=1'], input=FIXTURE, capture_output=True, text=True)
 if r.returncode: raise SystemExit('fixture failed: ' + r.stderr)
 with sync_playwright() as p:
-    br=p.chromium.launch()
+    br=p.chromium.launch(executable_path=os.environ.get('CHROMIUM_PATH') or None)
     ctx=br.new_context(viewport={'width':412,'height':860});pg=ctx.new_page();errs=[];pg.on('pageerror',lambda x:errs.append(str(x)))
     pg.add_init_script(MOCK);pg.goto('file://'+HERE+'/index_test.html');pg.wait_for_timeout(2500)
     st=pg.evaluate("({on:HOLDOR.CLOUD.on,name:HOLDOR.CLOUD.name,tg:HOLDOR.CLOUD.tg_id,err:HOLDOR.CLOUD.lastErr,v:HOLDOR.VERSION||null})")

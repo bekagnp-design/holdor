@@ -843,7 +843,35 @@ table.lv tr.lk td{color:#9a8a6a}
 .sitem .dic .pe{font-size:30px}
 #bPack{flex:.85;border-color:#b47cff}
 #bPack.used{opacity:.55}
-#bPack .e{font-size:24px}
+#bPack .e{font-size:24px}/* v1.0.55 — players in every realm list, the realm card */
+.rrow .pp{flex:0 0 46px;text-align:center;line-height:1.05}
+.rrow .pp b{display:block;font-family:var(--f-display);font-size:13px;color:#ffe36e;font-variant-numeric:tabular-nums}
+.rrow .pp small{font-size:9.5px;color:#93a8bd}
+.rrow .pp.z b{color:#5f7389}
+.statbox.tap{cursor:pointer}
+.statbox.tap .hd:after{content:'›';margin-left:6px;color:var(--gold);font-size:18px;line-height:1}
+.rch1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rch1 small{flex-basis:100%}
+.rcst{font-size:11.5px;margin:6px 0 0}
+.rcavg{font-size:11.5px;margin:7px 0 0;text-align:center}
+.statbox .hd .lg{margin-left:auto;color:var(--gold);font-family:var(--f-display);font-size:11px}
+.rchouse{display:flex;align-items:center;gap:9px;padding:6px 2px;border-bottom:1px solid rgba(143,211,255,.12)}
+.rchouse:last-child{border-bottom:0}
+.rchouse .cr{flex:0 0 22px;display:flex;justify-content:center}
+.rchouse .nm{flex:1;min-width:0}
+.rchouse .nm b{display:block;font-family:var(--f-display);font-size:12px}
+.rchouse .nm small{color:#93a8bd;font-size:11px}
+.rchouse .bar{display:block;height:5px;background:#0e1725;border-radius:3px;overflow:hidden;margin-top:4px}
+.rchouse .bar i{display:block;height:100%;background:linear-gradient(90deg,#c9953f,#ffe36e)}
+.rcsum{display:flex;gap:5px;flex-wrap:wrap;margin:0 0 8px}
+.rcsum span{background:#0c1f3a;border:2px solid #0b1a2e;border-radius:10px;padding:3px 8px;font-size:11px;font-weight:800;color:#cfe6ff;font-variant-numeric:tabular-nums}
+button.standrow{width:100%;background:none;border:0;border-bottom:2px solid rgba(0,0,0,.25);color:inherit;font:inherit;font-size:12.5px;font-weight:700;text-align:left;cursor:pointer}
+button.standrow:last-of-type{border-bottom:0}
+button.standrow .v:after{content:' ›';color:#cfe6ff}
+button.standrow .rk{background:#0c1f3a;border-color:#0b1a2e}
+button.standrow:nth-of-type(1) .rk{background:linear-gradient(180deg,#ffe97a,#f2a62c);border-color:#7a4a10}
+button.standrow:nth-of-type(2) .rk{background:linear-gradient(180deg,#e9eef5,#9fb0c4);border-color:#4a5666}
+button.standrow:nth-of-type(3) .rk{background:linear-gradient(180deg,#e0a06a,#a86a3a);border-color:#5a3418}
 </style>
 </head>
 <body>
@@ -1596,7 +1624,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.54';
+const VERSION='1.0.55';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -1732,14 +1760,14 @@ function flag(country,w){
 function realmStats(){
   /* real standings from the leaderboard RPC (cached in localStorage); zeros when nothing has been fetched yet */
   const lb=cachedLb();const by={};if(lb&&lb.realms)for(const r of lb.realms)by[r.realm]=r;
-  const rows=LANGS.map((L,j)=>{const r=by[j]||{};return{j,f:L.f,c:L.c,l:L.l,players:+r.players||0,waves:+r.waves||0,stars:+r.stars||0,kills:+r.kills||0};});
+  const rows=LANGS.map((L,j)=>{const r=by[j]||{};return{j,f:L.f,c:L.c,l:L.l,players:+r.players||0,seats:+r.seats||+r.players||0,waves:+r.waves||0,stars:+r.stars||0,kills:+r.kills||0,active:+r.active||0,today:+r.today||0,todayPlayers:+r.today_players||0};});
   if(ACC){const me=rows[ACC.langI]||rows[0];me.mine=true;}
   rows.sort((a,b)=>b.waves-a.waves||b.stars-a.stars||b.players-a.players||a.j-b.j);
   rows.forEach((r,i)=>r.rank=i+1);
   return rows;
 }
 function realmRow(r,top,extra){
-  return `<button class="rrow ${r.mine?'me':''} ${extra||''}" data-j="${r.j}"><span class="rk">${r.rank<=3&&r.waves>0?['🥇','🥈','🥉'][r.rank-1]:'#'+r.rank}</span>${flag(r.c,30)}<span class="nm"><b>${r.c}</b><small>${r.l}</small></span><span class="wv">${r.waves.toLocaleString()} 🌊<span class="bar"><i style="width:${Math.max(4,Math.round(100*r.waves/top))}%"></i></span></span></button>`;
+  return `<button class="rrow ${r.mine?'me':''} ${extra||''}" data-j="${r.j}"><span class="rk">${r.rank<=3&&r.waves>0?['🥇','🥈','🥉'][r.rank-1]:'#'+r.rank}</span>${flag(r.c,30)}<span class="nm"><b>${r.c}</b><small>${r.l}</small></span><span class="pp ${r.players?'':'z'}"><b>${r.players.toLocaleString()}</b><small>${r.players===1?'player':'players'}</small></span><span class="wv">${r.waves.toLocaleString()} 🌊<span class="bar"><i style="width:${Math.max(4,Math.round(100*r.waves/top))}%"></i></span></span></button>`;
 }
 /* =========================== SOUND (synthesised, no files) =========================== */
 const SFX=(()=>{
@@ -3557,7 +3585,7 @@ function newLang(i,q,selJ){
    <p class="sub">Every wave you survive is added to your country's banner in the global standings.</p>
    <input class="searchbox" id="q" placeholder="Search realm or language" value="${q||''}">
    ${sel?`<div class="statbox"><div class="hd">${flag(sel.c,42)}<b>${sel.c}</b><span style="margin-left:auto;color:var(--gold);font-family:var(--f-display)">${sel.rank<=3&&sel.waves>0?['🥇','🥈','🥉'][sel.rank-1]:'#'+sel.rank}</span></div>
-     <div class="gr"><div><b>${sel.waves.toLocaleString()}</b><small>waves held</small></div><div><b>${sel.players.toLocaleString()}</b><small>defenders</small></div><div><b>${sel.players?Math.round(sel.waves/sel.players):0}</b><small>per defender</small></div></div>
+     <div class="gr"><div><b>${sel.waves.toLocaleString()}</b><small>waves held</small></div><div><b>${sel.players.toLocaleString()}</b><small>${sel.players===1?'player':'players'}</small></div><div><b>${sel.players?Math.round(sel.waves/sel.players):0}</b><small>per player</small></div></div>
      <button class="btn" id="bPick" style="margin-top:9px"><span class="e">${flag(sel.c,20)}</span> Fight for ${sel.c}</button></div>`:''}
    <div class="grow" style="margin-top:8px">${list.map(r=>realmRow(r,top,r.j===selJ?'sel':'')).join('')||'<p class="m">No realm by that name.</p>'}</div>`,
    {close:1,art:1}),'full');CLOUD.screen='newlang';
@@ -3760,7 +3788,7 @@ function showRealms(fromTitle,q,noFetch){
   const rows=realmStats(),top=rows.length?Math.max(1,rows[0].waves):1;
   const mine=ACC?rows.find(r=>r.mine):null;const lb=cachedLb();
   const list=rows.filter(r=>!q||(r.c+' '+r.l).toLowerCase().indexOf(q.toLowerCase())>=0);
-  const st=!sbReady()?'Standings need the online backend — not connected in this build.':lb?`Live · ${(+lb.total||0).toLocaleString()} defenders · updated ${new Date(CLOUD.lbAt||Date.now()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`:CLOUD.lbErr?'Could not reach the standings ('+CLOUD.lbErr+')':'Loading standings…';
+  const st=!sbReady()?'Standings need the online backend — not connected in this build.':lb?`Live · ${realmTotals(lb)} · updated ${new Date(CLOUD.lbAt||Date.now()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`:CLOUD.lbErr?'Could not reach the standings ('+CLOUD.lbErr+')':'Loading standings…';
   const meRow=lbMine(lb).me;
   const topList=lb&&lb.top&&lb.top.length?`<div class="statbox" style="margin-top:8px"><div class="hd"><b>🏆 Top defenders</b><span style="margin-left:auto;color:var(--gold);font-family:var(--f-display);font-size:11px">🏆 trophies · ⭐ · 🌊</span></div>
      ${lb.top.slice(0,10).map(t=>`<div class="lbrow ${lbIsMe(t)?'me':''}"><span class="rk">${t.rank<=3?['🥇','🥈','🥉'][t.rank-1]:'#'+t.rank}</span><span class="hs">${(HOUSES[t.house]||{}).e||'🛡️'}</span><span class="nm">${rankSVG(rankOf(trophiesRow(t),t.rank).t,13,rankOf(trophiesRow(t)).div)}${lbName(t)}</span><span class="sc">🏆${trophiesRow(t)} · ⭐${t.stars} · 🌊${t.waves}</span></div>`).join('')}
@@ -3769,13 +3797,13 @@ function showRealms(fromTitle,q,noFetch){
    <h1>🌍 Global realm competition</h1>
    <p class="sub">Every star and every endless wave counts for your realm's banner. <span style="color:var(--gold)">${st}</span></p>
    <input class="searchbox" id="q" placeholder="Search realms or countries" value="${q||''}">
-   ${mine?`<div class="statbox"><div class="hd">${flag(mine.c,42)}<b>${mine.c}</b><span style="margin-left:auto;color:var(--gold);font-family:var(--f-display)">Rank ${mine.rank<=3&&mine.waves>0?['🥇','🥈','🥉'][mine.rank-1]:'#'+mine.rank}</span></div>
-   <div class="gr"><div><b>${mine.waves.toLocaleString()}</b><small>realm waves</small></div><div><b>${meRow?'#'+meRow.rank:ACC.stats.onlineBest}</b><small>${meRow?'your world rank':'your best run'}</small></div><div><b>${mine.players.toLocaleString()}</b><small>defenders</small></div></div></div>`:''}
+   ${mine?`<div class="statbox tap" id="bMyRealm" data-j="${mine.j}"><div class="hd">${flag(mine.c,42)}<b>${mine.c}</b><span style="margin-left:auto;color:var(--gold);font-family:var(--f-display)">Rank ${mine.rank<=3&&mine.waves>0?['🥇','🥈','🥉'][mine.rank-1]:'#'+mine.rank}</span></div>
+   <div class="gr"><div><b>${mine.waves.toLocaleString()}</b><small>realm waves</small></div><div><b>${meRow?'#'+meRow.rank:ACC.stats.onlineBest}</b><small>${meRow?'your world rank':'your best run'}</small></div><div><b>${mine.players.toLocaleString()}</b><small>${mine.players===1?'player':'players'}</small></div></div></div>`:''}
    ${topList}
    <div class="grow" style="margin-top:8px">${list.map(r=>realmRow(r,top)).join('')}</div>
    <div class="foot"><p class="m" style="margin:0;font-size:11px">${CLOUD.on?'☁️ Playing as '+esc(CLOUD.name)+' — progress is saved to your Telegram account.':TG?'☁️ Cloud save: '+esc(cloudStatus()):'Open the game inside Telegram to save progress to your account and enter the standings.'}</p></div>`,
    {close:1,art:1}),'full');CLOUD.screen='realms';
-  $('#bX').addEventListener('click',()=>fromTitle||!ACC?showTitle():showHub('events'));
+  $('#bX').addEventListener('click',()=>fromTitle||!ACC?showTitle():showHub('events'));bind('.rrow',b=>{SFX.play('tap',50);showRealmCard(+b.dataset.j,()=>showRealms(fromTitle,q,true));});const mr=$('#bMyRealm');if(mr)mr.addEventListener('click',()=>{SFX.play('tap',50);showRealmCard(+mr.dataset.j,()=>showRealms(fromTitle,q,true));});
   const inp=$('#q');
   inp.addEventListener('input',()=>{const v=inp.value;showRealms(fromTitle,v,true);const n=$('#q');if(n){n.focus();n.setSelectionRange(v.length,v.length);}});
 }
@@ -3991,6 +4019,65 @@ function usePack(k){if(G.state!=='play'||G.packUsed||!(packOf()[k]>0)||!PACK_ITE
   else if(k==='frost'){let n=0;for(const e of G.enemies){if(e.hp>0&&!e.boss){e.stunT=Math.max(e.stunT||0,3);n++;const q=posE(e);addFx({t:'ring',x:q.x,y:q.y-8,r0:4,r1:22,life:0.5,col:'#cdf1ff'});}}addFx({t:'flash',life:0.3});addFx({t:'tint',life:3});addText(g.x,g.y-44,n?'Frozen!':'Nothing on the road','#cdf1ff',1);}
   else if(k==='roar'){let n=0;for(const e of G.enemies){if(e.hp<=0||e.fly)continue;if(remainOf(e)<150){e.prog=Math.max(0,e.prog-70);e.stunT=Math.max(e.stunT||0,1.5);n++;}}addFx({t:'ring',x:g.x,y:g.y-10,r0:10,r1:160,life:0.6,col:'#e9eef5'});G.shake=Math.min(8,(G.shake||0)+5);hodorSay('HODOOOR!',1500);addText(g.x,g.y-44,n?'Thrown back!':'Nobody at the gate','#e9eef5',1);}
   SFX.play('spell');if(G.log)G.log.push({t:G.tick,a:'pack',k});closeSheet();updateBar();return true;}
+/* =========================== REALM CARD (v1.0.55) ===========================
+   Every realm (country) is open to everyone: how many players and defenders (seats) fight for it, what they hold,
+   who played this week, today's Hold, the houses that fight for it and its best defenders.
+   Every number is the server's own (the realm_card RPC, backend v4); until it answers, the card shows the realm's
+   line from the cached leaderboard. Players = people, defenders = seats (one person can hold up to three). */
+const RCARD={};
+function plural(n,one,many){n=+n||0;return n.toLocaleString()+' '+(n===1?one:many);}
+function realmTotals(lb){
+  if(!lb)return '';const t=+lb.total||0;
+  return lb.players!=null?`${plural(lb.players,'player','players')} · ${plural(lb.countries,'country','countries')} · ${plural(t,'defender','defenders')}`:plural(t,'defender','defenders');
+}
+function realmSummary(lb){
+  if(!lb||lb.players==null)return '';
+  return `<div class="rcsum"><span>👥 ${plural(lb.players,'player','players')}</span><span>🌍 ${plural(lb.countries,'country','countries')}</span><span>🛡️ ${plural(lb.total,'defender','defenders')}</span></div>`;
+}
+function rcFresh(j){const c=RCARD[j];return !!(c&&Date.now()-c.at<60000&&c.seat===Math.max(0,seatNo()));}
+async function fetchRealmCard(j){
+  if(!sbReady())return null;delete CLOUD.rcErr;
+  try{const seat=Math.max(0,seatNo());const r=await sbRpc('realm_card',{realm:j,me:CLOUD.tg_id||null,seat},{timeout:8000});
+    if(r&&typeof r==='object'&&+r.realm===j){RCARD[j]={at:Date.now(),seat,data:r};delete CLOUD.rcErr;return r;}}
+  catch(e){CLOUD.rcErr=String(e&&e.message||e);}
+  return null;
+}
+function rcDefRow(t){const tr=trophiesRow(t),rk=rankOf(tr);
+  return `<div class="lbrow ${lbIsMe(t)?'me':''}"><span class="rk">${t.rank<=3?['🥇','🥈','🥉'][t.rank-1]:'#'+t.rank}</span><span class="hs">${(HOUSES[t.house]||{}).e||'🛡️'}</span><span class="nm">${rankSVG(rk.t,13,rk.div)}${lbName(t)}</span><span class="sc">🏆${tr} · ⭐${+t.stars||0} · 🌊${+t.waves||0}</span></div>`;}
+function showRealmCard(j,back,noFetch){
+  const rows=realmStats(),r=rows.find(x=>x.j===j);if(!r)return;
+  back=back||(()=>showRealms(false));
+  if(!noFetch&&sbReady()&&!rcFresh(j))fetchRealmCard(j).then(()=>{if(CLOUD.screen==='realm:'+j)showRealmCard(j,back,true);});
+  const c=RCARD[j]?RCARD[j].data:null;
+  const v=(k,rk)=>+(c&&c[k]!=null?c[k]:r[rk||k])||0;
+  const players=v('players'),seats=v('seats'),active=v('active'),waves=v('waves'),stars=v('stars'),kills=v('kills'),today=v('today'),todayP=v('today_players','todayPlayers');
+  const st=!sbReady()?'Offline — the standings need the online backend.'
+    :c?`Live · updated ${new Date(RCARD[j].at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`
+    :CLOUD.rcErr?'Could not reach the realm ('+esc(CLOUD.rcErr)+') — showing the last standings.':'Loading the realm…';
+  const houses=(c&&c.houses)||[],hmax=Math.max(1,...houses.map(h=>+h.seats||0));
+  const top=(c&&c.top)||[],me=c&&c.me?c.me:null;
+  const ranked=players>0||waves>0;
+  show(`<div class="topbar"><h1 class="rch1">${flag(r.c,30)} ${r.c}<small>${esc(r.l)}${ranked?` · realm rank #${r.rank} of ${rows.length}`:' · no defender yet'}</small></h1><button class="back" id="bBack">✖</button></div>
+  <p class="m rcst">${st}</p>
+  <div class="statbox"><div class="gr">
+    <div><b>${players.toLocaleString()}</b><small>${players===1?'player':'players'}</small></div>
+    <div><b>${seats.toLocaleString()}</b><small>${seats===1?'defender':'defenders'}</small></div>
+    <div><b>${active.toLocaleString()}</b><small>played this week</small></div>
+    <div><b>${waves.toLocaleString()}</b><small>realm waves 🌊</small></div>
+    <div><b>${stars.toLocaleString()}</b><small>stars ⭐</small></div>
+    <div><b>${kills.toLocaleString()}</b><small>kills ⚔️</small></div></div>
+    ${players?`<p class="m rcavg">Per player: ${Math.round(waves/players).toLocaleString()} 🌊 · ${Math.round(stars/players).toLocaleString()} ⭐</p>`:''}</div>
+  <div class="statbox"><div class="hd"><b>🌊 Today's Hold</b></div>
+    <div class="gr"><div><b>${today.toLocaleString()}</b><small>waves today</small></div><div><b>${todayP.toLocaleString()}</b><small>${todayP===1?'player today':'players today'}</small></div><div><b>${c&&c.best!=null?(+c.best).toLocaleString():'—'}</b><small>best run ever</small></div></div></div>
+  ${c?`<div class="statbox"><div class="hd"><b>🛡️ Houses fighting for ${r.c}</b></div>
+    ${houses.length?houses.map(h=>`<div class="rchouse"><span class="cr">${HOUSES[h.house]?crest(h.house,22):'🛡️'}</span><span class="nm"><b>House ${HOUSES[h.house]?HOUSES[h.house].n:esc(h.house)}</b><small>${plural(h.seats,'defender','defenders')} · ${(+h.waves||0).toLocaleString()} 🌊 · ${(+h.stars||0).toLocaleString()} ⭐</small><span class="bar"><i style="width:${Math.max(4,Math.round(100*(+h.seats||0)/hmax))}%"></i></span></span></div>`).join('')
+      :`<p class="m" style="font-size:12px;margin:6px 0 0">No house holds ${r.c} yet.</p>`}</div>
+  <div class="statbox"><div class="hd"><b>🏆 Best defenders of ${r.c}</b><span class="lg">🏆 · ⭐ · 🌊</span></div>
+    ${top.length?top.map(rcDefRow).join('')+(me&&me.rank>top.length?rcDefRow(me):''):`<p class="m" style="font-size:12px;margin:6px 0 0">No defender yet — be the first to fight for ${r.c}.</p>`}</div>`:''}
+  <button class="btn sec" id="bRcBack">◀ Back</button>`);
+  CLOUD.screen='realm:'+j;
+  $('#bBack').addEventListener('click',back);$('#bRcBack').addEventListener('click',back);
+}
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -5097,20 +5184,20 @@ function hubEvents(sub){sub=sub||'realms';const lb=cachedLb();const t=fmtT(msToM
     {k:'season',live:false,n:'Season I — The Long Night',s:'14-day ladder with a reset and rewards for realm and house rank.',st:'SOON',ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#4fc0ff" stroke="#0b3a5a" stroke-width="1.6"/><circle cx="12" cy="12" r="6.5" fill="#dff3ff"/><path d="M12 8v4.2l3 1.8" fill="none" stroke="#0b3a5a" stroke-width="1.8" stroke-linecap="round"/></svg>'},
     {k:'onslaught',live:false,n:'Onslaught',s:'Same map, same waves — who clears them faster.',st:'SOON',ic:HUB_ICON.battle},
   ];
-  const rows=realmStats().slice(0,10),top=Math.max(1,rows[0]?rows[0].waves:1);
+  const rows=realmStats().filter(r=>r.players>0).slice(0,10),top=Math.max(1,rows[0]?rows[0].waves:1);
   const hs=(lb&&lb.houses)||null;
-  const houseRows=hs?hs.slice().sort((a,b)=>(b.waves||0)-(a.waves||0)||(b.stars||0)-(a.stars||0)).map((h,i)=>`<div class="standrow ${h.house===ACC.house?'me':''}"><span class="rk">${i+1}</span>${crest(h.house,22)}<span class="nm">House ${HOUSES[h.house]?HOUSES[h.house].n:h.house}<small>${h.players} defenders</small></span><span class="v">${(+h.waves||0).toLocaleString()} 🌊 · ${(+h.stars||0)} ⭐</span></div>`).join(''):'<p class="m" style="font-size:12px">House standings arrive with the next backend update.</p>';
+  const houseRows=hs?hs.slice().sort((a,b)=>(b.waves||0)-(a.waves||0)||(b.stars||0)-(a.stars||0)).map((h,i)=>`<div class="standrow ${h.house===ACC.house?'me':''}"><span class="rk">${i+1}</span>${crest(h.house,22)}<span class="nm">House ${HOUSES[h.house]?HOUSES[h.house].n:h.house}<small>${plural(h.players,'player','players')} · ${plural(h.seats!=null?h.seats:h.players,'defender','defenders')}</small></span><span class="v">${(+h.waves||0).toLocaleString()} 🌊 · ${(+h.stars||0)} ⭐</span></div>`).join(''):'<p class="m" style="font-size:12px">House standings arrive with the next backend update.</p>';
   return `<div class="hh"><h2>Events</h2><small>${sbReady()?(lb?'live':'connecting…'):'offline'}</small></div>
   ${ev.map(e=>`<button class="evcard ${e.live?'live':'lock'}" data-ev="${e.k}"><span class="ic">${e.ic}</span><span class="tx"><b>${e.n}</b><small>${e.s}</small></span><span class="st">${e.st}</span></button>`).join('')}
   <div class="subtabs" style="margin-top:12px">${[['realms','Realms'],['houses','Houses'],['defenders','Defenders']].map(([k,n])=>`<button class="${k===sub?'on':''}" data-sub="${k}">${n}</button>`).join('')}</div>
-  <div class="hpanel">${sub==='realms'?rows.map(r=>`<div class="standrow ${r.mine?'me':''}"><span class="rk">${r.rank}</span>${flag(r.c,24)}<span class="nm">${r.c}<small>${r.players} defenders</small></span><span class="v">${r.waves.toLocaleString()} 🌊</span></div>`).join('')+`<button class="btn sec" id="bAllRealms" style="margin-top:8px">All 193 realms</button>`
+  <div class="hpanel">${sub==='realms'?realmSummary(lb)+(rows.map(r=>`<button class="standrow rlink ${r.mine?'me':''}" data-j="${r.j}"><span class="rk">${r.rank}</span>${flag(r.c,24)}<span class="nm">${r.c}<small>👥 ${r.players.toLocaleString()}</small></span><span class="v">${r.waves.toLocaleString()} 🌊</span></button>`).join('')||'<p class="m" style="font-size:12px">No realm has a defender yet — be the first.</p>')+`<button class="btn sec" id="bAllRealms" style="margin-top:8px">All 193 realms</button>`
    :sub==='houses'?houseRows
    :((lb&&lb.top)||[]).slice(0,15).map((p,i)=>`<div class="standrow ${lbIsMe(p)?'me':''}"><span class="rk">${i+1}</span>${p.house&&HOUSES[p.house]?crest(p.house,22):''}<span class="nm">${rankSVG(rankOf(trophiesRow(p),p.rank).t,13,rankOf(trophiesRow(p)).div)}${lbName(p)}<small>${(LANGS[p.realm]||LANGS[0]).c}</small></span><span class="v">${trophiesRow(p)} 🏆 · ${p.stars} ⭐ · ${p.waves} 🌊</span></div>`).join('')||'<p class="m" style="font-size:12px">No defenders yet — be the first.</p>'}</div>`;}
 function hubEventsBind(sub){
   if(sbReady()&&lbStale())fetchLeaderboard(true).then(r=>{if(r&&CLOUD.screen==='hub:events')showHub('events',sub);});
   bind('.subtabs button',b=>showHub('events',b.dataset.sub));
   bind('.evcard',b=>{if(b.dataset.ev==='hold')showHub('hold');else SFX.play('tap',40);});
-  const ar=$('#bAllRealms');if(ar)ar.addEventListener('click',()=>showRealms(false));
+  const ar=$('#bAllRealms');if(ar)ar.addEventListener('click',()=>showRealms(false));bind('.rlink',b=>{SFX.play('tap',50);showRealmCard(+b.dataset.j,()=>showHub('events','realms'));});
 }
 /* ---------- HOLD ---------- */
 function hubHold(){rollDay();const gm=genDaily(hash32(dayKeyUTC())),runs=ACC.online.runs||[],best=runs.length?Math.max(...runs.map(r=>r.waves)):0,open=onlineOpen(),lb=cachedLb(),t=fmtT(msToMidnightUTC());
@@ -5154,6 +5241,7 @@ window.HOLDOR_CASTLE={spawn,maxTowerLvl,armyLvl,armyMul,trainArmy,armyUnits,unit
 window.HOLDOR_CH52={unlocked,CBY,UNLOCK_STAGE,heroHit,KITS52,CH_ORDER,migrate52,OLD_TIER,HERO_BASE,heroAfterHit};
 window.HOLDOR_CH53={KITS53,selSk,handMul,heroParry,hurtHero,costOf,upCost,towerStats,kill,dmg};
 window.HOLDOR_CH54={KITS54,heroXp};
+window.HOLDOR_REALMS={showRealmCard,fetchRealmCard,realmStats,realmTotals,realmSummary,RCARD};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();

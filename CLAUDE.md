@@ -4,13 +4,6 @@
 (`t.me/HoldorTDBot/play`, opens `https://bekagnp-design.github.io/holdor/?v=N`). GitHub Pages serves this repo's root.
 Owner: MR B. Talk to him in **Georgian**, direct and analytical, no praise or filler.
 
-## First session (one time)
-If `holdor-src.zip` sits in the repo root: unzip it there (it has no root `index.html`, so production stays as it is),
-delete the zip, run `python3 src/build.py /tmp/check.html` and confirm it is byte-identical to `beta/index.html`,
-set up the tests (below) and run `node tests/run_core.js`, then commit everything as
-`source: HOLDOR build system, tests, backend, docs`, open a PR and tell MR B in Georgian that it only adds source
-and the beta build — merging it does not change what Telegram opens. Then remove this section in the next PR.
-
 ## Layout
 | Path | What |
 |---|---|
@@ -22,7 +15,7 @@ and the beta build — merging it does not change what Telegram opens. Then remo
 | `src/stages.py`, `layouts.json`, `mults.json` | The 50 campaign stages, road layouts, tuned difficulty multipliers. |
 | `src/tools/` | `gen_layouts.js`, `bot45.js` / `tune45.js` (balance bot), `compute_mults.py`. |
 | `tests/` | Playwright suites with real taps. `node tests/run_core.js` runs the core set. Screenshots go to `.shots/`. |
-| `backend/` | Supabase SQL — MR B runs each file himself in Supabase → SQL Editor. `backend/test/` = local Postgres + PostgREST-like shim. |
+| `backend/` | Supabase SQL, one file per step (`holdor_supabase.sql` → `fix1` → `v2` → `stats` → `v3` → `v4`). Applied through the Supabase connector (project `Holdor`, `acimxvnupgpronpohheb`) as named migrations, or by MR B in SQL Editor. Every file is tested first on the local copy: `backend/test/` = local Postgres + PostgREST-like shim + `prod_like.sql`; `bash backend/test/run_all.sh` runs it all. |
 | `docs/` | `roadmap.md` (version plan, Georgian), `build-backlog.md` (what every version did, English), `pvp-interview.md`, art prompts. |
 | `.nojekyll` | GitHub Pages serves every file as it is (no Jekyll/Liquid run over `docs/` or `src/`). Keep it. |
 
@@ -50,7 +43,8 @@ node tests/t_champs54.js             # or one suite
 - Each seat (I/II/III) is its own defender on the server (`tg_id + seat`).
 
 ## State (2026-09-27)
-- Built: v1.0.54 (champions III), in `beta/index.html`. The root `index.html` (what Telegram opens) is **v1.0.48** (uploaded by hand before this repo had source) until the first release from this repo.
-- **Pending on MR B:** run `backend/holdor_v3.sql` in Supabase (per-seat leaderboard, all-time order by trophies) — before releasing any build ≥ v1.0.49.
-- Next: v1.0.55 — Martell kits (Poison Cloud → Ellaria), bot re-balance of all 50 stages with the 49 kits, 3-step talent tree. Then Duel I–III (see `docs/roadmap.md`, `docs/pvp-interview.md` Q29–Q32 still open).
+- Built: v1.0.55 (realm statistics for everyone), in `beta/index.html`. The root `index.html` (what Telegram opens) is **v1.0.48** (uploaded by hand before this repo had source) until the first release from this repo.
+- Supabase: `holdor_v3.sql` and `holdor_v4.sql` applied on 2026-09-27 (migrations `holdor_v3_seats`, `holdor_v4_realm_stats`). Since v4 the server reads every seat's numbers from the save it is sent — the numbers an app sends are ignored — so v1.0.48 and later write the same rows.
+- Next: v1.0.56 — Martell kits (Poison Cloud → Ellaria), bot re-balance of all 50 stages with the 49 kits, 3-step talent tree. Then Duel I–III (see `docs/roadmap.md`, `docs/pvp-interview.md` Q29–Q32 still open).
 - 42 of 49 champions have unique kits (`KITS52/53/54`); no skill pair or ultimate may repeat — `tests/t_champs54.js` checks it.
+- The public leaderboard still returns Telegram ids (`tg_id`) — planned: an opaque id (backend v5).

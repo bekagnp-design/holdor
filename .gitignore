@@ -3,3 +3,4 @@ node_modules/
 __pycache__/
 backend/test/index_test.html
 backend/test/init.txt
+backend/test/index_old_test.html
