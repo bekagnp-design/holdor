@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Every local backend check, from an empty LOCAL database (su postgres → the local socket; never a Supabase project):
-# the production history (v1 → fix1 → v2 → stats), the production-shaped data (prod_like.sql), v3, v4, then the tests.
+# the production history (v1 → fix1 → v2 → stats), the production-shaped data (prod_like.sql), v3, v4, v5 + econ data, then the tests.
 # Needs: service postgresql start, README step 1 done once (roles, pgcrypto), pip install psycopg2-binary playwright,
 # CHROMIUM_PATH pointing at a Chromium for the browser tests.   Run: bash backend/test/run_all.sh
 set -uo pipefail
@@ -18,8 +18,9 @@ echo "loaded: v1 → fix1 → v2 → stats → prod_like → v3 → v4 → v5 �
 pgrep -f "backend/test/fakerest.py" >/dev/null || { python3 "$T/fakerest.py" >/dev/null 2>&1 & sleep 1; }
 python3 "$R/src/build.py" >/dev/null && python3 "$T/prepare.py" >/dev/null
 bad=0
-# order matters: v4_test leaves Hold runs for today, which would move seat_test's expected ranks; v5_test uses its own players
-for t in realms_test.py seat_test.py old_app_test.py v4_test.py v5_test.py; do
+# order matters: v4_test leaves Hold runs for today, which would move seat_test's expected ranks; v5_test uses its own players;
+# econ_test (the app on a managed seat) cleans the test user first
+for t in realms_test.py seat_test.py old_app_test.py v4_test.py v5_test.py econ_test.py; do
   if python3 "$T/$t" > "/tmp/holdor_$t.log" 2>&1; then echo "OK   $t"; else echo "FAIL $t  (see /tmp/holdor_$t.log)"; grep -E "^FAIL" "/tmp/holdor_$t.log" | head -5; bad=$((bad+1)); fi
 done
 [ $bad -eq 0 ] && echo "all backend checks OK" || echo "$bad backend check(s) failed"
