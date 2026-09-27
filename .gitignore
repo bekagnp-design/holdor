@@ -1,0 +1,5 @@
+.shots/
+node_modules/
+__pycache__/
+backend/test/index_test.html
+backend/test/init.txt

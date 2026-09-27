@@ -1,0 +1,25 @@
+
+/* ---- cards (v1.0.48): copies collected toward the next level ---- */
+.ccard .cb{position:relative;width:100%;height:13px;border-radius:7px;background:#0c1f3a;overflow:hidden;border:2px solid #0b1a2e;box-shadow:inset 0 2px 3px rgba(0,0,0,.6);box-sizing:border-box}
+.ccard .cb i{display:block;height:100%;background:linear-gradient(180deg,#8ff0ff,#22b3f0)}
+.ccard .cb.ok i{background:linear-gradient(180deg,#a8f58a,#3fb04a)}
+.ccard .cb.max i{background:linear-gradient(180deg,#ffe97a,#f2a62c)}
+.ccard .cb em{position:absolute;inset:0;font-style:normal;font-family:var(--f-display);font-size:8px;font-weight:900;line-height:9px;text-align:center;color:#fff;letter-spacing:.03em;text-shadow:-1px 0 0 #0b1a2e,1px 0 0 #0b1a2e,0 -1px 0 #0b1a2e,0 1px 0 #0b1a2e}
+.ccard .upb{position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;background:linear-gradient(180deg,#a8f58a,#3fb04a);border:2px solid #0b1a2e;color:#fff;font-size:12px;font-weight:900;line-height:18px;text-align:center;z-index:2;box-shadow:0 2px 0 #1c5a24;animation:upbp .9s ease-in-out infinite alternate}
+@keyframes upbp{from{transform:translateY(0)}to{transform:translateY(-3px)}}
+.cardline{font-size:11.5px;color:#4a3a22;margin-top:4px;line-height:1.3}
+.cardline em{font-style:normal;font-weight:900;color:#2e2113}.cardline em.ok{color:#2f7a3a}
+.lvline button:disabled{opacity:.55}
+.spi{display:inline-flex;width:100%;height:100%;padding:16%;box-sizing:border-box;align-items:center;justify-content:center}
+.spi svg{width:100%;height:100%}
+.spi.big{width:54px;height:54px;padding:8px;background:#0c1f3a;border-radius:10px;border:2px solid #0b1a2e}
+.hport .spi.big{width:100%;height:100%;padding:12px;border-radius:12px}
+.hgrid.c3{grid-template-columns:repeat(3,1fr)}
+.chestrow.lvl .sbar i{background:linear-gradient(90deg,#a8f58a,#3fb04a)}
+.chestrow.lvl{margin-top:6px}
+#cer .rcard .im .spi{padding:10px}
+.sitem .dic img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.lvltoast{position:absolute;left:50%;top:18%;transform:translate(-50%,-20px);opacity:0;transition:opacity .35s,transform .35s;z-index:70;background:rgba(10,14,20,.94);border:2px solid var(--gold);border-radius:14px;padding:10px 20px;text-align:center;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.lvltoast.in{opacity:1;transform:translate(-50%,0)}
+.lvltoast b{display:block;font-family:var(--f-display);font-size:22px;color:var(--gold);letter-spacing:.06em}
+.lvltoast small{color:#f2e6c9;font-size:12px}

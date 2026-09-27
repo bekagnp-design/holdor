@@ -1,0 +1,26 @@
+
+/* ---- castle buildings (v1.0.51): Train + Spell shop ---- */
+.castlerow{display:flex;gap:8px;margin:0 4px 8px}
+.cbld{flex:1;display:flex;align-items:center;gap:8px;background:linear-gradient(180deg,#2a6fb9,#1a4d8c);border:3px solid #0b1a2e;border-bottom:6px solid #0b1a2e;border-radius:14px;padding:6px 8px;color:#fff;text-align:left;min-width:0;box-shadow:inset 0 2px 0 rgba(255,255,255,.25),0 6px 10px rgba(0,0,0,.35)}
+.cbld:active{transform:translateY(3px);border-bottom-width:3px}
+.cbld .ic{flex:0 0 36px;width:36px;height:36px;border-radius:10px;background:#0c1f3a;border:2px solid #0b1a2e;display:flex;align-items:center;justify-content:center;font-size:20px}
+.cbld .ic svg{width:24px;height:24px;filter:drop-shadow(0 1px 0 #000)}
+.cbld .tx{flex:1;min-width:0}
+.cbld b{display:block;font-family:var(--f-display);font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;text-shadow:0 1px 0 #0b1a2e,-1px 0 0 #0b1a2e,1px 0 0 #0b1a2e,0 -1px 0 #0b1a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cbld small{display:block;color:#cfe6ff;font-size:10px;font-weight:700;text-shadow:0 1px 0 #0b1a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cbld .dot{position:absolute;top:-5px;right:-5px}
+.cbld{position:relative}
+.armybox{margin-top:6px}
+.armybox .lvline{display:flex;align-items:center;gap:8px;font-family:var(--f-display);font-size:13px;color:#fff}
+.armybox .lvline .bar{flex:1;height:9px;background:#0c1f3a;border:1px solid #0b1a2e;border-radius:5px;overflow:hidden}
+.armybox .lvline .bar i{display:block;height:100%;background:linear-gradient(90deg,#3b4a5a,var(--hc,#a9bdd0))}
+.armybox .lvline button{background:linear-gradient(180deg,#ffe97a,#ffcf3d 45%,#f2a62c);border:3px solid #7a4a10;border-bottom-width:5px;border-radius:10px;color:#fff;font-family:var(--f-display);font-size:11px;font-weight:900;padding:5px 9px;text-shadow:0 1px 0 #7a4a10,-1px 0 0 #7a4a10,1px 0 0 #7a4a10,0 -1px 0 #7a4a10;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.armybox .lvline button:disabled{opacity:.55;filter:grayscale(.6)}
+.armybox small{display:block;color:var(--muted);font-size:11.5px;margin-top:6px;line-height:1.35}
+.sitem.unit .ust{display:block;font-style:normal;font-family:var(--f-display);font-size:10.5px;font-weight:900;color:#ffe97a;text-shadow:0 1px 0 #0b1a2e;margin-top:2px;white-space:nowrap}
+.sitem.unit .ust.lk{color:#cfe6ff}
+.sitem.lock{opacity:.6;filter:grayscale(.5)}
+.sitem .dic .pe{font-size:30px}
+#bPack{flex:.85;border-color:#b47cff}
+#bPack.used{opacity:.55}
+#bPack .e{font-size:24px}

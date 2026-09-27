@@ -1,0 +1,1 @@
+rep("window.HOLDOR={", "window.HOLDOR_CASTLE={spawn,maxTowerLvl,armyLvl,armyMul,trainArmy,armyUnits,unitStats,PACK_ITEMS,packOf,packCount,buyPack,usePack,openPackSheet,showTrain,showSpellShop,ARMY_HOUSE_AT,ARMY_MAX};\nwindow.HOLDOR={", 1, 'exports51')

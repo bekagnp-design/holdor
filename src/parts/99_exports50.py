@@ -1,0 +1,1 @@
+rep("window.HOLDOR={", "window.HOLDOR_BOOK={showBook,bookNew,bookDisc,bookNewCount,bookMarkRead,BOOK,trophiesOf,trophiesRow,rankOf,myRank,rankSVG,showRankSheet,RANKS,RANK_AT};\nwindow.HOLDOR={", 1, 'exports50')
