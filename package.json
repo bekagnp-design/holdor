@@ -1,0 +1,12 @@
+{
+  "name": "holdor",
+  "private": true,
+  "description": "HOLDOR: Hold the Door — build and test scripts",
+  "scripts": {
+    "build": "python3 src/build.py",
+    "test": "node tests/run_core.js"
+  },
+  "devDependencies": {
+    "playwright": "1.56.0"
+  }
+}

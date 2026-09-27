@@ -1,0 +1,17 @@
+# v1.0.50 — ranks next to the profile: Iron … Challenger from trophies (campaign stars + 2 × best Hold waves; Duel later).
+# rank.js is injected by 54_book.py. Here: the chip by the name, the trophy row on the Battle tab, emblems on the all-time standings.
+hrep('<div class="who"><b>${esc(playerName())}</b><small>House ${hh.n} · ${flag(lang().c,14)} ${lang().c}</small>',
+     '<div class="who"><div class="nmrow"><b>${esc(playerName())}</b><span id="hubRank">${rankChip()}</span></div><small>House ${hh.n} · ${flag(lang().c,14)} ${lang().c}</small>', 1, 'hubtop-rank')
+hrep("$('#hubAva').addEventListener('click',()=>showSettings());", "$('#hubAva').addEventListener('click',()=>showSettings());const hr=$('#hubRank');if(hr)hr.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});", 1, 'hubtop-rank-bind')
+hrep('<span class="tr">${TROPHY_SVG}${se}</span>', '<span class="tr" id="hubTro">${rankSVG(myRank().t,22,myRank().div)}${TROPHY_SVG}${trophiesOf()}</span>', 1, 'battle-trophies')
+hrep("const cv=$('#isle');if(cv)drawIsland(cv,ACC.house);",
+     "const cv=$('#isle');if(cv)drawIsland(cv,ACC.house);const ht=$('#hubTro');if(ht)ht.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});", 1, 'battle-trophies-bind')
+# all-time standings carry the tier emblem (today's list has no stars, so it stays plain)
+hrep("""<div class="standrow ${lbIsMe(p)?'me':''}"><span class="rk">${i+1}</span>${p.house&&HOUSES[p.house]?crest(p.house,22):''}<span class="nm">${lbName(p)}<small>${(LANGS[p.realm]||LANGS[0]).c}</small></span><span class="v">${p.waves} 🌊 · ${p.stars} ⭐</span></div>""",
+     """<div class="standrow ${lbIsMe(p)?'me':''}"><span class="rk">${i+1}</span>${p.house&&HOUSES[p.house]?crest(p.house,22):''}<span class="nm">${rankSVG(rankOf(trophiesRow(p),p.rank).t,13,rankOf(trophiesRow(p)).div)}${lbName(p)}<small>${(LANGS[p.realm]||LANGS[0]).c}</small></span><span class="v">${trophiesRow(p)} 🏆 · ${p.stars} ⭐ · ${p.waves} 🌊</span></div>""", 1, 'events-rank-rows')
+rep("""<div class="lbrow ${lbIsMe(t)?'me':''}"><span class="rk">${t.rank<=3?['🥇','🥈','🥉'][t.rank-1]:'#'+t.rank}</span><span class="hs">${(HOUSES[t.house]||{}).e||'🛡️'}</span><span class="nm">${lbName(t)}</span><span class="sc">⭐${t.stars} · 🌊${t.waves}</span></div>""",
+    """<div class="lbrow ${lbIsMe(t)?'me':''}"><span class="rk">${t.rank<=3?['🥇','🥈','🥉'][t.rank-1]:'#'+t.rank}</span><span class="hs">${(HOUSES[t.house]||{}).e||'🛡️'}</span><span class="nm">${rankSVG(rankOf(trophiesRow(t),t.rank).t,13,rankOf(trophiesRow(t)).div)}${lbName(t)}</span><span class="sc">🏆${trophiesRow(t)} · ⭐${t.stars} · 🌊${t.waves}</span></div>""", 1, 'realms-rank-rows')
+rep("""<div class="lbrow me"><span class="rk">#${meRow.rank}</span><span class="hs">${(HOUSES[meRow.house]||{}).e||'🛡️'}</span><span class="nm">${lbName(meRow)}</span><span class="sc">⭐${meRow.stars} · 🌊${meRow.waves}</span></div>""",
+    """<div class="lbrow me"><span class="rk">#${meRow.rank}</span><span class="hs">${(HOUSES[meRow.house]||{}).e||'🛡️'}</span><span class="nm">${rankSVG(rankOf(trophiesRow(meRow),meRow.rank).t,13,rankOf(trophiesRow(meRow)).div)}${lbName(meRow)}</span><span class="sc">🏆${trophiesRow(meRow)} · ⭐${meRow.stars} · 🌊${meRow.waves}</span></div>""", 1, 'realms-me-row')
+rep("""<span style="margin-left:auto;color:var(--gold);font-family:var(--f-display);font-size:11px">⭐ stars · 🌊 waves</span>""",
+    """<span style="margin-left:auto;color:var(--gold);font-family:var(--f-display);font-size:11px">🏆 trophies · ⭐ · 🌊</span>""", 1, 'realms-legend')

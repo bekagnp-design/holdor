@@ -1,0 +1,23 @@
+
+/* ---- ranks (v1.0.50) ---- */
+.rksvg{flex:0 0 auto;filter:drop-shadow(0 1px 0 rgba(0,0,0,.5))}
+.rkchip{display:inline-flex;align-items:center;gap:3px;background:rgba(11,26,46,.78);border:1px solid var(--rkc,#c9d3dc);border-radius:9px;padding:1px 6px 1px 3px;font-family:var(--f-display);font-size:9.5px;font-weight:900;letter-spacing:.03em;color:var(--rkc,#c9d3dc);text-shadow:0 1px 0 #0b1a2e;white-space:nowrap;line-height:14px;vertical-align:middle}
+.hubtop .who .nmrow{display:flex;align-items:center;gap:6px;min-width:0}
+.hubtop .who .nmrow b{flex:0 1 auto;min-width:0}
+.hubtop .who .nmrow .rkchip{flex:0 0 auto}
+.tro .tr .rksvg{width:22px;height:24px}
+.standrow .nm .rksvg,.lbrow .nm .rksvg{width:13px;height:14px;vertical-align:-2px;margin-right:3px}
+.rkbig{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px 14px;margin:8px 0;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.08),transparent 60%),var(--panel2);border:1px solid var(--rkc,#c9d3dc);border-radius:14px;text-align:center}
+.rkbig b{font-family:var(--f-display);font-size:22px;font-weight:900;letter-spacing:.06em;color:var(--rkc,#c9d3dc);text-shadow:0 2px 0 #0b1a2e}
+.rkbig small{color:var(--muted);font-size:12px}
+.rkbar{width:100%;height:10px;border-radius:5px;background:#0c1f3a;border:1px solid #0b1a2e;overflow:hidden;margin-top:6px}
+.rkbar i{display:block;height:100%;background:var(--rkc,#c9d3dc)}
+.rkrow{display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid rgba(255,255,255,.06)}
+.rkrow:last-child{border-bottom:0}
+.rkrow .ic{flex:0 0 26px;width:26px;text-align:center;font-size:15px;display:flex;justify-content:center}
+.rkrow .nm{flex:1;min-width:0;font-family:var(--f-display);font-size:12.5px;font-weight:700}
+.rkrow .nm small{display:block;font-family:var(--f-body);font-size:11px;color:var(--muted);font-weight:400}
+.rkrow .v{color:var(--gold);font-family:var(--f-display);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rkrow.me{background:rgba(227,182,97,.12);border-radius:8px}
+.rkrow.lk{opacity:.55}
+.topbar h1 .rksvg{vertical-align:-5px;margin-right:2px}

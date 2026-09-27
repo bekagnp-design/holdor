@@ -1,0 +1,2 @@
+# debug/test exports for the v1.0.45 systems
+rep("window.HOLDOR={", "window.HOLDOR_GEN={denseRoute,pickSlots,waterFeat,seaEdge,riverY,inWater,posAt,BIOMES,mulberry32,hash32,dist,W,H,GX,GATE_Y,buildMap,renderBg,placeProps,chestSVG,showTowerRoom,showHeroRoom,showUpgrades,showCampaign,tLvl,campOf,nextStage,migrate45,sendBrothers,rankCap,towerStats,ECON,SK,TALENTS,UPG,UPG_OLD,DIFFS,hardOpen,maxTowerLvl,MAPPOS,levelOpen,cleared,starsEarned,CH_MAX,SK_MAX,T_MAX,makeHero,showDifficulty,openChest,POOLS,MINIS,TOWER_UNLOCK,UNLOCK_STAGE,SPELLS};\nwindow.HOLDOR={", label='genexp')
