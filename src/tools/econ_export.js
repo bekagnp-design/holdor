@@ -29,11 +29,15 @@ const OUT = path.resolve(__dirname, '..', '..', process.argv[2] || 'backend/econ
       hold_attempts: HOLD_ATTEMPTS,
       // card copies (v1.0.58, backend v7): which cards a seat can get, their rarity, copies per level, copies per chest stack
       cards: (() => { const R = window.HOLDOR_CARDRULES; return {
-        champs: Object.fromEntries(R.CHAMPS.map(c => [c.id, { house: c.house, open: R.UNLOCK_STAGE[c.tier], rar: Math.min(3, Math.floor((c.tier || 0) / 2)) }])),
+        champs: Object.fromEntries(R.CHAMPS.map(c => [c.id, { house: c.house, open: R.UNLOCK_STAGE[c.tier], rar: window.HOLDOR_TAVERN.CH_RAR[c.tier || 0] }])),
         towers: Object.fromEntries(R.TKEYS.map(k => [k, { open: R.TOWER_UNLOCK[k], rar: R.T_RAR[k] || 0 }])),
         spells: Object.fromEntries(Object.keys(R.SPELLS).map(k => [k, { open: k === 'arrows' ? 0 : R.SPELLS[k].at, rar: R.S_RAR[k] || 0 }])),
         need: R.CARD_NEED, mul: R.CARD_MUL, pack: R.CARD_PACK,
         rare: Object.fromEntries(Object.entries(CHEST_TIERS).map(([k, v]) => [k, v.rare || 0])) }; })(),
+      // champions (v1.0.59, backend v8): stars, the burn for a star, books for skill ranks, books in chests, the summon
+      tavern: (() => { const T = window.HOLDOR_TAVERN; return {
+        st_max: T.ST_MAX, asc_gold: T.ASC_GOLD, asc_burn: T.ASC_BURN, book_of: T.BOOK_OF, book_need: T.BOOK_NEED, book_price: T.BOOK_PRICE,
+        book_drop: T.BOOK_DROP, summon: { one: T.SUMMON.one, ten: T.SUMMON.ten, odds: T.SUMMON.odds, copies: T.SUMMON.copies } }; })(),
       // spot checks the SQL test compares against
       win: [[1, 1, 1], [1, 3, 1], [7, 2, 0], [34, 3, 1], [50, 1, 0]].map(([id, st, first]) => [id, st, first, ECON.win({ id }, st, !!first)]),
       hold: [[0, 0], [7, 85], [20, 333], [26, 5045]].map(([w, k]) => [w, k, ECON.hold(w, k)]),

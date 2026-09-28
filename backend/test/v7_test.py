@@ -63,15 +63,15 @@ keys = [x['k'] for x in r['stacks']]
 pool = {x[0] for x in q("select k from ec_pool((select w from wallets w where tg_id = %s and seat = 0))", T1)}
 check('dragon chest: 4 stacks, all different', len(r['stacks']) == 4 and len(set(keys)) == 4 and r['fills'] == 0, r['stacks'])
 check('every stack is a card the seat can get (Stark, open, below the top)', all(k in pool for k in keys) and all(not k.startswith('c:') or C['champs'][k[2:]]['house'] == 'stark' for k in keys), keys)
-check('the copies are in the wallet and in the answer', r['state']['cards'] == {x['k']: x['n'] for x in r['stacks']}, (r['state']['cards'], r['stacks']))
+check('the copies are in the wallet and in the answer', {k: v for k, v in r['state']['cards'].items() if not k.startswith('b:')} == {x['k']: x['n'] for x in r['stacks']}, (r['state']['cards'], r['stacks']))
 rar = {x[0]: x[1] for x in q("select k, r from ec_pool((select w from wallets w where tg_id = %s and seat = 0))", T1)}
-check('the rare slots hold rarer cards when there are some', all(rar[k] >= min(3, 1 + i) for i, k in enumerate(keys[:3]) if any(v >= min(3, 1 + i) for v in rar.values())), [(k, rar[k]) for k in keys])
+check('the rare slots hold rarer cards when there are some', all(rar[k] >= min(4, 2 + i) for i, k in enumerate(keys[:3]) if any(v >= min(4, 2 + i) for v in rar.values())), [(k, rar[k]) for k in keys])   # five rarities since v8
 lo, hi = C['pack']['dragon']
 check('stack sizes within the chest × rarity share', all(max(1, round(lo * C['mul'][rar[x['k']]])) <= x['n'] <= max(1, round(hi * C['mul'][rar[x['k']]])) for x in r['stacks']), r['stacks'])
 # everything at the top level: nothing to give → 100 gold a slot, on the server
 top = {}
 for k in C['champs']:
-    if C['champs'][k]['house'] == 'lannister': top['c:' + k] = 20
+    if C['champs'][k]['house'] == 'lannister': top['c:' + k] = int(q1("select v->>'c' from econ_config where k = 'max'"))   # 20 before v8, 60 after
 for k in C['towers']: top['t:' + k] = 16
 for k in C['spells']: top['s:' + k] = 10
 q("update wallets set levels = %s, gems = 5000 where tg_id = %s", json.dumps(top), T2)

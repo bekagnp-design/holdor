@@ -2,7 +2,7 @@
 // usage: node tests/run_core.js [suite.js ...]
 const { spawnSync } = require('child_process');
 const path = require('path');
-const CORE = ['test45.js', 't_cards.js', 't_tut2.js', 't_book.js', 't_castle.js', 't_champs52.js', 't_champs53.js', 't_champs54.js',
+const CORE = ['test45.js', 't_cards.js', 't_tut2.js', 't_book.js', 't_castle.js', 't_champs52.js', 't_champs53.js', 't_champs54.js', 't_champs59.js', 't_tavern59.js',
   't_allchamps.js', 't_smoke48.js', 't_lessons.js', 't_hublessons.js', 't_tg.js', 't_ring.js', 't_newflow.js', 't_realms.js'];
 const list = process.argv.slice(2).length ? process.argv.slice(2) : CORE;
 let bad = 0;

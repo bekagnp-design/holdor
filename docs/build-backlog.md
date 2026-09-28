@@ -268,6 +268,44 @@ The last gap of the v1.0.56 anti-cheat work: until now a seat's card copies were
   - `run_all.sh` 9/9; the live v1.0.56 still works against v7 (`old_app_test`).
 - **Rollout:** v7 goes into Supabase right before v1.0.58 is released, not at the beta merge. Until then the live v1.0.56 still counts copies itself, and its card levels would be refused.
 
+### v1.0.59 — champions and the tavern (backend v8) (2026-09-29)
+Rules: `docs/design-v2.md` → "v1.0.59".
+- **Rarity (5):**
+  - Champions by opening order: 1–2 Common, 3 Uncommon, 4–5 Rare, 6 Epic, 7 Legendary.
+  - Towers and spells are remapped to the same five: Keep/Scorpion/Brothers Rare, Wildfire/Fire Epic, Weirwood Legendary.
+  - Share of copies: 1 · 0.7 · 0.5 · 0.25 · 0.1. Chest stack weights: 10 · 8 · 6 · 3 · 1. The chest's rare slots ask for Rare/Epic/Legendary.
+  - A champion's base health and damage: +0 · 4 · 8 · 13 · 20%, in battle and in the Book.
+- **Stars ★1–6 and levels up to 60:**
+  - The level stays ≤ 10 × the star. A seat from before counts ⌈level / 10⌉.
+  - Raising a star needs the level at the cap, gold (1500 · 4000 · 9000 · 18000 · 32000) and another champion of the house's cards, burnt (20 · 40 · 80 · 140 · 220 Common-worth; a Rare card counts double, a Legendary ×10).
+  - Levels 20 → 60 need few copies (20 → 59 each) and the old gold formula.
+- **Books:** skill rank 2 · 3 · 4 · 5 needs 1 · 1 · 2 · 3 books of the champion's rarity (Common/Uncommon → Common book). Books drop in chests (by tier, some by chance) and are sold in the deals, which replace the cheap skill-rank deal. They live with the cards (`b:c` `b:r` `b:e` `b:l`).
+- **The portal:** 💎60 for one summon, 💎540 for ten (ten always hold a Rare+). Odds 55 · 25 · 14 · 5 · 1%. A sealed champion joins at once; an open one brings 10 Common-worth of his own cards.
+- **Tavern:** the hero room rebuilt as `mod/tavern.js`: rarity frames, stars, the star box with the cards to burn, skill buttons with books, ⚒️ Gear, the portal. A 🍺 Tavern button sits beside ⚒️ Forge in the Battle tab. The collection card shows `N★ · level`.
+- **Martell (`mod/champs59.js`, `parts/64_champs59.py`):** 7 unique kits.
+  - New skills: Sun of Dorne (soldiers mend), Viper's Kiss (every 4th blow), Patience (standing still).
+  - New ultimates: I Serve (Areo), The Whip (Nymeria), Spears of Dorne (Obara), Serpent's Kiss (Tyene, disarm), Vengeance and Justice (Doran: the door is spared, then paid back ×1.5), The Red Viper (Oberyn).
+  - Poison Cloud stays Ellaria's. All 49 kits are unique (`tests/t_champs59.js`).
+- **Backend v8 (`backend/holdor_v8.sql`, after v7 + the regenerated `holdor_econ_data.sql` with `econ_config.tavern`):**
+  - `ec_star`, and the card op checks the star cap.
+  - New op `econ_sync 'asc'`. `'sk'` needs books; the old `sk` deal needs them too, and a new `books` deal kind exists.
+  - `chest_open` rolls books (returns `books`). `ec_state` returns `copen`.
+  - `champ_summon(token, seat, n)` plus a `summons` table (RLS, no client access).
+  - `ec_op`, `chest_open`, `ec_state` and `ec_card_stack` are generated from v7's text with exact replacements.
+- **Rebalance (`src/tools/shift59.py`):**
+  - Method: the same bot (`tune45.js`, REP 4, 7 steps) tuned all 50 stages twice. Once on the v1.0.58 build with its old player (Jon always, no rarity). Once on v1.0.59 with the new player (`MODEL=v59`: the newest Stark champion open at that stage, with its rarity and kit).
+  - Result per band: stages 11–20 −4% (Robb/Bran instead of Jon), 21–30 +9%, 31–40 +6%, 41–50 +8%.
+  - Applied: new/old, smoothed over five neighbours, kept within −8% … +12%, and multiplied into `src/mults.json`. Stage 50 is unchanged.
+  - Kept for re-runs: `tuned59_old.json` and `tuned59_new.json`.
+  - Band correction: a verification pass (REP 4 at the final values, the same pass on v1.0.58) matched the band means with a second small factor (11–20 −1.4%, 21–30 −2.4%, 31–40 +2.5%, 41–49 +2%).
+  - Mean bot score: v1.0.58 62.5, v1.0.59 63.5. By band: 85→85, 77→75, 58→55, 51→61, 41→42. Stages under target−30: 7 → 6.
+- **Client (`parts/65_tavern.py`):** the five rarities, the star cap in `cardReady`, `CH_MAX` 60, the rarity bonus, book items in chests and deals, the server's stars (`st:` levels) and `copen`, and the Tavern button.
+- **Tests:**
+  - New: `tests/t_tavern59.js` (guest, taps), `tests/t_champs59.js`, `backend/test/v8_test.py` (SQL), `backend/test/tavern_test.py` (managed seat, taps).
+  - Adapted: `test45` (★1 stops at 10; books for the skill ranks) and `v7_test` (it now runs on v8: books in the chest, max level 60, five-rarity slots).
+  - `run_all.sh` 11/11; the core set 18/18.
+- **Rollout:** v8 goes into Supabase together with the v1.0.59 release (after v7, which goes in with v1.0.58). Before that, older apps level skills without books and would be refused. Until then, on the beta a logged-in seat's star, summon and books wait for the server.
+
 ### Admin views v1 (backend, 2026-09-28) — no app change
 - `backend/holdor_admin_v1.sql`: six read-only views over the server's own records, for the owner's dashboard. Applied in Supabase as the migration `holdor_admin_v1_views`; anon and authenticated cannot read them.
   - `v_stage_funnel`: per stage, seats that tried it, battles won/lost/refused/left, win %, average time and stars, seats that cleared it. This is where players stall.
@@ -279,8 +317,8 @@ The last gap of the v1.0.56 anti-cheat work: until now a seat's card copies were
 - First reading (2026-09-28): 1 active seat. Stage 35 won in 308 s with 3 ⭐, 6 energy spent, 0 refills, first spend a card level, 1 Rare ring from an iron level chest.
 
 ## Not done / next
-- **On MR B (one step at a time):** 1) merge the v1.0.58 PR and play `…/holdor/beta/` on the phone; 2) say "release" — Claude first applies `holdor_v7.sql` + the regenerated `holdor_econ_data.sql` in Supabase (hashes verified), then opens the `v1.0.58` release PR. Art: the Dorne kit first (`holdor-prompts-v45.md`); still open: 8 chest images, 30 skill icons, 7 island images, 4 event banners, house film clips.
-- **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.59 champions (rarity, stars ★1–6, books, Martell kits) + tavern → v1.0.60 login calendar + quests → v1.0.61 city → v1.0.62 account levels + HOLDOR Coin + Tasks + invites → v1.0.63 chats → v1.0.64–65 PvP 1v1 → v1.0.66 country war → v1.0.67 languages → v1.0.68 income → v1.0.69 marketing.
+- **On MR B (one step at a time):** 1) merge the v1.0.58 PR, then the v1.0.59 PR, and play `…/holdor/beta/` on the phone; 2) say "release" — Claude first applies `holdor_v7.sql`, the regenerated `holdor_econ_data.sql` and `holdor_v8.sql` in Supabase (hashes verified), then opens the release PR. Art: the Dorne kit first (`holdor-prompts-v45.md`); still open: 8 chest images, 30 skill icons, 7 island images, 4 event banners, house film clips.
+- **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.60 login calendar + quests → v1.0.61 city → v1.0.62 account levels + HOLDOR Coin + Tasks + invites → v1.0.63 chats → v1.0.64–65 PvP 1v1 → v1.0.66 country war → v1.0.67 languages → v1.0.68 income → v1.0.69 marketing.
 - Standing rule from MR B (26.09): every reply ends with the next step and one development idea/plan.
 - **Wire when art arrives:** `BG_ART[biome]` (drop-in), props sheet → cut 3×3 on magenta → `setPropSheet(biome, cells)` (order in `PROP_KIT`), `CHEST_ART`, `SKILL_ART`; painted islands would replace `drawIsland` per house.
 - Hold stats: verified real — the Hold tab's "Today's defenders" and "your rank" come only from the server's `daily_scores` (v3: per seat); B K's 15-wave run was on the server on 2026-09-14.

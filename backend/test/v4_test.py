@@ -8,7 +8,7 @@ def psql_file(*files):
     sql = ''.join(open(os.path.join(BACK, f), encoding='utf-8').read() + '\n' for f in files)
     r = subprocess.run(['su', 'postgres', '-c', 'psql -q -v ON_ERROR_STOP=1 -o /dev/null'], input=sql, capture_output=True, text=True)
     if r.returncode: raise SystemExit('load failed: ' + r.stderr[-800:])
-psql_file('test/prod_like.sql', 'holdor_v3.sql', 'holdor_v4.sql', 'holdor_v5.sql', 'holdor_econ_data.sql', 'holdor_v6.sql', 'holdor_v7.sql')
+psql_file('test/prod_like.sql', 'holdor_v3.sql', 'holdor_v4.sql', 'holdor_v5.sql', 'holdor_econ_data.sql', 'holdor_v6.sql', 'holdor_v7.sql', 'holdor_v8.sql')
 subprocess.run(['su', 'postgres', '-c', 'psql -q -c "delete from players where tg_id in (777000123, 555)"'], check=True)  # the browser tests' users
 
 db = psycopg2.connect(host='127.0.0.1', dbname='postgres', user='postgres', password='pg'); db.autocommit = True

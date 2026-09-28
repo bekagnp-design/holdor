@@ -1,0 +1,2 @@
+rep("window.HOLDOR={", "window.HOLDOR_CH59={KITS59,hitDoor};\nwindow.HOLDOR={", 1, 'exports59')
+rep("window.HOLDOR={", "window.HOLDOR_TAVERN={CH_RAR,RAR_STAT,RAR_N,ST_MAX,ASC_GOLD,ASC_BURN,BOOK_N,BOOK_R,BOOK_OF,BOOK_NEED,BOOK_PRICE,BOOK_DROP,SUMMON,cstar,champCap,champRar,ascend,ascNeed,ascGold,ascCan,ascReady,skillUp,skCan,skBooks,summon,summonRoll,chestBooks,bookKey,showHeroRoom,cardNeed,cardCan,cardLevelUp,addCards,cardHave};\nwindow.HOLDOR={", 1, 'exports59-tavern')

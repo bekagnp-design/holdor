@@ -20,7 +20,7 @@ const FAILS = [];
     return { cleared: Object.keys(a.campaign).length, c21: a.campaign[21], c19: a.campaign[19], jon: a.champs.jon, arya: a.champs.arya, upg: Object.keys(a.upg).sort().join(','), gold: a.gold, refund: a.refund, diff: a.diff, stg: a.stg === undefined, cv: a.cv, pv: a.pv }; });
   ok(R.migr.cleared === 21 && R.migr.c21 === 1 && R.migr.jon.lvl === 19 && R.migr.jon.sk.join() === '5,5,3' && R.migr.arya.lvl === 5 && R.migr.upg === 'horse,leather' && R.migr.refund === 1500 && R.migr.gold === 2500 && R.migr.diff === 'squire' && R.migr.stg, 'migration ' + JSON.stringify(R.migr));
   // 2. progression caps
-  R.prog = await page.evaluate(async () => { const H = window.HOLDOR, X = window.HOLDOR_GEN; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.copen = { jon: 1 }; a.sel = 'jon'; for (let i = 1; i <= 20; i++) a.campaign[i] = 3; a.gold = 200000; a.cards = { 'c:jon': 99999, 't:watch': 99999 }; H.setAcc(a); H.persist();
+  R.prog = await page.evaluate(async () => { const H = window.HOLDOR, X = window.HOLDOR_GEN; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.copen = { jon: 1 }; a.sel = 'jon'; for (let i = 1; i <= 20; i++) a.campaign[i] = 3; a.gold = 200000; a.cards = { 'c:jon': 99999, 't:watch': 99999, 'b:l': 99 }; H.setAcc(a); H.persist();
     X.showHeroRoom('jon'); const click = async (sel) => { const b = document.querySelector(sel); if (b && !b.disabled) b.click(); await new Promise(r => setTimeout(r, 20)); };
     for (let i = 0; i < 30; i++) await click('#clist button[data-a="lvl"]');
     const lvl = H.cprog(null, 'jon').lvl; const p = H.cprog(null, 'jon'); p.lvl = 5; H.persist(); X.showHeroRoom('jon');
@@ -31,7 +31,7 @@ const FAILS = [];
     const tl = X.tLvl('watch'); const st16 = X.towerStats({ type: 'watch', lvl: 1 }, 16), st1 = X.towerStats({ type: 'watch', lvl: 1 }, 1), st4 = X.towerStats({ type: 'watch', lvl: 1 }, 4), st3 = X.towerStats({ type: 'watch', lvl: 1 }, 3);
     X.showUpgrades(); const armoryHasTower = !!document.querySelector('.ug[data-u="keen"]'); document.querySelector('.ug[data-u="leather"]').click(); await new Promise(r => setTimeout(r, 30)); document.querySelector('#bBuy').click(); await new Promise(r => setTimeout(r, 30));
     return { lvl, skAt5, sk20: p.sk[0], talBtn, tl, dmg1: st1.dmg, dmg16: Math.round(st16.dmg * 100) / 100, range3: st3.range, range4: st4.range, armoryHasTower, leather: !!H.ACC.upg.leather }; });
-  ok(R.prog.lvl === 20 && R.prog.skAt5 === 2 && R.prog.sk20 === 5 && R.prog.talBtn && R.prog.tl === 16 && R.prog.range4 > R.prog.range3 * 1.07 && !R.prog.armoryHasTower && R.prog.leather, 'progression ' + JSON.stringify(R.prog));
+  ok(R.prog.lvl === 10 /* v1.0.59: ★1 stops at 10 */ && R.prog.skAt5 === 2 && R.prog.sk20 === 5 && R.prog.talBtn && R.prog.tl === 16 && R.prog.range4 > R.prog.range3 * 1.07 && !R.prog.armoryHasTower && R.prog.leather, 'progression ' + JSON.stringify(R.prog));
   ok(Math.abs(R.prog.dmg16 / R.prog.dmg1 - 1.45 * 1.08) < 0.02, 'tower lvl16 dmg ' + (R.prog.dmg16 / R.prog.dmg1));
   // 3. world map, NEXT, stage flow
   R.flow = await page.evaluate(async () => { const H = window.HOLDOR, X = window.HOLDOR_GEN; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.copen = { jon: 1 }; a.sel = 'jon'; for (let i = 1; i <= 9; i++) a.campaign[i] = 2; a.gold = 5000; H.setAcc(a); H.persist();
