@@ -1215,6 +1215,8 @@ function cardStack(pool,tier,minR,used){const T=CARD_PACK[tier]||CARD_PACK.wood;
 function rollChest(t){const T=CHEST_TIERS[t],out=[],rnd=n=>Math.floor(Math.random()*n),R=ECO.roll;let nf=0;
   const gold=R?R.gold:T.gold[0]+rnd(T.gold[1]-T.gold[0]+1);if(!R)addGold(gold);out.push({k:'gold',n:'Gold',s:'+'+gold,r:0});
   const gems=R?R.gems:T.gems[0]+rnd(T.gems[1]-T.gems[0]+1);if(!R)ACC.gems+=gems;out.push({k:'gems',n:'Dragonglass',s:'+'+gems,r:0});
+  if(R&&R.stacks){for(const x of R.stacks){const rr=cardRar(x.k);out.push({k:'card',key:x.k,cnt:x.n,r:rr,n:cardName(x.k),s:'+'+x.n+' card'+(x.n>1?'s':'')});}
+    for(let i=0;i<(R.fills||0);i++)out.push({k:'gold',n:'Gold',s:'+100',r:0});return out;}   /* the server rolled the stacks and already paid the empty slots */
   const pool=cardPool(),used=new Set();
   for(let i=0;i<T.cards;i++){const st=cardStack(pool,t,i<T.rare?Math.min(3,1+i):0,used);if(st)out.push(st);else{nf++;addGold(100);out.push({k:'gold',n:'Gold',s:'+100',r:0});}}
   if(R&&nf)ecoOp({r:'chestfill',k:R.id,n:nf},{g:100*nf});
@@ -1672,7 +1674,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.57';
+const VERSION='1.0.58';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -2431,7 +2433,7 @@ function victory(){
   const gained=Math.max(0,stars-prev);
   if(stars>prev)Cm[G.level.id]=stars;
   h.gems+=gained*(h.diff==='kingsguard'?12:8);G.hardNew=!wasHard&&hardOpen();
-  G.goldReward=ECON.win(G.level,stars,stars>prev);addGold(G.goldReward);G.cardReward=!prev?stageCards():null;
+  G.goldReward=ECON.win(G.level,stars,stars>prev);addGold(G.goldReward);G.cardReward=!prev&&!G.bid?stageCards():null;
   const after=CHAMPS.filter(c=>c.house===ACC.house&&unlocked(h,c)).length;
   ecoFinish(true,stars,{g:G.goldReward,m:gained*(h.diff==='kingsguard'?12:8)});persist();showCampaignResult(true,stars,after-before,gained);
 }
@@ -4207,6 +4209,7 @@ function ecoApply(st){
   if(ecoCalm()){
     ecoLevels(st.levels||{},P);
     if(st.progress){const c={},h={};for(const k in (st.progress.c||{}))c[k]=+st.progress.c[k];for(const k in (st.progress.h||{}))h[k]=+st.progress.h[k];ACC.campaign=c;ACC.hard=h;}
+    if(st.cards&&typeof st.cards==='object')ACC.cards=Object.assign({},st.cards);   /* v1.0.58: the copies are the server's (backend v7) */
     if(st.deals&&st.deal_window!=null)ACC.deals={k:+st.deal_window,bought:(st.deals.b||[0,0,0,0,0,0]).map(Number),unl:(st.deals.u||[1,1,1,0,0,0]).map(Number)};
   }
   ACC.eco=CLOUD.tg_id||ACC.eco;
@@ -4314,7 +4317,9 @@ async function ecoFinRaw(again){
     if(/no battle/.test(m)){ECO.fin=null;ecoSaveQ();return null;}ECO.err=m;ecoRetryLater();return null;}
   ECO.fin=null;ecoSaveQ();ECO.last=r;
   let st=r&&r.state;if(!st&&f.seat===seatNo()){try{st=await ecoRpc('econ_state',{seat:f.seat},9000);}catch(e){}}
+  const c0=Object.assign({},ACC&&ACC.cards||{});
   if(st&&f.seat===seatNo())ecoApply(st);
+  if(r&&r.ok&&f.won&&st&&st.cards&&f.seat===seatNo()){const got=Object.keys(st.cards).filter(k=>(+st.cards[k]||0)>(+c0[k]||0)).map(k=>'+'+(st.cards[k]-(c0[k]||0))+' '+cardName(k));if(got.length)ecoToast('🃏 '+got.join(' · '),true);}
   if(r&&r.ok&&f.seat===seatNo())await gearLoadRaw(true);
   if(r&&r.ok===false)ecoRefused(['battle not counted — '+(r.why||r.status||'refused')]);
   return r;}
@@ -4326,7 +4331,7 @@ async function ecoChest(t,source,done){
     if(!ecoOn()&&!(await ecoStart()))throw new Error(ECO.err||'offline');
     const r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('chest_open',{seat:seatNo(),tier:t,source},10000);ecoApply(x.state);await gearLoadRaw(true);return x;});
     ecoWait(false);
-    ECO.roll={id:r.chest,gold:+r.gold||0,gems:+r.gems||0};try{openChest(t,done);}finally{ECO.roll=null;}
+    ECO.roll={id:r.chest,gold:+r.gold||0,gems:+r.gems||0,stacks:r.stacks,fills:+r.fills||0};try{openChest(t,done);}finally{ECO.roll=null;}
   }catch(e){ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))ecoRefresh();
     ecoModal('📦 The chest stays shut',ecoNet(m)?'No connection to the server. Chests on this seat open only through it — try again in a moment.':esc(m),[{t:'OK',f:ecoRedraw}]);}
   finally{ECO.busyC=false;}}
@@ -5616,6 +5621,7 @@ window.HOLDOR_CH54={KITS54,heroXp};
 window.HOLDOR_REALMS={showRealmCard,fetchRealmCard,realmStats,realmTotals,realmSummary,RCARD};
 window.HOLDOR_ECON={ECON,UPG,ACHS,CHEST_TIERS,PACK_ITEMS,ARMY_COST,ARMY_MAX,HOLD_ATTEMPTS,CH_MAX,T_MAX,S_MAX,SK_MAX,SK_CAP,VERSION,CARD_PRICE,ECO,ecoOn,ecoWants,ecoStart,ecoApply,ecoFlush,ecoRefresh,ecoCalm,ecoPend,ecoSnap,ecoEnergy,ecoCost,ecoEnergySheet,ecoStatus,ecoBuyAtt,startGame0,cardLevelUp,trainArmy,buyPack,buyDeal,unlockDeal,grantAch};
 window.HOLDOR_GEAR={gearStats,gearItems,gearLoad,showForge,gearSheet,gearCost,gearChance,gearSellPrice,GEAR_SLOTS};
+window.HOLDOR_CARDRULES={UNLOCK_STAGE,TOWER_UNLOCK,T_RAR,S_RAR,CARD_NEED,CARD_MUL,CARD_PACK,CHAMPS,SPELLS,TKEYS};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();

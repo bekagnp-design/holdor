@@ -243,6 +243,31 @@ First step of MR B's growth plan after the server economy (`docs/design-v2.md` �
   - `old_app_test.py` now follows a managed live app.
   - `run_all.sh`: 8/8; core set 16/16.
 
+### v1.0.58 — card copies on the server (backend v7) (2026-09-28)
+The last gap of the v1.0.56 anti-cheat work: until now a seat's card copies were counted in the app.
+- **Backend v7 (`backend/holdor_v7.sql`, after v6 + the regenerated `holdor_econ_data.sql`):**
+  - **Where copies live:** a `cards` column on `wallets`.
+  - **Card rules:** `src/tools/econ_export.js` exports them — which champions (house, stage they open at), towers and spells a seat can get cards of, their rarity, copies per level, copies per chest stack, and the rare slots per chest. They are stored in `econ_config.cards`.
+  - **A card level** (`econ_sync` `card`) needs the game's number of copies and uses them up. If a batch runs out of copies, the rest of it is refused.
+  - **`chest_open`** also rolls the card stacks, following the game's own `cardStack` rules (weights 10/6/3/1, rare slots, copies × the rarity's share). A slot with nothing to give becomes 100 gold on the server.
+  - **The first win of a stage** gives a few copies. This comes from a trigger on a new `progress` row, only when it comes from a server battle, so a legacy import doesn't count.
+  - **A card deal** adds its copies (the key must be a real card).
+  - **Importing a seat from before:** it brings its save's copies once, cleaned (0–5000 each, unknown keys dropped), plus its early-opened champions. The wallets already on the server took their save's copies when v7 ran.
+  - **What v7 rebuilds:** `ec_op`, `chest_open` and `ec_state` are generated from v5's text with exact replacements.
+- **Client (`parts/63_cards.py`, `mod/econ.js`):**
+  - A managed seat's copies come from the server (the calm apply).
+  - A chest shows the server's stacks and fills.
+  - The first win's copies are shown when the server answers (a toast).
+  - Guests roll as before.
+  - The app works on v6 too: without `stacks` in the answer it rolls locally as before.
+- **Tests:**
+  - `backend/test/v7_test.py`: import and cleaning, a level with and without copies, a batch running out, chest stacks (pool, rarity slots, sizes, fills), first win once, deals, anon.
+  - `v5_test` gives its legacy seat copies.
+  - `econ_test`: a made-up count in the app does not survive, and the level uses the server's copies.
+  - `realms_test` and `v4_test` reload the chain through v7.
+  - `run_all.sh` 9/9; the live v1.0.56 still works against v7 (`old_app_test`).
+- **Rollout:** v7 goes into Supabase right before v1.0.58 is released, not at the beta merge. Until then the live v1.0.56 still counts copies itself, and its card levels would be refused.
+
 ## Not done / next
 - **On MR B (one step at a time):** 1) Claude applies backend v5 + the price tables in Supabase (backup first, verified) — SQL before the app that needs it; 2) merge the v1.0.56 PR and play `…/holdor/beta/` on the phone (a seat logged in through Telegram: energy chip, a stage, a chest, the Hold); 3) say "release" (live Telegram serves v1.0.55). Art: the Dorne kit first (`holdor-prompts-v45.md`); still open: 8 chest images, 30 skill icons, 7 island images, 4 event banners, house film clips; city art prompts come with v1.0.60.
 - **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.57 gear + forge → v1.0.58 champions (rarity by order, stars ★1–6, books, Martell kits, server cards) + tavern → v1.0.59 30-day login calendar + quests + challenges → v1.0.60 city (Events to the side) → v1.0.61 account levels 10–60 boxes + HOLDOR Coin + Tasks + invites → v1.0.62 chats → v1.0.63–64 PvP 1v1 (Events card, 🤖 AI practice) → v1.0.65 weekly country war + rewards → v1.0.66 12 languages.

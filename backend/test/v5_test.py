@@ -43,7 +43,7 @@ seat1 = {'house': 'targaryen', 'langI': 3, 'made': '2026-09-14', 'gold': 4117, '
          'champs': {'dany': {'lvl': 19, 'sk': [5, 5, 5], 'tal': 0}, 'jon': {'lvl': 1, 'sk': [1, 1, 1], 'tal': 0}},
          'tlv': {'keep': 10, 'glass': 6}, 'slv': {'fire': 6}, 'upg': {'coin': 1}, 'army': {'lvl': 3},
          'online': {'date': today, 'attempts': 1, 'doorBonus': 300, 'goldBonus': 60, 'runs': []},
-         'lvlChests': 14, 'starChests': 16, 'freeChestAt': 1790403094092, 'ach': {'first': 1},
+         'lvlChests': 14, 'starChests': 16, 'cards': {'t:keep': 100, 'c:dany': 3}, 'freeChestAt': 1790403094092, 'ach': {'first': 1},
          'campaign': camp34, 'hard': {}, 'stats': {'kills': 5045, 'onlineBest': 26},
          'deals': {'k': dwin, 'bought': [1, 0, 0, 0, 0, 0], 'unl': [1, 1, 1, 0, 0, 0]}}
 save1 = {'v': 4, 'cur': 0, 'ver': 5, 'slots': [seat1, None, None]}

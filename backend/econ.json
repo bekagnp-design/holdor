@@ -1,5 +1,5 @@
 {
- "version": "1.0.56",
+ "version": "1.0.58",
  "max": {
   "c": 20,
   "t": 16,
@@ -190,6 +190,346 @@
   80
  ],
  "hold_attempts": 3,
+ "cards": {
+  "champs": {
+   "brienne": {
+    "house": "stark",
+    "open": 0,
+    "rar": 0
+   },
+   "robb": {
+    "house": "stark",
+    "open": 5,
+    "rar": 0
+   },
+   "bran": {
+    "house": "stark",
+    "open": 10,
+    "rar": 1
+   },
+   "sansa": {
+    "house": "stark",
+    "open": 18,
+    "rar": 1
+   },
+   "ned": {
+    "house": "stark",
+    "open": 27,
+    "rar": 2
+   },
+   "arya": {
+    "house": "stark",
+    "open": 36,
+    "rar": 2
+   },
+   "jon": {
+    "house": "stark",
+    "open": 45,
+    "rar": 3
+   },
+   "kevan": {
+    "house": "lannister",
+    "open": 0,
+    "rar": 0
+   },
+   "bronn": {
+    "house": "lannister",
+    "open": 5,
+    "rar": 0
+   },
+   "gregor": {
+    "house": "lannister",
+    "open": 10,
+    "rar": 1
+   },
+   "tywin": {
+    "house": "lannister",
+    "open": 18,
+    "rar": 1
+   },
+   "jaime": {
+    "house": "lannister",
+    "open": 27,
+    "rar": 2
+   },
+   "cersei": {
+    "house": "lannister",
+    "open": 36,
+    "rar": 2
+   },
+   "tyrion": {
+    "house": "lannister",
+    "open": 45,
+    "rar": 3
+   },
+   "gendry": {
+    "house": "baratheon",
+    "open": 0,
+    "rar": 0
+   },
+   "barristan": {
+    "house": "baratheon",
+    "open": 5,
+    "rar": 0
+   },
+   "davos": {
+    "house": "baratheon",
+    "open": 10,
+    "rar": 1
+   },
+   "renly": {
+    "house": "baratheon",
+    "open": 18,
+    "rar": 1
+   },
+   "melisandre": {
+    "house": "baratheon",
+    "open": 27,
+    "rar": 2
+   },
+   "robert": {
+    "house": "baratheon",
+    "open": 36,
+    "rar": 2
+   },
+   "stannis": {
+    "house": "baratheon",
+    "open": 45,
+    "rar": 3
+   },
+   "viserys": {
+    "house": "targaryen",
+    "open": 0,
+    "rar": 0
+   },
+   "missandei": {
+    "house": "targaryen",
+    "open": 5,
+    "rar": 0
+   },
+   "daario": {
+    "house": "targaryen",
+    "open": 10,
+    "rar": 1
+   },
+   "greyworm": {
+    "house": "targaryen",
+    "open": 18,
+    "rar": 1
+   },
+   "jorah": {
+    "house": "targaryen",
+    "open": 27,
+    "rar": 2
+   },
+   "drogo": {
+    "house": "targaryen",
+    "open": 36,
+    "rar": 2
+   },
+   "dany": {
+    "house": "targaryen",
+    "open": 45,
+    "rar": 3
+   },
+   "rodrik": {
+    "house": "greyjoy",
+    "open": 0,
+    "rar": 0
+   },
+   "aeron": {
+    "house": "greyjoy",
+    "open": 5,
+    "rar": 0
+   },
+   "balon": {
+    "house": "greyjoy",
+    "open": 10,
+    "rar": 1
+   },
+   "victarion": {
+    "house": "greyjoy",
+    "open": 18,
+    "rar": 1
+   },
+   "yara": {
+    "house": "greyjoy",
+    "open": 27,
+    "rar": 2
+   },
+   "euron": {
+    "house": "greyjoy",
+    "open": 36,
+    "rar": 2
+   },
+   "theon": {
+    "house": "greyjoy",
+    "open": 45,
+    "rar": 3
+   },
+   "garlan": {
+    "house": "tyrell",
+    "open": 0,
+    "rar": 0
+   },
+   "randyll": {
+    "house": "tyrell",
+    "open": 5,
+    "rar": 0
+   },
+   "mace": {
+    "house": "tyrell",
+    "open": 10,
+    "rar": 1
+   },
+   "loras": {
+    "house": "tyrell",
+    "open": 18,
+    "rar": 1
+   },
+   "olenna": {
+    "house": "tyrell",
+    "open": 27,
+    "rar": 2
+   },
+   "sam": {
+    "house": "tyrell",
+    "open": 36,
+    "rar": 2
+   },
+   "margaery": {
+    "house": "tyrell",
+    "open": 45,
+    "rar": 3
+   },
+   "areo": {
+    "house": "martell",
+    "open": 0,
+    "rar": 0
+   },
+   "nymeria": {
+    "house": "martell",
+    "open": 5,
+    "rar": 0
+   },
+   "obara": {
+    "house": "martell",
+    "open": 10,
+    "rar": 1
+   },
+   "tyene": {
+    "house": "martell",
+    "open": 18,
+    "rar": 1
+   },
+   "doran": {
+    "house": "martell",
+    "open": 27,
+    "rar": 2
+   },
+   "ellaria": {
+    "house": "martell",
+    "open": 36,
+    "rar": 2
+   },
+   "oberyn": {
+    "house": "martell",
+    "open": 45,
+    "rar": 3
+   }
+  },
+  "towers": {
+   "watch": {
+    "open": 0,
+    "rar": 0
+   },
+   "scorp": {
+    "open": 6,
+    "rar": 1
+   },
+   "wild": {
+    "open": 10,
+    "rar": 2
+   },
+   "glass": {
+    "open": 1,
+    "rar": 0
+   },
+   "weir": {
+    "open": 16,
+    "rar": 3
+   },
+   "keep": {
+    "open": 3,
+    "rar": 1
+   }
+  },
+  "spells": {
+   "arrows": {
+    "open": 0,
+    "rar": 0
+   },
+   "fire": {
+    "open": 4,
+    "rar": 2
+   },
+   "reinf": {
+    "open": 7,
+    "rar": 1
+   }
+  },
+  "need": [
+   2,
+   3,
+   4,
+   6,
+   8,
+   10,
+   13,
+   16,
+   20,
+   25,
+   30,
+   36,
+   43,
+   51,
+   60,
+   70,
+   82,
+   95,
+   110
+  ],
+  "mul": [
+   1,
+   0.5,
+   0.25,
+   0.1
+  ],
+  "pack": {
+   "wood": [
+    5,
+    9
+   ],
+   "iron": [
+    8,
+    14
+   ],
+   "valyrian": [
+    14,
+    22
+   ],
+   "dragon": [
+    24,
+    40
+   ]
+  },
+  "rare": {
+   "wood": 0,
+   "iron": 1,
+   "valyrian": 2,
+   "dragon": 3
+  }
+ },
  "win": [
   [
    1,

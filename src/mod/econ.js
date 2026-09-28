@@ -77,6 +77,7 @@ function ecoApply(st){
   if(ecoCalm()){
     ecoLevels(st.levels||{},P);
     if(st.progress){const c={},h={};for(const k in (st.progress.c||{}))c[k]=+st.progress.c[k];for(const k in (st.progress.h||{}))h[k]=+st.progress.h[k];ACC.campaign=c;ACC.hard=h;}
+    if(st.cards&&typeof st.cards==='object')ACC.cards=Object.assign({},st.cards);   /* v1.0.58: the copies are the server's (backend v7) */
     if(st.deals&&st.deal_window!=null)ACC.deals={k:+st.deal_window,bought:(st.deals.b||[0,0,0,0,0,0]).map(Number),unl:(st.deals.u||[1,1,1,0,0,0]).map(Number)};
   }
   ACC.eco=CLOUD.tg_id||ACC.eco;
@@ -184,7 +185,9 @@ async function ecoFinRaw(again){
     if(/no battle/.test(m)){ECO.fin=null;ecoSaveQ();return null;}ECO.err=m;ecoRetryLater();return null;}
   ECO.fin=null;ecoSaveQ();ECO.last=r;
   let st=r&&r.state;if(!st&&f.seat===seatNo()){try{st=await ecoRpc('econ_state',{seat:f.seat},9000);}catch(e){}}
+  const c0=Object.assign({},ACC&&ACC.cards||{});
   if(st&&f.seat===seatNo())ecoApply(st);
+  if(r&&r.ok&&f.won&&st&&st.cards&&f.seat===seatNo()){const got=Object.keys(st.cards).filter(k=>(+st.cards[k]||0)>(+c0[k]||0)).map(k=>'+'+(st.cards[k]-(c0[k]||0))+' '+cardName(k));if(got.length)ecoToast('🃏 '+got.join(' · '),true);}
   if(r&&r.ok&&f.seat===seatNo())await gearLoadRaw(true);
   if(r&&r.ok===false)ecoRefused(['battle not counted — '+(r.why||r.status||'refused')]);
   return r;}
@@ -196,7 +199,7 @@ async function ecoChest(t,source,done){
     if(!ecoOn()&&!(await ecoStart()))throw new Error(ECO.err||'offline');
     const r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('chest_open',{seat:seatNo(),tier:t,source},10000);ecoApply(x.state);await gearLoadRaw(true);return x;});
     ecoWait(false);
-    ECO.roll={id:r.chest,gold:+r.gold||0,gems:+r.gems||0};try{openChest(t,done);}finally{ECO.roll=null;}
+    ECO.roll={id:r.chest,gold:+r.gold||0,gems:+r.gems||0,stacks:r.stacks,fills:+r.fills||0};try{openChest(t,done);}finally{ECO.roll=null;}
   }catch(e){ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))ecoRefresh();
     ecoModal('📦 The chest stays shut',ecoNet(m)?'No connection to the server. Chests on this seat open only through it — try again in a moment.':esc(m),[{t:'OK',f:ecoRedraw}]);}
   finally{ECO.busyC=false;}}

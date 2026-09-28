@@ -9,7 +9,7 @@ const OUT = path.resolve(__dirname, '..', '..', process.argv[2] || 'backend/econ
   const page = await browser.newPage();
   await page.route(/telegram\.org|supabase\.co/, r => r.abort());
   await page.goto('file://' + path.resolve(__dirname, '..', '..', 'beta/index.html'));
-  await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_ECON, { timeout: 30000 });
+  await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_ECON && window.HOLDOR_CARDRULES, { timeout: 30000 });
   const d = await page.evaluate(() => {
     const { ECON, UPG, ACHS, CHEST_TIERS, PACK_ITEMS, ARMY_COST, ARMY_MAX, HOLD_ATTEMPTS, CH_MAX, T_MAX, S_MAX, SK_MAX, SK_CAP, VERSION } = window.HOLDOR_ECON;
     const lv = (f, n) => Array.from({ length: n }, (_, i) => f(i + 1));   // price to go from level i+1 to i+2
@@ -27,6 +27,13 @@ const OUT = path.resolve(__dirname, '..', '..', process.argv[2] || 'backend/econ
       chests: Object.fromEntries(Object.entries(CHEST_TIERS).map(([k, v]) => [k, { gold: v.gold, gems: v.gems, cards: v.cards, price: v.price }])),
       exchange: ECON.exchange, deal_unlock: ECON.unlock,
       hold_attempts: HOLD_ATTEMPTS,
+      // card copies (v1.0.58, backend v7): which cards a seat can get, their rarity, copies per level, copies per chest stack
+      cards: (() => { const R = window.HOLDOR_CARDRULES; return {
+        champs: Object.fromEntries(R.CHAMPS.map(c => [c.id, { house: c.house, open: R.UNLOCK_STAGE[c.tier], rar: Math.min(3, Math.floor((c.tier || 0) / 2)) }])),
+        towers: Object.fromEntries(R.TKEYS.map(k => [k, { open: R.TOWER_UNLOCK[k], rar: R.T_RAR[k] || 0 }])),
+        spells: Object.fromEntries(Object.keys(R.SPELLS).map(k => [k, { open: k === 'arrows' ? 0 : R.SPELLS[k].at, rar: R.S_RAR[k] || 0 }])),
+        need: R.CARD_NEED, mul: R.CARD_MUL, pack: R.CARD_PACK,
+        rare: Object.fromEntries(Object.entries(CHEST_TIERS).map(([k, v]) => [k, v.rare || 0])) }; })(),
       // spot checks the SQL test compares against
       win: [[1, 1, 1], [1, 3, 1], [7, 2, 0], [34, 3, 1], [50, 1, 0]].map(([id, st, first]) => [id, st, first, ECON.win({ id }, st, !!first)]),
       hold: [[0, 0], [7, 85], [20, 333], [26, 5045]].map(([w, k]) => [w, k, ECON.hold(w, k)]),
