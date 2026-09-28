@@ -11,7 +11,13 @@ def check(name,cond,info=''):
     if not cond: fails.append(name)
 # Own fixture, so a run never depends on what is already in the database:
 # the test user (777000123) starts with no rows; a second player "B K" (555) has 9 waves today.
+# v1.0.56: the seats are managed by the server; they count as seats made before v5 (econ_legacy), so their save's stages
+# are taken once when the app first opens them. A Hold run is opened and closed on the server (battle_start / battle_finish).
 FIXTURE = """
+delete from econ_flags where tg_id in (777000123,555); delete from econ_ops where tg_id in (777000123,555);
+delete from ledger where tg_id in (777000123,555); delete from econ_legacy where tg_id in (777000123,555);
+insert into econ_legacy (tg_id,seat,made) values (777000123,0,to_char((now() at time zone 'utc')::date,'YYYY-MM-DD')||'/stark'),
+  (777000123,1,to_char((now() at time zone 'utc')::date,'YYYY-MM-DD')||'/targaryen');
 delete from daily_scores where tg_id in (777000123,555);
 delete from scores where tg_id in (777000123,555);
 delete from sessions where tg_id in (777000123,555);
@@ -26,6 +32,16 @@ with sync_playwright() as p:
     br=p.chromium.launch(executable_path=os.environ.get('CHROMIUM_PATH') or None)
     ctx=br.new_context(viewport={'width':412,'height':860});pg=ctx.new_page();errs=[];pg.on('pageerror',lambda x:errs.append(str(x)))
     pg.add_init_script(MOCK);pg.goto('file://'+HERE+'/index_test.html');pg.wait_for_timeout(2500)
+    def hold_run(wave,kills,tick):
+        pg.evaluate("(()=>{const H=HOLDOR;H.startGame({mode:'online'});})()")
+        bid=None
+        for _ in range(100):
+            bid=pg.evaluate("HOLDOR.G.state==='play'&&HOLDOR.G.mode==='online'&&HOLDOR.G.bid")
+            if bid: break
+            pg.wait_for_timeout(100)
+        check('Hold run opened on the server',bool(bid),str(pg.evaluate("HOLDOR_ECON.ECO.err")))
+        if bid: q(f"update battles set started_at=now()-interval '20 minutes' where id='{bid}'")
+        pg.evaluate("(()=>{const H=HOLDOR;H.G.tick=%d;H.G.wave=%d;H.G.kills=%d;H.gameOver();})()"%(tick,wave,kills));pg.wait_for_timeout(2500)
     st=pg.evaluate("({on:HOLDOR.CLOUD.on,name:HOLDOR.CLOUD.name,tg:HOLDOR.CLOUD.tg_id,err:HOLDOR.CLOUD.lastErr,v:HOLDOR.VERSION||null})")
     check('login',st['on'] and st['tg']==777000123,str(st))
     # seat I: stark, 3 stages cleared -> Hold open
@@ -34,8 +50,7 @@ with sync_playwright() as p:
     check('seat I row',q("select stars||'/'||gates||'/'||waves||'/'||house from scores where tg_id=777000123 and seat=0")=='9/3/0/stark',q("select seat,stars,gates,waves,house from scores where tg_id=777000123 order by seat"))
     # seat I holds 20 waves
     pg.evaluate("(()=>{const H=HOLDOR;H.showHub('hold');})()");pg.wait_for_timeout(1500)
-    pg.evaluate("(()=>{const H=HOLDOR;H.startGame({mode:'online'});})()");pg.wait_for_timeout(600)
-    pg.evaluate("(()=>{const H=HOLDOR;H.G.wave=21;H.G.kills=333;H.gameOver();})()");pg.wait_for_timeout(2500)
+    hold_run(21,333,12000)
     over=pg.evaluate("document.querySelector('#overlay')?document.querySelector('#overlay').innerText:document.body.innerText")
     check('gate fell screen',('You · run 1' in over) and ('B K' in over),over[:200].replace('\n',' | '))
     check('seat I daily',q("select waves||'/'||kills||'/'||seat from daily_scores where tg_id=777000123 and seat=0")=='20/333/0',q("select day,tg_id,seat,waves from daily_scores order by tg_id,seat"))
@@ -51,8 +66,7 @@ with sync_playwright() as p:
     check('lb fetched for seat II',lbseat==1,str(lbseat))
     check('no rank before the run','your rank' not in hold)
     # seat II holds 11 waves -> #2 today (I: 20, II: 11, B K: 9)
-    pg.evaluate("(()=>{const H=HOLDOR;H.startGame({mode:'online'});})()");pg.wait_for_timeout(600)
-    pg.evaluate("(()=>{const H=HOLDOR;H.G.wave=12;H.G.kills=140;H.gameOver();})()");pg.wait_for_timeout(2500)
+    hold_run(12,140,6000)
     over2=pg.evaluate("document.querySelector('#overlay')?document.querySelector('#overlay').innerText:''")
     lines=[l for l in over2.split('\n') if l.strip()]
     check('gate fell II lists seat I as "ტესტი K" and me as run 1',('You · run 1' in over2) and ('ტესტი K' in over2) and ('ტესტი K II' not in over2),' | '.join(lines[:14]))

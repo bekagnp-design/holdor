@@ -1,0 +1,2 @@
+rep("window.HOLDOR={", "window.HOLDOR_ECON={ECON,UPG,ACHS,CHEST_TIERS,PACK_ITEMS,ARMY_COST,ARMY_MAX,HOLD_ATTEMPTS,CH_MAX,T_MAX,S_MAX,SK_MAX,SK_CAP,VERSION,CARD_PRICE,"
+    "ECO,ecoOn,ecoWants,ecoStart,ecoApply,ecoFlush,ecoRefresh,ecoCalm,ecoPend,ecoSnap,ecoEnergy,ecoCost,ecoEnergySheet,ecoStatus,ecoBuyAtt,startGame0,cardLevelUp,trainArmy,buyPack,buyDeal,unlockDeal,grantAch};\nwindow.HOLDOR={", 1, 'exports56')
