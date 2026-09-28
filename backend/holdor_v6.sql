@@ -135,7 +135,7 @@ begin
   ok := random() * 100 < (g->'chance'->>it.lvl)::numeric;
   if ok then
     it.lvl := it.lvl + 1;
-    if it.lvl % 4 = 0 then   -- +4/+8/+12/+16: a new substat while there are fewer than 4, else one grows
+    if it.lvl % 4 = 0 then
       subs := it.subs;
       if jsonb_array_length(subs) < 4 then
         select array_agg(k order by random()) into ks from jsonb_object_keys(g->'sub') k
