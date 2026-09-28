@@ -45,8 +45,20 @@ with sync_playwright() as p:
     check('live app sends ' + ('the mixed numbers' if mixed else 'the seat\'s numbers'), sent == ({'stars': 18, 'gates': 6, 'waves': 0, 'kills': 2500} if mixed else {'stars': 18, 'gates': 6, 'waves': 0, 'kills': 2000}), str(sent))
     got = q("select seat, realm, house, stars, gates, waves, kills from scores where tg_id=777000123 order by seat")
     check('each seat its own row (seat I not overwritten)', got == '0|0|stark|9|3|0|500\n2|3|targaryen|18|6|0|2000', got)
-    # Hold run in seat III: hold_result without a seat
+    # Hold run in seat III. Before v1.0.56: hold_result (no seat before v1.0.49). From v1.0.56 the live app is managed:
+    # the run is opened and closed on the server (the seat counts as one from before v5, so its save's stars come along).
+    managed = tuple(map(int, st['v'].split('.'))) >= (1, 0, 56)
+    if managed:
+        subprocess.run(['su', 'postgres', '-c', "psql -q -c \"delete from econ_legacy where tg_id=777000123; insert into econ_legacy (tg_id,seat,made) values (777000123,2,to_char((now() at time zone 'utc')::date,'YYYY-MM-DD')||'/targaryen')\""], capture_output=True)
     pg.evaluate("HOLDOR.startGame({mode:'online'})"); pg.wait_for_timeout(700)
+    if managed:
+        bid = None
+        for _ in range(100):
+            bid = pg.evaluate("HOLDOR.G.state==='play'&&HOLDOR.G.bid")
+            if bid: break
+            pg.wait_for_timeout(100)
+        subprocess.run(['su', 'postgres', '-c', f"psql -q -c \"update battles set started_at=now()-interval '20 minutes' where id='{bid}'\""], capture_output=True)
+        pg.evaluate("HOLDOR.G.tick=12000")
     pg.evaluate("(()=>{const H=HOLDOR;H.G.wave=21;H.G.kills=333;H.gameOver();})()"); pg.wait_for_timeout(3000)
     d = q("select seat, realm, house, waves, kills from daily_scores where tg_id=777000123 and day=(now() at time zone 'utc')::date")
     check('old Hold run lands on seat III', d == '2|3|targaryen|20|333', d)

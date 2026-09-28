@@ -224,6 +224,25 @@ MR B, after the big survey: "backend first; the game must be hard; we must be pr
 - **Tests:** `backend/test/v5_test.py` (SQL: legacy import, fresh seat, every operation, dedupe, deals, battles too fast / too many kills / replay at 35% / energy regen / level-up refill / Hold / rate limit, chests, tampered save, seat replaced and deleted, ledger = balance, anon denials); `backend/test/econ_test.py` (the app on a managed seat, real taps: a new seat, the tutorial gift, a win paid by the server, a too-fast win refused, a tower level, a tampered balance refused, the shop — deal, exchange, free chest —, energy refill and a battle refused without energy, an offline purchase sent later, the Hold through `battle_finish`, star and level chests, every deal of the window, a reload; the app's numbers equal the server's and the ledger sums to the wallet); `seat_test.py` adapted (Hold runs through the server, the seats count as pre-v5); `run_all.sh` runs all six; core set 16/16.
 - **Known gaps:** card copies are still counted in the app (a level still costs server gold, so power cannot outgrow legally earned gold) → server cards in v1.0.58; achievement conditions are checked in the app (each pays once, 150 💎 in all).
 
+### v1.0.57 — gear and the forge (backend v6) (2026-09-28)
+First step of MR B's growth plan after the server economy (`docs/design-v2.md` → Gear).
+- **Backend v6 (`backend/holdor_v6.sql`, after v5):** an `items` table per seat (slot, rarity, set, main stat, substats, level, the champion wearing it). Every roll happens on the server, which decides:
+  - **Drops:** a won battle 25 % (Hard 35 %); a Hold run of 10+ waves always (Uncommon+ from 30 waves); chests — wood 20 %, iron 50 %, valyrian always (Uncommon+), dragon always (Rare+).
+  - **The item:** rarity 70 / 22 / 6.5 / 1.4 / 0.1 %, 9 slots, 4 sets, a main stat from the slot's list, and 1–4 substats by rarity.
+  - **Forge tries (+1…+16):** chance 100 % falling to 10 %; the gold is paid either way; at +4/+8/+12/+16 a substat appears (while fewer than 4) or one grows. The try's uuid makes a resend harmless.
+  - The drops come from triggers on `battles` and `chests`, so v5's tested functions are untouched.
+  - RPCs `gear_list`, `gear_upgrade`, `gear_equip` (one item per slot per champion) and `gear_sell` (gold by rarity and level). The bag holds 200 items. A replaced seat takes its items with it. The whole config lives in `econ_config.gear`.
+- **Client (`mod/gear.js`, `mod/gear.css`, `parts/62_gear.py`):**
+  - A Forge button on the Battle tab opens the forge: pick a champion, see its 9 slots and a bag with a slot filter; an item's sheet shows its main stat, substats, set bonuses and the next strike (chance, cost), with Strike, Put on / Take off and Sell.
+  - What a champion wears adds to its health, damage, walking speed, range and attack speed; cooldowns (up to −40 %) and gold from its kills apply for the battle.
+  - New items are announced after a battle or chest.
+  - Guests see a locked forge.
+- **Tests:**
+  - `backend/test/v6_test.py`: rarity odds over 20 000 rolls, item structure, drops, forge success / failure / resend / +16, equip and swap, strangers refused, sell, a full bag, a replaced seat, anon denials, ledger = wallet.
+  - `backend/test/gear_test.py`: the app on a managed seat with real taps — a drop, put on (+10.8 % damage in `makeHero`), a strike, a failed strike, a sale.
+  - `old_app_test.py` now follows a managed live app.
+  - `run_all.sh`: 8/8; core set 16/16.
+
 ## Not done / next
 - **On MR B (one step at a time):** 1) Claude applies backend v5 + the price tables in Supabase (backup first, verified) — SQL before the app that needs it; 2) merge the v1.0.56 PR and play `…/holdor/beta/` on the phone (a seat logged in through Telegram: energy chip, a stage, a chest, the Hold); 3) say "release" (live Telegram serves v1.0.55). Art: the Dorne kit first (`holdor-prompts-v45.md`); still open: 8 chest images, 30 skill icons, 7 island images, 4 event banners, house film clips; city art prompts come with v1.0.60.
 - **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.57 gear + forge → v1.0.58 champions (rarity by order, stars ★1–6, books, Martell kits, server cards) + tavern → v1.0.59 30-day login calendar + quests + challenges → v1.0.60 city (Events to the side) → v1.0.61 account levels 10–60 boxes + HOLDOR Coin + Tasks + invites → v1.0.62 chats → v1.0.63–64 PvP 1v1 (Events card, 🤖 AI practice) → v1.0.65 weekly country war + rewards → v1.0.66 12 languages.

@@ -134,7 +134,7 @@ function ecoStart(){
     ecoApply(st);ecoClaims(st);
     if(ECO.q.length)await ecoSyncRaw();
     if(ECO.fin)await ecoFinRaw();
-    ecoTicker();if(ecoSig()!==sig){persist();ecoRedraw();}
+    await gearLoadRaw(false);ecoTicker();if(ecoSig()!==sig){persist();ecoRedraw();}
     return true;
   }).catch(e=>{const m=ecoMsg(e);ECO.err=m;ECO.failAt=Date.now();if(/Could not find the function|PGRST202|schema cache/i.test(m))ECO.none=true;return false;})
     .finally(()=>{if(ECO.starting===p)ECO.starting=null;});
@@ -185,6 +185,7 @@ async function ecoFinRaw(again){
   ECO.fin=null;ecoSaveQ();ECO.last=r;
   let st=r&&r.state;if(!st&&f.seat===seatNo()){try{st=await ecoRpc('econ_state',{seat:f.seat},9000);}catch(e){}}
   if(st&&f.seat===seatNo())ecoApply(st);
+  if(r&&r.ok&&f.seat===seatNo())await gearLoadRaw(true);
   if(r&&r.ok===false)ecoRefused(['battle not counted — '+(r.why||r.status||'refused')]);
   return r;}
 
@@ -193,7 +194,7 @@ async function ecoChest(t,source,done){
   if(ECO.busyC)return;ECO.busyC=true;ecoWait(true);
   try{
     if(!ecoOn()&&!(await ecoStart()))throw new Error(ECO.err||'offline');
-    const r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('chest_open',{seat:seatNo(),tier:t,source},10000);ecoApply(x.state);return x;});
+    const r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('chest_open',{seat:seatNo(),tier:t,source},10000);ecoApply(x.state);await gearLoadRaw(true);return x;});
     ecoWait(false);
     ECO.roll={id:r.chest,gold:+r.gold||0,gems:+r.gems||0};try{openChest(t,done);}finally{ECO.roll=null;}
   }catch(e){ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))ecoRefresh();
