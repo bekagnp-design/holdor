@@ -268,9 +268,19 @@ The last gap of the v1.0.56 anti-cheat work: until now a seat's card copies were
   - `run_all.sh` 9/9; the live v1.0.56 still works against v7 (`old_app_test`).
 - **Rollout:** v7 goes into Supabase right before v1.0.58 is released, not at the beta merge. Until then the live v1.0.56 still counts copies itself, and its card levels would be refused.
 
+### Admin views v1 (backend, 2026-09-28) — no app change
+- `backend/holdor_admin_v1.sql`: six read-only views over the server's own records, for the owner's dashboard. Applied in Supabase as the migration `holdor_admin_v1_views`; anon and authenticated cannot read them.
+  - `v_stage_funnel`: per stage, seats that tried it, battles won/lost/refused/left, win %, average time and stars, seats that cleared it. This is where players stall.
+  - `v_progress_depth`: the last campaign stage of every seat.
+  - `v_energy_daily`: energy spent, refills bought, seats with a full bar now.
+  - `v_econ_daily`: gold and dragonglass earned and spent per day and reason.
+  - `v_first_spend`: the first thing each seat spent on.
+  - `v_active_daily`: players seen, seats that fought, new players per day.
+- First reading (2026-09-28): 1 active seat. Stage 35 won in 308 s with 3 ⭐, 6 energy spent, 0 refills, first spend a card level, 1 Rare ring from an iron level chest.
+
 ## Not done / next
-- **On MR B (one step at a time):** 1) Claude applies backend v5 + the price tables in Supabase (backup first, verified) — SQL before the app that needs it; 2) merge the v1.0.56 PR and play `…/holdor/beta/` on the phone (a seat logged in through Telegram: energy chip, a stage, a chest, the Hold); 3) say "release" (live Telegram serves v1.0.55). Art: the Dorne kit first (`holdor-prompts-v45.md`); still open: 8 chest images, 30 skill icons, 7 island images, 4 event banners, house film clips; city art prompts come with v1.0.60.
-- **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.57 gear + forge → v1.0.58 champions (rarity by order, stars ★1–6, books, Martell kits, server cards) + tavern → v1.0.59 30-day login calendar + quests + challenges → v1.0.60 city (Events to the side) → v1.0.61 account levels 10–60 boxes + HOLDOR Coin + Tasks + invites → v1.0.62 chats → v1.0.63–64 PvP 1v1 (Events card, 🤖 AI practice) → v1.0.65 weekly country war + rewards → v1.0.66 12 languages.
+- **On MR B (one step at a time):** 1) merge the v1.0.58 PR and play `…/holdor/beta/` on the phone; 2) say "release" — Claude first applies `holdor_v7.sql` + the regenerated `holdor_econ_data.sql` in Supabase (hashes verified), then opens the `v1.0.58` release PR. Art: the Dorne kit first (`holdor-prompts-v45.md`); still open: 8 chest images, 30 skill icons, 7 island images, 4 event banners, house film clips.
+- **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.59 champions (rarity, stars ★1–6, books, Martell kits) + tavern → v1.0.60 login calendar + quests → v1.0.61 city → v1.0.62 account levels + HOLDOR Coin + Tasks + invites → v1.0.63 chats → v1.0.64–65 PvP 1v1 → v1.0.66 country war → v1.0.67 languages → v1.0.68 income → v1.0.69 marketing.
 - Standing rule from MR B (26.09): every reply ends with the next step and one development idea/plan.
 - **Wire when art arrives:** `BG_ART[biome]` (drop-in), props sheet → cut 3×3 on magenta → `setPropSheet(biome, cells)` (order in `PROP_KIT`), `CHEST_ART`, `SKILL_ART`; painted islands would replace `drawIsland` per house.
 - Hold stats: verified real — the Hold tab's "Today's defenders" and "your rank" come only from the server's `daily_scores` (v3: per seat); B K's 15-wave run was on the server on 2026-09-14.
