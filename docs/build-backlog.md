@@ -375,6 +375,15 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **App:** an Events-tab card "Duel" → the Duel screen (league, rating, three buttons, the list of duels with both runs and the result). A challenge link opened at start waits until a seat is open (Events → Duel joins it).
 - **Tests:** `backend/test/v15_test.py` (34 checks: ghost and bot, Elo, limits, friend flow, expiry, permissions), `duel_test.py` (real taps).
 - **Rollout:** v15 goes into Supabase with the next release.
+
+### v1.0.71 — Season Pass, VIP and the rewarded-ad frame (backend v16) (2026-09-30)
+- **Season** = a UTC month. Points come only from the server's own records: +1 per won stage, +3 per finished Hold run in the season (×1.25 with VIP). Every 10 points open a tier; 20 tiers. Each tier has a FREE reward for everybody and a PREMIUM reward for the owner of the Pass (gold, dragonglass, books, gear; tier 20 gives a Legendary book and two ★4 Epic+ items). Claimed once per season; only the current season's claims are kept.
+- **Season Pass** (250 ⭐, per season and seat) and **VIP** (200 ⭐, 30 days, buying again adds 30 days; 25 dragonglass a day and +25 % points) are SKUs of the Stars shop (`grant: pass | vip`). A trigger on `payments` grants them when a payment turns `paid` and takes them back when Telegram refunds it; a second Pass in the same season is refused. The pipeline (invoice link, webhook, pay_confirm) is the one from v1.0.60 — no change to the Edge Function.
+- **Rewarded ads:** only the frame. `ad_views`, `ad_state` (the app), `ad_credit` (service role, for the Edge Function that will check an ad partner's signed callback; 5 a day, 8 dragonglass each, dedup by nonce). Off (`econ_config ads.enabled = false`); no ad partner is connected, so the app shows no ad button.
+- **App:** a Season button beside City on the Battle tab → the Season screen (tier bar, Pass and VIP boxes with the Stars buttons, the 20 tiers with free and premium claims, the VIP daily gift). `holdor_econ_data.sql` was regenerated (the two new SKUs); `econ_export.js` exports `grant` and `days`.
+- **A hole the tests caught:** `season_claim` let a premium reward through for a seat without the Pass (a `NULL` boolean in the check). Fixed with `coalesce` and covered by `v16_test`.
+- **Tests:** `backend/test/v16_test.py` (points, tiers, claims, the Pass and VIP through payments and refunds, ads), `season_test.py` (real taps, a simulated Telegram payment).
+- **Rollout:** v16 and the regenerated econ data go into Supabase with the next release.
 ### v1.0.61 — login calendar and quests (backend v10) (2026-09-29)
 The retention loop. Every reward is paid by the server and progress is counted from the server's own records, so nothing here can be forged.
 - **Login calendar (30 days):**

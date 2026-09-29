@@ -23,7 +23,7 @@ python3 "$R/src/build.py" >/dev/null && python3 "$T/prepare.py" >/dev/null
 bad=0
 # order matters: v4_test leaves Hold runs for today, which would move seat_test's expected ranks; v5_test uses its own players;
 # econ_test (the app on a managed seat) cleans the test user first
-for t in realms_test.py seat_test.py old_app_test.py v4_test.py v5_test.py v6_test.py v7_test.py v8_test.py v9_test.py v10_test.py v11_test.py v12_test.py v13_test.py v14_test.py v15_test.py v16_test.py econ_test.py duel_test.py gear_test.py tavern_test.py stars_test.py daily_test.py; do
+for t in realms_test.py seat_test.py old_app_test.py v4_test.py v5_test.py v6_test.py v7_test.py v8_test.py v9_test.py v10_test.py v11_test.py v12_test.py v13_test.py v14_test.py v15_test.py v16_test.py econ_test.py duel_test.py season_test.py gear_test.py tavern_test.py stars_test.py daily_test.py; do
   if python3 "$T/$t" > "/tmp/holdor_$t.log" 2>&1; then echo "OK   $t"; else echo "FAIL $t  (see /tmp/holdor_$t.log)"; grep -E "^FAIL" "/tmp/holdor_$t.log" | head -5; bad=$((bad+1)); fi
 done
 [ $bad -eq 0 ] && echo "all backend checks OK" || echo "$bad backend check(s) failed"

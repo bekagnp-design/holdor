@@ -52,7 +52,7 @@ declare cfg jsonb := econ_cfg('season'); win record; pts int := se_points(w); ti
 begin
   select * into win from qs_window('monthly');
   tier := least(ec_i(cfg, 'tiers')::int, pts / ec_i(cfg, 'per_tier')::int);
-  pass := (w.claims->>'pass') = win.k;
+  pass := coalesce((w.claims->>'pass') = win.k, false);
   done := coalesce(w.claims->'season'->win.k, '{}'::jsonb);
   for r in select x from jsonb_array_elements(cfg->'rewards') x loop
     t := t + 1;
@@ -86,7 +86,7 @@ begin
   if tier is null or tier < 1 or r is null then raise exception 'no such tier'; end if;
   st := se_state(w);
   if tier > (st->>'tier')::int then raise exception 'tier % is not open yet (% points)', tier, st->>'points'; end if;
-  if track = 'prem' and not (st->>'pass')::boolean then raise exception 'the Season Pass is needed for this reward'; end if;
+  if track = 'prem' and not coalesce((st->>'pass')::boolean, false) then raise exception 'the Season Pass is needed for this reward'; end if;
   select * into win from qs_window('monthly');
   tk := case track when 'free' then 'f' else 'p' end;
   done := coalesce(w.claims->'season'->win.k, '{}'::jsonb);

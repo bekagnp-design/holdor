@@ -113,6 +113,6 @@ check('five a day, then the limit', svc("select ad_credit(%s, 0, 'nonce-0009', '
 q("update econ_config set v = jsonb_set(v, '{enabled}', 'false') where k = 'ads'")
 check('the app cannot call the ad credit, the internals or the tables', 'permission denied' in (err('ad_credit', tg=A, st=0, nonce='nonce-hack1', provider='x') or '') and 'permission denied' in (err('se_state', w=None) or 'permission denied'))
 check('no token, no season', err('season_state', token='00000000-0000-0000-0000-000000000000', seat=0) == 'bad session')
-check('the owner view counts the Pass and VIP sold', q1("select coalesce(sum(sold), 0) from v_season") >= 2)
+check('the owner view counts the Pass and VIP sold and refunded', q1("select coalesce(sum(sold + refunded), 0) from v_season") >= 3)
 for t in ('payments', 'ad_views', 'ledger', 'items', 'battles', 'sessions'): q(f'delete from {t} where tg_id in (%s, %s)', A, B)
 print('FAILED:' if fails else 'all v16 checks OK', fails or ''); raise SystemExit(1 if fails else 0)
