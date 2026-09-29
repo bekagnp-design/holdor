@@ -26,7 +26,7 @@ const QUESTS={
   {id:'m_new10',m:'new_stages',n:10,t:'Hold 10 new stages',r:{gold:5000,books:{'b:e':1},gear:{n:1,min_r:2,min_tier:2}}},
   {id:'m_hold25',m:'hold_waves',n:25,t:'Reach wave 25 in the Hold',r:{gems:60}}],
 };
-const DAILY={st:null,at:0,tab:'cal',shown:false,seat:-1,busy:false};
+const DAILY={st:null,ms:null,at:0,tab:'cal',shown:false,seat:-1,busy:false};
 function dailyOn(){return !!(ecoOn()&&ACC&&ACC.tut);}
 function rewardChips(r,sm){if(!r)return '';const c=[];
   if(r.gems)c.push(`<span class="rch">${GEM_SVG}${r.gems}</span>`);
@@ -57,6 +57,12 @@ async function dailyClaimQuest(id){if(DAILY.busy||!ecoOn())return;DAILY.busy=tru
   try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('quest_claim',{seat,quest:id},10000);ecoApply(x.state);return x;});
     DAILY.st=r.quests;DAILY.at=Date.now();DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);const q=questName(id);dailyClaimModal(r,'📜 '+(q?q.t:'Quest done'));}
   catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await dailyLoad(true);ecoModal('📜 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily(DAILY.tab)}]);}}
+function msLoad(){if(!ecoOn())return Promise.resolve(null);const seat=seatNo();
+  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('milestone_state',{seat},9000);if(seat===seatNo()){DAILY.ms=r;DAILY.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
+async function dailyClaimMs(lvl){if(DAILY.busy||!ecoOn())return;DAILY.busy=true;ecoWait(true);
+  try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('milestone_claim',{seat,lvl},10000);ecoApply(x.state);return x;});
+    DAILY.ms=r.milestones;DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);dailyClaimModal(r,'⭐ Level '+lvl+' — yours');}
+  catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await msLoad();ecoModal('⭐ Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily('levels')}]);}}
 /* the popup when the castle opens and today's reward waits (once a session; never over a tutorial or a tour) */
 function dailyPopupCheck(){
   if(DAILY.shown||!dailyOn()||G.state==='play'||(G.tut)||(typeof COACH!=='undefined'&&COACH.on)||CLOUD.screen!=='hub:battle')return;
@@ -69,11 +75,18 @@ function dailyPopupCheck(){
 function fmtLeft(s){const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return d?d+'d '+h+'h':h?h+'h '+m+'m':m+'m';}
 function showDaily(tab){
   DAILY.tab=tab||DAILY.tab||'cal';
-  const tabs=[['cal','📅 Calendar'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly']];
+  const tabs=[['cal','📅 Calendar'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['levels','⭐ Levels']];
   const head=`<div class="topbar"><h1>📜 Daily &amp; quests<small>Rewards are paid by the server. Progress counts only battles it has seen.</small></h1><button class="back" id="bBack">✖</button></div>
    <div class="subtabs">${tabs.map(([k,n])=>`<button class="${k===DAILY.tab?'on':''}" data-t="${k}">${n}</button>`).join('')}</div>`;
   const draw=body=>{show(head+body);CLOUD.screen='daily:'+DAILY.tab;$('#bBack').addEventListener('click',()=>showHub('battle'));card.querySelectorAll('.subtabs button').forEach(b=>b.addEventListener('click',()=>showDaily(b.dataset.t)));};
   if(!dailyOn()){draw(`<p class="m">${ecoOn()?'Finish the tutorial battle first.':'The calendar and the quests are paid by the server — they need a seat signed in through Telegram.'}</p>`);return;}
+  if(DAILY.tab==='levels'){const m=DAILY.ms&&DAILY.seat===seatNo()?DAILY.ms:null;
+    if(!m){draw('<p class="m">⏳ asking the server…</p>');msLoad().then(()=>{if(CLOUD.screen==='daily:levels')showDaily('levels');});return;}
+    const nxt=m.items.find(i=>!i.claimed&&!i.ready);
+    const rows=m.items.map(i=>`<div class="qrow ${i.claimed?'done':''} ${i.ready?'ready':''}"><div class="qt"><b>Account level ${i.lvl}</b><span class="qbar"><i style="width:${Math.min(100,Math.round(100*m.level/i.lvl))}%"></i><em>${m.level} / ${i.lvl}</em></span><span class="qrw">${rewardChips(i.reward,1)}</span></div>
+      <button data-m="${i.lvl}" ${i.ready?'':'disabled'}>${i.claimed?'✔':i.ready?'Claim':'🔒'}</button></div>`).join('');
+    draw(`<p class="m">Your account is level <b>${m.level}</b> of 60. Every 10th level brings a gift${nxt?` — the next one at level <b>${nxt.lvl}</b>`:''}. Levels come from XP: win stages, forge, level up cards.</p><div class="qlist">${rows}</div>`);
+    card.querySelectorAll('.qrow button[data-m]').forEach(b=>b.addEventListener('click',()=>dailyClaimMs(+b.dataset.m)));return;}
   const s=DAILY.st&&DAILY.seat===seatNo()?DAILY.st:null;
   if(!s){draw('<p class="m">⏳ asking the server…</p>');dailyLoad().then(r=>{if(CLOUD.screen==='daily:'+DAILY.tab)showDaily(DAILY.tab);});return;}
   if(Date.now()-DAILY.at>45000)dailyLoad(true).then(()=>{});
