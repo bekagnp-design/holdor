@@ -25,3 +25,31 @@
 .gst{display:flex;flex-direction:column;gap:2px}
 .gst em{font-style:normal;font-weight:700;color:#fff}
 .gst span{font-size:12px;color:#cfe0ee}
+/* gear II (v1.0.62): tiers, set bonuses, new stats, the set book, burning for a tier */
+.gic img{width:70%;height:70%;object-fit:contain}
+.gic .gset{position:absolute;left:-4px;top:-5px;font-size:11px;line-height:1;font-weight:400;background:#0b1a2e;border-radius:6px;padding:1px 2px}
+.gic .gset img{width:13px;height:13px}
+.gic .gtier{position:absolute;left:0;right:0;bottom:-7px;text-decoration:none;font-size:7px;letter-spacing:-.5px;color:#ffd54a;text-align:center;text-shadow:0 1px 0 #0b1a2e;white-space:nowrap}
+.gic .gtier i{font-style:normal;color:rgba(255,255,255,.16)}
+.gic{margin-bottom:6px}
+.gsl{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.gs{font-size:11px;font-weight:700;color:#f2e6c9;background:rgba(255,255,255,.07);border-radius:8px;padding:1px 6px}
+.gs em{font-style:normal;color:#ff9a3c}
+.gbns{display:flex;flex-direction:column;gap:5px;margin:0 2px 10px}
+.gbn{padding:5px 8px;border-radius:10px;border:1px solid #23406b;background:#0f2140;color:#9fb6c9;font-size:11px}
+.gbn.on{border-color:#7fd06a;background:#13361f;color:#d8f0d4}
+.gbn b{display:block;color:#dbe9f6;font-size:11.5px}
+.gbn span{display:block}
+.gbn span.on{color:#9fe07a;font-weight:700}
+.gsheet .gtr{color:#ffd54a}
+.sbook{max-height:52vh;overflow-y:auto;text-align:left}
+.sbk h4{margin:8px 0 4px;color:#ffd54a;font-size:12px}
+.sbr{padding:4px 6px;margin-bottom:4px;border-radius:8px;background:rgba(255,255,255,.05);font-size:11.5px}
+.sbr.on{background:rgba(127,208,106,.16)}
+.sbr b{display:block;color:#fff}
+.sbr span{display:block;color:#9fb6c9}
+.sbr span.on{color:#9fe07a;font-weight:700}
+.gpick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+.gpk{display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 2px;border-radius:10px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6}
+.gpk small{font-size:9.5px}
+.hh a{color:#ffd54a}

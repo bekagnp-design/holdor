@@ -7,7 +7,7 @@ s = s[:i] + mod('gear.js').rstrip('\n') + '\n' + s[i:]
 # the champion wears its gear: health, damage, speed, range, attack speed; cooldowns and gold from its kills for the battle
 rep("  if(tal){if(tal.k==='hp')tm.hp+=tal.v;else if(tal.k==='dmg')tm.dmg+=tal.v;else if(tal.k==='spd')tm.spd+=tal.v;else if(tal.k==='range')tm.range+=tal.v;else if(tal.k==='rate')tm.rate-=tal.v;}",
     "  if(tal){if(tal.k==='hp')tm.hp+=tal.v;else if(tal.k==='dmg')tm.dmg+=tal.v;else if(tal.k==='spd')tm.spd+=tal.v;else if(tal.k==='range')tm.range+=tal.v;else if(tal.k==='rate')tm.rate-=tal.v;}\n"
-    "  const gs=gearStats(c.id);tm.hp*=1+gs.hp/100;tm.dmg*=1+gs.dmg/100;tm.spd*=1+gs.spd/100;tm.range*=1+gs.range/100;tm.rate/=1+gs.rate/100;G.gearCdr=Math.min(40,gs.cdr);G.gearGold=gs.gold;", 1, 'gear-hero')
+    "  const gs=gearStats(c.id);tm.hp*=1+gs.hp/100;tm.dmg*=1+gs.dmg/100;tm.spd*=1+gs.spd/100;tm.range*=1+gs.range/100;tm.rate/=1+gs.rate/100;G.gearCdr=Math.min(40,gs.cdr);G.gearGold=gs.gold;{const ge=gearEff(c.id);G.gearArmor=ge.armor;G.gearLs=ge.lifesteal;G.gearRegen=ge.regen;G.gearCrit=ge.crit;}", 1, 'gear-hero')
 rep("function cdMul(h){return h&&h.tal&&h.tal.k==='cdr'?1-h.tal.v:1;}",
     "function cdMul(h){return (h&&h.tal&&h.tal.k==='cdr'?1-h.tal.v:1)*(1-((G&&G.gearCdr)||0)/100);}", 1, 'gear-cdr')
 rep("tal.k==='goldkill')g=Math.round(g*(1+G.hero.tal.v));",

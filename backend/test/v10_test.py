@@ -61,7 +61,7 @@ check('after a long break the calendar goes on with day 2', r['day'] == 2 and r[
 q("update wallets set claims = jsonb_set(claims, '{login}', '{\"n\": 2, \"last\": \"2026-09-01\"}') where tg_id = %s and seat = 0", T1)
 b0 = cards(T1).get('b:c', 0)
 r = anon('login_claim', token=tok[T1], seat=0)
-check('day 3: two Common books into the wallet', r['reward'] == {'books': {'b:c': 2}} and cards(T1).get('b:c', 0) - b0 == 2, (r['reward'], cards(T1)))
+check('day 3: two Common books into the wallet (and an item since v11)', r['reward'] == CAL['days'][2] and r['reward']['books'] == {'b:c': 2} and cards(T1).get('b:c', 0) - b0 == 2, (r['reward'], cards(T1)))
 # the round wraps
 q("update wallets set claims = jsonb_set(claims, '{login}', '{\"n\": 29, \"last\": \"2026-09-01\"}') where tg_id = %s and seat = 0", T1)
 s = anon('quest_state', token=tok[T1], seat=0)
@@ -141,7 +141,7 @@ q("update wallets set claims = jsonb_set(claims, '{quests}', claims->'quests' ||
 for _ in range(6): battle(T2, kills=1)
 r = anon('quest_claim', token=tok[T2], seat=0, quest='w_win10')
 c = W(T2)[3]['quests']
-check('a claim clears the finished periods and keeps the current ones', '2020-01-01' not in c and 'W2020-01' not in c and len(c) == 2 and 'w_win10' in json.dumps(c) and r['reward'] == {'gems': 40}, c)
+check('a claim clears the finished periods and keeps the current ones', '2020-01-01' not in c and 'W2020-01' not in c and len(c) == 2 and 'w_win10' in json.dumps(c) and r['reward'] == next(x for x in QS['weekly'] if x['id'] == 'w_win10')['r'], c)
 
 # ---------- 3. a seat replaced by a new one starts from zero ----------
 battle(T3, kills=500); battle(T3, kills=500)

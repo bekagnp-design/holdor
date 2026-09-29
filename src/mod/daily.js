@@ -4,26 +4,26 @@
    server (backend v10) and quest progress is counted from the server's own records: the app only shows numbers and asks to claim.
    The tables below are exported to the server (econ_config 'calendar' / 'quests'), so app and server agree. Needs a seat signed in through Telegram. */
 const LOGIN_CAL=[
- {gems:10},{gold:400},{books:{'b:c':2}},{gems:10},{gold:600},{books:{'b:c':3}},{gems:20,books:{'b:r':1}},
- {gold:800},{gems:15},{books:{'b:c':3}},{gold:1000},{gems:15},{books:{'b:r':1}},{gems:30,books:{'b:r':1}},
- {gold:1500},{gems:20},{books:{'b:c':4}},{gold:2000},{gems:20},{books:{'b:r':2}},{gems:40,books:{'b:e':1}},
- {gold:2500},{gems:25},{books:{'b:c':5}},{gold:3000},{gems:25},{books:{'b:r':2}},{gems:50},{gold:4000},{gems:100,books:{'b:e':1}},
+ {gems:10},{gold:400},{books:{'b:c':2},gear:{n:1,min_r:0}},{gems:10},{gold:600,gear:{n:1,min_r:1}},{books:{'b:c':3}},{gems:20,books:{'b:r':1},gear:{n:1,min_r:2}},
+ {gold:800},{gems:15,gear:{n:1,min_r:1}},{books:{'b:c':3}},{gold:1000},{gems:15},{books:{'b:r':1},gear:{n:1,min_r:1}},{gems:30,books:{'b:r':1},gear:{n:1,min_r:2,min_tier:2}},
+ {gold:1500,gear:{n:1,min_r:1}},{gems:20},{books:{'b:c':4}},{gold:2000,gear:{n:1,min_r:2}},{gems:20},{books:{'b:r':2}},{gems:40,books:{'b:e':1},gear:{n:1,min_r:3,min_tier:2}},
+ {gold:2500},{gems:25,gear:{n:1,min_r:1}},{books:{'b:c':5}},{gold:3000,gear:{n:1,min_r:2}},{gems:25},{books:{'b:r':2},gear:{n:1,min_r:2}},{gems:50,gear:{n:1,min_r:3}},{gold:4000},{gems:100,books:{'b:e':1},gear:{n:1,min_r:3,min_tier:3}},
 ];
 const LOGIN_SPECIAL_GEMS=300;
 const QUESTS={
  daily:[
   {id:'d_win1',m:'wins',n:1,t:'Win a stage',r:{gold:300}},
   {id:'d_kill',m:'kills',n:300,t:'Defeat 300 of the dead',r:{gems:8}},
-  {id:'d_win3',m:'wins',n:3,t:'Win 3 stages',r:{books:{'b:c':2}}}],
+  {id:'d_win3',m:'wins',n:3,t:'Win 3 stages',r:{books:{'b:c':2},gear:{n:1,min_r:0}}}],
  weekly:[
-  {id:'w_win10',m:'wins',n:10,t:'Win 10 stages',r:{gems:40}},
+  {id:'w_win10',m:'wins',n:10,t:'Win 10 stages',r:{gems:40,gear:{n:1,min_r:1}}},
   {id:'w_days4',m:'days',n:4,t:'Play on 4 different days',r:{books:{'b:r':1}}},
-  {id:'w_stars15',m:'stars',n:15,t:'Earn 15 stars in battles',r:{gold:2000}},
+  {id:'w_stars15',m:'stars',n:15,t:'Earn 15 stars in battles',r:{gold:2000,gear:{n:1,min_r:2}}},
   {id:'w_hold3',m:'hold_runs',n:3,t:'Finish 3 Hold runs',r:{gems:30}}],
  monthly:[
-  {id:'m_win60',m:'wins',n:60,t:'Win 60 stages',r:{gems:150,books:{'b:e':1}}},
+  {id:'m_win60',m:'wins',n:60,t:'Win 60 stages',r:{gems:150,books:{'b:e':1},gear:{n:1,min_r:3,min_tier:3}}},
   {id:'m_days20',m:'days',n:20,t:'Play on 20 different days',r:{gems:100}},
-  {id:'m_new10',m:'new_stages',n:10,t:'Hold 10 new stages',r:{gold:5000,books:{'b:e':1}}},
+  {id:'m_new10',m:'new_stages',n:10,t:'Hold 10 new stages',r:{gold:5000,books:{'b:e':1},gear:{n:1,min_r:2,min_tier:2}}},
   {id:'m_hold25',m:'hold_waves',n:25,t:'Reach wave 25 in the Hold',r:{gems:60}}],
 };
 const DAILY={st:null,at:0,tab:'cal',shown:false,seat:-1,busy:false};
@@ -32,6 +32,7 @@ function rewardChips(r,sm){if(!r)return '';const c=[];
   if(r.gems)c.push(`<span class="rch">${GEM_SVG}${r.gems}</span>`);
   if(r.gold)c.push(`<span class="rch">${GOLD_SVG}${fmtN(r.gold)}</span>`);
   for(const k in (r.books||{}))c.push(`<span class="rch">${bookIcon(k.slice(2),sm?14:16)}×${r.books[k]}</span>`);
+  if(r.gear){const g=r.gear,R=['','Uncommon+','Rare+','Epic+','Legendary'][g.min_r||0];c.push(`<span class="rch gr" style="color:${['#9aa4b1','#5fcf6a','#4fb0ff','#b47cff','#e3b661'][g.min_r||0]}">⚒️ ${g.n>1?'×'+g.n+' ':''}${R||'gear'}${g.min_tier>1?' ★'+g.min_tier+'+':''}</span>`);}
   return c.join('');}
 function questName(id){for(const k in QUESTS){const q=QUESTS[k].find(x=>x.id===id);if(q)return q;}return null;}
 /* the state comes from the server (quest_state); one answer is kept for 45 s unless something was claimed */
@@ -50,11 +51,11 @@ function dailyClaimModal(res,title){const r=res.reward,ch=res.champ&&CBY[res.cha
   ecoModal(title,`<div class="rw">${rewardChips(r)}</div>${ch?`<div class="newch">${portraitHTML(ch,64)}<b>${esc(ch.n)}</b><small>joins your house — sealed no more!</small></div>`:''}`,[{t:'OK',f:()=>{if(CLOUD.screen&&CLOUD.screen.indexOf('daily')===0)showDaily(DAILY.tab);else ecoRedraw();}}]);}
 async function dailyClaimLogin(){if(DAILY.busy||!ecoOn())return;DAILY.busy=true;ecoWait(true);
   try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('login_claim',{seat},10000);ecoApply(x.state);return x;});
-    DAILY.st=r.quests;DAILY.at=Date.now();DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();dailyClaimModal(r,'📅 Day '+r.day+' — yours');}
+    DAILY.st=r.quests;DAILY.at=Date.now();DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);dailyClaimModal(r,'📅 Day '+r.day+' — yours');}
   catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m)){await dailyLoad(true);}ecoModal('📅 Not now',/already/.test(m)?'Today\'s reward is already claimed. Come back tomorrow.':ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily(DAILY.tab)}]);}}
 async function dailyClaimQuest(id){if(DAILY.busy||!ecoOn())return;DAILY.busy=true;ecoWait(true);
   try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('quest_claim',{seat,quest:id},10000);ecoApply(x.state);return x;});
-    DAILY.st=r.quests;DAILY.at=Date.now();DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();const q=questName(id);dailyClaimModal(r,'📜 '+(q?q.t:'Quest done'));}
+    DAILY.st=r.quests;DAILY.at=Date.now();DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);const q=questName(id);dailyClaimModal(r,'📜 '+(q?q.t:'Quest done'));}
   catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await dailyLoad(true);ecoModal('📜 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily(DAILY.tab)}]);}}
 /* the popup when the castle opens and today's reward waits (once a session; never over a tutorial or a tour) */
 function dailyPopupCheck(){

@@ -306,6 +306,46 @@ Rules: `docs/design-v2.md` → "v1.0.59".
   - `run_all.sh` 11/11; the core set 18/18.
 - **Rollout:** v8 goes into Supabase together with the v1.0.59 release (after v7, which goes in with v1.0.58). Before that, older apps level skills without books and would be refused. Until then, on the beta a logged-in seat's star, summon and books wait for the server.
 
+### v1.0.62 — gear II (backend v11) (2026-09-30)
+Built on v1.0.57's forge: the same nine slots, five rarities and server-side rolls, now with tiers, more sets, four new stats and far more drops. Art prompts: `docs/prompts-gear.md`.
+- **Item tiers ★1–5:**
+  - A tier sets the level cap (+4 per tier: ★1 = +4 … ★5 = +20) and multiplies the main stat (×1 · 1.15 · 1.35 · 1.6 · 1.9).
+  - To raise a tier, the item must be at its cap; it costs gold (1500 · 5000 · 14000 · 36000, × the rarity's cost factor) and another item of the same rarity (tier equal or higher), burnt.
+  - Items forged before v11 keep their level: their tier is set to what that level needs.
+  - A higher tier also sells for more (+50% of the base per tier).
+  - **Where a drop's tier comes from** (`gear.tier_p`): wins ★1–2, Hard up to ★3, the Hold up to ★3. Chests by tier: wood ★1–2, iron up to ★3, valyrian up to ★4, dragon up to ★5. Gifts: ★1–3, with a minimum where the gift sets one.
+- **Twelve sets:**
+  - **Quads:** Direwolf, Lion, Dragon, Kraken — 2 and 4 pieces, as before.
+  - **Pairs** (2 pieces, repeat for every pair): Stag (health), Rose (regeneration), Sun (crit), Anvil (armor).
+  - **Triples** (3 pieces, repeat for every three): Wall (armor + health), Blood (lifesteal), Raven (cooldowns + speed), Hunt (crit + damage).
+  - **Two collection bonuses:** Rainbow (one worn item of each of the 5 rarities: damage +6, health +6, armor +5) and Full kit (all 9 slots: damage +4, health +4, regeneration +2, armor +3).
+- **Four new stats** (main, substats and set bonuses; each stops growing at a cap in battle: 60 / 40 / 30 / 60):
+  - **Armor:** damage taken −% (on top of Iron Skin and shields).
+  - **Lifesteal:** heals a % of the damage dealt (on top of the Bloodletting skill).
+  - **Regeneration:** % of max health every 10 s, also in a fight.
+  - **Crit chance:** adds to the skill's chance of a triple-damage blow.
+- **Gear in gifts:**
+  - Drops are up: won stage 25 → 40%, Hard 35 → 55%, wood chest 20 → 45%, iron 50 → 80%.
+  - Valyrian chests roll a second item 40% of the time, dragon chests always (two items).
+  - The login calendar and the quests can carry an item (reward key `gear: {n, min_r, min_tier}`, paid by `qs_pay`): 15 calendar days, 6 quests.
+- **Backend v11 (`backend/holdor_v11.sql`, after v10):**
+  - New `ge_new2` with the tier roll.
+  - `gear_upgrade` with the tier cap, and new `gear_tier_up(item, fodder, op)`.
+  - `gear_sell` with tiers, `qs_pay` with items, and the raised drops.
+  - The gear config is replaced by version 2. `items.tier`, and `items.lvl` up to 20.
+  - v6's `v_items` is now dropped and recreated, so the chain can be re-run after v11.
+- **Client (`mod/gear.js`, `parts/69_gear2.py`):**
+  - Every item shows its tier stars, its set emblem and a shape (Sword, Axe, Spear, Bow, Staff, Helm, Hood, Crown, Mail, Plate, …).
+  - The forge shows active set bonuses, Rainbow and Full kit progress, and a 📚 set book. The item sheet shows a tier button and a burn picker.
+  - In battle, armor, lifesteal, regeneration and crit work through the champion's worn gear.
+  - The art sheets are ready to drop in (`setGearSheet`).
+- **Tests:**
+  - New `backend/test/v11_test.py` (46 checks): the config, rolls, tier caps, every tier-up refusal, resend safety, drop rates over hundreds of rolls, gifts, selling, permissions.
+  - New `tests/t_gear62.js`: the set maths (quads, repeating pairs and triples, Rainbow, Full kit, caps), the four stats in battle, the forge screens, the art loader.
+  - Extended `gear_test.py`: a tier through the forge with taps.
+  - Adapted `v6_test.py` to the tiers.
+- **Rollout:** v11 goes into Supabase with the rest (v7 → v11). Existing items keep working.
+
 ### v1.0.61 — login calendar and quests (backend v10) (2026-09-29)
 The retention loop. Every reward is paid by the server and progress is counted from the server's own records, so nothing here can be forged.
 - **Login calendar (30 days):**
@@ -392,7 +432,7 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 
 ## Not done / next
 - **On MR B (one step at a time):** 1) merge the v1.0.58 PR, then the v1.0.59 PR, and play `…/holdor/beta/` on the phone; 2) say "release" — Claude first applies `holdor_v7.sql`, the regenerated `holdor_econ_data.sql` and `holdor_v8.sql` in Supabase (hashes verified), then opens the release PR. Art: the Dorne kit first (`holdor-prompts-v45.md`); still open: 8 chest images, 30 skill icons, 7 island images, 4 event banners, house film clips.
-- **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.62 city → v1.0.63 account levels + HOLDOR Coin + Tasks + invites → v1.0.64 chats → v1.0.65–66 PvP 1v1 → v1.0.67 country war → v1.0.68 languages → v1.0.69 Season Pass + rewarded ads + VIP → v1.0.70 marketing.
+- **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.62 city → v1.0.63 account levels + HOLDOR Coin + Tasks + invites → v1.0.65 chats → v1.0.66–67 PvP 1v1 → v1.0.68 country war → v1.0.69 languages → v1.0.70 Season Pass + rewarded ads + VIP → v1.0.71 marketing.
 - Standing rule from MR B (26.09): every reply ends with the next step and one development idea/plan.
 - **Wire when art arrives:** `BG_ART[biome]` (drop-in), props sheet → cut 3×3 on magenta → `setPropSheet(biome, cells)` (order in `PROP_KIT`), `CHEST_ART`, `SKILL_ART`; painted islands would replace `drawIsland` per house.
 - Hold stats: verified real — the Hold tab's "Today's defenders" and "your rank" come only from the server's `daily_scores` (v3: per seat); B K's 15-wave run was on the server on 2026-09-14.
