@@ -44,6 +44,7 @@ with sync_playwright() as p:
     check('seat managed', wait("HOLDOR_ECON.ecoOn()", 12000)); settle()
     def need(l): return sum(15 + 8 * k + k * k for k in range(1, l))
     q("update wallets set xp = %s, gold = 5000 where tg_id = %s and seat = 0", need(3), TG)
+    ev("HOLDOR_ECON.ecoRefresh&&HOLDOR_ECON.ecoRefresh()"); pg.wait_for_timeout(1000); settle()
     ev("HOLDOR_EARN.EARN.st=null"); ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(1200); settle()
     check('the bottom bar has Earn and no Events tab', ev("!!document.querySelector('.hubtabs button[data-tab=\"earn\"]')") and ev("!document.querySelector('.hubtabs button[data-tab=\"events\"]')") and ev("document.querySelectorAll('.hubtabs button').length") == 5)
     check('a badge for the event on the home island, with a countdown', wait("!!document.querySelector('#evBadge')", 3000) and ':' in ev("document.querySelector('#evBadge em').textContent"))
