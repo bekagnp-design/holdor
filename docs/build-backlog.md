@@ -243,9 +243,125 @@ First step of MR B's growth plan after the server economy (`docs/design-v2.md` �
   - `old_app_test.py` now follows a managed live app.
   - `run_all.sh`: 8/8; core set 16/16.
 
+### v1.0.58 — card copies on the server (backend v7) (2026-09-28)
+The last gap of the v1.0.56 anti-cheat work: until now a seat's card copies were counted in the app.
+- **Backend v7 (`backend/holdor_v7.sql`, after v6 + the regenerated `holdor_econ_data.sql`):**
+  - **Where copies live:** a `cards` column on `wallets`.
+  - **Card rules:** `src/tools/econ_export.js` exports them — which champions (house, stage they open at), towers and spells a seat can get cards of, their rarity, copies per level, copies per chest stack, and the rare slots per chest. They are stored in `econ_config.cards`.
+  - **A card level** (`econ_sync` `card`) needs the game's number of copies and uses them up. If a batch runs out of copies, the rest of it is refused.
+  - **`chest_open`** also rolls the card stacks, following the game's own `cardStack` rules (weights 10/6/3/1, rare slots, copies × the rarity's share). A slot with nothing to give becomes 100 gold on the server.
+  - **The first win of a stage** gives a few copies. This comes from a trigger on a new `progress` row, only when it comes from a server battle, so a legacy import doesn't count.
+  - **A card deal** adds its copies (the key must be a real card).
+  - **Importing a seat from before:** it brings its save's copies once, cleaned (0–5000 each, unknown keys dropped), plus its early-opened champions. The wallets already on the server took their save's copies when v7 ran.
+  - **What v7 rebuilds:** `ec_op`, `chest_open` and `ec_state` are generated from v5's text with exact replacements.
+- **Client (`parts/63_cards.py`, `mod/econ.js`):**
+  - A managed seat's copies come from the server (the calm apply).
+  - A chest shows the server's stacks and fills.
+  - The first win's copies are shown when the server answers (a toast).
+  - Guests roll as before.
+  - The app works on v6 too: without `stacks` in the answer it rolls locally as before.
+- **Tests:**
+  - `backend/test/v7_test.py`: import and cleaning, a level with and without copies, a batch running out, chest stacks (pool, rarity slots, sizes, fills), first win once, deals, anon.
+  - `v5_test` gives its legacy seat copies.
+  - `econ_test`: a made-up count in the app does not survive, and the level uses the server's copies.
+  - `realms_test` and `v4_test` reload the chain through v7.
+  - `run_all.sh` 9/9; the live v1.0.56 still works against v7 (`old_app_test`).
+- **Rollout:** v7 goes into Supabase right before v1.0.58 is released, not at the beta merge. Until then the live v1.0.56 still counts copies itself, and its card levels would be refused.
+
+### v1.0.59 — champions and the tavern (backend v8) (2026-09-29)
+Rules: `docs/design-v2.md` → "v1.0.59".
+- **Rarity (5):**
+  - Champions by opening order: 1–2 Common, 3 Uncommon, 4–5 Rare, 6 Epic, 7 Legendary.
+  - Towers and spells are remapped to the same five: Keep/Scorpion/Brothers Rare, Wildfire/Fire Epic, Weirwood Legendary.
+  - Share of copies: 1 · 0.7 · 0.5 · 0.25 · 0.1. Chest stack weights: 10 · 8 · 6 · 3 · 1. The chest's rare slots ask for Rare/Epic/Legendary.
+  - A champion's base health and damage: +0 · 4 · 8 · 13 · 20%, in battle and in the Book.
+- **Stars ★1–6 and levels up to 60:**
+  - The level stays ≤ 10 × the star. A seat from before counts ⌈level / 10⌉.
+  - Raising a star needs the level at the cap, gold (1500 · 4000 · 9000 · 18000 · 32000) and another champion of the house's cards, burnt (20 · 40 · 80 · 140 · 220 Common-worth; a Rare card counts double, a Legendary ×10).
+  - Levels 20 → 60 need few copies (20 → 59 each) and the old gold formula.
+- **Books:** skill rank 2 · 3 · 4 · 5 needs 1 · 1 · 2 · 3 books of the champion's rarity (Common/Uncommon → Common book). Books drop in chests (by tier, some by chance) and are sold in the deals, which replace the cheap skill-rank deal. They live with the cards (`b:c` `b:r` `b:e` `b:l`).
+- **The portal:** 💎60 for one summon, 💎540 for ten (ten always hold a Rare+). Odds 55 · 25 · 14 · 5 · 1%. A sealed champion joins at once; an open one brings 10 Common-worth of his own cards.
+- **Tavern:** the hero room rebuilt as `mod/tavern.js`: rarity frames, stars, the star box with the cards to burn, skill buttons with books, ⚒️ Gear, the portal. A 🍺 Tavern button sits beside ⚒️ Forge in the Battle tab. The collection card shows `N★ · level`.
+- **Martell (`mod/champs59.js`, `parts/64_champs59.py`):** 7 unique kits.
+  - New skills: Sun of Dorne (soldiers mend), Viper's Kiss (every 4th blow), Patience (standing still).
+  - New ultimates: I Serve (Areo), The Whip (Nymeria), Spears of Dorne (Obara), Serpent's Kiss (Tyene, disarm), Vengeance and Justice (Doran: the door is spared, then paid back ×1.5), The Red Viper (Oberyn).
+  - Poison Cloud stays Ellaria's. All 49 kits are unique (`tests/t_champs59.js`).
+- **Backend v8 (`backend/holdor_v8.sql`, after v7 + the regenerated `holdor_econ_data.sql` with `econ_config.tavern`):**
+  - `ec_star`, and the card op checks the star cap.
+  - New op `econ_sync 'asc'`. `'sk'` needs books; the old `sk` deal needs them too, and a new `books` deal kind exists.
+  - `chest_open` rolls books (returns `books`). `ec_state` returns `copen`.
+  - `champ_summon(token, seat, n)` plus a `summons` table (RLS, no client access).
+  - `ec_op`, `chest_open`, `ec_state` and `ec_card_stack` are generated from v7's text with exact replacements.
+- **Rebalance (`src/tools/shift59.py`):**
+  - Method: the same bot (`tune45.js`, REP 4, 7 steps) tuned all 50 stages twice. Once on the v1.0.58 build with its old player (Jon always, no rarity). Once on v1.0.59 with the new player (`MODEL=v59`: the newest Stark champion open at that stage, with its rarity and kit).
+  - Result per band: stages 11–20 −4% (Robb/Bran instead of Jon), 21–30 +9%, 31–40 +6%, 41–50 +8%.
+  - Applied: new/old, smoothed over five neighbours, kept within −8% … +12%, and multiplied into `src/mults.json`. Stage 50 is unchanged.
+  - Kept for re-runs: `tuned59_old.json` and `tuned59_new.json`.
+  - Band correction: a verification pass (REP 4 at the final values, the same pass on v1.0.58) matched the band means with a second small factor (11–20 −1.4%, 21–30 −2.4%, 31–40 +2.5%, 41–49 +2%).
+  - Mean bot score: v1.0.58 62.5, v1.0.59 63.5. By band: 85→85, 77→75, 58→55, 51→61, 41→42. Stages under target−30: 7 → 6.
+- **Client (`parts/65_tavern.py`):** the five rarities, the star cap in `cardReady`, `CH_MAX` 60, the rarity bonus, book items in chests and deals, the server's stars (`st:` levels) and `copen`, and the Tavern button.
+- **Tests:**
+  - New: `tests/t_tavern59.js` (guest, taps), `tests/t_champs59.js`, `backend/test/v8_test.py` (SQL), `backend/test/tavern_test.py` (managed seat, taps).
+  - Adapted: `test45` (★1 stops at 10; books for the skill ranks) and `v7_test` (it now runs on v8: books in the chest, max level 60, five-rarity slots).
+  - `run_all.sh` 11/11; the core set 18/18.
+- **Rollout:** v8 goes into Supabase together with the v1.0.59 release (after v7, which goes in with v1.0.58). Before that, older apps level skills without books and would be refused. Until then, on the beta a logged-in seat's star, summon and books wait for the server.
+
+### v1.0.60 — Telegram Stars (backend v9) (2026-09-29)
+The first way to earn: dragonglass packs and the Starter pack, paid in Telegram Stars (currency `XTR`, no provider token). The app never credits anything.
+- **Items (`STARS_SHOP` in `mod/stars.js`, exported to `econ_config.stars`, so app and server agree on price and payout):**
+  - Pouch ⭐50 → 💎150, Chest ⭐125 → 💎400, Hoard ⭐350 → 💎1200.
+  - Starter pack ⭐75, once per seat: 💎300 + 🪙5000 + 3 Rare books.
+- **Flow:**
+  1. Tap → the app asks the Edge Function `stars` for an invoice (`op:'invoice'`).
+  2. The function calls `pay_create` (session token checked, price from the server's table, order stored `pending`) and Telegram's `createInvoiceLink`.
+  3. The app opens it with `WebApp.openInvoice`.
+  4. Telegram sends the function `pre_checkout_query`; `pay_precheck` says yes only for an open order of this payer, this amount, in Stars.
+  5. Telegram sends `successful_payment`; `pay_confirm` credits the seat.
+  6. On "paid" the app polls `pay_status` (up to 45 s), then reads its balance. An order that finishes while the app is closed is found again when the seat is entered (`starsResume`).
+- **Backend v9 (`backend/holdor_v9.sql`, after v8 + the regenerated `holdor_econ_data.sql`):**
+  - `payments` (RLS, no client access). The Telegram charge id is unique.
+  - `pay_create` / `pay_precheck` / `pay_confirm` / `pay_refund` / `pay_secret` / `pay_setup_done` are service role only; `pay_shop` / `pay_status` are read with the session token.
+  - **Credit:** ledger reason `stars`, ref = the charge id. A repeated message or a repeated charge changes nothing.
+  - **Not credited:** wrong payer, wrong amount, a seat replaced after the invoice (`orphan`), an unknown order. Each is marked, goes to `econ_flags` (`pay_mismatch`, `pay_orphan`, `pay_unknown`, `pay_repeat`), and the Stars are returned by hand.
+  - **Refund** (`refunded_payment`): takes back what the seat still holds of the item, never below zero, and is flagged.
+  - Caps: 20 open invoices an hour per player. `v_revenue` = the owner's dashboard (paid orders per day and item).
+- **Edge Function (`backend/edge/stars/`):**
+  - `handler.js` has all the logic; `index.ts` is a 3-line Deno wrapper. Deploy with `verify_jwt=false`: Telegram sends no JWT, and the webhook is checked by its secret header.
+  - The bot token is read from `app_secrets` per request and is never logged or returned; error text is scrubbed.
+  - `GET ?setup=<one-time code>` points the bot's webhook here (`allowed_updates`: `pre_checkout_query`, `message`) and deletes the code.
+- **Client (`mod/stars.js`, `parts/66_stars.py`):**
+  - Buttons appear in the shop; the Starter pack has its own card until it is bought.
+  - Cancel and fail leave nothing behind. Guests and seats without the server see the packs disabled with a note.
+- **Tests:**
+  - New `backend/test/v9_test.py` (SQL + Edge Function + a fake Telegram, 38 checks): who may call what, invoices, the webhook secret, pre-checkout, single credit, refusals, refunds, caps, setup, and the bot token never appearing in any response.
+  - New `backend/test/stars_test.py` (the app with taps; Telegram played by the script): a pack, a slow Telegram, a cancel, the Starter pack, an invoice paid while the app was closed; every number equals the server's.
+  - New `tests/t_stars60.js` (guest).
+  - Local stand-ins: `edge_shim.mjs` (the function + a fake Telegram Bot API), `fakerest.py` (a service role and a proxy).
+- **Rollout (with the release, one step at a time):**
+  1. Apply v7, v8 and v9 + the regenerated `holdor_econ_data.sql` in Supabase, verifying function hashes.
+  2. Deploy the function.
+  3. Open the one-time setup link.
+  4. Release the app.
+  5. A test purchase of the smallest pack by the owner (⭐50), then a refund with `refundStarPayment`.
+- **Telegram's rules to remember:**
+  - Stars can be withdrawn only from the bot's balance, from 1000 Stars, after a hold, via TON/Fragment.
+  - Digital goods must be paid in Stars.
+  - Refunds are possible for 21 days.
+  - See `docs/monetization-marketing.md`.
+
+### Admin views v1 (backend, 2026-09-28) — no app change
+- `backend/holdor_admin_v1.sql`: six read-only views over the server's own records, for the owner's dashboard. Applied in Supabase as the migration `holdor_admin_v1_views`; anon and authenticated cannot read them.
+  - `v_stage_funnel`: per stage, seats that tried it, battles won/lost/refused/left, win %, average time and stars, seats that cleared it. This is where players stall.
+  - `v_progress_depth`: the last campaign stage of every seat.
+  - `v_energy_daily`: energy spent, refills bought, seats with a full bar now.
+  - `v_econ_daily`: gold and dragonglass earned and spent per day and reason.
+  - `v_first_spend`: the first thing each seat spent on.
+  - `v_active_daily`: players seen, seats that fought, new players per day.
+- First reading (2026-09-28): 1 active seat. Stage 35 won in 308 s with 3 ⭐, 6 energy spent, 0 refills, first spend a card level, 1 Rare ring from an iron level chest.
+
 ## Not done / next
-- **On MR B (one step at a time):** 1) Claude applies backend v5 + the price tables in Supabase (backup first, verified) — SQL before the app that needs it; 2) merge the v1.0.56 PR and play `…/holdor/beta/` on the phone (a seat logged in through Telegram: energy chip, a stage, a chest, the Hold); 3) say "release" (live Telegram serves v1.0.55). Art: the Dorne kit first (`holdor-prompts-v45.md`); still open: 8 chest images, 30 skill icons, 7 island images, 4 event banners, house film clips; city art prompts come with v1.0.60.
-- **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.57 gear + forge → v1.0.58 champions (rarity by order, stars ★1–6, books, Martell kits, server cards) + tavern → v1.0.59 30-day login calendar + quests + challenges → v1.0.60 city (Events to the side) → v1.0.61 account levels 10–60 boxes + HOLDOR Coin + Tasks + invites → v1.0.62 chats → v1.0.63–64 PvP 1v1 (Events card, 🤖 AI practice) → v1.0.65 weekly country war + rewards → v1.0.66 12 languages.
+- **On MR B (one step at a time):** 1) merge the v1.0.58 PR, then the v1.0.59 PR, and play `…/holdor/beta/` on the phone; 2) say "release" — Claude first applies `holdor_v7.sql`, the regenerated `holdor_econ_data.sql` and `holdor_v8.sql` in Supabase (hashes verified), then opens the release PR. Art: the Dorne kit first (`holdor-prompts-v45.md`); still open: 8 chest images, 30 skill icons, 7 island images, 4 event banners, house film clips.
+- **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.61 login calendar + quests → v1.0.62 city → v1.0.63 account levels + HOLDOR Coin + Tasks + invites → v1.0.64 chats → v1.0.65–66 PvP 1v1 → v1.0.67 country war → v1.0.68 languages → v1.0.69 Season Pass + rewarded ads + VIP → v1.0.70 marketing.
 - Standing rule from MR B (26.09): every reply ends with the next step and one development idea/plan.
 - **Wire when art arrives:** `BG_ART[biome]` (drop-in), props sheet → cut 3×3 on magenta → `setPropSheet(biome, cells)` (order in `PROP_KIT`), `CHEST_ART`, `SKILL_ART`; painted islands would replace `drawIsland` per house.
 - Hold stats: verified real — the Hold tab's "Today's defenders" and "your rank" come only from the server's `daily_scores` (v3: per seat); B K's 15-wave run was on the server on 2026-09-14.

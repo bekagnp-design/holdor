@@ -1,10 +1,10 @@
 // Tunes each stage's enemy multiplier so the balance bot ends near a target gate % (bisection in log space).
-// usage: node tune45.js <from-to> <out.json>   env: PAR=2 REP=2 IT=6 DIFF=squire
+// usage: node tune45.js <from-to> <out.json>   env: PAR=2 REP=2 IT=6 DIFF=squire MODEL=v59 (the v1.0.59 player: the house's newest champion, not always Jon)
 const { chromium } = require('playwright');
 const fs = require('fs');
 const [A, B] = (process.argv[2] || '1-50').split('-').map(Number);
 const OUT = process.argv[3] || __dirname + '/tuned.json';
-const PAR = +(process.env.PAR || 2), REP = +(process.env.REP || 2), IT = +(process.env.IT || 6), DIFF = process.env.DIFF || 'squire';
+const MODEL = process.env.MODEL || '', PAR = +(process.env.PAR || 2), REP = +(process.env.REP || 2), IT = +(process.env.IT || 6), DIFF = process.env.DIFF || 'squire';
 const PLAY = function(job){
     const H = window.HOLDOR, X = window.HOLDOR_GEN, id = job.id, diff = job.diff || 'squire', prof = job.prof || 'camp';
     const L = Object.assign({}, H.LEVELS[id - 1]); if (job.mult) L.mult = job.mult;
@@ -13,13 +13,16 @@ const PLAY = function(job){
       const a = H.newAccount('stark', 0, 'squire'); a.diff = diff; a.tut = 1; a.intro = 1; a.tour = 1; a.learn = {glass:1,keep:1,tier2:1,fire:1,reinf:1,scorp:1,wild:1,weir:1,tier3:1,tier4:1,tier5:1,gates:1,big:1,chest:1,hold:1,champ:1};
       for (let i = 1; i < id; i++) a.campaign[i] = 2;
       if (diff === 'kingsguard') { for (let i = 1; i <= 50; i++) a.campaign[i] = 2; for (let i = 1; i < id; i++) a.hard[i] = 2; }
-      a.sel = 'jon';
+      // v1.0.59 model: the newest Stark champion open at this point rides (its rarity counts); before: Jon always
+      let cid = 'jon';
+      if (job.model === 'v59') { const ord = ['brienne', 'robb', 'bran', 'sansa', 'ned', 'arya', 'jon'], at = [0, 5, 10, 18, 27, 36, 45], held = diff === 'kingsguard' ? 50 : id - 1; cid = ord.filter((c, i) => at[i] <= held).pop(); a.copen = { [cid]: 1 }; }
+      a.sel = cid;
       // the player we expect at this point of the road
       const k = diff === 'kingsguard' ? 50 + id * 0.6 : id;
       const cl = Math.min(20, 1 + Math.round(0.33 * (k - 1)));
       const rk = Math.min(X.rankCap(cl), 1 + Math.floor((k - 1) / 12));
       const tl = Math.min(16, 1 + Math.floor(0.22 * (k - 1)));
-      a.champs.jon = { lvl: cl, sk: [rk, rk, rk], tal: cl >= 10 ? 1 : 0 };
+      a.champs[cid] = { lvl: cl, sk: [rk, rk, rk], tal: cl >= 10 ? 1 : 0, st: Math.max(1, Math.ceil(cl / 10)) };
       a.tlv = { watch: tl, glass: tl, keep: tl, scorp: tl, wild: tl, weir: tl };
       const perks = [['leather', 8], ['bank', 12], ['training', 15], ['sworn', 18], ['coin', 20], ['ironwood', 25], ['cache', 30], ['horse', 35], ['secondlife', 40], ['salvage', 45]];
       for (const [p, at] of perks) if (k >= at) a.upg[p] = 1;
@@ -66,14 +69,14 @@ const PLAY = function(job){
   const out = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, 'utf8')) : {};
   const ids = process.env.IDS ? process.env.IDS.split(',').map(Number) : []; if (!ids.length) for (let i = A; i <= B; i++) ids.push(i); let qi = 0;
   await Promise.all(pages.map(async p => { while (qi < ids.length) { const id = ids[qi++]; const t0 = Date.now();
-    const r = await p.evaluate(([id, REP, IT, DIFF, LO, HI, PRED]) => {
+    const r = await p.evaluate(([id, REP, IT, DIFF, MODEL, LO, HI, PRED]) => {
       const H = window.HOLDOR, L = H.LEVELS[id - 1], boss = !!L.boss;
       const T = (id <= 5 ? 90 : id <= 10 ? 80 : id <= 20 ? 70 : id <= 30 ? 62 : id <= 40 ? 56 : 52) - (boss ? 10 : 0);
-      const score = m => { const r = window.__play({ id, mult: m, rep: REP, diff: DIFF }).res; return { s: r.reduce((a, x) => a + (x.win ? x.door : -20 - 40 * (1 - x.wave / x.waves)), 0) / r.length, r }; };
+      const score = m => { const r = window.__play({ id, mult: m, rep: REP, diff: DIFF, model: MODEL }).res; return { s: r.reduce((a, x) => a + (x.win ? x.door : -20 - 40 * (1 - x.wave / x.waves)), 0) / r.length, r }; };
       const m0 = PRED && PRED[id] ? PRED[id] : 1.5 + 1.6 * Math.pow((id - 1) / 49, 1.1); let lo = m0 * LO, hi = m0 * HI; const log = [];
       for (let k = 0; k < IT; k++) { const mid = Math.sqrt(lo * hi); const sc = score(mid); log.push(mid.toFixed(3) + ':' + Math.round(sc.s)); if (sc.s > T) lo = mid; else hi = mid; }
       return { id, T, m: Math.sqrt(lo * hi), log };
-    }, [id, REP, IT, DIFF, +(process.env.LO || 0.6), +(process.env.HI || 1.8), process.env.PRED ? JSON.parse(fs.readFileSync(process.env.PRED, 'utf8')) : null]);
+    }, [id, REP, IT, DIFF, MODEL, +(process.env.LO || 0.6), +(process.env.HI || 1.8), process.env.PRED ? JSON.parse(fs.readFileSync(process.env.PRED, 'utf8')) : null]);
     out[id] = Math.round(r.m * 1000) / 1000; fs.writeFileSync(OUT, JSON.stringify(out));
     console.log('S' + String(id).padStart(2), 'T' + r.T, 'm=' + r.m.toFixed(3), r.log.join(' '), Math.round((Date.now() - t0) / 1000) + 's'); } }));
   await browser.close();

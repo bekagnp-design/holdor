@@ -103,12 +103,18 @@ with sync_playwright() as p:
     ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(400)
 
     # ---- 5. a tower level (cards are still counted here; the gold and the level on the server) ----
-    ev("(()=>{const A=HOLDOR.ACC;A.cards=A.cards||{};A.cards['t:watch']=5;HOLDOR_CARDS.showTowerRoom('watch');})()"); pg.wait_for_timeout(400)
+    # v1.0.58: the copies are the server's — the app's own count is overwritten by the next answer
+    ev("(()=>{HOLDOR.ACC.cards['t:watch']=99;HOLDOR_ECON.ecoRefresh();})()"); pg.wait_for_timeout(300)
+    wait("!HOLDOR_ECON.ECO.n"); pg.wait_for_timeout(200)
+    check('a copy count made up in the app does not survive the server', acc("A.cards['t:watch']||0") == q1("select coalesce((cards->>'t:watch')::int,0) from wallets where tg_id=%s and seat=0", TG))
+    q("update wallets set cards = jsonb_set(cards, '{t:watch}', '5') where tg_id=%s and seat=0", TG)
+    ev("HOLDOR_ECON.ecoRefresh()"); wait("!HOLDOR_ECON.ECO.n"); pg.wait_for_timeout(200)
+    ev("HOLDOR_CARDS.showTowerRoom('watch')"); pg.wait_for_timeout(400)
     tap('#clist button[data-a="tl"]'); settle()
     w = wallet()
     check('tower level 2 on the server', w['levels'].get('t:watch') == 2, str(w['levels']))
     check('tower level paid 50 gold', q1("select delta from ledger where tg_id=%s and reason='card' and cur='gold'", TG) == -50)
-    check('two cards used', acc("A.cards['t:watch']") == 3)
+    check('two cards used, on the server too', acc("A.cards['t:watch']") == 3 and q1("select (cards->>'t:watch')::int from wallets where tg_id=%s and seat=0", TG) == 3)
     same_as_server('after the tower level')
 
     # ---- 6. a tampered balance: the app believes it has 100000 gold; the server refuses what it cannot pay ----
@@ -137,6 +143,8 @@ with sync_playwright() as p:
     tap('#cch', 200); wait("document.querySelector('#ccol')&&document.querySelector('#ccol').classList.contains('in')", 12000); tap('#ccol', 500)
     settle()
     ch = q("select gold, gems from chests where tg_id=%s", TG)[0]
+    srv = q1("select cards from wallets where tg_id=%s and seat=0", TG)
+    check('after the chest the app\'s copies are the server\'s', {k: v for k, v in (acc("A.cards") or {}).items() if v} == {k: v for k, v in srv.items() if v}, (acc("A.cards"), srv))
     check('chest gold and dragonglass as rolled on the server', q("select cur, delta from ledger where tg_id=%s and reason='chest' order by cur", TG) == [('gems', ch[1]), ('gold', ch[0])], str(ch))
     check('free chest waits a day now', acc("Date.now()-A.freeChestAt<86400000") is True)
     same_as_server('after the shop')

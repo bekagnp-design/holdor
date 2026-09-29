@@ -1,0 +1,43 @@
+/* v1.0.59 — the tavern: rarity frames, stars, the star box, the portal */
+.stars{display:block;color:#ffd54a;font-size:15px;letter-spacing:1px;line-height:1.1;text-shadow:0 1px 0 #0b1a2e}
+.stars i{font-style:normal;color:rgba(255,255,255,.18)}
+.stars.sm{font-size:7.5px;letter-spacing:-.5px;margin-top:0;white-space:nowrap}
+.htile.tvt{min-width:0;overflow:hidden}
+.htile.tvt .pe,.htile.tvt img{max-width:100%}
+.htile.tvt{border-color:var(--rc)!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rc) 45%,transparent)}
+.htile.tvt .upb{position:absolute;top:2px;right:4px}
+.hport.tvp{border-color:var(--rc)!important;box-shadow:0 0 0 2px var(--rc),0 0 14px color-mix(in srgb,var(--rc) 60%,transparent)}
+.rarl{font-style:normal;font-weight:900}
+.lvline em{font-style:normal;color:var(--muted);font-size:11px;margin-right:4px}
+.ascbox{margin:6px 0;padding:8px;border-radius:12px;border:2px solid #ffd54a;background:rgba(255,213,74,.08);color:#f2e6c9;font-size:12.5px}
+.ascbox>b{font-family:var(--f-display);color:#ffd54a;margin-right:4px}
+.ascbox>small{display:block;margin:3px 0 5px;color:#cfe0ee;font-size:11.5px}
+.fods{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px}
+.fod{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px;border-radius:10px;border:2px solid var(--rc);background:#0c1f3a;color:#fff;opacity:.8}
+.fod.on{opacity:1;box-shadow:0 0 0 2px #ffd54a}
+.fod.short{opacity:.4}
+.fod small{font-size:10px}
+.fods .none{color:#9fb6c9;font-size:11.5px}
+.ascgo{width:100%}
+.tvsum{display:flex;align-items:center;gap:8px;margin:0 2px 10px;padding:8px;border-radius:14px;border:2px solid #7d5cff;background:linear-gradient(135deg,#2a1d5c,#13284a)}
+.tvsum .pt{font-size:30px}
+.tvsum .tx{flex:1;min-width:0}
+.tvsum .tx b{font-family:var(--f-display);color:#d8ccff;display:block}
+.tvsum .tx small{font-size:11px;color:#cfe0ee}
+.tvsum .tx a{color:#ffd54a;text-decoration:underline;cursor:pointer}
+.tvsum button{display:flex;flex-direction:column;align-items:center;padding:6px 9px;font-weight:900}
+.tvsum button small{font-size:10px;font-weight:700}
+.bkl{white-space:nowrap}
+.bkn{display:inline-flex;align-items:center;gap:1px;margin-right:5px;font-size:12px}
+.bkn svg{vertical-align:middle}
+.sk2 button svg{vertical-align:middle}
+.tvfoot{display:flex;gap:6px}
+.tvfoot button{flex:1}
+.smgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;margin-top:4px}
+.smc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 2px;border-radius:10px;border:2px solid var(--rc);background:#0c1f3a;text-align:center}
+.smc b{font-size:11px;color:#fff}
+.smc small{font-size:9.5px;color:#cfe0ee}
+.smc small em{font-style:normal;color:#ffd54a;font-weight:900}
+.smc i{font-style:normal;font-size:9px;font-weight:900;color:var(--rc)}
+.forgerow{display:flex;gap:6px}
+.forgerow .cbld{flex:1;width:auto}
