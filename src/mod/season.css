@@ -1,0 +1,14 @@
+/* v1.0.71: season pass and VIP */
+.sbox{margin:8px 0;padding:10px;border-radius:14px;background:#13284a;border:2px solid #0b1a2e;color:#dbe9f6}
+.sbox .sh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}.sbox .sh b{font-size:16px;color:#fff}.sbox .sh span{font-size:11px;color:#9fb6c9}
+.vipbox{display:flex;flex-direction:column;gap:6px;margin:8px 0;padding:10px;border-radius:14px;background:#1a2440;border:2px solid #3a4a7a;color:#dbe9f6}
+.vipbox.on{border-color:#e3b661}.vipbox b{color:#fff;font-size:14px}.vipbox small{color:#9fb6c9;font-size:11px}
+.shead,.srow{display:grid;grid-template-columns:34px 1fr 1fr;gap:6px;align-items:stretch}
+.shead{margin:10px 0 4px;font-size:11px;color:#9fb6c9;text-align:center}
+.slist{display:flex;flex-direction:column;gap:5px;padding-bottom:20px}
+.srow .st{display:flex;align-items:center;justify-content:center;border-radius:8px;background:#0b1a2e;color:#9fb6c9;font-family:var(--f-display)}
+.srow.open .st{color:#ffd54a}
+.scell{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:54px;padding:4px;border-radius:10px;border:2px solid #0b1a2e;background:#13284a}
+.scell.ready{border-color:#ffd54a}.scell.done{opacity:.5}.scell.lockp{background:#20203a}
+.scell .qrw{justify-content:center}.scell button{min-width:58px;font-size:11px;padding:2px 6px}
+.sbox .qbar{display:block}

@@ -1,0 +1,43 @@
+// v1.0.64: the city — a button on the Battle tab, eight buildings, the locks follow the stages really cleared, each open building
+// opens a screen the game already has, a locked one only says so; every house has its own city.
+const { chromium } = require('playwright');
+const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs').mkdirSync(SC, { recursive: true });
+(async () => {
+  const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+  const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message));
+  await page.goto('file://' + require('path').resolve(__dirname, '..', process.env.HOLDOR_HTML || 'beta/index.html'));
+  await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_CITY, { timeout: 20000 }); await page.waitForTimeout(300);
+  const R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
+  const setup = (cleared, house) => page.evaluate(([n, hs]) => { const H = window.HOLDOR; const a = H.newAccount(hs || 'stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1 }; a.learn = { chest: 1, hold: 1, champ: 1, glass: 1, keep: 1, tier2: 1, fire: 1 };
+    for (let i = 1; i <= n; i++) a.campaign[i] = 3; H.setAcc(a); H.showHub('battle'); }, [cleared, house]);
+  const C = await page.evaluate(() => { const X = window.HOLDOR_CITY; return { n: X.CITY_BLD.length, ids: X.CITY_BLD.map(b => b[0]), names: Object.keys(X.CITY_NAME) }; });
+  ok('eight buildings with unique ids; seven house cities', C.n === 8 && new Set(C.ids).size === 8 && C.names.length === 7, JSON.stringify(C));
+  await setup(0); await page.waitForTimeout(1200);
+  ok('the Battle tab has a City button naming the house city', /Winterfell/.test(await page.locator('#bCity').textContent()));
+  await page.locator('#bCity').tap({ force: true }); await page.waitForTimeout(500);
+  let S = await page.evaluate(() => ({ b: document.querySelectorAll('.cbd').length, lock: document.querySelectorAll('.cbd.lock').length, head: document.querySelector('.topbar h1').textContent.replace(/\s+/g, ' ') }));
+  ok('a fresh seat: 8 buildings, 5 locked (Treasury 2, Forge 3, Tavern 5, Library 8, Hall 10), the name of its city', S.b === 8 && S.lock === 5 && /Winterfell/.test(S.head) && /0 stages cleared/.test(S.head), JSON.stringify(S));
+  await page.screenshot({ path: SC + 'city64_fresh.png' });
+  await page.locator('.cbd[data-b="forge"]').tap({ force: true }); await page.waitForTimeout(300);
+  ok('a locked building only says so', await page.evaluate(() => !!document.querySelector('.city') && /opens after 3/.test(document.body.innerText)));
+  await page.locator('.cbd[data-b="barracks"]').tap({ force: true }); await page.waitForTimeout(500);
+  ok('the Barracks open the Train screen', /Army level|Train/i.test(await page.evaluate(() => document.querySelector('#card').innerText)));
+  await page.evaluate(() => window.HOLDOR_CITY.showCity()); await page.waitForTimeout(200);
+  await page.locator('#bBack').tap({ force: true }); await page.waitForTimeout(500);
+  ok('back returns to the Battle tab', await page.evaluate(() => !!document.querySelector('#bCity')));
+  await setup(6, 'targaryen'); await page.waitForTimeout(1000);
+  await page.locator('#bCity').tap({ force: true }); await page.waitForTimeout(500);
+  S = await page.evaluate(() => ({ lock: [...document.querySelectorAll('.cbd.lock')].map(x => x.dataset.b), head: document.querySelector('.topbar h1').textContent.replace(/\s+/g, ' ') }));
+  ok('6 stages cleared, Targaryen: Dragonstone; Treasury, Forge and Tavern open, Library and Hall locked', /Dragonstone/.test(S.head) && JSON.stringify(S.lock) === '["library","hall"]', JSON.stringify(S));
+  await page.screenshot({ path: SC + 'city64_dragonstone.png' });
+  await setup(12); await page.waitForTimeout(1000);
+  await page.locator('#bCity').tap({ force: true }); await page.waitForTimeout(500);
+  ok('12 stages: everything open', await page.evaluate(() => document.querySelectorAll('.cbd.lock').length === 0));
+  await page.locator('.cbd[data-b="tavern"]').tap({ force: true }); await page.waitForTimeout(600);
+  ok('the Tavern opens the champion room', await page.evaluate(() => !document.querySelector('.city')));
+  console.log(JSON.stringify(R, null, 1));
+  console.log('ERR', errors);
+  await browser.close();
+  process.exit(Object.values(R).some(v => v.startsWith('FAIL')) || errors.length ? 1 : 0);
+})();

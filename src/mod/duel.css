@@ -1,0 +1,10 @@
+/* v1.0.67: duel */
+.lg{display:flex;align-items:center;gap:8px;padding:10px;border-radius:14px;background:#13284a;border:2px solid #0b1a2e;margin:8px 0;color:#dbe9f6}
+.lg .le{font-size:34px}.lg b{font-size:18px;color:#fff}.lg .rt{margin-left:auto;font-family:var(--f-display);font-size:24px;color:#ffd54a}.lg small{width:100%;color:#9fb6c9}
+.dbtns{display:flex;flex-direction:column;gap:6px;margin:8px 0}.dbtns .btn small{display:block;font-size:10px;opacity:.75}
+.duelrow{padding:8px 10px;border-radius:12px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6;margin:6px 0}
+.duelrow.win{border-color:#3d9a54}.duelrow.loss{border-color:#8a3a3a}.duelrow.expired{opacity:.55}
+.duelrow .dh{display:flex;align-items:center;gap:8px}.duelrow .dh b{margin-left:auto;font-size:12px}
+.dw{color:#7fd06a}.dl{color:#ff8a8a}.dx{color:#9fb6c9}.dp{color:#ffd54a}
+.duelrow .ds{display:flex;align-items:center;justify-content:space-around;text-align:center;margin-top:6px;font-size:13px}
+.duelrow .ds em{font-style:normal;font-size:12px;color:#cfe0ee}.duelrow .ds i{opacity:.5;font-style:normal}

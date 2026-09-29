@@ -100,3 +100,9 @@ function migrate47(a){if(a.lv47)return;a.lv47=1;if(!a.learn||typeof a.learn!=='o
 # ---- hub: small tours when something opens (and the first tour, if it was cut short)
 hrep("if(tab==='battle')hubBattleBind();else if(tab==='coll')hubCollectionBind(sub);else if(tab==='shop')hubShopBind();else if(tab==='events')hubEventsBind(sub);else hubHoldBind();",
      "if(tab==='battle')hubBattleBind();else if(tab==='coll')hubCollectionBind(sub);else if(tab==='shop')hubShopBind();else if(tab==='events')hubEventsBind(sub);else hubHoldBind();\n  if(tab==='battle')setTimeout(hubLessons,400);", 1, 'hub-lessons')
+
+# ---- the first battle is fought on a short straight road of its own
+rep("function startTutorial(){startGame({mode:'campaign',level:LEVELS[0],tutorial:1});}", "function startTutorial(){startGame({mode:'campaign',level:TUT_LEVEL,tutorial:1});}", 1, 'tut-level')
+
+# ---- the move lesson forgives: a tap on the ground is enough (no need to hit the small champion first)
+rep("if(G.heroSel&&G.heroOn&&!h.dead){h.tx=clamp(x,12,W-12);", "if(G.tut&&tutWantBase()==='move'&&!G.heroSel&&G.heroOn&&!h.dead&&dist(x,y,h.x,h.y-8)>22)G.heroSel=true;\n  if(G.heroSel&&G.heroOn&&!h.dead){h.tx=clamp(x,12,W-12);", 1, 'tut-move-forgives')

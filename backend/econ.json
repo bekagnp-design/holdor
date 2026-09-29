@@ -1,5 +1,5 @@
 {
- "version": "1.0.60",
+ "version": "1.0.71",
  "max": {
   "c": 60,
   "t": 16,
@@ -748,6 +748,27 @@
     "title": "Hoard of dragonglass",
     "desc": "1200 dragonglass for your seat."
    },
+   "pass": {
+    "stars": 250,
+    "gems": 0,
+    "gold": 0,
+    "books": {},
+    "once": false,
+    "title": "Season Pass",
+    "desc": "Premium rewards on every tier of this month's season, for your seat.",
+    "grant": "pass"
+   },
+   "vip": {
+    "stars": 200,
+    "gems": 0,
+    "gold": 0,
+    "books": {},
+    "once": false,
+    "title": "VIP · 30 days",
+    "desc": "25 dragonglass a day and 25% more season points for 30 days, for your seat.",
+    "grant": "vip",
+    "days": 30
+   },
    "starter": {
     "stars": 75,
     "gems": 300,
@@ -760,6 +781,316 @@
     "desc": "300 dragonglass, 5000 gold and 3 Rare books for your seat. Once per seat."
    }
   }
+ },
+ "calendar": {
+  "days": [
+   {
+    "gems": 10
+   },
+   {
+    "gold": 400
+   },
+   {
+    "books": {
+     "b:c": 2
+    },
+    "gear": {
+     "n": 1,
+     "min_r": 0
+    }
+   },
+   {
+    "gems": 10
+   },
+   {
+    "gold": 600,
+    "gear": {
+     "n": 1,
+     "min_r": 1
+    }
+   },
+   {
+    "books": {
+     "b:c": 3
+    }
+   },
+   {
+    "gems": 20,
+    "books": {
+     "b:r": 1
+    },
+    "gear": {
+     "n": 1,
+     "min_r": 2
+    }
+   },
+   {
+    "gold": 800
+   },
+   {
+    "gems": 15,
+    "gear": {
+     "n": 1,
+     "min_r": 1
+    }
+   },
+   {
+    "books": {
+     "b:c": 3
+    }
+   },
+   {
+    "gold": 1000
+   },
+   {
+    "gems": 15
+   },
+   {
+    "books": {
+     "b:r": 1
+    },
+    "gear": {
+     "n": 1,
+     "min_r": 1
+    }
+   },
+   {
+    "gems": 30,
+    "books": {
+     "b:r": 1
+    },
+    "gear": {
+     "n": 1,
+     "min_r": 2,
+     "min_tier": 2
+    }
+   },
+   {
+    "gold": 1500,
+    "gear": {
+     "n": 1,
+     "min_r": 1
+    }
+   },
+   {
+    "gems": 20
+   },
+   {
+    "books": {
+     "b:c": 4
+    }
+   },
+   {
+    "gold": 2000,
+    "gear": {
+     "n": 1,
+     "min_r": 2
+    }
+   },
+   {
+    "gems": 20
+   },
+   {
+    "books": {
+     "b:r": 2
+    }
+   },
+   {
+    "gems": 40,
+    "books": {
+     "b:e": 1
+    },
+    "gear": {
+     "n": 1,
+     "min_r": 3,
+     "min_tier": 2
+    }
+   },
+   {
+    "gold": 2500
+   },
+   {
+    "gems": 25,
+    "gear": {
+     "n": 1,
+     "min_r": 1
+    }
+   },
+   {
+    "books": {
+     "b:c": 5
+    }
+   },
+   {
+    "gold": 3000,
+    "gear": {
+     "n": 1,
+     "min_r": 2
+    }
+   },
+   {
+    "gems": 25
+   },
+   {
+    "books": {
+     "b:r": 2
+    },
+    "gear": {
+     "n": 1,
+     "min_r": 2
+    }
+   },
+   {
+    "gems": 50,
+    "gear": {
+     "n": 1,
+     "min_r": 3
+    }
+   },
+   {
+    "gold": 4000
+   },
+   {
+    "gems": 100,
+    "books": {
+     "b:e": 1
+    },
+    "gear": {
+     "n": 1,
+     "min_r": 3,
+     "min_tier": 3
+    }
+   }
+  ],
+  "special_gems": 300
+ },
+ "quests": {
+  "daily": [
+   {
+    "id": "d_win1",
+    "m": "wins",
+    "n": 1,
+    "r": {
+     "gold": 300
+    }
+   },
+   {
+    "id": "d_kill",
+    "m": "kills",
+    "n": 300,
+    "r": {
+     "gems": 8
+    }
+   },
+   {
+    "id": "d_win3",
+    "m": "wins",
+    "n": 3,
+    "r": {
+     "books": {
+      "b:c": 2
+     },
+     "gear": {
+      "n": 1,
+      "min_r": 0
+     }
+    }
+   }
+  ],
+  "weekly": [
+   {
+    "id": "w_win10",
+    "m": "wins",
+    "n": 10,
+    "r": {
+     "gems": 40,
+     "gear": {
+      "n": 1,
+      "min_r": 1
+     }
+    }
+   },
+   {
+    "id": "w_days4",
+    "m": "days",
+    "n": 4,
+    "r": {
+     "books": {
+      "b:r": 1
+     }
+    }
+   },
+   {
+    "id": "w_stars15",
+    "m": "stars",
+    "n": 15,
+    "r": {
+     "gold": 2000,
+     "gear": {
+      "n": 1,
+      "min_r": 2
+     }
+    }
+   },
+   {
+    "id": "w_hold3",
+    "m": "hold_runs",
+    "n": 3,
+    "r": {
+     "gems": 30
+    }
+   }
+  ],
+  "monthly": [
+   {
+    "id": "m_win60",
+    "m": "wins",
+    "n": 60,
+    "r": {
+     "gems": 150,
+     "books": {
+      "b:e": 1
+     },
+     "gear": {
+      "n": 1,
+      "min_r": 3,
+      "min_tier": 3
+     }
+    }
+   },
+   {
+    "id": "m_days20",
+    "m": "days",
+    "n": 20,
+    "r": {
+     "gems": 100
+    }
+   },
+   {
+    "id": "m_new10",
+    "m": "new_stages",
+    "n": 10,
+    "r": {
+     "gold": 5000,
+     "books": {
+      "b:e": 1
+     },
+     "gear": {
+      "n": 1,
+      "min_r": 2,
+      "min_tier": 2
+     }
+    }
+   },
+   {
+    "id": "m_hold25",
+    "m": "hold_waves",
+    "n": 25,
+    "r": {
+     "gems": 60
+    }
+   }
+  ]
  },
  "win": [
   [

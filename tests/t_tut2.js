@@ -19,7 +19,7 @@ const SHOTS = process.argv[2] === 'shots';
   const tapEl = async (loc) => { const b = await loc.boundingBox(); if (!b) throw new Error('no box'); await page.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2); };
   const ringTapGo = async () => { const n = await page.locator('#ring .rb.tgo').count(); await tapEl(n ? page.locator('#ring .rb.tgo').first() : page.locator('#ring .rb').first()); await page.waitForTimeout(220); };
   const ringConfirm = async () => { await tapEl(page.locator('#ring .rb.arm').first()); await page.waitForTimeout(260); };
-  const slotOf = (what) => page.evaluate((what) => { const G = window.HOLDOR.G; let s = null; if (what === 'free') s = G.map.slots.filter(x => !x.tower).sort((a, b) => b.y - a.y)[0]; else if (what === 'last') s = G.lastBuilt && G.lastBuilt.tower ? G.lastBuilt : null; if (!s) s = G.map.slots.filter(x => x.tower).sort((a, b) => b.tower.lvl - a.tower.lvl || b.y - a.y)[0]; return { x: s.x, y: s.y - (s.tower ? 10 : 0) }; }, what);
+  const slotOf = (what) => page.evaluate((what) => { const G = window.HOLDOR.G; let s = null; if (what === 'free') s = window.HOLDOR_TUT.tutSlot(); else if (what === 'last') s = G.lastBuilt && G.lastBuilt.tower ? G.lastBuilt : null; if (!s) s = G.map.slots.filter(x => x.tower).sort((a, b) => b.tower.lvl - a.tower.lvl || b.y - a.y)[0]; return { x: s.x, y: s.y - (s.tower ? 10 : 0) }; }, what);
   const log = []; let guard = 0, shot = 0;
   while (guard++ < 140) {
     const t = await T(); log.push(t.done ? 'DONE' : `${t.i}:${t.want || (t.hold ? 'hold' : '-')}`);

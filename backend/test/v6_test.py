@@ -55,12 +55,12 @@ try:
     pct = {r: 100.0 * dist.get(r, 0) / 20000 for r in range(5)}
     check('rarity odds ≈ 70 / 22 / 6.5 / 1.4 / 0.1', abs(pct[0] - 70) < 1.5 and abs(pct[1] - 22) < 1.2 and abs(pct[2] - 6.5) < 0.7 and abs(pct[3] - 1.4) < 0.35 and pct[4] < 0.35, pct)
     g = G0; bad = []
-    for slot, rar, mk, subs in q("select slot, rar, main_k, subs from items where tg_id = %s and src = 'test' limit 3000", T1):
+    for slot, rar, mk, subs, kd in q("select slot, rar, main_k, subs, kind from items where tg_id = %s and src = 'test' limit 3000", T1):
         ks = [s['k'] for s in subs]
-        if mk not in g['main'][slot] or len(ks) != g['subs_n'][rar] or len(set(ks)) != len(ks) or mk in ks \
+        if mk not in g['kinds'][slot][kd]['main'] or len(ks) != g['subs_n'][rar] or len(set(ks)) != len(ks) or mk in ks \
            or any(not (g['sub'][s['k']][0] <= s['v'] <= g['sub'][s['k']][1]) for s in subs): bad.append((slot, rar, mk, subs))
-    check('every item: main stat of its slot, subs by rarity, distinct, within range', not bad, bad[:2])
-    check('all 9 slots and 4 sets appear', q1("select count(distinct slot) from items where tg_id = %s", T1) == 9 and q1("select count(distinct set_k) from items where tg_id = %s", T1) == 4)
+    check('every item: main stat of its kind, subs by rarity, distinct, within range', not bad, bad[:2])
+    check('all 9 slots and every set appear (12 sets since v11, 4 before)', q1("select count(distinct slot) from items where tg_id = %s", T1) == 9 and q1("select count(distinct set_k) from items where tg_id = %s", T1) == len(g['sets']))
     q("delete from items where tg_id = %s", T1); restore()
     check('a full bag gets nothing', (cfg(cap=0), q1("select (ge_new(%s, 0, 0, 'x')).id is null", T1))[1] is True); restore()
 
@@ -89,12 +89,13 @@ try:
     setbal('gems', 1000)
     n0 = len(items()); anon('chest_open', token=tok[T1], seat=0, tier='dragon', source='shop')
     new = [x for x in items()][n0:]
-    check('dragon chest: always an item, Rare or better', len(new) == 1 and new[0]['r'] >= 2 and new[0]['src'] == 'chest:dragon', new)
+    check('dragon chest: always an item, Rare or better (v11: and a second one)', len(new) >= 1 and max(x['r'] for x in new) >= 2 and all(x['src'] == 'chest:dragon' for x in new), new)
 
     # ---------- 3. the forge: cost, chance, milestones, a resend, +16 ----------
     setbal('gold', 100000)
     it = items()[0]; iid = it['id']
-    cfg(chance=[100] * 16)
+    q("update items set tier = 4 where id = %s", iid); it = items()[0]   # v11: a ★4 item keeps the old +16 road of this test
+    cfg(chance=[100] * 20)
     g0 = gold(); opid = str(uuid.uuid4())
     r = anon('gear_upgrade', token=tok[T1], seat=0, item=iid, op=opid)
     cost = round((G0['cost_base'] + G0['cost_step'] * 0) * G0['rar_cost'][it['r']] / 10) * 10
@@ -105,13 +106,13 @@ try:
     for _ in range(3): r = anon('gear_upgrade', token=tok[T1], seat=0, item=iid, op=str(uuid.uuid4()))
     subs = r['item']['subs']
     check('+4: a substat appears (fewer than 4) or one grows', r['item']['lvl'] == 4 and (len(subs) == n_subs + 1 if n_subs < 4 else sum(s['v'] for s in subs) > tot0), subs)
-    check('main stat grows with the level', r['item']['main']['v'] == round(G0['main_base'][it['main']['k']] * G0['rar_mul'][it['r']] * 1.4, 1), r['item']['main'])
-    cfg(chance=[0] * 16)
+    check('main stat grows with the level', r['item']['main']['v'] == round(G0['main_base'][it['main']['k']] * G0['rar_mul'][it['r']] * G0['tier_mul'][3] * 1.4, 1), r['item']['main'])
+    cfg(chance=[0] * 20)
     g0 = gold(); r = anon('gear_upgrade', token=tok[T1], seat=0, item=iid, op=str(uuid.uuid4()))
     check('a failed try: gold lost, the item stays', r['ok'] is False and r['item']['lvl'] == 4 and gold() < g0 and q1("select count(*) from items where id = %s", iid) == 1)
-    cfg(chance=[100] * 16)
+    cfg(chance=[100] * 20)
     for _ in range(12): anon('gear_upgrade', token=tok[T1], seat=0, item=iid, op=str(uuid.uuid4()))
-    check('up to +16, then refused', items()[0]['lvl'] == 16 and 'already +16' in anon_err('gear_upgrade', token=tok[T1], seat=0, item=iid, op=str(uuid.uuid4())))
+    check('up to +16, then refused', items()[0]['lvl'] == 16 and 'tier cap +16' in anon_err('gear_upgrade', token=tok[T1], seat=0, item=iid, op=str(uuid.uuid4())))
     check('4 substats at +16', len(items()[0]['subs']) == 4)
     restore()
     setbal('gold', 0)
@@ -136,10 +137,10 @@ try:
     # ---------- 5. sell; a full bag; the books ----------
     it = items()[0]; g0 = gold()
     r = anon('gear_sell', token=tok[T1], seat=0, item=it['id'])
-    want = round(G0['sell'] * G0['rar_cost'][it['r']] * (1 + it['lvl']))
+    want = round(G0['sell'] * G0['rar_cost'][it['r']] * (1 + it['lvl']) * (1 + 0.5 * (it['tier'] - 1)))   # v11: a higher tier sells for more
     check('sell: gold by rarity and level, item gone', r['gold'] == want and gold() == g0 + want and all(x['id'] != it['id'] for x in r['items']), (r['gold'], want))
     q("select ge_new(%s, 0, 0, 'test')", T1)   # back to 200 (the cap)
-    cfg(drop__win=100)
+    cfg(drop__win=100, cap=200)   # (the cap is 300 since v11; this test fills 200)
     b = anon('battle_start', token=tok[T1], seat=0, kind='camp', stage=3)['battle']
     q("update battles set started_at = now() - interval '20 minutes' where id = %s", b)
     anon('battle_finish', token=tok[T1], battle=b, won=True, stars=3, steps=7000, waves=8, kills=100); restore()

@@ -195,7 +195,8 @@ end $$;
 drop trigger if exists wallets_gear_gone on wallets;
 create trigger wallets_gear_gone after delete on wallets for each row execute function ge_wallet_gone();
 
-create or replace view v_items as
+drop view if exists v_items;   -- a re-run after v11 (which adds a column to it) must not fail
+create view v_items as
   select i.created_at, i.tg_id, p.name, i.seat, i.slot, i.rar, i.set_k, i.main_k, i.lvl, i.champ, i.src from items i left join players p on p.tg_id = i.tg_id order by i.created_at desc;
 revoke all on v_items from anon, authenticated;
 

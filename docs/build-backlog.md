@@ -306,6 +306,118 @@ Rules: `docs/design-v2.md` → "v1.0.59".
   - `run_all.sh` 11/11; the core set 18/18.
 - **Rollout:** v8 goes into Supabase together with the v1.0.59 release (after v7, which goes in with v1.0.58). Before that, older apps level skills without books and would be refused. Until then, on the beta a logged-in seat's star, summon and books wait for the server.
 
+### v1.0.62 — gear II (backend v11) (2026-09-30)
+Built on v1.0.57's forge: the same nine slots, five rarities and server-side rolls, now with tiers, more sets, four new stats and far more drops. Art prompts: `docs/prompts-gear.md`.
+- **Item tiers ★1–5:**
+  - A tier sets the level cap (+4 per tier: ★1 = +4 … ★5 = +20) and multiplies the main stat (×1 · 1.15 · 1.35 · 1.6 · 1.9).
+  - To raise a tier, the item must be at its cap; it costs gold (1500 · 5000 · 14000 · 36000, × the rarity's cost factor) and another item of the same rarity (tier equal or higher), burnt.
+  - Items forged before v11 keep their level: their tier is set to what that level needs.
+  - A higher tier also sells for more (+50% of the base per tier).
+  - **Where a drop's tier comes from** (`gear.tier_p`): wins ★1–2, Hard up to ★3, the Hold up to ★3. Chests by tier: wood ★1–2, iron up to ★3, valyrian up to ★4, dragon up to ★5. Gifts: ★1–3, with a minimum where the gift sets one.
+- **Twelve sets:**
+  - **Quads:** Direwolf, Lion, Dragon, Kraken — 2 and 4 pieces, as before.
+  - **Pairs** (2 pieces, repeat for every pair): Stag (health), Rose (regeneration), Sun (crit), Anvil (armor).
+  - **Triples** (3 pieces, repeat for every three): Wall (armor + health), Blood (lifesteal), Raven (cooldowns + speed), Hunt (crit + damage).
+  - **Two collection bonuses:** Rainbow (one worn item of each of the 5 rarities: damage +6, health +6, armor +5) and Full kit (all 9 slots: damage +4, health +4, regeneration +2, armor +3).
+- **Four new stats** (main, substats and set bonuses; each stops growing at a cap in battle: 60 / 40 / 30 / 60):
+  - **Armor:** damage taken −% (on top of Iron Skin and shields).
+  - **Lifesteal:** heals a % of the damage dealt (on top of the Bloodletting skill).
+  - **Regeneration:** % of max health every 10 s, also in a fight.
+  - **Crit chance:** adds to the skill's chance of a triple-damage blow.
+- **Gear in gifts:**
+  - Drops are up: won stage 25 → 40%, Hard 35 → 55%, wood chest 20 → 45%, iron 50 → 80%.
+  - Valyrian chests roll a second item 40% of the time, dragon chests always (two items).
+  - The login calendar and the quests can carry an item (reward key `gear: {n, min_r, min_tier}`, paid by `qs_pay`): 15 calendar days, 6 quests.
+- **Backend v11 (`backend/holdor_v11.sql`, after v10):**
+  - New `ge_new2` with the tier roll.
+  - `gear_upgrade` with the tier cap, and new `gear_tier_up(item, fodder, op)`.
+  - `gear_sell` with tiers, `qs_pay` with items, and the raised drops.
+  - The gear config is replaced by version 2. `items.tier`, and `items.lvl` up to 20.
+  - v6's `v_items` is now dropped and recreated, so the chain can be re-run after v11.
+- **Client (`mod/gear.js`, `parts/69_gear2.py`):**
+  - Every item shows its tier stars, its set emblem and a shape (Sword, Axe, Spear, Bow, Staff, Helm, Hood, Crown, Mail, Plate, …).
+  - The forge shows active set bonuses, Rainbow and Full kit progress, and a 📚 set book. The item sheet shows a tier button and a burn picker.
+  - In battle, armor, lifesteal, regeneration and crit work through the champion's worn gear.
+  - The art sheets are ready to drop in (`setGearSheet`).
+- **Tests:**
+  - New `backend/test/v11_test.py` (46 checks): the config, rolls, tier caps, every tier-up refusal, resend safety, drop rates over hundreds of rolls, gifts, selling, permissions.
+  - New `tests/t_gear62.js`: the set maths (quads, repeating pairs and triples, Rainbow, Full kit, caps), the four stats in battle, the forge screens, the art loader.
+  - Extended `gear_test.py`: a tier through the forge with taps.
+  - Adapted `v6_test.py` to the tiers.
+- **Rollout:** v11 goes into Supabase with the rest (v7 → v11). Existing items keep working.
+
+
+### v1.0.63 — gear III: 54 kinds of item and special effects (backend v12) (2026-09-30)
+- **Kinds:** every slot has several kinds (`backend/gear_kinds.py` is the source of truth: 10 weapons, 6 off-hands, 6 helmets, 6 armours, 4 gloves, 4 boots, 6 rings, 6 amulets, 6 banners = 54). A kind decides which main stats an item can roll (a Dagger: crit or attack speed; a Signet: gold or cooldowns; Boots: speed only) and which perks it can carry. The server stores `items.kind` and the client shows the kind's name and shape (the same order in `GEAR_KIND` in `mod/gear.js`; a test compares both). Older items got a random kind of their slot once.
+- **Perks:** 46 special effects, each one an existing skill mechanic (Bleed, Thorns, Stormcaller, Execute, Frostbite, Tribute, Rally …); none is an ultimate. Chances: Common none, Uncommon 40 % one, Rare one, Epic and Legendary two (`perk_p`, `perk2_p`, never the same twice). Rank = ⌈(rarity + tier) / 2⌉, 1–5 (`ge_perk_rank`, also `pr` in `ge_json`), so forging the tier grows the perk. The champion gets the best rank of each perk among the items he wears.
+- **Engine:** `hero.perk = gearPerks(id)`; `skLvl` returns the higher of the champion's own skill rank and the perk rank, `skVal` clamps to the skill's table (some have only 3 ranks). That is the only accessor of skill ranks, so every periodic skill, aura and on-hit effect works unchanged.
+- **UI:** the item sheet lists its perks with the rank and the effect text; icons carry a ✦ per perk. Six art sheets of nine kinds (`setGearSheet('kinds1'…'kinds6')`) replace the four old ones; `docs/prompts-gear.md` was regenerated.
+- **Tests:** `backend/test/v12_test.py` (54 kinds, main/perk pools, 3000 rolls: kind, main and perks all from the kind, perk counts by rarity, every kind appears); v6/v11 tests now check the main stat against the kind. `tests/t_gear63.js`: names agree with the server config, all 46 perks are real non-ult skills and run for 900 steps in a battle at rank 5, rank rules, best-of-worn, burn/poison/thorns/howl behaviour, the sheet and the ✦, the six art sheets.
+- **Rollout:** v12 goes into Supabase with the release, after v11.
+
+### v1.0.64 — the city (2026-09-30), client only
+- A City button on the Battle tab opens a vertical, scrolling city for the seat's house (Winterfell, Casterly Rock, Dragonstone, Storm's End, Pyke, Highgarden, Sunspear) with a winding road and Hodor's door at the top. Temporary art: CSS and emoji until MR B's city pictures arrive.
+- Eight buildings, each opens a screen the game already has: Keep (tower and spell cards), Barracks (Train), Market (Shop), Treasury (calendar and quests, opens at 2 cleared stages), Forge (3), Tavern (5), Library (8), Council hall (Events, 10). A locked building shows how many stages are still missing; the count is the seat's real cleared stages.
+- No upgrades or timers yet: they need the server (account levels, v1.0.65) first. No backend change.
+- Test: `tests/t_city64.js` (real taps: locks by cleared stages, the house's city name, locked building only says so, Barracks and Tavern open their screens, back).
+
+### v1.0.65 — account levels to 60, milestone gifts, invitations (backend v13 + v14) (2026-09-30)
+- **Levels (v13):** `xp_level` goes to 60 (same XP formula); the app's `accLevel` too. Milestone gifts at levels 10, 20 … 60 (econ_config `milestones`: dragonglass, gold, books, gear; 60 gives two ★5 Epic+ items). `milestone_state` / `milestone_claim` check the level from the seat's own XP and pay once per seat (ledger reason `milestone`). The Daily screen has a ⭐ Levels tab that shows exactly what the server sends.
+- **Invitations (v14):** `players.ref_code` (8 chars, unique), table `referrals`, `ref_join` (a new player, once, not himself), `ref_state`, `ref_claim`. Both sides get a gift when the invited player has cleared 5 campaign stages (econ_config `referral`: inviter 60 dragonglass + a Rare book, up to 20 friends; friend 100 dragonglass + 2000 gold). No percentage of purchases. The owner view `v_referrals`. The app reads `start_param` (`r_<code>`) after login and joins once per device; the Daily screen has a 👥 Invite tab (link, send, copy, progress of each friend, claim).
+- **Not in this version:** HOLDOR Coin and Tasks (Telegram group check by the bot, X, YouTube) — they need MR B's group username and links.
+- **Tests:** `backend/test/v13_test.py`, `v14_test.py`, and `daily_test.py` (Levels and Invite tabs with real taps).
+- **Rollout:** v13 and v14 go into Supabase with the next release, after v12.
+
+### v1.0.67 — Duel: asynchronous 1v1 on the Hold map (backend v15) (2026-09-30)
+- **What it is, honestly:** nothing is played live. A duel compares two Hold runs on the same map (the day's Hold map is the same for everybody); each side fights his own run, and the server compares runs it recorded itself (`battles` of kind `hold` finished inside the duel's window; score = waves × 1000 + kills, kills capped at 999). A real-time duel with troops sent across a shared map (the KR Battles mechanic) needs a game server and is a separate, later project.
+- **Modes:** Ranked (the opponent is the recorded best run of a real player near your rating — a "ghost", who is not asked and loses nothing — or a bot when nobody fits; Elo K 32; 5 ranked duels a day per seat; a small gold gift, 15 dragonglass on a win), Friend (a `startapp=d_<code>` link; both play; no rating, no reward), Practice vs a bot (always marked, no rating, 100 gold). Leagues by rating: Bronze, Silver 1100, Gold 1300, Crystal 1500, Dragon 1700.
+- **Server:** tables `ratings`, `duels`; `duel_state` (settles what can be settled), `duel_start`, `duel_join`; the owner view `v_duels`. Hold attempts are shared with the daily Hold.
+- **App:** an Events-tab card "Duel" → the Duel screen (league, rating, three buttons, the list of duels with both runs and the result). A challenge link opened at start waits until a seat is open (Events → Duel joins it).
+- **Tests:** `backend/test/v15_test.py` (34 checks: ghost and bot, Elo, limits, friend flow, expiry, permissions), `duel_test.py` (real taps).
+- **Rollout:** v15 goes into Supabase with the next release.
+
+### v1.0.71 — Season Pass, VIP and the rewarded-ad frame (backend v16) (2026-09-30)
+- **Season** = a UTC month. Points come only from the server's own records: +1 per won stage, +3 per finished Hold run in the season (×1.25 with VIP). Every 10 points open a tier; 20 tiers. Each tier has a FREE reward for everybody and a PREMIUM reward for the owner of the Pass (gold, dragonglass, books, gear; tier 20 gives a Legendary book and two ★4 Epic+ items). Claimed once per season; only the current season's claims are kept.
+- **Season Pass** (250 ⭐, per season and seat) and **VIP** (200 ⭐, 30 days, buying again adds 30 days; 25 dragonglass a day and +25 % points) are SKUs of the Stars shop (`grant: pass | vip`). A trigger on `payments` grants them when a payment turns `paid` and takes them back when Telegram refunds it; a second Pass in the same season is refused. The pipeline (invoice link, webhook, pay_confirm) is the one from v1.0.60 — no change to the Edge Function.
+- **Rewarded ads:** only the frame. `ad_views`, `ad_state` (the app), `ad_credit` (service role, for the Edge Function that will check an ad partner's signed callback; 5 a day, 8 dragonglass each, dedup by nonce). Off (`econ_config ads.enabled = false`); no ad partner is connected, so the app shows no ad button.
+- **App:** a Season button beside City on the Battle tab → the Season screen (tier bar, Pass and VIP boxes with the Stars buttons, the 20 tiers with free and premium claims, the VIP daily gift). `holdor_econ_data.sql` was regenerated (the two new SKUs); `econ_export.js` exports `grant` and `days`.
+- **A hole the tests caught:** `season_claim` let a premium reward through for a seat without the Pass (a `NULL` boolean in the check). Fixed with `coalesce` and covered by `v16_test`.
+- **Tests:** `backend/test/v16_test.py` (points, tiers, claims, the Pass and VIP through payments and refunds, ads), `season_test.py` (real taps, a simulated Telegram payment).
+- **Rollout:** v16 and the regenerated econ data go into Supabase with the next release.
+
+### v1.0.72 — the marketing version: sources, retention, sharing (backend v17) (2026-09-30)
+- **Sources:** `players.src` = where a player first came from. A link `t.me/HoldorTDBot/play?startapp=s_<code>` (2–16 characters: a–z, 0–9, `_`) is reported once per device after login (`src_set`); it counts only for a player made less than 2 days ago and only the first time. A player who joins through an invitation is `ref`; the rest are `direct`.
+- **Owner views (no app access), all from the server's own records:** `v_sources` (players, first stage, 5 stages, payers, Stars, Stars per player, per source), `v_retention` (day 0 / D1 / D7 / D30 by the first-play day; "back" = a battle of his ended that day), `v_funnel` (arrived → first stage → 5 → 20 stages → paid). With the earlier `v_revenue`, `v_referrals`, `v_duels`, `v_season` this is the whole dashboard.
+- **Sharing:** a Share button on the win screen and on a won duel opens Telegram's own share sheet with a one-line text and the player's invitation link (his seat's `startapp=r_<code>` when signed in, otherwise the plain game link). No pictures (a share-image needs a public URL for the media; a later step).
+- **`docs/launch-checklist.md`** (Georgian): the steps before money comes in (the lawyer, BotFather, the ⭐50 test purchase and refund), the table of source links, the SQL that reads the views, the rule for deciding where to spend.
+- **Tests:** `backend/test/v17_test.py` (source once, first touch only, bad codes, ref, funnel, a cohort's D0/D1/D7, permissions), `tests/t_market72.js` (the share sheet opened by real taps on the win screen, texts and link).
+- **Rollout:** v17 goes into Supabase with the next release, after v16.
+### v1.0.61 — login calendar and quests (backend v10) (2026-09-29)
+The retention loop. Every reward is paid by the server and progress is counted from the server's own records, so nothing here can be forged.
+- **Login calendar (30 days):**
+  - All rewards are visible ahead: dragonglass, gold and books, growing through the month (`LOGIN_CAL` in `mod/daily.js`, exported to `econ_config.calendar`).
+  - A day is claimed once per UTC day. A missed day changes nothing: the calendar goes on from where the seat left it (`claims.login = {n, last}`), so there is no streak to lose.
+  - **Day 30, 60 and 90** also open the next champion of the house that is still sealed, or 300 dragonglass when none is.
+  - A popup at the castle offers today's reward, at most once a session, never over the tutorial or a tour.
+- **Quests: Daily (UTC day), Weekly (ISO week, from Monday), Monthly (UTC month):**
+  - **The tables:** 3 daily, 4 weekly and 4 monthly quests (`QUESTS`, exported to `econ_config.quests`).
+  - **How progress is counted:** it comes only from the server's battles (won/lost/done, never rejected or open) and its `progress` rows. Metrics: `wins`, `kills`, `stars`, `days`, `hold_runs`, `hold_waves`, `new_stages`. Battles from before the seat was made do not count. A seat replaced by a new one starts at zero.
+  - **How claims work:** a quest is claimed once per period. The server re-counts at claim time, so "done" is never taken from the app. Finished periods' claims are dropped.
+- **Backend v10 (`backend/holdor_v10.sql`, after v9 + the regenerated `holdor_econ_data.sql`):**
+  - **App calls:** `quest_state` (calendar and all three periods), `login_claim`, `quest_claim`. Each answer carries the new balances.
+  - **Helpers, closed to the app:** `qs_window`, `qs_metric`, `qs_pay`, `qs_state`.
+  - **Ledger:** reasons `login` and `quest`.
+  - **Dashboard:** view `v_daily_claims`.
+- **Client (`mod/daily.js`, `parts/68_daily.py`):**
+  - A 📜 Daily & quests button on the Battle tab shows how many rewards are ready.
+  - The screen has four tabs: Calendar (30 tiles), Daily, Weekly and Monthly. The quest tabs show progress bars, reward chips and a reset time.
+  - A guest sees why it is off (a Telegram seat is needed).
+- **Tests:**
+  - New `backend/test/v10_test.py`: the config, the calendar (claim, once a day, a long break, book days, the special champion, the wrap, nothing sealed), every quest metric, rejected/open battles ignored, per-period claims, a replaced seat, permissions.
+  - New `backend/test/daily_test.py`: the popup, the claim, the calendar screen and the quests, all with taps; the app's numbers equal the server's.
+  - New `tests/t_daily61.js` (guest and the tables).
+- **Rollout:** the same as the earlier versions: v10 goes into Supabase with the release. Until then the button works only for guests' explanation.
+
 ### v1.0.60 — Telegram Stars (backend v9) (2026-09-29)
 The first way to earn: dragonglass packs and the Starter pack, paid in Telegram Stars (currency `XTR`, no provider token). The app never credits anything.
 - **Items (`STARS_SHOP` in `mod/stars.js`, exported to `econ_config.stars`, so app and server agree on price and payout):**
@@ -343,6 +455,11 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
   3. Open the one-time setup link.
   4. Release the app.
   5. A test purchase of the smallest pack by the owner (⭐50), then a refund with `refundStarPayment`.
+- **Tutorial and zoom fixes (from MR B's phone test, same version):**
+  - **The zoom:** on iOS the page zoomed after repeated taps on HUD buttons (the speed button), the canvas was cut off, and every later tap missed its target. iOS ignores `user-scalable=no`. Fix: `touch-action: manipulation` on the page, HUD and hub (no double-tap zoom), handlers that stop pinch gestures, a viewport fixed at 1×, and a snap-back if the visual viewport ever scales (`mod/nozoom.js`).
+  - **The first battle has its own road** (`TUT_LEVEL` in `mod/tutorial.js`): a short, gently winding road (786 px instead of 1131) with twelve rings, and the ring offered first is the one nearest the road 40% of the way down. The dead now reach the first tower in 4.1 s instead of 19 s, the first kill comes at 5.4 s instead of 20 s, and every later wait is shorter too.
+  - **The move lesson forgives:** one tap on the ground is enough; the player no longer has to hit the small champion first.
+  - **Tests:** `tests/t_tut60.js` covers the road, the timings, the move step and the no-zoom rules. `t_tut2.js` now taps the glowing ring the tutorial points at.
 - **Telegram's rules to remember:**
   - Stars can be withdrawn only from the bot's balance, from 1000 Stars, after a hold, via TON/Fragment.
   - Digital goods must be paid in Stars.
@@ -361,7 +478,7 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 
 ## Not done / next
 - **On MR B (one step at a time):** 1) merge the v1.0.58 PR, then the v1.0.59 PR, and play `…/holdor/beta/` on the phone; 2) say "release" — Claude first applies `holdor_v7.sql`, the regenerated `holdor_econ_data.sql` and `holdor_v8.sql` in Supabase (hashes verified), then opens the release PR. Art: the Dorne kit first (`holdor-prompts-v45.md`); still open: 8 chest images, 30 skill icons, 7 island images, 4 event banners, house film clips.
-- **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.61 login calendar + quests → v1.0.62 city → v1.0.63 account levels + HOLDOR Coin + Tasks + invites → v1.0.64 chats → v1.0.65–66 PvP 1v1 → v1.0.67 country war → v1.0.68 languages → v1.0.69 Season Pass + rewarded ads + VIP → v1.0.70 marketing.
+- **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.64 city → v1.0.65 account levels + HOLDOR Coin + Tasks + invites → v1.0.66 chats → v1.0.67–68 PvP 1v1 → v1.0.69 country war → v1.0.70 languages → v1.0.71 Season Pass + rewarded ads + VIP → v1.0.72 marketing.
 - Standing rule from MR B (26.09): every reply ends with the next step and one development idea/plan.
 - **Wire when art arrives:** `BG_ART[biome]` (drop-in), props sheet → cut 3×3 on magenta → `setPropSheet(biome, cells)` (order in `PROP_KIT`), `CHEST_ART`, `SKILL_ART`; painted islands would replace `drawIsland` per house.
 - Hold stats: verified real — the Hold tab's "Today's defenders" and "your rank" come only from the server's `daily_scores` (v3: per seat); B K's 15-wave run was on the server on 2026-09-14.

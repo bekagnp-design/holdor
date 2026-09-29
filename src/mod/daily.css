@@ -1,0 +1,34 @@
+/* v1.0.61 — login calendar and quests */
+.rch{display:inline-flex;align-items:center;gap:2px;font-size:12px;font-weight:800;color:#f2e6c9;margin-right:6px;white-space:nowrap}
+.rch svg{width:14px;height:14px}
+#bDaily .dn{font-style:normal;color:#ffd54a;font-weight:900}
+.cgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:8px 0 10px}
+.cday{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:58px;padding:4px 2px;border-radius:10px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6;text-align:center}
+.cday b{font-family:var(--f-display);font-size:12px;color:#9fb6c9}
+.cday span{display:flex;flex-direction:column;align-items:center}
+.cday .rch{margin:0;font-size:10.5px}
+.cday.done{opacity:.5;border-color:#3d7a49}
+.cday.today{border-color:#ffd54a;box-shadow:0 0 0 2px #ffd54a,0 0 12px rgba(255,213,74,.5);background:#1c3660}
+.cday .ck{position:absolute;top:1px;right:3px;font-style:normal;color:#7fd06a;font-size:11px}
+.cday .spc{position:absolute;top:0;left:3px;font-style:normal;font-size:12px}
+.cday.big{border-color:#b47cff}
+.qlist{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.qrow{display:flex;align-items:center;gap:8px;padding:8px;border-radius:12px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6}
+.qrow.ready{border-color:#ffd54a}
+.qrow.done{opacity:.55}
+.qt{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.qt b{font-size:13px;color:#fff}
+.qbar{position:relative;height:14px;border-radius:7px;background:#0b1a2e;overflow:hidden}
+.qbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#7fd06a,#3d9a54)}
+.qbar em{position:absolute;inset:0;text-align:center;font-style:normal;font-size:10px;line-height:14px;font-weight:800;color:#fff}
+.qrw{display:flex;flex-wrap:wrap}
+.qrow button{min-width:64px}
+.pvrow{display:flex;gap:6px;margin-top:8px;justify-content:center}
+.pv{display:flex;flex-direction:column;align-items:center;padding:4px 6px;border-radius:8px;background:rgba(255,255,255,.06)}
+.pv i{font-style:normal;font-size:10px;color:#9fb6c9}
+.eh .rw{display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
+.newch{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:8px}
+.sp{display:block;margin-top:6px;color:#ffd54a}
+/* v1.0.65: invitations */
+.reflink{margin:8px 0;padding:8px;border-radius:10px;background:#0b1a2e;border:1px solid #2a4a7a;overflow-wrap:anywhere;font-size:11px;color:#9fd0ff}
+.qt b small{font-weight:600;color:#9fb6c9;font-size:10px}
