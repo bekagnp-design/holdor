@@ -12,7 +12,9 @@ function tutWantBase(){const st=TS();return st&&st.want?st.want.split(':')[0]:nu
 function tutMapBlocked(){const w=tutWantBase();return !!(w&&(TUT_BTN[w]||w==='power'));}
 function learnMap(){if(!ACC.learn||typeof ACC.learn!=='object')ACC.learn={};return ACC.learn;}
 function ringHint(a,b,c){return !RING?a:!RING.arm?b:c;}
-function tutSlot(){return G.map?G.map.slots.filter(s=>!s.tower).sort((a,b)=>b.y-a.y)[0]:null;}
+/* the tutorial has its own short, straight road (the dead reach the first tower within seconds); slots near the middle of it are offered first */
+const TUT_LEVEL=Object.assign({},LEVELS[0],{routes:[[[195,-30],[195,544]]],gates:[195],style:'bend',stage:'t',intro:''});
+function tutSlot(){if(!G.map)return null;const f=G.map.slots.filter(s=>!s.tower);return (G.tutorial?f.sort((a,b)=>Math.abs(a.y-330)-Math.abs(b.y-330)):f.sort((a,b)=>b.y-a.y))[0]||null;}
 function tutTower(){const ts=G.map?G.map.slots.filter(s=>s.tower):[];return ts.sort((a,b)=>b.tower.lvl-a.tower.lvl||b.y-a.y)[0]||null;}
 function upgradeGold(){const s=tutTower();return s?upCost(s.tower):0;}
 const TUT_STEPS=[
@@ -26,8 +28,8 @@ const TUT_STEPS=[
  {t:'The first wave waits at the top of the road. Tap the ⚔ banner to call it now: calling early pays bonus gold.',pose:'point',want:'call',hint:'Tap the ⚔ banner at the top of the road',cam:[1],hodor:'HODOR HODOR!'},
  {t:'',want:'shot',silent:1,cam:'tower'},
  {t:'',want:'kill',hint:'Your tower shoots by itself. Every kill drops gold for you.',cond:()=>G.kills>0,cam:[1]},
- {t:'Your champion has ridden up from the keep. Tap the champion, then tap the ground where they should stand.',pose:'point',want:'move',hero:1,heroFx:1,cam:[1.5,GX,GATE_Y-52],camBack:1500,hodor:'HODOR! HODOR!',
-  hint:()=>G.heroSel?'Now tap the ground where they should stand':'Tap your champion (or their card at the bottom)'},
+ {t:'Your champion has ridden up from the keep. Tap the ground where they should stand and they will walk there.',pose:'point',want:'move',hero:1,heroFx:1,cam:[1.5,GX,GATE_Y-52],camBack:1500,hodor:'HODOR! HODOR!',
+  hint:()=>'Tap the ground where your champion should stand'},
  {t:'This card is your champion. The bar is health. The thin gold line is battle experience: fill it with kills and your champion grows stronger for the rest of the battle. A fallen champion rides back after a short while.',pose:'point',hold:1,focus:'#hCard'},
  {t:()=>{const u=SK[G.hero.c.sk[2]];return 'Every champion has one skill of their own. Yours is '+u.n+': '+u.d(skVal(G.hero,G.hero.c.sk[2]))+'. Tap it now.';},pose:'point',want:'ult',hodor:'Hodor!',
   hint:()=>'Tap '+SK[G.hero.c.sk[2]].e+' '+SK[G.hero.c.sk[2]].n+' at the bottom'},

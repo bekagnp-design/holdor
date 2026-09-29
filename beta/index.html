@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
 <title>HOLDOR: Hold the Door</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -964,7 +964,10 @@ button.standrow:nth-of-type(3) .rk{background:linear-gradient(180deg,#e0a06a,#a8
 .shopgrid .sitem.starter{grid-column:1/-1}
 .sitem.starter{border-color:#ffd54a;background:linear-gradient(160deg,rgba(255,213,74,.16),rgba(19,40,74,.9))}
 .stbtn{font-weight:900}
-.stbtn:not(:disabled){background:linear-gradient(#ffe97a,#f2a62c);color:#3a2404}
+.stbtn:not(:disabled){background:linear-gradient(#ffe97a,#f2a62c);color:#3a2404}/* v1.0.60 — taps never zoom the page (double-tap), the page never scrolls or bounces under the game */
+html,body,#app,button,.hud,#hud,#overlay,#card{touch-action:manipulation}
+html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+canvas{touch-action:none}
 </style>
 </head>
 <body>
@@ -997,6 +1000,18 @@ button.standrow:nth-of-type(3) .rk{background:linear-gradient(180deg,#e0a06a,#a8
 (()=>{
 'use strict';
 const $=s=>document.querySelector(s);
+/* v1.0.60 — no accidental zoom. iOS ignores user-scalable=no: a double tap on a HUD button (the speed button is tapped again and again) zooms the
+   whole page, the canvas is cut off and every later tap lands beside its target. touch-action: manipulation (CSS) removes the double-tap zoom;
+   these handlers stop the pinch, and any zoom that still gets through is undone. */
+(function(){try{
+  const stop=e=>{try{if(e.cancelable)e.preventDefault();}catch(_){}};
+  ['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,stop,{passive:false}));
+  document.addEventListener('touchstart',e=>{if(e.touches&&e.touches.length>1)stop(e);},{passive:false});
+  document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)stop(e);},{passive:false});
+  const vv=window.visualViewport;
+  if(vv)vv.addEventListener('resize',()=>{if(vv.scale>1.02){const m=document.querySelector('meta[name=viewport]');if(!m)return;const c=m.content;
+    m.content=c+', maximum-scale=1, minimum-scale=1';setTimeout(()=>{m.content=c;window.scrollTo(0,0);},150);}});
+}catch(e){}})();
 const TG=(()=>{try{const tg=window.Telegram&&window.Telegram.WebApp;if(!tg||!tg.platform||tg.platform==='unknown')return null;tg.ready();tg.expand();try{tg.disableVerticalSwipes&&tg.disableVerticalSwipes()}catch(e){}try{tg.lockOrientation&&tg.lockOrientation()}catch(e){}try{tg.setHeaderColor&&tg.setHeaderColor('#0a1220');tg.setBackgroundColor&&tg.setBackgroundColor('#0a1220');tg.setBottomBarColor&&tg.setBottomBarColor('#0a1220')}catch(e){}try{if(tg.requestFullscreen&&tg.isVersionAtLeast&&tg.isVersionAtLeast('8.0'))tg.requestFullscreen()}catch(e){}try{tg.enableClosingConfirmation&&tg.enableClosingConfirmation()}catch(e){}const rs=()=>{try{if(typeof resize==='function')resize()}catch(e){}};['viewportChanged','safeAreaChanged','contentSafeAreaChanged','fullscreenChanged'].forEach(ev=>{try{tg.onEvent(ev,rs)}catch(e){}});document.documentElement.classList.add('tg');return tg}catch(e){return null}})();
 const canvas=$('#c'),ctx=canvas.getContext('2d');
 const W=390,H=700,DT=1/60,GATE_Y=628,GX=195;const LEGACY_H=560,LEGACY_GATE=488;
@@ -3103,6 +3118,7 @@ canvas.addEventListener('pointerdown',ev=>{
     G.armed=null;G.rallySlot=null;updateBar();if(G.tut)tutEvent('rally');return;
   }
   if(G.armed){const pid=G.armed;castPower(pid,x,y);G.armed=null;updateBar();if(G.tut)tutEvent('power',pid);return;}
+  if(G.tut&&tutWantBase()==='move'&&!G.heroSel&&G.heroOn&&!h.dead&&dist(x,y,h.x,h.y-8)>22)G.heroSel=true;
   if(G.heroSel&&G.heroOn&&!h.dead){h.tx=clamp(x,12,W-12);h.ty=clamp(y,40,GATE_Y-14);G.heroSel=false;if(G.tut)tutEvent('move');G.log.push({t:G.tick,a:'move',x:Math.round(h.tx),y:Math.round(h.ty)});addFx({t:'ring',x:h.tx,y:h.ty,r0:3,r1:16,life:0.35,col:HOUSES[ACC.house].col});updateBar();return;}
   if(G.heroOn&&!h.dead&&dist(x,y,h.x,h.y-8)<=22){G.heroSel=true;G.sel=null;closeSheet();updateBar();return;}
   let hit=null;for(const s of G.map.slots){if(dist(s.x,s.y,x,y)<=24){hit=s;break;}}
@@ -3188,7 +3204,9 @@ function tutWantBase(){const st=TS();return st&&st.want?st.want.split(':')[0]:nu
 function tutMapBlocked(){const w=tutWantBase();return !!(w&&(TUT_BTN[w]||w==='power'));}
 function learnMap(){if(!ACC.learn||typeof ACC.learn!=='object')ACC.learn={};return ACC.learn;}
 function ringHint(a,b,c){return !RING?a:!RING.arm?b:c;}
-function tutSlot(){return G.map?G.map.slots.filter(s=>!s.tower).sort((a,b)=>b.y-a.y)[0]:null;}
+/* the tutorial has its own short, straight road (the dead reach the first tower within seconds); slots near the middle of it are offered first */
+const TUT_LEVEL=Object.assign({},LEVELS[0],{routes:[[[195,-30],[195,544]]],gates:[195],style:'bend',stage:'t',intro:''});
+function tutSlot(){if(!G.map)return null;const f=G.map.slots.filter(s=>!s.tower);return (G.tutorial?f.sort((a,b)=>Math.abs(a.y-330)-Math.abs(b.y-330)):f.sort((a,b)=>b.y-a.y))[0]||null;}
 function tutTower(){const ts=G.map?G.map.slots.filter(s=>s.tower):[];return ts.sort((a,b)=>b.tower.lvl-a.tower.lvl||b.y-a.y)[0]||null;}
 function upgradeGold(){const s=tutTower();return s?upCost(s.tower):0;}
 const TUT_STEPS=[
@@ -3202,8 +3220,8 @@ const TUT_STEPS=[
  {t:'The first wave waits at the top of the road. Tap the ⚔ banner to call it now: calling early pays bonus gold.',pose:'point',want:'call',hint:'Tap the ⚔ banner at the top of the road',cam:[1],hodor:'HODOR HODOR!'},
  {t:'',want:'shot',silent:1,cam:'tower'},
  {t:'',want:'kill',hint:'Your tower shoots by itself. Every kill drops gold for you.',cond:()=>G.kills>0,cam:[1]},
- {t:'Your champion has ridden up from the keep. Tap the champion, then tap the ground where they should stand.',pose:'point',want:'move',hero:1,heroFx:1,cam:[1.5,GX,GATE_Y-52],camBack:1500,hodor:'HODOR! HODOR!',
-  hint:()=>G.heroSel?'Now tap the ground where they should stand':'Tap your champion (or their card at the bottom)'},
+ {t:'Your champion has ridden up from the keep. Tap the ground where they should stand and they will walk there.',pose:'point',want:'move',hero:1,heroFx:1,cam:[1.5,GX,GATE_Y-52],camBack:1500,hodor:'HODOR! HODOR!',
+  hint:()=>'Tap the ground where your champion should stand'},
  {t:'This card is your champion. The bar is health. The thin gold line is battle experience: fill it with kills and your champion grows stronger for the rest of the battle. A fallen champion rides back after a short while.',pose:'point',hold:1,focus:'#hCard'},
  {t:()=>{const u=SK[G.hero.c.sk[2]];return 'Every champion has one skill of their own. Yours is '+u.n+': '+u.d(skVal(G.hero,G.hero.c.sk[2]))+'. Tap it now.';},pose:'point',want:'ult',hodor:'Hodor!',
   hint:()=>'Tap '+SK[G.hero.c.sk[2]].e+' '+SK[G.hero.c.sk[2]].n+' at the bottom'},
@@ -3819,7 +3837,7 @@ function afterLoad(){
   if(!ACC.intro){showCinematic(()=>{ACC.intro=1;persist();showHub('battle');});return;}
   showHub('battle');
 }
-function startTutorial(){startGame({mode:'campaign',level:LEVELS[0],tutorial:1});}
+function startTutorial(){startGame({mode:'campaign',level:TUT_LEVEL,tutorial:1});}
 function newLang(i,q,selJ){
   if(sbReady()&&!CLOUD.lb)fetchLeaderboard(true).then(r=>{if(r&&CLOUD.screen==='newlang'&&$('#q'))newLang(i,$('#q').value,selJ);});
   const rows=realmStats(),top=rows.length?Math.max(1,rows[0].waves):1;
@@ -5872,7 +5890,7 @@ function holdTutorial(done){const c=CBY[ACC.sel],pu=CHAMP_ART[c.id+'_portrait'],
   render();}
 window.HOLDOR_GEN={denseRoute,pickSlots,waterFeat,seaEdge,riverY,inWater,posAt,BIOMES,mulberry32,hash32,dist,W,H,GX,GATE_Y,buildMap,renderBg,placeProps,chestSVG,showTowerRoom,showHeroRoom,showUpgrades,showCampaign,tLvl,campOf,nextStage,migrate45,sendBrothers,rankCap,towerStats,ECON,SK,TALENTS,UPG,UPG_OLD,DIFFS,hardOpen,maxTowerLvl,MAPPOS,levelOpen,cleared,starsEarned,CH_MAX,SK_MAX,T_MAX,makeHero,showDifficulty,openChest,POOLS,MINIS,TOWER_UNLOCK,UNLOCK_STAGE,SPELLS};
 window.HOLDOR_RING={openRing,closeRing,ringTap,ringFrame,state:()=>RING,upgradeTower,sellTower,sellValue,w2s,closeSheet,openSheet};
-window.HOLDOR_TUT={TS,tutEvent,tutNext,tutAdvance,skipTutorial,LESSONS,TUT_STEPS,lessonStart,lessonsInit,learnMap,coachStart,coachStep,coachNext,coachEnd,COACH,startTour,hubLessons,migrate47,startTutorial,tutWantBase};
+window.HOLDOR_TUT={TS,tutEvent,tutNext,tutAdvance,skipTutorial,LESSONS,TUT_STEPS,lessonStart,lessonsInit,learnMap,coachStart,coachStep,coachNext,coachEnd,COACH,startTour,hubLessons,migrate47,startTutorial,tutWantBase,TUT_LEVEL,tutSlot};
 window.HOLDOR_CARDS={CARD_NEED,CARD_MUL,cardRar,cardLvl,cardMax,cardNeed,cardHave,cardGold,cardName,cardOpen,cardReady,cardCan,addCards,cardLevelUp,accLevel,accXp,addXp,xpNeed,lvlChestTier,lvlChestsReady,cardPool,rollChest,stageCards,spellLvl,spellMul,showSpellRoom,showTowerRoom,migrate48,TOURS,toursOf,hubTour,startTour};
 window.HOLDOR_SEATS={seatNo,lbIsMe,lbName,lbStale,lbMine,scoreSummary,fetchLeaderboard,cachedLb};
 window.HOLDOR_BOOK={showBook,bookNew,bookDisc,bookNewCount,bookMarkRead,BOOK,trophiesOf,trophiesRow,rankOf,myRank,rankSVG,showRankSheet,RANKS,RANK_AT};

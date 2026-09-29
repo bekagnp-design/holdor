@@ -343,6 +343,11 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
   3. Open the one-time setup link.
   4. Release the app.
   5. A test purchase of the smallest pack by the owner (⭐50), then a refund with `refundStarPayment`.
+- **Tutorial and zoom fixes (from MR B's phone test, same version):**
+  - **The zoom:** on iOS the page zoomed after repeated taps on HUD buttons (the speed button), the canvas was cut off, and every later tap missed its target. iOS ignores `user-scalable=no`. Fix: `touch-action: manipulation` on the page, HUD and hub (no double-tap zoom), handlers that stop pinch gestures, a viewport fixed at 1×, and a snap-back if the visual viewport ever scales (`mod/nozoom.js`).
+  - **The first battle has its own road** (`TUT_LEVEL` in `mod/tutorial.js`): a short straight road (658 px instead of 1131) with twelve rings, and the ring offered first is mid-road. The dead now reach the first tower in 5.7 s instead of 19 s, the first kill comes at 7.1 s instead of 20 s, and every later wait is shorter too.
+  - **The move lesson forgives:** one tap on the ground is enough; the player no longer has to hit the small champion first.
+  - **Tests:** `tests/t_tut60.js` covers the road, the timings, the move step and the no-zoom rules. `t_tut2.js` now taps the glowing ring the tutorial points at.
 - **Telegram's rules to remember:**
   - Stars can be withdrawn only from the bot's balance, from 1000 Stars, after a hold, via TON/Fragment.
   - Digital goods must be paid in Stars.

@@ -1,0 +1,4 @@
+/* v1.0.60 — taps never zoom the page (double-tap), the page never scrolls or bounces under the game */
+html,body,#app,button,.hud,#hud,#overlay,#card{touch-action:manipulation}
+html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+canvas{touch-action:none}
