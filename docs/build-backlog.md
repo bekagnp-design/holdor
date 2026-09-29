@@ -306,6 +306,32 @@ Rules: `docs/design-v2.md` → "v1.0.59".
   - `run_all.sh` 11/11; the core set 18/18.
 - **Rollout:** v8 goes into Supabase together with the v1.0.59 release (after v7, which goes in with v1.0.58). Before that, older apps level skills without books and would be refused. Until then, on the beta a logged-in seat's star, summon and books wait for the server.
 
+### v1.0.61 — login calendar and quests (backend v10) (2026-09-29)
+The retention loop. Every reward is paid by the server and progress is counted from the server's own records, so nothing here can be forged.
+- **Login calendar (30 days):**
+  - All rewards are visible ahead: dragonglass, gold and books, growing through the month (`LOGIN_CAL` in `mod/daily.js`, exported to `econ_config.calendar`).
+  - A day is claimed once per UTC day. A missed day changes nothing: the calendar goes on from where the seat left it (`claims.login = {n, last}`), so there is no streak to lose.
+  - **Day 30, 60 and 90** also open the next champion of the house that is still sealed, or 300 dragonglass when none is.
+  - A popup at the castle offers today's reward, at most once a session, never over the tutorial or a tour.
+- **Quests: Daily (UTC day), Weekly (ISO week, from Monday), Monthly (UTC month):**
+  - **The tables:** 3 daily, 4 weekly and 4 monthly quests (`QUESTS`, exported to `econ_config.quests`).
+  - **How progress is counted:** it comes only from the server's battles (won/lost/done, never rejected or open) and its `progress` rows. Metrics: `wins`, `kills`, `stars`, `days`, `hold_runs`, `hold_waves`, `new_stages`. Battles from before the seat was made do not count. A seat replaced by a new one starts at zero.
+  - **How claims work:** a quest is claimed once per period. The server re-counts at claim time, so "done" is never taken from the app. Finished periods' claims are dropped.
+- **Backend v10 (`backend/holdor_v10.sql`, after v9 + the regenerated `holdor_econ_data.sql`):**
+  - **App calls:** `quest_state` (calendar and all three periods), `login_claim`, `quest_claim`. Each answer carries the new balances.
+  - **Helpers, closed to the app:** `qs_window`, `qs_metric`, `qs_pay`, `qs_state`.
+  - **Ledger:** reasons `login` and `quest`.
+  - **Dashboard:** view `v_daily_claims`.
+- **Client (`mod/daily.js`, `parts/68_daily.py`):**
+  - A 📜 Daily & quests button on the Battle tab shows how many rewards are ready.
+  - The screen has four tabs: Calendar (30 tiles), Daily, Weekly and Monthly. The quest tabs show progress bars, reward chips and a reset time.
+  - A guest sees why it is off (a Telegram seat is needed).
+- **Tests:**
+  - New `backend/test/v10_test.py`: the config, the calendar (claim, once a day, a long break, book days, the special champion, the wrap, nothing sealed), every quest metric, rejected/open battles ignored, per-period claims, a replaced seat, permissions.
+  - New `backend/test/daily_test.py`: the popup, the claim, the calendar screen and the quests, all with taps; the app's numbers equal the server's.
+  - New `tests/t_daily61.js` (guest and the tables).
+- **Rollout:** the same as the earlier versions: v10 goes into Supabase with the release. Until then the button works only for guests' explanation.
+
 ### v1.0.60 — Telegram Stars (backend v9) (2026-09-29)
 The first way to earn: dragonglass packs and the Starter pack, paid in Telegram Stars (currency `XTR`, no provider token). The app never credits anything.
 - **Items (`STARS_SHOP` in `mod/stars.js`, exported to `econ_config.stars`, so app and server agree on price and payout):**
@@ -366,7 +392,7 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 
 ## Not done / next
 - **On MR B (one step at a time):** 1) merge the v1.0.58 PR, then the v1.0.59 PR, and play `…/holdor/beta/` on the phone; 2) say "release" — Claude first applies `holdor_v7.sql`, the regenerated `holdor_econ_data.sql` and `holdor_v8.sql` in Supabase (hashes verified), then opens the release PR. Art: the Dorne kit first (`holdor-prompts-v45.md`); still open: 8 chest images, 30 skill icons, 7 island images, 4 event banners, house film clips.
-- **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.61 login calendar + quests → v1.0.62 city → v1.0.63 account levels + HOLDOR Coin + Tasks + invites → v1.0.64 chats → v1.0.65–66 PvP 1v1 → v1.0.67 country war → v1.0.68 languages → v1.0.69 Season Pass + rewarded ads + VIP → v1.0.70 marketing.
+- **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.62 city → v1.0.63 account levels + HOLDOR Coin + Tasks + invites → v1.0.64 chats → v1.0.65–66 PvP 1v1 → v1.0.67 country war → v1.0.68 languages → v1.0.69 Season Pass + rewarded ads + VIP → v1.0.70 marketing.
 - Standing rule from MR B (26.09): every reply ends with the next step and one development idea/plan.
 - **Wire when art arrives:** `BG_ART[biome]` (drop-in), props sheet → cut 3×3 on magenta → `setPropSheet(biome, cells)` (order in `PROP_KIT`), `CHEST_ART`, `SKILL_ART`; painted islands would replace `drawIsland` per house.
 - Hold stats: verified real — the Hold tab's "Today's defenders" and "your rank" come only from the server's `daily_scores` (v3: per seat); B K's 15-wave run was on the server on 2026-09-14.

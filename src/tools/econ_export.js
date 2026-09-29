@@ -40,6 +40,9 @@ const OUT = path.resolve(__dirname, '..', '..', process.argv[2] || 'backend/econ
         book_drop: T.BOOK_DROP, summon: { one: T.SUMMON.one, ten: T.SUMMON.ten, odds: T.SUMMON.odds, copies: T.SUMMON.copies } }; })(),
       // Telegram Stars (v1.0.60, backend v9): the items the server sells and what each one pays out
       stars: { skus: Object.fromEntries(Object.entries(window.HOLDOR_STARS.STARS_SHOP).map(([k, v]) => [k, { stars: v.stars, gems: v.gems || 0, gold: v.gold || 0, books: v.books || {}, once: !!v.once, title: v.title, desc: v.desc }])) },
+      // the login calendar and the quests (v1.0.61, backend v10): what the server pays and how it counts progress
+      calendar: { days: window.HOLDOR_DAILY.LOGIN_CAL, special_gems: window.HOLDOR_DAILY.LOGIN_SPECIAL_GEMS },
+      quests: Object.fromEntries(Object.entries(window.HOLDOR_DAILY.QUESTS).map(([k, l]) => [k, l.map(q => ({ id: q.id, m: q.m, n: q.n, r: q.r }))])),
       // spot checks the SQL test compares against
       win: [[1, 1, 1], [1, 3, 1], [7, 2, 0], [34, 3, 1], [50, 1, 0]].map(([id, st, first]) => [id, st, first, ECON.win({ id }, st, !!first)]),
       hold: [[0, 0], [7, 85], [20, 333], [26, 5045]].map(([w, k]) => [w, k, ECON.hold(w, k)]),

@@ -1,0 +1,1 @@
+rep("window.HOLDOR={", "window.HOLDOR_DAILY={LOGIN_CAL,QUESTS,DAILY,LOGIN_SPECIAL_GEMS,showDaily,dailyLoad,dailyReady,dailyClaimLogin,dailyClaimQuest,dailyPopupCheck,rewardChips};\nwindow.HOLDOR={", 1, 'exports61')

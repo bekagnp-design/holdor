@@ -1,5 +1,5 @@
 {
- "version": "1.0.60",
+ "version": "1.0.61",
  "max": {
   "c": 60,
   "t": 16,
@@ -760,6 +760,235 @@
     "desc": "300 dragonglass, 5000 gold and 3 Rare books for your seat. Once per seat."
    }
   }
+ },
+ "calendar": {
+  "days": [
+   {
+    "gems": 10
+   },
+   {
+    "gold": 400
+   },
+   {
+    "books": {
+     "b:c": 2
+    }
+   },
+   {
+    "gems": 10
+   },
+   {
+    "gold": 600
+   },
+   {
+    "books": {
+     "b:c": 3
+    }
+   },
+   {
+    "gems": 20,
+    "books": {
+     "b:r": 1
+    }
+   },
+   {
+    "gold": 800
+   },
+   {
+    "gems": 15
+   },
+   {
+    "books": {
+     "b:c": 3
+    }
+   },
+   {
+    "gold": 1000
+   },
+   {
+    "gems": 15
+   },
+   {
+    "books": {
+     "b:r": 1
+    }
+   },
+   {
+    "gems": 30,
+    "books": {
+     "b:r": 1
+    }
+   },
+   {
+    "gold": 1500
+   },
+   {
+    "gems": 20
+   },
+   {
+    "books": {
+     "b:c": 4
+    }
+   },
+   {
+    "gold": 2000
+   },
+   {
+    "gems": 20
+   },
+   {
+    "books": {
+     "b:r": 2
+    }
+   },
+   {
+    "gems": 40,
+    "books": {
+     "b:e": 1
+    }
+   },
+   {
+    "gold": 2500
+   },
+   {
+    "gems": 25
+   },
+   {
+    "books": {
+     "b:c": 5
+    }
+   },
+   {
+    "gold": 3000
+   },
+   {
+    "gems": 25
+   },
+   {
+    "books": {
+     "b:r": 2
+    }
+   },
+   {
+    "gems": 50
+   },
+   {
+    "gold": 4000
+   },
+   {
+    "gems": 100,
+    "books": {
+     "b:e": 1
+    }
+   }
+  ],
+  "special_gems": 300
+ },
+ "quests": {
+  "daily": [
+   {
+    "id": "d_win1",
+    "m": "wins",
+    "n": 1,
+    "r": {
+     "gold": 300
+    }
+   },
+   {
+    "id": "d_kill",
+    "m": "kills",
+    "n": 300,
+    "r": {
+     "gems": 8
+    }
+   },
+   {
+    "id": "d_win3",
+    "m": "wins",
+    "n": 3,
+    "r": {
+     "books": {
+      "b:c": 2
+     }
+    }
+   }
+  ],
+  "weekly": [
+   {
+    "id": "w_win10",
+    "m": "wins",
+    "n": 10,
+    "r": {
+     "gems": 40
+    }
+   },
+   {
+    "id": "w_days4",
+    "m": "days",
+    "n": 4,
+    "r": {
+     "books": {
+      "b:r": 1
+     }
+    }
+   },
+   {
+    "id": "w_stars15",
+    "m": "stars",
+    "n": 15,
+    "r": {
+     "gold": 2000
+    }
+   },
+   {
+    "id": "w_hold3",
+    "m": "hold_runs",
+    "n": 3,
+    "r": {
+     "gems": 30
+    }
+   }
+  ],
+  "monthly": [
+   {
+    "id": "m_win60",
+    "m": "wins",
+    "n": 60,
+    "r": {
+     "gems": 150,
+     "books": {
+      "b:e": 1
+     }
+    }
+   },
+   {
+    "id": "m_days20",
+    "m": "days",
+    "n": 20,
+    "r": {
+     "gems": 100
+    }
+   },
+   {
+    "id": "m_new10",
+    "m": "new_stages",
+    "n": 10,
+    "r": {
+     "gold": 5000,
+     "books": {
+      "b:e": 1
+     }
+    }
+   },
+   {
+    "id": "m_hold25",
+    "m": "hold_waves",
+    "n": 25,
+    "r": {
+     "gems": 60
+    }
+   }
+  ]
  },
  "win": [
   [

@@ -58,6 +58,7 @@ with sync_playwright() as p:
     start(); tap('.seat[data-i="0"]'); tap('#card .rrow[data-j="0"]'); tap('#bPick'); tap('.hbig[data-h="stark"]', 900)
     if ev("!!document.querySelector('.cine #skip')"): tap('.cine #skip', 600)
     check('seat managed', wait("HOLDOR_ECON.ecoOn()", 12000), ev("HOLDOR_ECON.ECO.err"))
+    ev("HOLDOR_DAILY.DAILY.shown=true")   # v1.0.61: the daily-reward popup is not what this test is about
     settle()
     ev("(()=>{const A=HOLDOR.ACC;A.tour=1;A.learn={chest:1,hold:1,champ:1};A.holdTut=1;A.holdIntro=1;HOLDOR.persist();HOLDOR.showHub('battle');})()"); pg.wait_for_timeout(500)
     w = wallet()
@@ -230,6 +231,7 @@ with sync_playwright() as p:
     pg.reload(); check('login again', wait("HOLDOR.CLOUD.on", 12000))
     start(); tap('.seat[data-i="0"]', 600)
     check('managed again', wait("HOLDOR_ECON.ecoOn()", 12000)); settle()
+    ev("HOLDOR_DAILY.DAILY.shown=true")
     same_as_server('after a reload')
     srv = sorted(int(x[0]) for x in q("select stage from progress where tg_id=%s and seat=0 and mode='c'", TG))
     check('stages = the server\'s', sorted(int(k) for k in acc("Object.keys(A.campaign)")) == srv, str(srv))

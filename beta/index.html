@@ -967,7 +967,37 @@ button.standrow:nth-of-type(3) .rk{background:linear-gradient(180deg,#e0a06a,#a8
 .stbtn:not(:disabled){background:linear-gradient(#ffe97a,#f2a62c);color:#3a2404}/* v1.0.60 — taps never zoom the page (double-tap), the page never scrolls or bounces under the game */
 html,body,#app,button,.hud,#hud,#overlay,#card{touch-action:manipulation}
 html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}
-canvas{touch-action:none}
+canvas{touch-action:none}/* v1.0.61 — login calendar and quests */
+.rch{display:inline-flex;align-items:center;gap:2px;font-size:12px;font-weight:800;color:#f2e6c9;margin-right:6px;white-space:nowrap}
+.rch svg{width:14px;height:14px}
+#bDaily .dn{font-style:normal;color:#ffd54a;font-weight:900}
+.cgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:8px 0 10px}
+.cday{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:58px;padding:4px 2px;border-radius:10px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6;text-align:center}
+.cday b{font-family:var(--f-display);font-size:12px;color:#9fb6c9}
+.cday span{display:flex;flex-direction:column;align-items:center}
+.cday .rch{margin:0;font-size:10.5px}
+.cday.done{opacity:.5;border-color:#3d7a49}
+.cday.today{border-color:#ffd54a;box-shadow:0 0 0 2px #ffd54a,0 0 12px rgba(255,213,74,.5);background:#1c3660}
+.cday .ck{position:absolute;top:1px;right:3px;font-style:normal;color:#7fd06a;font-size:11px}
+.cday .spc{position:absolute;top:0;left:3px;font-style:normal;font-size:12px}
+.cday.big{border-color:#b47cff}
+.qlist{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.qrow{display:flex;align-items:center;gap:8px;padding:8px;border-radius:12px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6}
+.qrow.ready{border-color:#ffd54a}
+.qrow.done{opacity:.55}
+.qt{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.qt b{font-size:13px;color:#fff}
+.qbar{position:relative;height:14px;border-radius:7px;background:#0b1a2e;overflow:hidden}
+.qbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#7fd06a,#3d9a54)}
+.qbar em{position:absolute;inset:0;text-align:center;font-style:normal;font-size:10px;line-height:14px;font-weight:800;color:#fff}
+.qrw{display:flex;flex-wrap:wrap}
+.qrow button{min-width:64px}
+.pvrow{display:flex;gap:6px;margin-top:8px;justify-content:center}
+.pv{display:flex;flex-direction:column;align-items:center;padding:4px 6px;border-radius:8px;background:rgba(255,255,255,.06)}
+.pv i{font-style:normal;font-size:10px;color:#9fb6c9}
+.eh .rw{display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
+.newch{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:8px}
+.sp{display:block;margin-top:6px;color:#ffd54a}
 </style>
 </head>
 <body>
@@ -1871,7 +1901,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.60';
+const VERSION='1.0.61';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -4737,6 +4767,97 @@ async function starsWait(item,quiet){
 /* an invoice paid while the app was closed or slow: ask once when a seat is entered */
 function starsResume(){const list=starsLoad().filter(x=>Date.now()-x.t<86400000&&x.seat===seatNo());starsSave(starsLoad().filter(x=>Date.now()-x.t<86400000));
   for(const x of list)starsWait(x,true);}
+/* =========================== LOGIN CALENDAR + QUESTS (v1.0.61) ===========================
+   A 30-day calendar (every reward visible ahead; a missed day changes nothing — the calendar goes on from where the seat left it;
+   day 30, 60 and 90 also open the next sealed champion of the house) and Daily / Weekly / Monthly quests. Everything is paid by the
+   server (backend v10) and quest progress is counted from the server's own records: the app only shows numbers and asks to claim.
+   The tables below are exported to the server (econ_config 'calendar' / 'quests'), so app and server agree. Needs a seat signed in through Telegram. */
+const LOGIN_CAL=[
+ {gems:10},{gold:400},{books:{'b:c':2}},{gems:10},{gold:600},{books:{'b:c':3}},{gems:20,books:{'b:r':1}},
+ {gold:800},{gems:15},{books:{'b:c':3}},{gold:1000},{gems:15},{books:{'b:r':1}},{gems:30,books:{'b:r':1}},
+ {gold:1500},{gems:20},{books:{'b:c':4}},{gold:2000},{gems:20},{books:{'b:r':2}},{gems:40,books:{'b:e':1}},
+ {gold:2500},{gems:25},{books:{'b:c':5}},{gold:3000},{gems:25},{books:{'b:r':2}},{gems:50},{gold:4000},{gems:100,books:{'b:e':1}},
+];
+const LOGIN_SPECIAL_GEMS=300;
+const QUESTS={
+ daily:[
+  {id:'d_win1',m:'wins',n:1,t:'Win a stage',r:{gold:300}},
+  {id:'d_kill',m:'kills',n:300,t:'Defeat 300 of the dead',r:{gems:8}},
+  {id:'d_win3',m:'wins',n:3,t:'Win 3 stages',r:{books:{'b:c':2}}}],
+ weekly:[
+  {id:'w_win10',m:'wins',n:10,t:'Win 10 stages',r:{gems:40}},
+  {id:'w_days4',m:'days',n:4,t:'Play on 4 different days',r:{books:{'b:r':1}}},
+  {id:'w_stars15',m:'stars',n:15,t:'Earn 15 stars in battles',r:{gold:2000}},
+  {id:'w_hold3',m:'hold_runs',n:3,t:'Finish 3 Hold runs',r:{gems:30}}],
+ monthly:[
+  {id:'m_win60',m:'wins',n:60,t:'Win 60 stages',r:{gems:150,books:{'b:e':1}}},
+  {id:'m_days20',m:'days',n:20,t:'Play on 20 different days',r:{gems:100}},
+  {id:'m_new10',m:'new_stages',n:10,t:'Hold 10 new stages',r:{gold:5000,books:{'b:e':1}}},
+  {id:'m_hold25',m:'hold_waves',n:25,t:'Reach wave 25 in the Hold',r:{gems:60}}],
+};
+const DAILY={st:null,at:0,tab:'cal',shown:false,seat:-1,busy:false};
+function dailyOn(){return !!(ecoOn()&&ACC&&ACC.tut);}
+function rewardChips(r,sm){if(!r)return '';const c=[];
+  if(r.gems)c.push(`<span class="rch">${GEM_SVG}${r.gems}</span>`);
+  if(r.gold)c.push(`<span class="rch">${GOLD_SVG}${fmtN(r.gold)}</span>`);
+  for(const k in (r.books||{}))c.push(`<span class="rch">${bookIcon(k.slice(2),sm?14:16)}×${r.books[k]}</span>`);
+  return c.join('');}
+function questName(id){for(const k in QUESTS){const q=QUESTS[k].find(x=>x.id===id);if(q)return q;}return null;}
+/* the state comes from the server (quest_state); one answer is kept for 45 s unless something was claimed */
+function dailyLoad(force){if(!ecoOn())return Promise.resolve(null);
+  if(!force&&DAILY.st&&DAILY.seat===seatNo()&&Date.now()-DAILY.at<45000)return Promise.resolve(DAILY.st);
+  const seat=seatNo();
+  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('quest_state',{seat},9000);if(seat===seatNo()){DAILY.st=r;DAILY.at=Date.now();DAILY.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
+function dailyReady(){const s=DAILY.st;if(!s||DAILY.seat!==seatNo())return 0;let n=s.login&&s.login.can?1:0;
+  for(const k in (s.periods||{}))for(const q of s.periods[k].q)if(q.cur>=q.need&&!q.claimed)n++;return n;}
+function dailyBtnHTML(){const n=dailyOn()?dailyReady():0;
+  return `<button class="cbld" id="bDaily"><span class="ic">📜</span><span class="tx"><b>Daily &amp; quests</b><small>${dailyOn()?(n?`<em class="dn">${n} ready</em>`:'calendar · quests'):'a Telegram seat'}</small></span></button>`;}
+function dailyBtnRefresh(){if(!dailyOn())return;dailyLoad().then(()=>{const b=document.getElementById('bDaily');if(b)b.outerHTML=dailyBtnHTML(),dailyBtnBind();});}
+function dailyBtnBind(){const b=document.getElementById('bDaily');if(b)b.addEventListener('click',()=>{SFX.play('tap',60);showDaily();});}
+/* what a claim did */
+function dailyClaimModal(res,title){const r=res.reward,ch=res.champ&&CBY[res.champ];
+  ecoModal(title,`<div class="rw">${rewardChips(r)}</div>${ch?`<div class="newch">${portraitHTML(ch,64)}<b>${esc(ch.n)}</b><small>joins your house — sealed no more!</small></div>`:''}`,[{t:'OK',f:()=>{if(CLOUD.screen&&CLOUD.screen.indexOf('daily')===0)showDaily(DAILY.tab);else ecoRedraw();}}]);}
+async function dailyClaimLogin(){if(DAILY.busy||!ecoOn())return;DAILY.busy=true;ecoWait(true);
+  try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('login_claim',{seat},10000);ecoApply(x.state);return x;});
+    DAILY.st=r.quests;DAILY.at=Date.now();DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();dailyClaimModal(r,'📅 Day '+r.day+' — yours');}
+  catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m)){await dailyLoad(true);}ecoModal('📅 Not now',/already/.test(m)?'Today\'s reward is already claimed. Come back tomorrow.':ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily(DAILY.tab)}]);}}
+async function dailyClaimQuest(id){if(DAILY.busy||!ecoOn())return;DAILY.busy=true;ecoWait(true);
+  try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('quest_claim',{seat,quest:id},10000);ecoApply(x.state);return x;});
+    DAILY.st=r.quests;DAILY.at=Date.now();DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();const q=questName(id);dailyClaimModal(r,'📜 '+(q?q.t:'Quest done'));}
+  catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await dailyLoad(true);ecoModal('📜 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily(DAILY.tab)}]);}}
+/* the popup when the castle opens and today's reward waits (once a session; never over a tutorial or a tour) */
+function dailyPopupCheck(){
+  if(DAILY.shown||!dailyOn()||G.state==='play'||(G.tut)||(typeof COACH!=='undefined'&&COACH.on)||CLOUD.screen!=='hub:battle')return;
+  if(document.querySelector('#ecoModal.on')||document.querySelector('#cer:not(.hidden)'))return;
+  dailyLoad().then(s=>{if(!s||DAILY.shown||CLOUD.screen!=='hub:battle'||!s.login.can||(typeof COACH!=='undefined'&&COACH.on)||document.querySelector('#ecoModal.on'))return;
+    DAILY.shown=true;const d=s.login.day,next=[1,2,3].map(i=>{const dd=d+i;return dd<=30?`<span class="pv"><i>Day ${dd}</i>${rewardChips(LOGIN_CAL[dd-1],1)}</span>`:'';}).join('');
+    ecoModal('📅 Day '+d+' of 30',`<div class="rw">${rewardChips(LOGIN_CAL[d-1])}</div>${d%30===0?'<small class="sp">…and the next sealed champion of your house</small>':''}<div class="pvrow">${next}</div>`,
+      [{t:'🎁 Claim',f:dailyClaimLogin},{t:'Later'}]);});}
+/* ---------- the screen ---------- */
+function fmtLeft(s){const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return d?d+'d '+h+'h':h?h+'h '+m+'m':m+'m';}
+function showDaily(tab){
+  DAILY.tab=tab||DAILY.tab||'cal';
+  const tabs=[['cal','📅 Calendar'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly']];
+  const head=`<div class="topbar"><h1>📜 Daily &amp; quests<small>Rewards are paid by the server. Progress counts only battles it has seen.</small></h1><button class="back" id="bBack">✖</button></div>
+   <div class="subtabs">${tabs.map(([k,n])=>`<button class="${k===DAILY.tab?'on':''}" data-t="${k}">${n}</button>`).join('')}</div>`;
+  const draw=body=>{show(head+body);CLOUD.screen='daily:'+DAILY.tab;$('#bBack').addEventListener('click',()=>showHub('battle'));card.querySelectorAll('.subtabs button').forEach(b=>b.addEventListener('click',()=>showDaily(b.dataset.t)));};
+  if(!dailyOn()){draw(`<p class="m">${ecoOn()?'Finish the tutorial battle first.':'The calendar and the quests are paid by the server — they need a seat signed in through Telegram.'}</p>`);return;}
+  const s=DAILY.st&&DAILY.seat===seatNo()?DAILY.st:null;
+  if(!s){draw('<p class="m">⏳ asking the server…</p>');dailyLoad().then(r=>{if(CLOUD.screen==='daily:'+DAILY.tab)showDaily(DAILY.tab);});return;}
+  if(Date.now()-DAILY.at>45000)dailyLoad(true).then(()=>{});
+  if(DAILY.tab==='cal'){const L=s.login,pos=L.n%30,round=Math.floor(L.n/30)+1;
+    const tiles=LOGIN_CAL.map((r,i)=>{const d=i+1,done=d<=pos,today=d===pos+1;
+      return `<div class="cday ${done?'done':''} ${today?'today':''} ${d===30?'big':''}"><b>${d}</b><span>${rewardChips(r,1)}</span>${done?'<i class="ck">✔</i>':''}${d===30?'<em class="spc">👑</em>':''}</div>`;}).join('');
+    draw(`<p class="m">Round ${round} · ${L.n} day${L.n===1?'':'s'} claimed in all. A missed day costs nothing — the calendar waits for you.${L.special_in?`<br>👑 A champion of your house is yours after <b>${L.special_in}</b> more claimed day${L.special_in===1?'':'s'} (day 30, 60, 90).`:''}</p>
+      <div class="cgrid">${tiles}</div>
+      <button class="btn" id="bLogin" ${L.can?'':'disabled'}>${L.can?'🎁 Claim day '+L.day:'✔ Today\'s reward is claimed'}</button>`);
+    const b=$('#bLogin');if(b)b.addEventListener('click',dailyClaimLogin);return;}
+  const P=s.periods[DAILY.tab],list=QUESTS[DAILY.tab];
+  const rows=P.q.map(q=>{const def=list.find(x=>x.id===q.id)||{t:q.id,r:{}},ready=q.cur>=q.need&&!q.claimed,pc=Math.round(100*q.cur/q.need);
+    return `<div class="qrow ${q.claimed?'done':''} ${ready?'ready':''}"><div class="qt"><b>${esc(def.t)}</b><span class="qbar"><i style="width:${pc}%"></i><em>${fmtN(q.cur)} / ${fmtN(q.need)}</em></span><span class="qrw">${rewardChips(def.r,1)}</span></div>
+      <button data-q="${q.id}" ${ready?'':'disabled'}>${q.claimed?'✔':ready?'Claim':'…'}</button></div>`;}).join('');
+  draw(`<p class="m">Resets in <b>${fmtLeft(P.left)}</b> (${DAILY.tab==='daily'?'UTC midnight':DAILY.tab==='weekly'?'Monday, UTC':'the 1st, UTC'}).</p><div class="qlist">${rows}</div>`);
+  card.querySelectorAll('.qrow button[data-q]').forEach(b=>b.addEventListener('click',()=>dailyClaimQuest(b.dataset.q)));}
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -5656,6 +5777,7 @@ function showHub(tab,sub){
   hubSwipe(card.querySelector('.hub'),tab);
   if(tab==='battle')hubBattleBind();else if(tab==='coll')hubCollectionBind(sub);else if(tab==='shop')hubShopBind();else if(tab==='events')hubEventsBind(sub);else hubHoldBind();
   setTimeout(()=>hubTour(tab),400);
+  if(tab==='battle')setTimeout(dailyPopupCheck,1100);
 }
 /* horizontal swipe between the five tabs (touch and mouse) */
 function hubSwipe(el,tab){
@@ -5676,6 +5798,7 @@ function hubBattle(){const hh=HOUSES[ACC.house],c=CBY[ACC.sel],g=Object.keys(cam
   <div class="islewrap"><canvas class="isle" id="isle" width="680" height="700"></canvas></div>
   <div class="castlerow"><button class="cbld" id="bTrain"><span class="ic">⚔️</span><span class="tx"><b>Train</b><small>Army level ${armyLvl()}${armyLvl()>=ARMY_HOUSE_AT?' · '+HOUSE_UNIT[ACC.house].n:' · '+HOUSE_UNIT[ACC.house].n+' at '+ARMY_HOUSE_AT}</small></span></button><button class="cbld" id="bSpellShop"><span class="ic">🧪</span><span class="tx"><b>Spell shop</b><small>${packCount()?packCount()+' in the pack':'one-shot battle items'}</small></span></button></div>
   <div class="castlerow forgerow"><button class="cbld" id="bTavern"><span class="ic">🍺</span><span class="tx"><b>Tavern</b><small>stars · skills · portal</small></span></button><button class="cbld" id="bForge"><span class="ic">⚒️</span><span class="tx"><b>Forge</b><small>${ecoOn()?gearItems().length+' items · '+GEAR_SLOTS.filter(k=>gearItems().some(it=>it.champ===ACC.sel&&it.slot===k)).length+'/9 worn':'gear — a Telegram seat'}</small></span></button></div>
+  <div class="castlerow forgerow">${dailyBtnHTML()}</div>
   <div class="tro"><span class="tr" id="hubTro">${rankSVG(myRank().t,22,myRank().div)}${TROPHY_SVG}${trophiesOf()}</span><span class="bar"><i style="width:${Math.round(100*g/NG)}%"></i><em>STAGE ${Math.min(NG,g+1)} OF ${NG} · ${nextL.n.toUpperCase()}</em></span></div>
   <div class="chestrow"><span class="ch ${chestsN>0?'ready':''}" id="starChest">${chestSVG('iron')}</span><span class="sbar"><i style="width:${chestsN>0?100:Math.round(100*prog/3)}%"></i><em>${chestsN>0?'CHEST READY · TAP TO OPEN':`${prog}/3 STARS TO THE NEXT CHEST`}</em></span>${chestsN>1?`<b class="cnt">×${chestsN}</b>`:''}</div>
   ${lvlChestsReady()>0?`<div class="chestrow lvl"><span class="ch ready" id="lvlChest">${chestSVG(lvlChestTier((ACC.lvlChests||0)+2))}</span><span class="sbar"><i style="width:100%"></i><em>LEVEL ${(ACC.lvlChests||0)+2} CHEST · TAP TO OPEN</em></span>${lvlChestsReady()>1?`<b class="cnt">×${lvlChestsReady()}</b>`:''}</div>`:''}
@@ -5684,7 +5807,7 @@ function hubBattle(){const hh=HOUSES[ACC.house],c=CBY[ACC.sel],g=Object.keys(cam
     <button class="bside" id="bChampH">${pu?`<img src="${pu}" alt="">`:`<span class="pe">${c.e}</span>`}${shortName(c)}</button></div>
   ${ACC.tut?'':'<div class="hint">▲ TAP BEGIN — YOUR CHAMPION WILL TEACH YOU</div>'}${ACC.refund?`<div class="hint" id="refundNote">🪙 Tower upgrades are now tower levels — ${ACC.refund} gold refunded. Collection → Towers.</div>`:''}`;}
 function hubBattleBind(){if(ACC.refund){ACC.refund=0;persist();}
-  const cv=$('#isle');if(cv)drawIsland(cv,ACC.house);const bt=$('#bTrain');if(bt)bt.addEventListener('click',()=>{SFX.play('tap',60);showTrain();});const bs=$('#bSpellShop');if(bs)bs.addEventListener('click',()=>{SFX.play('tap',60);showSpellShop();});const btv=$('#bTavern');if(btv)btv.addEventListener('click',()=>{SFX.play('tap',60);showHeroRoom();});const bf=$('#bForge');if(bf)bf.addEventListener('click',()=>{SFX.play('tap',60);showForge();});const ht=$('#hubTro');if(ht)ht.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});
+  const cv=$('#isle');if(cv)drawIsland(cv,ACC.house);const bt=$('#bTrain');if(bt)bt.addEventListener('click',()=>{SFX.play('tap',60);showTrain();});const bs=$('#bSpellShop');if(bs)bs.addEventListener('click',()=>{SFX.play('tap',60);showSpellShop();});const btv=$('#bTavern');if(btv)btv.addEventListener('click',()=>{SFX.play('tap',60);showHeroRoom();});dailyBtnBind();dailyBtnRefresh();const bf=$('#bForge');if(bf)bf.addEventListener('click',()=>{SFX.play('tap',60);showForge();});const ht=$('#hubTro');if(ht)ht.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});
   $('#bBattle').addEventListener('click',()=>{SFX.play('tap',80);if(!ACC.tut)startTutorial();else showCampaign();});
   const bdh=$('#bDiffH');if(bdh)bdh.addEventListener('click',()=>showDifficulty(false));const bmh=$('#bMapH');if(bmh)bmh.addEventListener('click',()=>{SFX.play('tap',60);showCampaign();});
   $('#bChampH').addEventListener('click',()=>showHeroRoom(ACC.sel));
@@ -5907,6 +6030,7 @@ window.HOLDOR_CARDRULES={UNLOCK_STAGE,TOWER_UNLOCK,T_RAR,S_RAR,CARD_NEED,CARD_MU
 window.HOLDOR_CH59={KITS59,hitDoor};
 window.HOLDOR_TAVERN={CH_RAR,RAR_STAT,RAR_N,ST_MAX,ASC_GOLD,ASC_BURN,BOOK_N,BOOK_R,BOOK_OF,BOOK_NEED,BOOK_PRICE,BOOK_DROP,SUMMON,cstar,champCap,champRar,ascend,ascNeed,ascGold,ascCan,ascReady,skillUp,skCan,skBooks,summon,summonRoll,chestBooks,bookKey,showHeroRoom,cardNeed,cardCan,cardLevelUp,addCards,cardHave};
 window.HOLDOR_STARS={STARS_SHOP,STARS,starsBuy,starsWait,starsCan,starsShopHTML};
+window.HOLDOR_DAILY={LOGIN_CAL,QUESTS,DAILY,LOGIN_SPECIAL_GEMS,showDaily,dailyLoad,dailyReady,dailyClaimLogin,dailyClaimQuest,dailyPopupCheck,rewardChips};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();
