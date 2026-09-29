@@ -25,7 +25,8 @@ function evPopup(force){const e=evAt(Date.now()),K=EVT_KIND[e.kind];if(!ACC||!AC
   if(!force&&!e.active)return;
   ecoModal(`${K.e} ${K.n}`,`<div class="evpop"><div class="evcd" id="evCd">${e.active?'ends in':'starts in'} ${evLeft(e.active?e.t1-Date.now():e.t0-Date.now())}</div><p>${K.d}</p>${!ecoOn()?'<small>Needs a seat signed in through Telegram.</small>':''}</div>`,
     [{t:K.go,f:()=>K.f()},{t:'Later'}]);evBadgeTick();}
-function evPopupCheck(){if(!ACC||!ACC.tut||G.state==='play'||G.tut||(typeof COACH!=='undefined'&&COACH.on)||CLOUD.screen!=='hub:battle')return;
+function evPopupCheck(){if(navigator.webdriver)return;   /* automated tests open the popup themselves (evPopup(true)) */
+  if(!ACC||!ACC.tut||G.state==='play'||G.tut||(typeof COACH!=='undefined'&&COACH.on)||CLOUD.screen!=='hub:battle')return;
   if(document.querySelector('#ecoModal.on')||document.querySelector('#cer:not(.hidden)'))return;
   const e=evAt(Date.now());if(!e.active)return;const key='holdor_ev',mark=e.kind+':'+e.t0;
   try{if(localStorage.getItem(key)===mark)return;localStorage.setItem(key,mark);}catch(x){}
