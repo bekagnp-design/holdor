@@ -354,6 +354,12 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **UI:** the item sheet lists its perks with the rank and the effect text; icons carry a ✦ per perk. Six art sheets of nine kinds (`setGearSheet('kinds1'…'kinds6')`) replace the four old ones; `docs/prompts-gear.md` was regenerated.
 - **Tests:** `backend/test/v12_test.py` (54 kinds, main/perk pools, 3000 rolls: kind, main and perks all from the kind, perk counts by rarity, every kind appears); v6/v11 tests now check the main stat against the kind. `tests/t_gear63.js`: names agree with the server config, all 46 perks are real non-ult skills and run for 900 steps in a battle at rank 5, rank rules, best-of-worn, burn/poison/thorns/howl behaviour, the sheet and the ✦, the six art sheets.
 - **Rollout:** v12 goes into Supabase with the release, after v11.
+
+### v1.0.64 — the city (2026-09-30), client only
+- A City button on the Battle tab opens a vertical, scrolling city for the seat's house (Winterfell, Casterly Rock, Dragonstone, Storm's End, Pyke, Highgarden, Sunspear) with a winding road and Hodor's door at the top. Temporary art: CSS and emoji until MR B's city pictures arrive.
+- Eight buildings, each opens a screen the game already has: Keep (tower and spell cards), Barracks (Train), Market (Shop), Treasury (calendar and quests, opens at 2 cleared stages), Forge (3), Tavern (5), Library (8), Council hall (Events, 10). A locked building shows how many stages are still missing; the count is the seat's real cleared stages.
+- No upgrades or timers yet: they need the server (account levels, v1.0.65) first. No backend change.
+- Test: `tests/t_city64.js` (real taps: locks by cleared stages, the house's city name, locked building only says so, Barracks and Tavern open their screens, back).
 ### v1.0.61 — login calendar and quests (backend v10) (2026-09-29)
 The retention loop. Every reward is paid by the server and progress is counted from the server's own records, so nothing here can be forged.
 - **Login calendar (30 days):**

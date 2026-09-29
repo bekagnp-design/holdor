@@ -1029,7 +1029,19 @@ canvas{touch-action:none}/* v1.0.61 — login calendar and quests */
 .pv i{font-style:normal;font-size:10px;color:#9fb6c9}
 .eh .rw{display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
 .newch{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:8px}
-.sp{display:block;margin-top:6px;color:#ffd54a}
+.sp{display:block;margin-top:6px;color:#ffd54a}/* v1.0.64: the city */
+.city{position:relative;display:flex;flex-direction:column;gap:14px;padding:16px 10px 40px;margin:8px 0;border-radius:16px;border:2px solid #0b1a2e;background:linear-gradient(var(--c1),var(--c2));min-height:70vh}
+.city .croad{position:absolute;left:50%;top:70px;bottom:10px;width:26px;transform:translateX(-50%);border-radius:13px;background:repeating-linear-gradient(#8b7a5b 0 14px,#76664a 14px 28px);opacity:.75;z-index:0}
+.cgate{position:relative;z-index:1;align-self:center;display:flex;flex-direction:column;align-items:center;font-size:34px;line-height:1}
+.cgate small{font-size:10px;color:#f2e6c9;margin-top:2px}
+.cbd{position:relative;z-index:1;display:flex;align-items:center;gap:8px;width:62%;padding:10px;border-radius:14px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6;text-align:left}
+.cbd.l{align-self:flex-start}.cbd.r{align-self:flex-end;flex-direction:row-reverse;text-align:right}
+.cbd .ci{font-size:30px}
+.cbd .ct{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cbd .ct b{font-size:14px;color:#fff}
+.cbd .ct small{font-size:11px;color:#9fb6c9;line-height:1.25}
+.cbd.lock{opacity:.6;filter:grayscale(.6)}
+.cbd:not(.lock):active{transform:scale(.98)}
 </style>
 </head>
 <body>
@@ -1933,7 +1945,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.63';
+const VERSION='1.0.64';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -4963,6 +4975,35 @@ function showDaily(tab){
       <button data-q="${q.id}" ${ready?'':'disabled'}>${q.claimed?'✔':ready?'Claim':'…'}</button></div>`;}).join('');
   draw(`<p class="m">Resets in <b>${fmtLeft(P.left)}</b> (${DAILY.tab==='daily'?'UTC midnight':DAILY.tab==='weekly'?'Monday, UTC':'the 1st, UTC'}).</p><div class="qlist">${rows}</div>`);
   card.querySelectorAll('.qrow button[data-q]').forEach(b=>b.addEventListener('click',()=>dailyClaimQuest(b.dataset.q)));}
+/* =========================== THE CITY (v1.0.64) ===========================
+   A vertical, scrolling city for the seat's house. Every building opens a screen the game already has; a building opens with the
+   stages the seat has cleared (real progress, read from the save). No upgrades yet: those need the server first (account levels, v1.0.65).
+   Art is temporary (CSS + emoji) until MR B's city pictures arrive. */
+const CITY_NAME={stark:'Winterfell',lannister:'Casterly Rock',targaryen:'Dragonstone',baratheon:"Storm's End",greyjoy:'Pyke',tyrell:'Highgarden',martell:'Sunspear'};
+const CITY_SKY={stark:['#2c3e55','#7f95ad'],lannister:['#5a1f1f','#c9a24a'],targaryen:['#231a1f','#8a3a2a'],baratheon:['#2b2a1c','#c9a227'],greyjoy:['#0f2b33','#3f7f8f'],tyrell:['#20402a','#a6c96a'],martell:['#5a3a12','#e8a13a']};
+/* id, emoji, name, what it is, stages to clear, the opening call */
+const CITY_BLD=[
+  ['keep','🏰','Keep','tower and spell cards',0,()=>showHub('coll')],
+  ['barracks','⚔️','Barracks','train the house army',0,()=>showTrain()],
+  ['market','🏪','Market','chests, deals, dragonglass',0,()=>showShop()],
+  ['treasury','📜','Treasury','daily calendar and quests',2,()=>showDaily()],
+  ['forge','⚒️','Forge','gear, tiers, sets',3,()=>showForge()],
+  ['tavern','🍺','Tavern','champions, stars, portal',5,()=>showHeroRoom()],
+  ['library','📚','Library','the book of towers and foes',8,()=>showBook()],
+  ['hall','🏛️','Council hall','events and duels',10,()=>showHub('events')]];
+function cityCleared(){return Object.values((ACC&&ACC.campaign)||{}).filter(v=>v>0).length;}
+function cityOpen(b,n){return n>=b[4];}
+function showCity(){
+  const n=cityCleared(),hs=ACC.house,nm=CITY_NAME[hs]||'Your city',sky=CITY_SKY[hs]||CITY_SKY.stark;
+  const rows=CITY_BLD.map((b,i)=>{const open=cityOpen(b,n);
+    return `<button class="cbd ${i%2?'r':'l'} ${open?'':'lock'}" data-b="${b[0]}"><span class="ci">${open?b[1]:'🔒'}</span><span class="ct"><b>${b[2]}</b><small>${open?b[3]:'opens after '+b[4]+' cleared stage'+(b[4]===1?'':'s')+' ('+n+'/'+b[4]+')'}</small></span></button>`;}).join('');
+  show(`<div class="topbar"><h1>🏰 ${esc(nm)}<small>${n} stage${n===1?'':'s'} cleared · the door is held</small></h1><button class="back" id="bBack">✖</button></div>
+   <div class="city" style="--c1:${sky[0]};--c2:${sky[1]}"><div class="cgate">🚪<small>Hodor holds it</small></div><div class="croad"></div>${rows}</div>`);
+  CLOUD.screen='city';
+  $('#bBack').addEventListener('click',()=>showHub('battle'));
+  card.querySelectorAll('.cbd').forEach(x=>x.addEventListener('click',()=>{const b=CITY_BLD.find(y=>y[0]===x.dataset.b);
+    if(!cityOpen(b,cityCleared())){SFX.play('deny');ecoToast(`🔒 ${b[2]} opens after ${b[4]} cleared stages`);return;}SFX.play('tap',60);b[5]();}));
+}
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -5904,6 +5945,7 @@ function hubBattle(){const hh=HOUSES[ACC.house],c=CBY[ACC.sel],g=Object.keys(cam
   <div class="castlerow"><button class="cbld" id="bTrain"><span class="ic">⚔️</span><span class="tx"><b>Train</b><small>Army level ${armyLvl()}${armyLvl()>=ARMY_HOUSE_AT?' · '+HOUSE_UNIT[ACC.house].n:' · '+HOUSE_UNIT[ACC.house].n+' at '+ARMY_HOUSE_AT}</small></span></button><button class="cbld" id="bSpellShop"><span class="ic">🧪</span><span class="tx"><b>Spell shop</b><small>${packCount()?packCount()+' in the pack':'one-shot battle items'}</small></span></button></div>
   <div class="castlerow forgerow"><button class="cbld" id="bTavern"><span class="ic">🍺</span><span class="tx"><b>Tavern</b><small>stars · skills · portal</small></span></button><button class="cbld" id="bForge"><span class="ic">⚒️</span><span class="tx"><b>Forge</b><small>${ecoOn()?gearItems().length+' items · '+GEAR_SLOTS.filter(k=>gearItems().some(it=>it.champ===ACC.sel&&it.slot===k)).length+'/9 worn':'gear — a Telegram seat'}</small></span></button></div>
   <div class="castlerow forgerow">${dailyBtnHTML()}</div>
+  <div class="castlerow"><button class="cbld" id="bCity"><span class="ic">🏰</span><span class="tx"><b>City</b><small>${CITY_NAME[ACC.house]||'your city'} · ${cityCleared()} stage${cityCleared()===1?'':'s'} cleared</small></span></button></div>
   <div class="tro"><span class="tr" id="hubTro">${rankSVG(myRank().t,22,myRank().div)}${TROPHY_SVG}${trophiesOf()}</span><span class="bar"><i style="width:${Math.round(100*g/NG)}%"></i><em>STAGE ${Math.min(NG,g+1)} OF ${NG} · ${nextL.n.toUpperCase()}</em></span></div>
   <div class="chestrow"><span class="ch ${chestsN>0?'ready':''}" id="starChest">${chestSVG('iron')}</span><span class="sbar"><i style="width:${chestsN>0?100:Math.round(100*prog/3)}%"></i><em>${chestsN>0?'CHEST READY · TAP TO OPEN':`${prog}/3 STARS TO THE NEXT CHEST`}</em></span>${chestsN>1?`<b class="cnt">×${chestsN}</b>`:''}</div>
   ${lvlChestsReady()>0?`<div class="chestrow lvl"><span class="ch ready" id="lvlChest">${chestSVG(lvlChestTier((ACC.lvlChests||0)+2))}</span><span class="sbar"><i style="width:100%"></i><em>LEVEL ${(ACC.lvlChests||0)+2} CHEST · TAP TO OPEN</em></span>${lvlChestsReady()>1?`<b class="cnt">×${lvlChestsReady()}</b>`:''}</div>`:''}
@@ -5912,7 +5954,7 @@ function hubBattle(){const hh=HOUSES[ACC.house],c=CBY[ACC.sel],g=Object.keys(cam
     <button class="bside" id="bChampH">${pu?`<img src="${pu}" alt="">`:`<span class="pe">${c.e}</span>`}${shortName(c)}</button></div>
   ${ACC.tut?'':'<div class="hint">▲ TAP BEGIN — YOUR CHAMPION WILL TEACH YOU</div>'}${ACC.refund?`<div class="hint" id="refundNote">🪙 Tower upgrades are now tower levels — ${ACC.refund} gold refunded. Collection → Towers.</div>`:''}`;}
 function hubBattleBind(){if(ACC.refund){ACC.refund=0;persist();}
-  const cv=$('#isle');if(cv)drawIsland(cv,ACC.house);const bt=$('#bTrain');if(bt)bt.addEventListener('click',()=>{SFX.play('tap',60);showTrain();});const bs=$('#bSpellShop');if(bs)bs.addEventListener('click',()=>{SFX.play('tap',60);showSpellShop();});const btv=$('#bTavern');if(btv)btv.addEventListener('click',()=>{SFX.play('tap',60);showHeroRoom();});dailyBtnBind();dailyBtnRefresh();const bf=$('#bForge');if(bf)bf.addEventListener('click',()=>{SFX.play('tap',60);showForge();});const ht=$('#hubTro');if(ht)ht.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});
+  const cv=$('#isle');if(cv)drawIsland(cv,ACC.house);const bcy=$('#bCity');if(bcy)bcy.addEventListener('click',()=>{SFX.play('tap',60);showCity();});const bt=$('#bTrain');if(bt)bt.addEventListener('click',()=>{SFX.play('tap',60);showTrain();});const bs=$('#bSpellShop');if(bs)bs.addEventListener('click',()=>{SFX.play('tap',60);showSpellShop();});const btv=$('#bTavern');if(btv)btv.addEventListener('click',()=>{SFX.play('tap',60);showHeroRoom();});dailyBtnBind();dailyBtnRefresh();const bf=$('#bForge');if(bf)bf.addEventListener('click',()=>{SFX.play('tap',60);showForge();});const ht=$('#hubTro');if(ht)ht.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});
   $('#bBattle').addEventListener('click',()=>{SFX.play('tap',80);if(!ACC.tut)startTutorial();else showCampaign();});
   const bdh=$('#bDiffH');if(bdh)bdh.addEventListener('click',()=>showDifficulty(false));const bmh=$('#bMapH');if(bmh)bmh.addEventListener('click',()=>{SFX.play('tap',60);showCampaign();});
   $('#bChampH').addEventListener('click',()=>showHeroRoom(ACC.sel));
@@ -6136,6 +6178,7 @@ window.HOLDOR_CH59={KITS59,hitDoor};
 window.HOLDOR_TAVERN={CH_RAR,RAR_STAT,RAR_N,ST_MAX,ASC_GOLD,ASC_BURN,BOOK_N,BOOK_R,BOOK_OF,BOOK_NEED,BOOK_PRICE,BOOK_DROP,SUMMON,cstar,champCap,champRar,ascend,ascNeed,ascGold,ascCan,ascReady,skillUp,skCan,skBooks,summon,summonRoll,chestBooks,bookKey,showHeroRoom,cardNeed,cardCan,cardLevelUp,addCards,cardHave};
 window.HOLDOR_STARS={STARS_SHOP,STARS,starsBuy,starsWait,starsCan,starsShopHTML};
 window.HOLDOR_DAILY={LOGIN_CAL,QUESTS,DAILY,LOGIN_SPECIAL_GEMS,showDaily,dailyLoad,dailyReady,dailyClaimLogin,dailyClaimQuest,dailyPopupCheck,rewardChips};
+window.HOLDOR_CITY={showCity,cityCleared,CITY_BLD,CITY_NAME};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();

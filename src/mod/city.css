@@ -1,0 +1,13 @@
+/* v1.0.64: the city */
+.city{position:relative;display:flex;flex-direction:column;gap:14px;padding:16px 10px 40px;margin:8px 0;border-radius:16px;border:2px solid #0b1a2e;background:linear-gradient(var(--c1),var(--c2));min-height:70vh}
+.city .croad{position:absolute;left:50%;top:70px;bottom:10px;width:26px;transform:translateX(-50%);border-radius:13px;background:repeating-linear-gradient(#8b7a5b 0 14px,#76664a 14px 28px);opacity:.75;z-index:0}
+.cgate{position:relative;z-index:1;align-self:center;display:flex;flex-direction:column;align-items:center;font-size:34px;line-height:1}
+.cgate small{font-size:10px;color:#f2e6c9;margin-top:2px}
+.cbd{position:relative;z-index:1;display:flex;align-items:center;gap:8px;width:62%;padding:10px;border-radius:14px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6;text-align:left}
+.cbd.l{align-self:flex-start}.cbd.r{align-self:flex-end;flex-direction:row-reverse;text-align:right}
+.cbd .ci{font-size:30px}
+.cbd .ct{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cbd .ct b{font-size:14px;color:#fff}
+.cbd .ct small{font-size:11px;color:#9fb6c9;line-height:1.25}
+.cbd.lock{opacity:.6;filter:grayscale(.6)}
+.cbd:not(.lock):active{transform:scale(.98)}
