@@ -3560,6 +3560,7 @@ const TOURS={
   {sel:'.hubtop .cur',wait:()=>!!$('#bBattle'),text:'<b>Gold</b> 🪙 and <b>cards</b> level up your champions, towers and spells. <b>Dragonglass</b> 💎 opens chests and buys deals. Battles pay both.'},
   {sel:'#hubAva',text:'This is you: your champion\'s face and your <b>level</b>. Every upgrade you buy adds to it, and every level pays a chest. Tap it later for settings and the book.'},
   {sel:'.tro',text:'Your road north: fifty stages, and the stars you have won. Every three stars fill the chest below it — chests hold gold, dragonglass and cards.'},
+  {sel:'.hubtabs button[data-tab="earn"]',text:'<b>Earn</b>: build an estate that pays a little gold every hour, and <b>invite friends</b> — when a friend clears five stages you both get a gift.'},
   {sel:'#bBattle',tap:1,text:'<b>BATTLE!</b> opens the map at your next stage. Tap it.'}],
  coll:()=>[
   {sel:'.subtabs',text:'<b>Collection</b>: your loadout, champions, towers and spells. Each one is a card — collect copies from chests, then pay gold to raise its level.'},
@@ -3572,6 +3573,10 @@ const TOURS={
   {sel:()=>document.querySelectorAll('.hubbody .shopgrid')[1]||null,text:'<b>Chests</b> hold gold, dragonglass and card stacks — the rarer the chest, the rarer the cards. The wooden one is free once a day.'}],
  hold:()=>[onlineOpen()?{sel:'#bHold',text:'<b>Hold</b>: one map for the whole world each day, three tries, endless waves. Your best wave counts for your realm and your house.'}
   :{sel:'.lockbanner',text:'The daily <b>Hold</b> opens after stage '+ONLINE_AT+'. Until then you can watch the standings below.'}],
+ earn:()=>[
+  {sel:'.collectbox',text:'Your <b>estate</b> earns gold by the hour, even while you are away. It stops piling up after three hours, so come back and collect.'},
+  {sel:'.egrid',text:'Buildings open with your account level. Upgrades are expensive and add a little each — battles stay your main income.'},
+  {sel:()=>document.querySelector('.invbox')||document.querySelector('.hubbody .hh:last-of-type'),text:'<b>Invite friends</b>: send your link. When a friend clears five stages you both get a gift.'}],
  events:()=>[
   {sel:()=>document.querySelector('.hubbody .evcard'),text:'<b>Events</b>: the daily Hold is live; wars between the houses and seasons come later. Realm and house standings are below.'}],
 };
@@ -5002,8 +5007,9 @@ const REF_BOT='https://t.me/HoldorTDBot/play?startapp=r_';
 function refLink(code){return REF_BOT+code;}
 function refShare(link){const u='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent('Hold the Door with me!');try{if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank');}catch(e){}}
 function refCopy(link){try{navigator.clipboard.writeText(link).then(()=>ecoToast('Link copied'),()=>ecoToast(link));}catch(e){ecoToast(link);}}
-function frLoad(){if(!ecoOn())return Promise.resolve(null);const seat=seatNo();
-  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('ref_state',{seat},9000);if(seat===seatNo()){DAILY.fr=r;DAILY.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
+function frLoad(force){if(!ecoOn())return Promise.resolve(null);const seat=seatNo();
+  if(!force&&DAILY.fr&&DAILY.seat===seat&&Date.now()-(DAILY.frAt||0)<8000)return Promise.resolve(DAILY.fr);
+  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('ref_state',{seat},9000);if(seat===seatNo()){DAILY.fr=r;DAILY.frAt=Date.now();DAILY.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
 async function dailyClaimFr(other){if(DAILY.busy||!ecoOn())return;DAILY.busy=true;ecoWait(true);
   try{const seat=seatNo(),args=other==null?{seat}:{seat,other},r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('ref_claim',args,10000);ecoApply(x.state);return x;});
     DAILY.fr=r.friends;DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);dailyClaimModal(r,'👥 A friend’s gift');}
@@ -5024,7 +5030,7 @@ function dailyPopupCheck(){
 function fmtLeft(s){const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return d?d+'d '+h+'h':h?h+'h '+m+'m':m+'m';}
 function showDaily(tab){
   DAILY.tab=tab||DAILY.tab||'cal';
-  const tabs=[['cal','📅 Calendar'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['levels','⭐ Levels'],['friends','👥 Invite']];
+  const tabs=[['cal','📅 Calendar'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['levels','⭐ Levels']];
   const head=`<div class="topbar"><h1>📜 Daily &amp; quests<small>Rewards are paid by the server. Progress counts only battles it has seen.</small></h1><button class="back" id="bBack">✖</button></div>
    <div class="subtabs">${tabs.map(([k,n])=>`<button class="${k===DAILY.tab?'on':''}" data-t="${k}">${n}</button>`).join('')}</div>`;
   const draw=body=>{show(head+body);CLOUD.screen='daily:'+DAILY.tab;$('#bBack').addEventListener('click',()=>showHub('battle'));card.querySelectorAll('.subtabs button').forEach(b=>b.addEventListener('click',()=>showDaily(b.dataset.t)));};
@@ -5244,6 +5250,21 @@ function earnReady(){const s=EARN.st;return !!(s&&EARN.seat===seatNo()&&s.pendin
 function earnCard(i,gold){const max=i.lvl>=i.max,pay=!max&&i.next_income>i.income?Math.round(i.cost/(i.next_income-i.income)):0;
   const foot=max?'<span class="ec mx">MAX</span>':i.open?`<span class="ec ${gold>=i.cost?'':'poor'}">🪙 ${fmtN(i.cost)}</span>`:`<span class="ec lk">🔒 level ${i.need}</span>`;
   return `<button class="ebld ${i.lvl?'own':''} ${!max&&!i.open?'lock':''}" data-b="${i.id}"><span class="ei">${i.e}</span><b>${esc(i.n)}</b><small>${i.lvl?`Lv ${i.lvl} · +${fmtN(i.income)}/h`:`opens at level ${i.unlock}`}</small>${foot}</button>`;}
+/* the invitation block (backend v14): the link, the two gifts, each friend's progress, the claims */
+function invBox(){
+  const head=`<div class="hh" style="margin-top:14px"><h2>Invite friends</h2><small>a gift for you both</small></div>`;
+  if(!ecoOn())return head+'<p class="m">Invitations are kept by the server — they need a seat signed in through Telegram.</p>';
+  const f=DAILY.fr&&DAILY.seat===seatNo()?DAILY.fr:null;
+  if(!f)return head+'<p class="m">⏳ asking the server…</p>';
+  const link=refLink(f.code),pc=x=>Math.round(100*x.stages/f.need);
+  const row=(x,mine)=>`<div class="qrow ${x.claimed?'done':''} ${x.done&&!x.claimed?'ready':''}"><div class="qt"><b>${esc(x.name)}${mine?' <small>invited you</small>':''}</b><span class="qbar"><i style="width:${pc(x)}%"></i><em>${x.stages} / ${f.need} stages</em></span><span class="qrw">${rewardChips(mine?f.invitee_gift:f.inviter_gift,1)}</span></div>
+    <button data-f="${mine?'me':x.who}" ${x.done&&!x.claimed?'':'disabled'}>${x.claimed?'✔':x.done?'Claim':'…'}</button></div>`;
+  return head+`<div class="invbox"><p class="m">When a friend clears <b>${f.need} stages</b>, you both get a gift: <span class="qrw">${rewardChips(f.inviter_gift,1)}</span> for you, <span class="qrw">${rewardChips(f.invitee_gift,1)}</span> for them. Up to ${f.cap} friends${f.paid?` · rewarded so far: <b>${f.paid}</b>`:''}.</p>
+    <div class="pvrow"><button class="btn" id="bInvShare">📨 Send to a friend</button><button class="btn sec" id="bInvCopy">Copy link</button></div>
+    <div class="qlist">${f.mine?row(f.mine,true):''}${f.invited.map(x=>row(x,false)).join('')||(f.mine?'':'<p class="m">Nobody has joined yet.</p>')}</div></div>`;}
+function invBind(){const f=DAILY.fr&&DAILY.seat===seatNo()?DAILY.fr:null;if(!f)return;const link=refLink(f.code);
+  const bs=$('#bInvShare');if(bs)bs.addEventListener('click',()=>{SFX.play('tap',60);refShare(link);});const bc=$('#bInvCopy');if(bc)bc.addEventListener('click',()=>refCopy(link));
+  card.querySelectorAll('.invbox .qrow button[data-f]').forEach(b=>b.addEventListener('click',()=>dailyClaimFr(b.dataset.f==='me'?null:+b.dataset.f)));}
 function hubEarn(){
   const head=`<div class="hh"><h2>Estate</h2><small>a little gold, by the hour</small></div>`;
   if(!earnOn())return head+`<p class="m">${ecoOn()?'Finish the tutorial battle first.':'The estate is kept by the server — it needs a seat signed in through Telegram.'}</p>`;
@@ -5254,7 +5275,7 @@ function hubEarn(){
   return head+`<div class="collectbox"><div class="ch1">${GOLD_SVG}<b>${fmtN(s.pending)}</b></div><small>${s.per_hour?`+${fmtN(s.per_hour)} an hour · it stops piling up after ${s.cap_h} hours`:'Build something — it earns while you are away'}</small>
     <button class="btn" id="bCollect" ${s.pending>0?'':'disabled'}>${s.pending>0?'Collect':'Nothing yet'}</button></div>${strip}
     <div class="egrid">${s.items.map(i=>earnCard(i,gold)).join('')}</div>
-    <p class="holdnote">Buildings open with your account level (now ${s.level}). Each level costs 1.8× the one before and adds only half of the first level's income — battles stay the way to earn.</p>`;}
+    <p class="holdnote">Buildings open with your account level (now ${s.level}). Each level costs 1.8× the one before and adds only half of the first level's income — battles stay the way to earn.</p>${invBox()}`;}
 async function earnCall(fn,args,after){if(EARN.busy||!ecoOn())return;EARN.busy=true;ecoWait(true);
   try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc(fn,Object.assign({seat},args),10000);ecoApply(x.state);return x;});
     EARN.st=r.estate;EARN.at=Date.now();EARN.seat=seat;ecoWait(false);EARN.busy=false;persist();after&&after(r);}
@@ -5266,8 +5287,10 @@ function earnAsk(id){const s=EARN.st;if(!s)return;const i=s.items.find(x=>x.id==
   ecoModal(`${i.e} ${esc(i.n)} → level ${i.lvl+1}`,`<p class="m">🪙 ${fmtN(i.cost)} for <b>+${fmtN(extra)} gold an hour</b> (${fmtN(i.next_income)}/h in all).<br><small>It pays for itself in about ${fmtN(pay)} hours.</small></p>`,
     [{t:`🏗️ ${i.lvl?'Upgrade':'Build'} · 🪙 ${fmtN(i.cost)}`,dis:goldOf()<i.cost,f:()=>earnCall('estate_build',{bld:id},r=>{SFX.play('upgrade');ecoToast(`${i.e} ${i.n} — level ${r.lvl}${r.collected?' · +'+fmtN(r.collected)+' gold collected':''}`,true);showHub('earn');})},{t:'Not now'}]);}
 function hubEarnBind(){
-  if(earnOn()){earnLoad().then(()=>{if(CLOUD.screen==='hub:earn')showHub('earn');});
-    if(EARN.st&&Date.now()-EARN.at>8000)earnLoad(true).then(()=>{if(CLOUD.screen==='hub:earn')showHub('earn');});}
+  if(earnOn()){const had=EARN.st,hadF=DAILY.fr;
+    earnLoad().then(r=>{if(r&&r!==had&&CLOUD.screen==='hub:earn')showHub('earn');});
+    frLoad().then(r=>{if(r&&r!==hadF&&CLOUD.screen==='hub:earn')showHub('earn');});}
+  invBind();
   const bc=$('#bCollect');if(bc)bc.addEventListener('click',()=>earnCall('estate_collect',{},r=>{SFX.play('collect');ecoToast('🪙 +'+fmtN(r.gold)+' gold from the estate',true);showHub('earn');}));
   card.querySelectorAll('.ebld').forEach(b=>b.addEventListener('click',()=>{SFX.play('tap',50);earnAsk(b.dataset.b);}));
 }

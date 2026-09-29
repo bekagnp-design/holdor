@@ -40,6 +40,21 @@ function earnReady(){const s=EARN.st;return !!(s&&EARN.seat===seatNo()&&s.pendin
 function earnCard(i,gold){const max=i.lvl>=i.max,pay=!max&&i.next_income>i.income?Math.round(i.cost/(i.next_income-i.income)):0;
   const foot=max?'<span class="ec mx">MAX</span>':i.open?`<span class="ec ${gold>=i.cost?'':'poor'}">🪙 ${fmtN(i.cost)}</span>`:`<span class="ec lk">🔒 level ${i.need}</span>`;
   return `<button class="ebld ${i.lvl?'own':''} ${!max&&!i.open?'lock':''}" data-b="${i.id}"><span class="ei">${i.e}</span><b>${esc(i.n)}</b><small>${i.lvl?`Lv ${i.lvl} · +${fmtN(i.income)}/h`:`opens at level ${i.unlock}`}</small>${foot}</button>`;}
+/* the invitation block (backend v14): the link, the two gifts, each friend's progress, the claims */
+function invBox(){
+  const head=`<div class="hh" style="margin-top:14px"><h2>Invite friends</h2><small>a gift for you both</small></div>`;
+  if(!ecoOn())return head+'<p class="m">Invitations are kept by the server — they need a seat signed in through Telegram.</p>';
+  const f=DAILY.fr&&DAILY.seat===seatNo()?DAILY.fr:null;
+  if(!f)return head+'<p class="m">⏳ asking the server…</p>';
+  const link=refLink(f.code),pc=x=>Math.round(100*x.stages/f.need);
+  const row=(x,mine)=>`<div class="qrow ${x.claimed?'done':''} ${x.done&&!x.claimed?'ready':''}"><div class="qt"><b>${esc(x.name)}${mine?' <small>invited you</small>':''}</b><span class="qbar"><i style="width:${pc(x)}%"></i><em>${x.stages} / ${f.need} stages</em></span><span class="qrw">${rewardChips(mine?f.invitee_gift:f.inviter_gift,1)}</span></div>
+    <button data-f="${mine?'me':x.who}" ${x.done&&!x.claimed?'':'disabled'}>${x.claimed?'✔':x.done?'Claim':'…'}</button></div>`;
+  return head+`<div class="invbox"><p class="m">When a friend clears <b>${f.need} stages</b>, you both get a gift: <span class="qrw">${rewardChips(f.inviter_gift,1)}</span> for you, <span class="qrw">${rewardChips(f.invitee_gift,1)}</span> for them. Up to ${f.cap} friends${f.paid?` · rewarded so far: <b>${f.paid}</b>`:''}.</p>
+    <div class="pvrow"><button class="btn" id="bInvShare">📨 Send to a friend</button><button class="btn sec" id="bInvCopy">Copy link</button></div>
+    <div class="qlist">${f.mine?row(f.mine,true):''}${f.invited.map(x=>row(x,false)).join('')||(f.mine?'':'<p class="m">Nobody has joined yet.</p>')}</div></div>`;}
+function invBind(){const f=DAILY.fr&&DAILY.seat===seatNo()?DAILY.fr:null;if(!f)return;const link=refLink(f.code);
+  const bs=$('#bInvShare');if(bs)bs.addEventListener('click',()=>{SFX.play('tap',60);refShare(link);});const bc=$('#bInvCopy');if(bc)bc.addEventListener('click',()=>refCopy(link));
+  card.querySelectorAll('.invbox .qrow button[data-f]').forEach(b=>b.addEventListener('click',()=>dailyClaimFr(b.dataset.f==='me'?null:+b.dataset.f)));}
 function hubEarn(){
   const head=`<div class="hh"><h2>Estate</h2><small>a little gold, by the hour</small></div>`;
   if(!earnOn())return head+`<p class="m">${ecoOn()?'Finish the tutorial battle first.':'The estate is kept by the server — it needs a seat signed in through Telegram.'}</p>`;
@@ -50,7 +65,7 @@ function hubEarn(){
   return head+`<div class="collectbox"><div class="ch1">${GOLD_SVG}<b>${fmtN(s.pending)}</b></div><small>${s.per_hour?`+${fmtN(s.per_hour)} an hour · it stops piling up after ${s.cap_h} hours`:'Build something — it earns while you are away'}</small>
     <button class="btn" id="bCollect" ${s.pending>0?'':'disabled'}>${s.pending>0?'Collect':'Nothing yet'}</button></div>${strip}
     <div class="egrid">${s.items.map(i=>earnCard(i,gold)).join('')}</div>
-    <p class="holdnote">Buildings open with your account level (now ${s.level}). Each level costs 1.8× the one before and adds only half of the first level's income — battles stay the way to earn.</p>`;}
+    <p class="holdnote">Buildings open with your account level (now ${s.level}). Each level costs 1.8× the one before and adds only half of the first level's income — battles stay the way to earn.</p>${invBox()}`;}
 async function earnCall(fn,args,after){if(EARN.busy||!ecoOn())return;EARN.busy=true;ecoWait(true);
   try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc(fn,Object.assign({seat},args),10000);ecoApply(x.state);return x;});
     EARN.st=r.estate;EARN.at=Date.now();EARN.seat=seat;ecoWait(false);EARN.busy=false;persist();after&&after(r);}
@@ -62,8 +77,10 @@ function earnAsk(id){const s=EARN.st;if(!s)return;const i=s.items.find(x=>x.id==
   ecoModal(`${i.e} ${esc(i.n)} → level ${i.lvl+1}`,`<p class="m">🪙 ${fmtN(i.cost)} for <b>+${fmtN(extra)} gold an hour</b> (${fmtN(i.next_income)}/h in all).<br><small>It pays for itself in about ${fmtN(pay)} hours.</small></p>`,
     [{t:`🏗️ ${i.lvl?'Upgrade':'Build'} · 🪙 ${fmtN(i.cost)}`,dis:goldOf()<i.cost,f:()=>earnCall('estate_build',{bld:id},r=>{SFX.play('upgrade');ecoToast(`${i.e} ${i.n} — level ${r.lvl}${r.collected?' · +'+fmtN(r.collected)+' gold collected':''}`,true);showHub('earn');})},{t:'Not now'}]);}
 function hubEarnBind(){
-  if(earnOn()){earnLoad().then(()=>{if(CLOUD.screen==='hub:earn')showHub('earn');});
-    if(EARN.st&&Date.now()-EARN.at>8000)earnLoad(true).then(()=>{if(CLOUD.screen==='hub:earn')showHub('earn');});}
+  if(earnOn()){const had=EARN.st,hadF=DAILY.fr;
+    earnLoad().then(r=>{if(r&&r!==had&&CLOUD.screen==='hub:earn')showHub('earn');});
+    frLoad().then(r=>{if(r&&r!==hadF&&CLOUD.screen==='hub:earn')showHub('earn');});}
+  invBind();
   const bc=$('#bCollect');if(bc)bc.addEventListener('click',()=>earnCall('estate_collect',{},r=>{SFX.play('collect');ecoToast('🪙 +'+fmtN(r.gold)+' gold from the estate',true);showHub('earn');}));
   card.querySelectorAll('.ebld').forEach(b=>b.addEventListener('click',()=>{SFX.play('tap',50);earnAsk(b.dataset.b);}));
 }

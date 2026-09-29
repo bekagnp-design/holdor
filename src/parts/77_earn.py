@@ -11,3 +11,9 @@ hrep(" events:'<svg viewBox=\"0 0 24 24\">", " earn:'<svg viewBox=\"0 0 24 24\">
 hrep('<div class="seatname"><b>${hh.seat}</b></div>', '<div class="seatname"><b>${hh.seat}</b></div>${evBadgeHTML()}', 1, 'ev-badge')
 hrep("const cv=$('#isle');if(cv)drawIsland(cv,ACC.house);", "const cv=$('#isle');if(cv)drawIsland(cv,ACC.house);evBadgeBind();", 1, 'ev-badge-bind')
 hrep("if(tab==='battle')setTimeout(dailyPopupCheck,1100);", "if(tab==='battle'){setTimeout(dailyPopupCheck,1100);setTimeout(evPopupCheck,2600);}", 1, 'ev-popup')
+
+# the guided tour (the tutorial): the home tour points at Earn, and Earn has its own short tour
+rep(" {sel:'#bBattle',tap:1,text:'<b>BATTLE!</b> opens the map at your next stage. Tap it.'}],",
+    " {sel:'.hubtabs button[data-tab=\"earn\"]',text:'<b>Earn</b>: build an estate that pays a little gold every hour, and <b>invite friends</b> — when a friend clears five stages you both get a gift.'},\n  {sel:'#bBattle',tap:1,text:'<b>BATTLE!</b> opens the map at your next stage. Tap it.'}],", 1, 'tour-battle-earn')
+rep(" events:()=>[\n  {sel:()=>document.querySelector('.hubbody .evcard')",
+    " earn:()=>[\n  {sel:'.collectbox',text:'Your <b>estate</b> earns gold by the hour, even while you are away. It stops piling up after three hours, so come back and collect.'},\n  {sel:'.egrid',text:'Buildings open with your account level. Upgrades are expensive and add a little each — battles stay your main income.'},\n  {sel:()=>document.querySelector('.invbox')||document.querySelector('.hubbody .hh:last-of-type'),text:'<b>Invite friends</b>: send your link. When a friend clears five stages you both get a gift.'}],\n events:()=>[\n  {sel:()=>document.querySelector('.hubbody .evcard')", 1, 'tour-earn')
