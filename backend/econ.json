@@ -1,5 +1,5 @@
 {
- "version": "1.0.62",
+ "version": "1.0.71",
  "max": {
   "c": 60,
   "t": 16,
@@ -747,6 +747,27 @@
     "once": false,
     "title": "Hoard of dragonglass",
     "desc": "1200 dragonglass for your seat."
+   },
+   "pass": {
+    "stars": 250,
+    "gems": 0,
+    "gold": 0,
+    "books": {},
+    "once": false,
+    "title": "Season Pass",
+    "desc": "Premium rewards on every tier of this month's season, for your seat.",
+    "grant": "pass"
+   },
+   "vip": {
+    "stars": 200,
+    "gems": 0,
+    "gold": 0,
+    "books": {},
+    "once": false,
+    "title": "VIP · 30 days",
+    "desc": "25 dragonglass a day and 25% more season points for 30 days, for your seat.",
+    "grant": "vip",
+    "days": 30
    },
    "starter": {
     "stars": 75,
