@@ -1970,7 +1970,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.71';
+const VERSION='1.0.72';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -4108,7 +4108,7 @@ function showCampaignResult(win,stars,newUnlocks,gained){
   ${G.hardNew?'<p style="color:var(--gold);font-weight:700">👑 All fifty stages held. HARD is open — the same road, tougher dead, more gold.</p>':''}
   ${nx}${!next?`<p style="color:var(--gold)">${ACC.diff==='kingsguard'?'Westeros stands, even on Hard.':'Westeros stands. The Long Night is over.'}</p>`:''}
   ${G.hardNew?'<button class="btn" id="bHard">👑 Ride on Hard</button>':''}
-  <div class="resrow"><button class="btn sec" id="bRetry">🔁 Replay</button><button class="btn sec" id="bUp">⬆️ Upgrades</button><button class="btn sec" id="bMap">🗺️ Map</button></div>`);
+  <div class="resrow"><button class="btn sec" id="bRetry">🔁 Replay</button><button class="btn sec" id="bUp">⬆️ Upgrades</button><button class="btn sec" id="bMap">🗺️ Map</button><button class="btn sec" id="bShare">📨 Share</button></div>`);
   else show(`<h1>The gate has fallen<small>Stage ${L.id} · ${L.n}, wave ${G.wave} of ${L.waves}</small></h1><p class="m">${G.kills} kills · ${DIFFS[ACC.diff].e} ${DIFFS[ACC.diff].lbl}</p><p>${tipFor(L)}</p>
   ${got.map(a=>`<p style="color:var(--gold)">🏆 ${a.n} +${a.g}💎</p>`).join('')}
   <button class="btn" id="bRetry"><span class="e">🔁</span> Try again</button>
@@ -4119,7 +4119,7 @@ function showCampaignResult(win,stars,newUnlocks,gained){
   const bd=$('#bDiff2');if(bd)bd.addEventListener('click',()=>showDifficulty(false));
   const bhe=$('#bHero');if(bhe)bhe.addEventListener('click',()=>showHeroRoom(ACC.sel));
   $('#bRetry').addEventListener('click',()=>startGame({mode:'campaign',level:L}));
-  $('#bUp').addEventListener('click',()=>win?showUpgrades():showTowerRoom());$('#bMap').addEventListener('click',()=>showCampaign());
+  $('#bUp').addEventListener('click',()=>win?showUpgrades():showTowerRoom());$('#bMap').addEventListener('click',()=>showCampaign());const bsh=$('#bShare');if(bsh)bsh.addEventListener('click',()=>{SFX.play('tap',60);shareWin(L.id,stars);});
 }
 function tipFor(L){if(tLvl('watch')<3&&L.id>6)return'Tip: gold from every battle buys tower levels in Collection → Towers. Small steps, but they add up.';if(L.dragon&&G.wave>=L.dragon)return'Tip: the dragon takes full damage only from Scorpions and Dracarys. Two upgraded Scorpions near the gate.';if(L.giants)return'Tip: giants walk past champions without Challenge. Scorpions hit them hardest.';if(L.archers)return'Tip: archers stop 135 px from the gate and shoot it. Cover that stretch.';return'Tip: call waves early for bonus gold while the road is quiet.';}
 
@@ -4988,7 +4988,7 @@ async function dailyClaimFr(other){if(DAILY.busy||!ecoOn())return;DAILY.busy=tru
     DAILY.fr=r.friends;DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);dailyClaimModal(r,'👥 A friend’s gift');}
   catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await frLoad();ecoModal('👥 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily('friends')}]);}}
 /* a new player who opened the game from an invite link joins his friend (once per device; the server checks he is really new) */
-function refJoinFromStart(){try{const sp=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.start_param;if(sp&&/^d_[0-9a-f]{8}$/i.test(sp)){DUEL.pending=sp.slice(2);ecoToast('🤝 A friend challenged you — open Events → Duel');return;}if(!sp||!/^r_[0-9a-f]{8}$/i.test(sp)||!CLOUD.token)return;
+function refJoinFromStart(){try{const sp=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.start_param;if(sp&&/^d_[0-9a-f]{8}$/i.test(sp)){DUEL.pending=sp.slice(2);ecoToast('🤝 A friend challenged you — open Events → Duel');return;}if(sp&&/^s_[a-z0-9_]{2,16}$/i.test(sp)&&CLOUD.token){const k0='holdor_src';if(localStorage.getItem(k0)===sp)return;localStorage.setItem(k0,sp);sbRpc('src_set',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).catch(()=>{});return;}if(!sp||!/^r_[0-9a-f]{8}$/i.test(sp)||!CLOUD.token)return;
   const k='holdor_refjoin';if(localStorage.getItem(k)===sp)return;localStorage.setItem(k,sp);
   sbRpc('ref_join',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).then(r=>{if(r&&r.by)ecoToast('👥 You joined '+r.by+'’s house of friends — clear 5 stages for a gift');}).catch(()=>{});}catch(e){}}
 /* the popup when the castle opens and today's reward waits (once a session; never over a tutorial or a tour) */
@@ -5088,9 +5088,10 @@ function duelRow(d){const who=d.kind==='ai'?'🤖 Bot':d.kind==='friend'?'🤝 '
   const res=d.result==='win'?'<b class="dw">WIN</b>':d.result==='loss'?'<b class="dl">LOSS</b>':d.result==='draw'?'<b>DRAW</b>':d.status==='expired'?'<b class="dx">EXPIRED</b>':'<b class="dp">OPEN</b>';
   const left=d.status==='open'?`<small>${fmtLeft(d.left)} left</small>`:'';
   const dl=d.delta?`<small class="${d.delta>0?'dw':'dl'}">${d.delta>0?'+':''}${d.delta}</small>`:'';
+  const sh=d.result==='win'?`<div class="pvrow"><button class="btn sec" data-shwin="${d.me.waves}|${d.me.kills}|${d.kind==='ai'?'a bot':esc(d.opponent)}">📨 Share the win</button></div>`:'';
   const link=d.kind==='friend'&&d.status==='open'&&d.mine&&d.waiting?`<div class="reflink"><code>${esc(DUEL_BOT+d.code)}</code></div><div class="pvrow"><button class="btn" data-share="${d.code}">📨 Send to a friend</button><button class="btn sec" data-copy="${d.code}">Copy</button></div>`:'';
   return `<div class="duelrow ${d.result||d.status}"><div class="dh"><span>${who}</span>${res}${dl}${left}</div>
-    <div class="ds"><span>You<br><em>${sc(d.me)}</em></span><i>vs</i><span>${d.waiting?'waiting for a friend':esc(d.kind==='ai'?'Bot':d.opponent)}<br><em>${sc(d.them)}</em></span></div>${link}</div>`;}
+    <div class="ds"><span>You<br><em>${sc(d.me)}</em></span><i>vs</i><span>${d.waiting?'waiting for a friend':esc(d.kind==='ai'?'Bot':d.opponent)}<br><em>${sc(d.them)}</em></span></div>${link}${sh}</div>`;}
 async function duelCall(fn,args,after){if(DUEL.busy||!ecoOn())return;DUEL.busy=true;ecoWait(true);
   try{const r=await ecoLane(async()=>{await ecoSyncRaw();return await ecoRpc(fn,Object.assign({seat:seatNo()},args),10000);});
     ecoWait(false);DUEL.busy=false;DUEL.at=0;DUEL.st=null;after&&after(r);}
@@ -5118,6 +5119,7 @@ function showDuel(){
   $('#bRank').addEventListener('click',()=>go('rank'));$('#bAi').addEventListener('click',()=>go('ai'));
   $('#bFriend').addEventListener('click',()=>duelCall('duel_start',{kind:'friend'},r=>{showDuel();}));
   const ph=$('#bPlayHold');if(ph)ph.addEventListener('click',()=>showHub('hold'));
+  card.querySelectorAll('[data-shwin]').forEach(b=>b.addEventListener('click',()=>{const [w,k,who]=b.dataset.shwin.split('|');shareDuel(w,k,who);}));
   card.querySelectorAll('[data-share]').forEach(b=>b.addEventListener('click',()=>duelShare(b.dataset.share)));
   card.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',()=>{try{navigator.clipboard.writeText(DUEL_BOT+b.dataset.copy).then(()=>ecoToast('Link copied'),()=>ecoToast(DUEL_BOT+b.dataset.copy));}catch(e){ecoToast(DUEL_BOT+b.dataset.copy);}}));
 }
@@ -5166,6 +5168,18 @@ function showSeason(){
   const bv=$('#bVip');if(bv)bv.addEventListener('click',seasonVip);
   card.querySelectorAll('[data-buy]').forEach(b=>b.addEventListener('click',()=>starsBuy(b.dataset.buy)));
 }
+/* =========================== SHARING AND SOURCES (v1.0.72) ===========================
+   A share opens Telegram's own "send to a friend" sheet with a short line and the player's invitation link (when his seat is
+   signed in; otherwise the plain game link). The link carries `startapp=r_<code>`; a link with `startapp=s_<source>` (yt1, tg, x …)
+   tells the server where a new player came from (backend v17, owner views v_sources / v_retention / v_funnel). */
+const BOT_LINK='https://t.me/HoldorTDBot/play';
+async function shareLink(){
+  try{if(ecoOn()){const f=DAILY.fr&&DAILY.seat===seatNo()?DAILY.fr:await frLoad();if(f&&f.code)return refLink(f.code);}}catch(e){}
+  return BOT_LINK;}
+function shareText(text){shareLink().then(link=>{const u='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent(text);
+  try{if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank');}catch(e){}});}
+function shareWin(stage,stars){shareText(`I held gate ${stage} ${'⭐'.repeat(Math.max(1,stars||1))} in HOLDOR — Hold the Door! Join my house:`);}
+function shareDuel(waves,kills,who){shareText(`I won a HOLDOR duel: ${waves} waves, ${kills} of the dead put down, against ${who}. Beat that:`);}
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -6344,6 +6358,7 @@ window.HOLDOR_DAILY={LOGIN_CAL,QUESTS,DAILY,LOGIN_SPECIAL_GEMS,showDaily,dailyLo
 window.HOLDOR_CITY={showCity,cityCleared,CITY_BLD,CITY_NAME};
 window.HOLDOR_DUEL={DUEL,showDuel,duelLoad,duelRow};
 window.HOLDOR_SEASON={SEASON,showSeason,seasonLoad};
+window.HOLDOR_MARKET={shareText,shareWin,shareDuel,shareLink,showCampaignResult};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();

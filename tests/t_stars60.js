@@ -18,7 +18,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   await page.locator('[data-stars="gems_m"]').first().tap({ force: true }).catch(() => {}); await page.waitForTimeout(300);
   ok('a tap on a disabled pack does nothing', await page.evaluate(() => window.HOLDOR.ACC.gems) === 20 && !(await page.evaluate(() => document.querySelector('#ecoModal.on'))));
   const T = await page.evaluate(() => Object.fromEntries(Object.entries(window.HOLDOR_STARS.STARS_SHOP).map(([k, v]) => [k, [v.stars, v.gems, v.gold || 0]])));
-  ok('the price table', JSON.stringify(T) === '{"gems_s":[50,150,0],"gems_m":[125,400,0],"gems_l":[350,1200,0],"starter":[75,300,5000]}', JSON.stringify(T));
+  ok('the price table', JSON.stringify(T) === '{"gems_s":[50,150,0],"gems_m":[125,400,0],"gems_l":[350,1200,0],"pass":[250,null,0],"vip":[200,null,0],"starter":[75,300,5000]}', JSON.stringify(T));
   ok('better value for bigger packs', T.gems_s[1] / T.gems_s[0] < T.gems_m[1] / T.gems_m[0] && T.gems_m[1] / T.gems_m[0] < T.gems_l[1] / T.gems_l[0]);
   await page.screenshot({ path: SC + 'stars_guest.png' });
   console.log(JSON.stringify(R, null, 1));

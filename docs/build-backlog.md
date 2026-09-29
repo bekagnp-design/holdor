@@ -384,6 +384,14 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **A hole the tests caught:** `season_claim` let a premium reward through for a seat without the Pass (a `NULL` boolean in the check). Fixed with `coalesce` and covered by `v16_test`.
 - **Tests:** `backend/test/v16_test.py` (points, tiers, claims, the Pass and VIP through payments and refunds, ads), `season_test.py` (real taps, a simulated Telegram payment).
 - **Rollout:** v16 and the regenerated econ data go into Supabase with the next release.
+
+### v1.0.72 — the marketing version: sources, retention, sharing (backend v17) (2026-09-30)
+- **Sources:** `players.src` = where a player first came from. A link `t.me/HoldorTDBot/play?startapp=s_<code>` (2–16 characters: a–z, 0–9, `_`) is reported once per device after login (`src_set`); it counts only for a player made less than 2 days ago and only the first time. A player who joins through an invitation is `ref`; the rest are `direct`.
+- **Owner views (no app access), all from the server's own records:** `v_sources` (players, first stage, 5 stages, payers, Stars, Stars per player, per source), `v_retention` (day 0 / D1 / D7 / D30 by the first-play day; "back" = a battle of his ended that day), `v_funnel` (arrived → first stage → 5 → 20 stages → paid). With the earlier `v_revenue`, `v_referrals`, `v_duels`, `v_season` this is the whole dashboard.
+- **Sharing:** a Share button on the win screen and on a won duel opens Telegram's own share sheet with a one-line text and the player's invitation link (his seat's `startapp=r_<code>` when signed in, otherwise the plain game link). No pictures (a share-image needs a public URL for the media; a later step).
+- **`docs/launch-checklist.md`** (Georgian): the steps before money comes in (the lawyer, BotFather, the ⭐50 test purchase and refund), the table of source links, the SQL that reads the views, the rule for deciding where to spend.
+- **Tests:** `backend/test/v17_test.py` (source once, first touch only, bad codes, ref, funnel, a cohort's D0/D1/D7, permissions), `tests/t_market72.js` (the share sheet opened by real taps on the win screen, texts and link).
+- **Rollout:** v17 goes into Supabase with the next release, after v16.
 ### v1.0.61 — login calendar and quests (backend v10) (2026-09-29)
 The retention loop. Every reward is paid by the server and progress is counted from the server's own records, so nothing here can be forged.
 - **Login calendar (30 days):**
