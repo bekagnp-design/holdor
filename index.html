@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
 <title>HOLDOR: Hold the Door</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -892,7 +892,144 @@ button.standrow:nth-of-type(3) .rk{background:linear-gradient(180deg,#e0a06a,#a8
 #ecoToast.ok{background:#12331c}
 #ecoWait{position:fixed;inset:0;z-index:89;display:none;align-items:center;justify-content:center;background:rgba(4,10,20,.25)}
 #ecoWait.on{display:flex}
-#ecoWait span{background:#0c1f3a;border:2px solid #0b1a2e;border-radius:12px;padding:8px 14px;color:#e9eef5;font-family:var(--f-display);font-size:13px}
+#ecoWait span{background:#0c1f3a;border:2px solid #0b1a2e;border-radius:12px;padding:8px 14px;color:#e9eef5;font-family:var(--f-display);font-size:13px}/* v1.0.57 — the forge */
+.forgerow{margin:0 4px 8px}
+.forgerow .cbld{width:100%}
+.gic{position:relative;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;border:2px solid var(--gc,#5a6c85);background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--gc,#5a6c85) 35%,#0c1f3a),#0c1f3a);font-size:22px;box-shadow:0 2px 0 #0b1a2e}
+.gic.e{opacity:.35;border-style:dashed}
+.gic em{position:absolute;right:-4px;bottom:-5px;font-style:normal;font-family:var(--f-display);font-size:10px;font-weight:900;color:#fff;background:#0b1a2e;border-radius:6px;padding:0 3px}
+.gchs{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px}
+.gch{flex:0 0 44px;height:44px;border-radius:50%;border:2px solid #0b1a2e;background:#0c1f3a;padding:0;overflow:hidden;opacity:.55}
+.gch.on{opacity:1;border-color:var(--gold);box-shadow:0 0 0 2px var(--gold)}
+.gch img{width:100%;height:100%;object-fit:cover;object-position:50% 20%}
+.gch span{font-size:22px}
+.gwho{margin:2px 2px 8px}
+.gwho b{font-family:var(--f-display);color:var(--gold)}
+.gwho small{display:block;font-size:11.5px;color:#cfe0ee}
+.gslots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.gslot{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:12px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6}
+.gslot.on{border-color:var(--gold)}
+.gslot small{font-size:10.5px}
+.gbag{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.gitem{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:12px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6}
+.gitem small{font-size:9.5px;color:var(--gc)}
+.gsheet{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.gsheet b{color:var(--gc);font-family:var(--f-display)}
+.gsheet small{font-size:11.5px;color:#9fb6c9}
+.gst{display:flex;flex-direction:column;gap:2px}
+.gst em{font-style:normal;font-weight:700;color:#fff}
+.gst span{font-size:12px;color:#cfe0ee}
+/* gear II (v1.0.62): tiers, set bonuses, new stats, the set book, burning for a tier */
+.gic img{width:70%;height:70%;object-fit:contain}
+.gic .gset{position:absolute;left:-4px;top:-5px;font-size:11px;line-height:1;font-weight:400;background:#0b1a2e;border-radius:6px;padding:1px 2px}
+.gic .gset img{width:13px;height:13px}
+.gic .gtier{position:absolute;left:0;right:0;bottom:-7px;text-decoration:none;font-size:7px;letter-spacing:-.5px;color:#ffd54a;text-align:center;text-shadow:0 1px 0 #0b1a2e;white-space:nowrap}
+.gic .gtier i{font-style:normal;color:rgba(255,255,255,.16)}
+.gic{margin-bottom:6px}
+.gsl{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.gs{font-size:11px;font-weight:700;color:#f2e6c9;background:rgba(255,255,255,.07);border-radius:8px;padding:1px 6px}
+.gs em{font-style:normal;color:#ff9a3c}
+.gbns{display:flex;flex-direction:column;gap:5px;margin:0 2px 10px}
+.gbn{padding:5px 8px;border-radius:10px;border:1px solid #23406b;background:#0f2140;color:#9fb6c9;font-size:11px}
+.gbn.on{border-color:#7fd06a;background:#13361f;color:#d8f0d4}
+.gbn b{display:block;color:#dbe9f6;font-size:11.5px}
+.gbn span{display:block}
+.gbn span.on{color:#9fe07a;font-weight:700}
+.gsheet .gtr{color:#ffd54a}
+.sbook{max-height:52vh;overflow-y:auto;text-align:left}
+.sbk h4{margin:8px 0 4px;color:#ffd54a;font-size:12px}
+.sbr{padding:4px 6px;margin-bottom:4px;border-radius:8px;background:rgba(255,255,255,.05);font-size:11.5px}
+.sbr.on{background:rgba(127,208,106,.16)}
+.sbr b{display:block;color:#fff}
+.sbr span{display:block;color:#9fb6c9}
+.sbr span.on{color:#9fe07a;font-weight:700}
+.gpick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+.gpk{display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 2px;border-radius:10px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6}
+.gpk small{font-size:9.5px}
+.hh a{color:#ffd54a}
+/* v1.0.63: special effects (perks) */
+.gperk{display:flex;flex-direction:column;gap:3px;margin:4px 0;padding:6px 8px;border-radius:8px;background:rgba(227,182,97,.1);border:1px solid rgba(227,182,97,.3)}
+.gperk span{font-size:12px;color:#ffe9b8;line-height:1.3}
+.gic .gpk2{position:absolute;right:1px;top:1px;text-decoration:none;font-size:8px;line-height:1;color:#ffd54a;text-shadow:0 1px 0 #0b1a2e}/* v1.0.59 — the tavern: rarity frames, stars, the star box, the portal */
+.stars{display:block;color:#ffd54a;font-size:15px;letter-spacing:1px;line-height:1.1;text-shadow:0 1px 0 #0b1a2e}
+.stars i{font-style:normal;color:rgba(255,255,255,.18)}
+.stars.sm{font-size:7.5px;letter-spacing:-.5px;margin-top:0;white-space:nowrap}
+.htile.tvt{min-width:0;overflow:hidden}
+.htile.tvt .pe,.htile.tvt img{max-width:100%}
+.htile.tvt{border-color:var(--rc)!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rc) 45%,transparent)}
+.htile.tvt .upb{position:absolute;top:2px;right:4px}
+.hport.tvp{border-color:var(--rc)!important;box-shadow:0 0 0 2px var(--rc),0 0 14px color-mix(in srgb,var(--rc) 60%,transparent)}
+.rarl{font-style:normal;font-weight:900}
+.lvline em{font-style:normal;color:var(--muted);font-size:11px;margin-right:4px}
+.ascbox{margin:6px 0;padding:8px;border-radius:12px;border:2px solid #ffd54a;background:rgba(255,213,74,.08);color:#f2e6c9;font-size:12.5px}
+.ascbox>b{font-family:var(--f-display);color:#ffd54a;margin-right:4px}
+.ascbox>small{display:block;margin:3px 0 5px;color:#cfe0ee;font-size:11.5px}
+.fods{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px}
+.fod{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px;border-radius:10px;border:2px solid var(--rc);background:#0c1f3a;color:#fff;opacity:.8}
+.fod.on{opacity:1;box-shadow:0 0 0 2px #ffd54a}
+.fod.short{opacity:.4}
+.fod small{font-size:10px}
+.fods .none{color:#9fb6c9;font-size:11.5px}
+.ascgo{width:100%}
+.tvsum{display:flex;align-items:center;gap:8px;margin:0 2px 10px;padding:8px;border-radius:14px;border:2px solid #7d5cff;background:linear-gradient(135deg,#2a1d5c,#13284a)}
+.tvsum .pt{font-size:30px}
+.tvsum .tx{flex:1;min-width:0}
+.tvsum .tx b{font-family:var(--f-display);color:#d8ccff;display:block}
+.tvsum .tx small{font-size:11px;color:#cfe0ee}
+.tvsum .tx a{color:#ffd54a;text-decoration:underline;cursor:pointer}
+.tvsum button{display:flex;flex-direction:column;align-items:center;padding:6px 9px;font-weight:900}
+.tvsum button small{font-size:10px;font-weight:700}
+.bkl{white-space:nowrap}
+.bkn{display:inline-flex;align-items:center;gap:1px;margin-right:5px;font-size:12px}
+.bkn svg{vertical-align:middle}
+.sk2 button svg{vertical-align:middle}
+.tvfoot{display:flex;gap:6px}
+.tvfoot button{flex:1}
+.smgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;margin-top:4px}
+.smc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 2px;border-radius:10px;border:2px solid var(--rc);background:#0c1f3a;text-align:center}
+.smc b{font-size:11px;color:#fff}
+.smc small{font-size:9.5px;color:#cfe0ee}
+.smc small em{font-style:normal;color:#ffd54a;font-weight:900}
+.smc i{font-style:normal;font-size:9px;font-weight:900;color:var(--rc)}
+.forgerow{display:flex;gap:6px}
+.forgerow .cbld{flex:1;width:auto}/* v1.0.60 — Telegram Stars shop */
+.shopgrid .sitem.starter{grid-column:1/-1}
+.sitem.starter{border-color:#ffd54a;background:linear-gradient(160deg,rgba(255,213,74,.16),rgba(19,40,74,.9))}
+.stbtn{font-weight:900}
+.stbtn:not(:disabled){background:linear-gradient(#ffe97a,#f2a62c);color:#3a2404}/* v1.0.60 — taps never zoom the page (double-tap), the page never scrolls or bounces under the game */
+html,body,#app,button,.hud,#hud,#overlay,#card{touch-action:manipulation}
+html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+canvas{touch-action:none}/* v1.0.61 — login calendar and quests */
+.rch{display:inline-flex;align-items:center;gap:2px;font-size:12px;font-weight:800;color:#f2e6c9;margin-right:6px;white-space:nowrap}
+.rch svg{width:14px;height:14px}
+#bDaily .dn{font-style:normal;color:#ffd54a;font-weight:900}
+.cgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:8px 0 10px}
+.cday{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:58px;padding:4px 2px;border-radius:10px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6;text-align:center}
+.cday b{font-family:var(--f-display);font-size:12px;color:#9fb6c9}
+.cday span{display:flex;flex-direction:column;align-items:center}
+.cday .rch{margin:0;font-size:10.5px}
+.cday.done{opacity:.5;border-color:#3d7a49}
+.cday.today{border-color:#ffd54a;box-shadow:0 0 0 2px #ffd54a,0 0 12px rgba(255,213,74,.5);background:#1c3660}
+.cday .ck{position:absolute;top:1px;right:3px;font-style:normal;color:#7fd06a;font-size:11px}
+.cday .spc{position:absolute;top:0;left:3px;font-style:normal;font-size:12px}
+.cday.big{border-color:#b47cff}
+.qlist{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.qrow{display:flex;align-items:center;gap:8px;padding:8px;border-radius:12px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6}
+.qrow.ready{border-color:#ffd54a}
+.qrow.done{opacity:.55}
+.qt{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.qt b{font-size:13px;color:#fff}
+.qbar{position:relative;height:14px;border-radius:7px;background:#0b1a2e;overflow:hidden}
+.qbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#7fd06a,#3d9a54)}
+.qbar em{position:absolute;inset:0;text-align:center;font-style:normal;font-size:10px;line-height:14px;font-weight:800;color:#fff}
+.qrw{display:flex;flex-wrap:wrap}
+.qrow button{min-width:64px}
+.pvrow{display:flex;gap:6px;margin-top:8px;justify-content:center}
+.pv{display:flex;flex-direction:column;align-items:center;padding:4px 6px;border-radius:8px;background:rgba(255,255,255,.06)}
+.pv i{font-style:normal;font-size:10px;color:#9fb6c9}
+.eh .rw{display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
+.newch{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:8px}
+.sp{display:block;margin-top:6px;color:#ffd54a}
 </style>
 </head>
 <body>
@@ -925,6 +1062,18 @@ button.standrow:nth-of-type(3) .rk{background:linear-gradient(180deg,#e0a06a,#a8
 (()=>{
 'use strict';
 const $=s=>document.querySelector(s);
+/* v1.0.60 — no accidental zoom. iOS ignores user-scalable=no: a double tap on a HUD button (the speed button is tapped again and again) zooms the
+   whole page, the canvas is cut off and every later tap lands beside its target. touch-action: manipulation (CSS) removes the double-tap zoom;
+   these handlers stop the pinch, and any zoom that still gets through is undone. */
+(function(){try{
+  const stop=e=>{try{if(e.cancelable)e.preventDefault();}catch(_){}};
+  ['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,stop,{passive:false}));
+  document.addEventListener('touchstart',e=>{if(e.touches&&e.touches.length>1)stop(e);},{passive:false});
+  document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)stop(e);},{passive:false});
+  const vv=window.visualViewport;
+  if(vv)vv.addEventListener('resize',()=>{if(vv.scale>1.02){const m=document.querySelector('meta[name=viewport]');if(!m)return;const c=m.content;
+    m.content=c+', maximum-scale=1, minimum-scale=1';setTimeout(()=>{m.content=c;window.scrollTo(0,0);},150);}});
+}catch(e){}})();
 const TG=(()=>{try{const tg=window.Telegram&&window.Telegram.WebApp;if(!tg||!tg.platform||tg.platform==='unknown')return null;tg.ready();tg.expand();try{tg.disableVerticalSwipes&&tg.disableVerticalSwipes()}catch(e){}try{tg.lockOrientation&&tg.lockOrientation()}catch(e){}try{tg.setHeaderColor&&tg.setHeaderColor('#0a1220');tg.setBackgroundColor&&tg.setBackgroundColor('#0a1220');tg.setBottomBarColor&&tg.setBottomBarColor('#0a1220')}catch(e){}try{if(tg.requestFullscreen&&tg.isVersionAtLeast&&tg.isVersionAtLeast('8.0'))tg.requestFullscreen()}catch(e){}try{tg.enableClosingConfirmation&&tg.enableClosingConfirmation()}catch(e){}const rs=()=>{try{if(typeof resize==='function')resize()}catch(e){}};['viewportChanged','safeAreaChanged','contentSafeAreaChanged','fullscreenChanged'].forEach(ev=>{try{tg.onEvent(ev,rs)}catch(e){}});document.documentElement.classList.add('tg');return tg}catch(e){return null}})();
 const canvas=$('#c'),ctx=canvas.getContext('2d');
 const W=390,H=700,DT=1/60,GATE_Y=628,GX=195;const LEGACY_H=560,LEGACY_GATE=488;
@@ -1110,7 +1259,7 @@ function talDesc(t){const pct=Math.round(t.v*100);switch(t.k){
 /* =========================== PROGRESSION (v1.0.45): small steps, long road ===========================
    Champions: level 1–20 (+5% health, +4% damage per level), talent at 10, skill ranks 1–5 (a rank needs a champion level).
    Towers: a permanent level 1–16 bought in the Collection (+3% power per level), small milestone bonuses at 4 · 8 · 12 · 16. */
-const CH_MAX=20,SK_MAX=5,TAL_AT=10,SK_CAP=[1,3,6,10,15],T_MAX=16,T_MILE=[4,8,12,16];
+const CH_MAX=60,SK_MAX=5,TAL_AT=10,SK_CAP=[1,3,6,10,15],T_MAX=16,T_MILE=[4,8,12,16];
 function rankCap(lvl){let r=1;for(let i=0;i<SK_CAP.length;i++)if(lvl>=SK_CAP[i])r=i+1;return r;}
 (function(){const CNT=['taunt','multishot','pierce','summon','assassinate'];
   for(const k in SK){const S=SK[k],v=S.v;if(!v||v.length!==3)continue;const a=v[0],c=v[2],cnt=CNT.indexOf(k)>=0;
@@ -1133,27 +1282,27 @@ const TSHORT={watch:'Watchtower',scorp:'Scorpion',wild:'Wildfire',glass:'Dragong
 /* =========================== CARDS (v1.0.48) ===========================
    Every champion, tower and spell is a card. Copies come from chests (and a few from every stage held for the first time).
    A level costs N cards + gold. The account level grows only with upgrades bought; every account level pays a chest. */
-const CARD_NEED=[2,3,4,6,8,10,13,16,20,25,30,36,43,51,60,70,82,95,110]; /* common cards for level L → L+1 */
-const CARD_MUL=[1,0.5,0.25,0.1];                                          /* rarer cards need fewer copies, and drop less */
-const RAR_N=['Common','Rare','Epic','Legendary'],RAR_C=['#8a97a8','#4fb0ff','#b47cff','#e3b661'];
-const T_RAR={watch:0,glass:0,keep:1,scorp:1,wild:2,weir:3},S_RAR={arrows:0,reinf:1,fire:2},S_MAX=10;
+const CARD_NEED=[2,3,4,6,8,10,13,16,20,25,30,36,43,51,60,70,82,95,110,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59]; /* common cards for level L → L+1 */
+const CARD_MUL=[1,0.7,0.5,0.25,0.1];                                          /* rarer cards need fewer copies, and drop less */
+const RAR_N=['Common','Uncommon','Rare','Epic','Legendary'],RAR_C=['#8a97a8','#5fbf6a','#4fb0ff','#b47cff','#e3b661'];
+const T_RAR={watch:0,glass:0,keep:2,scorp:2,wild:3,weir:4},S_RAR={arrows:0,reinf:2,fire:3},S_MAX=10;
 const CARD_PACK={wood:[5,9],iron:[8,14],valyrian:[14,22],dragon:[24,40]};  /* common copies per stack, by chest */
-const CARD_PRICE=[25,50,100,250];                                         /* gold per copy in the daily deals */
+const CARD_PRICE=[25,35,50,100,250];                                         /* gold per copy in the daily deals */
 function cardKeyOf(t,id){return t+':'+id;}
-function cardRar(key){const [t,id]=key.split(':');if(t==='c'){const c=CBY[id];return c?Math.min(3,Math.floor((c.tier||0)/2)):0;}return t==='t'?(T_RAR[id]||0):(S_RAR[id]||0);}
+function cardRar(key){const [t,id]=key.split(':');if(t==='c'){const c=CBY[id];return c?champRar(c):0;}if(t==='b')return BOOK_R[id]||0;return t==='t'?(T_RAR[id]||0):(S_RAR[id]||0);}
 function cardLvl(key,a){const A=a||ACC,[t,id]=key.split(':');return t==='c'?cprog(A,id).lvl:t==='t'?tLvl(id,A):((A.slv&&A.slv[id])||1);}
 function cardMax(key){const t=key[0];return t==='c'?CH_MAX:t==='t'?T_MAX:S_MAX;}
 function cardNeed(key,l){l=l||cardLvl(key);if(l>=cardMax(key))return 0;return Math.max(1,Math.round(CARD_NEED[Math.min(l-1,CARD_NEED.length-1)]*CARD_MUL[cardRar(key)]));}
 function cardHave(key,a){const A=a||ACC;return (A&&A.cards&&A.cards[key])||0;}
 function cardGold(key,l){l=l||cardLvl(key);const t=key[0];return t==='c'?ECON.lvlCost(l):t==='t'?ECON.tCost(l):ECON.sCost(l);}
-function cardName(key){const [t,id]=key.split(':');return t==='c'?shortName(CBY[id]):t==='t'?TSHORT[id]:SPELLS[id].n;}
+function cardName(key){const [t,id]=key.split(':');return t==='b'?BOOK_N[id]:t==='c'?shortName(CBY[id]):t==='t'?TSHORT[id]:SPELLS[id].n;}
 function cardOpen(key){const [t,id]=key.split(':');if(t==='c'){const c=CBY[id];return c&&c.house===ACC.house&&unlocked(null,c);}return t==='t'?towerOpen(id):(id==='arrows'||cleared()>=SPELLS[id].at);}
-function cardReady(key){return cardLvl(key)<cardMax(key)&&cardHave(key)>=cardNeed(key);}
+function cardReady(key){return cardLvl(key)<cardCap(key)&&cardHave(key)>=cardNeed(key);}
 function cardCan(key){return cardReady(key)&&goldOf()>=cardGold(key);}
 function addCards(key,n){if(!ACC.cards)ACC.cards={};ACC.cards[key]=(ACC.cards[key]||0)+n;}
 /* the icons used on cards, in chests and in the deals */
 function spellSVG(k){return k==='arrows'?'<svg viewBox="0 0 24 24" fill="none" stroke="#e3b661" stroke-width="1.8"><path d="M4 20 20 4M20 4h-6M20 4v6M8 20l-4-4M12 12l-4 4"/></svg>':k==='fire'?'<svg viewBox="0 0 24 24" fill="#ff9a3c"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 1-3-1-6 1-9z"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="#8fd3ff" stroke-width="1.8"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>';}
-function cardIcon(key,px){const [t,id]=key.split(':');if(t==='c'){const c=CBY[id],pu=CHAMP_ART[id+'_portrait'];return pu?`<img src="${pu}" alt="">`:`<span class="pe">${c.e}</span>`;}
+function cardIcon(key,px){const [t,id]=key.split(':');if(t==='b')return bookIcon(id,px||40);if(t==='c'){const c=CBY[id],pu=CHAMP_ART[id+'_portrait'];return pu?`<img src="${pu}" alt="">`:`<span class="pe">${c.e}</span>`;}
   if(t==='t')return towerIconHTML(id,Math.max(1,Math.min(5,maxTowerLvl())),px||64);return `<span class="spi">${spellSVG(id)}</span>`;}
 /* the progress bar under a card: copies / copies needed (green when full) */
 function cardBar(key){const l=cardLvl(key),mx=cardMax(key);if(l>=mx)return `<span class="cb max"><i style="width:100%"></i><em>MAX</em></span>`;
@@ -1182,17 +1331,19 @@ function cardPool(){const keys=[];for(const c of CHAMPS)if(c.house===ACC.house&&
   for(const k in SPELLS)if((k==='arrows'||cleared()>=SPELLS[k].at)&&cardLvl('s:'+k)<S_MAX)keys.push('s:'+k);return keys;}
 function cardStack(pool,tier,minR,used){const T=CARD_PACK[tier]||CARD_PACK.wood;let c=pool.filter(k=>!used.has(k)&&cardRar(k)>=minR);
   if(!c.length)c=pool.filter(k=>!used.has(k));if(!c.length)c=pool.slice();if(!c.length)return null;
-  const w=k=>[10,6,3,1][cardRar(k)];let tot=c.reduce((s,k)=>s+w(k),0),r=Math.random()*tot,key=c[c.length-1];for(const k of c){r-=w(k);if(r<=0){key=k;break;}}
+  const w=k=>[10,8,6,3,1][cardRar(k)];let tot=c.reduce((s,k)=>s+w(k),0),r=Math.random()*tot,key=c[c.length-1];for(const k of c){r-=w(k);if(r<=0){key=k;break;}}
   used.add(key);const rr=cardRar(key),n=Math.max(1,Math.round((T[0]+Math.floor(Math.random()*(T[1]-T[0]+1)))*CARD_MUL[rr]));
   addCards(key,n);return{k:'card',key,cnt:n,r:rr,n:cardName(key),s:'+'+n+' card'+(n>1?'s':'')};}
 /* a chest: gold, dragonglass and card stacks (the rarer chests promise rarer stacks) */
 function rollChest(t){const T=CHEST_TIERS[t],out=[],rnd=n=>Math.floor(Math.random()*n),R=ECO.roll;let nf=0;
   const gold=R?R.gold:T.gold[0]+rnd(T.gold[1]-T.gold[0]+1);if(!R)addGold(gold);out.push({k:'gold',n:'Gold',s:'+'+gold,r:0});
   const gems=R?R.gems:T.gems[0]+rnd(T.gems[1]-T.gems[0]+1);if(!R)ACC.gems+=gems;out.push({k:'gems',n:'Dragonglass',s:'+'+gems,r:0});
+  if(R&&R.stacks){for(const x of R.stacks){const rr=cardRar(x.k);out.push({k:'card',key:x.k,cnt:x.n,r:rr,n:cardName(x.k),s:'+'+x.n+' card'+(x.n>1?'s':'')});}
+    for(let i=0;i<(R.fills||0);i++)out.push({k:'gold',n:'Gold',s:'+100',r:0});chestBooks(t,R,out);return out;}   /* the server rolled the stacks and already paid the empty slots */
   const pool=cardPool(),used=new Set();
-  for(let i=0;i<T.cards;i++){const st=cardStack(pool,t,i<T.rare?Math.min(3,1+i):0,used);if(st)out.push(st);else{nf++;addGold(100);out.push({k:'gold',n:'Gold',s:'+100',r:0});}}
+  for(let i=0;i<T.cards;i++){const st=cardStack(pool,t,i<T.rare?Math.min(4,2+i):0,used);if(st)out.push(st);else{nf++;addGold(100);out.push({k:'gold',n:'Gold',s:'+100',r:0});}}
   if(R&&nf)ecoOp({r:'chestfill',k:R.id,n:nf},{g:100*nf});
-  return out;}
+  chestBooks(t,R,out);return out;}
 /* first time a stage is held: a few cards of something you own */
 function stageCards(){const pool=cardPool();if(!pool.length)return null;const key=pool[Math.floor(Math.random()*pool.length)],n=Math.max(1,Math.round((3+Math.floor(Math.random()*4))*CARD_MUL[cardRar(key)]));addCards(key,n);return{key,n,name:cardName(key)};}
 /* ---------- spells now have a level (1–10, +6% a level) ---------- */
@@ -1402,8 +1553,144 @@ Object.assign(TALENTS,{
  sam:[{n:'The Citadel',k:'cdr',v:0.12,sc:1},{n:'The Slayer',k:'skillmult',sk:'slayer',v:0.11,sc:1}],
  margaery:[{n:'Little Rose',k:'skillmult',sk:'favour',v:0.15,sc:1},{n:'Queen of the Seven Kingdoms',k:'skillmult',sk:'charm',v:0.15,sc:1}],
 });
+/* =========================== CHAMPIONS IV (v1.0.59) ===========================
+   Martell gets its unique kits — the last house. Three new skill mechanics, six new ultimates, and the old
+   Poison Cloud becomes Ellaria's signature. No skill pair and no ultimate is shared by any of the 49 champions. */
+Object.assign(SK,{
+ sunaura:{n:'Sun of Dorne',e:'☀️',v:[6,9,12,16,20],d:v=>`Soldiers within 90 px of the champion mend ${v} health a second`},
+ viper:{n:"Viper's Kiss",e:'🐍',v:[40,60,85,115,150],d:v=>`Every fourth blow on the same enemy deals ${v} more and poisons it for 4 s`},
+ waitstrike:{n:'Patience',e:'⏳',v:[4,5,6,8,10],d:v=>`Every second the champion stands still his damage grows ${v}% (up to 5 s)`},
+ iserve:{n:'I Serve',e:'🪓',v:[5,6,7,8,10],cd:45,ult:true,d:v=>`For ${v} s the champion stops everyone who reaches him, giants too, and takes 40% less damage`},
+ whiplash:{n:'The Whip',e:'🪢',v:[2,2.5,3,3.5,4],cd:40,ult:true,d:v=>`The whip binds the ${fc(v)} strongest enemies within 200 px (not bosses): 3 s bound and dragged 60 px back`},
+ spearrain:{n:'Spears of Dorne',e:'🔱',v:[180,250,330,420,540],cd:40,ult:true,d:v=>`A spear for each of the 5 enemies closest to the gate: ${v} damage and pinned for 1 s (bosses are not pinned)`},
+ serpentkiss:{n:"Serpent's Kiss",e:'💋',v:[20,28,36,45,55],cd:45,ult:true,d:v=>`Everything within 120 px is poisoned for ${v} a second over 5 s and cannot strike for 4 s (bosses still strike)`},
+ vengeance:{n:'Vengeance and Justice',e:'☀️',v:[6,7,8,9,10],cd:55,ult:true,d:v=>`For ${v} s the door takes no damage; then every enemy on the field takes 1.5× what the door was spared`},
+ redviper:{n:'The Red Viper',e:'🐍',v:[4,5,6,7,8],cd:40,ult:true,d:v=>`Leaps to the strongest enemy within 200 px and strikes it ${v} times at 150% damage, poisoning it deep`},
+});
+const KITS59={
+ areo:['taunt','ironskin','iserve'], nymeria:['multishot','knock','whiplash'], obara:['pierce','sunder','spearrain'],
+ tyene:['poison','viper','serpentkiss'], doran:['sunaura','waitstrike','vengeance'], ellaria:['poison','slowaura','cloud'], oberyn:['viper','crit','redviper'],
+};
+for(const id in KITS59)if(CBY[id])CBY[id].sk=KITS59[id].slice();
+Object.assign(TALENTS,{
+ areo:[{n:'Captain of the Guard',k:'block',v:1,sc:1},{n:'Longaxe',k:'dmg',v:0.11,sc:1}],
+ nymeria:[{n:'Lady Nym',k:'rate',v:0.09,sc:1},{n:'A Whip Is a Kind of Kiss',k:'skillmult',sk:'knock',v:0.15,sc:1}],
+ obara:[{n:"My Father's Spear",k:'range',v:0.09,sc:1},{n:'First of the Sand Snakes',k:'skillmult',sk:'sunder',v:0.15,sc:1}],
+ tyene:[{n:"Poison Is a Woman's Weapon",k:'skillmult',sk:'viper',v:0.15,sc:1},{n:'The Long Farewell',k:'skillmult',sk:'poison',v:0.15,sc:1}],
+ doran:[{n:'Sunspear Stands',k:'skillmult',sk:'sunaura',v:0.15,sc:1},{n:'Patience of Dorne',k:'cdr',v:0.12,sc:1}],
+ ellaria:[{n:'Sweet Revenge',k:'skillmult',sk:'poison',v:0.15,sc:1},{n:'Breathe It In',k:'skillmult',sk:'cloud',v:0.11,sc:1}],
+ oberyn:[{n:"The Red Viper's Venom",k:'skillmult',sk:'viper',v:0.15,sc:1},{n:'Say Her Name',k:'skillmult',sk:'crit',v:0.15,sc:1}],
+});
+/* =========================== TAVERN (v1.0.59) ===========================
+   Champions get a rarity by the order they open in (1–2 Common, 3 Uncommon, 4–5 Rare, 6 Epic, 7 Legendary),
+   stars ★1–6 (every star opens ten more levels, up to 60) and books for their skills. A star is raised with gold
+   and the cards of another champion of the house, burnt. The tavern also summons: dragonglass for a champion of
+   the house — a sealed one joins at once, an open one brings cards. A logged-in seat does all of it through the
+   server (backend v8: econ_sync 'asc' / 'sk', chest_open books, champ_summon); a guest rolls it here. */
+const CH_RAR=[0,0,1,2,2,3,4];                       /* rarity by opening order (tier 0…6) */
+const RAR_STAT=[1,1.04,1.08,1.13,1.2];              /* base health and damage by rarity */
+const ST_MAX=6,ASC_GOLD=[1500,4000,9000,18000,32000],ASC_BURN=[20,40,80,140,220];   /* ★s → ★s+1: gold, common-card worth burnt */
+const BOOK_N={c:'Common book',r:'Rare book',e:'Epic book',l:'Legendary book'},BOOK_R={c:0,r:2,e:3,l:4},BOOK_OF=['c','c','r','e','l'];
+const BOOK_NEED=[1,1,2,3],BOOK_PRICE={c:120,r:350,e:900,l:2500};                    /* books for skill rank r → r+1; gold per book in the deals */
+const BOOK_DROP={wood:[['c',1,50]],iron:[['c',1,100],['r',1,25]],valyrian:[['c',2,100],['r',1,100],['e',1,20]],dragon:[['c',3,100],['r',2,100],['e',1,100],['l',1,25]]};
+const SUMMON={one:60,ten:540,odds:[55,25,14,5,1],copies:10};
+const DEAL_R=[0,1,1,2,3];                           /* a card's rarity → the deal frame colour */
+function champRar(c){return CH_RAR[(c&&c.tier)||0]||0;}
+function cstar(id,a){const p=cprog(a||null,id);return Math.max(1,Math.min(ST_MAX,Math.max(p.st||1,Math.ceil((p.lvl||1)/10))));}
+function champCap(id,a){return Math.min(CH_MAX,10*cstar(id,a));}
+function cardCap(key){return key[0]==='c'?champCap(key.slice(2)):cardMax(key);}
+function starsHTML(n,cls){return `<span class="stars ${cls||''}">${'★'.repeat(n)}<i>${'★'.repeat(ST_MAX-n)}</i></span>`;}
+function bookKey(c){return 'b:'+BOOK_OF[champRar(c)];}
+function bookIcon(b,px){const col=RAR_C[BOOK_R[b]||0];px=px||40;
+  return `<svg class="bki" viewBox="0 0 24 24" width="${px}" height="${px}"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z" fill="${col}" stroke="#0b1a2e" stroke-width="1.3"/><path d="M4 21.5A2.5 2.5 0 0 1 6.5 19H20v3H6.5A2.5 2.5 0 0 1 4 21.5z" fill="#f2e6c9" stroke="#0b1a2e" stroke-width="1.3"/><path d="M9 7h7M9 10h5" stroke="#0b1a2e" stroke-width="1.4" stroke-linecap="round"/></svg>`;}
+function booksLine(){return ['c','r','e','l'].map(b=>`<span class="bkn" title="${BOOK_N[b]}">${bookIcon(b,16)}${cardHave('b:'+b)}</span>`).join('');}
+/* ---------- a star: level at the cap, gold, another champion's cards burnt ---------- */
+function ascNeed(id,fid){return Math.max(1,Math.round((ASC_BURN[cstar(id)-1]||0)*CARD_MUL[cardRar('c:'+fid)]));}
+function ascGold(id){return ASC_GOLD[cstar(id)-1]||0;}
+function ascReady(id){const p=cprog(null,id),s=cstar(id);return s<ST_MAX&&p.lvl>=10*s;}
+function ascCan(id,fid){const c=CBY[id],f=CBY[fid];return !!(c&&f&&fid!==id&&f.house===c.house&&ascReady(id)&&cardHave('c:'+fid)>=ascNeed(id,fid)&&goldOf()>=ascGold(id));}
+function ascend(id,fid){if(!ascCan(id,fid))return false;const s0=ecoSnap(),s=cstar(id),need=ascNeed(id,fid),g=ascGold(id);
+  if(!spendGold(g))return false;ACC.cards['c:'+fid]-=need;cprog(null,id).st=s+1;addXp(Math.round(g/10));
+  ecoOp({r:'asc',k:id,f:fid,to:s+1},ecoDiff(s0),{cards:['c:'+fid,need]});return true;}
+/* ---------- a skill rank: gold + books of the champion's rarity ---------- */
+function skBooks(l){return BOOK_NEED[l-1]||0;}
+function skCan(id,i){const c=CBY[id],p=cprog(null,id),l=p.sk[i];return l<SK_MAX&&l<rankCap(p.lvl)&&goldOf()>=ECON.skCost(l)&&cardHave(bookKey(c))>=skBooks(l);}
+function skillUp(id,i){if(!skCan(id,i))return false;const c=CBY[id],p=cprog(null,id),l=p.sk[i],c0=ECON.skCost(l),bk=bookKey(c),nb=skBooks(l);
+  if(!spendGold(c0))return false;ACC.cards[bk]=(ACC.cards[bk]||0)-nb;p.sk[i]++;addXp(Math.round(c0/10));
+  ecoOp({r:'sk',k:id+':'+i,to:l+1},{g:-c0,x:Math.round(c0/10)},{cards:[bk,nb]});return true;}
+/* ---------- books in chests (the server rolls them for a logged-in seat) ---------- */
+function chestBooks(t,R,out){
+  const push=(k,n)=>out.push({k:'card',key:k,cnt:n,r:cardRar(k),n:cardName(k),s:'+'+n+' book'+(n>1?'s':'')});
+  if(R){for(const x of (R.books||[]))push(x.k,x.n);return;}
+  for(const [b,n,pc] of (BOOK_DROP[t]||[]))if(Math.random()*100<pc){addCards('b:'+b,n);push('b:'+b,n);}}
+/* ---------- the summon ---------- */
+function summonPick(r){const l=CHAMPS.filter(c=>c.house===ACC.house&&champRar(c)===r);return l[Math.floor(Math.random()*l.length)]||null;}
+function summonRoll(n){const out=[];
+  for(let i=0;i<n;i++){let x=Math.random()*100,r=0;for(let k=0;k<5;k++){x-=SUMMON.odds[k];if(x<0){r=k;break;}}
+    if(n>=10&&i===n-1&&!out.some(o=>o.r>=2))r=2;
+    const c=summonPick(r);if(!c)continue;
+    if(!unlocked(null,c)){ACC.copen=ACC.copen||{};ACC.copen[c.id]=1;out.push({c:c.id,r,new:true,n:0});}
+    else{const k=Math.max(1,Math.round(SUMMON.copies*CARD_MUL[r]));addCards('c:'+c.id,k);out.push({c:c.id,r,new:false,n:k});}}
+  return out;}
+async function summon(n){const price=n>=10?SUMMON.ten:SUMMON.one;if(ACC.gems<price){SFX.play('deny');return;}
+  if(!ecoWants()){ACC.gems-=price;const res=summonRoll(n);persist();summonShow(res);return;}
+  ecoWait(true);
+  try{if(!ecoOn()&&!(await ecoStart()))throw new Error(ECO.err||'offline');
+    const r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('champ_summon',{seat:seatNo(),n},10000);ecoApply(x.state);return x;});
+    ecoWait(false);persist();summonShow(r.rolls||[]);}
+  catch(e){ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))ecoRefresh();
+    ecoModal('🌀 The portal stays dark',ecoNet(m)?'No connection to the server. A summon on this seat goes only through it.':esc(m),[{t:'OK',f:()=>showHeroRoom()}]);}}
+function summonShow(res){SFX.play(res.some(o=>o.r>=4)?'legend':res.some(o=>o.r>=3)?'epic':'chestopen');
+  const cards=res.map(o=>{const c=CBY[o.c];return `<div class="smc" style="--rc:${RAR_C[o.r]}">${portraitHTML(c,48)}<b>${esc(shortName(c))}</b><small>${o.new?'<em>NEW · joins you</em>':'+'+o.n+' card'+(o.n>1?'s':'')}</small><i>${RAR_N[o.r]}</i></div>`;}).join('');
+  ecoModal('🌀 The portal answers',`<div class="smgrid">${cards}</div>`,[{t:'OK',f:()=>showHeroRoom(res.length===1?res[0].c:undefined)}]);}
+function summonOdds(){ecoModal('🌀 Summon odds',`Each summon calls one champion of House ${esc(HOUSES[ACC.house].n)}:<br>${RAR_N.map((n,i)=>`<b style="color:${RAR_C[i]}">${n}</b> ${SUMMON.odds[i]}%`).join(' · ')}.<br>A sealed champion joins you at once. An open one brings ${SUMMON.copies} Common cards' worth of his own (a Legendary 1, an Epic 3).<br>Ten at once always hold a Rare or better.${ecoWants()?'<br><small>Rolled on the server.</small>':''}`,[{t:'OK'}]);}
+/* ---------- the tavern (it replaces the hero room) ---------- */
+function showHeroRoom(viewId,fod){
+  const hh=HOUSES[ACC.house],list=CHAMPS.filter(c=>c.house===ACC.house);
+  const view=list.find(c=>c.id===viewId)||list.find(c=>c.id===ACC.sel)||list[0];
+  const tiles=list.map(c=>{const un=unlocked(null,c),ride=ACC.sel===c.id,v=view.id===c.id,r=champRar(c);
+    return `<button class="htile tvt ${un?'':'lock'} ${v?'view':''} ${ride?'ride':''}" style="--rc:${RAR_C[r]}" data-c="${c.id}">${un?portraitHTML(c,58):'<span class="pe">🔒</span>'}<span class="nm">${un?shortName(c)+' · '+cprog(null,c.id).lvl:'After '+UNLOCK_STAGE[c.tier]}</span>${un?starsHTML(cstar(c.id),'sm'):''}${ride?'<i class="rb">RIDING</i>':''}${un&&(cardCan('c:'+c.id)||(ascReady(c.id)&&list.some(f=>ascCan(c.id,f.id))))?'<span class="upb">⬆</span>':''}</button>`;}).join('');
+  const c=view,p=cprog(null,c.id),un=unlocked(null,c),ride=ACC.sel===c.id,cap=rankCap(p.lvl),r=champRar(c),st=cstar(c.id),lc=champCap(c.id),key='c:'+c.id,bk=bookKey(c);
+  let lvl='';
+  if(un){
+    if(ascReady(c.id)){
+      const fods=list.filter(f=>f.id!==c.id&&cardHave('c:'+f.id)>0);const fsel=fods.find(f=>f.id===fod&&ascCan(c.id,f.id))||fods.find(f=>ascCan(c.id,f.id));
+      lvl=`<div class="ascbox"><b>★${st} → ★${st+1}</b> opens levels ${10*st+1}–${Math.min(CH_MAX,10*st+10)}<small>🪙 ${fmtN(ascGold(c.id))} gold + the cards of another champion, burnt:</small>
+        <div class="fods">${fods.length?fods.map(f=>{const n=ascNeed(c.id,f.id),h=cardHave('c:'+f.id);return `<button class="fod ${fsel&&fsel.id===f.id?'on':''} ${h>=n?'':'short'}" data-a="fod" data-f="${f.id}" style="--rc:${RAR_C[champRar(f)]}">${portraitHTML(f,30)}<small>${h}/${n}</small></button>`;}).join(''):'<small class="none">No cards of another champion yet — chests, deals and the portal bring them.</small>'}</div>
+        <button class="ascgo" data-a="asc" data-f="${fsel?fsel.id:''}" ${fsel?'':'disabled'}>${fsel?`⭐ Raise to ★${st+1} · burn ${ascNeed(c.id,fsel.id)} ${esc(shortName(fsel))}`:`⭐ Raise to ★${st+1}`}</button></div>`;}
+    else{const h=cardHave(key),n=cardNeed(key),g=cardGold(key),can=cardCan(key),mx=p.lvl>=CH_MAX;
+      lvl=`<div class="lvline">Lv ${p.lvl}<em>/${lc}</em><span class="bar"><i style="width:${Math.round(100*p.lvl/lc)}%"></i></span><button data-a="lvl" ${can?'':'disabled'}>${mx?'max':`${h}/${n} 🃏 · 🪙${g}`}</button></div>
+      <div class="cardline">${mx?'Fully forged.':h>=n?(goldOf()>=g?`<em class="ok">Ready:</em> ${n} cards + ${g} gold → level ${p.lvl+1}`:`Cards ready — ${g} gold needed`):`Next level: <em>${n}</em> cards (you have <em>${h}</em>) + <em>${g}</em> gold.`}${!mx&&p.lvl+1>=lc&&st<ST_MAX?` At ${lc} the next star waits.`:''}</div>`;}}
+  const det=`<div class="hdet" style="--hc:${hh.col};--hc2:${hh.col2}">
+    <div class="hdtop"><div class="hport tvp" style="--rc:${RAR_C[r]}">${un?portraitHTML(c,84,'big'):'🔒'}<span class="cr">${crest(ACC.house,26)}</span></div>
+      <div class="hdinfo"><b>${un?c.n:'Sealed champion'}</b><small><em class="rarl" style="color:${RAR_C[r]}">${RAR_N[r]}</em> · ${TYPE_LBL[c.type]} · House ${hh.n}</small>
+        ${un?starsHTML(st)+lvl+`<small>❤️ +5% health and ⚔️ +4% damage per level${RAR_STAT[r]>1?` · ${RAR_N[r]}: +${Math.round((RAR_STAT[r]-1)*100)}% base`:''}</small>`:`<small style="color:var(--gold)">🔒 Unlocks after ${UNLOCK_STAGE[c.tier]} stages held — or from the portal</small>`}</div></div>
+    <div class="cskills">${c.sk.map((sk,i)=>{const S=SK[sk],l=p.sk[i],capd=l>=cap&&l<SK_MAX,nb=skBooks(l);
+      return `<div class="sk2 ${l>=SK_MAX?'gold':''}">${skillIcon(sk,40,0)}<span style="flex:1"><b>${S.n}</b>${S.ult?' · ULTIMATE':''}<br>${S.d(S.v[l-1])}${l<SK_MAX?`<br><small style="color:var(--muted)">rank ${l+1}: ${S.d(S.v[l])}</small>`:''}</span><span style="text-align:right"><span class="pips">${'●'.repeat(l)}${'○'.repeat(SK_MAX-l)}</span><br><button data-a="sk" data-i="${i}" ${!un||!skCan(c.id,i)?'disabled':''}>${l>=SK_MAX?'max':capd?'🔒 Lv '+SK_CAP[l]:`🪙${ECON.skCost(l)} · ${bookIcon(bk.slice(2),14)}${cardHave(bk)}/${nb}`}</button></span></div>`;}).join('')}</div>
+    ${un?`<div class="ctal ${p.lvl>=TAL_AT?'':'locked'}"><b class="tlbl">⭐ Bonus talent — ${p.lvl>=TAL_AT?'pick one, swap any time':'unlocks at level '+TAL_AT+' · pick one of two'}</b>${TALENTS[c.id].map((t,i)=>`<button class="tal2 ${p.tal===i+1?'on':''}" ${p.lvl>=TAL_AT?`data-a="tal" data-i="${i+1}"`:'disabled'}><span class="e">${talEmoji(t)}</span><span style="flex:1"><b>${t.n}</b><br>${talDesc(t)}</span>${p.tal===i+1?'<span class="tk">✔</span>':p.lvl>=TAL_AT?'':'<span class="tk">🔒</span>'}</button>`).join('')}</div>`:''}
+    <div class="cfoot tvfoot"><button data-a="gear" ${un?'':'disabled'}>⚒️ Gear</button><button data-a="sel" ${!un||ride?'disabled':''}>${ride?'✔ Riding with you':'✔ Ride with '+shortName(c)}</button></div></div>`;
+  show(`<div class="topbar"><h1>🍺 Tavern<small>Levels, stars and skills of your champions — and the portal. One of them rides with you per battle.</small></h1><button class="back" id="bBack">✖</button></div>
+  <p class="m">🪙 <b style="color:var(--gold)">${fmtN(goldOf())}</b> · 💎 ${ACC.gems} · <span class="bkl">${booksLine()}</span></p>
+  <div class="tvsum"><span class="pt">🌀</span><span class="tx"><b>The portal</b><small>A champion of House ${hh.n}: a sealed one joins you, an open one brings cards. <a data-a="odds">Odds</a></small></span>
+    <button data-a="s1" ${ACC.gems>=SUMMON.one?'':'disabled'}>×1<small>💎${SUMMON.one}</small></button><button data-a="s10" ${ACC.gems>=SUMMON.ten?'':'disabled'}>×10<small>💎${SUMMON.ten}</small></button></div>
+  <div class="hgrid">${tiles}</div><div id="clist">${det}</div>`);
+  $('#bBack').addEventListener('click',()=>showHub('coll','heroes'));
+  card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showHeroRoom(t.dataset.c)));
+  card.querySelectorAll('.tvsum [data-a]').forEach(b=>b.addEventListener('click',()=>{const a=b.dataset.a;if(a==='odds')summonOdds();else summon(a==='s10'?10:1);}));
+  card.querySelectorAll('#clist button').forEach(b=>b.addEventListener('click',()=>{
+    const id=c.id,a=b.dataset.a;
+    if(a==='fod'){showHeroRoom(id,b.dataset.f);return;}
+    if(a==='gear'){showForge(id);return;}
+    if(a==='lvl'){if(cardLevelUp(key))SFX.play('levelup');else SFX.play('deny');}
+    else if(a==='asc'){if(ascend(id,b.dataset.f))SFX.play('levelup');else SFX.play('deny');}
+    else if(a==='sk'){if(skillUp(id,+b.dataset.i))SFX.play('upgrade');else SFX.play('deny');}
+    else if(a==='tal'){p.tal=+b.dataset.i;}
+    else ACC.sel=id;
+    persist();showHeroRoom(id);
+  }));
+}
 function heroTalent(champId,slot){return slot?(TALENTS[champId]||[])[slot-1]||null:null;}
-function cdMul(h){return h&&h.tal&&h.tal.k==='cdr'?1-h.tal.v:1;}
+function cdMul(h){return (h&&h.tal&&h.tal.k==='cdr'?1-h.tal.v:1)*(1-((G&&G.gearCdr)||0)/100);}
 function shortName(c){const w=c.n.split(' ');return w[0]==='The'?w[1]:w[0];}
 const TYPE_LBL={melee:'⚔️ Melee, blocks the road',ranged:'🏹 Ranged, shoots from afar',caster:'🔮 Caster, long reach'};
 const MODS={blizzard:{n:'Blizzard',e:'🌨️',desc:'tower range −15%',range:0.85},longnight:{n:'The Long Night',e:'🌙',desc:'enemies +15% speed',espeed:1.15},clear:{n:'Clear skies',e:'🌤️',desc:'+15% gold from kills',gold:1.15},wildhunt:{n:'Wild Hunt',e:'🦣',desc:'twice the giants',giants:2}};
@@ -1530,55 +1817,55 @@ const SPELLS={arrows:{e:'🏹',n:'Arrow rain',cd:26,at:0,d:'A volley from the wa
  fire:{e:'🔥',n:'Dracarys',cd:60,at:4,d:'Dragonfire: heavy damage and burning, hurts dragons fully'},
  reinf:{e:'🛡️',n:'Brothers',cd:30,at:7,d:'Three sworn brothers march out of the gate and fight on the road for 15 s'}};
 const LEVELS=[
-  {id:1,n:"Sunspear",sub:"Dorne · the Martells' seat",biome:"desert",waves:8,mult:1.3,gold:200,raw:true,style:"bend",gates:[195],routes:[[[240,-30],[240,76],[124,76],[124,182],[245,182],[245,319],[47,319],[47,423],[158,423],[158,544],[195,544]]],sea:"R",seaW:40,lay:"one",intro:"The dead rise in Dorne first. Axemen and swordsmen walk the road — build Watchtowers along it."},
-  {id:2,n:"Salt Shore",sub:"Dorne · the Summer Sea",biome:"desert",waves:8,mult:1.45,gold:202,raw:true,style:"curve",gates:[195],routes:[[[207,-30],[306,80],[160,183],[307,263],[133,365],[305,451],[215,538]]],sea:"L",seaW:40,lay:"one",intro:"Wight children: tiny and quick. They come in crowds."},
-  {id:3,n:"Yronwood",sub:"Dorne",biome:"desert",waves:8,mult:1.6,gold:204,raw:true,style:"bend",gates:[195],routes:[[[134,-30],[134,100],[309,100],[309,228],[49,228],[49,374],[162,374],[162,510],[195,510]]],archers:true,lay:"one",intro:"New: wight archers stop far from the gate and shoot it. Kill them before they stop."},
+  {id:1,n:"Sunspear",sub:"Dorne · the Martells' seat",biome:"desert",waves:8,mult:1.258,gold:200,raw:true,style:"bend",gates:[195],routes:[[[240,-30],[240,76],[124,76],[124,182],[245,182],[245,319],[47,319],[47,423],[158,423],[158,544],[195,544]]],sea:"R",seaW:40,lay:"one",intro:"The dead rise in Dorne first. Axemen and swordsmen walk the road — build Watchtowers along it."},
+  {id:2,n:"Salt Shore",sub:"Dorne · the Summer Sea",biome:"desert",waves:8,mult:1.415,gold:202,raw:true,style:"curve",gates:[195],routes:[[[207,-30],[306,80],[160,183],[307,263],[133,365],[305,451],[215,538]]],sea:"L",seaW:40,lay:"one",intro:"Wight children: tiny and quick. They come in crowds."},
+  {id:3,n:"Yronwood",sub:"Dorne",biome:"desert",waves:8,mult:1.569,gold:204,raw:true,style:"bend",gates:[195],routes:[[[134,-30],[134,100],[309,100],[309,228],[49,228],[49,374],[162,374],[162,510],[195,510]]],archers:true,lay:"one",intro:"New: wight archers stop far from the gate and shoot it. Kill them before they stop."},
   {id:4,n:"The Boneway",sub:"Dorne · the mountain road",biome:"desert",waves:9,mult:1.75,gold:206,raw:true,style:"curve",gates:[195],routes:[[[161,-30],[307,95],[108,209],[314,306],[96,424],[207,535]]],archers:true,lay:"one",intro:"Wight hounds hunt in packs of three. Fast, fragile."},
-  {id:5,n:"Prince's Pass",sub:"The Dornish Marches",biome:"desert",waves:9,mult:1.9,gold:208,raw:true,style:"bend",gates:[195],routes:[[[344,-30],[344,96],[205,96],[205,230],[61,230],[61,363],[308,363],[308,505],[195,505]]],archers:true,lay:"one",intro:"Crawlers ignore every slow. Only damage stops them."},
-  {id:6,n:"Sandstone",sub:"Dorne · the deep sand",biome:"desert",waves:9,mult:2.0,gold:210,raw:true,style:"curve",gates:[195],routes:[[[271,-30],[53,74],[325,236],[45,404],[212,558]]],archers:true,lay:"one",intro:"Spearmen: slow and tough. Dragonglass and Watch keeps hold them."},
-  {id:7,n:"Starfall",sub:"Dorne · House Dayne",biome:"desert",waves:9,mult:1.958,gold:242,raw:true,style:"curve",gates:[195],routes:[[[134,-30],[190,78],[137,248],[224,279],[232,313],[305,384],[92,470],[185,539]],[[295,-30],[352,72],[286,163],[288,262],[224,279],[232,313],[305,384],[92,470],[185,539]]],sea:"L",seaW:40,archers:true,lay:"merge",intro:"Wight direwolves: fast packs. Keep your men on the road."},
-  {id:8,n:"The Arbor",sub:"The Reach · the vineyard isle",biome:"coast",waves:10,mult:2.2,gold:214,raw:true,style:"curve",gates:[195],routes:[[[87,-30],[255,86],[53,200],[256,296],[44,417],[195,537]]],sea:"R",seaW:40,archers:true,walkers:true,lay:"one",intro:"New: White Walkers. Kill one and every wight near it falls with it. Dragonglass ×3."},
-  {id:9,n:"Oldtown",sub:"The Reach · the Citadel",biome:"city",waves:10,mult:2.397,gold:216,raw:true,style:"bend",gates:[195],routes:[[[331,-30],[331,89],[49,89],[49,246],[171,246],[171,390],[307,390],[307,551],[195,551]]],archers:true,walkers:true,lay:"one",intro:"Shieldmen shrug off arrows and bolts. Fire and steel work better."},
-  {id:10,n:"Uplands",sub:"The Reach",biome:"reach",waves:10,mult:2.306,gold:248,raw:true,style:"curve",gates:[195],routes:[[[38,-30],[79,71],[158,308],[229,332],[235,366],[77,443],[196,530]],[[345,-30],[307,64],[239,179],[323,313],[229,332],[235,366],[77,443],[196,530]]],archers:true,walkers:true,lay:"merge",intro:"Crypt wights split into two axemen when they fall."},
-  {id:11,n:"Highgarden",sub:"The Reach · the Tyrells' seat",biome:"reach",waves:10,mult:2.308,gold:220,raw:true,style:"bend",gates:[195],routes:[[[345,-30],[345,88],[220,88],[220,236],[48,236],[48,290],[48,370],[48,397],[314,397],[314,540],[195,540]]],river:330,archers:true,walkers:true,giants:true,lay:"one",intro:"New: wight giants walk past your champion unless it can Challenge them. Scorpions hit them hardest."},
-  {id:12,n:"Old Oak",sub:"The Reach",biome:"reach",waves:11,mult:2.524,gold:252,raw:true,style:"curve",gates:[195],routes:[[[64,-30],[76,63],[139,168],[65,286],[218,305],[226,339],[84,447],[201,533]],[[343,-30],[331,65],[284,271],[218,305],[226,339],[84,447],[201,533]]],archers:true,walkers:true,giants:true,lay:"merge",intro:"Boars charge past every blocker — only towers stop them."},
-  {id:13,n:"Cider Hall",sub:"The Reach · the orchards",biome:"reach",waves:11,mult:2.833,gold:224,raw:true,style:"bend",gates:[195],routes:[[[260,-30],[260,72],[55,72],[55,182],[185,182],[185,310],[304,310],[304,427],[127,427],[127,531],[195,531]]],archers:true,walkers:true,giants:true,mod:"clear",lay:"one",intro:"Wight riders gallop past your men. Put towers on the long straights."},
-  {id:14,n:"Tumbleton",sub:"The Reach · the Mander",biome:"river",waves:11,mult:1.427,gold:256,raw:true,style:"curve",gates:[115,275],routes:[[[39,-30],[155,73],[42,173],[154,293],[97,320],[97,400],[48,418],[119,548]],[[349,-30],[348,103],[233,227],[237,451],[282,531]]],river:360,archers:true,walkers:true,giants:true,lay:"twin",intro:"Ice spiders web your towers and ignore slows."},
-  {id:15,n:"Stonehelm",sub:"The Stormlands",biome:"storm",waves:11,mult:2.838,gold:228,raw:true,style:"bend",gates:[195],routes:[[[169,-30],[169,68],[304,68],[304,189],[164,189],[164,289],[327,289],[327,398],[76,398],[76,510],[195,510]]],archers:true,walkers:true,giants:true,lay:"one",intro:"Frenzied wights rage at half health: faster and harder."},
-  {id:16,n:"Storm's End",sub:"The Stormlands · the Baratheons' seat",biome:"storm",waves:14,mult:2.318,gold:280,raw:true,style:"curve",gates:[195],routes:[[[60,-30],[45,73],[119,223],[235,242],[227,276],[293,358],[82,441],[190,541]],[[235,-30],[249,74],[227,222],[235,242],[227,276],[293,358],[82,441],[190,541]]],sea:"R",seaW:40,archers:true,walkers:true,giants:true,boss:true,lay:"merge",intro:"Storm's End: a giant at every sixth wave. Hold the Stormlands."},
-  {id:17,n:"The Kingswood",sub:"The Crownlands · the old forest",biome:"forest",waves:12,mult:2.844,gold:232,raw:true,style:"bend",gates:[195],routes:[[[49,-30],[49,65],[184,65],[184,177],[308,177],[308,284],[85,284],[85,397],[306,397],[306,497],[195,497]]],archers:true,walkers:true,giants:true,lay:"one",intro:"Shadowcats are invisible until they are close to a tower."},
-  {id:18,n:"King's Landing",sub:"The Crownlands · the capital",biome:"city",waves:14,mult:1.31,gold:284,raw:true,style:"curve",gates:[115,275],routes:[[[95,-30],[161,106],[40,213],[161,319],[45,417],[122,553]],[[227,-30],[351,70],[227,175],[347,286],[230,389],[343,494],[277,543]]],archers:true,walkers:true,giants:true,boss:true,lay:"twin",intro:"King's Landing: two roads, two gates. Hodor holds one — tap a gate to send him."},
-  {id:19,n:"Dragonstone",sub:"The Narrow Sea · the Targaryens' seat",biome:"ash",waves:12,mult:2.745,gold:236,raw:true,style:"bend",gates:[195],routes:[[[287,-30],[287,64],[143,64],[143,169],[308,169],[308,291],[126,291],[126,408],[313,408],[313,531],[195,531]]],sea:"L",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lay:"one",intro:"New: an undead dragon flies straight at the gate. Only Scorpions and Dracarys truly hurt it."},
-  {id:20,n:"Maidenpool",sub:"The Riverlands · the Bay of Crabs",biome:"coast",waves:13,mult:2.328,gold:268,raw:true,style:"curve",gates:[195],routes:[[[43,-30],[88,79],[59,216],[197,245],[192,279],[121,370],[293,452],[187,546]],[[242,-30],[222,79],[225,135],[245,214],[197,245],[192,279],[121,370],[293,452],[187,546]]],sea:"R",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lay:"merge",intro:"Thenn wights wear armour: Scorpions and fire."},
-  {id:21,n:"Harrenhal",sub:"The Riverlands · the burnt castle",biome:"ash",waves:15,mult:1.374,gold:290,raw:true,style:"curve",gates:[115,275],routes:[[[91,-30],[43,80],[161,176],[45,298],[156,394],[113,538]],[[332,-30],[226,78],[351,175],[227,270],[347,373],[233,472],[275,537]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,mod:"longnight",boss:true,lay:"twin",intro:"The Long Night: enemies +15% speed. A Walker Lieutenant comes every 10 waves — Dragonglass ignores its armour."},
-  {id:22,n:"Stoney Sept",sub:"The Riverlands",biome:"river",waves:13,mult:2.535,gold:242,raw:true,style:"curve",gates:[195],routes:[[[321,-30],[75,114],[343,192],[316,370],[101,466],[207,543]]],river:300,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"one",intro:"Cold necromancers raise the recently dead. Kill them first."},
-  {id:23,n:"Clegane's Keep",sub:"The Westerlands",biome:"mountain",waves:13,mult:2.536,gold:274,raw:true,style:"curve",gates:[195],routes:[[[55,-30],[92,80],[130,179],[54,288],[192,309],[189,343],[119,407],[266,468],[183,540]],[[302,-30],[346,76],[291,281],[192,309],[189,343],[119,407],[266,468],[183,540]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"merge",intro:"Wight bears knock your men down."},
-  {id:24,n:"Lannisport",sub:"The Westerlands · the harbour city",biome:"city",waves:14,mult:2.328,gold:246,raw:true,style:"curve",gates:[195],routes:[[[333,-30],[138,104],[343,203],[152,312],[345,419],[172,527]]],sea:"L",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"one",intro:""},
-  {id:25,n:"Casterly Rock",sub:"The Westerlands · the Lannisters' seat",biome:"mountain",waves:16,mult:1.75,gold:298,raw:true,style:"curve",gates:[117,273],routes:[[[114,-30],[42,71],[344,229],[210,306],[216,336],[81,409],[60,467],[127,542]],[[114,-30],[42,71],[344,229],[210,306],[216,336],[335,429],[281,545]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,boss:true,lay:"fork",intro:"The Rock: two gates from one road. Watch where the horde splits."},
-  {id:26,n:"The Golden Tooth",sub:"The Westerlands · the gold road",biome:"mountain",waves:14,mult:2.543,gold:280,raw:true,style:"curve",gates:[195],routes:[[[94,-30],[40,60],[118,154],[98,238],[229,271],[224,305],[98,391],[265,467],[200,536]],[[321,-30],[296,78],[235,148],[299,255],[229,271],[224,305],[98,391],[265,467],[200,536]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,mod:"clear",lay:"merge",intro:""},
-  {id:27,n:"Riverrun",sub:"The Riverlands · the Tullys' seat",biome:"river",waves:14,mult:1.406,gold:282,raw:true,style:"curve",gates:[115,275],routes:[[[39,-30],[160,78],[39,191],[129,240],[129,320],[44,414],[105,541]],[[311,-30],[227,91],[343,201],[269,240],[269,320],[352,416],[273,532]]],river:280,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"twin",intro:"Dead ravens dive at your towers and blind them."},
-  {id:28,n:"Ashemark",sub:"The Westerlands",biome:"mountain",waves:15,mult:2.157,gold:254,raw:true,style:"curve",gates:[195],routes:[[[261,-30],[45,90],[291,203],[82,323],[297,445],[179,548]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"one",intro:""},
-  {id:29,n:"Pyke",sub:"The Iron Islands · the Greyjoys' seat",biome:"sea",waves:15,mult:2.55,gold:286,raw:true,style:"curve",gates:[195],routes:[[[169,-30],[156,77],[191,211],[229,243],[231,277],[125,363],[304,458],[213,537]],[[294,-30],[343,76],[264,136],[313,225],[229,243],[231,277],[125,363],[304,458],[213,537]]],sea:"L",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"merge",intro:"Ice eagles fly straight at the gate."},
-  {id:30,n:"Seagard",sub:"The Riverlands · the Mallisters",biome:"coast",waves:15,mult:1.623,gold:288,raw:true,style:"curve",gates:[117,273],routes:[[[285,-30],[158,66],[318,172],[136,260],[227,330],[230,360],[124,415],[122,478],[116,527]],[[285,-30],[158,66],[318,172],[136,260],[227,330],[230,360],[317,454],[269,533]]],sea:"L",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"fork",intro:""},
-  {id:31,n:"The Twins",sub:"The Riverlands · the Freys' crossing",biome:"river",waves:17,mult:1.271,gold:310,raw:true,style:"curve",gates:[115,275],routes:[[[162,-30],[39,82],[159,201],[78,300],[78,380],[163,413],[111,534]],[[275,-30],[342,102],[236,207],[310,300],[310,380],[236,415],[269,542]]],river:340,archers:true,walkers:true,giants:true,dragon:8,lord:true,boss:true,lay:"twin",intro:"The Twins: two crossings, wraiths that shrug off arrows. Weirwood slows them."},
-  {id:32,n:"Saltpans",sub:"The Riverlands · the salt flats",biome:"river",waves:16,mult:2.353,gold:292,raw:true,style:"curve",gates:[195],routes:[[[49,-30],[66,61],[171,182],[112,210],[112,290],[235,314],[239,348],[290,417],[133,473],[198,538]],[[349,-30],[315,76],[266,210],[266,290],[235,314],[239,348],[290,417],[133,473],[198,538]]],river:250,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"merge",intro:""},
-  {id:33,n:"The High Road",sub:"The Vale · the mountain pass",biome:"vale",waves:16,mult:2.886,gold:264,raw:true,style:"bend",gates:[195],routes:[[[202,-30],[202,87],[76,87],[76,206],[348,206],[348,301],[73,301],[73,398],[316,398],[316,491],[195,491]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"one",intro:"Cave bats swarm in threes over the walls."},
-  {id:34,n:"The Eyrie",sub:"The Vale · the Arryns' seat",biome:"vale",waves:18,mult:2.217,gold:316,raw:true,style:"curve",gates:[195],routes:[[[68,-30],[93,76],[95,241],[231,263],[235,297],[108,382],[278,462],[176,546]],[[296,-30],[337,63],[228,231],[231,263],[235,297],[108,382],[278,462],[176,546]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,mod:"blizzard",boss:true,lay:"merge",intro:"Blizzard: tower range −15%. Build close to the road."},
-  {id:35,n:"Gulltown",sub:"The Vale · the harbour",biome:"sea",waves:16,mult:2.201,gold:298,raw:true,style:"curve",gates:[117,273],routes:[[[199,-30],[39,70],[243,162],[74,273],[168,334],[171,364],[59,425],[64,481],[115,522]],[[199,-30],[39,70],[243,162],[74,273],[168,334],[171,364],[264,451],[263,534]]],sea:"R",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"fork",intro:"Skinchangers heal the horde around them."},
-  {id:36,n:"Heart's Home",sub:"The Vale",biome:"vale",waves:17,mult:1.584,gold:300,raw:true,style:"curve",gates:[115,275],routes:[[[126,-30],[49,98],[159,192],[41,303],[164,423],[109,532]],[[350,-30],[228,70],[346,178],[236,282],[349,392],[225,485],[273,534]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"twin",intro:""},
-  {id:37,n:"The Grey Glen",sub:"The Vale",biome:"vale",waves:17,mult:2.791,gold:302,raw:true,style:"curve",gates:[195],routes:[[[49,-30],[92,62],[67,148],[38,232],[197,252],[193,286],[285,380],[92,450],[193,541]],[[315,-30],[331,70],[260,143],[287,235],[197,252],[193,286],[285,380],[92,450],[193,541]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"merge",intro:"Wildling chieftains hasten the dead nearby."},
-  {id:38,n:"Moat Cailin",sub:"The Neck · three towers",biome:"swamp",waves:19,mult:1.328,gold:324,raw:true,style:"curve",gates:[78,195,312],routes:[[[47,-30],[113,81],[43,186],[109,279],[43,395],[75,527]],[[224,-30],[224,79],[160,172],[231,272],[169,386],[203,540]],[[273,-30],[355,73],[271,165],[349,268],[270,379],[319,541]]],ponds:3,archers:true,walkers:true,giants:true,dragon:8,lord:true,mod:"wildhunt",boss:true,lay:"triple",intro:"Moat Cailin: three roads, three towers. Wild Hunt — twice the giants."},
-  {id:39,n:"White Harbor",sub:"The North · the Manderlys",biome:"northcity",waves:17,mult:1.57,gold:306,raw:true,style:"curve",gates:[115,275],routes:[[[89,-30],[50,77],[161,173],[40,268],[165,381],[39,481],[124,534]],[[235,-30],[234,72],[268,164],[225,268],[262,377],[231,473],[279,531]]],sea:"R",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"twin",intro:"Walker outriders charge in ice armour."},
-  {id:40,n:"Barrowton",sub:"The North · the barrowlands",biome:"snow",waves:18,mult:2.8,gold:308,raw:true,style:"curve",gates:[195],routes:[[[85,-30],[61,79],[107,145],[74,217],[197,239],[189,273],[307,354],[103,443],[201,544]],[[328,-30],[333,78],[298,133],[320,204],[197,239],[189,273],[307,354],[103,443],[201,544]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"merge",intro:""},
-  {id:41,n:"The Rills",sub:"The North",biome:"snow",waves:18,mult:2.238,gold:280,raw:true,style:"bend",gates:[195],routes:[[[107,-30],[107,86],[348,86],[348,172],[166,172],[166,261],[346,261],[346,280],[346,360],[346,355],[80,355],[80,446],[223,446],[223,530],[195,530]]],river:320,archers:true,walkers:true,giants:true,dragon:8,lord:true,mod:"blizzard",lay:"one",intro:"Wight mammoths: huge, armoured, slow."},
-  {id:42,n:"Deepwood Motte",sub:"The North · the wolfswood",biome:"snow",waves:18,mult:2.91,gold:312,raw:true,style:"curve",gates:[195],routes:[[[65,-30],[49,70],[171,230],[230,265],[229,299],[308,376],[77,460],[185,543]],[[344,-30],[338,75],[239,148],[292,234],[230,265],[229,299],[308,376],[77,460],[185,543]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"merge",intro:""},
-  {id:43,n:"Winterfell",sub:"The North · the Starks' seat",biome:"snow",waves:20,mult:1.415,gold:334,raw:true,style:"curve",gates:[115,275],routes:[[[45,-30],[38,79],[163,171],[40,285],[160,384],[43,480],[115,544]],[[245,-30],[347,73],[235,171],[343,274],[232,391],[277,539]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,boss:true,lay:"twin",intro:"Winterfell: shades hide in the snow. Everything the South has taught you."},
-  {id:44,n:"The Dreadfort",sub:"The North · the Boltons",biome:"snow",waves:19,mult:2.169,gold:316,raw:true,style:"curve",gates:[117,273],routes:[[[293,-30],[60,60],[344,252],[215,314],[211,344],[51,410],[60,470],[121,518]],[[293,-30],[60,60],[344,252],[215,314],[211,344],[339,412],[282,479],[280,525]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,mod:"longnight",lay:"fork",intro:""},
-  {id:45,n:"Karhold",sub:"The North · the Karstarks",biome:"snow",waves:19,mult:2.588,gold:318,raw:true,style:"curve",gates:[195],routes:[[[66,-30],[70,73],[128,218],[205,234],[197,268],[99,359],[310,446],[192,537]],[[257,-30],[243,66],[241,142],[258,212],[205,234],[197,268],[99,359],[310,446],[192,537]]],sea:"R",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"merge",intro:"Broodmothers birth ice spiders as they walk."},
-  {id:46,n:"The Gift",sub:"The North · the Night's Watch lands",biome:"snow",waves:19,mult:1.971,gold:320,raw:true,style:"curve",gates:[117,273],routes:[[[211,-30],[92,77],[286,166],[85,282],[196,351],[192,381],[55,424],[41,490],[126,525]],[[211,-30],[92,77],[286,166],[85,282],[196,351],[192,381],[324,437],[281,495],[266,528]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"fork",intro:""},
-  {id:47,n:"Castle Black",sub:"The Wall · the Night's Watch",biome:"wall",waves:21,mult:1.453,gold:342,raw:true,style:"curve",gates:[78,195,312],routes:[[[80,-30],[111,78],[42,203],[112,322],[35,429],[69,544]],[[188,-30],[221,79],[163,172],[224,283],[166,401],[195,541]],[[300,-30],[351,71],[281,173],[351,282],[274,391],[353,489],[311,538]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,boss:true,lay:"triple",intro:"Castle Black: three gates in the Wall. Hold them all."},
-  {id:48,n:"The Fist of the First Men",sub:"Beyond the Wall",biome:"wall",waves:20,mult:2.198,gold:324,raw:true,style:"curve",gates:[195],routes:[[[44,-30],[80,68],[71,230],[230,260],[226,294],[298,376],[79,463],[202,547]],[[316,-30],[301,70],[314,144],[347,235],[230,260],[226,294],[298,376],[79,463],[202,547]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,mod:"blizzard",lay:"merge",intro:"The Fist of the First Men: a blizzard on the ringwall."},
-  {id:49,n:"Hardhome",sub:"Beyond the Wall · the free folk",biome:"wall",waves:20,mult:1.729,gold:326,raw:true,style:"curve",gates:[115,275],routes:[[[93,-30],[161,89],[39,185],[160,284],[39,394],[163,489],[124,551]],[[238,-30],[232,95],[258,209],[232,315],[267,409],[284,541]]],sea:"R",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"twin",intro:"Hardhome: two roads from the sea."},
+  {id:5,n:"Prince's Pass",sub:"The Dornish Marches",biome:"desert",waves:9,mult:1.931,gold:208,raw:true,style:"bend",gates:[195],routes:[[[344,-30],[344,96],[205,96],[205,230],[61,230],[61,363],[308,363],[308,505],[195,505]]],archers:true,lay:"one",intro:"Crawlers ignore every slow. Only damage stops them."},
+  {id:6,n:"Sandstone",sub:"Dorne · the deep sand",biome:"desert",waves:9,mult:2.107,gold:210,raw:true,style:"curve",gates:[195],routes:[[[271,-30],[53,74],[325,236],[45,404],[212,558]]],archers:true,lay:"one",intro:"Spearmen: slow and tough. Dragonglass and Watch keeps hold them."},
+  {id:7,n:"Starfall",sub:"Dorne · House Dayne",biome:"desert",waves:9,mult:2.084,gold:242,raw:true,style:"curve",gates:[195],routes:[[[134,-30],[190,78],[137,248],[224,279],[232,313],[305,384],[92,470],[185,539]],[[295,-30],[352,72],[286,163],[288,262],[224,279],[232,313],[305,384],[92,470],[185,539]]],sea:"L",seaW:40,archers:true,lay:"merge",intro:"Wight direwolves: fast packs. Keep your men on the road."},
+  {id:8,n:"The Arbor",sub:"The Reach · the vineyard isle",biome:"coast",waves:10,mult:2.349,gold:214,raw:true,style:"curve",gates:[195],routes:[[[87,-30],[255,86],[53,200],[256,296],[44,417],[195,537]]],sea:"R",seaW:40,archers:true,walkers:true,lay:"one",intro:"New: White Walkers. Kill one and every wight near it falls with it. Dragonglass ×3."},
+  {id:9,n:"Oldtown",sub:"The Reach · the Citadel",biome:"city",waves:10,mult:2.543,gold:216,raw:true,style:"bend",gates:[195],routes:[[[331,-30],[331,89],[49,89],[49,246],[171,246],[171,390],[307,390],[307,551],[195,551]]],archers:true,walkers:true,lay:"one",intro:"Shieldmen shrug off arrows and bolts. Fire and steel work better."},
+  {id:10,n:"Uplands",sub:"The Reach",biome:"reach",waves:10,mult:2.39,gold:248,raw:true,style:"curve",gates:[195],routes:[[[38,-30],[79,71],[158,308],[229,332],[235,366],[77,443],[196,530]],[[345,-30],[307,64],[239,179],[323,313],[229,332],[235,366],[77,443],[196,530]]],archers:true,walkers:true,lay:"merge",intro:"Crypt wights split into two axemen when they fall."},
+  {id:11,n:"Highgarden",sub:"The Reach · the Tyrells' seat",biome:"reach",waves:10,mult:2.243,gold:220,raw:true,style:"bend",gates:[195],routes:[[[345,-30],[345,88],[220,88],[220,236],[48,236],[48,290],[48,370],[48,397],[314,397],[314,540],[195,540]]],river:330,archers:true,walkers:true,giants:true,lay:"one",intro:"New: wight giants walk past your champion unless it can Challenge them. Scorpions hit them hardest."},
+  {id:12,n:"Old Oak",sub:"The Reach",biome:"reach",waves:11,mult:2.427,gold:252,raw:true,style:"curve",gates:[195],routes:[[[64,-30],[76,63],[139,168],[65,286],[218,305],[226,339],[84,447],[201,533]],[[343,-30],[331,65],[284,271],[218,305],[226,339],[84,447],[201,533]]],archers:true,walkers:true,giants:true,lay:"merge",intro:"Boars charge past every blocker — only towers stop them."},
+  {id:13,n:"Cider Hall",sub:"The Reach · the orchards",biome:"reach",waves:11,mult:2.659,gold:224,raw:true,style:"bend",gates:[195],routes:[[[260,-30],[260,72],[55,72],[55,182],[185,182],[185,310],[304,310],[304,427],[127,427],[127,531],[195,531]]],archers:true,walkers:true,giants:true,mod:"clear",lay:"one",intro:"Wight riders gallop past your men. Put towers on the long straights."},
+  {id:14,n:"Tumbleton",sub:"The Reach · the Mander",biome:"river",waves:11,mult:1.326,gold:256,raw:true,style:"curve",gates:[115,275],routes:[[[39,-30],[155,73],[42,173],[154,293],[97,320],[97,400],[48,418],[119,548]],[[349,-30],[348,103],[233,227],[237,451],[282,531]]],river:360,archers:true,walkers:true,giants:true,lay:"twin",intro:"Ice spiders web your towers and ignore slows."},
+  {id:15,n:"Stonehelm",sub:"The Stormlands",biome:"storm",waves:11,mult:2.605,gold:228,raw:true,style:"bend",gates:[195],routes:[[[169,-30],[169,68],[304,68],[304,189],[164,189],[164,289],[327,289],[327,398],[76,398],[76,510],[195,510]]],archers:true,walkers:true,giants:true,lay:"one",intro:"Frenzied wights rage at half health: faster and harder."},
+  {id:16,n:"Storm's End",sub:"The Stormlands · the Baratheons' seat",biome:"storm",waves:14,mult:2.174,gold:280,raw:true,style:"curve",gates:[195],routes:[[[60,-30],[45,73],[119,223],[235,242],[227,276],[293,358],[82,441],[190,541]],[[235,-30],[249,74],[227,222],[235,242],[227,276],[293,358],[82,441],[190,541]]],sea:"R",seaW:40,archers:true,walkers:true,giants:true,boss:true,lay:"merge",intro:"Storm's End: a giant at every sixth wave. Hold the Stormlands."},
+  {id:17,n:"The Kingswood",sub:"The Crownlands · the old forest",biome:"forest",waves:12,mult:2.687,gold:232,raw:true,style:"bend",gates:[195],routes:[[[49,-30],[49,65],[184,65],[184,177],[308,177],[308,284],[85,284],[85,397],[306,397],[306,497],[195,497]]],archers:true,walkers:true,giants:true,lay:"one",intro:"Shadowcats are invisible until they are close to a tower."},
+  {id:18,n:"King's Landing",sub:"The Crownlands · the capital",biome:"city",waves:14,mult:1.257,gold:284,raw:true,style:"curve",gates:[115,275],routes:[[[95,-30],[161,106],[40,213],[161,319],[45,417],[122,553]],[[227,-30],[351,70],[227,175],[347,286],[230,389],[343,494],[277,543]]],archers:true,walkers:true,giants:true,boss:true,lay:"twin",intro:"King's Landing: two roads, two gates. Hodor holds one — tap a gate to send him."},
+  {id:19,n:"Dragonstone",sub:"The Narrow Sea · the Targaryens' seat",biome:"ash",waves:12,mult:2.762,gold:236,raw:true,style:"bend",gates:[195],routes:[[[287,-30],[287,64],[143,64],[143,169],[308,169],[308,291],[126,291],[126,408],[313,408],[313,531],[195,531]]],sea:"L",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lay:"one",intro:"New: an undead dragon flies straight at the gate. Only Scorpions and Dracarys truly hurt it."},
+  {id:20,n:"Maidenpool",sub:"The Riverlands · the Bay of Crabs",biome:"coast",waves:13,mult:2.433,gold:268,raw:true,style:"curve",gates:[195],routes:[[[43,-30],[88,79],[59,216],[197,245],[192,279],[121,370],[293,452],[187,546]],[[242,-30],[222,79],[225,135],[245,214],[197,245],[192,279],[121,370],[293,452],[187,546]]],sea:"R",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lay:"merge",intro:"Thenn wights wear armour: Scorpions and fire."},
+  {id:21,n:"Harrenhal",sub:"The Riverlands · the burnt castle",biome:"ash",waves:15,mult:1.452,gold:290,raw:true,style:"curve",gates:[115,275],routes:[[[91,-30],[43,80],[161,176],[45,298],[156,394],[113,538]],[[332,-30],[226,78],[351,175],[227,270],[347,373],[233,472],[275,537]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,mod:"longnight",boss:true,lay:"twin",intro:"The Long Night: enemies +15% speed. A Walker Lieutenant comes every 10 waves — Dragonglass ignores its armour."},
+  {id:22,n:"Stoney Sept",sub:"The Riverlands",biome:"river",waves:13,mult:2.674,gold:242,raw:true,style:"curve",gates:[195],routes:[[[321,-30],[75,114],[343,192],[316,370],[101,466],[207,543]]],river:300,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"one",intro:"Cold necromancers raise the recently dead. Kill them first."},
+  {id:23,n:"Clegane's Keep",sub:"The Westerlands",biome:"mountain",waves:13,mult:2.756,gold:274,raw:true,style:"curve",gates:[195],routes:[[[55,-30],[92,80],[130,179],[54,288],[192,309],[189,343],[119,407],[266,468],[183,540]],[[302,-30],[346,76],[291,281],[192,309],[189,343],[119,407],[266,468],[183,540]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"merge",intro:"Wight bears knock your men down."},
+  {id:24,n:"Lannisport",sub:"The Westerlands · the harbour city",biome:"city",waves:14,mult:2.487,gold:246,raw:true,style:"curve",gates:[195],routes:[[[333,-30],[138,104],[343,203],[152,312],[345,419],[172,527]]],sea:"L",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"one",intro:""},
+  {id:25,n:"Casterly Rock",sub:"The Westerlands · the Lannisters' seat",biome:"mountain",waves:16,mult:1.886,gold:298,raw:true,style:"curve",gates:[117,273],routes:[[[114,-30],[42,71],[344,229],[210,306],[216,336],[81,409],[60,467],[127,542]],[[114,-30],[42,71],[344,229],[210,306],[216,336],[335,429],[281,545]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,boss:true,lay:"fork",intro:"The Rock: two gates from one road. Watch where the horde splits."},
+  {id:26,n:"The Golden Tooth",sub:"The Westerlands · the gold road",biome:"mountain",waves:14,mult:2.698,gold:280,raw:true,style:"curve",gates:[195],routes:[[[94,-30],[40,60],[118,154],[98,238],[229,271],[224,305],[98,391],[265,467],[200,536]],[[321,-30],[296,78],[235,148],[299,255],[229,271],[224,305],[98,391],[265,467],[200,536]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,mod:"clear",lay:"merge",intro:""},
+  {id:27,n:"Riverrun",sub:"The Riverlands · the Tullys' seat",biome:"river",waves:14,mult:1.501,gold:282,raw:true,style:"curve",gates:[115,275],routes:[[[39,-30],[160,78],[39,191],[129,240],[129,320],[44,414],[105,541]],[[311,-30],[227,91],[343,201],[269,240],[269,320],[352,416],[273,532]]],river:280,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"twin",intro:"Dead ravens dive at your towers and blind them."},
+  {id:28,n:"Ashemark",sub:"The Westerlands",biome:"mountain",waves:15,mult:2.256,gold:254,raw:true,style:"curve",gates:[195],routes:[[[261,-30],[45,90],[291,203],[82,323],[297,445],[179,548]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"one",intro:""},
+  {id:29,n:"Pyke",sub:"The Iron Islands · the Greyjoys' seat",biome:"sea",waves:15,mult:2.641,gold:286,raw:true,style:"curve",gates:[195],routes:[[[169,-30],[156,77],[191,211],[229,243],[231,277],[125,363],[304,458],[213,537]],[[294,-30],[343,76],[264,136],[313,225],[229,243],[231,277],[125,363],[304,458],[213,537]]],sea:"L",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"merge",intro:"Ice eagles fly straight at the gate."},
+  {id:30,n:"Seagard",sub:"The Riverlands · the Mallisters",biome:"coast",waves:15,mult:1.666,gold:288,raw:true,style:"curve",gates:[117,273],routes:[[[285,-30],[158,66],[318,172],[136,260],[227,330],[230,360],[124,415],[122,478],[116,527]],[[285,-30],[158,66],[318,172],[136,260],[227,330],[230,360],[317,454],[269,533]]],sea:"L",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"fork",intro:""},
+  {id:31,n:"The Twins",sub:"The Riverlands · the Freys' crossing",biome:"river",waves:17,mult:1.345,gold:310,raw:true,style:"curve",gates:[115,275],routes:[[[162,-30],[39,82],[159,201],[78,300],[78,380],[163,413],[111,534]],[[275,-30],[342,102],[236,207],[310,300],[310,380],[236,415],[269,542]]],river:340,archers:true,walkers:true,giants:true,dragon:8,lord:true,boss:true,lay:"twin",intro:"The Twins: two crossings, wraiths that shrug off arrows. Weirwood slows them."},
+  {id:32,n:"Saltpans",sub:"The Riverlands · the salt flats",biome:"river",waves:16,mult:2.49,gold:292,raw:true,style:"curve",gates:[195],routes:[[[49,-30],[66,61],[171,182],[112,210],[112,290],[235,314],[239,348],[290,417],[133,473],[198,538]],[[349,-30],[315,76],[266,210],[266,290],[235,314],[239,348],[290,417],[133,473],[198,538]]],river:250,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"merge",intro:""},
+  {id:33,n:"The High Road",sub:"The Vale · the mountain pass",biome:"vale",waves:16,mult:3.009,gold:264,raw:true,style:"bend",gates:[195],routes:[[[202,-30],[202,87],[76,87],[76,206],[348,206],[348,301],[73,301],[73,398],[316,398],[316,491],[195,491]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"one",intro:"Cave bats swarm in threes over the walls."},
+  {id:34,n:"The Eyrie",sub:"The Vale · the Arryns' seat",biome:"vale",waves:18,mult:2.308,gold:316,raw:true,style:"curve",gates:[195],routes:[[[68,-30],[93,76],[95,241],[231,263],[235,297],[108,382],[278,462],[176,546]],[[296,-30],[337,63],[228,231],[231,263],[235,297],[108,382],[278,462],[176,546]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,mod:"blizzard",boss:true,lay:"merge",intro:"Blizzard: tower range −15%. Build close to the road."},
+  {id:35,n:"Gulltown",sub:"The Vale · the harbour",biome:"sea",waves:16,mult:2.379,gold:298,raw:true,style:"curve",gates:[117,273],routes:[[[199,-30],[39,70],[243,162],[74,273],[168,334],[171,364],[59,425],[64,481],[115,522]],[[199,-30],[39,70],[243,162],[74,273],[168,334],[171,364],[264,451],[263,534]]],sea:"R",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"fork",intro:"Skinchangers heal the horde around them."},
+  {id:36,n:"Heart's Home",sub:"The Vale",biome:"vale",waves:17,mult:1.723,gold:300,raw:true,style:"curve",gates:[115,275],routes:[[[126,-30],[49,98],[159,192],[41,303],[164,423],[109,532]],[[350,-30],[228,70],[346,178],[236,282],[349,392],[225,485],[273,534]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"twin",intro:""},
+  {id:37,n:"The Grey Glen",sub:"The Vale",biome:"vale",waves:17,mult:3.079,gold:302,raw:true,style:"curve",gates:[195],routes:[[[49,-30],[92,62],[67,148],[38,232],[197,252],[193,286],[285,380],[92,450],[193,541]],[[315,-30],[331,70],[260,143],[287,235],[197,252],[193,286],[285,380],[92,450],[193,541]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"merge",intro:"Wildling chieftains hasten the dead nearby."},
+  {id:38,n:"Moat Cailin",sub:"The Neck · three towers",biome:"swamp",waves:19,mult:1.488,gold:324,raw:true,style:"curve",gates:[78,195,312],routes:[[[47,-30],[113,81],[43,186],[109,279],[43,395],[75,527]],[[224,-30],[224,79],[160,172],[231,272],[169,386],[203,540]],[[273,-30],[355,73],[271,165],[349,268],[270,379],[319,541]]],ponds:3,archers:true,walkers:true,giants:true,dragon:8,lord:true,mod:"wildhunt",boss:true,lay:"triple",intro:"Moat Cailin: three roads, three towers. Wild Hunt — twice the giants."},
+  {id:39,n:"White Harbor",sub:"The North · the Manderlys",biome:"northcity",waves:17,mult:1.802,gold:306,raw:true,style:"curve",gates:[115,275],routes:[[[89,-30],[50,77],[161,173],[40,268],[165,381],[39,481],[124,534]],[[235,-30],[234,72],[268,164],[225,268],[262,377],[231,473],[279,531]]],sea:"R",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"twin",intro:"Walker outriders charge in ice armour."},
+  {id:40,n:"Barrowton",sub:"The North · the barrowlands",biome:"snow",waves:18,mult:3.214,gold:308,raw:true,style:"curve",gates:[195],routes:[[[85,-30],[61,79],[107,145],[74,217],[197,239],[189,273],[307,354],[103,443],[201,544]],[[328,-30],[333,78],[298,133],[320,204],[197,239],[189,273],[307,354],[103,443],[201,544]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"merge",intro:""},
+  {id:41,n:"The Rills",sub:"The North",biome:"snow",waves:18,mult:2.557,gold:280,raw:true,style:"bend",gates:[195],routes:[[[107,-30],[107,86],[348,86],[348,172],[166,172],[166,261],[346,261],[346,280],[346,360],[346,355],[80,355],[80,446],[223,446],[223,530],[195,530]]],river:320,archers:true,walkers:true,giants:true,dragon:8,lord:true,mod:"blizzard",lay:"one",intro:"Wight mammoths: huge, armoured, slow."},
+  {id:42,n:"Deepwood Motte",sub:"The North · the wolfswood",biome:"snow",waves:18,mult:3.324,gold:312,raw:true,style:"curve",gates:[195],routes:[[[65,-30],[49,70],[171,230],[230,265],[229,299],[308,376],[77,460],[185,543]],[[344,-30],[338,75],[239,148],[292,234],[230,265],[229,299],[308,376],[77,460],[185,543]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"merge",intro:""},
+  {id:43,n:"Winterfell",sub:"The North · the Starks' seat",biome:"snow",waves:20,mult:1.616,gold:334,raw:true,style:"curve",gates:[115,275],routes:[[[45,-30],[38,79],[163,171],[40,285],[160,384],[43,480],[115,544]],[[245,-30],[347,73],[235,171],[343,274],[232,391],[277,539]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,boss:true,lay:"twin",intro:"Winterfell: shades hide in the snow. Everything the South has taught you."},
+  {id:44,n:"The Dreadfort",sub:"The North · the Boltons",biome:"snow",waves:19,mult:2.474,gold:316,raw:true,style:"curve",gates:[117,273],routes:[[[293,-30],[60,60],[344,252],[215,314],[211,344],[51,410],[60,470],[121,518]],[[293,-30],[60,60],[344,252],[215,314],[211,344],[339,412],[282,479],[280,525]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,mod:"longnight",lay:"fork",intro:""},
+  {id:45,n:"Karhold",sub:"The North · the Karstarks",biome:"snow",waves:19,mult:2.837,gold:318,raw:true,style:"curve",gates:[195],routes:[[[66,-30],[70,73],[128,218],[205,234],[197,268],[99,359],[310,446],[192,537]],[[257,-30],[243,66],[241,142],[258,212],[205,234],[197,268],[99,359],[310,446],[192,537]]],sea:"R",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"merge",intro:"Broodmothers birth ice spiders as they walk."},
+  {id:46,n:"The Gift",sub:"The North · the Night's Watch lands",biome:"snow",waves:19,mult:2.147,gold:320,raw:true,style:"curve",gates:[117,273],routes:[[[211,-30],[92,77],[286,166],[85,282],[196,351],[192,381],[55,424],[41,490],[126,525]],[[211,-30],[92,77],[286,166],[85,282],[196,351],[192,381],[324,437],[281,495],[266,528]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"fork",intro:""},
+  {id:47,n:"Castle Black",sub:"The Wall · the Night's Watch",biome:"wall",waves:21,mult:1.545,gold:342,raw:true,style:"curve",gates:[78,195,312],routes:[[[80,-30],[111,78],[42,203],[112,322],[35,429],[69,544]],[[188,-30],[221,79],[163,172],[224,283],[166,401],[195,541]],[[300,-30],[351,71],[281,173],[351,282],[274,391],[353,489],[311,538]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,boss:true,lay:"triple",intro:"Castle Black: three gates in the Wall. Hold them all."},
+  {id:48,n:"The Fist of the First Men",sub:"Beyond the Wall",biome:"wall",waves:20,mult:2.234,gold:324,raw:true,style:"curve",gates:[195],routes:[[[44,-30],[80,68],[71,230],[230,260],[226,294],[298,376],[79,463],[202,547]],[[316,-30],[301,70],[314,144],[347,235],[230,260],[226,294],[298,376],[79,463],[202,547]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,mod:"blizzard",lay:"merge",intro:"The Fist of the First Men: a blizzard on the ringwall."},
+  {id:49,n:"Hardhome",sub:"Beyond the Wall · the free folk",biome:"wall",waves:20,mult:1.756,gold:326,raw:true,style:"curve",gates:[115,275],routes:[[[93,-30],[161,89],[39,185],[160,284],[39,394],[163,489],[124,551]],[[238,-30],[232,95],[258,209],[232,315],[267,409],[284,541]]],sea:"R",seaW:40,archers:true,walkers:true,giants:true,dragon:8,lord:true,lay:"twin",intro:"Hardhome: two roads from the sea."},
   {id:50,n:"The Lands of Always Winter",sub:"Beyond the Wall · the heart of winter",biome:"wall",waves:22,mult:0.98,gold:348,raw:true,style:"curve",gates:[78,195,312],routes:[[[51,-30],[111,107],[35,222],[114,328],[44,433],[88,539]],[[200,-30],[229,80],[169,173],[232,277],[163,399],[197,533]],[[288,-30],[353,85],[276,187],[353,281],[272,384],[353,479],[319,534]]],archers:true,walkers:true,giants:true,dragon:8,lord:true,king:22,mod:"longnight",boss:true,lay:"triple",intro:"The Lands of Always Winter. The Night King comes with the final wave. When he falls, his dead fall with him. Hold the door."}
 ];
 /* ---- 50 battles, one per stage. stageLevel(g) is kept for old callers. */
@@ -1646,7 +1933,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.56';
+const VERSION='1.0.63';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -2266,7 +2553,7 @@ function resetRun(map){
   G.enemies=[];G.allies=[];G.projs=[];G.fx=[];G.texts=[];G.traps=[];G.clouds=[];G.deaths=[];G.gateBonus=(UP('leather')?200:0)+(UP('ironwood')?400:0);
   G.spawnQueue=[];G.decals=[];G.banner=null;G.seen={};G.pending=null;G.tut=null;G.hodor=null;G.hodorT=0;G.hod=null;G.newq=[];G.newcard=null;G.spawnT=0;G.spawnInt=1;G.waveDone=true;G.nextIn=10;G.slowUntil=0;G.warcryUntil=0;G.warcryMult=1;G.eid=1;
   G.powerCd={arrows:0,fire:20,reinf:0};G.powerMax={arrows:26,fire:UP('cache')?42:60,reinf:30};G.armed=null;G.sel=null;G.heroSel=false;G.log=[];G.typeCount={};
-  G.stressT=0;G.brace=0;G.shoutT=0;G.kingT=12;G.heroOn=true;G.tutorial=false;G.safe=false;G.builds=0;G.calls=0;G.fireCount=0;G.packUsed=false;G.wallUntil=0;G.wallGate=0;G.goldx2Until=0;G.dgUntil=0;G.fleet=null;G.harvestUntil=0;G.growUntil=0;G.musterUntil=0;G.drownedUntil=0;G.maxGold=0;G.kingKilled=false;G.dragonFx=0;G.victory=false;G.hero=null;G.slowmoT=0;G.hitStop=0;G.ultCard=null;G.hsay=null;G.heroSayAt=null;G.blizzUntil=0;
+  G.stressT=0;G.brace=0;G.shoutT=0;G.kingT=12;G.heroOn=true;G.tutorial=false;G.safe=false;G.builds=0;G.calls=0;G.fireCount=0;G.packUsed=false;G.wallUntil=0;G.wallGate=0;G.goldx2Until=0;G.dgUntil=0;G.gearArmor=0;G.gearLs=0;G.gearRegen=0;G.gearCrit=0;G.fleet=null;G.harvestUntil=0;G.vengUntil=0;G.vengStore=0;G.growUntil=0;G.musterUntil=0;G.drownedUntil=0;G.maxGold=0;G.kingKilled=false;G.dragonFx=0;G.victory=false;G.hero=null;G.slowmoT=0;G.hitStop=0;G.ultCard=null;G.hsay=null;G.heroSayAt=null;G.blizzUntil=0;
 }
 function HERO_BASE(t){return t==='melee'?{hp:360,dmg:22,rate:0.6,range:32}:t==='ranged'?{hp:250,dmg:14,rate:0.8,range:140}:{hp:230,dmg:12,rate:0.9,range:150};}
 function makeHero(){
@@ -2274,15 +2561,16 @@ function makeHero(){
   const tal=L>=TAL_AT&&p.tal?heroTalent(c.id,p.tal):null;
   const tm={hp:1,dmg:1,spd:1,range:1,rate:1};
   if(tal){if(tal.k==='hp')tm.hp+=tal.v;else if(tal.k==='dmg')tm.dmg+=tal.v;else if(tal.k==='spd')tm.spd+=tal.v;else if(tal.k==='range')tm.range+=tal.v;else if(tal.k==='rate')tm.rate-=tal.v;}
+  const gs=gearStats(c.id);tm.hp*=1+gs.hp/100;tm.dmg*=1+gs.dmg/100;tm.spd*=1+gs.spd/100;tm.range*=1+gs.range/100;tm.rate/=1+gs.rate/100;G.gearCdr=Math.min(40,gs.cdr);G.gearGold=gs.gold;{const ge=gearEff(c.id);G.gearArmor=ge.armor;G.gearLs=ge.lifesteal;G.gearRegen=ge.regen;G.gearCrit=ge.crit;}
   const base=HERO_BASE(c.type);
-  const hp=Math.round(base.hp*(1+0.05*(L-1))*(UP('training')?1.18:1)*tm.hp);
-  const hero={c,type:c.type,x:GX,y:GATE_Y-36,tx:null,ty:null,spd:(UP('horse')?88:70)*(c.type==='melee'?1.15:c.type==='caster'?0.9:1)*tm.spd,hp,max:hp,dmg:base.dmg*(1+0.04*(L-1))*tm.dmg,rate:base.rate*tm.rate,range:base.range*tm.range,sk:p.sk.slice(),lvl:L,atkT:0,cd:{},shield:0,dead:false,respawnT:0,blocks:2,eng:0,invulnUntil:0,taunts:false,oath:false,oocT:0,skT:{},face:1,bxp:0,bLvl:0,rallyT:1,stepPx:0,tal};
+  const hp=Math.round(base.hp*RAR_STAT[champRar(c)]*(1+0.05*(L-1))*(UP('training')?1.18:1)*tm.hp);
+  const hero={c,type:c.type,x:GX,y:GATE_Y-36,tx:null,ty:null,spd:(UP('horse')?88:70)*(c.type==='melee'?1.15:c.type==='caster'?0.9:1)*tm.spd,hp,max:hp,dmg:base.dmg*RAR_STAT[champRar(c)]*(1+0.04*(L-1))*tm.dmg,rate:base.rate*tm.rate,range:base.range*tm.range,sk:p.sk.slice(),perk:gearPerks(c.id),lvl:L,atkT:0,cd:{},shield:0,dead:false,respawnT:0,blocks:2,eng:0,invulnUntil:0,taunts:false,oath:false,oocT:0,skT:{},face:1,bxp:0,bLvl:0,rallyT:1,stepPx:0,tal};
   hero.blocks=(c.sk[0]==='taunt'||c.sk[1]==='taunt'?Math.floor(SK.taunt.v[skLvl(hero,'taunt')-1]):c.type==='melee'?2:1)+(tal&&tal.k==='block'?tal.v:0);hero.taunts=skLvl(hero,'taunt')>0;if(hero.taunts){const tv=SK.taunt.v[skLvl(hero,'taunt')-1];hero.max=hero.hp=Math.round(hero.max*(1+(tv-3)*0.12));}
   const u=c.sk[2];hero.cd.ult=0;hero.ultMax=SK[u].cd*cdMul(hero);
   return hero;
 }
-function skLvl(hero,id){const i=hero.c.sk.indexOf(id);return i<0?0:hero.sk[i];}
-function skVal(hero,id){const l=skLvl(hero,id);if(!l)return 0;let v=SK[id].v[l-1];if(hero.tal&&hero.tal.k==='skillmult'&&hero.tal.sk===id)v=Math.round(v*(1+hero.tal.v));return v;}
+function skLvl(hero,id){const i=hero.c.sk.indexOf(id);const l=i<0?0:hero.sk[i],pr=hero.perk&&hero.perk[id];return pr&&pr>l?pr:l;}
+function skVal(hero,id){const l=skLvl(hero,id);if(!l)return 0;let v=SK[id].v[Math.min(l,SK[id].v.length)-1];if(hero.tal&&hero.tal.k==='skillmult'&&hero.tal.sk===id)v=Math.round(v*(1+hero.tal.v));return v;}
 function startGame0(o){
   const h=ACC;G.mode=o.mode;G.level=o.level||null;G.runs++;
   let map;
@@ -2365,7 +2653,7 @@ function kill(e,src){
   if(e.dead)return;e.hp=0;e.dead=true;if(e.left)return;
   let g=Math.round(e.gold*(1+0.008*(G.wave-1))*((G.mod&&G.mod.gold)||1)*DIFF().gold*(UP('coin')?1.12:1));
   const q=posE(e);if(G.hero&&G.heroOn&&!G.hero.dead){const bm=skVal(G.hero,'bloodmagic');if(bm&&G.doorHp<G.doorMax&&dist(q.x,q.y,G.hero.x,G.hero.y)<=100){G.doorHp=Math.min(G.doorMax,G.doorHp+bm);const hg=heldGate();addFx({t:'wave',x:q.x,y:q.y-8,tx:hg.x,ty:GATE_Y-12,life:0.45,col:'#e14b4b'});}}if(src==='hero'&&G.hero&&skLvl(G.hero,'goldtouch')){g=Math.round(g*(1+skVal(G.hero,'goldtouch')/100));addFx({t:'coins',x:q.x,y:q.y-8,life:0.6});}
-  if(src==='hero'&&G.hero&&G.hero.tal&&G.hero.tal.k==='goldkill')g=Math.round(g*(1+G.hero.tal.v));if(G.goldx2Until>G.time)g*=2;if(src==='hero'&&G.hero&&!G.hero.dead){const rv=skVal(G.hero,'reave');if(rv)G.hero.hp=Math.min(G.hero.max,G.hero.hp+G.hero.max*rv/100);}
+  if(src==='hero'&&G.hero&&G.hero.tal&&G.hero.tal.k==='goldkill')g=Math.round(g*(1+G.hero.tal.v));if(src==='hero'&&G.gearGold)g=Math.round(g*(1+G.gearGold/100));if(G.goldx2Until>G.time)g*=2;if(src==='hero'&&G.hero&&!G.hero.dead){const rv=skVal(G.hero,'reave');if(rv)G.hero.hp=Math.min(G.hero.max,G.hero.hp+G.hero.max*rv/100);}
   G.gold+=g;G.kills++;SFX.play('die',45);if(ACC){ACC.kc=ACC.kc||{};ACC.kc[e.type]=(ACC.kc[e.type]||0)+1;}addText(q.x,q.y-10,'+'+g,'#e3b661');corpseFx(e,q);if(G.hero&&G.heroOn)heroXp(src==='hero'?1:0.25);
   if(!e.boss&&!e.fly)G.deaths.push({type:e.type,prog:e.prog,t:G.time,route:e.route});
   if(!e.fly&&G.decals.length<70)G.decals.push({x:q.x,y:q.y,r:e.giant?15:e.boss?17:8,ice:!!e.walker,life:9});
@@ -2374,8 +2662,8 @@ function kill(e,src){
   else if(e.walker){addFx({t:'ring',x:q.x,y:q.y,r0:8,r1:90,life:0.5,col:'#cdf1ff'});for(const o of G.enemies){if(o!==e&&o.hp>0&&!o.fly&&!o.walker&&!o.boss){const p=posE(o);if(dist(p.x,p.y,q.x,q.y)<90)kill(o,src);}}}
   else addFx({t:'shatter',x:q.x,y:q.y,life:0.45,col:e.giant?'#9fb3c8':'#cfe4f5'});
 }
-function hitDoor(a,gi){if(G.state!=='play')return;gi=gi||0;if(G.hod&&G.hod.at===gi)a*=0.5;else if(G.hod&&G.map.gates.length>1)a*=1.15;G.lastHitGate=gi;if(!G.hodor&&(!G.hodorT||G.time-G.hodorT>7)){G.hodorT=G.time;hodorSay(['HODOR!','HODOR!!','Hodor… HODOR!'][Math.floor(Math.random()*3)],1500);}if(G.safe){G.shake=Math.min(6,G.shake+a/40);G.doorHp=Math.max(G.doorMax*0.15,G.doorHp-a);G.hurt=Math.min(1,G.hurt+a/220);G.stressT=0.6;SFX.play('gate',120);return;}G.doorHp-=a;SFX.play('gate',120);G.shake=Math.min(9,G.shake+a/25);G.hurt=Math.min(1,G.hurt+a/220);G.stressT=0.6;if(G.doorHp<=0){G.doorHp=0;gameOver();}}
-function hurtHero(a){const h=G.hero;if(h.dead||G.time<h.invulnUntil)return;const is=skVal(h,'ironskin');if(is)a*=1-is/100;if(h.shield>0){const s=Math.min(h.shield,a);h.shield-=s;a-=s;h.shieldHitT=G.time;if(h.shield<=0)addFx({t:'burst',x:h.x,y:h.y-14,r0:10,r1:28,life:0.3,col:'#8fd3ff'});}h.hp-=a;h.oocT=3;if(h.hp<=0&&G.drownedUntil>G.time&&!h.risenD){h.risenD=true;h.hp=h.max*0.5;addText(h.x,h.y-40,'Risen!','#4fb8c8',1);addFx({t:'ring',x:h.x,y:h.y,r0:6,r1:40,life:0.5,col:'#4fb8c8'});}if(h.hp<=0&&!h.wiUsed&&skVal(h,'whatisdead')){h.wiUsed=true;h.hp=1;h.invulnUntil=G.time+skVal(h,'whatisdead');addText(h.x,h.y-40,'What is dead may never die!','#e3b661',1);addFx({t:'ring',x:h.x,y:h.y,r0:6,r1:40,life:0.5,col:'#e3b661'});}if(h.hp<=0){h.hp=0;h.dead=true;h.respawnT=UP('secondlife')?10:15;h.tx=null;G.heroSel=false;addText(h.x,h.y-20,'Champion down','#e14b4b');addFx({t:'ring',x:h.x,y:h.y,r0:4,r1:30,life:0.5,col:'#e14b4b'});}}
+function hitDoor(a,gi){if(G.state!=='play')return;gi=gi||0;if(G.vengUntil>G.time){G.vengStore=(G.vengStore||0)+a;return;}if(G.hod&&G.hod.at===gi)a*=0.5;else if(G.hod&&G.map.gates.length>1)a*=1.15;G.lastHitGate=gi;if(!G.hodor&&(!G.hodorT||G.time-G.hodorT>7)){G.hodorT=G.time;hodorSay(['HODOR!','HODOR!!','Hodor… HODOR!'][Math.floor(Math.random()*3)],1500);}if(G.safe){G.shake=Math.min(6,G.shake+a/40);G.doorHp=Math.max(G.doorMax*0.15,G.doorHp-a);G.hurt=Math.min(1,G.hurt+a/220);G.stressT=0.6;SFX.play('gate',120);return;}G.doorHp-=a;SFX.play('gate',120);G.shake=Math.min(9,G.shake+a/25);G.hurt=Math.min(1,G.hurt+a/220);G.stressT=0.6;if(G.doorHp<=0){G.doorHp=0;gameOver();}}
+function hurtHero(a){const h=G.hero;if(h.dead||G.time<h.invulnUntil)return;const is=skVal(h,'ironskin');if(is)a*=1-is/100;if(G.gearArmor)a*=1-G.gearArmor/100;if(h.shield>0){const s=Math.min(h.shield,a);h.shield-=s;a-=s;h.shieldHitT=G.time;if(h.shield<=0)addFx({t:'burst',x:h.x,y:h.y-14,r0:10,r1:28,life:0.3,col:'#8fd3ff'});}if(h.iserveUntil>G.time)a*=0.6;h.hp-=a;h.oocT=3;if(h.hp<=0&&G.drownedUntil>G.time&&!h.risenD){h.risenD=true;h.hp=h.max*0.5;addText(h.x,h.y-40,'Risen!','#4fb8c8',1);addFx({t:'ring',x:h.x,y:h.y,r0:6,r1:40,life:0.5,col:'#4fb8c8'});}if(h.hp<=0&&!h.wiUsed&&skVal(h,'whatisdead')){h.wiUsed=true;h.hp=1;h.invulnUntil=G.time+skVal(h,'whatisdead');addText(h.x,h.y-40,'What is dead may never die!','#e3b661',1);addFx({t:'ring',x:h.x,y:h.y,r0:6,r1:40,life:0.5,col:'#e3b661'});}if(h.hp<=0){h.hp=0;h.dead=true;h.respawnT=UP('secondlife')?10:15;h.tx=null;G.heroSel=false;addText(h.x,h.y-20,'Champion down','#e14b4b');addFx({t:'ring',x:h.x,y:h.y,r0:4,r1:30,life:0.5,col:'#e14b4b'});}}
 function gameOver(){
   if(G.state!=='play')return;G.state='over';G.armed=null;G.sel=null;closeSheet();mergeStats();SFX.play('lose');
   if(G.mode==='online'){const waves=Math.max(0,G.wave-1);ACC.online.runs.push({waves,kills:G.kills});ACC.stats.onlineBest=Math.max(ACC.stats.onlineBest,waves);const rw=ECON.hold(waves,G.kills);addGold(rw.gold);ACC.gems+=rw.gems;G.holdReward=rw;persist();if(G.bid)ecoFinish(false,0,{g:rw.gold,m:rw.gems},waves).then(()=>fetchLeaderboard(true)).catch(()=>{});else if(CLOUD.on&&sbReady())sbRpc('hold_result',{token:CLOUD.token,day:dayKeyUTC(),waves,kills:G.kills,seat:Math.max(0,seatNo()),house:ACC.house,realm:ACC.langI},{timeout:8000}).then(()=>fetchLeaderboard(true)).catch(()=>{});showOnlineOver(waves);}
@@ -2404,13 +2692,15 @@ function victory(){
   const gained=Math.max(0,stars-prev);
   if(stars>prev)Cm[G.level.id]=stars;
   h.gems+=gained*(h.diff==='kingsguard'?12:8);G.hardNew=!wasHard&&hardOpen();
-  G.goldReward=ECON.win(G.level,stars,stars>prev);addGold(G.goldReward);G.cardReward=!prev?stageCards():null;
+  G.goldReward=ECON.win(G.level,stars,stars>prev);addGold(G.goldReward);G.cardReward=!prev&&!G.bid?stageCards():null;
   const after=CHAMPS.filter(c=>c.house===ACC.house&&unlocked(h,c)).length;
   ecoFinish(true,stars,{g:G.goldReward,m:gained*(h.diff==='kingsguard'?12:8)});persist();showCampaignResult(true,stars,after-before,gained);
 }
 function heroHit(e,base){
   const h=G.hero;let a=base;
-  const cr=skVal(h,'crit');if(cr&&G.rng()*100<cr){a*=3;const p=posE(e);addText(p.x,p.y-18,Math.round(a)+'!','#ffd23c',1);G.hitStop=0.05;SFX.play('crit',90);}
+  const cr=(skVal(h,'crit')||0)+(G.gearCrit||0);if(cr&&G.rng()*100<cr){a*=3;const p=posE(e);addText(p.x,p.y-18,Math.round(a)+'!','#ffd23c',1);G.hitStop=0.05;SFX.play('crit',90);}
+  const ws=skVal(h,'waitstrike');if(ws)a*=1+ws/100*Math.floor(h.stillT||0);
+  const vp=skVal(h,'viper');if(vp){e.vipN=(e.vipN||0)+1;if(e.vipN>=4){e.vipN=0;a+=vp;e.poison={dps:Math.max((e.poison&&e.poison.dps)||0,vp/4),t:4};const pv=posE(e);addText(pv.x,pv.y-24,'viper!','#9fe07a');}}
   const bl=skVal(h,'blood');if(bl&&h.hp<h.max*0.5)a*=1+bl/100;if(h.rageUntil>G.time)a*=1.6;const du=skVal(h,'duelist');if(du&&(e.boss||e.mini||(e.big||1)>=1.4))a*=1+du/100;const mo=skVal(h,'momentum');if(mo&&(h.momPx||0)>=60){a*=1+mo/100;h.momPx=0;if(!e.boss)e.stunT=Math.max(e.stunT||0,1);const pm=posE(e);addText(pm.x,pm.y-24,'lance!','#7fd06a');}
   dmg(e,a,'hero');heroAfterHit(e,a);if(e.hp<=0)return;
   const ex=skVal(h,'execute');if(ex&&!e.boss&&e.hp/e.max<ex/100){const p=posE(e);kill(e,'hero');addFx({t:'xslash',x:p.x,y:p.y-8,life:0.35});addText(p.x,p.y-22,'💀','#fff',1);G.hitStop=0.06;return;}
@@ -2424,7 +2714,7 @@ function heroHit(e,base){
   const kn=skVal(h,'knock');if(kn&&!e.boss&&!e.fly&&G.rng()*100<kn){e.prog=Math.max(0,e.prog-24);const p=posE(e);addFx({t:'puff',x:p.x,y:p.y,r:10,life:0.3,rgb:'200,190,170'});}
 }
 /* after every champion hit (melee and projectiles): lifesteal and the chain arc */
-function heroAfterHit(e,a){const h=G.hero;if(!h)return;if(h.type==='melee'){const wh=skVal(h,'warhammer');if(wh){const q=posE(e);let n=0;for(const o of G.enemies){if(o===e||o.hp<=0||o.fly)continue;const r=posE(o);if(dist(r.x,r.y,q.x,q.y)<=30+o.r){dmg(o,a*wh/100,'hero');n++;}}if(n)addFx({t:'ring',x:q.x,y:q.y-4,r0:4,r1:30,life:0.25,col:'#e3b661'});}}let ls=skVal(h,'lifesteal')||0;if(h.lifestealUntil>G.time)ls=Math.max(ls,50);
+function heroAfterHit(e,a){const h=G.hero;if(!h)return;if(h.type==='melee'){const wh=skVal(h,'warhammer');if(wh){const q=posE(e);let n=0;for(const o of G.enemies){if(o===e||o.hp<=0||o.fly)continue;const r=posE(o);if(dist(r.x,r.y,q.x,q.y)<=30+o.r){dmg(o,a*wh/100,'hero');n++;}}if(n)addFx({t:'ring',x:q.x,y:q.y-4,r0:4,r1:30,life:0.25,col:'#e3b661'});}}let ls=(skVal(h,'lifesteal')||0)+(G.gearLs||0);if(h.lifestealUntil>G.time)ls=Math.max(ls,50);
   if(ls&&!h.dead){h.hp=Math.min(h.max,h.hp+a*ls/100);}
   if(h.type!=='melee'){const cv=skVal(h,'chain');if(cv){const q=posE(e);let o=null,od=1e9;for(const x of G.enemies){if(x===e||x.hp<=0)continue;const r=posE(x),d=dist(r.x,r.y,q.x,q.y);if(d<=60&&d<od){od=d;o=x;}}
     if(o){const r=posE(o);dmg(o,a*cv/100,'hero');addFx({t:'pulse',x:q.x,y:q.y-8,tx:r.x,ty:r.y-8,life:0.22,col:'#cfe6ff'});}}}}
@@ -2507,6 +2797,12 @@ function castUlt(){
     case'queenthorns':for(const e of G.enemies){if(e.hp<=0)continue;if(!e.poison||e.poison.dps<v)e.poison={dps:v,t:6};const p=posE(e);addFx({t:'burst',x:p.x,y:p.y-8,r0:2,r1:12,life:0.4,col:'#7cff6b',delay:G.rng()*0.3});}addText(h.x,h.y-40,'Tell them it was me','#7cff6b',1);SFX.play('spell');break;
     case'slayer':{const ws=G.enemies.filter(e=>e.hp>0&&e.walker).sort((a,b)=>b.hp-a.hp);let tg=ws.find(e=>!e.king)||ws[0];const kill1=!!tg&&!tg.king;if(!tg)tg=G.enemies.filter(e=>e.hp>0).sort((a,b)=>b.hp-a.hp)[0];if(!tg){addText(h.x,h.y-40,'Nothing to slay','#8fd3ff',1);break;}const p=posE(tg);addFx({t:'pulse',x:h.x,y:h.y-12,tx:p.x,ty:p.y-10,life:0.3,col:'#8fd3ff'});addFx({t:'shatter',x:p.x,y:p.y,life:0.5,col:'#cfe6f5'});if(kill1){kill(tg,'hero');addText(p.x,p.y-30,'Dragonglass!','#8fd3ff',1);}else{dmg(tg,v,'hero');addText(p.x,p.y-30,Math.round(v)+'!','#8fd3ff',1);}SFX.play('crit',120);break;}
     case'queenroses':{let n=0;for(const e of near(150)){if(!e.boss){e.charmT=G.time+v;n++;}}addFx({t:'ring',x:h.x,y:h.y,r0:10,r1:150,life:0.7,col:'#ff7ab8'});for(let i=0;i<14;i++)addFx({t:'burst',x:h.x-60+G.rng()*120,y:h.y-40+G.rng()*60,r0:2,r1:8,life:0.6,col:'#ff7ab8',delay:G.rng()*0.4});addText(h.x,h.y-40,n?'The people love her':'Nobody to charm','#ff7ab8',1);SFX.play('spell');break;}
+    case'iserve':h.iserveUntil=G.time+v;addFx({t:'ring',x:h.x,y:h.y,r0:8,r1:50,life:0.6,col:'#e3b661'});addText(h.x,h.y-40,'I serve','#e3b661',1);SFX.play('horn',150);break;
+    case'whiplash':{const l=G.enemies.filter(e=>e.hp>0&&!e.boss&&dist(posE(e).x,posE(e).y,h.x,h.y)<=200).sort((a,b)=>b.hp-a.hp).slice(0,cntOf(v));for(const e of l){const p=posE(e);e.stunT=Math.max(e.stunT||0,3);if(!e.fly)e.prog=Math.max(0,e.prog-60);addFx({t:'pulse',x:h.x,y:h.y-14,tx:p.x,ty:p.y-8,life:0.3,col:'#c9a06a'});addFx({t:'ring',x:p.x,y:p.y-8,r0:3,r1:16,life:0.4,col:'#c9a06a'});}addText(h.x,h.y-40,l.length?'Bound!':'Nobody to bind','#c9a06a',1);SFX.play('slash',120);break;}
+    case'spearrain':{const l=G.enemies.filter(e=>e.hp>0).sort((a,b)=>remainOf(a)-remainOf(b)).slice(0,5);l.forEach((e,i)=>{const p=posE(e);addFx({t:'arrow',x:p.x-30,y:p.y-120,tx:p.x,ty:p.y-6,life:0.25,delay:i*0.06});dmg(e,v,'hero');if(e.hp>0&&!e.boss)e.stunT=Math.max(e.stunT||0,1);addFx({t:'hit',x:p.x,y:p.y-8,life:0.2,delay:0.25+i*0.06});});addText(h.x,h.y-40,l.length?'Spears of Dorne!':'No target','#ffb347',1);SFX.play('arrow',150);break;}
+    case'serpentkiss':{let n=0;for(const e of near(120)){if(!e.poison||e.poison.dps<v)e.poison={dps:v,t:5};if(!e.boss)e.disarmT=G.time+4;n++;}addFx({t:'ring',x:h.x,y:h.y,r0:8,r1:120,life:0.6,col:'#9fe07a'});addText(h.x,h.y-40,n?'A kiss for luck':'Nobody near','#9fe07a',1);SFX.play('spell');break;}
+    case'vengeance':G.vengUntil=G.time+v;G.vengStore=0;addFx({t:'wave',x:h.x,y:h.y-10,tx:gate.x,ty:GATE_Y-12,life:0.5,col:'#ffb347'});addText(gate.x,GATE_Y-44,'Patience…','#ffb347',1);SFX.play('spell');break;
+    case'redviper':{const tg=G.enemies.filter(e=>e.hp>0&&dist(posE(e).x,posE(e).y,h.x,h.y)<=200).sort((a,b)=>b.hp-a.hp)[0];if(!tg){addText(h.x,h.y-40,'No one to fight','#e14b4b',1);break;}const p=posE(tg);h.x=clamp(p.x+(p.x<W/2?18:-18),12,W-12);h.y=clamp(p.y,24,GATE_Y-14);h.tx=null;for(let i=0;i<cntOf(v)&&tg.hp>0;i++){dmg(tg,h.dmg*1.5,'hero');addFx({t:'xslash',x:p.x,y:p.y-8,life:0.3,delay:i*0.08});}if(tg.hp>0)tg.poison={dps:Math.max((tg.poison&&tg.poison.dps)||0,h.dmg*0.6),t:5};addText(h.x,h.y-40,'Elia Martell!','#e14b4b',1);SFX.play('crit',120);break;}
     case'oath':h.invulnUntil=G.time+v;h.oathUntil=G.time+v;addFx({t:'burst',x:h.x,y:h.y-12,r0:6,r1:40,life:0.5,col:'#e3b661'});addFx({t:'ring',x:h.x,y:h.y,r0:8,r1:60,life:0.6,col:'#e3b661'});break;
   }
   updateBar();
@@ -2529,7 +2825,7 @@ function step(){
   else{G.spawnT-=dt;while(G.spawnT<=0&&G.spawnQueue.length){spawn(G.spawnQueue.shift());G.spawnT+=G.spawnInt;}if(!G.spawnQueue.length){G.waveDone=true;G.nextIn=G.mode==='campaign'&&G.wave>=G.totalWaves?0:14;}}
   for(const k in G.powerCd)if(G.powerCd[k]>0)G.powerCd[k]=Math.max(0,G.powerCd[k]-dt);
   if(h.cd.ult>0)h.cd.ult=Math.max(0,h.cd.ult-dt);
-  for(const e of G.enemies){e.slow=e.chillT>G.time&&!e.slowImmune?1-(e.chillV||30)/100:1;e.mark=e.sunderT>G.time?1+(e.sunderV||20)/100:1;e.pblk=e.blockedBy;e.blockedBy=null;e.hasted=1;e.weak=1;}
+  for(const e of G.enemies){e.slow=e.chillT>G.time&&!e.slowImmune?1-(e.chillV||30)/100:1;e.mark=e.sunderT>G.time?1+(e.sunderV||20)/100:1;e.pblk=e.blockedBy;e.blockedBy=null;e.hasted=1;e.weak=e.disarmT>G.time&&!e.boss?0:1;}
   h.eng=0;for(const a of G.allies)a.eng=0;G.brace=0;G.stressT=Math.max(0,G.stressT-dt);
   const rangeM=(G.mod&&G.mod.range)||1;
   const alive=G.heroOn&&!h.dead;
@@ -2537,6 +2833,8 @@ function step(){
     const sa=skVal(h,'slowaura');
     if(sa)for(const e of G.enemies){if(e.hp>0&&!e.fly){const p=posE(e);if(dist(p.x,p.y,h.x,h.y)<=80+e.r)e.slow=Math.min(e.slow,1-sa/100);}}
     const ct=skVal(h,'contempt');if(ct)for(const e of G.enemies){if(e.hp>0){const p=posE(e);if(dist(p.x,p.y,h.x,h.y)<=80+e.r)e.weak=1-ct/100;}}
+    const sau=skVal(h,'sunaura');if(sau)for(const a of G.allies){if(a.hp>0&&a.hp<a.max&&dist(a.x,a.y,h.x,h.y)<=90)a.hp=Math.min(a.max,a.hp+sau*dt);}
+    h.stillT=h.moving?0:Math.min(5,(h.stillT||0)+dt);
     const dau=skVal(h,'drownaura');if(dau){for(const e of G.enemies){if(e.hp>0&&!e.fly){const p=posE(e);if(dist(p.x,p.y,h.x,h.y)<=70+e.r)dmg(e,dau*dt,'hero',true);}}h.daT=(h.daT||0)-dt;if(h.daT<=0){h.daT=1.5;addFx({t:'ring',x:h.x,y:h.y,r0:10,r1:70,life:0.6,col:'#4fb8c8'});}}
     const kb=skVal(h,'keepback');if(kb){h.kbT=(h.kbT||0)-dt;if(h.kbT<=0&&h.tx==null){const en=G.enemies.find(e=>e.hp>0&&!e.fly&&dist(posE(e).x,posE(e).y,h.x,h.y)<=34+e.r);if(en){const p=posE(en);const dx=h.x-p.x,dy=h.y-p.y,l=Math.hypot(dx,dy)||1;h.tx=clamp(h.x+dx/l*44,12,W-12);h.ty=clamp(h.y+dy/l*44,24,GATE_Y-14);h.kbT=kb;addText(h.x,h.y-36,'fall back!','#cfe6ff');}}}
     if(h.stormUntil>G.time){h.stT=(h.stT||0)-dt;if(h.stT<=0){h.stT=0.5;for(const e of G.enemies){if(e.hp>0&&!e.fly){const p=posE(e);if(dist(p.x,p.y,h.x,h.y)<=60+e.r)dmg(e,h.dmg*1.2,'hero');}}addFx({t:'cleave',x:h.x,y:h.y-10,life:0.3,col:HOUSES[ACC.house].col});SFX.play('slash',140);}}
@@ -2565,7 +2863,7 @@ function step(){
     else h.moving=false;
     if(G.heroSayAt!=null&&G.time>=G.heroSayAt){G.heroSayAt=null;heroSay(QUOTES[h.c.id]?QUOTES[h.c.id][0]:'',2400);}
     const auraC=skLvl(h,'rally')?'#e3b661':skLvl(h,'forge')?'#ff9a3c':skLvl(h,'siegecraft')?'#8fd3ff':null;if(auraC){h.rallyT-=dt;if(h.rallyT<=0){h.rallyT=2;for(const s of map.slots)if(s.tower&&TOWERS[s.tower.type].kind!=='barracks'&&dist(s.x,s.y,h.x,h.y)<=90)addFx({t:'pulse',x:h.x,y:h.y-10,tx:s.x,ty:s.y-10,life:0.45,col:auraC});}}
-    h.oocT-=dt;if(h.oocT<=0)h.hp=Math.min(h.max,h.hp+5*dt);
+    h.oocT-=dt;if(h.oocT<=0)h.hp=Math.min(h.max,h.hp+5*dt);if(G.gearRegen)h.hp=Math.min(h.max,h.hp+h.max*G.gearRegen/1000*dt);
     for(const id of['cleave','shield','heal','summon','volley','trap','howl','tribute','rations','storm']){const l=skLvl(h,id);if(!l)continue;h.skT[id]=(h.skT[id]||SK[id].cd*cdMul(h))-dt;if(h.skT[id]>0)continue;
       if(id==='storm'){const l2=G.enemies.filter(e=>e.hp>0&&dist(posE(e).x,posE(e).y,h.x,h.y)<=150);if(!l2.length)continue;h.skT[id]=SK.storm.cd*cdMul(h);const e=l2[Math.floor(G.rng()*l2.length)];const p=posE(e);dmg(e,skVal(h,'storm'),'hero');addFx({t:'pulse',x:p.x+6,y:p.y-90,tx:p.x,ty:p.y-8,life:0.18,col:'#cfe6ff'});addFx({t:'ring',x:p.x,y:p.y-6,r0:3,r1:20,life:0.3,col:'#cfe6ff'});SFX.play('bolt',120);continue;}
       if(id==='tribute'){h.skT[id]=SK.tribute.cd*cdMul(h);const tv=skVal(h,'tribute');G.gold+=tv;addText(h.x,h.y-40,'+'+tv,'#e3b661');addFx({t:'coins',x:h.x,y:h.y-20,life:0.5});continue;}
@@ -2634,7 +2932,7 @@ function step(){
     let blocker=null;
     /* melee champions block the road; ranged and casters standing next to it get chased instead (they are weaker, so keep them back) */
     const hr=h.type==='melee'?26:42;
-    if(alive&&!e.charge&&!e.air&&(!e.giant||h.taunts||oath)&&(h.eng<h.blocks||oath)&&dist(p.x,p.y,h.x,h.y)<=hr+e.r){blocker=h;h.eng++;e.blockedBy='hero';if(h.type!=='melee'){const lx=(h.x-p.x)*0.6,ly=(h.y-p.y)*0.6;e.lunge=e.lunge||{x:0,y:0};e.lunge.x+=(lx-e.lunge.x)*Math.min(1,dt*6);e.lunge.y+=(ly-e.lunge.y)*Math.min(1,dt*6);}if(!e.tauntFx&&(h.taunts||oath)&&(e.giant||e.boss||e.mini||G.time-(h.tauntSayT||-9)>1.5)){e.tauntFx=1;h.tauntSayT=G.time;addText(p.x,p.y-30,'!!','#ffe66d',1);addFx({t:'ring',x:h.x,y:h.y-12,r0:6,r1:30,life:0.35,col:'#ffe66d'});}}
+    if(alive&&!e.charge&&!e.air&&(!e.giant||h.taunts||oath||h.iserveUntil>G.time)&&(h.eng<h.blocks||oath||h.iserveUntil>G.time)&&dist(p.x,p.y,h.x,h.y)<=hr+e.r){blocker=h;h.eng++;e.blockedBy='hero';if(h.type!=='melee'){const lx=(h.x-p.x)*0.6,ly=(h.y-p.y)*0.6;e.lunge=e.lunge||{x:0,y:0};e.lunge.x+=(lx-e.lunge.x)*Math.min(1,dt*6);e.lunge.y+=(ly-e.lunge.y)*Math.min(1,dt*6);}if(!e.tauntFx&&(h.taunts||oath)&&(e.giant||e.boss||e.mini||G.time-(h.tauntSayT||-9)>1.5)){e.tauntFx=1;h.tauntSayT=G.time;addText(p.x,p.y-30,'!!','#ffe66d',1);addFx({t:'ring',x:h.x,y:h.y-12,r0:6,r1:30,life:0.35,col:'#ffe66d'});}}
     else if(!e.charge&&!e.air){for(const a of G.allies){if(a.eng<1&&(a.bornT==null||G.time>=a.bornT)&&dist(p.x,p.y,a.x,a.y)<=24+e.r){blocker=a;a.eng++;e.blockedBy='ally';break;}}}
     if(e.lunge&&blocker!==h){e.lunge.x*=Math.max(0,1-dt*8);e.lunge.y*=Math.max(0,1-dt*8);if(Math.abs(e.lunge.x)+Math.abs(e.lunge.y)<0.5)e.lunge=null;}
     if(blocker||(e.ranged&&remain<=e.ranged)||remain<=18){const v0=e.vel||0;e.vel=v0*Math.max(0,1-dt*14);e.accS=(e.accS||0)*0.85+((e.vel-v0)/Math.max(dt,1e-3))*0.15;e.moving=false;}
@@ -2673,6 +2971,7 @@ function step(){
   for(const d of G.decals)d.life-=dt;G.decals=G.decals.filter(d=>d.life>0);
   if(G.banner){G.banner.life-=dt;if(G.banner.life<=0)G.banner=null;}
   if(G.fleet){G.fleet.t-=dt;if(G.fleet.t<=0){G.fleet.t=0.4;G.fleet.n--;const l=G.enemies.filter(e=>e.hp>0);if(l.length){const e=l[Math.floor(G.rng()*l.length)];const p=posE(e);dmg(e,G.fleet.dmg,'hero');addFx({t:'fire',x:p.x,y:p.y-4,r0:4,r1:20,life:0.4,col:'#ff9a3c'});addFx({t:'puff',x:p.x,y:p.y,r:10,life:0.4,rgb:'120,110,100'});}if(G.fleet.n<=0)G.fleet=null;}}
+  if(G.vengUntil&&G.time>=G.vengUntil){const v2=Math.round((G.vengStore||0)*1.5),g0=G.map.gates[0];G.vengUntil=0;G.vengStore=0;if(v2>0){for(const e of G.enemies){if(e.hp>0){const p=posE(e);dmg(e,v2,'power');addFx({t:'fire',x:p.x,y:p.y-6,r0:4,r1:18,life:0.4,col:'#ffb347',delay:G.rng()*0.3});}}addText(g0.x,GATE_Y-60,'Dorne answers · '+v2,'#ffb347',1);G.shake=Math.min(9,G.shake+4);SFX.play('horn',200);}}
   if(G.harvestUntil>G.time&&G.doorHp<G.doorMax)G.doorHp=Math.min(G.doorMax,G.doorHp+30*dt);
   for(const tr of G.traps){const e=G.enemies.find(e=>e.hp>0&&!e.fly&&dist(posE(e).x,posE(e).y,tr.x,tr.y)<=22);if(e&&tr.calt){tr.done=true;dmg(e,tr.dmg,'hero');if(e.hp>0&&!e.boss)e.stunT=Math.max(e.stunT,1);const q=posE(e);addFx({t:'hit',x:q.x,y:q.y-6,life:0.2});addText(q.x,q.y-22,'caltrops!','#cfd6de');continue;}if(e){tr.done=true;for(const o of G.enemies){if(o.hp<=0)continue;const q=posE(o);if(dist(q.x,q.y,tr.x,tr.y)<=55+o.r){dmg(o,tr.dmg,'hero');if(o.hp>0)o.burn={dps:15,t:3};}}addFx({t:'fire',x:tr.x,y:tr.y,r0:8,r1:55,life:0.6,col:'#7cff6b'});addFx({t:'ring',x:tr.x,y:tr.y,r0:8,r1:60,life:0.4,col:'#7cff6b'});}}
   G.traps=G.traps.filter(t=>!t.done);
@@ -2881,6 +3180,7 @@ canvas.addEventListener('pointerdown',ev=>{
     G.armed=null;G.rallySlot=null;updateBar();if(G.tut)tutEvent('rally');return;
   }
   if(G.armed){const pid=G.armed;castPower(pid,x,y);G.armed=null;updateBar();if(G.tut)tutEvent('power',pid);return;}
+  if(G.tut&&tutWantBase()==='move'&&!G.heroSel&&G.heroOn&&!h.dead&&dist(x,y,h.x,h.y-8)>22)G.heroSel=true;
   if(G.heroSel&&G.heroOn&&!h.dead){h.tx=clamp(x,12,W-12);h.ty=clamp(y,40,GATE_Y-14);G.heroSel=false;if(G.tut)tutEvent('move');G.log.push({t:G.tick,a:'move',x:Math.round(h.tx),y:Math.round(h.ty)});addFx({t:'ring',x:h.tx,y:h.ty,r0:3,r1:16,life:0.35,col:HOUSES[ACC.house].col});updateBar();return;}
   if(G.heroOn&&!h.dead&&dist(x,y,h.x,h.y-8)<=22){G.heroSel=true;G.sel=null;closeSheet();updateBar();return;}
   let hit=null;for(const s of G.map.slots){if(dist(s.x,s.y,x,y)<=24){hit=s;break;}}
@@ -2966,7 +3266,11 @@ function tutWantBase(){const st=TS();return st&&st.want?st.want.split(':')[0]:nu
 function tutMapBlocked(){const w=tutWantBase();return !!(w&&(TUT_BTN[w]||w==='power'));}
 function learnMap(){if(!ACC.learn||typeof ACC.learn!=='object')ACC.learn={};return ACC.learn;}
 function ringHint(a,b,c){return !RING?a:!RING.arm?b:c;}
-function tutSlot(){return G.map?G.map.slots.filter(s=>!s.tower).sort((a,b)=>b.y-a.y)[0]:null;}
+/* the tutorial has its own short, straight road (the dead reach the first tower within seconds); slots near the middle of it are offered first */
+const TUT_LEVEL=Object.assign({},LEVELS[0],{routes:[[[195,-30],[195,120],[105,120],[105,300],[195,300],[195,544]]],gates:[195],style:'bend',stage:'t',intro:''});
+/* the first tower goes on the ring closest to the road 40% of the way down: the dead are in its range within seconds */
+function tutSlot(){if(!G.map)return null;const f=G.map.slots.filter(s=>!s.tower);if(!G.tutorial)return f.sort((a,b)=>b.y-a.y)[0]||null;
+  const R=G.map.routes[0],q=posAt(G.map,R.total*0.4,0);return f.sort((a,b)=>dist(a.x,a.y,q.x,q.y)-dist(b.x,b.y,q.x,q.y))[0]||null;}
 function tutTower(){const ts=G.map?G.map.slots.filter(s=>s.tower):[];return ts.sort((a,b)=>b.tower.lvl-a.tower.lvl||b.y-a.y)[0]||null;}
 function upgradeGold(){const s=tutTower();return s?upCost(s.tower):0;}
 const TUT_STEPS=[
@@ -2980,8 +3284,8 @@ const TUT_STEPS=[
  {t:'The first wave waits at the top of the road. Tap the ⚔ banner to call it now: calling early pays bonus gold.',pose:'point',want:'call',hint:'Tap the ⚔ banner at the top of the road',cam:[1],hodor:'HODOR HODOR!'},
  {t:'',want:'shot',silent:1,cam:'tower'},
  {t:'',want:'kill',hint:'Your tower shoots by itself. Every kill drops gold for you.',cond:()=>G.kills>0,cam:[1]},
- {t:'Your champion has ridden up from the keep. Tap the champion, then tap the ground where they should stand.',pose:'point',want:'move',hero:1,heroFx:1,cam:[1.5,GX,GATE_Y-52],camBack:1500,hodor:'HODOR! HODOR!',
-  hint:()=>G.heroSel?'Now tap the ground where they should stand':'Tap your champion (or their card at the bottom)'},
+ {t:'Your champion has ridden up from the keep. Tap the ground where they should stand and they will walk there.',pose:'point',want:'move',hero:1,heroFx:1,cam:[1.5,GX,GATE_Y-52],camBack:1500,hodor:'HODOR! HODOR!',
+  hint:()=>'Tap the ground where your champion should stand'},
  {t:'This card is your champion. The bar is health. The thin gold line is battle experience: fill it with kills and your champion grows stronger for the rest of the battle. A fallen champion rides back after a short while.',pose:'point',hold:1,focus:'#hCard'},
  {t:()=>{const u=SK[G.hero.c.sk[2]];return 'Every champion has one skill of their own. Yours is '+u.n+': '+u.d(skVal(G.hero,G.hero.c.sk[2]))+'. Tap it now.';},pose:'point',want:'ult',hodor:'Hodor!',
   hint:()=>'Tap '+SK[G.hero.c.sk[2]].e+' '+SK[G.hero.c.sk[2]].n+' at the bottom'},
@@ -3597,7 +3901,7 @@ function afterLoad(){
   if(!ACC.intro){showCinematic(()=>{ACC.intro=1;persist();showHub('battle');});return;}
   showHub('battle');
 }
-function startTutorial(){startGame({mode:'campaign',level:LEVELS[0],tutorial:1});}
+function startTutorial(){startGame({mode:'campaign',level:TUT_LEVEL,tutorial:1});}
 function newLang(i,q,selJ){
   if(sbReady()&&!CLOUD.lb)fetchLeaderboard(true).then(r=>{if(r&&CLOUD.screen==='newlang'&&$('#q'))newLang(i,$('#q').value,selJ);});
   const rows=realmStats(),top=rows.length?Math.max(1,rows[0].waves):1;
@@ -3877,7 +4181,7 @@ function showTowerRoom(k){
   const b=card.querySelector('#clist button[data-a="tl"]');if(b)b.addEventListener('click',()=>{if(cardLevelUp('t:'+k)){SFX.play('upgrade');persist();}else SFX.play('deny');showTowerRoom(k);});
 }
 /* ---------- hero room ---------- */
-function showHeroRoom(viewId){
+function showHeroRoom0(viewId){
   const hh=HOUSES[ACC.house],list=CHAMPS.filter(c=>c.house===ACC.house);
   const view=list.find(c=>c.id===viewId)||list.find(c=>c.id===ACC.sel)||list[0];
   const lvlCost=p=>ECON.lvlCost(p.lvl), skCost=l=>ECON.skCost(l);
@@ -4165,7 +4469,7 @@ async function ecoSaved(force){let n=0;
 
 /* ---------- the server's answer → this seat ---------- */
 function ecoCalm(){return !ECO.q.length&&!ECO.fly.length&&!ECO.fin&&!(G.state==='play'&&G.bid);}
-function ecoSig(){if(!ACC)return '';const o=ACC.online||{};return [ACC.gold,ACC.gems,ACC.axp,ACC.lvlChests,ACC.starChests,ACC.freeChestAt?1:0,o.attempts,o.doorBonus,o.goldBonus,JSON.stringify(ACC.campaign),JSON.stringify(ACC.hard),JSON.stringify(ACC.tlv),JSON.stringify(ACC.slv),JSON.stringify(ACC.upg),JSON.stringify(ACC.champs),JSON.stringify(ACC.deals),ACC.army&&ACC.army.lvl].join('|');}
+function ecoSig(){if(!ACC)return '';const o=ACC.online||{};return [ACC.gold,ACC.gems,ACC.axp,ACC.lvlChests,ACC.starChests,ACC.freeChestAt?1:0,o.attempts,o.doorBonus,o.goldBonus,JSON.stringify(ACC.campaign),JSON.stringify(ACC.hard),JSON.stringify(ACC.tlv),JSON.stringify(ACC.slv),JSON.stringify(ACC.upg),JSON.stringify(ACC.champs),JSON.stringify(ACC.deals),JSON.stringify(ACC.cards),JSON.stringify(ACC.copen),ACC.army&&ACC.army.lvl].join('|');}
 function ecoApply(st){
   if(!st||typeof st!=='object'||!ACC)return;const sig=ecoSig();
   ECO.st=st;ECO.at=Date.now();const t=Date.parse(st.at);if(t)ECO.off=t-Date.now();
@@ -4180,6 +4484,8 @@ function ecoApply(st){
   if(ecoCalm()){
     ecoLevels(st.levels||{},P);
     if(st.progress){const c={},h={};for(const k in (st.progress.c||{}))c[k]=+st.progress.c[k];for(const k in (st.progress.h||{}))h[k]=+st.progress.h[k];ACC.campaign=c;ACC.hard=h;}
+    if(st.cards&&typeof st.cards==='object')ACC.cards=Object.assign({},st.cards);
+    if(st.copen&&typeof st.copen==='object')ACC.copen=Object.assign(ACC.copen||{},st.copen);   /* v1.0.59: champions opened by the portal */   /* v1.0.58: the copies are the server's (backend v7) */
     if(st.deals&&st.deal_window!=null)ACC.deals={k:+st.deal_window,bought:(st.deals.b||[0,0,0,0,0,0]).map(Number),unl:(st.deals.u||[1,1,1,0,0,0]).map(Number)};
   }
   ACC.eco=CLOUD.tg_id||ACC.eco;
@@ -4189,7 +4495,7 @@ function ecoApply(st){
 function ecoLevels(L,P){
   const ids=new Set(Object.keys(ACC.champs||{}));for(const k in L){const m=/^(?:c|sk):([^:]+)/.exec(k);if(m)ids.add(m[1]);}
   for(const id of ids){if(!CBY[id])continue;const p=cprog(null,id);p.lvl=Math.min(CH_MAX,Math.max(1,+L['c:'+id]||1));
-    for(let i=0;i<3;i++)p.sk[i]=Math.min(SK_MAX,Math.max(1,+L['sk:'+id+':'+i]||1));if(p.lvl<TAL_AT)p.tal=0;}
+    for(let i=0;i<3;i++)p.sk[i]=Math.min(SK_MAX,Math.max(1,+L['sk:'+id+':'+i]||1));p.st=Math.max(1,+L['st:'+id]||0);if(p.lvl<TAL_AT)p.tal=0;}
   const tl={},sl={},up={};
   for(const k in L){const v=+L[k]||0;if(k.startsWith('t:'))tl[k.slice(2)]=v;else if(k.startsWith('s:'))sl[k.slice(2)]=v;else if(k.startsWith('upg:')&&v>0)up[k.slice(4)]=1;}
   ACC.tlv=tl;ACC.slv=sl;ACC.upg=up;ACC.army=Object.assign(ACC.army||{},{lvl:Math.max(1,+L.army||1)});
@@ -4237,7 +4543,7 @@ function ecoStart(){
     ecoApply(st);ecoClaims(st);
     if(ECO.q.length)await ecoSyncRaw();
     if(ECO.fin)await ecoFinRaw();
-    ecoTicker();if(ecoSig()!==sig){persist();ecoRedraw();}
+    await gearLoadRaw(false);starsResume();ecoTicker();if(ecoSig()!==sig){persist();ecoRedraw();}
     return true;
   }).catch(e=>{const m=ecoMsg(e);ECO.err=m;ECO.failAt=Date.now();if(/Could not find the function|PGRST202|schema cache/i.test(m))ECO.none=true;return false;})
     .finally(()=>{if(ECO.starting===p)ECO.starting=null;});
@@ -4287,7 +4593,10 @@ async function ecoFinRaw(again){
     if(/no battle/.test(m)){ECO.fin=null;ecoSaveQ();return null;}ECO.err=m;ecoRetryLater();return null;}
   ECO.fin=null;ecoSaveQ();ECO.last=r;
   let st=r&&r.state;if(!st&&f.seat===seatNo()){try{st=await ecoRpc('econ_state',{seat:f.seat},9000);}catch(e){}}
+  const c0=Object.assign({},ACC&&ACC.cards||{});
   if(st&&f.seat===seatNo())ecoApply(st);
+  if(r&&r.ok&&f.won&&st&&st.cards&&f.seat===seatNo()){const got=Object.keys(st.cards).filter(k=>(+st.cards[k]||0)>(+c0[k]||0)).map(k=>'+'+(st.cards[k]-(c0[k]||0))+' '+cardName(k));if(got.length)ecoToast('🃏 '+got.join(' · '),true);}
+  if(r&&r.ok&&f.seat===seatNo())await gearLoadRaw(true);
   if(r&&r.ok===false)ecoRefused(['battle not counted — '+(r.why||r.status||'refused')]);
   return r;}
 
@@ -4296,9 +4605,9 @@ async function ecoChest(t,source,done){
   if(ECO.busyC)return;ECO.busyC=true;ecoWait(true);
   try{
     if(!ecoOn()&&!(await ecoStart()))throw new Error(ECO.err||'offline');
-    const r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('chest_open',{seat:seatNo(),tier:t,source},10000);ecoApply(x.state);return x;});
+    const r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('chest_open',{seat:seatNo(),tier:t,source},10000);ecoApply(x.state);await gearLoadRaw(true);return x;});
     ecoWait(false);
-    ECO.roll={id:r.chest,gold:+r.gold||0,gems:+r.gems||0};try{openChest(t,done);}finally{ECO.roll=null;}
+    ECO.roll={id:r.chest,gold:+r.gold||0,gems:+r.gems||0,stacks:r.stacks,fills:+r.fills||0,books:r.books||[]};try{openChest(t,done);}finally{ECO.roll=null;}
   }catch(e){ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))ecoRefresh();
     ecoModal('📦 The chest stays shut',ecoNet(m)?'No connection to the server. Chests on this seat open only through it — try again in a moment.':esc(m),[{t:'OK',f:ecoRedraw}]);}
   finally{ECO.busyC=false;}}
@@ -4336,9 +4645,9 @@ function cardLevelUp(key){const s=ecoSnap(),l=cardLvl(key),need=cardNeed(key),ok
 function trainArmy(){const s=ecoSnap(),l=armyLvl(),ok=trainArmy0();if(ok)ecoOp({r:'army',to:l+1},ecoDiff(s));return ok;}
 function buyPack(k){const s=ecoSnap(),ok=buyPack0(k);if(ok)ecoOp({r:'pack',k},ecoDiff(s),{pack:k});return ok;}
 function buyDeal(i){const s=ecoSnap(),D=dealsState(),d=genDeals()[i],ok=buyDeal0(i);
-  if(ok&&d){const g={k:d.k};if(d.k==='gold')g.gold=d.gold;else if(d.k==='gems')g.gems=d.gems;else if(d.k==='cards'){g.key=d.key;g.cnt=d.cnt;}
+  if(ok&&d){const g={k:d.k};if(d.k==='gold')g.gold=d.gold;else if(d.k==='gems')g.gems=d.gems;else if(d.k==='cards'||d.k==='books'){g.key=d.key;g.cnt=d.cnt;}
     else if(d.k==='sk'){g.c=d.c;g.i=d.i;}else if(d.k==='upg')g.u=d.u;
-    ecoOp({r:'deal',i,w:D.k,g,p:d.price||{}},ecoDiff(s),d.k==='cards'?{cards:[d.key,-d.cnt]}:null);}
+    ecoOp({r:'deal',i,w:D.k,g,p:d.price||{}},ecoDiff(s),d.k==='cards'||d.k==='books'?{cards:[d.key,-d.cnt]}:null);}
   return ok;}
 function unlockDeal(i){const s=ecoSnap(),D=dealsState(),ok=unlockDeal0(i);if(ok)ecoOp({r:'dealunl',i,w:D.k},ecoDiff(s));return ok;}
 
@@ -4352,6 +4661,308 @@ function ecoToast(msg,ok){try{let el=document.getElementById('ecoToast');if(!el)
 function ecoWait(on){try{let el=document.getElementById('ecoWait');if(!el){el=document.createElement('div');el.id='ecoWait';el.innerHTML='<span>⏳ the server…</span>';document.getElementById('app').appendChild(el);}el.className=on?'on':'';}catch(e){}}
 function ecoRedraw(){try{if(!ACC||G.state==='play')return;const cer=document.getElementById('cer');if(cer&&cer.innerHTML)return;const sc=CLOUD.screen||'';if(sc.indexOf('hub:')===0)showHub(sc.slice(4));}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&ecoOn())ecoFlush();});
+/* =========================== GEAR + FORGE (v1.0.57, gear II in v1.0.62) ===========================
+   Items live on the server (backend v6, v11): it decides every drop (a won battle, a Hold run of 10+ waves, a chest, a login or quest gift),
+   the rarity, tier, slot, set, main stat and substats, and every forge try. 9 slots per champion; the equipped items add to the champion's
+   health, damage, attack speed, walking speed, range, cooldowns, gold from kills, armor, lifesteal, regeneration and crit chance.
+   Tiers ★1–5 set the level cap (+4 a tier) and multiply the main stat; a tier is raised with gold and another item of the same rarity.
+   Twelve sets (quads 2+4, pairs 2, triples 3 — pairs and triples repeat for every full group), plus two collection bonuses:
+   one item of every rarity (Rainbow) and all nine slots filled (Full kit). Guests have no gear. */
+const GEAR_SLOT={weapon:['⚔️','Weapon'],offhand:['🛡️','Shield'],helmet:['⛑️','Helmet'],armor:['🧥','Armor'],gloves:['🧤','Gloves'],boots:['🥾','Boots'],ring:['💍','Ring'],amulet:['📿','Amulet'],banner:['🚩','Banner']};
+const GEAR_SLOTS=Object.keys(GEAR_SLOT);
+/* a shape and a name for every item: its KIND (from the server, the same order as backend/gear_kinds.py — 54 kinds); the kind decides its main stats and its special effects */
+const GEAR_KIND={weapon:[['Sword','⚔️'],['Axe','🪓'],['Spear','🔱'],['Bow','🏹'],['Crossbow','🎯'],['Staff','🪄'],['Dagger','🗡️'],['Warhammer','🔨'],['Halberd','⚜️'],['Flail','⛓️']],offhand:[['Shield','🛡️'],['Buckler','🔘'],['Kite shield','🔰'],['Tome','📖'],['Torch','🔥'],['Orb','🔮']],helmet:[['Helm','⛑️'],['Hood','🧢'],['Crown','👑'],['Coif','🪖'],['Mask','🎭'],['Horned helm','🐂']],armor:[['Mail','🧥'],['Plate','🥋'],['Robe','👘'],['Jerkin','🦺'],['Cloak','🧣'],['Brigandine','🥼']],gloves:[['Gauntlets','🧤'],['Gloves','🥊'],['Bracers','💪'],['Mitts','🫱']],boots:[['Boots','🥾'],['Greaves','🦿'],['Sandals','🩴'],['Spurs','⚙️']],ring:[['Ring','💍'],['Signet','🏵️'],['Band','⭕'],['Seal','🔴'],['Loop','🪢'],['Claw ring','🐾']],amulet:[['Amulet','📿'],['Pendant','🔗'],['Talisman','🧿'],['Charm','🍀'],['Fang','🦷'],['Relic','🏺']],banner:[['Banner','🚩'],['Standard','🏴'],['Pennant','🎏'],['War horn','📯'],['Totem','🗿'],['Sigil','🔱']]};
+const GEAR_RAR=[['Common','#9aa4b1'],['Uncommon','#5fcf6a'],['Rare','#4fb0ff'],['Epic','#b47cff'],['Legendary','#e3b661']];
+const GEAR_STAT={dmg:'Damage',hp:'Health',rate:'Attack speed',spd:'Speed',cdr:'Cooldowns',gold:'Gold from kills',range:'Range',armor:'Armor',lifesteal:'Lifesteal',regen:'Regeneration',crit:'Crit chance'};
+const GEAR_SET={wolf:['🐺','Direwolf'],lion:['🦁','Lion'],dragon:['🐉','Dragon'],kraken:['🐙','Kraken'],stag:['🦌','Stag'],rose:['🌹','Rose'],sun:['☀️','Sun'],anvil:['🔨','Anvil'],wall:['🧱','Wall'],blood:['🩸','Blood'],raven:['🐦‍⬛','Raven'],hunt:['🏹','Hunt']};
+/* drop-in art: GEAR_ART['weapon'] / ['weapon:Axe'] → an image for the slot or shape; SET_ART['wolf'] → the set's emblem; TIER_ART, FRAME_ART[rarity] (see docs/prompts-gear.md) */
+const GEAR_ART={},SET_ART={},FRAME_ART={};
+/* art sheets (docs/prompts-gear.md): 3×3 (or 4×3) grids on magenta, cut into cells; the magenta becomes transparent. setGearSheet('kinds1'…'kinds6', url) (nine kinds each, in the order of backend/gear_kinds.py), setGearSheet('sets', url) */
+const GEAR_SHEETS={
+  kinds1:{cols:3,rows:3,keys:['weapon:Sword','weapon:Axe','weapon:Spear','weapon:Bow','weapon:Crossbow','weapon:Staff','weapon:Dagger','weapon:Warhammer','weapon:Halberd']},
+  kinds2:{cols:3,rows:3,keys:['weapon:Flail','offhand:Shield','offhand:Buckler','offhand:Kite shield','offhand:Tome','offhand:Torch','offhand:Orb','helmet:Helm','helmet:Hood']},
+  kinds3:{cols:3,rows:3,keys:['helmet:Crown','helmet:Coif','helmet:Mask','helmet:Horned helm','armor:Mail','armor:Plate','armor:Robe','armor:Jerkin','armor:Cloak']},
+  kinds4:{cols:3,rows:3,keys:['armor:Brigandine','gloves:Gauntlets','gloves:Gloves','gloves:Bracers','gloves:Mitts','boots:Boots','boots:Greaves','boots:Sandals','boots:Spurs']},
+  kinds5:{cols:3,rows:3,keys:['ring:Ring','ring:Signet','ring:Band','ring:Seal','ring:Loop','ring:Claw ring','amulet:Amulet','amulet:Pendant','amulet:Talisman']},
+  kinds6:{cols:3,rows:3,keys:['amulet:Charm','amulet:Fang','amulet:Relic','banner:Banner','banner:Standard','banner:Pennant','banner:War horn','banner:Totem','banner:Sigil']},
+  sets:{cols:4,rows:3,keys:['wolf','lion','dragon','kraken','stag','rose','sun','anvil','wall','blood','raven','hunt'],into:'SET'}};
+function setGearSheet(name,url){const S=GEAR_SHEETS[name];if(!S)return;const im=new Image();
+  im.onload=()=>{const cw=Math.floor(im.width/S.cols),ch=Math.floor(im.height/S.rows),into=S.into==='SET'?SET_ART:GEAR_ART;
+    S.keys.forEach((k,i)=>{if(!k)return;const c=document.createElement('canvas');c.width=cw;c.height=ch;const x=c.getContext('2d');x.drawImage(im,(i%S.cols)*cw,Math.floor(i/S.cols)*ch,cw,ch,0,0,cw,ch);
+      try{const d=x.getImageData(0,0,cw,ch),p=d.data;for(let j=0;j<p.length;j+=4)if(p[j]>190&&p[j+1]<90&&p[j+2]>190)p[j+3]=0;x.putImageData(d,0,0);}catch(e){}
+      into[k]=c.toDataURL('image/png');});};
+  im.src=url;}
+const GEAR_ZERO=()=>({dmg:0,hp:0,rate:0,spd:0,cdr:0,gold:0,range:0,armor:0,lifesteal:0,regen:0,crit:0});
+function gearOn(){return !!(ecoOn()||(ECO.gear&&ECO.gear.test));}
+function gearItems(){return (ECO.gear&&gearOn()&&ECO.gear.items)||[];}
+function gearCfg(){return (ECO.gear&&ECO.gear.cfg)||null;}
+function gearKind(it){const L=GEAR_KIND[it.slot]||[['Item','❔']];return L[(it.kind||0)%L.length];}
+/* special effects (perks): skill mechanics granted by an item; rank = ⌈(rarity+tier)/2⌉ (1–5); the champion gets the best rank of each perk he wears */
+function gearPerkRank(it){return it.pr||Math.min(5,Math.max(1,Math.ceil((it.r+gearTier(it))/2)));}
+function gearPerks(cid){const o={};for(const it of gearItems())if(it.champ===cid&&it.perks)for(const p of it.perks){if(!SK[p])continue;const r=gearPerkRank(it);if(r>(o[p]||0))o[p]=r;}return o;}
+function gearPerkText(id,rank){const S=SK[id];if(!S)return id;const v=S.v[Math.min(rank,S.v.length)-1];return `${S.e} <b>${S.n}</b> ${rank}/5 — ${S.d(v)}${S.cd?' (every '+S.cd+' s)':''}`;}
+function gearTier(it){return Math.max(1,Math.min(5,it.tier||1));}
+function gearCap(it){return it.cap||gearTier(it)*4;}
+/* what a set gives for n pieces: [{th, bonus, times, on}] — quads have 2 and 4; pairs and triples repeat for every full group */
+function setSteps(k,n){const b=(gearCfg()&&gearCfg().sets&&gearCfg().sets[k])||{},ths=Object.keys(b).filter(x=>/^\d+$/.test(x)).map(Number).sort((a,c)=>a-c),out=[];
+  for(const th of ths){const times=b.stack?Math.floor(n/th):(n>=th?1:0);out.push({th,bonus:b[th],times,on:times>0});}return out;}
+/* the sum of everything a champion wears, in % (main + substats + set bonuses + the collection bonuses) */
+function gearStats(cid){const s=GEAR_ZERO(),C=gearCfg();if(!C)return s;const sets={},rars=new Set();let worn=0;
+  for(const it of gearItems()){if(it.champ!==cid)continue;worn++;rars.add(it.r);s[it.main.k]=(s[it.main.k]||0)+(+it.main.v||0);for(const x of it.subs||[])s[x.k]=(s[x.k]||0)+(+x.v||0);sets[it.set]=(sets[it.set]||0)+1;}
+  for(const k in sets)for(const st of setSteps(k,sets[k]))if(st.on)for(const x in st.bonus)s[x]=(s[x]||0)+st.bonus[x]*st.times;
+  const A=C.bonus_all||{};if(rars.size>=5&&A.rainbow)for(const x in A.rainbow)s[x]=(s[x]||0)+A.rainbow[x];
+  if(worn>=GEAR_SLOTS.length&&A.full)for(const x in A.full)s[x]=(s[x]||0)+A.full[x];
+  for(const k in s)s[k]=Math.round(s[k]*10)/10;return s;}
+/* the numbers the battle uses: some stats stop growing at a cap */
+function gearEff(cid){const s=gearStats(cid),c=(gearCfg()&&gearCfg().caps)||{};const e=Object.assign({},s);for(const k in c)e[k]=Math.min(c[k],s[k]||0);return e;}
+/* the set overview for a champion: [{k, n, steps}] for sets worn, and the collection bonuses' progress */
+function gearSetInfo(cid){const sets={},rars=new Set();let worn=0;for(const it of gearItems()){if(it.champ!==cid)continue;worn++;rars.add(it.r);sets[it.set]=(sets[it.set]||0)+1;}
+  return{sets:Object.keys(sets).sort((a,b)=>sets[b]-sets[a]).map(k=>({k,n:sets[k],steps:setSteps(k,sets[k])})),rainbow:rars.size,full:worn,worn};}
+function gearCost(it){const C=gearCfg();return C?Math.round((C.cost_base+C.cost_step*it.lvl)*C.rar_cost[it.r]/10)*10:0;}
+function gearTierCost(it){const C=gearCfg();return C&&gearTier(it)<5?Math.round(C.tier_cost[gearTier(it)-1]*C.rar_cost[it.r]/10)*10:0;}
+function gearChance(it){const C=gearCfg();return C&&it.lvl<gearCap(it)?C.chance[it.lvl]:0;}
+function gearSellPrice(it){const C=gearCfg();return C?Math.round(C.sell*C.rar_cost[it.r]*(1+it.lvl)*(1+0.5*(gearTier(it)-1))):0;}
+function gearName(it){const k=gearKind(it);return GEAR_RAR[it.r][0]+' '+GEAR_SET[it.set][1]+' '+k[0]+(it.lvl?' +'+it.lvl:'');}
+function gearLine(k,v){if(k==='regen')return `Regeneration +${v}% health / 10 s`;if(k==='armor')return `Armor +${v}% (damage taken −${v}%)`;if(k==='lifesteal')return `Lifesteal +${v}% (of the damage dealt heals you)`;if(k==='crit')return `Crit chance +${v}% (a blow may deal triple damage)`;return `${GEAR_STAT[k]||k} +${v}%`;}
+function gearLineShort(k,v){return k==='regen'?`${GEAR_STAT[k]} +${v}%/10s`:`${GEAR_STAT[k]||k} +${v}%`;}
+function gearBonusText(b,times){return Object.keys(b).map(k=>gearLineShort(k,b[k]*(times||1))).join(', ');}
+/* the server's bag: after entering a seat, a battle, a chest; new items are announced */
+async function gearLoadRaw(announce){if(!CLOUD.on||!CLOUD.token)return;const seat=seatNo();
+  try{const r=await ecoRpc('gear_list',{seat},9000);if(seat!==seatNo())return;const old=new Set(((ECO.gear&&ECO.gear.items)||[]).map(x=>x.id)),had=!!ECO.gear;ECO.gear=r;
+    if(announce&&had){const nw=(r.items||[]).filter(x=>!old.has(x.id));if(nw.length)ecoToast('⚒️ New gear: '+nw.map(gearName).join(' · '),true);}}catch(e){}}
+function gearLoad(announce){return ecoLane(()=>gearLoadRaw(announce));}
+function tierPips(it){return '★'.repeat(gearTier(it))+'<i>'+'★'.repeat(5-gearTier(it))+'</i>';}
+function gearIcon(it,px){const R=GEAR_RAR[it.r],k=gearKind(it),art=GEAR_ART[it.slot+':'+k[0]]||GEAR_ART[it.slot],sa=SET_ART[it.set];
+  return `<span class="gic" style="--gc:${R[1]};${px?'font-size:'+px+'px':''}">${art?`<img src="${art}" alt="">`:k[1]}<b class="gset">${sa?`<img src="${sa}" alt="">`:GEAR_SET[it.set][0]}</b><u class="gtier">${tierPips(it)}</u>${it.perks&&it.perks.length?`<s class="gpk2">${'✦'.repeat(it.perks.length)}</s>`:''}${it.lvl?`<em>+${it.lvl}</em>`:''}</span>`;}
+/* ---------- the forge screen: the champion's 9 slots, its set bonuses, the bag ---------- */
+function gearBonusBlock(cid){const I=gearSetInfo(cid),C=gearCfg()||{},A=C.bonus_all||{},rows=[];
+  for(const s of I.sets){const S=GEAR_SET[s.k];rows.push(`<div class="gbn ${s.steps.some(x=>x.on)?'on':''}"><b>${S[0]} ${S[1]} · ${s.n}</b>${s.steps.map(x=>`<span class="${x.on?'on':''}">${x.th}: ${gearBonusText(x.bonus,x.on?x.times:1)}${x.times>1?' ×'+x.times:''}</span>`).join('')}</div>`);}
+  if(A.rainbow)rows.push(`<div class="gbn ${I.rainbow>=5?'on':''}"><b>🌈 Rainbow · ${I.rainbow}/5 rarities</b><span class="${I.rainbow>=5?'on':''}">${gearBonusText(A.rainbow)}</span></div>`);
+  if(A.full)rows.push(`<div class="gbn ${I.full>=9?'on':''}"><b>🎽 Full kit · ${I.full}/9 slots</b><span class="${I.full>=9?'on':''}">${gearBonusText(A.full)}</span></div>`);
+  return rows.join('');}
+function showForge(cid,filter){
+  const mine=CHAMPS.filter(c=>c.house===ACC.house&&unlocked(null,c));cid=(cid&&CBY[cid])?cid:ACC.sel;const c=CBY[cid];
+  if(!gearOn()){show(`<div class="topbar"><h1>⚒️ Forge<small>Gear is made and forged on the server.</small></h1><button class="back" id="bBack">✖</button></div>
+    <p>The forge opens for a seat played through Telegram, where the server keeps your items safe.</p><button class="btn" id="bOk">✔ Back</button>`);
+    const back=()=>showHub('battle');$('#bBack').addEventListener('click',back);$('#bOk').addEventListener('click',back);return;}
+  const all=gearItems(),worn={};for(const it of all)if(it.champ===cid)worn[it.slot]=it;
+  const st=gearStats(cid),caps=(gearCfg()&&gearCfg().caps)||{},stl=Object.keys(st).filter(k=>st[k]).map(k=>`<span class="gs">${gearLineShort(k,st[k])}${caps[k]&&st[k]>caps[k]?' <em>(max '+caps[k]+')</em>':''}</span>`).join('')||'Nothing worn yet — every slot adds power.';
+  const bag=all.filter(it=>it.champ!==cid&&(!filter||it.slot===filter)).sort((a,b)=>b.r-a.r||gearTier(b)-gearTier(a)||b.lvl-a.lvl||(a.slot<b.slot?-1:1));
+  const champs=mine.map(x=>`<button class="gch ${x.id===cid?'on':''}" data-c="${x.id}">${CHAMP_ART[x.id+'_portrait']?`<img src="${CHAMP_ART[x.id+'_portrait']}" alt="">`:`<span>${x.e}</span>`}</button>`).join('');
+  const slots=GEAR_SLOTS.map(k=>{const it=worn[k];return `<button class="gslot ${it?'':'empty'} ${filter===k?'on':''}" data-s="${k}" ${it?`data-i="${it.id}" style="--gc:${GEAR_RAR[it.r][1]}"`:''}>${it?gearIcon(it):`<span class="gic e">${GEAR_SLOT[k][0]}</span>`}<small>${GEAR_SLOT[k][1]}</small></button>`;}).join('');
+  show(`<div class="topbar"><h1>⚒️ Forge<small>Gear drops from battles, the Hold, chests and daily gifts. Strike at the anvil — a failed strike costs the gold, never the item. A tier ★ opens four more levels.</small></h1><button class="back" id="bBack">✖</button></div>
+  <div class="gchs">${champs}</div>
+  <div class="gwho"><b>${esc(c.n)}</b><div class="gsl">${stl}</div></div>
+  <div class="gslots">${slots}</div>
+  <div class="gbns">${gearBonusBlock(cid)}</div>
+  <div class="hh"><h2>Bag · ${all.length}/${(gearCfg()||{}).cap||300}</h2><small>${filter?`${GEAR_SLOT[filter][1]} only · <a href="#" id="gAll">all</a>`:'tap a slot to filter'} · <a href="#" id="gSets">📚 sets</a></small></div>
+  <div class="gbag">${bag.map(it=>`<button class="gitem" data-i="${it.id}" style="--gc:${GEAR_RAR[it.r][1]}">${gearIcon(it)}<small>${GEAR_RAR[it.r][0]}${it.champ?' · on '+esc(shortName(CBY[it.champ]||{n:it.champ})):''}</small></button>`).join('')||'<p class="m" style="font-size:12px">Empty. Win battles, hold the door, open chests, claim the daily gifts.</p>'}</div>
+  <p class="m" style="font-size:11.5px">🪙 ${fmtN(goldOf())} gold</p>`);
+  CLOUD.screen='forge';
+  $('#bBack').addEventListener('click',()=>showHub('battle'));
+  bind('.gch',b=>{SFX.play('tap',50);showForge(b.dataset.c,filter);});
+  bind('.gslot',b=>{SFX.play('tap',50);if(b.dataset.i)gearSheet(b.dataset.i,cid,filter);else showForge(cid,filter===b.dataset.s?null:b.dataset.s);});
+  bind('.gitem',b=>{SFX.play('tap',50);gearSheet(b.dataset.i,cid,filter);});
+  const ga=$('#gAll');if(ga)ga.addEventListener('click',e=>{e.preventDefault();showForge(cid,null);});
+  const gs=$('#gSets');if(gs)gs.addEventListener('click',e=>{e.preventDefault();SFX.play('tap',50);gearSetBook(cid,filter);});}
+/* every set at a glance: what it needs and what it gives (and how many the champion wears) */
+function gearSetBook(cid,filter){const C=gearCfg();if(!C)return;const I=gearSetInfo(cid),have={};for(const s of I.sets)have[s.k]=s.n;
+  const kinds=[['Quads — 2 or 4 pieces',k=>C.sets[k]['4']],['Pairs — 2 pieces, repeats for every pair',k=>C.sets[k].stack&&C.sets[k]['2']&&!C.sets[k]['4']],['Triples — 3 pieces, repeats for every three',k=>C.sets[k]['3']]];
+  const html=kinds.map(([t,f])=>`<div class="sbk"><h4>${t}</h4>${Object.keys(C.sets).filter(f).map(k=>{const S=GEAR_SET[k]||['❔',k],n=have[k]||0;return `<div class="sbr ${n?'on':''}"><b>${S[0]} ${S[1]}${n?' · '+n+' worn':''}</b>${setSteps(k,n).map(x=>`<span class="${x.on?'on':''}">${x.th}: ${gearBonusText(x.bonus)}</span>`).join('')}</div>`;}).join('')}</div>`).join('')
+    +`<div class="sbk"><h4>Collections</h4><div class="sbr"><b>🌈 Rainbow</b><span>one item of each of the 5 rarities: ${gearBonusText((C.bonus_all||{}).rainbow||{})}</span></div><div class="sbr"><b>🎽 Full kit</b><span>all 9 slots filled: ${gearBonusText((C.bonus_all||{}).full||{})}</span></div></div>`;
+  ecoModal('📚 Sets',`<div class="sbook">${html}</div>`,[{t:'Close',f:()=>showForge(cid,filter)}]);}
+function gearSheet(id,cid,filter){const it=gearItems().find(x=>x.id===id);if(!it)return;const R=GEAR_RAR[it.r],S=GEAR_SET[it.set],C=gearCfg(),sb=(C&&C.sets[it.set])||{};
+  const worn=it.champ===cid,cost=gearCost(it),ch=gearChance(it),cap=gearCap(it),atCap=it.lvl>=cap,t=gearTier(it),tcost=gearTierCost(it);
+  const steps=Object.keys(sb).filter(x=>/^\d+$/.test(x)).sort().map(x=>`${x}: ${gearBonusText(sb[x])}`).join(' · ')+(sb.stack?' · repeats':'');
+  const html=`<div class="gsheet" style="--gc:${R[1]}">${gearIcon(it,34)}<b>${gearName(it)}</b><small class="gtr">Tier ${'★'.repeat(t)}${'☆'.repeat(5-t)} · level ${it.lvl}/${cap}</small>
+    <div class="gst"><em>${gearLine(it.main.k,it.main.v)}</em>${(it.subs||[]).map(x=>`<span>${gearLine(x.k,x.v)}</span>`).join('')}</div>
+    ${(it.perks&&it.perks.length)?`<div class="gperk">${it.perks.map(p=>`<span>${gearPerkText(p,gearPerkRank(it))}</span>`).join('')}</div>`:''}
+    <small>${S[0]} ${S[1]} set · ${steps}</small>
+    ${!atCap?`<small>Next strike: +${it.lvl+1} · ${ch}% · 🪙${cost}${(it.lvl+1)%4===0?' · a substat grows':''}</small>`:t<5?`<small>At its cap. Raise the tier: 🪙${tcost} and another ${R[0]} item of tier ${t}+ to burn — the item goes on to +${cap+4}.</small>`:'<small>Fully forged: tier 5, +20.</small>'}</div>`;
+  ecoModal(`${S[0]} ${gearKind(it)[0]}`,html,[
+    !atCap?{t:`⚒️ Strike +${it.lvl+1} · ${ch}% · 🪙${cost}`,dis:goldOf()<cost,f:()=>gearUpgrade(it.id,cid,filter)}:null,
+    atCap&&t<5?{t:`⬆ Tier ${t+1} · 🪙${tcost}`,dis:goldOf()<tcost,f:()=>gearTierPick(it.id,cid,filter)}:null,
+    {t:worn?'Take off':`Put on ${esc(shortName(CBY[cid]))}`,f:()=>gearEquip(it.id,worn?null:cid,cid,filter)},
+    {t:`Sell · 🪙${gearSellPrice(it)}`,f:()=>ecoModal('Sell it?',`${gearName(it)} for 🪙${gearSellPrice(it)}. This cannot be undone.`,[{t:'Sell',f:()=>gearSell(it.id,cid,filter)},{t:'Keep',f:()=>gearSheet(id,cid,filter)}])},
+    {t:'Close'}].filter(Boolean));}
+/* which item to burn for the tier: same rarity, the same tier or higher, not the item itself */
+function gearTierPick(id,cid,filter){const it=gearItems().find(x=>x.id===id);if(!it)return;const t=gearTier(it);
+  const list=gearItems().filter(x=>x.id!==id&&x.r===it.r&&gearTier(x)>=t).sort((a,b)=>gearTier(a)-gearTier(b)||(a.champ?1:0)-(b.champ?1:0)||a.lvl-b.lvl);
+  if(!list.length){ecoModal('⬆ Nothing to burn',`A tier needs another <b style="color:${GEAR_RAR[it.r][1]}">${GEAR_RAR[it.r][0]}</b> item of tier ${t} or higher to burn. Win battles and open chests to find one.`,[{t:'Back',f:()=>gearSheet(id,cid,filter)}]);return;}
+  const html=`<p class="m">Burn one item to raise ${gearName(it)} to tier ${t+1}. It is gone for good.</p><div class="gpick">${list.slice(0,30).map(x=>`<button class="gpk" data-f="${x.id}" style="--gc:${GEAR_RAR[x.r][1]}">${gearIcon(x)}<small>${gearTier(x)}★ · +${x.lvl}${x.champ?' · worn':''}</small></button>`).join('')}</div>`;
+  ecoModal('🔥 Burn which item?',html,[{t:'Cancel',f:()=>gearSheet(id,cid,filter)}]);
+  document.querySelectorAll('#ecoModal .gpk').forEach(b=>b.addEventListener('click',ev=>{ev.stopPropagation();const fo=b.dataset.f,x=gearItems().find(y=>y.id===fo);
+    document.getElementById('ecoModal').className='';document.getElementById('ecoModal').innerHTML='';
+    ecoModal('Burn it?',`${gearName(x)} is burnt for good, and ${gearName(it)} rises to tier ${t+1} for 🪙${gearTierCost(it)}.`,[{t:'🔥 Burn',f:()=>gearTierUp(id,fo,cid,filter)},{t:'Keep',f:()=>gearSheet(id,cid,filter)}]);}));}
+async function gearCall(fn,args,after){ecoWait(true);
+  try{const r=await ecoLane(async()=>{const x=await ecoRpc(fn,Object.assign({seat:seatNo()},args),10000);if(x&&x.state)ecoApply(x.state);if(x&&x.items)ECO.gear=Object.assign({},ECO.gear,{items:x.items,cfg:x.cfg||gearCfg()});return x;});ecoWait(false);after&&after(r);}
+  catch(e){ecoWait(false);const m=ecoMsg(e);ecoToast('⚠️ '+(ecoNet(m)?'No connection to the server':m));SFX.play('deny');}}
+function gearUpgrade(id,cid,filter){gearCall('gear_upgrade',{item:id,op:ecoUuid()},r=>{
+  if(r.item){const L=ECO.gear.items;const i=L.findIndex(x=>x.id===r.item.id);if(i>=0)L[i]=r.item;}
+  if(r.ok){SFX.play('upgrade');ecoToast(`⚒️ Success: ${gearName(r.item)}`,true);}else{SFX.play('deny');ecoToast(`The strike failed — 🪙${r.cost} gone, the item is safe`);}
+  persist();showForge(cid,filter);gearSheet(id,cid,filter);});}
+function gearTierUp(id,fodder,cid,filter){gearCall('gear_tier_up',{item:id,fodder,op:ecoUuid()},r=>{SFX.play('levelup');ecoToast(`⬆ ${gearName(r.item)} is now tier ${gearTier(r.item)}`,true);persist();showForge(cid,filter);gearSheet(id,cid,filter);});}
+function gearEquip(id,to,cid,filter){gearCall('gear_equip',{item:id,champ:to},()=>{SFX.play('upgrade');showForge(cid,filter);});}
+function gearSell(id,cid,filter){gearCall('gear_sell',{item:id},r=>{SFX.play('buy');ecoToast(`+🪙${r.gold}`,true);persist();showForge(cid,filter);});}
+/* =========================== TELEGRAM STARS (v1.0.60) ===========================
+   Dragonglass packs and the Starter pack are paid with Telegram Stars. The app only asks the server for an invoice
+   (Edge Function `stars`), opens it in Telegram (WebApp.openInvoice), and then waits until the server says "paid"
+   (pay_status) and reads its balance. Nothing is credited here: Telegram tells the server, the server credits the seat
+   (backend v9: payments, ledger reason 'stars'). Guests and seats without the server cannot buy. */
+const STARS_SHOP={
+ gems_s:{stars:50,gems:150,n:'Pouch',title:'Pouch of dragonglass',desc:'150 dragonglass for your seat.'},
+ gems_m:{stars:125,gems:400,n:'Chest',title:'Chest of dragonglass',desc:'400 dragonglass for your seat.'},
+ gems_l:{stars:350,gems:1200,n:'Hoard',title:'Hoard of dragonglass',desc:'1200 dragonglass for your seat.'},
+ starter:{stars:75,once:true,gems:300,gold:5000,books:{'b:r':3},n:'Starter pack',title:'Starter pack',desc:'300 dragonglass, 5000 gold and 3 Rare books for your seat. Once per seat.'},
+};
+const STARS_KEY='holdor_pay';
+const STARS={starter:null,starterSeat:-1,busy:false,pending:null};
+function starsUrl(){return SB.url+'/functions/v1/stars';}
+function starsCan(){return !!(ecoOn()&&TG&&typeof TG.openInvoice==='function');}
+function starsShopLoad(){if(!ecoOn()||STARS.starterSeat===seatNo())return;STARS.starterSeat=seatNo();
+  ecoRpc('pay_shop',{seat:seatNo()},8000).then(r=>{STARS.starter=!!(r&&r.starter);ecoRedraw();}).catch(()=>{STARS.starterSeat=-1;});}
+function starsPack(k,big){const S=STARS_SHOP[k],can=starsCan();
+  return `<div class="sitem ${big?'starter':''}" style="--rc:${k==='starter'?'#ffd54a':'#4fb0ff'}">${k==='starter'?'<span class="badge">ONCE</span>':''}<span class="ch dic">${GEM_SVG}</span><b>${S.n}</b>
+   <small>+${S.gems} dragonglass${S.gold?` · ${fmtN(S.gold)} gold`:''}${S.books?' · 3 Rare books':''}</small>
+   <button class="stbtn" data-stars="${k}" ${can?'':'disabled'}>⭐ ${S.stars}</button></div>`;}
+function starsShopHTML(){
+  if(ecoOn())starsShopLoad();
+  const note=starsCan()?'':`<p class="shopnote">${ecoOn()?'Open the game in an up-to-date Telegram to pay with Stars.':'Payments work on a seat signed in through Telegram — the server credits it.'}</p>`;
+  return `<div class="hh" style="margin-top:14px"><h2>Dragonglass</h2><small>pay with Telegram Stars ⭐</small></div>${note}
+  <div class="shopgrid three">${['gems_s','gems_m','gems_l'].map(k=>starsPack(k)).join('')}</div>`;}
+function starsStarterHTML(){
+  if(!ecoOn()||STARS.starter!==false)return '';
+  return `<div class="hh" style="margin-top:6px"><h2>Starter pack</h2><small>once per seat</small></div><div class="shopgrid">${starsPack('starter',true)}</div>`;}
+async function starsInvoice(sku){
+  const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),15000);
+  try{const r=await fetch(starsUrl(),{method:'POST',headers:{'apikey':SB.key,'Content-Type':'application/json'},body:JSON.stringify({op:'invoice',token:CLOUD.token,seat:seatNo(),sku}),signal:ctl.signal});
+    const t=await r.text();let j=null;try{j=t?JSON.parse(t):null;}catch(e){}
+    if(!r.ok||!j||!j.link)throw new Error((j&&(j.error||j.message))||('http '+r.status));return j;}
+  finally{clearTimeout(to);}}
+function starsSave(list){try{localStorage.setItem(STARS_KEY,JSON.stringify(list));}catch(e){}}
+function starsLoad(){try{const j=JSON.parse(localStorage.getItem(STARS_KEY)||'[]');return Array.isArray(j)?j:[];}catch(e){return [];}}
+async function starsBuy(sku){
+  const S=STARS_SHOP[sku];if(!S||STARS.busy)return;
+  if(!starsCan()){SFX.play('deny');ecoModal('⭐ Telegram Stars','Payments need a seat signed in through Telegram and a recent Telegram app.',[{t:'OK'}]);return;}
+  STARS.busy=true;ecoWait(true);let r;
+  try{if(!(await ecoLane(async()=>{await ecoSyncRaw();return true;})))throw new Error('offline');r=await starsInvoice(sku);}
+  catch(e){STARS.busy=false;ecoWait(false);const m=ecoMsg(e);
+    ecoModal('⭐ The invoice could not be made',/already bought/.test(m)?'The Starter pack is already yours on this seat.':ecoNet(m)||/abort/i.test(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,140)),[{t:'OK',f:()=>{if(/already bought/.test(m)){STARS.starter=true;}ecoRedraw();}}]);return;}
+  ecoWait(false);const seat=seatNo(),item={id:r.id,sku,seat,t:Date.now()};
+  starsSave(starsLoad().concat([item]).slice(-10));
+  try{TG.openInvoice(r.link,st=>{STARS.busy=false;
+    if(st==='paid')starsWait(item);
+    else if(st==='cancelled'){starsDrop(item.id);ecoToast('Payment cancelled');}
+    else if(st==='failed'){starsDrop(item.id);ecoModal('⭐ The payment failed','Telegram could not take the Stars. Nothing was charged.',[{t:'OK'}]);}
+    else starsWait(item);});}
+  catch(e){STARS.busy=false;starsDrop(item.id);ecoModal('⭐ Telegram would not open the invoice',esc(ecoMsg(e).slice(0,120)),[{t:'OK'}]);}}
+function starsDrop(id){starsSave(starsLoad().filter(x=>x.id!==id));}
+/* after "paid": the server hears it from Telegram a moment later — ask until it says so, then read the balance */
+async function starsWait(item,quiet){
+  if(!quiet)ecoWait(true);let st='pending';
+  for(let i=0;i<(quiet?1:30)&&ecoOn()&&seatNo()===item.seat;i++){
+    try{const r=await ecoRpc('pay_status',{id:item.id},8000);st=r.status;}catch(e){}
+    if(st!=='pending')break;await new Promise(r=>setTimeout(r,1500));}
+  if(!quiet)ecoWait(false);
+  if(st==='paid'){starsDrop(item.id);const S=STARS_SHOP[item.sku];if(item.sku==='starter')STARS.starter=true;
+    await ecoRefresh();try{SFX.play('buy');}catch(e){}ecoToast(`⭐ Thank you! +${S?S.gems:''} dragonglass`+(S&&S.gold?' · +'+fmtN(S.gold)+' gold':''),true);ecoRedraw();return;}
+  if(st==='failed'||st==='orphan'||st==='refunded'){starsDrop(item.id);ecoModal('⭐ The payment was not credited','The server could not credit this payment ('+st+'). Write to the game\'s chat — the Stars will be returned.',[{t:'OK'}]);return;}
+  if(!quiet)ecoModal('⭐ Payment received','Telegram has your payment; the server is still confirming it. Your dragonglass will appear in a moment — open the shop again.',[{t:'OK'}]);}
+/* an invoice paid while the app was closed or slow: ask once when a seat is entered */
+function starsResume(){const list=starsLoad().filter(x=>Date.now()-x.t<86400000&&x.seat===seatNo());starsSave(starsLoad().filter(x=>Date.now()-x.t<86400000));
+  for(const x of list)starsWait(x,true);}
+/* =========================== LOGIN CALENDAR + QUESTS (v1.0.61) ===========================
+   A 30-day calendar (every reward visible ahead; a missed day changes nothing — the calendar goes on from where the seat left it;
+   day 30, 60 and 90 also open the next sealed champion of the house) and Daily / Weekly / Monthly quests. Everything is paid by the
+   server (backend v10) and quest progress is counted from the server's own records: the app only shows numbers and asks to claim.
+   The tables below are exported to the server (econ_config 'calendar' / 'quests'), so app and server agree. Needs a seat signed in through Telegram. */
+const LOGIN_CAL=[
+ {gems:10},{gold:400},{books:{'b:c':2},gear:{n:1,min_r:0}},{gems:10},{gold:600,gear:{n:1,min_r:1}},{books:{'b:c':3}},{gems:20,books:{'b:r':1},gear:{n:1,min_r:2}},
+ {gold:800},{gems:15,gear:{n:1,min_r:1}},{books:{'b:c':3}},{gold:1000},{gems:15},{books:{'b:r':1},gear:{n:1,min_r:1}},{gems:30,books:{'b:r':1},gear:{n:1,min_r:2,min_tier:2}},
+ {gold:1500,gear:{n:1,min_r:1}},{gems:20},{books:{'b:c':4}},{gold:2000,gear:{n:1,min_r:2}},{gems:20},{books:{'b:r':2}},{gems:40,books:{'b:e':1},gear:{n:1,min_r:3,min_tier:2}},
+ {gold:2500},{gems:25,gear:{n:1,min_r:1}},{books:{'b:c':5}},{gold:3000,gear:{n:1,min_r:2}},{gems:25},{books:{'b:r':2},gear:{n:1,min_r:2}},{gems:50,gear:{n:1,min_r:3}},{gold:4000},{gems:100,books:{'b:e':1},gear:{n:1,min_r:3,min_tier:3}},
+];
+const LOGIN_SPECIAL_GEMS=300;
+const QUESTS={
+ daily:[
+  {id:'d_win1',m:'wins',n:1,t:'Win a stage',r:{gold:300}},
+  {id:'d_kill',m:'kills',n:300,t:'Defeat 300 of the dead',r:{gems:8}},
+  {id:'d_win3',m:'wins',n:3,t:'Win 3 stages',r:{books:{'b:c':2},gear:{n:1,min_r:0}}}],
+ weekly:[
+  {id:'w_win10',m:'wins',n:10,t:'Win 10 stages',r:{gems:40,gear:{n:1,min_r:1}}},
+  {id:'w_days4',m:'days',n:4,t:'Play on 4 different days',r:{books:{'b:r':1}}},
+  {id:'w_stars15',m:'stars',n:15,t:'Earn 15 stars in battles',r:{gold:2000,gear:{n:1,min_r:2}}},
+  {id:'w_hold3',m:'hold_runs',n:3,t:'Finish 3 Hold runs',r:{gems:30}}],
+ monthly:[
+  {id:'m_win60',m:'wins',n:60,t:'Win 60 stages',r:{gems:150,books:{'b:e':1},gear:{n:1,min_r:3,min_tier:3}}},
+  {id:'m_days20',m:'days',n:20,t:'Play on 20 different days',r:{gems:100}},
+  {id:'m_new10',m:'new_stages',n:10,t:'Hold 10 new stages',r:{gold:5000,books:{'b:e':1},gear:{n:1,min_r:2,min_tier:2}}},
+  {id:'m_hold25',m:'hold_waves',n:25,t:'Reach wave 25 in the Hold',r:{gems:60}}],
+};
+const DAILY={st:null,at:0,tab:'cal',shown:false,seat:-1,busy:false};
+function dailyOn(){return !!(ecoOn()&&ACC&&ACC.tut);}
+function rewardChips(r,sm){if(!r)return '';const c=[];
+  if(r.gems)c.push(`<span class="rch">${GEM_SVG}${r.gems}</span>`);
+  if(r.gold)c.push(`<span class="rch">${GOLD_SVG}${fmtN(r.gold)}</span>`);
+  for(const k in (r.books||{}))c.push(`<span class="rch">${bookIcon(k.slice(2),sm?14:16)}×${r.books[k]}</span>`);
+  if(r.gear){const g=r.gear,R=['','Uncommon+','Rare+','Epic+','Legendary'][g.min_r||0];c.push(`<span class="rch gr" style="color:${['#9aa4b1','#5fcf6a','#4fb0ff','#b47cff','#e3b661'][g.min_r||0]}">⚒️ ${g.n>1?'×'+g.n+' ':''}${R||'gear'}${g.min_tier>1?' ★'+g.min_tier+'+':''}</span>`);}
+  return c.join('');}
+function questName(id){for(const k in QUESTS){const q=QUESTS[k].find(x=>x.id===id);if(q)return q;}return null;}
+/* the state comes from the server (quest_state); one answer is kept for 45 s unless something was claimed */
+function dailyLoad(force){if(!ecoOn())return Promise.resolve(null);
+  if(!force&&DAILY.st&&DAILY.seat===seatNo()&&Date.now()-DAILY.at<45000)return Promise.resolve(DAILY.st);
+  const seat=seatNo();
+  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('quest_state',{seat},9000);if(seat===seatNo()){DAILY.st=r;DAILY.at=Date.now();DAILY.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
+function dailyReady(){const s=DAILY.st;if(!s||DAILY.seat!==seatNo())return 0;let n=s.login&&s.login.can?1:0;
+  for(const k in (s.periods||{}))for(const q of s.periods[k].q)if(q.cur>=q.need&&!q.claimed)n++;return n;}
+function dailyBtnHTML(){const n=dailyOn()?dailyReady():0;
+  return `<button class="cbld" id="bDaily"><span class="ic">📜</span><span class="tx"><b>Daily &amp; quests</b><small>${dailyOn()?(n?`<em class="dn">${n} ready</em>`:'calendar · quests'):'a Telegram seat'}</small></span></button>`;}
+function dailyBtnRefresh(){if(!dailyOn())return;dailyLoad().then(()=>{const b=document.getElementById('bDaily');if(b)b.outerHTML=dailyBtnHTML(),dailyBtnBind();});}
+function dailyBtnBind(){const b=document.getElementById('bDaily');if(b)b.addEventListener('click',()=>{SFX.play('tap',60);showDaily();});}
+/* what a claim did */
+function dailyClaimModal(res,title){const r=res.reward,ch=res.champ&&CBY[res.champ];
+  ecoModal(title,`<div class="rw">${rewardChips(r)}</div>${ch?`<div class="newch">${portraitHTML(ch,64)}<b>${esc(ch.n)}</b><small>joins your house — sealed no more!</small></div>`:''}`,[{t:'OK',f:()=>{if(CLOUD.screen&&CLOUD.screen.indexOf('daily')===0)showDaily(DAILY.tab);else ecoRedraw();}}]);}
+async function dailyClaimLogin(){if(DAILY.busy||!ecoOn())return;DAILY.busy=true;ecoWait(true);
+  try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('login_claim',{seat},10000);ecoApply(x.state);return x;});
+    DAILY.st=r.quests;DAILY.at=Date.now();DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);dailyClaimModal(r,'📅 Day '+r.day+' — yours');}
+  catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m)){await dailyLoad(true);}ecoModal('📅 Not now',/already/.test(m)?'Today\'s reward is already claimed. Come back tomorrow.':ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily(DAILY.tab)}]);}}
+async function dailyClaimQuest(id){if(DAILY.busy||!ecoOn())return;DAILY.busy=true;ecoWait(true);
+  try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('quest_claim',{seat,quest:id},10000);ecoApply(x.state);return x;});
+    DAILY.st=r.quests;DAILY.at=Date.now();DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);const q=questName(id);dailyClaimModal(r,'📜 '+(q?q.t:'Quest done'));}
+  catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await dailyLoad(true);ecoModal('📜 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily(DAILY.tab)}]);}}
+/* the popup when the castle opens and today's reward waits (once a session; never over a tutorial or a tour) */
+function dailyPopupCheck(){
+  if(DAILY.shown||!dailyOn()||G.state==='play'||(G.tut)||(typeof COACH!=='undefined'&&COACH.on)||CLOUD.screen!=='hub:battle')return;
+  if(document.querySelector('#ecoModal.on')||document.querySelector('#cer:not(.hidden)'))return;
+  dailyLoad().then(s=>{if(!s||DAILY.shown||CLOUD.screen!=='hub:battle'||!s.login.can||(typeof COACH!=='undefined'&&COACH.on)||document.querySelector('#ecoModal.on'))return;
+    DAILY.shown=true;const d=s.login.day,next=[1,2,3].map(i=>{const dd=d+i;return dd<=30?`<span class="pv"><i>Day ${dd}</i>${rewardChips(LOGIN_CAL[dd-1],1)}</span>`:'';}).join('');
+    ecoModal('📅 Day '+d+' of 30',`<div class="rw">${rewardChips(LOGIN_CAL[d-1])}</div>${d%30===0?'<small class="sp">…and the next sealed champion of your house</small>':''}<div class="pvrow">${next}</div>`,
+      [{t:'🎁 Claim',f:dailyClaimLogin},{t:'Later'}]);});}
+/* ---------- the screen ---------- */
+function fmtLeft(s){const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return d?d+'d '+h+'h':h?h+'h '+m+'m':m+'m';}
+function showDaily(tab){
+  DAILY.tab=tab||DAILY.tab||'cal';
+  const tabs=[['cal','📅 Calendar'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly']];
+  const head=`<div class="topbar"><h1>📜 Daily &amp; quests<small>Rewards are paid by the server. Progress counts only battles it has seen.</small></h1><button class="back" id="bBack">✖</button></div>
+   <div class="subtabs">${tabs.map(([k,n])=>`<button class="${k===DAILY.tab?'on':''}" data-t="${k}">${n}</button>`).join('')}</div>`;
+  const draw=body=>{show(head+body);CLOUD.screen='daily:'+DAILY.tab;$('#bBack').addEventListener('click',()=>showHub('battle'));card.querySelectorAll('.subtabs button').forEach(b=>b.addEventListener('click',()=>showDaily(b.dataset.t)));};
+  if(!dailyOn()){draw(`<p class="m">${ecoOn()?'Finish the tutorial battle first.':'The calendar and the quests are paid by the server — they need a seat signed in through Telegram.'}</p>`);return;}
+  const s=DAILY.st&&DAILY.seat===seatNo()?DAILY.st:null;
+  if(!s){draw('<p class="m">⏳ asking the server…</p>');dailyLoad().then(r=>{if(CLOUD.screen==='daily:'+DAILY.tab)showDaily(DAILY.tab);});return;}
+  if(Date.now()-DAILY.at>45000)dailyLoad(true).then(()=>{});
+  if(DAILY.tab==='cal'){const L=s.login,pos=L.n%30,round=Math.floor(L.n/30)+1;
+    const tiles=LOGIN_CAL.map((r,i)=>{const d=i+1,done=d<=pos,today=d===pos+1;
+      return `<div class="cday ${done?'done':''} ${today?'today':''} ${d===30?'big':''}"><b>${d}</b><span>${rewardChips(r,1)}</span>${done?'<i class="ck">✔</i>':''}${d===30?'<em class="spc">👑</em>':''}</div>`;}).join('');
+    draw(`<p class="m">Round ${round} · ${L.n} day${L.n===1?'':'s'} claimed in all. A missed day costs nothing — the calendar waits for you.${L.special_in?`<br>👑 A champion of your house is yours after <b>${L.special_in}</b> more claimed day${L.special_in===1?'':'s'} (day 30, 60, 90).`:''}</p>
+      <div class="cgrid">${tiles}</div>
+      <button class="btn" id="bLogin" ${L.can?'':'disabled'}>${L.can?'🎁 Claim day '+L.day:'✔ Today\'s reward is claimed'}</button>`);
+    const b=$('#bLogin');if(b)b.addEventListener('click',dailyClaimLogin);return;}
+  const P=s.periods[DAILY.tab],list=QUESTS[DAILY.tab];
+  const rows=P.q.map(q=>{const def=list.find(x=>x.id===q.id)||{t:q.id,r:{}},ready=q.cur>=q.need&&!q.claimed,pc=Math.round(100*q.cur/q.need);
+    return `<div class="qrow ${q.claimed?'done':''} ${ready?'ready':''}"><div class="qt"><b>${esc(def.t)}</b><span class="qbar"><i style="width:${pc}%"></i><em>${fmtN(q.cur)} / ${fmtN(q.need)}</em></span><span class="qrw">${rewardChips(def.r,1)}</span></div>
+      <button data-q="${q.id}" ${ready?'':'disabled'}>${q.claimed?'✔':ready?'Claim':'…'}</button></div>`;}).join('');
+  draw(`<p class="m">Resets in <b>${fmtLeft(P.left)}</b> (${DAILY.tab==='daily'?'UTC midnight':DAILY.tab==='weekly'?'Monday, UTC':'the 1st, UTC'}).</p><div class="qlist">${rows}</div>`);
+  card.querySelectorAll('.qrow button[data-q]').forEach(b=>b.addEventListener('click',()=>dailyClaimQuest(b.dataset.q)));}
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -4442,7 +5053,7 @@ function bookEnemy(k){const E=ENEMIES[k],S=seenMap(),s=S[k],KC=ACC.kc||{};
 function bookChamp(id){const c=CBY[id],hh=HOUSES[c.house],open=unlocked(null,c),pu=CHAMP_ART[id+'_portrait'],[rn,rc]=rarOf(c);
   if(!open)return `<div class="bkdet"><div class="bkpic dark"><span class="q">?</span></div><div class="tx"><h3>${c.n}</h3><span class="sub">House ${hh.n} · ${rn}</span><p>Rides out after stage ${UNLOCK_STAGE[c.tier]} is held.</p></div></div>`;
   const p=cprog(null,id),L=p.lvl;const base=HERO_BASE(c.type);
-  const hp=Math.round(base.hp*(1+0.05*(L-1))),dm=Math.round(base.dmg*(1+0.04*(L-1))*10)/10;
+  const hp=Math.round(base.hp*RAR_STAT[champRar(c)]*(1+0.05*(L-1))),dm=Math.round(base.dmg*RAR_STAT[champRar(c)]*(1+0.04*(L-1))*10)/10;
   const skills=c.sk.map((sk,i)=>{const S=SK[sk],l=p.sk[i];return `<div class="bksk"><span class="si">${skillIcon(sk,34,0)}</span><span class="st"><b>${S.n}${S.ult?' · ULTIMATE':''}</b> <em>rank ${l}/${SK_MAX}${S.cd?' · '+S.cd+' s':''}</em><br>${S.d(S.v[l-1])}</span></div>`;}).join('');
   const tal=(TALENTS[id]||[]).map((t,i)=>`<span class="${L>=TAL_AT?(p.tal===i+1?'good':''):'lk'}">${t.n} — ${talDesc(t)}</span>`).join('');
   const q=QUOTES[id]||[];
@@ -4465,7 +5076,7 @@ function bookNotes(){const N=[
   ['🔷','Dragonglass','Glass is a trap, not a tower: it only wounds what walks through its ring. Put it on a pad the road touches. It ignores ice and armour — ×3 on White Walkers.'],
   ['💸','Prices','Each tower of the same kind costs 17% more than the last. Mixing kinds is cheaper than building one kind everywhere.'],
   ['⬆️','Tiers','In battle a tower grows through tiers I–V. Higher tiers open as you hold stages: II after 3, III after 8, IV after 15, V after 24. Two tier-II towers often cover more road than one tier-III.'],
-  ['🏰','Between battles','Cards and gold buy levels that stay: towers 1–16 (+3% a level), champions 1–20, spells 1–10. Cards come from chests, deals and the first win on every stage. Every upgrade raises your account level, and every account level pays a chest.'],
+  ['🏰','Between battles','Cards and gold buy levels that stay: towers 1–16 (+3% a level), champions 1–60 (ten levels a star ★), spells 1–10. Cards come from chests, deals and the first win on every stage. Every upgrade raises your account level, and every account level pays a chest.'],
   ['🏃','Two gates','On roads with two gates, Hodor runs to the gate in danger. Tap a gate to send him there yourself.'],
   ['🏆','Trophies and rank','Every campaign star is a trophy, every wave of your best Hold run is two. Trophies set your rank — Iron to Challenger — next to your name.']];
   return N.map(n=>`<div class="bknote"><i>${n[0]}</i><div><b>${n[1]}</b>${n[2]}</div></div>`).join('');}
@@ -4564,7 +5175,7 @@ function showEncyclopediaOld(tab,fromBattle){
     <div class="ent"><span class="badge">✨</span><div class="bd"><small>Spells and your champion's skill recharge after use — the dark cover shows how long. Arrow rain hits a wide circle, Dracarys burns and is the one spell that fully hurts a dragon, Brothers send sworn men onto the road.</small></div></div>
     <div class="ent"><span class="badge">💸</span><div class="bd"><small>Each tower of the same kind costs 17% more than the last. Mixing kinds is cheaper than building one kind everywhere.</small></div></div>
     <div class="ent"><span class="badge">⬆️</span><div class="bd"><small>In battle a tower grows through tiers I–V. Higher tiers open as you hold stages: II after 3, III after 8, IV after 15, V after 24. Upgrades cost more than a fresh tower — two tier-II towers often cover more road than one tier-III.</small></div></div>
-    <div class="ent"><span class="badge">🏰</span><div class="bd"><small>Between battles, cards and gold buy levels that stay: towers 1–16 (+3% a level), champions 1–20 (+5% health, +4% damage a level) and spells 1–10 (+6% power a level). Cards come from chests, deals and the first win on every stage. Every upgrade raises your account level, and every account level pays a chest.</small></div></div>
+    <div class="ent"><span class="badge">🏰</span><div class="bd"><small>Between battles, cards and gold buy levels that stay: towers 1–16 (+3% a level), champions 1–60 (a star ★ opens ten levels at a time; +5% health, +4% damage a level) and spells 1–10 (+6% power a level). Cards come from chests, deals and the first win on every stage. Every upgrade raises your account level, and every account level pays a chest.</small></div></div>
     <div class="ent"><span class="badge">🏃</span><div class="bd"><small>On roads with two gates, Hodor runs to the gate in danger. Tap a gate to send him there yourself.</small></div></div>`};
   const sub=tab==='enemies'?`${met} of ${keys.length} met`:tab==='towers'?`${TKEYS.filter(k=>TS[k]).length} of ${TKEYS.length} built · upgrades cost more than the tower itself (prices below are what you pay)`:'field notes';
   show(`<div class="topbar"><h1>📖 Encyclopedia</h1><button class="back" id="bBack">✖</button></div>${fromBattle&&G.tut&&tutWantBase()==='book'?'<p class="tutnote">📖 This is the book: <b>The dead</b> you have met, your <b>Towers</b>, and <b>Notes</b> on how everything works. Look through the tabs, then tap <b>✔ Back</b>.</p>':''}
@@ -5158,8 +5769,9 @@ function genDeals(){
     ()=>{const g=rnd(3,6)*100;return{k:'gold',n:'Purse of gold',s:`+${g} gold`,gold:g,price:{gems:Math.round(g/14)},ic:GOLD_SVG,r:0};},
     ()=>{const g=rnd(8,14)*100;return{k:'gold',n:'Chest of gold',s:`+${g} gold`,gold:g,price:{gems:Math.round(g/17)},ic:GOLD_SVG,r:1};},
     ()=>{const n=rnd(12,24);return{k:'gems',n:'Dragonglass shards',s:`+${n} dragonglass`,gems:n,price:{gold:n*28},ic:GEM_SVG,r:1};},
-    ()=>{const pool=cardPool();if(!pool.length)return null;const key=pick(pool),r=cardRar(key),n=Math.max(1,Math.round(rnd(8,16)*CARD_MUL[r]));return{k:'cards',key,cnt:n,n:cardName(key),s:`${n} card${n>1?'s':''} · ${RAR_N[r]}`,price:{gold:n*CARD_PRICE[r]},ic:cardIcon(key,40),r:Math.max(1,r)};},
-    ()=>{const c=pick(mine);if(!c)return null;const p=cprog(null,c.id);const i=[0,1,2].filter(j=>p.sk[j]<SK_MAX&&p.sk[j]<rankCap(p.lvl));if(!i.length)return null;const j=pick(i);return{k:'sk',c:c.id,i:j,n:SK[c.sk[j]].n,s:`${shortName(c)} · rank ${p.sk[j]} → ${p.sk[j]+1} · −40%`,price:{gold:Math.round(ECON.skCost(p.sk[j])*0.6/10)*10},ic:`<span class="pe">${SK[c.sk[j]].e}</span>`,r:2};},
+    ()=>{const pool=cardPool();if(!pool.length)return null;const key=pick(pool),r=cardRar(key),n=Math.max(1,Math.round(rnd(8,16)*CARD_MUL[r]));return{k:'cards',key,cnt:n,n:cardName(key),s:`${n} card${n>1?'s':''} · ${RAR_N[r]}`,price:{gold:n*CARD_PRICE[r]},ic:cardIcon(key,40),r:Math.max(1,DEAL_R[r])};},
+    ()=>{const b=pick(['c','c','c','c','r','r','r','e','e','l']),n=b==='c'?rnd(2,3):1;return{k:'books',key:'b:'+b,cnt:n,n:BOOK_N[b],s:`${n} × ${BOOK_N[b]} · skill ranks`,price:{gold:n*BOOK_PRICE[b]},ic:bookIcon(b,40),r:DEAL_R[BOOK_R[b]]};},
+    ()=>{const c=pick(mine);if(!c||true)return null;const p=cprog(null,c.id);const i=[0,1,2].filter(j=>p.sk[j]<SK_MAX&&p.sk[j]<rankCap(p.lvl));if(!i.length)return null;const j=pick(i);return{k:'sk',c:c.id,i:j,n:SK[c.sk[j]].n,s:`${shortName(c)} · rank ${p.sk[j]} → ${p.sk[j]+1} · −40%`,price:{gold:Math.round(ECON.skCost(p.sk[j])*0.6/10)*10},ic:`<span class="pe">${SK[c.sk[j]].e}</span>`,r:2};},
     ()=>{const u=pick(UPG.filter(u=>!ACC.upg[u.id]&&(u.g==='power'||towerOpen(u.g)||u.g==='gate')));if(!u)return null;return{k:'upg',u:u.id,n:u.n,s:`${u.g==='power'?'Spell':u.g==='gate'?'Gate':TOWERS[u.g].n.split(' ')[0]} upgrade · ${u.s} · −35%`,price:{gold:Math.round(ECON.upgCost(u)*0.65/10)*10},ic:`<span class="pe">${u.e}</span>`,r:2};},
     ()=>({k:'att',n:'Hold attempt',s:'+1 run in today\'s Hold',price:{gems:25},ic:HUB_ICON.hold,r:1}),
     ()=>({k:'door',n:'Gate reinforcement',s:'+100 gate hp in every Hold. Permanent',price:{gems:40},ic:'<svg viewBox="0 0 24 24" fill="none" stroke="#e3b661" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 10h18M3 15h18M8 5v5M15 5v5M6 10v5M12 10v5M18 10v5M9 15v4M15 15v4"/></svg>',r:2}),
@@ -5170,7 +5782,7 @@ function genDeals(){
   const fr=rng();const c0=mine.length?pick(mine):null;
   if(fr<0.45){const g=rnd(10,20)*10;out.push({k:'gold',n:'Free gold',s:`+${g} gold`,gold:g,price:{},ic:GOLD_SVG,r:0});}
   else if(fr<0.8){const n=rnd(4,9);out.push({k:'gems',n:'Free dragonglass',s:`+${n} dragonglass`,gems:n,price:{},ic:GEM_SVG,r:0});}
-  else if(cardPool().length){const key=pick(cardPool()),r=cardRar(key),n=Math.max(1,Math.round(rnd(4,7)*CARD_MUL[r]));out.push({k:'cards',key,cnt:n,n:cardName(key),s:`${n} free card${n>1?'s':''}`,price:{},ic:cardIcon(key,40),r:Math.max(1,r)});}
+  else if(cardPool().length){const key=pick(cardPool()),r=cardRar(key),n=Math.max(1,Math.round(rnd(4,7)*CARD_MUL[r]));out.push({k:'cards',key,cnt:n,n:cardName(key),s:`${n} free card${n>1?'s':''}`,price:{},ic:cardIcon(key,40),r:Math.max(1,DEAL_R[r])});}
   else out.push({k:'gold',n:'Free gold',s:'+150 gold',gold:150,price:{},ic:GOLD_SVG,r:0});
   let guard=0;const used=new Set();
   while(out.length<6&&guard++<60){const i=Math.floor(rng()*mk.length);if(used.has(i))continue;const d=mk[i]();if(!d)continue;used.add(i);out.push(d);}
@@ -5178,7 +5790,7 @@ function genDeals(){
   return out;}
 function buyDeal0(i){const D=dealsState(),deals=genDeals(),d=deals[i];if(!d||D.bought[i]||!D.unl[i])return false;
   if(d.price.gold){if(!spendGold(d.price.gold))return false;}else if(d.price.gems){if(ACC.gems<d.price.gems)return false;ACC.gems-=d.price.gems;}
-  if(d.k==='gold')addGold(d.gold);else if(d.k==='gems')ACC.gems+=d.gems;else if(d.k==='cards')addCards(d.key,d.cnt);else if(d.k==='sk'){const p=cprog(null,d.c);if(p.sk[d.i]<SK_MAX)p.sk[d.i]++;}
+  if(d.k==='gold')addGold(d.gold);else if(d.k==='gems')ACC.gems+=d.gems;else if(d.k==='cards'||d.k==='books')addCards(d.key,d.cnt);else if(d.k==='sk'){const p=cprog(null,d.c);if(p.sk[d.i]<SK_MAX)p.sk[d.i]++;}
   else if(d.k==='upg')ACC.upg[d.u]=1;else if(d.k==='att')ACC.online.attempts++;else if(d.k==='door')ACC.online.doorBonus+=100;else if(d.k==='bank')ACC.online.goldBonus+=60;
   D.bought[i]=1;persist();return true;}
 function unlockDeal0(i){const D=dealsState(),p=ECON.unlock[i];if(D.unl[i]||ACC.gems<p)return false;ACC.gems-=p;D.unl[i]=1;persist();return true;}
@@ -5270,6 +5882,7 @@ function showHub(tab,sub){
   hubSwipe(card.querySelector('.hub'),tab);
   if(tab==='battle')hubBattleBind();else if(tab==='coll')hubCollectionBind(sub);else if(tab==='shop')hubShopBind();else if(tab==='events')hubEventsBind(sub);else hubHoldBind();
   setTimeout(()=>hubTour(tab),400);
+  if(tab==='battle')setTimeout(dailyPopupCheck,1100);
 }
 /* horizontal swipe between the five tabs (touch and mouse) */
 function hubSwipe(el,tab){
@@ -5289,6 +5902,8 @@ function hubBattle(){const hh=HOUSES[ACC.house],c=CBY[ACC.sel],g=Object.keys(cam
   return `<div class="seatname"><b>${hh.seat}</b><small>Seat of House ${hh.n} · ${hh.words}</small></div>
   <div class="islewrap"><canvas class="isle" id="isle" width="680" height="700"></canvas></div>
   <div class="castlerow"><button class="cbld" id="bTrain"><span class="ic">⚔️</span><span class="tx"><b>Train</b><small>Army level ${armyLvl()}${armyLvl()>=ARMY_HOUSE_AT?' · '+HOUSE_UNIT[ACC.house].n:' · '+HOUSE_UNIT[ACC.house].n+' at '+ARMY_HOUSE_AT}</small></span></button><button class="cbld" id="bSpellShop"><span class="ic">🧪</span><span class="tx"><b>Spell shop</b><small>${packCount()?packCount()+' in the pack':'one-shot battle items'}</small></span></button></div>
+  <div class="castlerow forgerow"><button class="cbld" id="bTavern"><span class="ic">🍺</span><span class="tx"><b>Tavern</b><small>stars · skills · portal</small></span></button><button class="cbld" id="bForge"><span class="ic">⚒️</span><span class="tx"><b>Forge</b><small>${ecoOn()?gearItems().length+' items · '+GEAR_SLOTS.filter(k=>gearItems().some(it=>it.champ===ACC.sel&&it.slot===k)).length+'/9 worn':'gear — a Telegram seat'}</small></span></button></div>
+  <div class="castlerow forgerow">${dailyBtnHTML()}</div>
   <div class="tro"><span class="tr" id="hubTro">${rankSVG(myRank().t,22,myRank().div)}${TROPHY_SVG}${trophiesOf()}</span><span class="bar"><i style="width:${Math.round(100*g/NG)}%"></i><em>STAGE ${Math.min(NG,g+1)} OF ${NG} · ${nextL.n.toUpperCase()}</em></span></div>
   <div class="chestrow"><span class="ch ${chestsN>0?'ready':''}" id="starChest">${chestSVG('iron')}</span><span class="sbar"><i style="width:${chestsN>0?100:Math.round(100*prog/3)}%"></i><em>${chestsN>0?'CHEST READY · TAP TO OPEN':`${prog}/3 STARS TO THE NEXT CHEST`}</em></span>${chestsN>1?`<b class="cnt">×${chestsN}</b>`:''}</div>
   ${lvlChestsReady()>0?`<div class="chestrow lvl"><span class="ch ready" id="lvlChest">${chestSVG(lvlChestTier((ACC.lvlChests||0)+2))}</span><span class="sbar"><i style="width:100%"></i><em>LEVEL ${(ACC.lvlChests||0)+2} CHEST · TAP TO OPEN</em></span>${lvlChestsReady()>1?`<b class="cnt">×${lvlChestsReady()}</b>`:''}</div>`:''}
@@ -5297,7 +5912,7 @@ function hubBattle(){const hh=HOUSES[ACC.house],c=CBY[ACC.sel],g=Object.keys(cam
     <button class="bside" id="bChampH">${pu?`<img src="${pu}" alt="">`:`<span class="pe">${c.e}</span>`}${shortName(c)}</button></div>
   ${ACC.tut?'':'<div class="hint">▲ TAP BEGIN — YOUR CHAMPION WILL TEACH YOU</div>'}${ACC.refund?`<div class="hint" id="refundNote">🪙 Tower upgrades are now tower levels — ${ACC.refund} gold refunded. Collection → Towers.</div>`:''}`;}
 function hubBattleBind(){if(ACC.refund){ACC.refund=0;persist();}
-  const cv=$('#isle');if(cv)drawIsland(cv,ACC.house);const bt=$('#bTrain');if(bt)bt.addEventListener('click',()=>{SFX.play('tap',60);showTrain();});const bs=$('#bSpellShop');if(bs)bs.addEventListener('click',()=>{SFX.play('tap',60);showSpellShop();});const ht=$('#hubTro');if(ht)ht.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});
+  const cv=$('#isle');if(cv)drawIsland(cv,ACC.house);const bt=$('#bTrain');if(bt)bt.addEventListener('click',()=>{SFX.play('tap',60);showTrain();});const bs=$('#bSpellShop');if(bs)bs.addEventListener('click',()=>{SFX.play('tap',60);showSpellShop();});const btv=$('#bTavern');if(btv)btv.addEventListener('click',()=>{SFX.play('tap',60);showHeroRoom();});dailyBtnBind();dailyBtnRefresh();const bf=$('#bForge');if(bf)bf.addEventListener('click',()=>{SFX.play('tap',60);showForge();});const ht=$('#hubTro');if(ht)ht.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});
   $('#bBattle').addEventListener('click',()=>{SFX.play('tap',80);if(!ACC.tut)startTutorial();else showCampaign();});
   const bdh=$('#bDiffH');if(bdh)bdh.addEventListener('click',()=>showDifficulty(false));const bmh=$('#bMapH');if(bmh)bmh.addEventListener('click',()=>{SFX.play('tap',60);showCampaign();});
   $('#bChampH').addEventListener('click',()=>showHeroRoom(ACC.sel));
@@ -5358,11 +5973,11 @@ function drawIsland(cv,house){
   if(!cv._retry){cv._retry=1;[350,1200,2500].forEach(ms=>setTimeout(()=>{if(document.body.contains(cv))drawIsland(cv,house);},ms));}
 }
 /* ---------- COLLECTION ---------- */
-const RARITY=[['Common','#8a97a8'],['Common','#8a97a8'],['Rare','#4fb0ff'],['Rare','#4fb0ff'],['Epic','#b47cff'],['Epic','#b47cff'],['Legendary','#e3b661']];
+const RARITY=[0,0,1,2,2,3,4].map(r=>[['Common','Uncommon','Rare','Epic','Legendary'][r],['#8a97a8','#5fbf6a','#4fb0ff','#b47cff','#e3b661'][r]]);
 function rarOf(c){return RARITY[c.tier]||RARITY[0];}
 /* SKILL_ART[id] may hold generated icon images (data URLs); until then the emoji sits in a KR-style badge. */
 const SKILL_ART={};
-const SK_COL={quickstudy:'#cfe6ff',drownaura:'#4fb8c8',bleed:'#e14b4b',reave:'#d8b74a',storm:'#cfe6ff',whatisdead:'#4fb8c8',thorns:'#b33f5a',drill:'#c9a06a',momentum:'#7fd06a',keepback:'#cfe6ff',favour:'#ff7ab8',oldtales:'#cfe6ff',drowned:'#4fb8c8',ironprice:'#d8b74a',axestorm:'#8a97a8',ironfleet:'#4fb8c8',ironarrow:'#e3b661',growing:'#7fd06a',muster:'#c9a06a',harvest:'#b47cff',queenthorns:'#7cff6b',slayer:'#8fd3ff',queenroses:'#ff7ab8',discipline:'#c9d2dd',ironskin:'#8a97a8',tribute:'#ffd54a',parry:'#ffd23c',contempt:'#b47cff',hand:'#e3b661',forge:'#ff9a3c',duelist:'#e9eef5',rations:'#7fd06a',charm:'#ff7ab8',bloodmagic:'#e14b4b',warhammer:'#e3b661',siegecraft:'#8fd3ff',twoforone:'#ffd54a',kingslayer:'#ffd23c',dgblades:'#8fd3ff',thebold:'#e9eef5',lordoflight:'#e14b4b',fury:'#e0c14a',dawncharge:'#e0c14a',frostbite:'#8fd3ff',lifesteal:'#e14b4b',sunder:'#ff9a3c',blood:'#ff7a7a',knock:'#c9a06a',chain:'#cfe6ff',volley:'#e3b661',trap:'#8a97a8',howl:'#a9bdd0',wolfpack:'#a9bdd0',remember:'#e3b661',justice:'#cfe6ff',wallholds:'#8fd3ff',crown:'#ffd54a',dohaeris:'#7fd06a',stormcrows:'#b47cff',phalanx:'#4fc0ff',forqueen:'#e14b4b',khalasar:'#ff9a3c',cleave:'#e14b4b',crit:'#ffd54a',execute:'#b47cff',shield:'#4fc0ff',taunt:'#ff9a3c',rally:'#e3b661',goldtouch:'#ffd54a',heal:'#7fd06a',poison:'#7cff6b',burn:'#ff7a3c',slowaura:'#8fd3ff',stun:'#ffe66d',multishot:'#e3b661',pierce:'#cfe6ff',summon:'#c9a06a',
+const SK_COL={sunaura:'#ffb347',viper:'#9fe07a',waitstrike:'#e3b661',iserve:'#e3b661',whiplash:'#c9a06a',spearrain:'#ffb347',serpentkiss:'#9fe07a',vengeance:'#ffb347',redviper:'#e14b4b',quickstudy:'#cfe6ff',drownaura:'#4fb8c8',bleed:'#e14b4b',reave:'#d8b74a',storm:'#cfe6ff',whatisdead:'#4fb8c8',thorns:'#b33f5a',drill:'#c9a06a',momentum:'#7fd06a',keepback:'#cfe6ff',favour:'#ff7ab8',oldtales:'#cfe6ff',drowned:'#4fb8c8',ironprice:'#d8b74a',axestorm:'#8a97a8',ironfleet:'#4fb8c8',ironarrow:'#e3b661',growing:'#7fd06a',muster:'#c9a06a',harvest:'#b47cff',queenthorns:'#7cff6b',slayer:'#8fd3ff',queenroses:'#ff7ab8',discipline:'#c9d2dd',ironskin:'#8a97a8',tribute:'#ffd54a',parry:'#ffd23c',contempt:'#b47cff',hand:'#e3b661',forge:'#ff9a3c',duelist:'#e9eef5',rations:'#7fd06a',charm:'#ff7ab8',bloodmagic:'#e14b4b',warhammer:'#e3b661',siegecraft:'#8fd3ff',twoforone:'#ffd54a',kingslayer:'#ffd23c',dgblades:'#8fd3ff',thebold:'#e9eef5',lordoflight:'#e14b4b',fury:'#e0c14a',dawncharge:'#e0c14a',frostbite:'#8fd3ff',lifesteal:'#e14b4b',sunder:'#ff9a3c',blood:'#ff7a7a',knock:'#c9a06a',chain:'#cfe6ff',volley:'#e3b661',trap:'#8a97a8',howl:'#a9bdd0',wolfpack:'#a9bdd0',remember:'#e3b661',justice:'#cfe6ff',wallholds:'#8fd3ff',crown:'#ffd54a',dohaeris:'#7fd06a',stormcrows:'#b47cff',phalanx:'#4fc0ff',forqueen:'#e14b4b',khalasar:'#ff9a3c',cleave:'#e14b4b',crit:'#ffd54a',execute:'#b47cff',shield:'#4fc0ff',taunt:'#ff9a3c',rally:'#e3b661',goldtouch:'#ffd54a',heal:'#7fd06a',poison:'#7cff6b',burn:'#ff7a3c',slowaura:'#8fd3ff',stun:'#ffe66d',multishot:'#e3b661',pierce:'#cfe6ff',summon:'#c9a06a',
   firestorm:'#ff7a3c',blizzard:'#a5ecff',assassinate:'#e9eef5',warcry:'#e3b661',fortify:'#8fd3ff',reinforce:'#c9a06a',wildfire:'#7cff6b',kraken:'#4fb8c8',linestrike:'#e0c14a',dragonstrike:'#e14b4b',goldrain:'#ffd54a',cloud:'#9fe07a',smash:'#d9944a',oath:'#fff0c2'};
 function skillIcon(id,px,rank,opts){opts=opts||{};const S=SK[id];if(!S)return '';const col=SK_COL[id]||'#8fd3ff';const im=SKILL_ART[id];
   return `<span class="skb ${S.ult?'ult':''} ${opts.dim?'dim':''}" style="--sc:${col};--px:${px}px;width:${px}px;height:${px}px" title="${S.n}">${im?`<img src="${im}" alt="">`:`<i>${S.e}</i>`}${rank?`<b>${rank}</b>`:''}</span>`;}
@@ -5370,7 +5985,7 @@ function champCard(c,opts){opts=opts||{};const un=unlocked(null,c),p=cprog(null,
   const lockTxt=other?HOUSES[c.house].n.toUpperCase():'AFTER '+UNLOCK_STAGE[c.tier];const open=un&&!other;
   const tal=open&&p.lvl>=TAL_AT&&p.tal?heroTalent(c.id,p.tal):null;
   return `<button class="ccard ${open?'':'lock'} ${ride?'ride':''} ${opts.big?'big':''}" style="--rc:${rc}" data-c="${c.id}">${ride?'<span class="tag">RIDING</span>':''}${open?cardUpBadge('c:'+c.id):''}
-   <span class="im">${pu?`<img src="${pu}" alt="">`:`<span class="pe">${c.e}</span>`}${open?`<span class="lv">LVL ${p.lvl}</span>`:`<span class="lk">${lockTxt}</span>`}</span>
+   <span class="im">${pu?`<img src="${pu}" alt="">`:`<span class="pe">${c.e}</span>`}${open?`<span class="lv">${cstar(c.id)}★ · ${p.lvl}</span>`:`<span class="lk">${lockTxt}</span>`}</span>
    <span class="nm">${shortName(c)}</span>
    <span class="skrow">${c.sk.map((sk,i)=>skillIcon(sk,opts.big?26:20,open?p.sk[i]:0,{dim:!open})).join('')}<span class="skb tal ${tal?'':'off'}" style="--sc:#ffd54a;--px:${opts.big?26:20}px;width:${opts.big?26:20}px;height:${opts.big?26:20}px" title="${tal?tal.n:'Talent at level '+TAL_AT}"><i>${tal?talEmoji(tal):'★'}</i></span></span>
    ${open?cardBar('c:'+c.id):`<span class="rar">${rn}</span>`}</button>`;}
@@ -5411,20 +6026,20 @@ function hubShop(){const free=freeChestReady(),ft=fmtT(86400000-(Date.now()-(ACC
     return `<div class="sitem deal ${bought?'done':''}" style="--rc:${RC[d.r]}">${freeSlot&&!bought?'<span class="badge">FREE</span>':''}<span class="ch dic">${d.ic}</span><b>${esc(d.n)}</b><small>${esc(d.s)}</small><button data-deal="${i}" ${bought||!canPay(d.price)?'disabled':''} class="${freeSlot?'free':''}">${bought?'✔ TAKEN':priceHTML(d.price)}</button></div>`;};
   const chest=(t,extra)=>{const T=CHEST_TIERS[t];return `<div class="sitem" style="--rc:${T.trim}">${extra||''}<span class="ch">${chestSVG(t)}</span><b>${T.n}</b><small><i style="color:${T.trim};font-style:normal;font-weight:900">${T.sub}</i> · ${T.gold[0]}–${T.gold[1]} gold · ${T.gems[0]}–${T.gems[1]} dragonglass · ${T.cards} card stack${T.cards>1?'s':''}${T.rare?` (${T.rare} rare+)`:''}</small>
     ${t==='wood'?`<button class="free" data-buy="wood" ${free?'':'disabled'}>${free?'FREE':ft.str}</button>`:`<button data-buy="${t}" ${ACC.gems>=T.price?'':'disabled'}>${GEM_SVG}${T.price}</button>`}</div>`;};
-  return `<div class="hh"><h2>Daily deals</h2><small>new deals in <b id="dealCd">${dt.h}:${dt.m}:${dt.s}</b></small></div>
+  return `${starsStarterHTML()}<div class="hh"><h2>Daily deals</h2><small>new deals in <b id="dealCd">${dt.h}:${dt.m}:${dt.s}</b></small></div>
   <p class="shopnote">Six deals every 6 hours. The first is always free · unlock the locked ones with dragonglass.</p>
   <div class="shopgrid deals">${deals.map(dealHTML).join('')}</div>
   <div class="hh" style="margin-top:14px"><h2>Chests</h2><small>${GEM_SVG} ${ACC.gems} dragonglass</small></div>
   <div class="shopgrid">${chest('wood',free?'<span class="badge">DAILY FREE</span>':'<span class="badge" style="background:#5a6c85;color:#fff">DAILY</span>')}${chest('iron')}${chest('valyrian')}${chest('dragon')}</div>
   <div class="hh" style="margin-top:14px"><h2>Gold for dragonglass</h2><small>${GOLD_SVG} ${fmtN(goldOf())} gold</small></div>
   <div class="shopgrid three">${ECON.exchange.map(([g,gd],i)=>`<div class="sitem" style="--rc:#e3b661"><span class="ch dic">${GOLD_SVG}</span><b>${['Purse','Chest','Hoard'][i]}</b><small>+${gd.toLocaleString()} gold${i===2?' · best value':i===1?' · +7%':''}</small><button data-xch="${i}" ${ACC.gems>=g?'':'disabled'}>${GEM_SVG}${g}</button></div>`).join('')}</div>
-  <div class="hh" style="margin-top:14px"><h2>Dragonglass</h2><small>coming with Telegram Stars</small></div>
-  <div class="shopgrid three">${[[150,'Pouch'],[400,'Chest'],[1200,'Hoard']].map(([n,t])=>`<div class="sitem soon"><span class="ch dic">${GEM_SVG}</span><b>${t}</b><small>+${n} dragonglass</small><button disabled>SOON</button></div>`).join('')}</div>`;}
+  ${starsShopHTML()}`;}
 function hubShopBind(){
   const tick=()=>{if(CLOUD.screen!=='hub:shop')return;const el=$('#dealCd');if(!el)return;const t=fmtT(msToDeals());el.textContent=t.h+':'+t.m+':'+t.s;if(msToDeals()<1000){showHub('shop');return;}setTimeout(tick,1000);};tick();
   bind('[data-buy]',b=>{const t=b.dataset.buy,T=CHEST_TIERS[t];if(ecoWants()){if(t==='wood'?!freeChestReady():ACC.gems<T.price)return;ecoChest(t,'shop',()=>showHub('shop'));return;}if(t==='wood'){if(!freeChestReady())return;ACC.freeChestAt=Date.now();}else{if(ACC.gems<T.price)return;ACC.gems-=T.price;}persist();openChest(t,()=>showHub('shop'));});
   bind('[data-deal]',b=>{const i=+b.dataset.deal;const d=genDeals()[i];if(buyDeal(i)){SFX.play(d.k==='gold'||d.k==='gems'?'buy':'card');flyReward(b,d);showHub('shop');}else SFX.play('deny');});
   bind('[data-unl]',b=>{if(unlockDeal(+b.dataset.unl)){SFX.play('unlock');showHub('shop');}else SFX.play('deny');});
+  bind('[data-stars]',b=>starsBuy(b.dataset.stars));
   bind('[data-xch]',b=>{const [g,gd]=ECON.exchange[+b.dataset.xch];if(ACC.gems<g){SFX.play('deny');return;}ACC.gems-=g;addGold(gd);ecoOp({r:'xch',i:+b.dataset.xch},{m:-g,g:gd});SFX.play('buy');persist();flyReward(b,{k:'gold',n:'+'+gd+' gold'});showHub('shop');});
 }
 /* a little "+N" toast that floats up from a purchase */
@@ -5434,7 +6049,7 @@ function openChest(t,done){
   const T=CHEST_TIERS[t];let el=$('#cer');if(!el){el=document.createElement('div');el.id='cer';document.getElementById('app').appendChild(el);}
   el.className='';el.innerHTML=`<h2>${T.n}</h2><div class="cchest" id="cch"><div class="glow" id="cglow"></div><div class="cimg" id="cimg">${chestSVG(t)}</div></div><div class="tap" id="ctap">TAP TO OPEN</div><div class="cbig" id="cbig"></div><div class="rw" id="crw"></div><button class="collect" id="ccol">COLLECT</button>`;
   let opened=false;const rewards=rollChest(t);persist();
-  const RC=['#8a97a8','#4fb0ff','#b47cff','#e3b661'],RN=['Common','Rare','Epic','Legendary'];
+  const RC=RAR_C,RN=RAR_N;
   const icon=r=>r.k==='card'?cardIcon(r.key,64):r.k==='champ'||r.k==='skill'?(CHAMP_ART[r.c.id+'_portrait']?`<img src="${CHAMP_ART[r.c.id+'_portrait']}" alt="">`:`<span style="font-size:40px">${r.c.e}</span>`):r.k==='gems'?GEM_SVG:r.k==='gold'?GOLD_SVG:r.k==='upg'?`<span style="font-size:44px">${r.u.e}</span>`:r.k==='att'?HUB_ICON.hold:r.k==='door'?'<svg viewBox="0 0 24 24" fill="none" stroke="#e3b661" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 10h18M3 15h18M8 5v5M15 5v5M6 10v5M12 10v5M18 10v5M9 15v4M15 15v4"/></svg>':r.k==='bank'?'<svg viewBox="0 0 24 24" fill="none" stroke="#e3b661" stroke-width="1.6"><ellipse cx="12" cy="6" rx="7" ry="2.6"/><path d="M5 6v4c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6V6M5 10v4c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-4M5 14v4c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-4"/></svg>':STAR_SVG;
   const reveal=()=>{if(opened)return;opened=true;const ch=$('#cch');ch.classList.add('shake');$('#ctap').textContent='';SFX.play('chest');
     setTimeout(()=>{ch.classList.remove('shake');ch.classList.add('opened');$('#cimg').innerHTML=chestSVG(t,true);$('#cglow').classList.add('on');SFX.play('chestopen');for(let i=0;i<24;i++){const s=document.createElement('span');s.className='sparkle';s.style.left='50%';s.style.top='40%';s.style.setProperty('--dx',(Math.random()*300-150)+'px');s.style.setProperty('--dy',(Math.random()*240-200)+'px');ch.appendChild(s);}
@@ -5442,7 +6057,7 @@ function openChest(t,done){
       const cardHTML=r=>`<span class="im">${icon(r)}</span><b>${esc(r.n)}</b><small>${esc(r.s)}</small><span class="rar" style="--rc:${RC[r.r]}">${RN[r.r]}</span>`;
       const mk=(r,cls)=>{const d=document.createElement('div');d.className='rcard '+cls;d.style.setProperty('--rc',RC[r.r]);d.style.setProperty('--rcg',RC[r.r]+'66');d.innerHTML=cardHTML(r);return d;};
       const PER=1150;
-      rewards.forEach((r,i)=>{setTimeout(()=>{const big=$('#cbig');if(!big)return;big.innerHTML='';const d=mk(r,'big');big.appendChild(d);requestAnimationFrame(()=>d.classList.add('in'));SFX.play(r.r>=3?'legend':r.r>=2?'epic':'card',70);
+      rewards.forEach((r,i)=>{setTimeout(()=>{const big=$('#cbig');if(!big)return;big.innerHTML='';const d=mk(r,'big');big.appendChild(d);requestAnimationFrame(()=>d.classList.add('in'));SFX.play(r.r>=4?'legend':r.r>=3?'epic':'card',70);
           if(r.r>=2){for(let k=0;k<14;k++){const s=document.createElement('span');s.className='sparkle';s.style.left='50%';s.style.top='50%';s.style.setProperty('--dx',(Math.random()*260-130)+'px');s.style.setProperty('--dy',(Math.random()*260-130)+'px');big.appendChild(s);}}
           setTimeout(()=>{d.classList.add('out');const sm=mk(r,'sm');$('#crw').appendChild(sm);requestAnimationFrame(()=>sm.classList.add('in'));SFX.play('tap',40);if(i===rewards.length-1)setTimeout(()=>{$('#ccol').classList.add('in');SFX.play('collect');},250);},PER-260);},450+i*PER);});},1000);};
   $('#cch').addEventListener('click',reveal);$('#ctap').addEventListener('click',reveal);
@@ -5505,7 +6120,7 @@ function holdTutorial(done){const c=CBY[ACC.sel],pu=CHAMP_ART[c.id+'_portrait'],
   render();}
 window.HOLDOR_GEN={denseRoute,pickSlots,waterFeat,seaEdge,riverY,inWater,posAt,BIOMES,mulberry32,hash32,dist,W,H,GX,GATE_Y,buildMap,renderBg,placeProps,chestSVG,showTowerRoom,showHeroRoom,showUpgrades,showCampaign,tLvl,campOf,nextStage,migrate45,sendBrothers,rankCap,towerStats,ECON,SK,TALENTS,UPG,UPG_OLD,DIFFS,hardOpen,maxTowerLvl,MAPPOS,levelOpen,cleared,starsEarned,CH_MAX,SK_MAX,T_MAX,makeHero,showDifficulty,openChest,POOLS,MINIS,TOWER_UNLOCK,UNLOCK_STAGE,SPELLS};
 window.HOLDOR_RING={openRing,closeRing,ringTap,ringFrame,state:()=>RING,upgradeTower,sellTower,sellValue,w2s,closeSheet,openSheet};
-window.HOLDOR_TUT={TS,tutEvent,tutNext,tutAdvance,skipTutorial,LESSONS,TUT_STEPS,lessonStart,lessonsInit,learnMap,coachStart,coachStep,coachNext,coachEnd,COACH,startTour,hubLessons,migrate47,startTutorial,tutWantBase};
+window.HOLDOR_TUT={TS,tutEvent,tutNext,tutAdvance,skipTutorial,LESSONS,TUT_STEPS,lessonStart,lessonsInit,learnMap,coachStart,coachStep,coachNext,coachEnd,COACH,startTour,hubLessons,migrate47,startTutorial,tutWantBase,TUT_LEVEL,tutSlot};
 window.HOLDOR_CARDS={CARD_NEED,CARD_MUL,cardRar,cardLvl,cardMax,cardNeed,cardHave,cardGold,cardName,cardOpen,cardReady,cardCan,addCards,cardLevelUp,accLevel,accXp,addXp,xpNeed,lvlChestTier,lvlChestsReady,cardPool,rollChest,stageCards,spellLvl,spellMul,showSpellRoom,showTowerRoom,migrate48,TOURS,toursOf,hubTour,startTour};
 window.HOLDOR_SEATS={seatNo,lbIsMe,lbName,lbStale,lbMine,scoreSummary,fetchLeaderboard,cachedLb};
 window.HOLDOR_BOOK={showBook,bookNew,bookDisc,bookNewCount,bookMarkRead,BOOK,trophiesOf,trophiesRow,rankOf,myRank,rankSVG,showRankSheet,RANKS,RANK_AT};
@@ -5515,6 +6130,12 @@ window.HOLDOR_CH53={KITS53,selSk,handMul,heroParry,hurtHero,costOf,upCost,towerS
 window.HOLDOR_CH54={KITS54,heroXp};
 window.HOLDOR_REALMS={showRealmCard,fetchRealmCard,realmStats,realmTotals,realmSummary,RCARD};
 window.HOLDOR_ECON={ECON,UPG,ACHS,CHEST_TIERS,PACK_ITEMS,ARMY_COST,ARMY_MAX,HOLD_ATTEMPTS,CH_MAX,T_MAX,S_MAX,SK_MAX,SK_CAP,VERSION,CARD_PRICE,ECO,ecoOn,ecoWants,ecoStart,ecoApply,ecoFlush,ecoRefresh,ecoCalm,ecoPend,ecoSnap,ecoEnergy,ecoCost,ecoEnergySheet,ecoStatus,ecoBuyAtt,startGame0,cardLevelUp,trainArmy,buyPack,buyDeal,unlockDeal,grantAch};
+window.HOLDOR_GEAR={gearStats,gearEff,gearSetInfo,setSteps,gearItems,gearLoad,showForge,gearSheet,gearTierPick,gearSetBook,gearCost,gearTierCost,gearChance,gearSellPrice,gearName,gearLine,gearKind,GEAR_SLOTS,GEAR_SET,GEAR_KIND,GEAR_ART,SET_ART,setGearSheet,SK,skLvl,skVal,gearPerks,gearPerkRank,gearPerkText,gearTestBag:(items,cfg)=>{ECO.gear={items,cfg,test:true};}};
+window.HOLDOR_CARDRULES={UNLOCK_STAGE,TOWER_UNLOCK,T_RAR,S_RAR,CARD_NEED,CARD_MUL,CARD_PACK,CHAMPS,SPELLS,TKEYS};
+window.HOLDOR_CH59={KITS59,hitDoor};
+window.HOLDOR_TAVERN={CH_RAR,RAR_STAT,RAR_N,ST_MAX,ASC_GOLD,ASC_BURN,BOOK_N,BOOK_R,BOOK_OF,BOOK_NEED,BOOK_PRICE,BOOK_DROP,SUMMON,cstar,champCap,champRar,ascend,ascNeed,ascGold,ascCan,ascReady,skillUp,skCan,skBooks,summon,summonRoll,chestBooks,bookKey,showHeroRoom,cardNeed,cardCan,cardLevelUp,addCards,cardHave};
+window.HOLDOR_STARS={STARS_SHOP,STARS,starsBuy,starsWait,starsCan,starsShopHTML};
+window.HOLDOR_DAILY={LOGIN_CAL,QUESTS,DAILY,LOGIN_SPECIAL_GEMS,showDaily,dailyLoad,dailyReady,dailyClaimLogin,dailyClaimQuest,dailyPopupCheck,rewardChips};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();
