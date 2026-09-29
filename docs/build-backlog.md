@@ -367,6 +367,14 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **Not in this version:** HOLDOR Coin and Tasks (Telegram group check by the bot, X, YouTube) — they need MR B's group username and links.
 - **Tests:** `backend/test/v13_test.py`, `v14_test.py`, and `daily_test.py` (Levels and Invite tabs with real taps).
 - **Rollout:** v13 and v14 go into Supabase with the next release, after v12.
+
+### v1.0.67 — Duel: asynchronous 1v1 on the Hold map (backend v15) (2026-09-30)
+- **What it is, honestly:** nothing is played live. A duel compares two Hold runs on the same map (the day's Hold map is the same for everybody); each side fights his own run, and the server compares runs it recorded itself (`battles` of kind `hold` finished inside the duel's window; score = waves × 1000 + kills, kills capped at 999). A real-time duel with troops sent across a shared map (the KR Battles mechanic) needs a game server and is a separate, later project.
+- **Modes:** Ranked (the opponent is the recorded best run of a real player near your rating — a "ghost", who is not asked and loses nothing — or a bot when nobody fits; Elo K 32; 5 ranked duels a day per seat; a small gold gift, 15 dragonglass on a win), Friend (a `startapp=d_<code>` link; both play; no rating, no reward), Practice vs a bot (always marked, no rating, 100 gold). Leagues by rating: Bronze, Silver 1100, Gold 1300, Crystal 1500, Dragon 1700.
+- **Server:** tables `ratings`, `duels`; `duel_state` (settles what can be settled), `duel_start`, `duel_join`; the owner view `v_duels`. Hold attempts are shared with the daily Hold.
+- **App:** an Events-tab card "Duel" → the Duel screen (league, rating, three buttons, the list of duels with both runs and the result). A challenge link opened at start waits until a seat is open (Events → Duel joins it).
+- **Tests:** `backend/test/v15_test.py` (34 checks: ghost and bot, Elo, limits, friend flow, expiry, permissions), `duel_test.py` (real taps).
+- **Rollout:** v15 goes into Supabase with the next release.
 ### v1.0.61 — login calendar and quests (backend v10) (2026-09-29)
 The retention loop. Every reward is paid by the server and progress is counted from the server's own records, so nothing here can be forged.
 - **Login calendar (30 days):**

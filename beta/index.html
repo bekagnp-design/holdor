@@ -1044,7 +1044,16 @@ canvas{touch-action:none}/* v1.0.61 — login calendar and quests */
 .cbd .ct b{font-size:14px;color:#fff}
 .cbd .ct small{font-size:11px;color:#9fb6c9;line-height:1.25}
 .cbd.lock{opacity:.6;filter:grayscale(.6)}
-.cbd:not(.lock):active{transform:scale(.98)}
+.cbd:not(.lock):active{transform:scale(.98)}/* v1.0.67: duel */
+.lg{display:flex;align-items:center;gap:8px;padding:10px;border-radius:14px;background:#13284a;border:2px solid #0b1a2e;margin:8px 0;color:#dbe9f6}
+.lg .le{font-size:34px}.lg b{font-size:18px;color:#fff}.lg .rt{margin-left:auto;font-family:var(--f-display);font-size:24px;color:#ffd54a}.lg small{width:100%;color:#9fb6c9}
+.dbtns{display:flex;flex-direction:column;gap:6px;margin:8px 0}.dbtns .btn small{display:block;font-size:10px;opacity:.75}
+.duelrow{padding:8px 10px;border-radius:12px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6;margin:6px 0}
+.duelrow.win{border-color:#3d9a54}.duelrow.loss{border-color:#8a3a3a}.duelrow.expired{opacity:.55}
+.duelrow .dh{display:flex;align-items:center;gap:8px}.duelrow .dh b{margin-left:auto;font-size:12px}
+.dw{color:#7fd06a}.dl{color:#ff8a8a}.dx{color:#9fb6c9}.dp{color:#ffd54a}
+.duelrow .ds{display:flex;align-items:center;justify-content:space-around;text-align:center;margin-top:6px;font-size:13px}
+.duelrow .ds em{font-style:normal;font-size:12px;color:#cfe0ee}.duelrow .ds i{opacity:.5;font-style:normal}
 </style>
 </head>
 <body>
@@ -1948,7 +1957,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.65';
+const VERSION='1.0.67';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -4962,7 +4971,7 @@ async function dailyClaimFr(other){if(DAILY.busy||!ecoOn())return;DAILY.busy=tru
     DAILY.fr=r.friends;DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);dailyClaimModal(r,'👥 A friend’s gift');}
   catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await frLoad();ecoModal('👥 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily('friends')}]);}}
 /* a new player who opened the game from an invite link joins his friend (once per device; the server checks he is really new) */
-function refJoinFromStart(){try{const sp=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.start_param;if(!sp||!/^r_[0-9a-f]{8}$/i.test(sp)||!CLOUD.token)return;
+function refJoinFromStart(){try{const sp=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.start_param;if(sp&&/^d_[0-9a-f]{8}$/i.test(sp)){DUEL.pending=sp.slice(2);ecoToast('🤝 A friend challenged you — open Events → Duel');return;}if(!sp||!/^r_[0-9a-f]{8}$/i.test(sp)||!CLOUD.token)return;
   const k='holdor_refjoin';if(localStorage.getItem(k)===sp)return;localStorage.setItem(k,sp);
   sbRpc('ref_join',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).then(r=>{if(r&&r.by)ecoToast('👥 You joined '+r.by+'’s house of friends — clear 5 stages for a gift');}).catch(()=>{});}catch(e){}}
 /* the popup when the castle opens and today's reward waits (once a session; never over a tutorial or a tour) */
@@ -5044,6 +5053,56 @@ function showCity(){
   $('#bBack').addEventListener('click',()=>showHub('battle'));
   card.querySelectorAll('.cbd').forEach(x=>x.addEventListener('click',()=>{const b=CITY_BLD.find(y=>y[0]===x.dataset.b);
     if(!cityOpen(b,cityCleared())){SFX.play('deny');ecoToast(`🔒 ${b[2]} opens after ${b[4]} cleared stages`);return;}SFX.play('tap',60);b[5]();}));
+}
+/* =========================== DUEL (v1.0.67, backend v15) ===========================
+   An asynchronous 1v1 on the Hold map. Nothing is played "live": each side fights his own Hold run, and the server compares the runs
+   it recorded itself (score = waves × 1000 + kills). Ranked: a ghost (the recorded best run of a real player near your rating; he is not
+   asked and loses nothing) or a bot; friend: a link; practice: a bot, always marked. Leagues by rating. Needs a seat signed in through Telegram. */
+const DUEL={st:null,at:0,seat:-1,busy:false,pending:null};
+const DUEL_LEAGUE={Bronze:'🥉',Silver:'🥈',Gold:'🥇',Crystal:'💎',Dragon:'🐉'};
+const DUEL_BOT='https://t.me/HoldorTDBot/play?startapp=d_';
+function duelOn(){return !!(ecoOn()&&ACC&&ACC.tut&&onlineOpen());}
+function duelLoad(force){if(!ecoOn())return Promise.resolve(null);
+  if(!force&&DUEL.st&&DUEL.seat===seatNo()&&Date.now()-DUEL.at<20000)return Promise.resolve(DUEL.st);
+  const seat=seatNo();
+  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('duel_state',{seat},9000);if(r.state)ecoApply(r.state);if(seat===seatNo()){DUEL.st=r;DUEL.at=Date.now();DUEL.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
+function duelRow(d){const who=d.kind==='ai'?'🤖 Bot':d.kind==='friend'?'🤝 '+(d.waiting?'Friend duel':esc(d.opponent)):'⚔️ '+esc(d.opponent);
+  const sc=x=>x&&x.score!=null?`${x.waves} 🌊 · ${x.kills} ☠`:'—';
+  const res=d.result==='win'?'<b class="dw">WIN</b>':d.result==='loss'?'<b class="dl">LOSS</b>':d.result==='draw'?'<b>DRAW</b>':d.status==='expired'?'<b class="dx">EXPIRED</b>':'<b class="dp">OPEN</b>';
+  const left=d.status==='open'?`<small>${fmtLeft(d.left)} left</small>`:'';
+  const dl=d.delta?`<small class="${d.delta>0?'dw':'dl'}">${d.delta>0?'+':''}${d.delta}</small>`:'';
+  const link=d.kind==='friend'&&d.status==='open'&&d.mine&&d.waiting?`<div class="reflink"><code>${esc(DUEL_BOT+d.code)}</code></div><div class="pvrow"><button class="btn" data-share="${d.code}">📨 Send to a friend</button><button class="btn sec" data-copy="${d.code}">Copy</button></div>`:'';
+  return `<div class="duelrow ${d.result||d.status}"><div class="dh"><span>${who}</span>${res}${dl}${left}</div>
+    <div class="ds"><span>You<br><em>${sc(d.me)}</em></span><i>vs</i><span>${d.waiting?'waiting for a friend':esc(d.kind==='ai'?'Bot':d.opponent)}<br><em>${sc(d.them)}</em></span></div>${link}</div>`;}
+async function duelCall(fn,args,after){if(DUEL.busy||!ecoOn())return;DUEL.busy=true;ecoWait(true);
+  try{const r=await ecoLane(async()=>{await ecoSyncRaw();return await ecoRpc(fn,Object.assign({seat:seatNo()},args),10000);});
+    ecoWait(false);DUEL.busy=false;DUEL.at=0;DUEL.st=null;after&&after(r);}
+  catch(e){DUEL.busy=false;ecoWait(false);const m=ecoMsg(e);ecoModal('⚔️ Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,140)),[{t:'OK',f:()=>showDuel()}]);}}
+function duelShare(code){const link=DUEL_BOT+code,u='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent('I challenge you to a Hold the Door duel!');try{if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank');}catch(e){}}
+async function duelJoinPending(){const code=DUEL.pending;if(!code||!ecoOn())return;DUEL.pending=null;
+  try{const r=await ecoLane(async()=>{await ecoSyncRaw();return await ecoRpc('duel_join',{seat:seatNo(),code},9000);});DUEL.at=0;ecoToast('🤝 You joined '+r.duel.opponent+'’s duel — play your Hold run');}
+  catch(e){ecoToast('⚠️ '+String(ecoMsg(e)).slice(0,80));}}
+function showDuel(){
+  const head=`<div class="topbar"><h1>⚔️ Duel<small>Same Hold map, two runs, one winner. The server compares what it recorded.</small></h1><button class="back" id="bBack">✖</button></div>`;
+  const draw=body=>{show(head+body);CLOUD.screen='duel';$('#bBack').addEventListener('click',()=>showHub('events'));};
+  if(!duelOn()){draw(`<p class="m">${!ecoOn()?'Duels are recorded by the server — they need a seat signed in through Telegram.':!ACC.tut?'Finish the tutorial battle first.':'Duels open with the Hold, after gate '+ONLINE_AT+'.'}</p>`);return;}
+  if(DUEL.pending){duelJoinPending().then(()=>{if(CLOUD.screen==='duel')showDuel();});}
+  const s=DUEL.st&&DUEL.seat===seatNo()?DUEL.st:null;
+  if(!s){draw('<p class="m">⏳ asking the server…</p>');duelLoad(true).then(()=>{if(CLOUD.screen==='duel')showDuel();});return;}
+  if(Date.now()-DUEL.at>20000)duelLoad(true).then(()=>{});
+  const open=s.duels.filter(d=>d.status==='open').length;
+  draw(`<div class="lg"><span class="le">${DUEL_LEAGUE[s.league]||'🥉'}</span><b>${s.league}</b><span class="rt">${s.rating}</span><small>${s.wins}W · ${s.losses}L · ${s.draws}D</small></div>
+    <div class="dbtns"><button class="btn" id="bRank" ${s.rank_left>0?'':'disabled'}>⚔️ Ranked duel <small>${s.rank_left} left today</small></button>
+    <button class="btn sec" id="bFriend">🤝 Challenge a friend</button><button class="btn sec" id="bAi">🤖 Practice vs a bot <small>no rating</small></button></div>
+    <p class="m">${open?'<b>Play your Hold run</b> (the Hold tab): the best run you finish from the moment a duel opens counts. Hold attempts are shared with the daily Hold.':'Pick a duel. Ranked: a recorded run of a real player near your rating (he is not asked and loses nothing), or a bot when nobody fits.'}</p>
+    ${open?'<button class="btn" id="bPlayHold">🚪 To the Hold</button>':''}
+    <div class="qlist">${s.duels.map(duelRow).join('')||'<p class="m">No duels yet.</p>'}</div>`);
+  const go=(kind)=>duelCall('duel_start',{kind},r=>showDuel());
+  $('#bRank').addEventListener('click',()=>go('rank'));$('#bAi').addEventListener('click',()=>go('ai'));
+  $('#bFriend').addEventListener('click',()=>duelCall('duel_start',{kind:'friend'},r=>{showDuel();}));
+  const ph=$('#bPlayHold');if(ph)ph.addEventListener('click',()=>showHub('hold'));
+  card.querySelectorAll('[data-share]').forEach(b=>b.addEventListener('click',()=>duelShare(b.dataset.share)));
+  card.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',()=>{try{navigator.clipboard.writeText(DUEL_BOT+b.dataset.copy).then(()=>ecoToast('Link copied'),()=>ecoToast(DUEL_BOT+b.dataset.copy));}catch(e){ecoToast(DUEL_BOT+b.dataset.copy);}}));
 }
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
@@ -6149,6 +6208,7 @@ function openChest(t,done){
 /* ---------- EVENTS ---------- */
 function hubEvents(sub){sub=sub||'realms';const lb=cachedLb();const t=fmtT(msToMidnightUTC());
   const ev=[
+    {k:'duel',live:true,n:'Duel',s:'Same Hold map, two runs, one winner. Ranked leagues, friends, a bot to practise on.',st:onlineOpen()?'LIVE':'GATE '+ONLINE_AT,ic:'<svg viewBox="0 0 24 24"><path d="M4 3l8 8M20 3l-8 8M6 21l6-6 6 6" fill="none" stroke="#e3b661" stroke-width="2.2" stroke-linecap="round"/></svg>'},
     {k:'hold',live:true,n:'Daily Hold',s:`New map in ${t.h}h ${t.m}m · every realm and house counts`,st:onlineOpen()?'LIVE':'AFTER '+ONLINE_AT,ic:HUB_ICON.hold},
     {k:'houses',live:false,n:'War of the Houses',s:'Seven banners, one crown a week. Standings below.',st:'SOON',ic:'<svg viewBox="0 0 24 24"><path d="M5 2.5h14v12l-7 5-7-5z" fill="#b33fb0" stroke="#3a1146" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 6l1.6 3.2 3.5.5-2.5 2.4.6 3.5-3.2-1.7-3.2 1.7.6-3.5-2.5-2.4 3.5-.5z" fill="#ffd54a" stroke="#7a4a10" stroke-width=".9"/></svg>'},
     {k:'season',live:false,n:'Season I — The Long Night',s:'14-day ladder with a reset and rewards for realm and house rank.',st:'SOON',ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#4fc0ff" stroke="#0b3a5a" stroke-width="1.6"/><circle cx="12" cy="12" r="6.5" fill="#dff3ff"/><path d="M12 8v4.2l3 1.8" fill="none" stroke="#0b3a5a" stroke-width="1.8" stroke-linecap="round"/></svg>'},
@@ -6166,7 +6226,7 @@ function hubEvents(sub){sub=sub||'realms';const lb=cachedLb();const t=fmtT(msToM
 function hubEventsBind(sub){
   if(sbReady()&&lbStale())fetchLeaderboard(true).then(r=>{if(r&&CLOUD.screen==='hub:events')showHub('events',sub);});
   bind('.subtabs button',b=>showHub('events',b.dataset.sub));
-  bind('.evcard',b=>{if(b.dataset.ev==='hold')showHub('hold');else SFX.play('tap',40);});
+  bind('.evcard',b=>{if(b.dataset.ev==='hold')showHub('hold');else if(b.dataset.ev==='duel')showDuel();else SFX.play('tap',40);});
   const ar=$('#bAllRealms');if(ar)ar.addEventListener('click',()=>showRealms(false));bind('.rlink',b=>{SFX.play('tap',50);showRealmCard(+b.dataset.j,()=>showHub('events','realms'));});
 }
 /* ---------- HOLD ---------- */
@@ -6220,6 +6280,7 @@ window.HOLDOR_TAVERN={CH_RAR,RAR_STAT,RAR_N,ST_MAX,ASC_GOLD,ASC_BURN,BOOK_N,BOOK
 window.HOLDOR_STARS={STARS_SHOP,STARS,starsBuy,starsWait,starsCan,starsShopHTML};
 window.HOLDOR_DAILY={LOGIN_CAL,QUESTS,DAILY,LOGIN_SPECIAL_GEMS,showDaily,dailyLoad,dailyReady,dailyClaimLogin,dailyClaimQuest,dailyPopupCheck,rewardChips};
 window.HOLDOR_CITY={showCity,cityCleared,CITY_BLD,CITY_NAME};
+window.HOLDOR_DUEL={DUEL,showDuel,duelLoad,duelRow};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();
