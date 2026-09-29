@@ -1,0 +1,15 @@
+/* v1.0.74: Earn and events */
+.collectbox{display:flex;flex-direction:column;align-items:center;gap:6px;margin:8px 0;padding:12px;border-radius:16px;background:#13284a;border:2px solid #0b1a2e;color:#dbe9f6;text-align:center}
+.collectbox .ch1{display:flex;align-items:center;gap:8px;font-size:30px;font-family:var(--f-display);color:#ffd54a}.collectbox .ch1 svg{width:30px;height:30px}
+.collectbox small{font-size:11px;color:#9fb6c9}.collectbox .btn{min-width:60%}
+.evstrip{margin:6px 0;padding:8px 10px;border-radius:12px;background:#3a1f10;border:2px solid #e39a3a;color:#ffd9a6;font-size:12px;text-align:center}
+.egrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.ebld{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 6px;border-radius:14px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6;min-width:0}
+.ebld.own{border-color:#3d9a54}.ebld.lock{opacity:.55}
+.ebld .ei{font-size:30px;line-height:1}.ebld b{font-size:13px;color:#fff}.ebld small{font-size:10.5px;color:#9fb6c9}
+.ebld .ec{margin-top:2px;padding:3px 8px;border-radius:9px;background:#0b1a2e;font-size:12px;font-weight:800;color:#ffd54a}
+.ebld .ec.poor{color:#ff8a8a}.ebld .ec.lk{color:#9fb6c9}.ebld .ec.mx{color:#7fd06a}
+.evbadge{position:absolute;top:56px;right:8px;z-index:3;display:flex;flex-direction:column;align-items:flex-start;padding:5px 9px;border-radius:12px;border:2px solid #0b1a2e;background:rgba(19,40,74,.92);color:#fff;text-align:left;line-height:1.15}
+.evbadge.on{border-color:#e39a3a;background:rgba(58,31,16,.94)}
+.evbadge span{position:absolute;top:-10px;left:-8px;font-size:18px}.evbadge b{font-size:11px;margin-left:8px}.evbadge em{font-style:normal;font-size:10px;color:#ffd9a6;margin-left:8px}
+.evpop{text-align:center}.evpop .evcd{font-family:var(--f-display);font-size:26px;color:#ffd54a;margin:6px 0}.evpop p{margin:6px 0;color:#dbe9f6}
