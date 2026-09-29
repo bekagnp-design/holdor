@@ -100,8 +100,8 @@ const CFG = JSON.parse(/insert into econ_config \(k, v\) values \('gear', '(\{[\
   await page.screenshot({ path: SC + 'gear62_burn.png' });
   // art sheets: a 3x3 magenta sheet is cut into cells, the magenta turns transparent, items then show the images
   const art = await page.evaluate(async () => { const c = document.createElement('canvas'); c.width = 300; c.height = 300; const x = c.getContext('2d'); x.fillStyle = '#ff00ff'; x.fillRect(0, 0, 300, 300); x.fillStyle = '#336699'; for (let i = 0; i < 9; i++) x.fillRect((i % 3) * 100 + 30, Math.floor(i / 3) * 100 + 30, 40, 40);
-    const G = window.HOLDOR_GEAR; G.setGearSheet('armor', c.toDataURL()); await new Promise(r => setTimeout(r, 400)); const keys = Object.keys(G.GEAR_ART);
-    const im = new Image(); im.src = G.GEAR_ART['helmet:Helm']; await new Promise(r => { im.onload = r; }); const cc = document.createElement('canvas'); cc.width = im.width; cc.height = im.height; const cx = cc.getContext('2d'); cx.drawImage(im, 0, 0);
+    const G = window.HOLDOR_GEAR; G.setGearSheet('kinds1', c.toDataURL()); await new Promise(r => setTimeout(r, 400)); const keys = Object.keys(G.GEAR_ART);
+    const im = new Image(); im.src = G.GEAR_ART['weapon:Sword']; await new Promise(r => { im.onload = r; }); const cc = document.createElement('canvas'); cc.width = im.width; cc.height = im.height; const cx = cc.getContext('2d'); cx.drawImage(im, 0, 0);
     return { keys, corner: cx.getImageData(2, 2, 1, 1).data[3], centre: cx.getImageData(50, 50, 1, 1).data[3] }; });
   ok('an art sheet is cut into the 9 items of its grid, magenta becomes transparent', art.keys.length === 9 && art.corner === 0 && art.centre === 255, JSON.stringify(art));
   ok('gifts show their items', await page.evaluate(() => window.HOLDOR_DAILY.rewardChips({ gear: { n: 1, min_r: 3, min_tier: 2 } }).includes('Epic+ ★2+')));

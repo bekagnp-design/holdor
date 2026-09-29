@@ -55,11 +55,11 @@ try:
     pct = {r: 100.0 * dist.get(r, 0) / 20000 for r in range(5)}
     check('rarity odds ≈ 70 / 22 / 6.5 / 1.4 / 0.1', abs(pct[0] - 70) < 1.5 and abs(pct[1] - 22) < 1.2 and abs(pct[2] - 6.5) < 0.7 and abs(pct[3] - 1.4) < 0.35 and pct[4] < 0.35, pct)
     g = G0; bad = []
-    for slot, rar, mk, subs in q("select slot, rar, main_k, subs from items where tg_id = %s and src = 'test' limit 3000", T1):
+    for slot, rar, mk, subs, kd in q("select slot, rar, main_k, subs, kind from items where tg_id = %s and src = 'test' limit 3000", T1):
         ks = [s['k'] for s in subs]
-        if mk not in g['main'][slot] or len(ks) != g['subs_n'][rar] or len(set(ks)) != len(ks) or mk in ks \
+        if mk not in g['kinds'][slot][kd]['main'] or len(ks) != g['subs_n'][rar] or len(set(ks)) != len(ks) or mk in ks \
            or any(not (g['sub'][s['k']][0] <= s['v'] <= g['sub'][s['k']][1]) for s in subs): bad.append((slot, rar, mk, subs))
-    check('every item: main stat of its slot, subs by rarity, distinct, within range', not bad, bad[:2])
+    check('every item: main stat of its kind, subs by rarity, distinct, within range', not bad, bad[:2])
     check('all 9 slots and every set appear (12 sets since v11, 4 before)', q1("select count(distinct slot) from items where tg_id = %s", T1) == 9 and q1("select count(distinct set_k) from items where tg_id = %s", T1) == len(g['sets']))
     q("delete from items where tg_id = %s", T1); restore()
     check('a full bag gets nothing', (cfg(cap=0), q1("select (ge_new(%s, 0, 0, 'x')).id is null", T1))[1] is True); restore()

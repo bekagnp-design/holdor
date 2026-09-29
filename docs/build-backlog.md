@@ -346,6 +346,14 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
   - Adapted `v6_test.py` to the tiers.
 - **Rollout:** v11 goes into Supabase with the rest (v7 → v11). Existing items keep working.
 
+
+### v1.0.63 — gear III: 54 kinds of item and special effects (backend v12) (2026-09-30)
+- **Kinds:** every slot has several kinds (`backend/gear_kinds.py` is the source of truth: 10 weapons, 6 off-hands, 6 helmets, 6 armours, 4 gloves, 4 boots, 6 rings, 6 amulets, 6 banners = 54). A kind decides which main stats an item can roll (a Dagger: crit or attack speed; a Signet: gold or cooldowns; Boots: speed only) and which perks it can carry. The server stores `items.kind` and the client shows the kind's name and shape (the same order in `GEAR_KIND` in `mod/gear.js`; a test compares both). Older items got a random kind of their slot once.
+- **Perks:** 46 special effects, each one an existing skill mechanic (Bleed, Thorns, Stormcaller, Execute, Frostbite, Tribute, Rally …); none is an ultimate. Chances: Common none, Uncommon 40 % one, Rare one, Epic and Legendary two (`perk_p`, `perk2_p`, never the same twice). Rank = ⌈(rarity + tier) / 2⌉, 1–5 (`ge_perk_rank`, also `pr` in `ge_json`), so forging the tier grows the perk. The champion gets the best rank of each perk among the items he wears.
+- **Engine:** `hero.perk = gearPerks(id)`; `skLvl` returns the higher of the champion's own skill rank and the perk rank, `skVal` clamps to the skill's table (some have only 3 ranks). That is the only accessor of skill ranks, so every periodic skill, aura and on-hit effect works unchanged.
+- **UI:** the item sheet lists its perks with the rank and the effect text; icons carry a ✦ per perk. Six art sheets of nine kinds (`setGearSheet('kinds1'…'kinds6')`) replace the four old ones; `docs/prompts-gear.md` was regenerated.
+- **Tests:** `backend/test/v12_test.py` (54 kinds, main/perk pools, 3000 rolls: kind, main and perks all from the kind, perk counts by rarity, every kind appears); v6/v11 tests now check the main stat against the kind. `tests/t_gear63.js`: names agree with the server config, all 46 perks are real non-ult skills and run for 900 steps in a battle at rank 5, rank rules, best-of-worn, burn/poison/thorns/howl behaviour, the sheet and the ✦, the six art sheets.
+- **Rollout:** v12 goes into Supabase with the release, after v11.
 ### v1.0.61 — login calendar and quests (backend v10) (2026-09-29)
 The retention loop. Every reward is paid by the server and progress is counted from the server's own records, so nothing here can be forged.
 - **Login calendar (30 days):**
@@ -432,7 +440,7 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 
 ## Not done / next
 - **On MR B (one step at a time):** 1) merge the v1.0.58 PR, then the v1.0.59 PR, and play `…/holdor/beta/` on the phone; 2) say "release" — Claude first applies `holdor_v7.sql`, the regenerated `holdor_econ_data.sql` and `holdor_v8.sql` in Supabase (hashes verified), then opens the release PR. Art: the Dorne kit first (`holdor-prompts-v45.md`); still open: 8 chest images, 30 skill icons, 7 island images, 4 event banners, house film clips.
-- **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.62 city → v1.0.63 account levels + HOLDOR Coin + Tasks + invites → v1.0.65 chats → v1.0.66–67 PvP 1v1 → v1.0.68 country war → v1.0.69 languages → v1.0.70 Season Pass + rewarded ads + VIP → v1.0.71 marketing.
+- **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.64 city → v1.0.65 account levels + HOLDOR Coin + Tasks + invites → v1.0.66 chats → v1.0.67–68 PvP 1v1 → v1.0.69 country war → v1.0.70 languages → v1.0.71 Season Pass + rewarded ads + VIP → v1.0.72 marketing.
 - Standing rule from MR B (26.09): every reply ends with the next step and one development idea/plan.
 - **Wire when art arrives:** `BG_ART[biome]` (drop-in), props sheet → cut 3×3 on magenta → `setPropSheet(biome, cells)` (order in `PROP_KIT`), `CHEST_ART`, `SKILL_ART`; painted islands would replace `drawIsland` per house.
 - Hold stats: verified real — the Hold tab's "Today's defenders" and "your rank" come only from the server's `daily_scores` (v3: per seat); B K's 15-wave run was on the server on 2026-09-14.

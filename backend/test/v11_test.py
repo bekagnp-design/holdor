@@ -55,7 +55,7 @@ stats = set(G0['main_base'])
 check('eleven stats; every main, sub, set and bonus stat is one of them', len(stats) == 11 and all(set(v) <= stats for v in G0['main'].values()) and set(G0['sub']) == stats
       and all(set(b) <= stats for s in S.values() for k, b in s.items() if k != 'stack') and all(set(b) <= stats for b in G0['bonus_all'].values()), sorted(stats))
 check('the new stats exist: armor, lifesteal, regen, crit', {'armor', 'lifesteal', 'regen', 'crit'} <= stats and set(G0['caps']) == {'armor', 'lifesteal', 'regen', 'crit'})
-check('every slot has a main stat, the boots only speed', set(G0['main']) == set(G0['slots']) and G0['main']['boots'] == ['spd'])
+check('every slot has a main stat, ', set(G0['main']) == set(G0['slots']))
 check('tier tables: 5 multipliers, 4 tier costs, 20 upgrade chances, each tier row sums to 100', len(G0['tier_mul']) == 5 and len(G0['tier_cost']) == 4 and len(G0['chance']) == 20 and all(sum(v) == 100 for v in G0['tier_p'].values()), G0['tier_p'])
 
 # ---------- 2. old items keep their level: the tier follows ----------
@@ -67,11 +67,11 @@ clear(T1)
 # ---------- 3. rolls ----------
 def roll(t, key, n, min_r=0, min_tier=1):
     for _ in range(n): q("select ge_new2(%s, 0, %s, 'test', %s, %s)", t, min_r, key, min_tier)
-    return q("select tier, rar, slot, main_k, set_k, jsonb_array_length(subs), subs from items where tg_id = %s", t)
+    return q("select tier, rar, slot, main_k, set_k, jsonb_array_length(subs), subs, kind from items where tg_id = %s", t)
 cfg(cap=5000)
 rows = roll(T1, 'dragon', 300, 0, 1)
 check('dragon-chest tiers: mostly ★3+, some ★5, never a tier the table does not give', sum(1 for r in rows if r[0] >= 3) > 150 and any(r[0] == 5 for r in rows) and all(1 <= r[0] <= 5 for r in rows), sorted({r[0] for r in rows}))
-check('every item: a main stat that fits its slot, a real set, subs by rarity, no sub equal to the main', all(r[3] in G0['main'][r[2]] and r[4] in S and r[5] == G0['subs_n'][r[1]] and r[3] not in [x['k'] for x in r[6]] and len({x['k'] for x in r[6]}) == r[5] for r in rows))
+check('every item: a main stat that fits its kind, a real set, subs by rarity, no sub equal to the main', all(r[3] in G0['kinds'][r[2]][r[7]]['main'] and r[4] in S and r[5] == G0['subs_n'][r[1]] and r[3] not in [x['k'] for x in r[6]] and len({x['k'] for x in r[6]}) == r[5] for r in rows))
 check('all four new stats and all twelve sets do show up over 300 rolls', {'armor', 'lifesteal', 'regen', 'crit'} <= {r[3] for r in rows} | {x['k'] for r in rows for x in r[6]} and len({r[4] for r in rows}) == 12)
 clear(T1); rows = roll(T1, 'wood', 300)
 check('wood-chest tiers: ★1 and ★2 only', {r[0] for r in rows} <= {1, 2} and sum(1 for r in rows if r[0] == 1) > 230, sorted({r[0] for r in rows}))

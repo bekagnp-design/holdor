@@ -7,18 +7,21 @@
    one item of every rarity (Rainbow) and all nine slots filled (Full kit). Guests have no gear. */
 const GEAR_SLOT={weapon:['⚔️','Weapon'],offhand:['🛡️','Shield'],helmet:['⛑️','Helmet'],armor:['🧥','Armor'],gloves:['🧤','Gloves'],boots:['🥾','Boots'],ring:['💍','Ring'],amulet:['📿','Amulet'],banner:['🚩','Banner']};
 const GEAR_SLOTS=Object.keys(GEAR_SLOT);
-/* a look and a name for every item (cosmetic, from its id): the same slot comes in several shapes */
-const GEAR_KIND={weapon:[['Sword','⚔️'],['Axe','🪓'],['Spear','🔱'],['Bow','🏹'],['Staff','🪄']],offhand:[['Shield','🛡️'],['Buckler','🛡️'],['Kite shield','🛡️']],helmet:[['Helm','⛑️'],['Hood','🧢'],['Crown','👑']],
-  armor:[['Mail','🧥'],['Plate','🥋'],['Jerkin','🧥']],gloves:[['Gauntlets','🧤'],['Gloves','🧤']],boots:[['Boots','🥾'],['Greaves','🥾']],ring:[['Ring','💍'],['Signet','💍']],amulet:[['Amulet','📿'],['Pendant','📿']],banner:[['Banner','🚩'],['Standard','🚩']]};
+/* a shape and a name for every item: its KIND (from the server, the same order as backend/gear_kinds.py — 54 kinds); the kind decides its main stats and its special effects */
+const GEAR_KIND={weapon:[['Sword','⚔️'],['Axe','🪓'],['Spear','🔱'],['Bow','🏹'],['Crossbow','🎯'],['Staff','🪄'],['Dagger','🗡️'],['Warhammer','🔨'],['Halberd','⚜️'],['Flail','⛓️']],offhand:[['Shield','🛡️'],['Buckler','🔘'],['Kite shield','🔰'],['Tome','📖'],['Torch','🔥'],['Orb','🔮']],helmet:[['Helm','⛑️'],['Hood','🧢'],['Crown','👑'],['Coif','🪖'],['Mask','🎭'],['Horned helm','🐂']],armor:[['Mail','🧥'],['Plate','🥋'],['Robe','👘'],['Jerkin','🦺'],['Cloak','🧣'],['Brigandine','🥼']],gloves:[['Gauntlets','🧤'],['Gloves','🥊'],['Bracers','💪'],['Mitts','🫱']],boots:[['Boots','🥾'],['Greaves','🦿'],['Sandals','🩴'],['Spurs','⚙️']],ring:[['Ring','💍'],['Signet','🏵️'],['Band','⭕'],['Seal','🔴'],['Loop','🪢'],['Claw ring','🐾']],amulet:[['Amulet','📿'],['Pendant','🔗'],['Talisman','🧿'],['Charm','🍀'],['Fang','🦷'],['Relic','🏺']],banner:[['Banner','🚩'],['Standard','🏴'],['Pennant','🎏'],['War horn','📯'],['Totem','🗿'],['Sigil','🔱']]};
 const GEAR_RAR=[['Common','#9aa4b1'],['Uncommon','#5fcf6a'],['Rare','#4fb0ff'],['Epic','#b47cff'],['Legendary','#e3b661']];
 const GEAR_STAT={dmg:'Damage',hp:'Health',rate:'Attack speed',spd:'Speed',cdr:'Cooldowns',gold:'Gold from kills',range:'Range',armor:'Armor',lifesteal:'Lifesteal',regen:'Regeneration',crit:'Crit chance'};
 const GEAR_SET={wolf:['🐺','Direwolf'],lion:['🦁','Lion'],dragon:['🐉','Dragon'],kraken:['🐙','Kraken'],stag:['🦌','Stag'],rose:['🌹','Rose'],sun:['☀️','Sun'],anvil:['🔨','Anvil'],wall:['🧱','Wall'],blood:['🩸','Blood'],raven:['🐦‍⬛','Raven'],hunt:['🏹','Hunt']};
 /* drop-in art: GEAR_ART['weapon'] / ['weapon:Axe'] → an image for the slot or shape; SET_ART['wolf'] → the set's emblem; TIER_ART, FRAME_ART[rarity] (see docs/prompts-gear.md) */
 const GEAR_ART={},SET_ART={},FRAME_ART={};
-/* art sheets (docs/prompts-gear.md): 3×3 (or 4×3) grids on magenta, cut into cells; the magenta becomes transparent. setGearSheet('armor'|'weapons'|'small', url), setGearSheet('sets', url) */
-const GEAR_SHEETS={armor:{cols:3,rows:3,keys:['offhand:Shield','offhand:Buckler','offhand:Kite shield','helmet:Helm','helmet:Hood','helmet:Crown','armor:Mail','armor:Plate','armor:Jerkin']},
-  weapons:{cols:3,rows:3,keys:['weapon:Sword','weapon:Axe','weapon:Spear','weapon:Bow','weapon:Staff','gloves:Gauntlets','gloves:Gloves','boots:Boots','boots:Greaves']},
-  small:{cols:3,rows:3,keys:['ring:Ring','ring:Signet','amulet:Amulet','amulet:Pendant','banner:Banner','banner:Standard',null,null,null]},
+/* art sheets (docs/prompts-gear.md): 3×3 (or 4×3) grids on magenta, cut into cells; the magenta becomes transparent. setGearSheet('kinds1'…'kinds6', url) (nine kinds each, in the order of backend/gear_kinds.py), setGearSheet('sets', url) */
+const GEAR_SHEETS={
+  kinds1:{cols:3,rows:3,keys:['weapon:Sword','weapon:Axe','weapon:Spear','weapon:Bow','weapon:Crossbow','weapon:Staff','weapon:Dagger','weapon:Warhammer','weapon:Halberd']},
+  kinds2:{cols:3,rows:3,keys:['weapon:Flail','offhand:Shield','offhand:Buckler','offhand:Kite shield','offhand:Tome','offhand:Torch','offhand:Orb','helmet:Helm','helmet:Hood']},
+  kinds3:{cols:3,rows:3,keys:['helmet:Crown','helmet:Coif','helmet:Mask','helmet:Horned helm','armor:Mail','armor:Plate','armor:Robe','armor:Jerkin','armor:Cloak']},
+  kinds4:{cols:3,rows:3,keys:['armor:Brigandine','gloves:Gauntlets','gloves:Gloves','gloves:Bracers','gloves:Mitts','boots:Boots','boots:Greaves','boots:Sandals','boots:Spurs']},
+  kinds5:{cols:3,rows:3,keys:['ring:Ring','ring:Signet','ring:Band','ring:Seal','ring:Loop','ring:Claw ring','amulet:Amulet','amulet:Pendant','amulet:Talisman']},
+  kinds6:{cols:3,rows:3,keys:['amulet:Charm','amulet:Fang','amulet:Relic','banner:Banner','banner:Standard','banner:Pennant','banner:War horn','banner:Totem','banner:Sigil']},
   sets:{cols:4,rows:3,keys:['wolf','lion','dragon','kraken','stag','rose','sun','anvil','wall','blood','raven','hunt'],into:'SET'}};
 function setGearSheet(name,url){const S=GEAR_SHEETS[name];if(!S)return;const im=new Image();
   im.onload=()=>{const cw=Math.floor(im.width/S.cols),ch=Math.floor(im.height/S.rows),into=S.into==='SET'?SET_ART:GEAR_ART;
@@ -30,7 +33,11 @@ const GEAR_ZERO=()=>({dmg:0,hp:0,rate:0,spd:0,cdr:0,gold:0,range:0,armor:0,lifes
 function gearOn(){return !!(ecoOn()||(ECO.gear&&ECO.gear.test));}
 function gearItems(){return (ECO.gear&&gearOn()&&ECO.gear.items)||[];}
 function gearCfg(){return (ECO.gear&&ECO.gear.cfg)||null;}
-function gearKind(it){const L=GEAR_KIND[it.slot]||[['Item','❔']],n=parseInt(String(it.id).slice(0,2),16)||0;return L[n%L.length];}
+function gearKind(it){const L=GEAR_KIND[it.slot]||[['Item','❔']];return L[(it.kind||0)%L.length];}
+/* special effects (perks): skill mechanics granted by an item; rank = ⌈(rarity+tier)/2⌉ (1–5); the champion gets the best rank of each perk he wears */
+function gearPerkRank(it){return it.pr||Math.min(5,Math.max(1,Math.ceil((it.r+gearTier(it))/2)));}
+function gearPerks(cid){const o={};for(const it of gearItems())if(it.champ===cid&&it.perks)for(const p of it.perks){if(!SK[p])continue;const r=gearPerkRank(it);if(r>(o[p]||0))o[p]=r;}return o;}
+function gearPerkText(id,rank){const S=SK[id];if(!S)return id;const v=S.v[Math.min(rank,S.v.length)-1];return `${S.e} <b>${S.n}</b> ${rank}/5 — ${S.d(v)}${S.cd?' (every '+S.cd+' s)':''}`;}
 function gearTier(it){return Math.max(1,Math.min(5,it.tier||1));}
 function gearCap(it){return it.cap||gearTier(it)*4;}
 /* what a set gives for n pieces: [{th, bonus, times, on}] — quads have 2 and 4; pairs and triples repeat for every full group */
@@ -63,7 +70,7 @@ async function gearLoadRaw(announce){if(!CLOUD.on||!CLOUD.token)return;const sea
 function gearLoad(announce){return ecoLane(()=>gearLoadRaw(announce));}
 function tierPips(it){return '★'.repeat(gearTier(it))+'<i>'+'★'.repeat(5-gearTier(it))+'</i>';}
 function gearIcon(it,px){const R=GEAR_RAR[it.r],k=gearKind(it),art=GEAR_ART[it.slot+':'+k[0]]||GEAR_ART[it.slot],sa=SET_ART[it.set];
-  return `<span class="gic" style="--gc:${R[1]};${px?'font-size:'+px+'px':''}">${art?`<img src="${art}" alt="">`:k[1]}<b class="gset">${sa?`<img src="${sa}" alt="">`:GEAR_SET[it.set][0]}</b><u class="gtier">${tierPips(it)}</u>${it.lvl?`<em>+${it.lvl}</em>`:''}</span>`;}
+  return `<span class="gic" style="--gc:${R[1]};${px?'font-size:'+px+'px':''}">${art?`<img src="${art}" alt="">`:k[1]}<b class="gset">${sa?`<img src="${sa}" alt="">`:GEAR_SET[it.set][0]}</b><u class="gtier">${tierPips(it)}</u>${it.perks&&it.perks.length?`<s class="gpk2">${'✦'.repeat(it.perks.length)}</s>`:''}${it.lvl?`<em>+${it.lvl}</em>`:''}</span>`;}
 /* ---------- the forge screen: the champion's 9 slots, its set bonuses, the bag ---------- */
 function gearBonusBlock(cid){const I=gearSetInfo(cid),C=gearCfg()||{},A=C.bonus_all||{},rows=[];
   for(const s of I.sets){const S=GEAR_SET[s.k];rows.push(`<div class="gbn ${s.steps.some(x=>x.on)?'on':''}"><b>${S[0]} ${S[1]} · ${s.n}</b>${s.steps.map(x=>`<span class="${x.on?'on':''}">${x.th}: ${gearBonusText(x.bonus,x.on?x.times:1)}${x.times>1?' ×'+x.times:''}</span>`).join('')}</div>`);}
@@ -106,6 +113,7 @@ function gearSheet(id,cid,filter){const it=gearItems().find(x=>x.id===id);if(!it
   const steps=Object.keys(sb).filter(x=>/^\d+$/.test(x)).sort().map(x=>`${x}: ${gearBonusText(sb[x])}`).join(' · ')+(sb.stack?' · repeats':'');
   const html=`<div class="gsheet" style="--gc:${R[1]}">${gearIcon(it,34)}<b>${gearName(it)}</b><small class="gtr">Tier ${'★'.repeat(t)}${'☆'.repeat(5-t)} · level ${it.lvl}/${cap}</small>
     <div class="gst"><em>${gearLine(it.main.k,it.main.v)}</em>${(it.subs||[]).map(x=>`<span>${gearLine(x.k,x.v)}</span>`).join('')}</div>
+    ${(it.perks&&it.perks.length)?`<div class="gperk">${it.perks.map(p=>`<span>${gearPerkText(p,gearPerkRank(it))}</span>`).join('')}</div>`:''}
     <small>${S[0]} ${S[1]} set · ${steps}</small>
     ${!atCap?`<small>Next strike: +${it.lvl+1} · ${ch}% · 🪙${cost}${(it.lvl+1)%4===0?' · a substat grows':''}</small>`:t<5?`<small>At its cap. Raise the tier: 🪙${tcost} and another ${R[0]} item of tier ${t}+ to burn — the item goes on to +${cap+4}.</small>`:'<small>Fully forged: tier 5, +20.</small>'}</div>`;
   ecoModal(`${S[0]} ${gearKind(it)[0]}`,html,[
