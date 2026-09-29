@@ -61,7 +61,7 @@ with sync_playwright() as p:
 
     # ---- the screen ----
     ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(500)
-    tap('#bDaily', 700)
+    tap('#bDaily', 700); settle(); ev("HOLDOR_DAILY.showDaily('cal')"); pg.wait_for_timeout(600)
     check('the calendar: 30 tiles, day 1 done, day 2 is today', ev("document.querySelectorAll('.cday').length") == 30 and ev("document.querySelector('.cday.done b').textContent") == '1' and ev("document.querySelector('.cday.today b').textContent") == '2')
     check('today\'s reward is already claimed (the button says so and is disabled)', ev("document.querySelector('#bLogin').disabled") and 'claimed' in ev("document.querySelector('#bLogin').textContent"))
     pg.screenshot(path=SHOTS + '/daily_calendar.png')
