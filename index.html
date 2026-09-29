@@ -1030,6 +1030,43 @@ canvas{touch-action:none}/* v1.0.61 — login calendar and quests */
 .eh .rw{display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
 .newch{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:8px}
 .sp{display:block;margin-top:6px;color:#ffd54a}
+/* v1.0.65: invitations */
+.reflink{margin:8px 0;padding:8px;border-radius:10px;background:#0b1a2e;border:1px solid #2a4a7a;overflow-wrap:anywhere;font-size:11px;color:#9fd0ff}
+.qt b small{font-weight:600;color:#9fb6c9;font-size:10px}/* v1.0.64: the city */
+.city{position:relative;display:flex;flex-direction:column;gap:14px;padding:16px 10px 40px;margin:8px 0;border-radius:16px;border:2px solid #0b1a2e;background:linear-gradient(var(--c1),var(--c2));min-height:70vh}
+.city .croad{position:absolute;left:50%;top:70px;bottom:10px;width:26px;transform:translateX(-50%);border-radius:13px;background:repeating-linear-gradient(#8b7a5b 0 14px,#76664a 14px 28px);opacity:.75;z-index:0}
+.cgate{position:relative;z-index:1;align-self:center;display:flex;flex-direction:column;align-items:center;font-size:34px;line-height:1}
+.cgate small{font-size:10px;color:#f2e6c9;margin-top:2px}
+.cbd{position:relative;z-index:1;display:flex;align-items:center;gap:8px;width:62%;padding:10px;border-radius:14px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6;text-align:left}
+.cbd.l{align-self:flex-start}.cbd.r{align-self:flex-end;flex-direction:row-reverse;text-align:right}
+.cbd .ci{font-size:30px}
+.cbd .ct{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cbd .ct b{font-size:14px;color:#fff}
+.cbd .ct small{font-size:11px;color:#9fb6c9;line-height:1.25}
+.cbd.lock{opacity:.6;filter:grayscale(.6)}
+.cbd:not(.lock):active{transform:scale(.98)}/* v1.0.67: duel */
+.lg{display:flex;align-items:center;gap:8px;padding:10px;border-radius:14px;background:#13284a;border:2px solid #0b1a2e;margin:8px 0;color:#dbe9f6}
+.lg .le{font-size:34px}.lg b{font-size:18px;color:#fff}.lg .rt{margin-left:auto;font-family:var(--f-display);font-size:24px;color:#ffd54a}.lg small{width:100%;color:#9fb6c9}
+.dbtns{display:flex;flex-direction:column;gap:6px;margin:8px 0}.dbtns .btn small{display:block;font-size:10px;opacity:.75}
+.duelrow{padding:8px 10px;border-radius:12px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6;margin:6px 0}
+.duelrow.win{border-color:#3d9a54}.duelrow.loss{border-color:#8a3a3a}.duelrow.expired{opacity:.55}
+.duelrow .dh{display:flex;align-items:center;gap:8px}.duelrow .dh b{margin-left:auto;font-size:12px}
+.dw{color:#7fd06a}.dl{color:#ff8a8a}.dx{color:#9fb6c9}.dp{color:#ffd54a}
+.duelrow .ds{display:flex;align-items:center;justify-content:space-around;text-align:center;margin-top:6px;font-size:13px}
+.duelrow .ds em{font-style:normal;font-size:12px;color:#cfe0ee}.duelrow .ds i{opacity:.5;font-style:normal}/* v1.0.71: season pass and VIP */
+.sbox{margin:8px 0;padding:10px;border-radius:14px;background:#13284a;border:2px solid #0b1a2e;color:#dbe9f6}
+.sbox .sh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}.sbox .sh b{font-size:16px;color:#fff}.sbox .sh span{font-size:11px;color:#9fb6c9}
+.vipbox{display:flex;flex-direction:column;gap:6px;margin:8px 0;padding:10px;border-radius:14px;background:#1a2440;border:2px solid #3a4a7a;color:#dbe9f6}
+.vipbox.on{border-color:#e3b661}.vipbox b{color:#fff;font-size:14px}.vipbox small{color:#9fb6c9;font-size:11px}
+.shead,.srow{display:grid;grid-template-columns:34px 1fr 1fr;gap:6px;align-items:stretch}
+.shead{margin:10px 0 4px;font-size:11px;color:#9fb6c9;text-align:center}
+.slist{display:flex;flex-direction:column;gap:5px;padding-bottom:20px}
+.srow .st{display:flex;align-items:center;justify-content:center;border-radius:8px;background:#0b1a2e;color:#9fb6c9;font-family:var(--f-display)}
+.srow.open .st{color:#ffd54a}
+.scell{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:54px;padding:4px;border-radius:10px;border:2px solid #0b1a2e;background:#13284a}
+.scell.ready{border-color:#ffd54a}.scell.done{opacity:.5}.scell.lockp{background:#20203a}
+.scell .qrw{justify-content:center}.scell button{min-width:58px;font-size:11px;padding:2px 6px}
+.sbox .qbar{display:block}
 </style>
 </head>
 <body>
@@ -1320,7 +1357,7 @@ function cardLevelUp0(key){if(!cardCan(key))return false;const [t,id]=key.split(
 /* ---------- account level: XP only from upgrades; a chest every level ---------- */
 function xpNeed(n){return 15+8*n+n*n;}
 function accXp(a){a=a||ACC;return a?(a.axp||0):0;}
-function accLevel(a){let xp=accXp(a),l=1;while(l<40&&xp>=xpNeed(l)){xp-=xpNeed(l);l++;}return{l,xp,need:xpNeed(l)};}
+function accLevel(a){let xp=accXp(a),l=1;while(l<60&&xp>=xpNeed(l)){xp-=xpNeed(l);l++;}return{l,xp,need:xpNeed(l)};}
 function addXp(n){if(!ACC||!n)return;const b=accLevel().l;ACC.axp=(ACC.axp||0)+n;const l=accLevel().l;if(l>b){SFX.play('levelup');lvlToast(l);}}
 function lvlChestTier(l){return l%10===0?'dragon':l%5===0?'valyrian':l<8?'wood':'iron';}
 function lvlChestsReady(){return Math.max(0,accLevel().l-1-(ACC.lvlChests||0));}
@@ -1933,7 +1970,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.63';
+const VERSION='1.0.72';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -2253,7 +2290,7 @@ function lbMine(lb){return lb&&lb._seat===Math.max(0,seatNo())?{me:lb.me||null,m
 async function cloudLogin(){
   if(!TG||!sbReady()||CLOUD.tried)return;CLOUD.tried=true;const init=TG.initData;if(!init)return;
   try{const r=await sbRpc('tg_login',{init_data:init},{timeout:8000});
-    CLOUD.on=true;CLOUD.token=r.token;CLOUD.tg_id=r.tg_id;CLOUD.name=r.name;CLOUD.ver=r.save_ver||0;CLOUD.lastErr=null;
+    CLOUD.on=true;CLOUD.token=r.token;CLOUD.tg_id=r.tg_id;CLOUD.name=r.name;CLOUD.ver=r.save_ver||0;CLOUD.lastErr=null;refJoinFromStart();
     const local=(SAVE&&SAVE.ver)||0,remote=r.save_ver||0;
     if(r.save&&r.save.v===4&&r.save.slots&&remote>local){SAVE=r.save;SAVE.ver=remote;fixSave();ACC=SAVE.cur>=0&&SAVE.slots[SAVE.cur]?SAVE.slots[SAVE.cur]:null;lsSet(JSON.stringify(SAVE));CLOUD.pulled=true;}
     else if(SAVE.slots.some(x=>x)&&(local>remote||!r.save)){CLOUD.dirty=true;cloudSaveSoon(0);}
@@ -4071,7 +4108,7 @@ function showCampaignResult(win,stars,newUnlocks,gained){
   ${G.hardNew?'<p style="color:var(--gold);font-weight:700">👑 All fifty stages held. HARD is open — the same road, tougher dead, more gold.</p>':''}
   ${nx}${!next?`<p style="color:var(--gold)">${ACC.diff==='kingsguard'?'Westeros stands, even on Hard.':'Westeros stands. The Long Night is over.'}</p>`:''}
   ${G.hardNew?'<button class="btn" id="bHard">👑 Ride on Hard</button>':''}
-  <div class="resrow"><button class="btn sec" id="bRetry">🔁 Replay</button><button class="btn sec" id="bUp">⬆️ Upgrades</button><button class="btn sec" id="bMap">🗺️ Map</button></div>`);
+  <div class="resrow"><button class="btn sec" id="bRetry">🔁 Replay</button><button class="btn sec" id="bUp">⬆️ Upgrades</button><button class="btn sec" id="bMap">🗺️ Map</button><button class="btn sec" id="bShare">📨 Share</button></div>`);
   else show(`<h1>The gate has fallen<small>Stage ${L.id} · ${L.n}, wave ${G.wave} of ${L.waves}</small></h1><p class="m">${G.kills} kills · ${DIFFS[ACC.diff].e} ${DIFFS[ACC.diff].lbl}</p><p>${tipFor(L)}</p>
   ${got.map(a=>`<p style="color:var(--gold)">🏆 ${a.n} +${a.g}💎</p>`).join('')}
   <button class="btn" id="bRetry"><span class="e">🔁</span> Try again</button>
@@ -4082,7 +4119,7 @@ function showCampaignResult(win,stars,newUnlocks,gained){
   const bd=$('#bDiff2');if(bd)bd.addEventListener('click',()=>showDifficulty(false));
   const bhe=$('#bHero');if(bhe)bhe.addEventListener('click',()=>showHeroRoom(ACC.sel));
   $('#bRetry').addEventListener('click',()=>startGame({mode:'campaign',level:L}));
-  $('#bUp').addEventListener('click',()=>win?showUpgrades():showTowerRoom());$('#bMap').addEventListener('click',()=>showCampaign());
+  $('#bUp').addEventListener('click',()=>win?showUpgrades():showTowerRoom());$('#bMap').addEventListener('click',()=>showCampaign());const bsh=$('#bShare');if(bsh)bsh.addEventListener('click',()=>{SFX.play('tap',60);shareWin(L.id,stars);});
 }
 function tipFor(L){if(tLvl('watch')<3&&L.id>6)return'Tip: gold from every battle buys tower levels in Collection → Towers. Small steps, but they add up.';if(L.dragon&&G.wave>=L.dragon)return'Tip: the dragon takes full damage only from Scorpions and Dracarys. Two upgraded Scorpions near the gate.';if(L.giants)return'Tip: giants walk past champions without Challenge. Scorpions hit them hardest.';if(L.archers)return'Tip: archers stop 135 px from the gate and shoot it. Cover that stretch.';return'Tip: call waves early for bonus gold while the road is quiet.';}
 
@@ -4813,6 +4850,8 @@ const STARS_SHOP={
  gems_s:{stars:50,gems:150,n:'Pouch',title:'Pouch of dragonglass',desc:'150 dragonglass for your seat.'},
  gems_m:{stars:125,gems:400,n:'Chest',title:'Chest of dragonglass',desc:'400 dragonglass for your seat.'},
  gems_l:{stars:350,gems:1200,n:'Hoard',title:'Hoard of dragonglass',desc:'1200 dragonglass for your seat.'},
+ pass:{stars:250,grant:'pass',n:'Season Pass',title:'Season Pass',desc:'Premium rewards on every tier of this month\'s season, for your seat.'},
+ vip:{stars:200,grant:'vip',days:30,n:'VIP · 30 days',title:'VIP · 30 days',desc:'25 dragonglass a day and 25% more season points for 30 days, for your seat.'},
  starter:{stars:75,once:true,gems:300,gold:5000,books:{'b:r':3},n:'Starter pack',title:'Starter pack',desc:'300 dragonglass, 5000 gold and 3 Rare books for your seat. Once per seat.'},
 };
 const STARS_KEY='holdor_pay';
@@ -4865,7 +4904,9 @@ async function starsWait(item,quiet){
     if(st!=='pending')break;await new Promise(r=>setTimeout(r,1500));}
   if(!quiet)ecoWait(false);
   if(st==='paid'){starsDrop(item.id);const S=STARS_SHOP[item.sku];if(item.sku==='starter')STARS.starter=true;
-    await ecoRefresh();try{SFX.play('buy');}catch(e){}ecoToast(`⭐ Thank you! +${S?S.gems:''} dragonglass`+(S&&S.gold?' · +'+fmtN(S.gold)+' gold':''),true);ecoRedraw();return;}
+    await ecoRefresh();try{SFX.play('buy');}catch(e){}
+    if(S&&S.grant){ecoToast('⭐ Thank you! '+S.n+' is active',true);if(typeof seasonLoad==='function')seasonLoad(true).then(()=>{if(CLOUD.screen==='season')showSeason();});return;}
+    ecoToast(`⭐ Thank you! +${S?S.gems:''} dragonglass`+(S&&S.gold?' · +'+fmtN(S.gold)+' gold':''),true);ecoRedraw();return;}
   if(st==='failed'||st==='orphan'||st==='refunded'){starsDrop(item.id);ecoModal('⭐ The payment was not credited','The server could not credit this payment ('+st+'). Write to the game\'s chat — the Stars will be returned.',[{t:'OK'}]);return;}
   if(!quiet)ecoModal('⭐ Payment received','Telegram has your payment; the server is still confirming it. Your dragonglass will appear in a moment — open the shop again.',[{t:'OK'}]);}
 /* an invoice paid while the app was closed or slow: ask once when a seat is entered */
@@ -4899,7 +4940,7 @@ const QUESTS={
   {id:'m_new10',m:'new_stages',n:10,t:'Hold 10 new stages',r:{gold:5000,books:{'b:e':1},gear:{n:1,min_r:2,min_tier:2}}},
   {id:'m_hold25',m:'hold_waves',n:25,t:'Reach wave 25 in the Hold',r:{gems:60}}],
 };
-const DAILY={st:null,at:0,tab:'cal',shown:false,seat:-1,busy:false};
+const DAILY={st:null,ms:null,fr:null,at:0,tab:'cal',shown:false,seat:-1,busy:false};
 function dailyOn(){return !!(ecoOn()&&ACC&&ACC.tut);}
 function rewardChips(r,sm){if(!r)return '';const c=[];
   if(r.gems)c.push(`<span class="rch">${GEM_SVG}${r.gems}</span>`);
@@ -4930,6 +4971,26 @@ async function dailyClaimQuest(id){if(DAILY.busy||!ecoOn())return;DAILY.busy=tru
   try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('quest_claim',{seat,quest:id},10000);ecoApply(x.state);return x;});
     DAILY.st=r.quests;DAILY.at=Date.now();DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);const q=questName(id);dailyClaimModal(r,'📜 '+(q?q.t:'Quest done'));}
   catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await dailyLoad(true);ecoModal('📜 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily(DAILY.tab)}]);}}
+function msLoad(){if(!ecoOn())return Promise.resolve(null);const seat=seatNo();
+  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('milestone_state',{seat},9000);if(seat===seatNo()){DAILY.ms=r;DAILY.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
+async function dailyClaimMs(lvl){if(DAILY.busy||!ecoOn())return;DAILY.busy=true;ecoWait(true);
+  try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('milestone_claim',{seat,lvl},10000);ecoApply(x.state);return x;});
+    DAILY.ms=r.milestones;DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);dailyClaimModal(r,'⭐ Level '+lvl+' — yours');}
+  catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await msLoad();ecoModal('⭐ Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily('levels')}]);}}
+const REF_BOT='https://t.me/HoldorTDBot/play?startapp=r_';
+function refLink(code){return REF_BOT+code;}
+function refShare(link){const u='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent('Hold the Door with me!');try{if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank');}catch(e){}}
+function refCopy(link){try{navigator.clipboard.writeText(link).then(()=>ecoToast('Link copied'),()=>ecoToast(link));}catch(e){ecoToast(link);}}
+function frLoad(){if(!ecoOn())return Promise.resolve(null);const seat=seatNo();
+  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('ref_state',{seat},9000);if(seat===seatNo()){DAILY.fr=r;DAILY.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
+async function dailyClaimFr(other){if(DAILY.busy||!ecoOn())return;DAILY.busy=true;ecoWait(true);
+  try{const seat=seatNo(),args=other==null?{seat}:{seat,other},r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('ref_claim',args,10000);ecoApply(x.state);return x;});
+    DAILY.fr=r.friends;DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);dailyClaimModal(r,'👥 A friend’s gift');}
+  catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await frLoad();ecoModal('👥 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily('friends')}]);}}
+/* a new player who opened the game from an invite link joins his friend (once per device; the server checks he is really new) */
+function refJoinFromStart(){try{const sp=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.start_param;if(sp&&/^d_[0-9a-f]{8}$/i.test(sp)){DUEL.pending=sp.slice(2);ecoToast('🤝 A friend challenged you — open Events → Duel');return;}if(sp&&/^s_[a-z0-9_]{2,16}$/i.test(sp)&&CLOUD.token){const k0='holdor_src';if(localStorage.getItem(k0)===sp)return;localStorage.setItem(k0,sp);sbRpc('src_set',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).catch(()=>{});return;}if(!sp||!/^r_[0-9a-f]{8}$/i.test(sp)||!CLOUD.token)return;
+  const k='holdor_refjoin';if(localStorage.getItem(k)===sp)return;localStorage.setItem(k,sp);
+  sbRpc('ref_join',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).then(r=>{if(r&&r.by)ecoToast('👥 You joined '+r.by+'’s house of friends — clear 5 stages for a gift');}).catch(()=>{});}catch(e){}}
 /* the popup when the castle opens and today's reward waits (once a session; never over a tutorial or a tour) */
 function dailyPopupCheck(){
   if(DAILY.shown||!dailyOn()||G.state==='play'||(G.tut)||(typeof COACH!=='undefined'&&COACH.on)||CLOUD.screen!=='hub:battle')return;
@@ -4942,11 +5003,29 @@ function dailyPopupCheck(){
 function fmtLeft(s){const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return d?d+'d '+h+'h':h?h+'h '+m+'m':m+'m';}
 function showDaily(tab){
   DAILY.tab=tab||DAILY.tab||'cal';
-  const tabs=[['cal','📅 Calendar'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly']];
+  const tabs=[['cal','📅 Calendar'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['levels','⭐ Levels'],['friends','👥 Invite']];
   const head=`<div class="topbar"><h1>📜 Daily &amp; quests<small>Rewards are paid by the server. Progress counts only battles it has seen.</small></h1><button class="back" id="bBack">✖</button></div>
    <div class="subtabs">${tabs.map(([k,n])=>`<button class="${k===DAILY.tab?'on':''}" data-t="${k}">${n}</button>`).join('')}</div>`;
   const draw=body=>{show(head+body);CLOUD.screen='daily:'+DAILY.tab;$('#bBack').addEventListener('click',()=>showHub('battle'));card.querySelectorAll('.subtabs button').forEach(b=>b.addEventListener('click',()=>showDaily(b.dataset.t)));};
   if(!dailyOn()){draw(`<p class="m">${ecoOn()?'Finish the tutorial battle first.':'The calendar and the quests are paid by the server — they need a seat signed in through Telegram.'}</p>`);return;}
+  if(DAILY.tab==='friends'){const f=DAILY.fr&&DAILY.seat===seatNo()?DAILY.fr:null;
+    if(!f){draw('<p class="m">⏳ asking the server…</p>');frLoad().then(()=>{if(CLOUD.screen==='daily:friends')showDaily('friends');});return;}
+    const link=refLink(f.code),pc=(x)=>Math.round(100*x.stages/f.need);
+    const row=(x,mine)=>`<div class="qrow ${x.claimed?'done':''} ${x.done&&!x.claimed?'ready':''}"><div class="qt"><b>${esc(x.name)}${mine?' <small>invited you</small>':''}</b><span class="qbar"><i style="width:${pc(x)}%"></i><em>${x.stages} / ${f.need} stages</em></span><span class="qrw">${rewardChips(mine?f.invitee_gift:f.inviter_gift,1)}</span></div>
+      <button data-f="${mine?'me':x.who}" ${x.done&&!x.claimed?'':'disabled'}>${x.claimed?'✔':x.done?'Claim':'…'}</button></div>`;
+    draw(`<p class="m">Invite a friend: when they clear <b>${f.need} stages</b>, you both get a gift. Up to ${f.cap} friends. ${f.paid?`Rewarded so far: <b>${f.paid}</b>.`:''}</p>
+      <div class="reflink"><code>${esc(link)}</code></div>
+      <div class="pvrow"><button class="btn" id="bRefShare">📨 Send to a friend</button><button class="btn sec" id="bRefCopy">Copy link</button></div>
+      <div class="qlist">${f.mine?row(f.mine,true):''}${f.invited.map(x=>row(x,false)).join('')||(f.mine?'':'<p class="m">Nobody has joined yet.</p>')}</div>`);
+    $('#bRefShare').addEventListener('click',()=>refShare(link));$('#bRefCopy').addEventListener('click',()=>refCopy(link));
+    card.querySelectorAll('.qrow button[data-f]').forEach(b=>b.addEventListener('click',()=>dailyClaimFr(b.dataset.f==='me'?null:+b.dataset.f)));return;}
+  if(DAILY.tab==='levels'){const m=DAILY.ms&&DAILY.seat===seatNo()?DAILY.ms:null;
+    if(!m){draw('<p class="m">⏳ asking the server…</p>');msLoad().then(()=>{if(CLOUD.screen==='daily:levels')showDaily('levels');});return;}
+    const nxt=m.items.find(i=>!i.claimed&&!i.ready);
+    const rows=m.items.map(i=>`<div class="qrow ${i.claimed?'done':''} ${i.ready?'ready':''}"><div class="qt"><b>Account level ${i.lvl}</b><span class="qbar"><i style="width:${Math.min(100,Math.round(100*m.level/i.lvl))}%"></i><em>${m.level} / ${i.lvl}</em></span><span class="qrw">${rewardChips(i.reward,1)}</span></div>
+      <button data-m="${i.lvl}" ${i.ready?'':'disabled'}>${i.claimed?'✔':i.ready?'Claim':'🔒'}</button></div>`).join('');
+    draw(`<p class="m">Your account is level <b>${m.level}</b> of 60. Every 10th level brings a gift${nxt?` — the next one at level <b>${nxt.lvl}</b>`:''}. Levels come from XP: win stages, forge, level up cards.</p><div class="qlist">${rows}</div>`);
+    card.querySelectorAll('.qrow button[data-m]').forEach(b=>b.addEventListener('click',()=>dailyClaimMs(+b.dataset.m)));return;}
   const s=DAILY.st&&DAILY.seat===seatNo()?DAILY.st:null;
   if(!s){draw('<p class="m">⏳ asking the server…</p>');dailyLoad().then(r=>{if(CLOUD.screen==='daily:'+DAILY.tab)showDaily(DAILY.tab);});return;}
   if(Date.now()-DAILY.at>45000)dailyLoad(true).then(()=>{});
@@ -4963,6 +5042,144 @@ function showDaily(tab){
       <button data-q="${q.id}" ${ready?'':'disabled'}>${q.claimed?'✔':ready?'Claim':'…'}</button></div>`;}).join('');
   draw(`<p class="m">Resets in <b>${fmtLeft(P.left)}</b> (${DAILY.tab==='daily'?'UTC midnight':DAILY.tab==='weekly'?'Monday, UTC':'the 1st, UTC'}).</p><div class="qlist">${rows}</div>`);
   card.querySelectorAll('.qrow button[data-q]').forEach(b=>b.addEventListener('click',()=>dailyClaimQuest(b.dataset.q)));}
+/* =========================== THE CITY (v1.0.64) ===========================
+   A vertical, scrolling city for the seat's house. Every building opens a screen the game already has; a building opens with the
+   stages the seat has cleared (real progress, read from the save). No upgrades yet: those need the server first (account levels, v1.0.65).
+   Art is temporary (CSS + emoji) until MR B's city pictures arrive. */
+const CITY_NAME={stark:'Winterfell',lannister:'Casterly Rock',targaryen:'Dragonstone',baratheon:"Storm's End",greyjoy:'Pyke',tyrell:'Highgarden',martell:'Sunspear'};
+const CITY_SKY={stark:['#2c3e55','#7f95ad'],lannister:['#5a1f1f','#c9a24a'],targaryen:['#231a1f','#8a3a2a'],baratheon:['#2b2a1c','#c9a227'],greyjoy:['#0f2b33','#3f7f8f'],tyrell:['#20402a','#a6c96a'],martell:['#5a3a12','#e8a13a']};
+/* id, emoji, name, what it is, stages to clear, the opening call */
+const CITY_BLD=[
+  ['keep','🏰','Keep','tower and spell cards',0,()=>showHub('coll')],
+  ['barracks','⚔️','Barracks','train the house army',0,()=>showTrain()],
+  ['market','🏪','Market','chests, deals, dragonglass',0,()=>showShop()],
+  ['treasury','📜','Treasury','daily calendar and quests',2,()=>showDaily()],
+  ['forge','⚒️','Forge','gear, tiers, sets',3,()=>showForge()],
+  ['tavern','🍺','Tavern','champions, stars, portal',5,()=>showHeroRoom()],
+  ['library','📚','Library','the book of towers and foes',8,()=>showBook()],
+  ['hall','🏛️','Council hall','events and duels',10,()=>showHub('events')]];
+function cityCleared(){return Object.values((ACC&&ACC.campaign)||{}).filter(v=>v>0).length;}
+function cityOpen(b,n){return n>=b[4];}
+function showCity(){
+  const n=cityCleared(),hs=ACC.house,nm=CITY_NAME[hs]||'Your city',sky=CITY_SKY[hs]||CITY_SKY.stark;
+  const rows=CITY_BLD.map((b,i)=>{const open=cityOpen(b,n);
+    return `<button class="cbd ${i%2?'r':'l'} ${open?'':'lock'}" data-b="${b[0]}"><span class="ci">${open?b[1]:'🔒'}</span><span class="ct"><b>${b[2]}</b><small>${open?b[3]:'opens after '+b[4]+' cleared stage'+(b[4]===1?'':'s')+' ('+n+'/'+b[4]+')'}</small></span></button>`;}).join('');
+  show(`<div class="topbar"><h1>🏰 ${esc(nm)}<small>${n} stage${n===1?'':'s'} cleared · the door is held</small></h1><button class="back" id="bBack">✖</button></div>
+   <div class="city" style="--c1:${sky[0]};--c2:${sky[1]}"><div class="cgate">🚪<small>Hodor holds it</small></div><div class="croad"></div>${rows}</div>`);
+  CLOUD.screen='city';
+  $('#bBack').addEventListener('click',()=>showHub('battle'));
+  card.querySelectorAll('.cbd').forEach(x=>x.addEventListener('click',()=>{const b=CITY_BLD.find(y=>y[0]===x.dataset.b);
+    if(!cityOpen(b,cityCleared())){SFX.play('deny');ecoToast(`🔒 ${b[2]} opens after ${b[4]} cleared stages`);return;}SFX.play('tap',60);b[5]();}));
+}
+/* =========================== DUEL (v1.0.67, backend v15) ===========================
+   An asynchronous 1v1 on the Hold map. Nothing is played "live": each side fights his own Hold run, and the server compares the runs
+   it recorded itself (score = waves × 1000 + kills). Ranked: a ghost (the recorded best run of a real player near your rating; he is not
+   asked and loses nothing) or a bot; friend: a link; practice: a bot, always marked. Leagues by rating. Needs a seat signed in through Telegram. */
+const DUEL={st:null,at:0,seat:-1,busy:false,pending:null};
+const DUEL_LEAGUE={Bronze:'🥉',Silver:'🥈',Gold:'🥇',Crystal:'💎',Dragon:'🐉'};
+const DUEL_BOT='https://t.me/HoldorTDBot/play?startapp=d_';
+function duelOn(){return !!(ecoOn()&&ACC&&ACC.tut&&onlineOpen());}
+function duelLoad(force){if(!ecoOn())return Promise.resolve(null);
+  if(!force&&DUEL.st&&DUEL.seat===seatNo()&&Date.now()-DUEL.at<20000)return Promise.resolve(DUEL.st);
+  const seat=seatNo();
+  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('duel_state',{seat},9000);if(r.state)ecoApply(r.state);if(seat===seatNo()){DUEL.st=r;DUEL.at=Date.now();DUEL.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
+function duelRow(d){const who=d.kind==='ai'?'🤖 Bot':d.kind==='friend'?'🤝 '+(d.waiting?'Friend duel':esc(d.opponent)):'⚔️ '+esc(d.opponent);
+  const sc=x=>x&&x.score!=null?`${x.waves} 🌊 · ${x.kills} ☠`:'—';
+  const res=d.result==='win'?'<b class="dw">WIN</b>':d.result==='loss'?'<b class="dl">LOSS</b>':d.result==='draw'?'<b>DRAW</b>':d.status==='expired'?'<b class="dx">EXPIRED</b>':'<b class="dp">OPEN</b>';
+  const left=d.status==='open'?`<small>${fmtLeft(d.left)} left</small>`:'';
+  const dl=d.delta?`<small class="${d.delta>0?'dw':'dl'}">${d.delta>0?'+':''}${d.delta}</small>`:'';
+  const sh=d.result==='win'?`<div class="pvrow"><button class="btn sec" data-shwin="${d.me.waves}|${d.me.kills}|${d.kind==='ai'?'a bot':esc(d.opponent)}">📨 Share the win</button></div>`:'';
+  const link=d.kind==='friend'&&d.status==='open'&&d.mine&&d.waiting?`<div class="reflink"><code>${esc(DUEL_BOT+d.code)}</code></div><div class="pvrow"><button class="btn" data-share="${d.code}">📨 Send to a friend</button><button class="btn sec" data-copy="${d.code}">Copy</button></div>`:'';
+  return `<div class="duelrow ${d.result||d.status}"><div class="dh"><span>${who}</span>${res}${dl}${left}</div>
+    <div class="ds"><span>You<br><em>${sc(d.me)}</em></span><i>vs</i><span>${d.waiting?'waiting for a friend':esc(d.kind==='ai'?'Bot':d.opponent)}<br><em>${sc(d.them)}</em></span></div>${link}${sh}</div>`;}
+async function duelCall(fn,args,after){if(DUEL.busy||!ecoOn())return;DUEL.busy=true;ecoWait(true);
+  try{const r=await ecoLane(async()=>{await ecoSyncRaw();return await ecoRpc(fn,Object.assign({seat:seatNo()},args),10000);});
+    ecoWait(false);DUEL.busy=false;DUEL.at=0;DUEL.st=null;after&&after(r);}
+  catch(e){DUEL.busy=false;ecoWait(false);const m=ecoMsg(e);ecoModal('⚔️ Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,140)),[{t:'OK',f:()=>showDuel()}]);}}
+function duelShare(code){const link=DUEL_BOT+code,u='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent('I challenge you to a Hold the Door duel!');try{if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank');}catch(e){}}
+async function duelJoinPending(){const code=DUEL.pending;if(!code||!ecoOn())return;DUEL.pending=null;
+  try{const r=await ecoLane(async()=>{await ecoSyncRaw();return await ecoRpc('duel_join',{seat:seatNo(),code},9000);});DUEL.at=0;ecoToast('🤝 You joined '+r.duel.opponent+'’s duel — play your Hold run');}
+  catch(e){ecoToast('⚠️ '+String(ecoMsg(e)).slice(0,80));}}
+function showDuel(){
+  const head=`<div class="topbar"><h1>⚔️ Duel<small>Same Hold map, two runs, one winner. The server compares what it recorded.</small></h1><button class="back" id="bBack">✖</button></div>`;
+  const draw=body=>{show(head+body);CLOUD.screen='duel';$('#bBack').addEventListener('click',()=>showHub('events'));};
+  if(!duelOn()){draw(`<p class="m">${!ecoOn()?'Duels are recorded by the server — they need a seat signed in through Telegram.':!ACC.tut?'Finish the tutorial battle first.':'Duels open with the Hold, after gate '+ONLINE_AT+'.'}</p>`);return;}
+  if(DUEL.pending){duelJoinPending().then(()=>{if(CLOUD.screen==='duel')showDuel();});}
+  const s=DUEL.st&&DUEL.seat===seatNo()?DUEL.st:null;
+  if(!s){draw('<p class="m">⏳ asking the server…</p>');duelLoad(true).then(()=>{if(CLOUD.screen==='duel')showDuel();});return;}
+  if(Date.now()-DUEL.at>20000)duelLoad(true).then(()=>{});
+  const open=s.duels.filter(d=>d.status==='open').length;
+  draw(`<div class="lg"><span class="le">${DUEL_LEAGUE[s.league]||'🥉'}</span><b>${s.league}</b><span class="rt">${s.rating}</span><small>${s.wins}W · ${s.losses}L · ${s.draws}D</small></div>
+    <div class="dbtns"><button class="btn" id="bRank" ${s.rank_left>0?'':'disabled'}>⚔️ Ranked duel <small>${s.rank_left} left today</small></button>
+    <button class="btn sec" id="bFriend">🤝 Challenge a friend</button><button class="btn sec" id="bAi">🤖 Practice vs a bot <small>no rating</small></button></div>
+    <p class="m">${open?'<b>Play your Hold run</b> (the Hold tab): the best run you finish from the moment a duel opens counts. Hold attempts are shared with the daily Hold.':'Pick a duel. Ranked: a recorded run of a real player near your rating (he is not asked and loses nothing), or a bot when nobody fits.'}</p>
+    ${open?'<button class="btn" id="bPlayHold">🚪 To the Hold</button>':''}
+    <div class="qlist">${s.duels.map(duelRow).join('')||'<p class="m">No duels yet.</p>'}</div>`);
+  const go=(kind)=>duelCall('duel_start',{kind},r=>showDuel());
+  $('#bRank').addEventListener('click',()=>go('rank'));$('#bAi').addEventListener('click',()=>go('ai'));
+  $('#bFriend').addEventListener('click',()=>duelCall('duel_start',{kind:'friend'},r=>{showDuel();}));
+  const ph=$('#bPlayHold');if(ph)ph.addEventListener('click',()=>showHub('hold'));
+  card.querySelectorAll('[data-shwin]').forEach(b=>b.addEventListener('click',()=>{const [w,k,who]=b.dataset.shwin.split('|');shareDuel(w,k,who);}));
+  card.querySelectorAll('[data-share]').forEach(b=>b.addEventListener('click',()=>duelShare(b.dataset.share)));
+  card.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',()=>{try{navigator.clipboard.writeText(DUEL_BOT+b.dataset.copy).then(()=>ecoToast('Link copied'),()=>ecoToast(DUEL_BOT+b.dataset.copy));}catch(e){ecoToast(DUEL_BOT+b.dataset.copy);}}));
+}
+/* =========================== SEASON PASS + VIP (v1.0.71, backend v16) ===========================
+   A season is a UTC month. Points come from the server's own records (won stages, finished Hold runs); every 10 points open a tier.
+   Each tier has a free reward and a premium one (premium needs the Season Pass, bought with Telegram Stars). VIP: 30 days, a daily
+   gift of dragonglass and more season points. Everything shown is what the server sends; nothing is credited here. */
+const SEASON={st:null,at:0,seat:-1,busy:false};
+function seasonOn(){return !!(ecoOn()&&ACC&&ACC.tut);}
+function seasonLoad(force){if(!ecoOn())return Promise.resolve(null);
+  if(!force&&SEASON.st&&SEASON.seat===seatNo()&&Date.now()-SEASON.at<8000)return Promise.resolve(SEASON.st);
+  const seat=seatNo();
+  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('season_state',{seat},9000);if(seat===seatNo()){SEASON.st=r;SEASON.at=Date.now();SEASON.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
+function seasonBtnHTML(){const s=seasonOn()&&SEASON.st&&SEASON.seat===seatNo()?SEASON.st:null;
+  return `<button class="cbld" id="bSeason"><span class="ic">🏆</span><span class="tx"><b>Season</b><small>${seasonOn()?(s?`tier ${s.tier}/${s.tiers}${s.pass?' · Pass':''}${s.vip.active?' · VIP':''}`:'pass · VIP · rewards'):'a Telegram seat'}</small></span></button>`;}
+function seasonBtnBind2(){const b=document.getElementById('bSeason');if(b)b.addEventListener('click',()=>{SFX.play('tap',60);showSeason();});}
+async function seasonClaim(t,track){if(SEASON.busy||!ecoOn())return;SEASON.busy=true;ecoWait(true);
+  try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('season_claim',{seat,tier:t,track},10000);ecoApply(x.state);return x;});
+    SEASON.st=r.season;SEASON.at=Date.now();SEASON.seat=seat;ecoWait(false);SEASON.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);
+    ecoModal('🏆 Tier '+t+(track==='prem'?' · premium':''),`<div class="rw">${rewardChips(r.reward)}</div>`,[{t:'OK',f:()=>{if(CLOUD.screen==='season')showSeason();}}]);}
+  catch(e){SEASON.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await seasonLoad(true);ecoModal('🏆 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,140)),[{t:'OK',f:()=>showSeason()}]);}}
+async function seasonVip(){if(SEASON.busy||!ecoOn())return;SEASON.busy=true;ecoWait(true);
+  try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('vip_claim',{seat},10000);ecoApply(x.state);return x;});
+    SEASON.st=r.season;SEASON.at=Date.now();SEASON.seat=seat;ecoWait(false);SEASON.busy=false;SFX.play('collect');persist();
+    ecoModal('👑 VIP gift',`<div class="rw">${rewardChips(r.reward)}</div>`,[{t:'OK',f:()=>{if(CLOUD.screen==='season')showSeason();}}]);}
+  catch(e){SEASON.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await seasonLoad(true);ecoModal('👑 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,140)),[{t:'OK',f:()=>showSeason()}]);}}
+function showSeason(){
+  const head=`<div class="topbar"><h1>🏆 Season<small>Every month a new ladder. Points come from stages you win and Hold runs you finish.</small></h1><button class="back" id="bBack">✖</button></div>`;
+  const draw=body=>{show(head+body);CLOUD.screen='season';$('#bBack').addEventListener('click',()=>showHub('battle'));};
+  if(!seasonOn()){draw(`<p class="m">${ecoOn()?'Finish the tutorial battle first.':'The season is kept by the server — it needs a seat signed in through Telegram.'}</p>`);return;}
+  const s=SEASON.st&&SEASON.seat===seatNo()?SEASON.st:null;
+  if(!s){draw('<p class="m">⏳ asking the server…</p>');seasonLoad(true).then(()=>{if(CLOUD.screen==='season')showSeason();});return;}
+  if(Date.now()-SEASON.at>8000)seasonLoad(true).then(()=>{if(CLOUD.screen==='season')showSeason();});
+  const nextIn=s.tier>=s.tiers?0:s.per_tier-(s.points%s.per_tier),can=starsCan();
+  const vip=s.vip.active?`<div class="vipbox on"><b>👑 VIP</b><small>until ${new Date(s.vip.until).toLocaleDateString()} · +${s.vip.bonus}% season points</small>
+      <button class="btn" id="bVip" ${s.vip.can?'':'disabled'}>${s.vip.can?`🎁 Claim ${s.vip.daily_gems} dragonglass`:'✔ today\'s gift is claimed'}</button><button class="btn sec" data-buy="vip" ${can?'':'disabled'}>⭐ ${STARS_SHOP.vip.stars} · +30 days</button></div>`
+    :`<div class="vipbox"><b>👑 VIP · 30 days</b><small>${s.vip.daily_gems} dragonglass every day · +${s.vip.bonus}% season points</small><button class="btn" data-buy="vip" ${can?'':'disabled'}>⭐ ${STARS_SHOP.vip.stars}</button></div>`;
+  const pass=s.pass?`<div class="vipbox on"><b>🏆 Season Pass</b><small>active — the premium row of every tier is yours</small></div>`
+    :`<div class="vipbox"><b>🏆 Season Pass</b><small>a premium reward on every tier of this season</small><button class="btn" data-buy="pass" ${can?'':'disabled'}>⭐ ${STARS_SHOP.pass.stars}</button></div>`;
+  const rows=s.items.map(i=>{const cell=(r,ok,done,track)=>`<div class="scell ${done?'done':ok?'ready':''} ${track==='prem'&&!s.pass?'lockp':''}"><span class="qrw">${rewardChips(r,1)}</span><button data-t="${i.t}" data-k="${track}" ${ok?'':'disabled'}>${done?'✔':ok?'Claim':i.t>s.tier?'🔒':track==='prem'&&!s.pass?'⭐':'…'}</button></div>`;
+    return `<div class="srow ${i.t<=s.tier?'open':''}"><b class="st">${i.t}</b>${cell(i.free,i.free_ok,i.free_done,'free')}${cell(i.prem,i.prem_ok,i.prem_done,'prem')}</div>`;}).join('');
+  draw(`<div class="sbox"><div class="sh"><b>Tier ${s.tier} / ${s.tiers}</b><span>${s.points} points${nextIn?` · ${nextIn} to the next tier`:''}</span></div>
+      <span class="qbar"><i style="width:${s.tier>=s.tiers?100:Math.round(100*(s.points%s.per_tier)/s.per_tier)}%"></i><em>${fmtLeft(s.left)} left</em></span></div>
+    ${pass}${vip}<div class="shead"><span>Tier</span><span>Free</span><span>Premium</span></div><div class="slist">${rows}</div>`);
+  card.querySelectorAll('.srow button[data-t]').forEach(b=>b.addEventListener('click',()=>seasonClaim(+b.dataset.t,b.dataset.k)));
+  const bv=$('#bVip');if(bv)bv.addEventListener('click',seasonVip);
+  card.querySelectorAll('[data-buy]').forEach(b=>b.addEventListener('click',()=>starsBuy(b.dataset.buy)));
+}
+/* =========================== SHARING AND SOURCES (v1.0.72) ===========================
+   A share opens Telegram's own "send to a friend" sheet with a short line and the player's invitation link (when his seat is
+   signed in; otherwise the plain game link). The link carries `startapp=r_<code>`; a link with `startapp=s_<source>` (yt1, tg, x …)
+   tells the server where a new player came from (backend v17, owner views v_sources / v_retention / v_funnel). */
+const BOT_LINK='https://t.me/HoldorTDBot/play';
+async function shareLink(){
+  try{if(ecoOn()){const f=DAILY.fr&&DAILY.seat===seatNo()?DAILY.fr:await frLoad();if(f&&f.code)return refLink(f.code);}}catch(e){}
+  return BOT_LINK;}
+function shareText(text){shareLink().then(link=>{const u='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent(text);
+  try{if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank');}catch(e){}});}
+function shareWin(stage,stars){shareText(`I held gate ${stage} ${'⭐'.repeat(Math.max(1,stars||1))} in HOLDOR — Hold the Door! Join my house:`);}
+function shareDuel(waves,kills,who){shareText(`I won a HOLDOR duel: ${waves} waves, ${kills} of the dead put down, against ${who}. Beat that:`);}
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -5904,6 +6121,7 @@ function hubBattle(){const hh=HOUSES[ACC.house],c=CBY[ACC.sel],g=Object.keys(cam
   <div class="castlerow"><button class="cbld" id="bTrain"><span class="ic">⚔️</span><span class="tx"><b>Train</b><small>Army level ${armyLvl()}${armyLvl()>=ARMY_HOUSE_AT?' · '+HOUSE_UNIT[ACC.house].n:' · '+HOUSE_UNIT[ACC.house].n+' at '+ARMY_HOUSE_AT}</small></span></button><button class="cbld" id="bSpellShop"><span class="ic">🧪</span><span class="tx"><b>Spell shop</b><small>${packCount()?packCount()+' in the pack':'one-shot battle items'}</small></span></button></div>
   <div class="castlerow forgerow"><button class="cbld" id="bTavern"><span class="ic">🍺</span><span class="tx"><b>Tavern</b><small>stars · skills · portal</small></span></button><button class="cbld" id="bForge"><span class="ic">⚒️</span><span class="tx"><b>Forge</b><small>${ecoOn()?gearItems().length+' items · '+GEAR_SLOTS.filter(k=>gearItems().some(it=>it.champ===ACC.sel&&it.slot===k)).length+'/9 worn':'gear — a Telegram seat'}</small></span></button></div>
   <div class="castlerow forgerow">${dailyBtnHTML()}</div>
+  <div class="castlerow"><button class="cbld" id="bCity"><span class="ic">🏰</span><span class="tx"><b>City</b><small>${CITY_NAME[ACC.house]||'your city'} · ${cityCleared()} stage${cityCleared()===1?'':'s'} cleared</small></span></button>${seasonBtnHTML()}</div>
   <div class="tro"><span class="tr" id="hubTro">${rankSVG(myRank().t,22,myRank().div)}${TROPHY_SVG}${trophiesOf()}</span><span class="bar"><i style="width:${Math.round(100*g/NG)}%"></i><em>STAGE ${Math.min(NG,g+1)} OF ${NG} · ${nextL.n.toUpperCase()}</em></span></div>
   <div class="chestrow"><span class="ch ${chestsN>0?'ready':''}" id="starChest">${chestSVG('iron')}</span><span class="sbar"><i style="width:${chestsN>0?100:Math.round(100*prog/3)}%"></i><em>${chestsN>0?'CHEST READY · TAP TO OPEN':`${prog}/3 STARS TO THE NEXT CHEST`}</em></span>${chestsN>1?`<b class="cnt">×${chestsN}</b>`:''}</div>
   ${lvlChestsReady()>0?`<div class="chestrow lvl"><span class="ch ready" id="lvlChest">${chestSVG(lvlChestTier((ACC.lvlChests||0)+2))}</span><span class="sbar"><i style="width:100%"></i><em>LEVEL ${(ACC.lvlChests||0)+2} CHEST · TAP TO OPEN</em></span>${lvlChestsReady()>1?`<b class="cnt">×${lvlChestsReady()}</b>`:''}</div>`:''}
@@ -5912,7 +6130,7 @@ function hubBattle(){const hh=HOUSES[ACC.house],c=CBY[ACC.sel],g=Object.keys(cam
     <button class="bside" id="bChampH">${pu?`<img src="${pu}" alt="">`:`<span class="pe">${c.e}</span>`}${shortName(c)}</button></div>
   ${ACC.tut?'':'<div class="hint">▲ TAP BEGIN — YOUR CHAMPION WILL TEACH YOU</div>'}${ACC.refund?`<div class="hint" id="refundNote">🪙 Tower upgrades are now tower levels — ${ACC.refund} gold refunded. Collection → Towers.</div>`:''}`;}
 function hubBattleBind(){if(ACC.refund){ACC.refund=0;persist();}
-  const cv=$('#isle');if(cv)drawIsland(cv,ACC.house);const bt=$('#bTrain');if(bt)bt.addEventListener('click',()=>{SFX.play('tap',60);showTrain();});const bs=$('#bSpellShop');if(bs)bs.addEventListener('click',()=>{SFX.play('tap',60);showSpellShop();});const btv=$('#bTavern');if(btv)btv.addEventListener('click',()=>{SFX.play('tap',60);showHeroRoom();});dailyBtnBind();dailyBtnRefresh();const bf=$('#bForge');if(bf)bf.addEventListener('click',()=>{SFX.play('tap',60);showForge();});const ht=$('#hubTro');if(ht)ht.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});
+  const cv=$('#isle');if(cv)drawIsland(cv,ACC.house);seasonBtnBind2();if(seasonOn())seasonLoad().then(()=>{const c=document.getElementById('bSeason');if(c&&SEASON.st){c.outerHTML=seasonBtnHTML();seasonBtnBind2();}});const bcy=$('#bCity');if(bcy)bcy.addEventListener('click',()=>{SFX.play('tap',60);showCity();});const bt=$('#bTrain');if(bt)bt.addEventListener('click',()=>{SFX.play('tap',60);showTrain();});const bs=$('#bSpellShop');if(bs)bs.addEventListener('click',()=>{SFX.play('tap',60);showSpellShop();});const btv=$('#bTavern');if(btv)btv.addEventListener('click',()=>{SFX.play('tap',60);showHeroRoom();});dailyBtnBind();dailyBtnRefresh();const bf=$('#bForge');if(bf)bf.addEventListener('click',()=>{SFX.play('tap',60);showForge();});const ht=$('#hubTro');if(ht)ht.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});
   $('#bBattle').addEventListener('click',()=>{SFX.play('tap',80);if(!ACC.tut)startTutorial();else showCampaign();});
   const bdh=$('#bDiffH');if(bdh)bdh.addEventListener('click',()=>showDifficulty(false));const bmh=$('#bMapH');if(bmh)bmh.addEventListener('click',()=>{SFX.play('tap',60);showCampaign();});
   $('#bChampH').addEventListener('click',()=>showHeroRoom(ACC.sel));
@@ -6066,6 +6284,7 @@ function openChest(t,done){
 /* ---------- EVENTS ---------- */
 function hubEvents(sub){sub=sub||'realms';const lb=cachedLb();const t=fmtT(msToMidnightUTC());
   const ev=[
+    {k:'duel',live:true,n:'Duel',s:'Same Hold map, two runs, one winner. Ranked leagues, friends, a bot to practise on.',st:onlineOpen()?'LIVE':'GATE '+ONLINE_AT,ic:'<svg viewBox="0 0 24 24"><path d="M4 3l8 8M20 3l-8 8M6 21l6-6 6 6" fill="none" stroke="#e3b661" stroke-width="2.2" stroke-linecap="round"/></svg>'},
     {k:'hold',live:true,n:'Daily Hold',s:`New map in ${t.h}h ${t.m}m · every realm and house counts`,st:onlineOpen()?'LIVE':'AFTER '+ONLINE_AT,ic:HUB_ICON.hold},
     {k:'houses',live:false,n:'War of the Houses',s:'Seven banners, one crown a week. Standings below.',st:'SOON',ic:'<svg viewBox="0 0 24 24"><path d="M5 2.5h14v12l-7 5-7-5z" fill="#b33fb0" stroke="#3a1146" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 6l1.6 3.2 3.5.5-2.5 2.4.6 3.5-3.2-1.7-3.2 1.7.6-3.5-2.5-2.4 3.5-.5z" fill="#ffd54a" stroke="#7a4a10" stroke-width=".9"/></svg>'},
     {k:'season',live:false,n:'Season I — The Long Night',s:'14-day ladder with a reset and rewards for realm and house rank.',st:'SOON',ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#4fc0ff" stroke="#0b3a5a" stroke-width="1.6"/><circle cx="12" cy="12" r="6.5" fill="#dff3ff"/><path d="M12 8v4.2l3 1.8" fill="none" stroke="#0b3a5a" stroke-width="1.8" stroke-linecap="round"/></svg>'},
@@ -6083,7 +6302,7 @@ function hubEvents(sub){sub=sub||'realms';const lb=cachedLb();const t=fmtT(msToM
 function hubEventsBind(sub){
   if(sbReady()&&lbStale())fetchLeaderboard(true).then(r=>{if(r&&CLOUD.screen==='hub:events')showHub('events',sub);});
   bind('.subtabs button',b=>showHub('events',b.dataset.sub));
-  bind('.evcard',b=>{if(b.dataset.ev==='hold')showHub('hold');else SFX.play('tap',40);});
+  bind('.evcard',b=>{if(b.dataset.ev==='hold')showHub('hold');else if(b.dataset.ev==='duel')showDuel();else SFX.play('tap',40);});
   const ar=$('#bAllRealms');if(ar)ar.addEventListener('click',()=>showRealms(false));bind('.rlink',b=>{SFX.play('tap',50);showRealmCard(+b.dataset.j,()=>showHub('events','realms'));});
 }
 /* ---------- HOLD ---------- */
@@ -6136,6 +6355,10 @@ window.HOLDOR_CH59={KITS59,hitDoor};
 window.HOLDOR_TAVERN={CH_RAR,RAR_STAT,RAR_N,ST_MAX,ASC_GOLD,ASC_BURN,BOOK_N,BOOK_R,BOOK_OF,BOOK_NEED,BOOK_PRICE,BOOK_DROP,SUMMON,cstar,champCap,champRar,ascend,ascNeed,ascGold,ascCan,ascReady,skillUp,skCan,skBooks,summon,summonRoll,chestBooks,bookKey,showHeroRoom,cardNeed,cardCan,cardLevelUp,addCards,cardHave};
 window.HOLDOR_STARS={STARS_SHOP,STARS,starsBuy,starsWait,starsCan,starsShopHTML};
 window.HOLDOR_DAILY={LOGIN_CAL,QUESTS,DAILY,LOGIN_SPECIAL_GEMS,showDaily,dailyLoad,dailyReady,dailyClaimLogin,dailyClaimQuest,dailyPopupCheck,rewardChips};
+window.HOLDOR_CITY={showCity,cityCleared,CITY_BLD,CITY_NAME};
+window.HOLDOR_DUEL={DUEL,showDuel,duelLoad,duelRow};
+window.HOLDOR_SEASON={SEASON,showSeason,seasonLoad};
+window.HOLDOR_MARKET={shareText,shareWin,shareDuel,shareLink,showCampaignResult};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();
