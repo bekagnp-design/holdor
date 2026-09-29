@@ -392,6 +392,11 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **`docs/launch-checklist.md`** (Georgian): the steps before money comes in (the lawyer, BotFather, the ⭐50 test purchase and refund), the table of source links, the SQL that reads the views, the rule for deciding where to spend.
 - **Tests:** `backend/test/v17_test.py` (source once, first touch only, bad codes, ref, funnel, a cohort's D0/D1/D7, permissions), `tests/t_market72.js` (the share sheet opened by real taps on the win screen, texts and link).
 - **Rollout:** v17 goes into Supabase with the next release, after v16.
+
+### v1.0.73 — a calmer home (client only) (2026-09-30)
+- MR B: the home page (the Battle tab) shows too much text. Seven wide buttons with subtitles (Train, Spell shop, Tavern, Forge, Daily & quests, City, Season) became **one row of five icon buttons** — City, Tavern, Forge, Daily, Season — with a red number where something waits (Daily). The subtitle under the city name and the text in the progress bar are gone; the island is bigger.
+- Train and Spell shop live in the City now (Barracks, **Alchemist**); the City has nine buildings.
+- Tests adapted: `t_castle` (Train and Spell shop through the City), `t_city64`, `t_daily61`, `daily_test`, `econ_test`.
 ### v1.0.61 — login calendar and quests (backend v10) (2026-09-29)
 The retention loop. Every reward is paid by the server and progress is counted from the server's own records, so nothing here can be forged.
 - **Login calendar (30 days):**

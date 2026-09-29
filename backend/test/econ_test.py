@@ -172,7 +172,7 @@ with sync_playwright() as p:
     # ---- 9. offline: the purchase waits in the queue and goes when the server is back ----
     ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(400)
     pg.route('**/rest/v1/rpc/econ_sync', lambda r: r.abort())
-    tap('#bTrain'); tap('#bTrainUp', 1500)
+    ev("HOLDOR_CASTLE.showTrain()"); pg.wait_for_timeout(400); tap('#bTrainUp', 1500)
     check('offline: the operation waits', ev("HOLDOR_ECON.ECO.q.length") == 1 and acc("A.army.lvl") == 2, str(ev("HOLDOR_ECON.ECO.err")))
     check('offline: stored for the next start', ev("JSON.parse(localStorage.getItem('holdor_eco')).q.length") == 1)
     pg.unroute('**/rest/v1/rpc/econ_sync')

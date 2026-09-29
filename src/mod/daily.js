@@ -43,7 +43,7 @@ function dailyLoad(force){if(!ecoOn())return Promise.resolve(null);
 function dailyReady(){const s=DAILY.st;if(!s||DAILY.seat!==seatNo())return 0;let n=s.login&&s.login.can?1:0;
   for(const k in (s.periods||{}))for(const q of s.periods[k].q)if(q.cur>=q.need&&!q.claimed)n++;return n;}
 function dailyBtnHTML(){const n=dailyOn()?dailyReady():0;
-  return `<button class="cbld" id="bDaily"><span class="ic">📜</span><span class="tx"><b>Daily &amp; quests</b><small>${dailyOn()?(n?`<em class="dn">${n} ready</em>`:'calendar · quests'):'a Telegram seat'}</small></span></button>`;}
+  return `<button class="hbtn" id="bDaily"><span class="ic">📜</span><b>Daily</b>${n?`<i class="dot">${n}</i>`:''}</button>`;}
 function dailyBtnRefresh(){if(!dailyOn())return;dailyLoad().then(()=>{const b=document.getElementById('bDaily');if(b)b.outerHTML=dailyBtnHTML(),dailyBtnBind();});}
 function dailyBtnBind(){const b=document.getElementById('bDaily');if(b)b.addEventListener('click',()=>{SFX.play('tap',60);showDaily();});}
 /* what a claim did */

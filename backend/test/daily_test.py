@@ -84,7 +84,7 @@ with sync_playwright() as p:
     check('weekly quests are listed with a reset time', ev("document.querySelectorAll('.qrow').length") == 4 and 'Resets in' in ev("document.querySelector('.m').textContent"))
     # ---- the Battle tab tells how many are waiting ----
     ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(600); ev("HOLDOR_DAILY.dailyLoad(true)"); settle(); ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(700)
-    check('the button shows what is ready (the kills quest)', 'ready' in ev("document.querySelector('#bDaily').textContent"), ev("document.querySelector('#bDaily').textContent"))
+    check('the button shows what is ready (a red number: the kills quest)', ev("(document.querySelector('#bDaily .dot')||{}).textContent") == '1', ev("document.querySelector('#bDaily').textContent"))
     check('ledger = wallet (gold and gems)', q1("select sum(delta) from ledger where tg_id = %s and seat = 0 and cur = 'gold'", TG) == W()[0] and q1("select sum(delta) from ledger where tg_id = %s and seat = 0 and cur = 'gems'", TG) == W()[1])
     # ---- v1.0.65: the Levels tab (milestone gifts) ----
     need10 = sum(15 + 8 * k + k * k for k in range(1, 10))

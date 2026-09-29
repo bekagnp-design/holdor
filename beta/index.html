@@ -1067,6 +1067,13 @@ canvas{touch-action:none}/* v1.0.61 — login calendar and quests */
 .scell.ready{border-color:#ffd54a}.scell.done{opacity:.5}.scell.lockp{background:#20203a}
 .scell .qrw{justify-content:center}.scell button{min-width:58px;font-size:11px;padding:2px 6px}
 .sbox .qbar{display:block}
+/* v1.0.73: a calmer home */
+.homerow{display:flex;gap:6px;margin:6px 4px 10px}
+.hbtn{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px 6px;min-width:0;background:linear-gradient(180deg,#2a6fb9,#1a4d8c);border:3px solid #0b1a2e;border-bottom:5px solid #0b1a2e;border-radius:14px;color:#fff}
+.hbtn:active{transform:translateY(2px);border-bottom-width:3px}
+.hbtn .ic{width:36px;height:36px;border-radius:10px;background:#0c1f3a;border:2px solid #0b1a2e;display:flex;align-items:center;justify-content:center;font-size:20px}
+.hbtn b{font-family:var(--f-display);font-size:10px;letter-spacing:.6px;text-transform:uppercase}
+.hbtn .dot{position:absolute;top:-6px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:#e14b4b;color:#fff;font-style:normal;font-size:11px;font-weight:800;line-height:14px;text-align:center;padding:0 4px;border:2px solid #0b1a2e}
 </style>
 </head>
 <body>
@@ -1970,7 +1977,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.72';
+const VERSION='1.0.73';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -4957,7 +4964,7 @@ function dailyLoad(force){if(!ecoOn())return Promise.resolve(null);
 function dailyReady(){const s=DAILY.st;if(!s||DAILY.seat!==seatNo())return 0;let n=s.login&&s.login.can?1:0;
   for(const k in (s.periods||{}))for(const q of s.periods[k].q)if(q.cur>=q.need&&!q.claimed)n++;return n;}
 function dailyBtnHTML(){const n=dailyOn()?dailyReady():0;
-  return `<button class="cbld" id="bDaily"><span class="ic">📜</span><span class="tx"><b>Daily &amp; quests</b><small>${dailyOn()?(n?`<em class="dn">${n} ready</em>`:'calendar · quests'):'a Telegram seat'}</small></span></button>`;}
+  return `<button class="hbtn" id="bDaily"><span class="ic">📜</span><b>Daily</b>${n?`<i class="dot">${n}</i>`:''}</button>`;}
 function dailyBtnRefresh(){if(!dailyOn())return;dailyLoad().then(()=>{const b=document.getElementById('bDaily');if(b)b.outerHTML=dailyBtnHTML(),dailyBtnBind();});}
 function dailyBtnBind(){const b=document.getElementById('bDaily');if(b)b.addEventListener('click',()=>{SFX.play('tap',60);showDaily();});}
 /* what a claim did */
@@ -5052,6 +5059,7 @@ const CITY_SKY={stark:['#2c3e55','#7f95ad'],lannister:['#5a1f1f','#c9a24a'],targ
 const CITY_BLD=[
   ['keep','🏰','Keep','tower and spell cards',0,()=>showHub('coll')],
   ['barracks','⚔️','Barracks','train the house army',0,()=>showTrain()],
+  ['alchemist','🧪','Alchemist','one-shot battle items',0,()=>showSpellShop()],
   ['market','🏪','Market','chests, deals, dragonglass',0,()=>showShop()],
   ['treasury','📜','Treasury','daily calendar and quests',2,()=>showDaily()],
   ['forge','⚒️','Forge','gear, tiers, sets',3,()=>showForge()],
@@ -5133,8 +5141,8 @@ function seasonLoad(force){if(!ecoOn())return Promise.resolve(null);
   if(!force&&SEASON.st&&SEASON.seat===seatNo()&&Date.now()-SEASON.at<8000)return Promise.resolve(SEASON.st);
   const seat=seatNo();
   return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('season_state',{seat},9000);if(seat===seatNo()){SEASON.st=r;SEASON.at=Date.now();SEASON.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
-function seasonBtnHTML(){const s=seasonOn()&&SEASON.st&&SEASON.seat===seatNo()?SEASON.st:null;
-  return `<button class="cbld" id="bSeason"><span class="ic">🏆</span><span class="tx"><b>Season</b><small>${seasonOn()?(s?`tier ${s.tier}/${s.tiers}${s.pass?' · Pass':''}${s.vip.active?' · VIP':''}`:'pass · VIP · rewards'):'a Telegram seat'}</small></span></button>`;}
+function seasonBtnHTML(){
+  return `<button class="hbtn" id="bSeason"><span class="ic">🏆</span><b>Season</b></button>`;}
 function seasonBtnBind2(){const b=document.getElementById('bSeason');if(b)b.addEventListener('click',()=>{SFX.play('tap',60);showSeason();});}
 async function seasonClaim(t,track){if(SEASON.busy||!ecoOn())return;SEASON.busy=true;ecoWait(true);
   try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('season_claim',{seat,tier:t,track},10000);ecoApply(x.state);return x;});
@@ -6116,13 +6124,10 @@ function hubSwipe(el,tab){
 function hubBattle(){const hh=HOUSES[ACC.house],c=CBY[ACC.sel],g=Object.keys(campOf()).length,se=starsEarned();const chestsN=starChestsReady(),prog=se%3,pu=CHAMP_ART[c.id+'_portrait'];
   const nextL=nextStage();
   const NG=LEVELS.length;
-  return `<div class="seatname"><b>${hh.seat}</b><small>Seat of House ${hh.n} · ${hh.words}</small></div>
+  return `<div class="seatname"><b>${hh.seat}</b></div>
   <div class="islewrap"><canvas class="isle" id="isle" width="680" height="700"></canvas></div>
-  <div class="castlerow"><button class="cbld" id="bTrain"><span class="ic">⚔️</span><span class="tx"><b>Train</b><small>Army level ${armyLvl()}${armyLvl()>=ARMY_HOUSE_AT?' · '+HOUSE_UNIT[ACC.house].n:' · '+HOUSE_UNIT[ACC.house].n+' at '+ARMY_HOUSE_AT}</small></span></button><button class="cbld" id="bSpellShop"><span class="ic">🧪</span><span class="tx"><b>Spell shop</b><small>${packCount()?packCount()+' in the pack':'one-shot battle items'}</small></span></button></div>
-  <div class="castlerow forgerow"><button class="cbld" id="bTavern"><span class="ic">🍺</span><span class="tx"><b>Tavern</b><small>stars · skills · portal</small></span></button><button class="cbld" id="bForge"><span class="ic">⚒️</span><span class="tx"><b>Forge</b><small>${ecoOn()?gearItems().length+' items · '+GEAR_SLOTS.filter(k=>gearItems().some(it=>it.champ===ACC.sel&&it.slot===k)).length+'/9 worn':'gear — a Telegram seat'}</small></span></button></div>
-  <div class="castlerow forgerow">${dailyBtnHTML()}</div>
-  <div class="castlerow"><button class="cbld" id="bCity"><span class="ic">🏰</span><span class="tx"><b>City</b><small>${CITY_NAME[ACC.house]||'your city'} · ${cityCleared()} stage${cityCleared()===1?'':'s'} cleared</small></span></button>${seasonBtnHTML()}</div>
-  <div class="tro"><span class="tr" id="hubTro">${rankSVG(myRank().t,22,myRank().div)}${TROPHY_SVG}${trophiesOf()}</span><span class="bar"><i style="width:${Math.round(100*g/NG)}%"></i><em>STAGE ${Math.min(NG,g+1)} OF ${NG} · ${nextL.n.toUpperCase()}</em></span></div>
+  <div class="homerow"><button class="hbtn" id="bCity"><span class="ic">🏰</span><b>City</b></button><button class="hbtn" id="bTavern"><span class="ic">🍺</span><b>Tavern</b></button><button class="hbtn" id="bForge"><span class="ic">⚒️</span><b>Forge</b></button>${dailyBtnHTML()}${seasonBtnHTML()}</div>
+  <div class="tro"><span class="tr" id="hubTro">${rankSVG(myRank().t,22,myRank().div)}${TROPHY_SVG}${trophiesOf()}</span><span class="bar"><i style="width:${Math.round(100*g/NG)}%"></i><em>${g} / ${NG}</em></span></div>
   <div class="chestrow"><span class="ch ${chestsN>0?'ready':''}" id="starChest">${chestSVG('iron')}</span><span class="sbar"><i style="width:${chestsN>0?100:Math.round(100*prog/3)}%"></i><em>${chestsN>0?'CHEST READY · TAP TO OPEN':`${prog}/3 STARS TO THE NEXT CHEST`}</em></span>${chestsN>1?`<b class="cnt">×${chestsN}</b>`:''}</div>
   ${lvlChestsReady()>0?`<div class="chestrow lvl"><span class="ch ready" id="lvlChest">${chestSVG(lvlChestTier((ACC.lvlChests||0)+2))}</span><span class="sbar"><i style="width:100%"></i><em>LEVEL ${(ACC.lvlChests||0)+2} CHEST · TAP TO OPEN</em></span>${lvlChestsReady()>1?`<b class="cnt">×${lvlChestsReady()}</b>`:''}</div>`:''}
   <div class="battlerow">${hardOpen()?`<button class="bside" id="bDiffH"><span class="pe">${DIFFS[ACC.diff].e}</span>${DIFFS[ACC.diff].lbl}</button>`:`<button class="bside" id="bMapH"><span class="pe">🗺️</span>Map</button>`}
