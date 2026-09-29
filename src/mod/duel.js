@@ -15,9 +15,10 @@ function duelRow(d){const who=d.kind==='ai'?'🤖 Bot':d.kind==='friend'?'🤝 '
   const res=d.result==='win'?'<b class="dw">WIN</b>':d.result==='loss'?'<b class="dl">LOSS</b>':d.result==='draw'?'<b>DRAW</b>':d.status==='expired'?'<b class="dx">EXPIRED</b>':'<b class="dp">OPEN</b>';
   const left=d.status==='open'?`<small>${fmtLeft(d.left)} left</small>`:'';
   const dl=d.delta?`<small class="${d.delta>0?'dw':'dl'}">${d.delta>0?'+':''}${d.delta}</small>`:'';
+  const sh=d.result==='win'?`<div class="pvrow"><button class="btn sec" data-shwin="${d.me.waves}|${d.me.kills}|${d.kind==='ai'?'a bot':esc(d.opponent)}">📨 Share the win</button></div>`:'';
   const link=d.kind==='friend'&&d.status==='open'&&d.mine&&d.waiting?`<div class="reflink"><code>${esc(DUEL_BOT+d.code)}</code></div><div class="pvrow"><button class="btn" data-share="${d.code}">📨 Send to a friend</button><button class="btn sec" data-copy="${d.code}">Copy</button></div>`:'';
   return `<div class="duelrow ${d.result||d.status}"><div class="dh"><span>${who}</span>${res}${dl}${left}</div>
-    <div class="ds"><span>You<br><em>${sc(d.me)}</em></span><i>vs</i><span>${d.waiting?'waiting for a friend':esc(d.kind==='ai'?'Bot':d.opponent)}<br><em>${sc(d.them)}</em></span></div>${link}</div>`;}
+    <div class="ds"><span>You<br><em>${sc(d.me)}</em></span><i>vs</i><span>${d.waiting?'waiting for a friend':esc(d.kind==='ai'?'Bot':d.opponent)}<br><em>${sc(d.them)}</em></span></div>${link}${sh}</div>`;}
 async function duelCall(fn,args,after){if(DUEL.busy||!ecoOn())return;DUEL.busy=true;ecoWait(true);
   try{const r=await ecoLane(async()=>{await ecoSyncRaw();return await ecoRpc(fn,Object.assign({seat:seatNo()},args),10000);});
     ecoWait(false);DUEL.busy=false;DUEL.at=0;DUEL.st=null;after&&after(r);}
@@ -45,6 +46,7 @@ function showDuel(){
   $('#bRank').addEventListener('click',()=>go('rank'));$('#bAi').addEventListener('click',()=>go('ai'));
   $('#bFriend').addEventListener('click',()=>duelCall('duel_start',{kind:'friend'},r=>{showDuel();}));
   const ph=$('#bPlayHold');if(ph)ph.addEventListener('click',()=>showHub('hold'));
+  card.querySelectorAll('[data-shwin]').forEach(b=>b.addEventListener('click',()=>{const [w,k,who]=b.dataset.shwin.split('|');shareDuel(w,k,who);}));
   card.querySelectorAll('[data-share]').forEach(b=>b.addEventListener('click',()=>duelShare(b.dataset.share)));
   card.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',()=>{try{navigator.clipboard.writeText(DUEL_BOT+b.dataset.copy).then(()=>ecoToast('Link copied'),()=>ecoToast(DUEL_BOT+b.dataset.copy));}catch(e){ecoToast(DUEL_BOT+b.dataset.copy);}}));
 }
