@@ -17,10 +17,10 @@ const { chromium } = require('playwright');
     let n = 0, fs = -1, fk = -1;
     while (n < 60 * 60 && G.state === 'play') { H.step(); n++; if (fs < 0 && G.projs.length) fs = n; if (fk < 0 && G.kills > 0) { fk = n; break; } }
     out.firstShot = Math.round(fs / 6) / 10; out.firstKill = Math.round(fk / 6) / 10; return out; });
-  ok('its own short road (was 1131 px on stage 1)', m.len < 700 && m.straight && m.gates === 1 && m.routes === 1, JSON.stringify(m));
-  ok('a dozen rings, the first offered is mid-road', m.slots >= 10 && m.slotY > 250 && m.slotY < 420, m.slotY);
-  ok('the dead reach the first tower within 8 s (was 19 s)', m.firstShot > 0 && m.firstShot <= 8, m.firstShot);
-  ok('the first kill within 10 s (was 20 s)', m.firstKill > 0 && m.firstKill <= 10, m.firstKill);
+  ok('its own short, gently winding road (was 1131 px on stage 1)', m.len < 850 && !m.straight && m.gates === 1 && m.routes === 1, JSON.stringify(m));
+  ok('a dozen rings, the first offered is mid-road', m.slots >= 10 && m.slotY > 150 && m.slotY < 420, m.slotY);
+  ok('the dead reach the first tower within 10 s (was 19 s)', m.firstShot > 0 && m.firstShot <= 10, m.firstShot);
+  ok('the first kill within 12 s (was 20 s)', m.firstKill > 0 && m.firstKill <= 12, m.firstKill);
   ok('still stage 1 for everything else', m.id === 1 && m.tutorial);
   // the move lesson: one tap on the ground is enough
   const mv = await page.evaluate(() => { const H = window.HOLDOR, X = window.HOLDOR_TUT, G = H.G; H.startGame({ mode: 'campaign', level: X.TUT_LEVEL, tutorial: 1 });

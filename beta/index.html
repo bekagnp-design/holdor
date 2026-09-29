@@ -3205,8 +3205,10 @@ function tutMapBlocked(){const w=tutWantBase();return !!(w&&(TUT_BTN[w]||w==='po
 function learnMap(){if(!ACC.learn||typeof ACC.learn!=='object')ACC.learn={};return ACC.learn;}
 function ringHint(a,b,c){return !RING?a:!RING.arm?b:c;}
 /* the tutorial has its own short, straight road (the dead reach the first tower within seconds); slots near the middle of it are offered first */
-const TUT_LEVEL=Object.assign({},LEVELS[0],{routes:[[[195,-30],[195,544]]],gates:[195],style:'bend',stage:'t',intro:''});
-function tutSlot(){if(!G.map)return null;const f=G.map.slots.filter(s=>!s.tower);return (G.tutorial?f.sort((a,b)=>Math.abs(a.y-330)-Math.abs(b.y-330)):f.sort((a,b)=>b.y-a.y))[0]||null;}
+const TUT_LEVEL=Object.assign({},LEVELS[0],{routes:[[[195,-30],[195,120],[105,120],[105,300],[195,300],[195,544]]],gates:[195],style:'bend',stage:'t',intro:''});
+/* the first tower goes on the ring closest to the road 40% of the way down: the dead are in its range within seconds */
+function tutSlot(){if(!G.map)return null;const f=G.map.slots.filter(s=>!s.tower);if(!G.tutorial)return f.sort((a,b)=>b.y-a.y)[0]||null;
+  const R=G.map.routes[0],q=posAt(G.map,R.total*0.4,0);return f.sort((a,b)=>dist(a.x,a.y,q.x,q.y)-dist(b.x,b.y,q.x,q.y))[0]||null;}
 function tutTower(){const ts=G.map?G.map.slots.filter(s=>s.tower):[];return ts.sort((a,b)=>b.tower.lvl-a.tower.lvl||b.y-a.y)[0]||null;}
 function upgradeGold(){const s=tutTower();return s?upCost(s.tower):0;}
 const TUT_STEPS=[
