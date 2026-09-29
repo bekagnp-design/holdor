@@ -397,6 +397,16 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - MR B: the home page (the Battle tab) shows too much text. Seven wide buttons with subtitles (Train, Spell shop, Tavern, Forge, Daily & quests, City, Season) became **one row of five icon buttons** — City, Tavern, Forge, Daily, Season — with a red number where something waits (Daily). The subtitle under the city name and the text in the progress bar are gone; the island is bigger.
 - Train and Spell shop live in the City now (Barracks, **Alchemist**); the City has nine buildings.
 - Tests adapted: `t_castle` (Train and Spell shop through the City), `t_city64`, `t_daily61`, `daily_test`, `econ_test`.
+
+### v1.0.74 — Earn: the estate, two-day events, invitations moved (backend v18) (2026-09-30)
+- **The bottom bar:** Events gave its place to **Earn**. Events are no tab any more (the Events screen with the Duel card and the standings stays reachable from the City's Council hall).
+- **Events are two-day popups** with a live countdown (Mon–Tue **Builders' Boom**: estate income +50 % for the hours that fall inside it; Fri–Sat **Duel Cup**: ranked duel gifts ×2), shown once per window, and a small badge on the home island brings the popup back. The schedule is one rule, `ev_at()` in SQL, mirrored by `evAt()` in the app (the test compares 8 moments).
+- **The estate (Hamster-style hourly income, deliberately small):** nine buildings (farm, lumberyard, quarry, iron mine, market stalls, harbor, scriptorium, vault, crown lands) open with the ACCOUNT LEVEL (3 … 55) and are built and upgraded with gold. Level n costs 1.8× level n−1 and adds only half of the first level's income, so the first level pays back in ~40 hours, level 5 in ~140 h, level 10 in 400+ h. Level n needs account level unlock + 2·(n−1). Income piles up for at most 3 hours and is collected by hand; building or upgrading first collects the pile at the old rate. It is a small extra: fights stay the main income. `estate_state` / `estate_build` / `estate_collect`; ledger reasons `estate` and `estate_income`; owner view `v_estate`.
+- **Invitations** (backend v14) moved from the Daily screen into the Earn tab (the link, send, copy, each friend's progress, the claims), and the guided tour points at Earn (a step in the home tour and a three-step Earn tour).
+- **A bug found on the way:** the Earn tab redrew itself in a loop after every answer (the redraw asked for the data again). It now redraws only when the data really changed.
+- **Not built:** timed construction (a build finishing after hours), as in Hamster Kombat — everything is instant; only gold and account level gate it.
+- **Tests:** `backend/test/v18_test.py` (36 checks: costs, paybacks, level gates, collecting, the 3-hour pile, the Boom share, the schedule), `earn_test.py` (real taps: the tab bar, the badge and popup, the schedule, build, collect), `daily_test.py` (invitations in Earn).
+- **Rollout:** v18 goes into Supabase with the next release, after v17.
 ### v1.0.61 — login calendar and quests (backend v10) (2026-09-29)
 The retention loop. Every reward is paid by the server and progress is counted from the server's own records, so nothing here can be forged.
 - **Login calendar (30 days):**
