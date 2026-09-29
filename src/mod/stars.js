@@ -7,6 +7,8 @@ const STARS_SHOP={
  gems_s:{stars:50,gems:150,n:'Pouch',title:'Pouch of dragonglass',desc:'150 dragonglass for your seat.'},
  gems_m:{stars:125,gems:400,n:'Chest',title:'Chest of dragonglass',desc:'400 dragonglass for your seat.'},
  gems_l:{stars:350,gems:1200,n:'Hoard',title:'Hoard of dragonglass',desc:'1200 dragonglass for your seat.'},
+ pass:{stars:250,grant:'pass',n:'Season Pass',title:'Season Pass',desc:'Premium rewards on every tier of this month\'s season, for your seat.'},
+ vip:{stars:200,grant:'vip',days:30,n:'VIP · 30 days',title:'VIP · 30 days',desc:'25 dragonglass a day and 25% more season points for 30 days, for your seat.'},
  starter:{stars:75,once:true,gems:300,gold:5000,books:{'b:r':3},n:'Starter pack',title:'Starter pack',desc:'300 dragonglass, 5000 gold and 3 Rare books for your seat. Once per seat.'},
 };
 const STARS_KEY='holdor_pay';
@@ -59,7 +61,9 @@ async function starsWait(item,quiet){
     if(st!=='pending')break;await new Promise(r=>setTimeout(r,1500));}
   if(!quiet)ecoWait(false);
   if(st==='paid'){starsDrop(item.id);const S=STARS_SHOP[item.sku];if(item.sku==='starter')STARS.starter=true;
-    await ecoRefresh();try{SFX.play('buy');}catch(e){}ecoToast(`⭐ Thank you! +${S?S.gems:''} dragonglass`+(S&&S.gold?' · +'+fmtN(S.gold)+' gold':''),true);ecoRedraw();return;}
+    await ecoRefresh();try{SFX.play('buy');}catch(e){}
+    if(S&&S.grant){ecoToast('⭐ Thank you! '+S.n+' is active',true);if(typeof seasonLoad==='function')seasonLoad(true).then(()=>{if(CLOUD.screen==='season')showSeason();});return;}
+    ecoToast(`⭐ Thank you! +${S?S.gems:''} dragonglass`+(S&&S.gold?' · +'+fmtN(S.gold)+' gold':''),true);ecoRedraw();return;}
   if(st==='failed'||st==='orphan'||st==='refunded'){starsDrop(item.id);ecoModal('⭐ The payment was not credited','The server could not credit this payment ('+st+'). Write to the game\'s chat — the Stars will be returned.',[{t:'OK'}]);return;}
   if(!quiet)ecoModal('⭐ Payment received','Telegram has your payment; the server is still confirming it. Your dragonglass will appear in a moment — open the shop again.',[{t:'OK'}]);}
 /* an invoice paid while the app was closed or slow: ask once when a seat is entered */

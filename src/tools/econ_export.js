@@ -39,7 +39,7 @@ const OUT = path.resolve(__dirname, '..', '..', process.argv[2] || 'backend/econ
         st_max: T.ST_MAX, asc_gold: T.ASC_GOLD, asc_burn: T.ASC_BURN, book_of: T.BOOK_OF, book_need: T.BOOK_NEED, book_price: T.BOOK_PRICE,
         book_drop: T.BOOK_DROP, summon: { one: T.SUMMON.one, ten: T.SUMMON.ten, odds: T.SUMMON.odds, copies: T.SUMMON.copies } }; })(),
       // Telegram Stars (v1.0.60, backend v9): the items the server sells and what each one pays out
-      stars: { skus: Object.fromEntries(Object.entries(window.HOLDOR_STARS.STARS_SHOP).map(([k, v]) => [k, { stars: v.stars, gems: v.gems || 0, gold: v.gold || 0, books: v.books || {}, once: !!v.once, title: v.title, desc: v.desc }])) },
+      stars: { skus: Object.fromEntries(Object.entries(window.HOLDOR_STARS.STARS_SHOP).map(([k, v]) => [k, { stars: v.stars, gems: v.gems || 0, gold: v.gold || 0, books: v.books || {}, once: !!v.once, title: v.title, desc: v.desc, ...(v.grant ? { grant: v.grant } : {}), ...(v.days ? { days: v.days } : {}) }])) },
       // the login calendar and the quests (v1.0.61, backend v10): what the server pays and how it counts progress
       calendar: { days: window.HOLDOR_DAILY.LOGIN_CAL, special_gems: window.HOLDOR_DAILY.LOGIN_SPECIAL_GEMS },
       quests: Object.fromEntries(Object.entries(window.HOLDOR_DAILY.QUESTS).map(([k, l]) => [k, l.map(q => ({ id: q.id, m: q.m, n: q.n, r: q.r }))])),
