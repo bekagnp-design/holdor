@@ -71,7 +71,7 @@ try:
     anon('battle_finish', token=tok[T1], battle=b, won=True, stars=3, steps=6000, waves=8, kills=100)
     it = items()
     check('won battle drops an item (drop 100 %)', len(it) == 1 and it[0]['src'] == 'camp:1', it)
-    check('the app sees the main value by rarity and level', it and it[0]['main']['v'] == round(G0['main_base'][it[0]['main']['k']] * G0['rar_mul'][it[0]['r']], 1), it and it[0]['main'])
+    check('the app sees the main value by rarity and level', it and it[0]['main']['v'] == round(G0['main_base'][it[0]['main']['k']] * G0['rar_mul'][it[0]['r']] * G0['tier_mul'][it[0]['tier'] - 1], 1), it and it[0]['main'])
     b = anon('battle_start', token=tok[T1], seat=0, kind='camp', stage=2)['battle']
     anon('battle_finish', token=tok[T1], battle=b, won=True, stars=3, steps=100, waves=8, kills=10)
     check('a refused battle drops nothing', len(items()) == 1)
