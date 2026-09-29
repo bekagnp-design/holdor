@@ -960,7 +960,11 @@ button.standrow:nth-of-type(3) .rk{background:linear-gradient(180deg,#e0a06a,#a8
 .smc small em{font-style:normal;color:#ffd54a;font-weight:900}
 .smc i{font-style:normal;font-size:9px;font-weight:900;color:var(--rc)}
 .forgerow{display:flex;gap:6px}
-.forgerow .cbld{flex:1;width:auto}
+.forgerow .cbld{flex:1;width:auto}/* v1.0.60 — Telegram Stars shop */
+.shopgrid .sitem.starter{grid-column:1/-1}
+.sitem.starter{border-color:#ffd54a;background:linear-gradient(160deg,rgba(255,213,74,.16),rgba(19,40,74,.9))}
+.stbtn{font-weight:900}
+.stbtn:not(:disabled){background:linear-gradient(#ffe97a,#f2a62c);color:#3a2404}
 </style>
 </head>
 <body>
@@ -1852,7 +1856,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.59';
+const VERSION='1.0.60';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -4457,7 +4461,7 @@ function ecoStart(){
     ecoApply(st);ecoClaims(st);
     if(ECO.q.length)await ecoSyncRaw();
     if(ECO.fin)await ecoFinRaw();
-    await gearLoadRaw(false);ecoTicker();if(ecoSig()!==sig){persist();ecoRedraw();}
+    await gearLoadRaw(false);starsResume();ecoTicker();if(ecoSig()!==sig){persist();ecoRedraw();}
     return true;
   }).catch(e=>{const m=ecoMsg(e);ECO.err=m;ECO.failAt=Date.now();if(/Could not find the function|PGRST202|schema cache/i.test(m))ECO.none=true;return false;})
     .finally(()=>{if(ECO.starting===p)ECO.starting=null;});
@@ -4646,6 +4650,73 @@ function gearUpgrade(id,cid,filter){gearCall('gear_upgrade',{item:id,op:ecoUuid(
   persist();showForge(cid,filter);gearSheet(id,cid,filter);});}
 function gearEquip(id,to,cid,filter){gearCall('gear_equip',{item:id,champ:to},()=>{SFX.play('upgrade');showForge(cid,filter);});}
 function gearSell(id,cid,filter){gearCall('gear_sell',{item:id},r=>{SFX.play('buy');ecoToast(`+🪙${r.gold}`,true);persist();showForge(cid,filter);});}
+/* =========================== TELEGRAM STARS (v1.0.60) ===========================
+   Dragonglass packs and the Starter pack are paid with Telegram Stars. The app only asks the server for an invoice
+   (Edge Function `stars`), opens it in Telegram (WebApp.openInvoice), and then waits until the server says "paid"
+   (pay_status) and reads its balance. Nothing is credited here: Telegram tells the server, the server credits the seat
+   (backend v9: payments, ledger reason 'stars'). Guests and seats without the server cannot buy. */
+const STARS_SHOP={
+ gems_s:{stars:50,gems:150,n:'Pouch',title:'Pouch of dragonglass',desc:'150 dragonglass for your seat.'},
+ gems_m:{stars:125,gems:400,n:'Chest',title:'Chest of dragonglass',desc:'400 dragonglass for your seat.'},
+ gems_l:{stars:350,gems:1200,n:'Hoard',title:'Hoard of dragonglass',desc:'1200 dragonglass for your seat.'},
+ starter:{stars:75,once:true,gems:300,gold:5000,books:{'b:r':3},n:'Starter pack',title:'Starter pack',desc:'300 dragonglass, 5000 gold and 3 Rare books for your seat. Once per seat.'},
+};
+const STARS_KEY='holdor_pay';
+const STARS={starter:null,starterSeat:-1,busy:false,pending:null};
+function starsUrl(){return SB.url+'/functions/v1/stars';}
+function starsCan(){return !!(ecoOn()&&TG&&typeof TG.openInvoice==='function');}
+function starsShopLoad(){if(!ecoOn()||STARS.starterSeat===seatNo())return;STARS.starterSeat=seatNo();
+  ecoRpc('pay_shop',{seat:seatNo()},8000).then(r=>{STARS.starter=!!(r&&r.starter);ecoRedraw();}).catch(()=>{STARS.starterSeat=-1;});}
+function starsPack(k,big){const S=STARS_SHOP[k],can=starsCan();
+  return `<div class="sitem ${big?'starter':''}" style="--rc:${k==='starter'?'#ffd54a':'#4fb0ff'}">${k==='starter'?'<span class="badge">ONCE</span>':''}<span class="ch dic">${GEM_SVG}</span><b>${S.n}</b>
+   <small>+${S.gems} dragonglass${S.gold?` · ${fmtN(S.gold)} gold`:''}${S.books?' · 3 Rare books':''}</small>
+   <button class="stbtn" data-stars="${k}" ${can?'':'disabled'}>⭐ ${S.stars}</button></div>`;}
+function starsShopHTML(){
+  if(ecoOn())starsShopLoad();
+  const note=starsCan()?'':`<p class="shopnote">${ecoOn()?'Open the game in an up-to-date Telegram to pay with Stars.':'Payments work on a seat signed in through Telegram — the server credits it.'}</p>`;
+  return `<div class="hh" style="margin-top:14px"><h2>Dragonglass</h2><small>pay with Telegram Stars ⭐</small></div>${note}
+  <div class="shopgrid three">${['gems_s','gems_m','gems_l'].map(k=>starsPack(k)).join('')}</div>`;}
+function starsStarterHTML(){
+  if(!ecoOn()||STARS.starter!==false)return '';
+  return `<div class="hh" style="margin-top:6px"><h2>Starter pack</h2><small>once per seat</small></div><div class="shopgrid">${starsPack('starter',true)}</div>`;}
+async function starsInvoice(sku){
+  const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),15000);
+  try{const r=await fetch(starsUrl(),{method:'POST',headers:{'apikey':SB.key,'Content-Type':'application/json'},body:JSON.stringify({op:'invoice',token:CLOUD.token,seat:seatNo(),sku}),signal:ctl.signal});
+    const t=await r.text();let j=null;try{j=t?JSON.parse(t):null;}catch(e){}
+    if(!r.ok||!j||!j.link)throw new Error((j&&(j.error||j.message))||('http '+r.status));return j;}
+  finally{clearTimeout(to);}}
+function starsSave(list){try{localStorage.setItem(STARS_KEY,JSON.stringify(list));}catch(e){}}
+function starsLoad(){try{const j=JSON.parse(localStorage.getItem(STARS_KEY)||'[]');return Array.isArray(j)?j:[];}catch(e){return [];}}
+async function starsBuy(sku){
+  const S=STARS_SHOP[sku];if(!S||STARS.busy)return;
+  if(!starsCan()){SFX.play('deny');ecoModal('⭐ Telegram Stars','Payments need a seat signed in through Telegram and a recent Telegram app.',[{t:'OK'}]);return;}
+  STARS.busy=true;ecoWait(true);let r;
+  try{if(!(await ecoLane(async()=>{await ecoSyncRaw();return true;})))throw new Error('offline');r=await starsInvoice(sku);}
+  catch(e){STARS.busy=false;ecoWait(false);const m=ecoMsg(e);
+    ecoModal('⭐ The invoice could not be made',/already bought/.test(m)?'The Starter pack is already yours on this seat.':ecoNet(m)||/abort/i.test(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,140)),[{t:'OK',f:()=>{if(/already bought/.test(m)){STARS.starter=true;}ecoRedraw();}}]);return;}
+  ecoWait(false);const seat=seatNo(),item={id:r.id,sku,seat,t:Date.now()};
+  starsSave(starsLoad().concat([item]).slice(-10));
+  try{TG.openInvoice(r.link,st=>{STARS.busy=false;
+    if(st==='paid')starsWait(item);
+    else if(st==='cancelled'){starsDrop(item.id);ecoToast('Payment cancelled');}
+    else if(st==='failed'){starsDrop(item.id);ecoModal('⭐ The payment failed','Telegram could not take the Stars. Nothing was charged.',[{t:'OK'}]);}
+    else starsWait(item);});}
+  catch(e){STARS.busy=false;starsDrop(item.id);ecoModal('⭐ Telegram would not open the invoice',esc(ecoMsg(e).slice(0,120)),[{t:'OK'}]);}}
+function starsDrop(id){starsSave(starsLoad().filter(x=>x.id!==id));}
+/* after "paid": the server hears it from Telegram a moment later — ask until it says so, then read the balance */
+async function starsWait(item,quiet){
+  if(!quiet)ecoWait(true);let st='pending';
+  for(let i=0;i<(quiet?1:30)&&ecoOn()&&seatNo()===item.seat;i++){
+    try{const r=await ecoRpc('pay_status',{id:item.id},8000);st=r.status;}catch(e){}
+    if(st!=='pending')break;await new Promise(r=>setTimeout(r,1500));}
+  if(!quiet)ecoWait(false);
+  if(st==='paid'){starsDrop(item.id);const S=STARS_SHOP[item.sku];if(item.sku==='starter')STARS.starter=true;
+    await ecoRefresh();try{SFX.play('buy');}catch(e){}ecoToast(`⭐ Thank you! +${S?S.gems:''} dragonglass`+(S&&S.gold?' · +'+fmtN(S.gold)+' gold':''),true);ecoRedraw();return;}
+  if(st==='failed'||st==='orphan'||st==='refunded'){starsDrop(item.id);ecoModal('⭐ The payment was not credited','The server could not credit this payment ('+st+'). Write to the game\'s chat — the Stars will be returned.',[{t:'OK'}]);return;}
+  if(!quiet)ecoModal('⭐ Payment received','Telegram has your payment; the server is still confirming it. Your dragonglass will appear in a moment — open the shop again.',[{t:'OK'}]);}
+/* an invoice paid while the app was closed or slow: ask once when a seat is entered */
+function starsResume(){const list=starsLoad().filter(x=>Date.now()-x.t<86400000&&x.seat===seatNo());starsSave(starsLoad().filter(x=>Date.now()-x.t<86400000));
+  for(const x of list)starsWait(x,true);}
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -5707,20 +5778,20 @@ function hubShop(){const free=freeChestReady(),ft=fmtT(86400000-(Date.now()-(ACC
     return `<div class="sitem deal ${bought?'done':''}" style="--rc:${RC[d.r]}">${freeSlot&&!bought?'<span class="badge">FREE</span>':''}<span class="ch dic">${d.ic}</span><b>${esc(d.n)}</b><small>${esc(d.s)}</small><button data-deal="${i}" ${bought||!canPay(d.price)?'disabled':''} class="${freeSlot?'free':''}">${bought?'✔ TAKEN':priceHTML(d.price)}</button></div>`;};
   const chest=(t,extra)=>{const T=CHEST_TIERS[t];return `<div class="sitem" style="--rc:${T.trim}">${extra||''}<span class="ch">${chestSVG(t)}</span><b>${T.n}</b><small><i style="color:${T.trim};font-style:normal;font-weight:900">${T.sub}</i> · ${T.gold[0]}–${T.gold[1]} gold · ${T.gems[0]}–${T.gems[1]} dragonglass · ${T.cards} card stack${T.cards>1?'s':''}${T.rare?` (${T.rare} rare+)`:''}</small>
     ${t==='wood'?`<button class="free" data-buy="wood" ${free?'':'disabled'}>${free?'FREE':ft.str}</button>`:`<button data-buy="${t}" ${ACC.gems>=T.price?'':'disabled'}>${GEM_SVG}${T.price}</button>`}</div>`;};
-  return `<div class="hh"><h2>Daily deals</h2><small>new deals in <b id="dealCd">${dt.h}:${dt.m}:${dt.s}</b></small></div>
+  return `${starsStarterHTML()}<div class="hh"><h2>Daily deals</h2><small>new deals in <b id="dealCd">${dt.h}:${dt.m}:${dt.s}</b></small></div>
   <p class="shopnote">Six deals every 6 hours. The first is always free · unlock the locked ones with dragonglass.</p>
   <div class="shopgrid deals">${deals.map(dealHTML).join('')}</div>
   <div class="hh" style="margin-top:14px"><h2>Chests</h2><small>${GEM_SVG} ${ACC.gems} dragonglass</small></div>
   <div class="shopgrid">${chest('wood',free?'<span class="badge">DAILY FREE</span>':'<span class="badge" style="background:#5a6c85;color:#fff">DAILY</span>')}${chest('iron')}${chest('valyrian')}${chest('dragon')}</div>
   <div class="hh" style="margin-top:14px"><h2>Gold for dragonglass</h2><small>${GOLD_SVG} ${fmtN(goldOf())} gold</small></div>
   <div class="shopgrid three">${ECON.exchange.map(([g,gd],i)=>`<div class="sitem" style="--rc:#e3b661"><span class="ch dic">${GOLD_SVG}</span><b>${['Purse','Chest','Hoard'][i]}</b><small>+${gd.toLocaleString()} gold${i===2?' · best value':i===1?' · +7%':''}</small><button data-xch="${i}" ${ACC.gems>=g?'':'disabled'}>${GEM_SVG}${g}</button></div>`).join('')}</div>
-  <div class="hh" style="margin-top:14px"><h2>Dragonglass</h2><small>coming with Telegram Stars</small></div>
-  <div class="shopgrid three">${[[150,'Pouch'],[400,'Chest'],[1200,'Hoard']].map(([n,t])=>`<div class="sitem soon"><span class="ch dic">${GEM_SVG}</span><b>${t}</b><small>+${n} dragonglass</small><button disabled>SOON</button></div>`).join('')}</div>`;}
+  ${starsShopHTML()}`;}
 function hubShopBind(){
   const tick=()=>{if(CLOUD.screen!=='hub:shop')return;const el=$('#dealCd');if(!el)return;const t=fmtT(msToDeals());el.textContent=t.h+':'+t.m+':'+t.s;if(msToDeals()<1000){showHub('shop');return;}setTimeout(tick,1000);};tick();
   bind('[data-buy]',b=>{const t=b.dataset.buy,T=CHEST_TIERS[t];if(ecoWants()){if(t==='wood'?!freeChestReady():ACC.gems<T.price)return;ecoChest(t,'shop',()=>showHub('shop'));return;}if(t==='wood'){if(!freeChestReady())return;ACC.freeChestAt=Date.now();}else{if(ACC.gems<T.price)return;ACC.gems-=T.price;}persist();openChest(t,()=>showHub('shop'));});
   bind('[data-deal]',b=>{const i=+b.dataset.deal;const d=genDeals()[i];if(buyDeal(i)){SFX.play(d.k==='gold'||d.k==='gems'?'buy':'card');flyReward(b,d);showHub('shop');}else SFX.play('deny');});
   bind('[data-unl]',b=>{if(unlockDeal(+b.dataset.unl)){SFX.play('unlock');showHub('shop');}else SFX.play('deny');});
+  bind('[data-stars]',b=>starsBuy(b.dataset.stars));
   bind('[data-xch]',b=>{const [g,gd]=ECON.exchange[+b.dataset.xch];if(ACC.gems<g){SFX.play('deny');return;}ACC.gems-=g;addGold(gd);ecoOp({r:'xch',i:+b.dataset.xch},{m:-g,g:gd});SFX.play('buy');persist();flyReward(b,{k:'gold',n:'+'+gd+' gold'});showHub('shop');});
 }
 /* a little "+N" toast that floats up from a purchase */
@@ -5815,6 +5886,7 @@ window.HOLDOR_GEAR={gearStats,gearItems,gearLoad,showForge,gearSheet,gearCost,ge
 window.HOLDOR_CARDRULES={UNLOCK_STAGE,TOWER_UNLOCK,T_RAR,S_RAR,CARD_NEED,CARD_MUL,CARD_PACK,CHAMPS,SPELLS,TKEYS};
 window.HOLDOR_CH59={KITS59,hitDoor};
 window.HOLDOR_TAVERN={CH_RAR,RAR_STAT,RAR_N,ST_MAX,ASC_GOLD,ASC_BURN,BOOK_N,BOOK_R,BOOK_OF,BOOK_NEED,BOOK_PRICE,BOOK_DROP,SUMMON,cstar,champCap,champRar,ascend,ascNeed,ascGold,ascCan,ascReady,skillUp,skCan,skBooks,summon,summonRoll,chestBooks,bookKey,showHeroRoom,cardNeed,cardCan,cardLevelUp,addCards,cardHave};
+window.HOLDOR_STARS={STARS_SHOP,STARS,starsBuy,starsWait,starsCan,starsShopHTML};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();

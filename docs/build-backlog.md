@@ -306,6 +306,49 @@ Rules: `docs/design-v2.md` → "v1.0.59".
   - `run_all.sh` 11/11; the core set 18/18.
 - **Rollout:** v8 goes into Supabase together with the v1.0.59 release (after v7, which goes in with v1.0.58). Before that, older apps level skills without books and would be refused. Until then, on the beta a logged-in seat's star, summon and books wait for the server.
 
+### v1.0.60 — Telegram Stars (backend v9) (2026-09-29)
+The first way to earn: dragonglass packs and the Starter pack, paid in Telegram Stars (currency `XTR`, no provider token). The app never credits anything.
+- **Items (`STARS_SHOP` in `mod/stars.js`, exported to `econ_config.stars`, so app and server agree on price and payout):**
+  - Pouch ⭐50 → 💎150, Chest ⭐125 → 💎400, Hoard ⭐350 → 💎1200.
+  - Starter pack ⭐75, once per seat: 💎300 + 🪙5000 + 3 Rare books.
+- **Flow:**
+  1. Tap → the app asks the Edge Function `stars` for an invoice (`op:'invoice'`).
+  2. The function calls `pay_create` (session token checked, price from the server's table, order stored `pending`) and Telegram's `createInvoiceLink`.
+  3. The app opens it with `WebApp.openInvoice`.
+  4. Telegram sends the function `pre_checkout_query`; `pay_precheck` says yes only for an open order of this payer, this amount, in Stars.
+  5. Telegram sends `successful_payment`; `pay_confirm` credits the seat.
+  6. On "paid" the app polls `pay_status` (up to 45 s), then reads its balance. An order that finishes while the app is closed is found again when the seat is entered (`starsResume`).
+- **Backend v9 (`backend/holdor_v9.sql`, after v8 + the regenerated `holdor_econ_data.sql`):**
+  - `payments` (RLS, no client access). The Telegram charge id is unique.
+  - `pay_create` / `pay_precheck` / `pay_confirm` / `pay_refund` / `pay_secret` / `pay_setup_done` are service role only; `pay_shop` / `pay_status` are read with the session token.
+  - **Credit:** ledger reason `stars`, ref = the charge id. A repeated message or a repeated charge changes nothing.
+  - **Not credited:** wrong payer, wrong amount, a seat replaced after the invoice (`orphan`), an unknown order. Each is marked, goes to `econ_flags` (`pay_mismatch`, `pay_orphan`, `pay_unknown`, `pay_repeat`), and the Stars are returned by hand.
+  - **Refund** (`refunded_payment`): takes back what the seat still holds of the item, never below zero, and is flagged.
+  - Caps: 20 open invoices an hour per player. `v_revenue` = the owner's dashboard (paid orders per day and item).
+- **Edge Function (`backend/edge/stars/`):**
+  - `handler.js` has all the logic; `index.ts` is a 3-line Deno wrapper. Deploy with `verify_jwt=false`: Telegram sends no JWT, and the webhook is checked by its secret header.
+  - The bot token is read from `app_secrets` per request and is never logged or returned; error text is scrubbed.
+  - `GET ?setup=<one-time code>` points the bot's webhook here (`allowed_updates`: `pre_checkout_query`, `message`) and deletes the code.
+- **Client (`mod/stars.js`, `parts/66_stars.py`):**
+  - Buttons appear in the shop; the Starter pack has its own card until it is bought.
+  - Cancel and fail leave nothing behind. Guests and seats without the server see the packs disabled with a note.
+- **Tests:**
+  - New `backend/test/v9_test.py` (SQL + Edge Function + a fake Telegram, 38 checks): who may call what, invoices, the webhook secret, pre-checkout, single credit, refusals, refunds, caps, setup, and the bot token never appearing in any response.
+  - New `backend/test/stars_test.py` (the app with taps; Telegram played by the script): a pack, a slow Telegram, a cancel, the Starter pack, an invoice paid while the app was closed; every number equals the server's.
+  - New `tests/t_stars60.js` (guest).
+  - Local stand-ins: `edge_shim.mjs` (the function + a fake Telegram Bot API), `fakerest.py` (a service role and a proxy).
+- **Rollout (with the release, one step at a time):**
+  1. Apply v7, v8 and v9 + the regenerated `holdor_econ_data.sql` in Supabase, verifying function hashes.
+  2. Deploy the function.
+  3. Open the one-time setup link.
+  4. Release the app.
+  5. A test purchase of the smallest pack by the owner (⭐50), then a refund with `refundStarPayment`.
+- **Telegram's rules to remember:**
+  - Stars can be withdrawn only from the bot's balance, from 1000 Stars, after a hold, via TON/Fragment.
+  - Digital goods must be paid in Stars.
+  - Refunds are possible for 21 days.
+  - See `docs/monetization-marketing.md`.
+
 ### Admin views v1 (backend, 2026-09-28) — no app change
 - `backend/holdor_admin_v1.sql`: six read-only views over the server's own records, for the owner's dashboard. Applied in Supabase as the migration `holdor_admin_v1_views`; anon and authenticated cannot read them.
   - `v_stage_funnel`: per stage, seats that tried it, battles won/lost/refused/left, win %, average time and stars, seats that cleared it. This is where players stall.
@@ -318,7 +361,7 @@ Rules: `docs/design-v2.md` → "v1.0.59".
 
 ## Not done / next
 - **On MR B (one step at a time):** 1) merge the v1.0.58 PR, then the v1.0.59 PR, and play `…/holdor/beta/` on the phone; 2) say "release" — Claude first applies `holdor_v7.sql`, the regenerated `holdor_econ_data.sql` and `holdor_v8.sql` in Supabase (hashes verified), then opens the release PR. Art: the Dorne kit first (`holdor-prompts-v45.md`); still open: 8 chest images, 30 skill icons, 7 island images, 4 event banners, house film clips.
-- **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.60 login calendar + quests → v1.0.61 city → v1.0.62 account levels + HOLDOR Coin + Tasks + invites → v1.0.63 chats → v1.0.64–65 PvP 1v1 → v1.0.66 country war → v1.0.67 languages → v1.0.68 income → v1.0.69 marketing.
+- **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.61 login calendar + quests → v1.0.62 city → v1.0.63 account levels + HOLDOR Coin + Tasks + invites → v1.0.64 chats → v1.0.65–66 PvP 1v1 → v1.0.67 country war → v1.0.68 languages → v1.0.69 Season Pass + rewarded ads + VIP → v1.0.70 marketing.
 - Standing rule from MR B (26.09): every reply ends with the next step and one development idea/plan.
 - **Wire when art arrives:** `BG_ART[biome]` (drop-in), props sheet → cut 3×3 on magenta → `setPropSheet(biome, cells)` (order in `PROP_KIT`), `CHEST_ART`, `SKILL_ART`; painted islands would replace `drawIsland` per house.
 - Hold stats: verified real — the Hold tab's "Today's defenders" and "your rank" come only from the server's `daily_scores` (v3: per seat); B K's 15-wave run was on the server on 2026-09-14.

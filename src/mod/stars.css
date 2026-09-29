@@ -1,0 +1,5 @@
+/* v1.0.60 — Telegram Stars shop */
+.shopgrid .sitem.starter{grid-column:1/-1}
+.sitem.starter{border-color:#ffd54a;background:linear-gradient(160deg,rgba(255,213,74,.16),rgba(19,40,74,.9))}
+.stbtn{font-weight:900}
+.stbtn:not(:disabled){background:linear-gradient(#ffe97a,#f2a62c);color:#3a2404}

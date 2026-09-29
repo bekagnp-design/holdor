@@ -1,5 +1,5 @@
 {
- "version": "1.0.59",
+ "version": "1.0.60",
  "max": {
   "c": 60,
   "t": 16,
@@ -717,6 +717,48 @@
     1
    ],
    "copies": 10
+  }
+ },
+ "stars": {
+  "skus": {
+   "gems_s": {
+    "stars": 50,
+    "gems": 150,
+    "gold": 0,
+    "books": {},
+    "once": false,
+    "title": "Pouch of dragonglass",
+    "desc": "150 dragonglass for your seat."
+   },
+   "gems_m": {
+    "stars": 125,
+    "gems": 400,
+    "gold": 0,
+    "books": {},
+    "once": false,
+    "title": "Chest of dragonglass",
+    "desc": "400 dragonglass for your seat."
+   },
+   "gems_l": {
+    "stars": 350,
+    "gems": 1200,
+    "gold": 0,
+    "books": {},
+    "once": false,
+    "title": "Hoard of dragonglass",
+    "desc": "1200 dragonglass for your seat."
+   },
+   "starter": {
+    "stars": 75,
+    "gems": 300,
+    "gold": 5000,
+    "books": {
+     "b:r": 3
+    },
+    "once": true,
+    "title": "Starter pack",
+    "desc": "300 dragonglass, 5000 gold and 3 Rare books for your seat. Once per seat."
+   }
   }
  },
  "win": [

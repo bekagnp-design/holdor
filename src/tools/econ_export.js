@@ -38,6 +38,8 @@ const OUT = path.resolve(__dirname, '..', '..', process.argv[2] || 'backend/econ
       tavern: (() => { const T = window.HOLDOR_TAVERN; return {
         st_max: T.ST_MAX, asc_gold: T.ASC_GOLD, asc_burn: T.ASC_BURN, book_of: T.BOOK_OF, book_need: T.BOOK_NEED, book_price: T.BOOK_PRICE,
         book_drop: T.BOOK_DROP, summon: { one: T.SUMMON.one, ten: T.SUMMON.ten, odds: T.SUMMON.odds, copies: T.SUMMON.copies } }; })(),
+      // Telegram Stars (v1.0.60, backend v9): the items the server sells and what each one pays out
+      stars: { skus: Object.fromEntries(Object.entries(window.HOLDOR_STARS.STARS_SHOP).map(([k, v]) => [k, { stars: v.stars, gems: v.gems || 0, gold: v.gold || 0, books: v.books || {}, once: !!v.once, title: v.title, desc: v.desc }])) },
       // spot checks the SQL test compares against
       win: [[1, 1, 1], [1, 3, 1], [7, 2, 0], [34, 3, 1], [50, 1, 0]].map(([id, st, first]) => [id, st, first, ECON.win({ id }, st, !!first)]),
       hold: [[0, 0], [7, 85], [20, 333], [26, 5045]].map(([w, k]) => [w, k, ECON.hold(w, k)]),
