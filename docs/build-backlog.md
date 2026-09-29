@@ -360,6 +360,13 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - Eight buildings, each opens a screen the game already has: Keep (tower and spell cards), Barracks (Train), Market (Shop), Treasury (calendar and quests, opens at 2 cleared stages), Forge (3), Tavern (5), Library (8), Council hall (Events, 10). A locked building shows how many stages are still missing; the count is the seat's real cleared stages.
 - No upgrades or timers yet: they need the server (account levels, v1.0.65) first. No backend change.
 - Test: `tests/t_city64.js` (real taps: locks by cleared stages, the house's city name, locked building only says so, Barracks and Tavern open their screens, back).
+
+### v1.0.65 — account levels to 60, milestone gifts, invitations (backend v13 + v14) (2026-09-30)
+- **Levels (v13):** `xp_level` goes to 60 (same XP formula); the app's `accLevel` too. Milestone gifts at levels 10, 20 … 60 (econ_config `milestones`: dragonglass, gold, books, gear; 60 gives two ★5 Epic+ items). `milestone_state` / `milestone_claim` check the level from the seat's own XP and pay once per seat (ledger reason `milestone`). The Daily screen has a ⭐ Levels tab that shows exactly what the server sends.
+- **Invitations (v14):** `players.ref_code` (8 chars, unique), table `referrals`, `ref_join` (a new player, once, not himself), `ref_state`, `ref_claim`. Both sides get a gift when the invited player has cleared 5 campaign stages (econ_config `referral`: inviter 60 dragonglass + a Rare book, up to 20 friends; friend 100 dragonglass + 2000 gold). No percentage of purchases. The owner view `v_referrals`. The app reads `start_param` (`r_<code>`) after login and joins once per device; the Daily screen has a 👥 Invite tab (link, send, copy, progress of each friend, claim).
+- **Not in this version:** HOLDOR Coin and Tasks (Telegram group check by the bot, X, YouTube) — they need MR B's group username and links.
+- **Tests:** `backend/test/v13_test.py`, `v14_test.py`, and `daily_test.py` (Levels and Invite tabs with real taps).
+- **Rollout:** v13 and v14 go into Supabase with the next release, after v12.
 ### v1.0.61 — login calendar and quests (backend v10) (2026-09-29)
 The retention loop. Every reward is paid by the server and progress is counted from the server's own records, so nothing here can be forged.
 - **Login calendar (30 days):**
