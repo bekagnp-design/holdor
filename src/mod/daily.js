@@ -26,7 +26,7 @@ const QUESTS={
   {id:'m_new10',m:'new_stages',n:10,t:'Hold 10 new stages',r:{gold:5000,books:{'b:e':1},gear:{n:1,min_r:2,min_tier:2}}},
   {id:'m_hold25',m:'hold_waves',n:25,t:'Reach wave 25 in the Hold',r:{gems:60}}],
 };
-const DAILY={st:null,ms:null,at:0,tab:'cal',shown:false,seat:-1,busy:false};
+const DAILY={st:null,ms:null,fr:null,at:0,tab:'cal',shown:false,seat:-1,busy:false};
 function dailyOn(){return !!(ecoOn()&&ACC&&ACC.tut);}
 function rewardChips(r,sm){if(!r)return '';const c=[];
   if(r.gems)c.push(`<span class="rch">${GEM_SVG}${r.gems}</span>`);
@@ -63,6 +63,20 @@ async function dailyClaimMs(lvl){if(DAILY.busy||!ecoOn())return;DAILY.busy=true;
   try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('milestone_claim',{seat,lvl},10000);ecoApply(x.state);return x;});
     DAILY.ms=r.milestones;DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);dailyClaimModal(r,'⭐ Level '+lvl+' — yours');}
   catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await msLoad();ecoModal('⭐ Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily('levels')}]);}}
+const REF_BOT='https://t.me/HoldorTDBot/play?startapp=r_';
+function refLink(code){return REF_BOT+code;}
+function refShare(link){const u='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent('Hold the Door with me!');try{if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank');}catch(e){}}
+function refCopy(link){try{navigator.clipboard.writeText(link).then(()=>ecoToast('Link copied'),()=>ecoToast(link));}catch(e){ecoToast(link);}}
+function frLoad(){if(!ecoOn())return Promise.resolve(null);const seat=seatNo();
+  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('ref_state',{seat},9000);if(seat===seatNo()){DAILY.fr=r;DAILY.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
+async function dailyClaimFr(other){if(DAILY.busy||!ecoOn())return;DAILY.busy=true;ecoWait(true);
+  try{const seat=seatNo(),args=other==null?{seat}:{seat,other},r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('ref_claim',args,10000);ecoApply(x.state);return x;});
+    DAILY.fr=r.friends;DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);dailyClaimModal(r,'👥 A friend’s gift');}
+  catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await frLoad();ecoModal('👥 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily('friends')}]);}}
+/* a new player who opened the game from an invite link joins his friend (once per device; the server checks he is really new) */
+function refJoinFromStart(){try{const sp=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.start_param;if(!sp||!/^r_[0-9a-f]{8}$/i.test(sp)||!CLOUD.token)return;
+  const k='holdor_refjoin';if(localStorage.getItem(k)===sp)return;localStorage.setItem(k,sp);
+  sbRpc('ref_join',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).then(r=>{if(r&&r.by)ecoToast('👥 You joined '+r.by+'’s house of friends — clear 5 stages for a gift');}).catch(()=>{});}catch(e){}}
 /* the popup when the castle opens and today's reward waits (once a session; never over a tutorial or a tour) */
 function dailyPopupCheck(){
   if(DAILY.shown||!dailyOn()||G.state==='play'||(G.tut)||(typeof COACH!=='undefined'&&COACH.on)||CLOUD.screen!=='hub:battle')return;
@@ -75,11 +89,22 @@ function dailyPopupCheck(){
 function fmtLeft(s){const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return d?d+'d '+h+'h':h?h+'h '+m+'m':m+'m';}
 function showDaily(tab){
   DAILY.tab=tab||DAILY.tab||'cal';
-  const tabs=[['cal','📅 Calendar'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['levels','⭐ Levels']];
+  const tabs=[['cal','📅 Calendar'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['levels','⭐ Levels'],['friends','👥 Invite']];
   const head=`<div class="topbar"><h1>📜 Daily &amp; quests<small>Rewards are paid by the server. Progress counts only battles it has seen.</small></h1><button class="back" id="bBack">✖</button></div>
    <div class="subtabs">${tabs.map(([k,n])=>`<button class="${k===DAILY.tab?'on':''}" data-t="${k}">${n}</button>`).join('')}</div>`;
   const draw=body=>{show(head+body);CLOUD.screen='daily:'+DAILY.tab;$('#bBack').addEventListener('click',()=>showHub('battle'));card.querySelectorAll('.subtabs button').forEach(b=>b.addEventListener('click',()=>showDaily(b.dataset.t)));};
   if(!dailyOn()){draw(`<p class="m">${ecoOn()?'Finish the tutorial battle first.':'The calendar and the quests are paid by the server — they need a seat signed in through Telegram.'}</p>`);return;}
+  if(DAILY.tab==='friends'){const f=DAILY.fr&&DAILY.seat===seatNo()?DAILY.fr:null;
+    if(!f){draw('<p class="m">⏳ asking the server…</p>');frLoad().then(()=>{if(CLOUD.screen==='daily:friends')showDaily('friends');});return;}
+    const link=refLink(f.code),pc=(x)=>Math.round(100*x.stages/f.need);
+    const row=(x,mine)=>`<div class="qrow ${x.claimed?'done':''} ${x.done&&!x.claimed?'ready':''}"><div class="qt"><b>${esc(x.name)}${mine?' <small>invited you</small>':''}</b><span class="qbar"><i style="width:${pc(x)}%"></i><em>${x.stages} / ${f.need} stages</em></span><span class="qrw">${rewardChips(mine?f.invitee_gift:f.inviter_gift,1)}</span></div>
+      <button data-f="${mine?'me':x.who}" ${x.done&&!x.claimed?'':'disabled'}>${x.claimed?'✔':x.done?'Claim':'…'}</button></div>`;
+    draw(`<p class="m">Invite a friend: when they clear <b>${f.need} stages</b>, you both get a gift. Up to ${f.cap} friends. ${f.paid?`Rewarded so far: <b>${f.paid}</b>.`:''}</p>
+      <div class="reflink"><code>${esc(link)}</code></div>
+      <div class="pvrow"><button class="btn" id="bRefShare">📨 Send to a friend</button><button class="btn sec" id="bRefCopy">Copy link</button></div>
+      <div class="qlist">${f.mine?row(f.mine,true):''}${f.invited.map(x=>row(x,false)).join('')||(f.mine?'':'<p class="m">Nobody has joined yet.</p>')}</div>`);
+    $('#bRefShare').addEventListener('click',()=>refShare(link));$('#bRefCopy').addEventListener('click',()=>refCopy(link));
+    card.querySelectorAll('.qrow button[data-f]').forEach(b=>b.addEventListener('click',()=>dailyClaimFr(b.dataset.f==='me'?null:+b.dataset.f)));return;}
   if(DAILY.tab==='levels'){const m=DAILY.ms&&DAILY.seat===seatNo()?DAILY.ms:null;
     if(!m){draw('<p class="m">⏳ asking the server…</p>');msLoad().then(()=>{if(CLOUD.screen==='daily:levels')showDaily('levels');});return;}
     const nxt=m.items.find(i=>!i.claimed&&!i.ready);
