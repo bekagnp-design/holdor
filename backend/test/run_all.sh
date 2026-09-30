@@ -13,8 +13,8 @@ do $$ declare f record; begin
   loop execute 'drop function ' || f.sig || ' cascade'; end loop; end $$;
 SQL
 sed 's/PASTE_BOT_TOKEN_HERE/123456789:TESTTOKENabcDEFghiJKLmnoPQRstuVWXyz/' "$B/holdor_supabase.sql" | load holdor_supabase.sql
-for f in holdor_fix1.sql holdor_v2.sql holdor_stats.sql test/prod_like.sql holdor_v3.sql holdor_v4.sql holdor_v5.sql holdor_econ_data.sql holdor_v6.sql holdor_v7.sql holdor_v8.sql holdor_v9.sql holdor_v10.sql holdor_v11.sql holdor_v12.sql holdor_v13.sql holdor_v14.sql holdor_v15.sql holdor_v16.sql holdor_v17.sql holdor_v18.sql; do load "$f" < "$B/$f"; done
-echo "loaded: v1 → fix1 → v2 → stats → prod_like → v3 → v4 → v5 → econ data → v6 → v7 → v8 → v9 → v10 → v11 → v12 → v13 → v14 → v15 → v16 → v17 → v18"
+for f in holdor_fix1.sql holdor_v2.sql holdor_stats.sql test/prod_like.sql holdor_v3.sql holdor_v4.sql holdor_v5.sql holdor_econ_data.sql holdor_v6.sql holdor_v7.sql holdor_v8.sql holdor_v9.sql holdor_v10.sql holdor_v11.sql holdor_v12.sql holdor_v13.sql holdor_v14.sql holdor_v15.sql holdor_v16.sql holdor_v17.sql holdor_v18.sql holdor_v19.sql; do load "$f" < "$B/$f"; done
+echo "loaded: v1 → fix1 → v2 → stats → prod_like → v3 → v4 → v5 → econ data → v6 → v7 → v8 → v9 → v10 → v11 → v12 → v13 → v14 → v15 → v16 → v17 → v18 → v19"
 pkill -f "backend/test/fakerest.py" 2>/dev/null; pkill -f "backend/test/edge_shim.mjs" 2>/dev/null; sleep 1
 python3 "$T/fakerest.py" >/dev/null 2>&1 &
 node "$T/edge_shim.mjs" >/dev/null 2>&1 &
