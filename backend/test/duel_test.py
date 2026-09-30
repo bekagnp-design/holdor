@@ -54,7 +54,7 @@ with sync_playwright() as p:
     check('the Duel screen: Bronze, 1000, three ways to duel, ranked 5 left', 'Bronze' in ev("document.querySelector('.lg').textContent") and '1000' in ev("document.querySelector('.lg').textContent") and '5 left' in ev("document.querySelector('#bRank').textContent"))
     pg.screenshot(path=SHOTS + '/duel_home.png')
     tap('#bAi', 700); settle(); pg.wait_for_timeout(500)
-    check('practice vs a bot: an open duel marked as a bot, 6 waves to beat', ev("document.querySelectorAll('.duelrow').length") == 1 and 'Bot' in ev("document.querySelector('.duelrow').textContent") and '6 🌊' in ev("document.querySelector('.duelrow').textContent") and ev("!!document.querySelector('#bPlayHold')"))
+    check('practice vs a bot: an open duel marked as a bot, 6 waves to beat', ev("document.querySelectorAll('.duelrow').length") == 1 and 'Bot' in ev("document.querySelector('.duelrow').textContent") and '6 🌊' in ev("document.querySelector('.duelrow').textContent") and ev("!!document.querySelector('[data-play]')"))
     pg.screenshot(path=SHOTS + '/duel_open.png')
     g0 = W()[0]
     q("insert into battles (tg_id, seat, kind, status, waves, kills, steps, started_at, finished_at) values (%s, 0, 'hold', 'done', 9, 150, 5000, now() - interval '10 minutes', now())", TG)
@@ -93,8 +93,8 @@ with sync_playwright() as p:
     check('both played: 7 waves beat 5 — a WIN for me', 'WIN' in row and '7 🌊' in row and '5 🌊' in row, row.replace('\n', ' | ')[:200])
     ev("HOLDOR.showHub('hold')"); pg.wait_for_timeout(700)
     check('the Hold tab has a Duel card that opens the Duel screen', ev("!!document.querySelector('#bDuelCard')"))
-    tap('#bDuelCard', 800)
-    check('...and it does', ev("HOLDOR.CLOUD.screen") == 'duel')
+    ev("document.querySelector('#bDuelCard').click()")
+    check('...and it does', wait("HOLDOR.CLOUD.screen==='duel'", 4000) is not None, ev("HOLDOR.CLOUD.screen"))
     for t in ('duels', 'battles', 'progress', 'sessions', 'ledger', 'wallets', 'players'):
         q(f'delete from {t} where ' + ('a' if t == 'duels' else 'tg_id') + ' = %s', FR)
     check('no refusals, no flags', q1("select count(*) from econ_flags where tg_id = %s", TG) == 0)

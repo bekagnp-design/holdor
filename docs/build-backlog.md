@@ -407,6 +407,12 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **Not built:** timed construction (a build finishing after hours), as in Hamster Kombat — everything is instant; only gold and account level gate it.
 - **Tests:** `backend/test/v18_test.py` (36 checks: costs, paybacks, level gates, collecting, the 3-hour pile, the Boom share, the schedule), `earn_test.py` (real taps: the tab bar, the badge and popup, the schedule, build, collect), `daily_test.py` (invitations in Earn).
 - **Rollout:** v18 goes into Supabase with the next release, after v17.
+
+### v1.0.75 — playing a friend by link (backend v19) (2026-09-30)
+- MR B could not play his friend. The server showed why: the friend had joined his friend duel, but neither had played a Hold run since (a duel compares Hold runs finished after it opened) and the app did not say so; the friend's invitation was refused because he already had an account (gifts are for new players), silently; and "Ranked" with nobody to match opened a new bot duel on every tap (10 in two minutes).
+- **Server (v19, applied to production at once — it works with the live app):** the ranked fallback reuses the open practice duel; the duplicates were closed.
+- **App:** a `startapp=d_<code>` link joins the duel as soon as the seat is on the server and opens the Duel screen by itself; each duel row says what each side still has to do (▶ play a Hold run / ✔ your run counts, not played yet / ✔ has played) and has a **▶ Play my Hold run** button that starts the run (the same checks as the Hold button); a plain explanation of how a duel is decided; a refused invitation says the friend already plays and points at the duel; a Duel card at the top of the Hold tab (Events is no tab since v1.0.74); "Ranked" says when it had to fall back to the bot.
+- **Tests:** `v15_test` (three ranked taps with nobody to match = one duel), `duel_test` (a friend's link: joins, opens, the per-side status, the Play button starts a Hold battle on the server, the result, the Hold-tab card). `t_gear63`'s thorns check depended on the day's map; it now spawns the enemy at the gate.
 ### v1.0.61 — login calendar and quests (backend v10) (2026-09-29)
 The retention loop. Every reward is paid by the server and progress is counted from the server's own records, so nothing here can be forged.
 - **Login calendar (30 days):**

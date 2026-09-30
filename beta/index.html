@@ -6449,7 +6449,7 @@ function hubHoldBind(){
   const tick=()=>{if(CLOUD.screen!=='hub:hold')return;const t=fmtT(msToMidnightUTC());const h=$('#cdH');if(!h)return;h.textContent=t.h;$('#cdM').textContent=t.m;$('#cdS').textContent=t.s;setTimeout(tick,1000);};tick();
   if(sbReady()&&lbStale())fetchLeaderboard(true).then(r=>{if(r&&CLOUD.screen==='hub:hold')showHub('hold');});
   const go=()=>{if(!onlineOpen()||ACC.online.attempts<=0)return;startGame({mode:'online'});};
-  $('#bHold').addEventListener('click',()=>{if(!ACC.holdTut){holdTutorial(go);}else go();});
+  $('#bHold').addEventListener('click',()=>{if(!ACC.holdTut){holdTutorial(go);}else go();});const bdc=$('#bDuelCard');if(bdc)bdc.addEventListener('click',()=>{SFX.play('tap',60);showDuel();});
   const ba=$('#bBuyAtt');if(ba)ba.addEventListener('click',()=>{if(ecoBuyAtt())showHub('hold');});
   $('#bHoldHelp').addEventListener('click',()=>holdTutorial(()=>showHub('hold')));
   if(onlineOpen()&&!ACC.holdTut&&!ACC.holdIntro){ACC.holdIntro=1;persist();holdTutorial(()=>showHub('hold'));}
