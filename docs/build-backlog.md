@@ -413,6 +413,11 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **Server (v19, applied to production at once — it works with the live app):** the ranked fallback reuses the open practice duel; the duplicates were closed.
 - **App:** a `startapp=d_<code>` link joins the duel as soon as the seat is on the server and opens the Duel screen by itself; each duel row says what each side still has to do (▶ play a Hold run / ✔ your run counts, not played yet / ✔ has played) and has a **▶ Play my Hold run** button that starts the run (the same checks as the Hold button); a plain explanation of how a duel is decided; a refused invitation says the friend already plays and points at the duel; a Duel card at the top of the Hold tab (Events is no tab since v1.0.74); "Ranked" says when it had to fall back to the bot.
 - **Tests:** `v15_test` (three ranked taps with nobody to match = one duel), `duel_test` (a friend's link: joins, opens, the per-side status, the Play button starts a Hold battle on the server, the result, the Hold-tab card). `t_gear63`'s thorns check depended on the day's map; it now spawns the enemy at the gate.
+### v1.0.79 — drawn icons (2026-10-03)
+- Emoji look different on every phone and cheap next to the art. `mod/icons.js`: ten drawn icons in the bottom bar's style (flat colour, dark outline, one highlight): city, tavern, forge, daily, season, gift, door, quests, social, friends; `icon(k, px)`.
+- Used by the five quick buttons, today's gift slot, the Hold pill, the Tasks tabs and the share / friend task rows.
+- **Tests:** `tests/t_icons79.js` (core).
+
 ### v1.0.78 — the home screen rebuilt, in three looks (2026-10-03)
 - MR B: the home screen was "banal"; it must make the player want to stay; offer three variants. The research models: Clash Royale (chest slots with timers), Brawl Stars / Arknights (the hero in the middle), Kingdom Rush (the map is the menu), Galaxy Defense (a living fortress + motion).
 - **One structure for all looks** (`mod/skins.js`), built so something is always ready or on its way:
