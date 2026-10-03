@@ -1226,6 +1226,8 @@ button,.btn,.hbtn,.ebld,.cday{transition:scale .22s cubic-bezier(.3,1.7,.5,1),fi
 .rconf{position:fixed;top:-12px;z-index:150;width:8px;height:12px;border-radius:2px;pointer-events:none;animation:rFall 2s cubic-bezier(.3,.6,.5,1) both}
 @keyframes rFall{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(var(--rx),105vh) rotate(var(--rr));opacity:.9}}
 @media (prefers-reduced-motion: reduce){.card.res .rs{opacity:1;scale:1;rotate:0deg}.rconf{display:none}}
+/* v1.0.83: the currencies */
+.cic{display:inline-block;width:1.05em;height:1.05em;vertical-align:-.18em;margin:0 .05em}.cic svg{width:100%;height:100%;display:block;filter:drop-shadow(0 1px 0 rgba(0,0,0,.45))}
 </style>
 </head>
 <body>
@@ -2129,7 +2131,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.82';
+const VERSION='1.0.83';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -5785,7 +5787,7 @@ function feelKill(e,q){if(!(e.boss||e.lord||e.giant||e.mini||e.king))return;
    A win should feel like one. On top of the old result card (its text, buttons and ids stay): a ribbon, turning rays, three big stars
    that land one after another with a sound and a buzz, the gold counting up, and confetti for three stars. A loss: a red ribbon and one
    shake. Display only; prefers-reduced-motion shows the final state at once. */
-function resultFx(win,stars){try{if(!card)return;card.classList.add('res',win?'win':'lose');
+function resultFx(win,stars){try{if(!card)return;if(typeof curSwap==='function')curSwap(card);card.classList.add('res',win?'win':'lose');
   const calm=typeof JUICE!=='undefined'&&JUICE.calm;
   const h1=card.querySelector('h1');if(h1&&!h1.querySelector('.rbn'))h1.insertAdjacentHTML('afterbegin',`<span class="rbn">${win?'VICTORY':'DEFEAT'}</span>`);
   if(!win){if(!calm){card.classList.add('rshake');setTimeout(()=>card.classList.remove('rshake'),600);}return;}
@@ -5802,6 +5804,31 @@ function resultConfetti(){const box=document.getElementById('app')||document.bod
     c.style.animationDuration=(1.6+Math.random()*1.4)+'s';c.style.animationDelay=(Math.random()*0.35)+'s';c.style.setProperty('--rx',((Math.random()-0.5)*160)+'px');c.style.setProperty('--rr',(Math.random()*900-450)+'deg');
     box.appendChild(c);setTimeout(()=>c.remove(),3400);}}
 {const scr0=showCampaignResult;showCampaignResult=function(win,stars,newUnlocks,gained){scr0(win,stars,newUnlocks,gained);resultFx(win,stars);};}
+/* =========================== THE CURRENCIES, REDRAWN (v1.0.83) ===========================
+   Gold is a "gold dragon" coin: a thick rim, a dragon's head struck in relief, a shine. Dragonglass is what the name says — a black
+   obsidian shard with a cold violet-teal glint — instead of a blue diamond that belonged to no world. The emoji 💎 and 🪙 in the
+   game's texts become the same two drawings as they appear on screen (a MutationObserver; text inputs and the battle canvas are left alone). */
+const CUR_GOLD='<svg viewBox="0 0 24 24"><defs><radialGradient id="hgC" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#fff2a8"/><stop offset=".45" stop-color="#f4c242"/><stop offset="1" stop-color="#b8741a"/></radialGradient><linearGradient id="hgR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#8a4f0e"/></linearGradient></defs>'+
+ '<circle cx="12" cy="12" r="10.6" fill="url(#hgR)" stroke="#5a3006" stroke-width="1"/><circle cx="12" cy="12" r="8.3" fill="url(#hgC)" stroke="#9a5e14" stroke-width=".8"/>'+
+ '<path d="M7.4 17.4 7.9 10.6 6.5 6.6l3 2.2 2.5-.9 1-2.9.9 3.1 1.9 1 2.9 1.4 .4 1.3-2.8.6 2.3 1.9-.5.4-3.3-.9-1.6 1.6-.4 2.3z" fill="#9a5a0c" stroke="#5a3006" stroke-width=".55" stroke-linejoin="round"/>'+
+ '<path d="M9.4 12.4c1-.5 2-.5 2.9.2M9.2 14.6c1-.4 1.9-.3 2.6.3" fill="none" stroke="#6a3a06" stroke-width=".5" stroke-linecap="round"/>'+
+ '<circle cx="14.5" cy="10.3" r=".6" fill="#fff2a8"/><path d="M6.2 9.2a6.6 6.6 0 0 1 3.4-3.1" fill="none" stroke="#fffbe0" stroke-width="1.3" stroke-linecap="round" opacity=".9"/></svg>';
+const CUR_GEM='<svg viewBox="0 0 24 24"><defs><linearGradient id="hdA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a2f5a"/><stop offset=".55" stop-color="#14101f"/><stop offset="1" stop-color="#05040a"/></linearGradient><linearGradient id="hdB" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7ff0ff"/><stop offset="1" stop-color="#b47cff"/></linearGradient></defs>'+
+ '<path d="M12.6 1.6 18.4 8l-1.9 12.2-5.2 2.4-4.7-4.6L5.2 7.8z" fill="url(#hdA)" stroke="#0b0812" stroke-width="1.1" stroke-linejoin="round"/>'+
+ '<path d="M12.6 1.6 11.3 9.4l5.2 10.8M11.3 9.4 5.2 7.8M11.3 9.4 6.6 18" fill="none" stroke="#5a4a8a" stroke-width=".7"/>'+
+ '<path d="M12.6 1.6 18.4 8M18.4 8l-1.9 12.2" fill="none" stroke="url(#hdB)" stroke-width="1.2" stroke-linecap="round"/>'+
+ '<path d="M8.3 6.4 11.3 9.4" stroke="#c9b8ff" stroke-width=".9" stroke-linecap="round" opacity=".85"/><circle cx="13.2" cy="4.4" r=".9" fill="#e6fbff"/></svg>';
+/* the two emoji in text become the drawings */
+const CUR_RE=/(💎|🪙)/u;
+function curSwap(root){if(!root)return;const walk=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentNode;if(!p||p.closest&&p.closest('textarea,input,script,style,.cic,svg'))return NodeFilter.FILTER_REJECT;return CUR_RE.test(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_SKIP;}});
+  const list=[];while(walk.nextNode())list.push(walk.currentNode);
+  for(const n of list){const parts=n.nodeValue.split(/(💎|🪙)/u);if(parts.length<2)continue;const f=document.createDocumentFragment();
+    for(const p of parts){if(p==='💎'||p==='🪙'){const s=document.createElement('span');s.className='cic';s.innerHTML=p==='💎'?CUR_GEM:CUR_GOLD;f.appendChild(s);}else if(p)f.appendChild(document.createTextNode(p));}
+    n.parentNode.replaceChild(f,n);}}
+function curWatch(){if(curWatch.on||typeof MutationObserver==='undefined')return;curWatch.on=true;curSwap(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData'){if(CUR_RE.test(m.target.nodeValue||''))curSwap(m.target.parentNode);continue;}
+    for(const a of m.addedNodes){if(a.nodeType===1)curSwap(a);else if(a.nodeType===3&&CUR_RE.test(a.nodeValue)&&a.parentNode)curSwap(a.parentNode);}}}).observe(document.body,{childList:true,subtree:true,characterData:true});}
+setTimeout(curWatch,0);   /* after the whole script has run */
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -6568,8 +6595,8 @@ const HUB_ICON={
  events:'<svg viewBox="0 0 24 24"><path d="M5 2.5h14v12l-7 5-7-5z" fill="#b33fb0" stroke="#3a1146" stroke-width="1.5" stroke-linejoin="round"/><path d="M7 2.5v10.6l5 3.6 5-3.6V2.5" fill="none" stroke="#e08ae0" stroke-width="1.2"/><path d="M12 5.2l1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5z" fill="#ffd54a" stroke="#7a4a10" stroke-width=".9"/><path d="M9 21.5h6" stroke="#3a1146" stroke-width="2" stroke-linecap="round"/></svg>',
  hold:'<svg viewBox="0 0 24 24"><path d="M12 2.5l8 3v6c0 5.2-3.4 8.4-8 10.5-4.6-2.1-8-5.3-8-10.5v-6z" fill="#4fc0ff" stroke="#0b3a5a" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 4.6l6 2.2v4.7c0 4-2.5 6.6-6 8.3-3.5-1.7-6-4.3-6-8.3V6.8z" fill="#2b8fd6" stroke="none"/><path d="M8.5 17V11a3.5 3.5 0 0 1 7 0v6z" fill="#8a5a2b" stroke="#3a2010" stroke-width="1.2"/><path d="M12 17v-6" stroke="#3a2010" stroke-width="1"/><circle cx="10.8" cy="13.5" r=".7" fill="#ffd54a"/><circle cx="13.2" cy="13.5" r=".7" fill="#ffd54a"/></svg>'
 };
-const GEM_SVG='<svg viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z" fill="#8fd3ff" stroke="#dff3ff" stroke-width="1.2"/><path d="M2 9h20M9 3l3 6 3-6M12 9v12" stroke="#2b6b9a" stroke-width="1" fill="none"/></svg>';
-const GOLD_SVG='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="#f2a62c" stroke="#7a4a10" stroke-width="1.4"/><circle cx="12" cy="12" r="6.8" fill="none" stroke="#ffe36e" stroke-width="1.3"/><path d="M12 7.2v9.6M9.4 9.3h4.1a1.9 1.9 0 0 1 0 3.8H9.9a1.9 1.9 0 0 0 0 3.8h4.6" fill="none" stroke="#7a4a10" stroke-width="1.7" stroke-linecap="round"/><path d="M6 8.5a7 7 0 0 1 4-3.6" fill="none" stroke="#fff3b0" stroke-width="1.4" stroke-linecap="round"/></svg>';
+const GEM_SVG=CUR_GEM;
+const GOLD_SVG=CUR_GOLD;
 const STAR_SVG='<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.4 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z" fill="#e3b661" stroke="#fff0c2" stroke-width="1"/></svg>';
 const TROPHY_SVG='<svg viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0z" fill="#e3b661" stroke="#fff0c2"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3" fill="none" stroke="#e3b661" stroke-width="1.6"/><path d="M10 14h4v3h-4zM8 17h8v3H8z" fill="#c99b3f"/></svg>';
 const CHEST_TIERS={
@@ -6988,6 +7015,7 @@ window.HOLDOR_ICONS=ICONS;
 window.HOLDOR_BOONS={BOONS,BOON_KEYS,boonOffer,boonMul,boonPick,boonCheck};
 window.HOLDOR_FEEL={FEEL,FEEL_SFX,hapt,feelKill};
 window.HOLDOR_RESULT={resultFx,resultConfetti};
+window.HOLDOR_CUR={CUR_GOLD,CUR_GEM,curSwap};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();

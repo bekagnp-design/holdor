@@ -2,7 +2,7 @@
    A win should feel like one. On top of the old result card (its text, buttons and ids stay): a ribbon, turning rays, three big stars
    that land one after another with a sound and a buzz, the gold counting up, and confetti for three stars. A loss: a red ribbon and one
    shake. Display only; prefers-reduced-motion shows the final state at once. */
-function resultFx(win,stars){try{if(!card)return;card.classList.add('res',win?'win':'lose');
+function resultFx(win,stars){try{if(!card)return;if(typeof curSwap==='function')curSwap(card);card.classList.add('res',win?'win':'lose');
   const calm=typeof JUICE!=='undefined'&&JUICE.calm;
   const h1=card.querySelector('h1');if(h1&&!h1.querySelector('.rbn'))h1.insertAdjacentHTML('afterbegin',`<span class="rbn">${win?'VICTORY':'DEFEAT'}</span>`);
   if(!win){if(!calm){card.classList.add('rshake');setTimeout(()=>card.classList.remove('rshake'),600);}return;}

@@ -10,7 +10,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_TAVERN, { timeout: 20000 }); await page.waitForTimeout(300);
   const R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
   const tap = async (sel) => { await page.locator(sel).first().tap({ force: true }); await page.waitForTimeout(250); };
-  await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1 }; a.learn = { chest: 1 };
+  await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1 }; a.learn = { chest: 1, hold: 1, champ: 1, glass: 1, keep: 1, tier2: 1, fire: 1 };
     for (let i = 1; i <= 30; i++) a.campaign[i] = 3; a.gold = 60000; a.gems = 1000; a.sel = 'robb'; a.champs.robb = { lvl: 9, sk: [1, 1, 1], tal: 0 };
     a.cards = { 'c:robb': 200, 'c:brienne': 15, 'c:sansa': 30, 'b:c': 2 }; H.setAcc(a); H.persist(); });
   const T = await page.evaluate(() => { const T = window.HOLDOR_TAVERN, C = window.HOLDOR_CH52.CBY; return { rar: ['brienne', 'robb', 'bran', 'sansa', 'ned', 'arya', 'jon'].map(id => T.champRar(C[id])), stat: T.RAR_STAT }; });
