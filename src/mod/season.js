@@ -8,8 +8,8 @@ function seasonLoad(force){if(!ecoOn())return Promise.resolve(null);
   if(!force&&SEASON.st&&SEASON.seat===seatNo()&&Date.now()-SEASON.at<8000)return Promise.resolve(SEASON.st);
   const seat=seatNo();
   return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('season_state',{seat},9000);if(seat===seatNo()){SEASON.st=r;SEASON.at=Date.now();SEASON.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
-function seasonBtnHTML(){const s=seasonOn()&&SEASON.st&&SEASON.seat===seatNo()?SEASON.st:null;
-  return `<button class="cbld" id="bSeason"><span class="ic">🏆</span><span class="tx"><b>Season</b><small>${seasonOn()?(s?`tier ${s.tier}/${s.tiers}${s.pass?' · Pass':''}${s.vip.active?' · VIP':''}`:'pass · VIP · rewards'):'a Telegram seat'}</small></span></button>`;}
+function seasonBtnHTML(){
+  return `<button class="hbtn" id="bSeason"><span class="ic">🏆</span><b>Season</b></button>`;}
 function seasonBtnBind2(){const b=document.getElementById('bSeason');if(b)b.addEventListener('click',()=>{SFX.play('tap',60);showSeason();});}
 async function seasonClaim(t,track){if(SEASON.busy||!ecoOn())return;SEASON.busy=true;ecoWait(true);
   try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('season_claim',{seat,tier:t,track},10000);ecoApply(x.state);return x;});

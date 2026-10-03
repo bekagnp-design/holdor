@@ -21,6 +21,8 @@ def anon_err(fn, **kw):
     try: return 'no error: ' + json.dumps(anon(fn, **kw))[:120]
     except Exception as e: db.rollback() if not db.autocommit else None; return str(e).split('\n')[0]
 fails = []
+# v21 lucky chests climb at random; these checks are about one tier, so the taps are off while they run
+q("update econ_config set v = jsonb_set(v, '{taps}', '0') where k = 'lucky'")
 def check(name, cond, info=''):
     print(('OK  ' if cond else 'FAIL'), name, '' if cond and not os.environ.get('V') else info)
     if not cond: fails.append(name)
@@ -244,5 +246,6 @@ for sql in ["select * from wallets", "select * from ledger", "select * from batt
             "select * from v_econ_flags", "select ec_wallet(910000001, 0)", "select ec_state(w) from wallets w", "select xp_level(1)", "select sync_seats(910000001)"]:
     e = anon_sql(sql)
     check('anon denied: ' + sql, 'permission denied' in e, e)
+q("update econ_config set v = jsonb_set(v, '{taps}', '3') where k = 'lucky'")
 print('FAILS:', len(fails), fails if fails else '')
 raise SystemExit(1 if fails else 0)

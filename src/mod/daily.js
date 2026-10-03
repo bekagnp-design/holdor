@@ -43,7 +43,7 @@ function dailyLoad(force){if(!ecoOn())return Promise.resolve(null);
 function dailyReady(){const s=DAILY.st;if(!s||DAILY.seat!==seatNo())return 0;let n=s.login&&s.login.can?1:0;
   for(const k in (s.periods||{}))for(const q of s.periods[k].q)if(q.cur>=q.need&&!q.claimed)n++;return n;}
 function dailyBtnHTML(){const n=dailyOn()?dailyReady():0;
-  return `<button class="cbld" id="bDaily"><span class="ic">📜</span><span class="tx"><b>Daily &amp; quests</b><small>${dailyOn()?(n?`<em class="dn">${n} ready</em>`:'calendar · quests'):'a Telegram seat'}</small></span></button>`;}
+  return `<button class="hbtn" id="bDaily"><span class="ic">📜</span><b>Daily</b>${n?`<i class="dot">${n}</i>`:''}</button>`;}
 function dailyBtnRefresh(){if(!dailyOn())return;dailyLoad().then(()=>{const b=document.getElementById('bDaily');if(b)b.outerHTML=dailyBtnHTML(),dailyBtnBind();});}
 function dailyBtnBind(){const b=document.getElementById('bDaily');if(b)b.addEventListener('click',()=>{SFX.play('tap',60);showDaily();});}
 /* what a claim did */
@@ -67,8 +67,9 @@ const REF_BOT='https://t.me/HoldorTDBot/play?startapp=r_';
 function refLink(code){return REF_BOT+code;}
 function refShare(link){const u='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent('Hold the Door with me!');try{if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank');}catch(e){}}
 function refCopy(link){try{navigator.clipboard.writeText(link).then(()=>ecoToast('Link copied'),()=>ecoToast(link));}catch(e){ecoToast(link);}}
-function frLoad(){if(!ecoOn())return Promise.resolve(null);const seat=seatNo();
-  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('ref_state',{seat},9000);if(seat===seatNo()){DAILY.fr=r;DAILY.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
+function frLoad(force){if(!ecoOn())return Promise.resolve(null);const seat=seatNo();
+  if(!force&&DAILY.fr&&DAILY.seat===seat&&Date.now()-(DAILY.frAt||0)<8000)return Promise.resolve(DAILY.fr);
+  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('ref_state',{seat},9000);if(seat===seatNo()){DAILY.fr=r;DAILY.frAt=Date.now();DAILY.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
 async function dailyClaimFr(other){if(DAILY.busy||!ecoOn())return;DAILY.busy=true;ecoWait(true);
   try{const seat=seatNo(),args=other==null?{seat}:{seat,other},r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('ref_claim',args,10000);ecoApply(x.state);return x;});
     DAILY.fr=r.friends;DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);dailyClaimModal(r,'👥 A friend’s gift');}
@@ -89,7 +90,7 @@ function dailyPopupCheck(){
 function fmtLeft(s){const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return d?d+'d '+h+'h':h?h+'h '+m+'m':m+'m';}
 function showDaily(tab){
   DAILY.tab=tab||DAILY.tab||'cal';
-  const tabs=[['cal','📅 Calendar'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['levels','⭐ Levels'],['friends','👥 Invite']];
+  const tabs=[['cal','📅 Calendar'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['levels','⭐ Levels']];
   const head=`<div class="topbar"><h1>📜 Daily &amp; quests<small>Rewards are paid by the server. Progress counts only battles it has seen.</small></h1><button class="back" id="bBack">✖</button></div>
    <div class="subtabs">${tabs.map(([k,n])=>`<button class="${k===DAILY.tab?'on':''}" data-t="${k}">${n}</button>`).join('')}</div>`;
   const draw=body=>{show(head+body);CLOUD.screen='daily:'+DAILY.tab;$('#bBack').addEventListener('click',()=>showHub('battle'));card.querySelectorAll('.subtabs button').forEach(b=>b.addEventListener('click',()=>showDaily(b.dataset.t)));};

@@ -1,0 +1,30 @@
+/* v1.0.77: juice */
+button,.btn,.hbtn,.ebld,.cday{transition:scale .22s cubic-bezier(.3,1.7,.5,1),filter .15s}
+.jp{scale:.92;filter:brightness(1.12)}
+.jr{animation:jSpring .42s cubic-bezier(.3,1.6,.5,1)}
+@keyframes jSpring{0%{scale:.92}45%{scale:1.07}75%{scale:.98}100%{scale:1}}
+.jbump{animation:jBump .45s cubic-bezier(.3,1.8,.5,1)}
+@keyframes jBump{0%{scale:1}35%{scale:1.22;filter:brightness(1.35)}100%{scale:1}}
+.jcoin{position:fixed;left:0;top:0;width:22px;height:22px;z-index:120;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+.jcoin svg{width:22px;height:22px}
+.jrise{animation:jRise .5s cubic-bezier(.2,1.25,.4,1) both}
+@keyframes jRise{0%{opacity:0;translate:0 18px;scale:.96}100%{opacity:1;translate:0 0;scale:1}}
+/* modal pop, tab hop, dots that breathe */
+#ecoModal.on .em{animation:jPop .32s cubic-bezier(.2,1.5,.4,1)}
+@keyframes jPop{0%{opacity:0;scale:.82}100%{opacity:1;scale:1}}
+.hubtabs button.on svg{animation:jHop .5s cubic-bezier(.3,1.8,.5,1)}
+@keyframes jHop{0%{translate:0 6px;scale:.8}60%{translate:0 -6px;scale:1.12}100%{translate:0 0;scale:1}}
+.hubtabs .dot,.hbtn .dot,.subtabs.tks .dot{animation:jDot 1.8s ease-in-out infinite}
+@keyframes jDot{0%,100%{scale:1}50%{scale:1.25}}
+/* a ready chest wiggles; the big button shines */
+#starChest.ready,.ch.ready{animation:jWig 2.6s ease-in-out infinite}
+@keyframes jWig{0%,70%,100%{rotate:0deg}75%{rotate:-9deg}80%{rotate:8deg}85%{rotate:-6deg}90%{rotate:4deg}95%{rotate:-2deg}}
+.bbig{position:relative;overflow:hidden}
+.bbig::after{content:'';position:absolute;top:-20%;bottom:-20%;left:-60%;width:40%;background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,255,255,.55),rgba(255,255,255,0));transform:skewX(-18deg);animation:jShine 3.2s ease-in-out infinite;pointer-events:none}
+@keyframes jShine{0%,55%{left:-60%}85%,100%{left:130%}}
+/* battle: kill streak call-outs */
+.jshout{position:absolute;left:0;right:0;top:22%;z-index:30;text-align:center;pointer-events:none;font-family:var(--f-display);text-shadow:0 3px 0 #000,0 0 18px rgba(0,0,0,.7);animation:jShout 1.4s cubic-bezier(.2,1.4,.4,1) both}
+.jshout b{display:block;font-size:34px;letter-spacing:2px}.jshout small{display:block;font-size:18px;color:#fff}
+@keyframes jShout{0%{opacity:0;scale:.4}15%{opacity:1;scale:1.15}30%{scale:1}80%{opacity:1;translate:0 0}100%{opacity:0;translate:0 -24px}}
+#hGold{display:inline-block}
+@media (prefers-reduced-motion: reduce){.jr,.jrise,.jbump,#ecoModal.on .em,.hubtabs button.on svg,.hubtabs .dot,.hbtn .dot,#starChest.ready,.ch.ready,.bbig::after,.jshout{animation:none!important}}

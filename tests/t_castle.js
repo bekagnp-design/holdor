@@ -13,11 +13,10 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   const txt = (sel) => page.evaluate((s) => { const e = document.querySelector(s); return e ? e.innerText : null; }, sel);
   await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1 }; a.learn = { chest: 1, hold: 1, champ: 1 }; for (let i = 1; i <= 8; i++) a.campaign[i] = 3; a.gold = 3000; H.setAcc(a); H.persist(); H.showHub('battle'); });
   await page.waitForTimeout(500);
-  ok('castle row', await page.evaluate(() => !!document.querySelector('#bTrain') && !!document.querySelector('#bSpellShop')));
-  ok('train label', /Army level 1/.test(await txt('#bTrain')) && /Direwolf at 5/.test(await txt('#bTrain')), await txt('#bTrain'));
+  ok('home: Train and Spell shop moved into the City (Barracks, Alchemist)', await page.evaluate(() => !document.querySelector('#bTrain') && !!document.querySelector('#bCity') && window.HOLDOR_CITY.CITY_BLD.some(b => b[0] === 'barracks') && window.HOLDOR_CITY.CITY_BLD.some(b => b[0] === 'alchemist')));
   await page.screenshot({ path: SC + 'cs_hub.png' });
   // Train room
-  await tapEl('#bTrain');
+  await page.evaluate(() => window.HOLDOR_CITY.showCity()); await page.waitForTimeout(300); await tapEl('.cbd[data-b="barracks"]');
   const tr = await txt('#card');
   ok('train room', /Army level 1/.test(tr) && /Sworn sword/.test(tr) && /Longbowman/.test(tr) && /Outrider/.test(tr) && /Direwolf/.test(tr) && /Train to level 5/.test(tr), tr.slice(0, 100).replace(/\n/g, ' '));
   ok('unit stats lvl1', /❤️ 150 · ⚔️ 15 · 🏃 86/.test(tr));
@@ -34,11 +33,10 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   ok('train button state', await page.evaluate(() => { const b = document.querySelector('#bTrainUp'); return b && b.disabled === (window.HOLDOR.ACC.gold < 1100); }), 'gold ' + st5.gold);
   await tapEl('#bOk');
   ok('back to battle', await page.evaluate(() => window.HOLDOR.CLOUD.screen === 'hub:battle'));
-  ok('train label lvl5', /Army level 5 · Direwolf/.test(await txt('#bTrain')), await txt('#bTrain'));
   // Spell shop
   await page.evaluate(() => { window.HOLDOR.ACC.gold = 1000; window.HOLDOR.persist(); window.HOLDOR.showHub('battle'); });
   await page.waitForTimeout(300);
-  await tapEl('#bSpellShop');
+  await page.evaluate(() => window.HOLDOR_CITY.showCity()); await page.waitForTimeout(300); await tapEl('.cbd[data-b="alchemist"]');
   const sh = await txt('#card');
   ok('spell shop', /Hourglass/.test(sh) && /Mason/.test(sh) && /Iron Bank/.test(sh) && /Frost wave/.test(sh) && /Hodor's roar/.test(sh) && /Pack · 0/i.test(sh), sh.slice(0, 80).replace(/\n/g, ' '));
   await page.screenshot({ path: SC + 'cs_shop.png' });
@@ -49,7 +47,6 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   const p4 = await page.evaluate(() => ({ n: window.HOLDOR_CASTLE.packCount(), gold: window.HOLDOR.ACC.gold }));
   ok('pack of 7', p4.n === 7 && p4.gold === 1000 - 480 - 100 - 140 - 90 - 120, JSON.stringify(p4));
   await tapEl('#bOk');
-  ok('shop label', /7 in the pack/.test(await txt('#bSpellShop')), await txt('#bSpellShop'));
   // battle: the pack button, one use per battle
   await page.evaluate(() => window.HOLDOR.startGame({ level: 3 })); await page.waitForTimeout(600);
   ok('pack button shown', await page.evaluate(() => { const b = document.querySelector('#bPack'); return b && b.style.display !== 'none' && /Pack ×7/.test(b.innerText); }), await txt('#bPack'));

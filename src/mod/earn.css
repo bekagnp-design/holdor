@@ -1,0 +1,5 @@
+/* v1.0.74: events (the estate styles left with the estate in v1.0.76) */
+.evbadge{position:absolute;top:56px;right:8px;z-index:3;display:flex;flex-direction:column;align-items:flex-start;padding:5px 9px;border-radius:12px;border:2px solid #0b1a2e;background:rgba(19,40,74,.92);color:#fff;text-align:left;line-height:1.15}
+.evbadge.on{border-color:#e39a3a;background:rgba(58,31,16,.94)}
+.evbadge span{position:absolute;top:-10px;left:-8px;font-size:18px}.evbadge b{font-size:11px;margin-left:8px}.evbadge em{font-style:normal;font-size:10px;color:#ffd9a6;margin-left:8px}
+.evpop{text-align:center}.evpop .evcd{font-family:var(--f-display);font-size:26px;color:#ffd54a;margin:6px 0}.evpop p{margin:6px 0;color:#dbe9f6}

@@ -17,7 +17,7 @@ Object.assign(CFG, JSON.parse(/v \|\| '(\{[\s\S]*?\})'::jsonb where k = 'gear'/.
   const total = Object.values(CFG.kinds).flat().length;
   // ---- the kinds ----
   const K = await page.evaluate(() => { const G = window.HOLDOR_GEAR; return Object.fromEntries(Object.keys(G.GEAR_KIND).map(s => [s, G.GEAR_KIND[s].map(x => x[0])])); });
-  ok('54 kinds; the names and their order agree with the server config', total === 54 && Object.keys(CFG.kinds).every(s => JSON.stringify(K[s]) === JSON.stringify(CFG.kinds[s].map(k => k.n))), JSON.stringify(K));
+  ok('54 kinds; the names and their order agree with the server config (v1.0.86 appends more: t_kinds86)', total === 54 && Object.keys(CFG.kinds).every(s => JSON.stringify(K[s].slice(0, CFG.kinds[s].length)) === JSON.stringify(CFG.kinds[s].map(k => k.n))), JSON.stringify(K));
   ok('an item shows the kind it was rolled with (kind 5 of weapons = Staff, kind 2 of rings = Band)', await page.evaluate(() => { const G = window.HOLDOR_GEAR; return G.gearKind({ slot: 'weapon', kind: 5 })[0] === 'Staff' && G.gearKind({ slot: 'ring', kind: 2 })[0] === 'Band'; }));
   // ---- every perk is a real, non-ultimate skill mechanic ----
   const P = await page.evaluate(ids => { const G = window.HOLDOR_GEAR; return ids.map(id => { const S = G.SK[id]; return { id, has: !!S, ult: !!(S && S.ult), n: S && S.v.length, txt: S && G.gearPerkText(id, 3) }; }); }, perkIds);
@@ -60,7 +60,7 @@ Object.assign(CFG, JSON.parse(/v \|\| '(\{[\s\S]*?\})'::jsonb where k = 'gear'/.
     for (const p of ['burn', 'poison']) out[p] = run([p], h => { const e = foe(); C2.heroHit(e, 100); return { dot: !!(e.burn || e.poison), keys: Object.keys(e).filter(k => /burn|poison|dot/i.test(k)) }; });
     out.plain = run([], h => { const e = foe(); C2.heroHit(e, 100); return { dot: !!(e.burn || e.poison) }; });
     // thorns: a blow at the hero hurts the attacker (look at total damage taken by an adjacent enemy)
-    const th = (perks) => run(perks, h => { h.dmg = 0; const e = foe(); e.hp = e.max = 99999; e.x = h.x; e.y = h.y - 12; h.hp = h.max = 99999; for (let k = 0; k < 900; k++) H.step(); return Math.round(99999 - e.hp); }); out.thorns = [th([]), th(['thorns'])];
+    const th = (perks) => run(perks, h => { h.dmg = 0; S.spawn('sword', G.map.routes[0].total - 70, 0); const e = G.enemies[G.enemies.length - 1]; e.hp = e.max = 99999; h.hp = h.max = 99999; G.doorHp = G.doorMax = 1e9; for (let k = 0; k < 900; k++) H.step(); return Math.round(99999 - e.hp); }); out.thorns = [th([]), th(['thorns'])];
     // goldtouch: kills of the hero give more gold
     // quickstudy / howl: periodic skills tick on the timer
     out.howl = run(['howl'], h => { for (let s = 0; s < 1800; s++) H.step(); return Object.keys(h.skT || {}); });

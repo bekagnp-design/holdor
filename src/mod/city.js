@@ -8,6 +8,7 @@ const CITY_SKY={stark:['#2c3e55','#7f95ad'],lannister:['#5a1f1f','#c9a24a'],targ
 const CITY_BLD=[
   ['keep','🏰','Keep','tower and spell cards',0,()=>showHub('coll')],
   ['barracks','⚔️','Barracks','train the house army',0,()=>showTrain()],
+  ['alchemist','🧪','Alchemist','one-shot battle items',0,()=>showSpellShop()],
   ['market','🏪','Market','chests, deals, dragonglass',0,()=>showShop()],
   ['treasury','📜','Treasury','daily calendar and quests',2,()=>showDaily()],
   ['forge','⚒️','Forge','gear, tiers, sets',3,()=>showForge()],
