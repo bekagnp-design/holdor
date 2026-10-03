@@ -115,7 +115,7 @@ check('ten summons: 540 dragonglass, ten Stark champions', len(rolls) == 10 and 
 check('ten hold a Rare or better', any(x['r'] >= 2 for x in rolls), rolls)
 check('every roll has its rarity', all(C['champs'][x['c']]['rar'] == x['r'] for x in rolls))
 new = [x['c'] for x in rolls if x['new']]
-check('a sealed one joins (Arya or Jon), an open one brings cards', all(x in ('arya', 'jon') for x in new) and all(x['n'] == max(1, round(10 * C['mul'][x['r']])) for x in rolls if not x['new']), rolls)
+check('a sealed one joins (Arya or Jon), an open one brings cards', all(x in ('arya', 'jon') for x in new) and all(x['n'] == max(1, int(10 * C['mul'][x['r']] + 0.5)) for x in rolls if not x['new']), rolls)
 check('the app sees who joined', all(x in r['state']['copen'] for x in new), r['state']['copen'])
 check('kept in the summons table', q1("select count(*) from summons where tg_id = %s", T1) == 1)
 e = anon_err('champ_summon', token=tok[T1], seat=0, n=5)

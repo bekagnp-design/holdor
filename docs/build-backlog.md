@@ -413,6 +413,21 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **Server (v19, applied to production at once — it works with the live app):** the ranked fallback reuses the open practice duel; the duplicates were closed.
 - **App:** a `startapp=d_<code>` link joins the duel as soon as the seat is on the server and opens the Duel screen by itself; each duel row says what each side still has to do (▶ play a Hold run / ✔ your run counts, not played yet / ✔ has played) and has a **▶ Play my Hold run** button that starts the run (the same checks as the Hold button); a plain explanation of how a duel is decided; a refused invitation says the friend already plays and points at the duel; a Duel card at the top of the Hold tab (Events is no tab since v1.0.74); "Ranked" says when it had to fall back to the bot.
 - **Tests:** `v15_test` (three ranked taps with nobody to match = one duel), `duel_test` (a friend's link: joins, opens, the per-side status, the Play button starts a Hold battle on the server, the result, the Hold-tab card). `t_gear63`'s thorns check depended on the day's map; it now spawns the enemy at the gate.
+### v1.0.78 — the home screen rebuilt, in three looks (2026-10-03)
+- MR B: the home screen was "banal"; it must make the player want to stay; offer three variants. The research models: Clash Royale (chest slots with timers), Brawl Stars / Arknights (the hero in the middle), Kingdom Rush (the map is the menu), Galaxy Defense (a living fortress + motion).
+- **One structure for all looks** (`mod/skins.js`), built so something is always ready or on its way:
+  - a live strip (rank; the event with its countdown; today's Hold runs);
+  - a big living stage with the seat's name and a **next goal** ribbon (next stage, its stars, n/50; a tap opens the map);
+  - **four chest slots** with a progress ring: star chest (n/3 ★), level chest (or the next level's XP), the **free chest** with its 24-hour countdown (opens from home now), **today's gift** (claim, or the time to UTC midnight);
+  - the five quick buttons and the BATTLE row.
+  - The old ids stay (`#bBattle`, `#starChest`, `#lvlChest`, `#bCity`, `#hubTro`, `#evBadge`, …); the home tour points at the goal and the slots.
+- **Three looks**, switched with 🎨 on the stage, kept per device (`localStorage holdor_skin`, `?skin=a|b|c`), default B:
+  - **A Hero stage** — the champion's full art in a spotlight, turning rays, the house sigil breathing behind, house weather; a tap and he strikes (attack art). Purple and gold.
+  - **B Living gate** — a canvas drawn every frame: stars, moon, two mountain layers, the dead (real enemy art) walking out of the fog to the wall, torches flickering, a thud and a shake when one reaches the gate, the champion beside the gate; a tap strikes the closest. Night blue.
+  - **C War map** — the realm's map drifting slowly around the next stage under moving clouds, a flag on every held stage, the next one pulsing; a tap opens the map. Wood.
+  - The animation runs only while the home screen is open. Function names carry an `hm` prefix (the game already has `drawGate` / `drawFx`); look classes are `look-a/b/c` (`.skb` was taken).
+- **Tests:** `tests/t_home78.js` (core): default B, the strip and slots and old ids, B draws and moves, 🎨 → C (pins and flags) → A (kept), a tap strikes, `?skin=c`, the free chest counts down, the goal opens the map, the Hold pill opens Hold, the star chest opens, the loop stops off the home screen, 7 houses × 3 looks without an error.
+
 ### v1.0.77 — juice (2026-10-03)
 - MR B: "super dynamic". The research lesson (Royal Match, Random Dice, Galaxy Defense): most of the life is small motion, not new art. `mod/juice.js` + `juice.css`, display only.
 - Every button sinks on press and springs back (the CSS `scale` property, so it adds to the buttons' own transforms); modals pop in; the active tab icon hops; red dots breathe; a ready chest wiggles; the BATTLE button shines.
