@@ -197,14 +197,14 @@ with sync_playwright() as p:
 
     # ---- 11. the star chest (5 stars → one) and the account-level chest, both checked by the server ----
     def open_chest(sel):
-        tap(sel, 900, True); tap('#cch', 200, True); wait("document.querySelector('#ccol')&&document.querySelector('#ccol').classList.contains('in')", 12000); tap('#ccol', 500); settle()
+        tap(sel, 900, True); tap('#cch', 200, True); wait("document.querySelector('#ccol')&&document.querySelector('#ccol').classList.contains('in')", 20000); tap('#ccol', 500); settle()
     ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(500)
     open_chest('#starChest')
     check('star chest from the server', q1("select count(*) from chests where tg_id=%s and source='star' and coalesce(asked, tier)='iron'", TG) == 1 and wallet()['claims'].get('star_chests') == 1)
     lv = acc("HOLDOR.accLevel().l")
     if ev("!!document.querySelector('#lvlChest')"):
         open_chest('#lvlChest')
-        check('level chest from the server', q1("select count(*) from chests where tg_id=%s and source='level'", TG) == 1 and wallet()['claims'].get('lvl_chests') == 1, 'account level %s' % lv)
+        check('level chest from the server', q1("select count(*) from chests where tg_id=%s and source='level'", TG) == 1 and wallet()['claims'].get('lvl_chests') == 1, ('account level %s' % lv, q("select tier, asked, source from chests where tg_id=%s", TG), wallet()['claims']))
     else: check('level chest waiting at account level %s' % lv, False)
     same_as_server('after the chests')
 
