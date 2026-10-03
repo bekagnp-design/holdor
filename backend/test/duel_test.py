@@ -39,7 +39,7 @@ with sync_playwright() as p:
     def tap(sel, ms=400): pg.locator(sel).first.tap(force=True); pg.wait_for_timeout(ms)
     def W(): return q("select gold, gems, cards from wallets where tg_id = %s and seat = 0", TG)[0]
     check('login', wait("HOLDOR.CLOUD.on", 12000))
-    ev("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;a.tour=1;a.tours={win:1,battle:1,coll:1,shop:1,hold:1,events:1};a.learn={chest:1,hold:1,champ:1,glass:1,keep:1,tier2:1,fire:1};a.holdTut=1;a.holdIntro=1;
+    ev("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;a.tour=1;a.tours={win:1,battle:1,coll:1,shop:1,hold:1,events:1,earn:1,hold:1};a.learn={chest:1,hold:1,champ:1,glass:1,keep:1,tier2:1,fire:1};a.holdTut=1;a.holdIntro=1;
       H.SAVE.slots[0]=a;H.SAVE.cur=0;H.setAcc(a);H.persist();H.afterLoad();})()""")
     check('seat managed', wait("HOLDOR_ECON.ecoOn()", 12000)); settle()
     q("update wallets set created_at = now() - interval '3 days' where tg_id = %s and seat = 0", TG)
@@ -54,7 +54,7 @@ with sync_playwright() as p:
     check('the Duel screen: Bronze, 1000, three ways to duel, ranked 5 left', 'Bronze' in ev("document.querySelector('.lg').textContent") and '1000' in ev("document.querySelector('.lg').textContent") and '5 left' in ev("document.querySelector('#bRank').textContent"))
     pg.screenshot(path=SHOTS + '/duel_home.png')
     tap('#bAi', 700); settle(); pg.wait_for_timeout(500)
-    check('practice vs a bot: an open duel marked as a bot, 6 waves to beat', ev("document.querySelectorAll('.duelrow').length") == 1 and 'Bot' in ev("document.querySelector('.duelrow').textContent") and '6 🌊' in ev("document.querySelector('.duelrow').textContent") and ev("!!document.querySelector('#bPlayHold')"))
+    check('practice vs a bot: an open duel marked as a bot, 6 waves to beat', ev("document.querySelectorAll('.duelrow').length") == 1 and 'Bot' in ev("document.querySelector('.duelrow').textContent") and '6 🌊' in ev("document.querySelector('.duelrow').textContent") and ev("!!document.querySelector('[data-play]')"))
     pg.screenshot(path=SHOTS + '/duel_open.png')
     g0 = W()[0]
     q("insert into battles (tg_id, seat, kind, status, waves, kills, steps, started_at, finished_at) values (%s, 0, 'hold', 'done', 9, 150, 5000, now() - interval '10 minutes', now())", TG)
@@ -68,6 +68,35 @@ with sync_playwright() as p:
     # a challenge link opened by the player himself is remembered until a seat is open
     ev("HOLDOR_DUEL.DUEL.pending='0123abcd'"); ev("HOLDOR_DUEL.showDuel()"); pg.wait_for_timeout(1200)
     check('a pending challenge is tried once and the answer shows (unknown code → a toast, no crash)', ev("HOLDOR_DUEL.DUEL.pending") is None)
+    # ---- v1.0.75: a friend's link (the case MR B could not play) ----
+    FR = 777000125
+    for t in ('duels', 'ratings', 'battles', 'progress', 'sessions', 'ledger', 'wallets', 'players'):
+        q(f'delete from {t} where ' + ('a' if t == 'duels' else 'tg_id') + ' = %s', FR)
+    q("insert into players (tg_id, name, house, realm, save, save_ver) values (%s, 'Friend', 'stark', 0, %s, 1)", FR, json.dumps({'v': 4, 'cur': 0, 'ver': 1, 'slots': [{'house': 'stark', 'langI': 0, 'made': '2026-09-30', 'campaign': {}, 'stats': {'kills': 0, 'onlineBest': 0}}, None, None]}))
+    ftok = q1("insert into sessions (tg_id) values (%s) returning token::text", FR)
+    q("select econ_state(%s::uuid, 0)", ftok); q("insert into progress (tg_id, seat, mode, stage, stars) values (%s, 0, 'c', 1, 3)", FR)
+    code = q1("select (duel_start(%s::uuid, 0, 'friend'))->'duel'->>'code'", ftok)
+    ev("HOLDOR_DUEL.DUEL.pending=%s; HOLDOR_DUEL.DUEL.st=null" % json.dumps(code)); ev("HOLDOR.showHub('battle')")
+    check('the link opens the Duel screen by itself and joins the friend', wait("HOLDOR.CLOUD.screen==='duel'", 6000) is not None and wait("!HOLDOR_DUEL.DUEL.pending", 3000) is not None, ev("HOLDOR.CLOUD.screen"))
+    settle(); ev("HOLDOR_DUEL.DUEL.st=null"); ev("HOLDOR_DUEL.showDuel()"); pg.wait_for_timeout(1200); settle(); pg.wait_for_timeout(400)
+    check('the server has me as the friend\'s opponent', q1("select b from duels where code = %s", code) == TG)
+    row = ev("[...document.querySelectorAll('.duelrow')].map(r=>r.innerText).find(t=>/Friend/.test(t))||''")
+    check('the row says what each side still has to do: me — play a Hold run, the friend — not played yet', 'play a Hold run' in row and 'not played yet' in row, row.replace('\n', ' | ')[:200])
+    pg.screenshot(path=SHOTS + '/duel_friend_joined.png')
+    check('the "Play my Hold run" button is there', ev("!!document.querySelector('[data-play]')"))
+    tap('[data-play]', 1500); settle()
+    check('it starts the Hold run on the server (a hold battle is open)', wait("HOLDOR.G.mode==='online'", 5000) is not None and q1("select count(*) from battles where tg_id = %s and kind = 'hold' and status = 'open'", TG) >= 1, ev("HOLDOR.G.mode"))
+    ev("HOLDOR.G.state='over'"); q("update battles set status = 'done', waves = 7, kills = 90, finished_at = now() where tg_id = %s and kind = 'hold' and status = 'open'", TG)
+    q("insert into battles (tg_id, seat, kind, status, waves, kills, steps, started_at, finished_at) values (%s, 0, 'hold', 'done', 5, 60, 5000, now() - interval '5 minutes', now())", FR)
+    ev("HOLDOR_DUEL.DUEL.st=null"); ev("HOLDOR_DUEL.showDuel()"); pg.wait_for_timeout(1200); settle(); pg.wait_for_timeout(400)
+    row = ev("[...document.querySelectorAll('.duelrow')].map(r=>r.innerText).find(t=>/Friend/.test(t))||''")
+    check('both played: 7 waves beat 5 — a WIN for me', 'WIN' in row and '7 🌊' in row and '5 🌊' in row, row.replace('\n', ' | ')[:200])
+    ev("HOLDOR.showHub('hold')"); pg.wait_for_timeout(700)
+    check('the Hold tab has a Duel card that opens the Duel screen', ev("!!document.querySelector('#bDuelCard')"))
+    ev("document.querySelector('#bDuelCard').click()")
+    check('...and it does', wait("HOLDOR.CLOUD.screen==='duel'", 4000) is not None, ev("HOLDOR.CLOUD.screen"))
+    for t in ('duels', 'battles', 'progress', 'sessions', 'ledger', 'wallets', 'players'):
+        q(f'delete from {t} where ' + ('a' if t == 'duels' else 'tg_id') + ' = %s', FR)
     check('no refusals, no flags', q1("select count(*) from econ_flags where tg_id = %s", TG) == 0)
     check('no page errors', not errs, errs[:3])
     br.close()

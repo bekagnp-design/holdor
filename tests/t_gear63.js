@@ -60,7 +60,7 @@ Object.assign(CFG, JSON.parse(/v \|\| '(\{[\s\S]*?\})'::jsonb where k = 'gear'/.
     for (const p of ['burn', 'poison']) out[p] = run([p], h => { const e = foe(); C2.heroHit(e, 100); return { dot: !!(e.burn || e.poison), keys: Object.keys(e).filter(k => /burn|poison|dot/i.test(k)) }; });
     out.plain = run([], h => { const e = foe(); C2.heroHit(e, 100); return { dot: !!(e.burn || e.poison) }; });
     // thorns: a blow at the hero hurts the attacker (look at total damage taken by an adjacent enemy)
-    const th = (perks) => run(perks, h => { h.dmg = 0; const e = foe(); e.hp = e.max = 99999; e.x = h.x; e.y = h.y - 12; h.hp = h.max = 99999; for (let k = 0; k < 900; k++) H.step(); return Math.round(99999 - e.hp); }); out.thorns = [th([]), th(['thorns'])];
+    const th = (perks) => run(perks, h => { h.dmg = 0; S.spawn('sword', G.map.routes[0].total - 70, 0); const e = G.enemies[G.enemies.length - 1]; e.hp = e.max = 99999; h.hp = h.max = 99999; G.doorHp = G.doorMax = 1e9; for (let k = 0; k < 900; k++) H.step(); return Math.round(99999 - e.hp); }); out.thorns = [th([]), th(['thorns'])];
     // goldtouch: kills of the hero give more gold
     // quickstudy / howl: periodic skills tick on the timer
     out.howl = run(['howl'], h => { for (let s = 0; s < 1800; s++) H.step(); return Object.keys(h.skT || {}); });

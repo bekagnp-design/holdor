@@ -12,12 +12,12 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   const setup = (cleared, house) => page.evaluate(([n, hs]) => { const H = window.HOLDOR; const a = H.newAccount(hs || 'stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1 }; a.learn = { chest: 1, hold: 1, champ: 1, glass: 1, keep: 1, tier2: 1, fire: 1 };
     for (let i = 1; i <= n; i++) a.campaign[i] = 3; H.setAcc(a); H.showHub('battle'); }, [cleared, house]);
   const C = await page.evaluate(() => { const X = window.HOLDOR_CITY; return { n: X.CITY_BLD.length, ids: X.CITY_BLD.map(b => b[0]), names: Object.keys(X.CITY_NAME) }; });
-  ok('eight buildings with unique ids; seven house cities', C.n === 8 && new Set(C.ids).size === 8 && C.names.length === 7, JSON.stringify(C));
+  ok('nine buildings with unique ids; seven house cities', C.n === 9 && new Set(C.ids).size === 9 && C.names.length === 7, JSON.stringify(C));
   await setup(0); await page.waitForTimeout(1200);
-  ok('the Battle tab has a City button naming the house city', /Winterfell/.test(await page.locator('#bCity').textContent()));
+  ok('the Battle tab has a City button among five icon buttons', /City/.test(await page.locator('#bCity').textContent()) && await page.evaluate(() => document.querySelectorAll('.homerow .hbtn').length === 5));
   await page.locator('#bCity').tap({ force: true }); await page.waitForTimeout(500);
   let S = await page.evaluate(() => ({ b: document.querySelectorAll('.cbd').length, lock: document.querySelectorAll('.cbd.lock').length, head: document.querySelector('.topbar h1').textContent.replace(/\s+/g, ' ') }));
-  ok('a fresh seat: 8 buildings, 5 locked (Treasury 2, Forge 3, Tavern 5, Library 8, Hall 10), the name of its city', S.b === 8 && S.lock === 5 && /Winterfell/.test(S.head) && /0 stages cleared/.test(S.head), JSON.stringify(S));
+  ok('a fresh seat: 9 buildings, 5 locked (Treasury 2, Forge 3, Tavern 5, Library 8, Hall 10), the name of its city', S.b === 9 && S.lock === 5 && /Winterfell/.test(S.head) && /0 stages cleared/.test(S.head), JSON.stringify(S));
   await page.screenshot({ path: SC + 'city64_fresh.png' });
   await page.locator('.cbd[data-b="forge"]').tap({ force: true }); await page.waitForTimeout(300);
   ok('a locked building only says so', await page.evaluate(() => !!document.querySelector('.city') && /opens after 3/.test(document.body.innerText)));

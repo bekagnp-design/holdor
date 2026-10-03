@@ -83,7 +83,7 @@ const CFG = JSON.parse(/insert into econ_config \(k, v\) values \('gear', '(\{[\
   await page.evaluate(() => document.querySelector('#ecoModal button:last-child').click()); await page.waitForTimeout(200);
   await page.evaluate(() => { const it = window.HOLDOR_GEAR.gearItems().find(x => x.slot === 'helmet'); window.HOLDOR_GEAR.gearSheet(it.id, 'jon'); }); await page.waitForTimeout(300);
   const SH2 = await page.evaluate(() => ({ t: document.querySelector('#ecoModal .eh').textContent.replace(/\s+/g, ' '), btns: [...document.querySelectorAll('#ecoModal button')].map(b => b.textContent.trim()) }));
-  ok('an Epic ★3 +12 helmet (at its cap): a tier button with the price, no strike', SH2.btns.some(b => /^⬆ Tier 4 · 🪙\d+/.test(b)) && !SH2.btns.some(b => /Strike/.test(b)) && /At its cap/.test(SH2.t), JSON.stringify(SH2));
+  ok('an Epic ★3 +12 helmet (at its cap): a tier button with the price, no strike', SH2.btns.some(b => /^⬆ Tier 4 · (?:🪙)?\s*\d+/.test(b)) && !SH2.btns.some(b => /Strike/.test(b)) && /At its cap/.test(SH2.t), JSON.stringify(SH2));
   await page.screenshot({ path: SC + 'gear62_sheet.png' });
   const price = await page.evaluate(() => { const G = window.HOLDOR_GEAR; return G.gearTierCost(G.gearItems().find(x => x.slot === 'helmet')); });
   ok('the tier price = 14000 × Epic 3.2 = 44800', price === 44800, price);

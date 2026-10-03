@@ -1067,6 +1067,187 @@ canvas{touch-action:none}/* v1.0.61 — login calendar and quests */
 .scell.ready{border-color:#ffd54a}.scell.done{opacity:.5}.scell.lockp{background:#20203a}
 .scell .qrw{justify-content:center}.scell button{min-width:58px;font-size:11px;padding:2px 6px}
 .sbox .qbar{display:block}
+/* v1.0.73: a calmer home */
+.homerow{display:flex;gap:6px;margin:6px 4px 10px}
+.hbtn{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px 6px;min-width:0;background:linear-gradient(180deg,#2a6fb9,#1a4d8c);border:3px solid #0b1a2e;border-bottom:5px solid #0b1a2e;border-radius:14px;color:#fff}
+.hbtn:active{transform:translateY(2px);border-bottom-width:3px}
+.hbtn .ic{width:36px;height:36px;border-radius:10px;background:#0c1f3a;border:2px solid #0b1a2e;display:flex;align-items:center;justify-content:center;font-size:20px}
+.hbtn b{font-family:var(--f-display);font-size:10px;letter-spacing:.6px;text-transform:uppercase}
+.hbtn .dot{position:absolute;top:-6px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:#e14b4b;color:#fff;font-style:normal;font-size:11px;font-weight:800;line-height:14px;text-align:center;padding:0 4px;border:2px solid #0b1a2e}/* v1.0.74: events (the estate styles left with the estate in v1.0.76) */
+.evbadge{position:absolute;top:56px;right:8px;z-index:3;display:flex;flex-direction:column;align-items:flex-start;padding:5px 9px;border-radius:12px;border:2px solid #0b1a2e;background:rgba(19,40,74,.92);color:#fff;text-align:left;line-height:1.15}
+.evbadge.on{border-color:#e39a3a;background:rgba(58,31,16,.94)}
+.evbadge span{position:absolute;top:-10px;left:-8px;font-size:18px}.evbadge b{font-size:11px;margin-left:8px}.evbadge em{font-style:normal;font-size:10px;color:#ffd9a6;margin-left:8px}
+.evpop{text-align:center}.evpop .evcd{font-family:var(--f-display);font-size:26px;color:#ffd54a;margin:6px 0}.evpop p{margin:6px 0;color:#dbe9f6}/* v1.0.76: Tasks */
+.rushstrip{display:flex;align-items:center;gap:8px;margin:6px 0 8px;padding:8px 12px;border-radius:14px;background:#13284a;border:2px solid #0b1a2e;color:#dbe9f6;font-size:12px}
+.rushstrip b{font-family:var(--f-display);font-size:13px;color:#ffd54a;white-space:nowrap}.rushstrip span{flex:1;min-width:0}.rushstrip em{font-style:normal;font-weight:800;color:#ffd9a6;white-space:nowrap}
+.rushstrip.on{background:linear-gradient(90deg,#4a2a0c,#7a3f0e);border-color:#e39a3a;box-shadow:0 0 0 0 rgba(255,190,80,.6);animation:rushGlow 2.4s ease-in-out infinite}
+@keyframes rushGlow{0%,100%{box-shadow:0 0 0 0 rgba(255,190,80,.0)}50%{box-shadow:0 0 18px 2px rgba(255,190,80,.45)}}
+.subtabs.tks{display:flex;gap:6px;margin:4px 0 8px}.subtabs.tks button{position:relative;flex:1}
+.subtabs.tks .dot{position:absolute;top:-6px;right:-2px;min-width:18px;height:18px;border-radius:9px;background:#e14b4b;color:#fff;font-style:normal;font-size:11px;font-weight:800;line-height:14px;text-align:center;padding:0 4px;border:2px solid #0b1a2e}
+.tksec h3{display:flex;align-items:baseline;justify-content:space-between;margin:10px 2px 4px;font-family:var(--f-display);font-size:14px;color:#fff;letter-spacing:.5px}
+.tksec h3 small{font-family:inherit;font-size:11px;color:#9fb6c9;letter-spacing:0}
+.qrow .x2{margin-left:4px;padding:1px 6px;border-radius:8px;background:#e39a3a;color:#2a1a05;font-size:11px}
+.qrow.tkr{align-items:center}.qrow .tki{flex:0 0 40px;height:40px;margin-right:8px;border-radius:12px;background:#0c1f3a;border:2px solid #0b1a2e;display:flex;align-items:center;justify-content:center;font-size:22px}
+.qrow button.go{background:linear-gradient(#ffd66b,#f0a92c);color:#2a1a05;border-color:#7a4a10}
+.qrow.ready{animation:tkReady 1.6s ease-in-out infinite}
+@keyframes tkReady{0%,100%{transform:none}50%{transform:scale(1.015)}}
+.tkmore{display:block;width:100%;margin:12px 0 4px;padding:10px;border-radius:12px;border:2px dashed #2a4a74;background:transparent;color:#9fc3ff;font-size:13px}
+.m.dim{opacity:.7;font-size:12px}/* v1.0.77: juice */
+button,.btn,.hbtn,.ebld,.cday{transition:scale .22s cubic-bezier(.3,1.7,.5,1),filter .15s}
+.jp{scale:.92;filter:brightness(1.12)}
+.jr{animation:jSpring .42s cubic-bezier(.3,1.6,.5,1)}
+@keyframes jSpring{0%{scale:.92}45%{scale:1.07}75%{scale:.98}100%{scale:1}}
+.jbump{animation:jBump .45s cubic-bezier(.3,1.8,.5,1)}
+@keyframes jBump{0%{scale:1}35%{scale:1.22;filter:brightness(1.35)}100%{scale:1}}
+.jcoin{position:fixed;left:0;top:0;width:22px;height:22px;z-index:120;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+.jcoin svg{width:22px;height:22px}
+.jrise{animation:jRise .5s cubic-bezier(.2,1.25,.4,1) both}
+@keyframes jRise{0%{opacity:0;translate:0 18px;scale:.96}100%{opacity:1;translate:0 0;scale:1}}
+/* modal pop, tab hop, dots that breathe */
+#ecoModal.on .em{animation:jPop .32s cubic-bezier(.2,1.5,.4,1)}
+@keyframes jPop{0%{opacity:0;scale:.82}100%{opacity:1;scale:1}}
+.hubtabs button.on svg{animation:jHop .5s cubic-bezier(.3,1.8,.5,1)}
+@keyframes jHop{0%{translate:0 6px;scale:.8}60%{translate:0 -6px;scale:1.12}100%{translate:0 0;scale:1}}
+.hubtabs .dot,.hbtn .dot,.subtabs.tks .dot{animation:jDot 1.8s ease-in-out infinite}
+@keyframes jDot{0%,100%{scale:1}50%{scale:1.25}}
+/* a ready chest wiggles; the big button shines */
+#starChest.ready,.ch.ready{animation:jWig 2.6s ease-in-out infinite}
+@keyframes jWig{0%,70%,100%{rotate:0deg}75%{rotate:-9deg}80%{rotate:8deg}85%{rotate:-6deg}90%{rotate:4deg}95%{rotate:-2deg}}
+.bbig{position:relative;overflow:hidden}
+.bbig::after{content:'';position:absolute;top:-20%;bottom:-20%;left:-60%;width:40%;background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,255,255,.55),rgba(255,255,255,0));transform:skewX(-18deg);animation:jShine 3.2s ease-in-out infinite;pointer-events:none}
+@keyframes jShine{0%,55%{left:-60%}85%,100%{left:130%}}
+/* battle: kill streak call-outs */
+.jshout{position:absolute;left:0;right:0;top:22%;z-index:30;text-align:center;pointer-events:none;font-family:var(--f-display);text-shadow:0 3px 0 #000,0 0 18px rgba(0,0,0,.7);animation:jShout 1.4s cubic-bezier(.2,1.4,.4,1) both}
+.jshout b{display:block;font-size:34px;letter-spacing:2px}.jshout small{display:block;font-size:18px;color:#fff}
+@keyframes jShout{0%{opacity:0;scale:.4}15%{opacity:1;scale:1.15}30%{scale:1}80%{opacity:1;translate:0 0}100%{opacity:0;translate:0 -24px}}
+#hGold{display:inline-block}
+@media (prefers-reduced-motion: reduce){.jr,.jrise,.jbump,#ecoModal.on .em,.hubtabs button.on svg,.hubtabs .dot,.hbtn .dot,#starChest.ready,.ch.ready,.bbig::after,.jshout{animation:none!important}}/* v1.0.78: the home screen and its three looks */
+.hub{--pn:linear-gradient(180deg,#2a6fb9,#1a4d8c);--pb:#0b1a2e;--ac:#ffd54a;--glow:rgba(120,190,255,.35)}
+.hub.look-a{background:radial-gradient(120% 70% at 50% 0%,#5a3a92 0%,#2b1a55 42%,#120a26 78%,#08050f 100%);--pn:linear-gradient(180deg,#4d3480,#2c1d4c);--pb:#140b26;--ac:#ffcf5a;--glow:rgba(255,200,120,.35)}
+.hub.look-b{background:radial-gradient(120% 70% at 50% 0%,#24508a 0%,#10284c 45%,#071224 80%,#03070f 100%);--pn:linear-gradient(180deg,rgba(40,90,150,.82),rgba(18,44,84,.86));--pb:#061226;--ac:#9fe0ff;--glow:rgba(130,210,255,.4)}
+.hub.look-c{background:repeating-linear-gradient(90deg,rgba(0,0,0,.05) 0 3px,rgba(255,255,255,.02) 3px 7px),linear-gradient(180deg,#5a3c20 0%,#3a2612 55%,#22160a 100%);--pn:linear-gradient(180deg,#8a5c2e,#5e3c1c);--pb:#2a1808;--ac:#ffd27a;--glow:rgba(255,200,120,.35)}
+.hub.look-a .hbtn,.hub.look-b .hbtn,.hub.look-c .hbtn,.hub.look-a .bside,.hub.look-b .bside,.hub.look-c .bside,.hub.look-a .qrow,.hub.look-b .qrow,.hub.look-c .qrow,.hub.look-a .subtabs button:not(.on),.hub.look-b .subtabs button:not(.on),.hub.look-c .subtabs button:not(.on){background:var(--pn);border-color:var(--pb)}
+.hub.look-a .hbtn .ic,.hub.look-b .hbtn .ic,.hub.look-c .hbtn .ic{background:rgba(0,0,0,.3);border-color:var(--pb)}
+/* the live strip */
+.hmstrip{display:flex;gap:6px;margin:0 0 6px;overflow-x:auto;scrollbar-width:none}.hmstrip::-webkit-scrollbar{display:none}
+.hpill{flex:0 0 auto;display:flex;align-items:center;gap:5px;height:34px;padding:0 10px 0 7px;border-radius:17px;border:2px solid var(--pb);background:var(--pn);color:#fff;font-size:11px;white-space:nowrap;box-shadow:0 3px 0 var(--pb)}
+.hpill b{font-family:var(--f-display);font-size:13px}.hpill small{font-size:10px;color:#d6e4f5}.hpill em{font-style:normal;font-size:10.5px;font-weight:800;color:var(--ac);font-variant-numeric:tabular-nums}
+.hpill.ev{flex:1 1 auto;min-width:0}.hpill.ev b{overflow:hidden;text-overflow:ellipsis}
+.hpill.ev.on{background:linear-gradient(90deg,#6a2f0c,#a3531a);border-color:#3a1806;animation:rushGlow 2.4s ease-in-out infinite}
+.hpill.hot b{color:var(--ac)}.hpill.off{opacity:.7}
+/* the stage */
+.hmstage{position:relative;flex:1 1 auto;height:auto;min-height:210px;max-height:420px;margin:0 -2px 8px;border-radius:20px;overflow:hidden;border:3px solid var(--pb);box-shadow:0 6px 0 var(--pb),0 10px 26px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.08)}
+.hmtitle{position:absolute;left:12px;top:8px;z-index:4;pointer-events:none}.hmtitle b{font-family:var(--f-display);font-size:18px;letter-spacing:.08em;color:#fff;text-shadow:0 2px 0 #000,0 0 12px rgba(0,0,0,.8);text-transform:uppercase}
+.hmskin{position:absolute;right:8px;top:8px;z-index:5;width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.4);font-size:17px;line-height:1;padding:0}
+.hmgoal{position:absolute;left:8px;right:8px;bottom:8px;z-index:4;display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:14px;border:2px solid rgba(255,255,255,.18);background:linear-gradient(90deg,rgba(0,0,0,.72),rgba(0,0,0,.45));color:#fff;text-align:left}
+.hmgoal .gl{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.1}.hmgoal .gl small{font-size:9px;letter-spacing:.16em;color:var(--ac);font-weight:900}
+.hmgoal .gl b{font-family:var(--f-display);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hmgoal .gs{color:#ffd54a;font-size:14px;letter-spacing:-1px}.hmgoal .gs i{font-style:normal;color:rgba(255,255,255,.25)}
+.hmgoal .gp{position:relative;flex:0 0 64px;height:16px;border-radius:8px;background:rgba(255,255,255,.12);overflow:hidden}.hmgoal .gp i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#5fcf6a,#b6f06a)}
+.hmgoal .gp em{position:relative;display:block;text-align:center;font-style:normal;font-size:10px;font-weight:900;line-height:16px;text-shadow:0 1px 0 #000}
+/* A: hero stage */
+.stA{position:absolute;inset:0;background:radial-gradient(60% 55% at 50% 58%,rgba(255,214,140,.38),rgba(0,0,0,0) 70%),linear-gradient(180deg,#2b1a55,#120a26)}
+.stA .rays{position:absolute;left:50%;top:56%;width:640px;height:640px;margin:-320px 0 0 -320px;background:repeating-conic-gradient(from 0deg,rgba(255,220,150,.16) 0deg 9deg,rgba(255,220,150,0) 9deg 22deg);border-radius:50%;animation:hmSpin 40s linear infinite;-webkit-mask:radial-gradient(circle,#000 18%,transparent 62%);mask:radial-gradient(circle,#000 18%,transparent 62%)}
+@keyframes hmSpin{to{rotate:360deg}}
+.stA .sig{position:absolute;left:50%;top:44%;width:62%;max-width:240px;translate:-50% -50%;opacity:.16;filter:blur(.5px) drop-shadow(0 0 20px rgba(255,220,150,.4));animation:hmSig 7s ease-in-out infinite}
+@keyframes hmSig{0%,100%{scale:1;opacity:.14}50%{scale:1.05;opacity:.22}}
+.stA .plat{position:absolute;left:50%;bottom:44px;width:62%;height:34px;translate:-50% 0;border-radius:50%;background:radial-gradient(ellipse,rgba(255,220,150,.55),rgba(255,180,80,.12) 55%,rgba(0,0,0,0) 72%)}
+.stA .hero{position:absolute;left:50%;bottom:52px;height:72%;max-height:240px;translate:-50% 0;transform-origin:50% 100%;animation:hmIdle 2.6s ease-in-out infinite;filter:drop-shadow(0 10px 10px rgba(0,0,0,.55));cursor:pointer;z-index:2}
+@keyframes hmIdle{0%,100%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-4px) scale(1.012,.99)}}
+.stA .hero.atk{animation:hmAtk .38s cubic-bezier(.2,1.4,.4,1),hmIdle 2.6s ease-in-out .38s infinite}
+@keyframes hmAtk{0%{transform:translateX(0) scale(1)}35%{transform:translateX(16px) scale(1.12)}100%{transform:translateX(0) scale(1)}}
+.stA .cn{position:absolute;left:0;right:0;bottom:60px;z-index:3;text-align:center;pointer-events:none;display:none}
+.hmfx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+/* B: living gate */
+.stB,.stB canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+/* C: war map */
+.stC{position:absolute;inset:0;background:#0d1a2a;overflow:hidden}
+.stC .mapin{position:absolute;left:0;top:0;transform-origin:0 0;background-size:100% 100%;will-change:transform;cursor:pointer}
+.stC .pin{position:absolute;translate:-50% -100%;pointer-events:none}
+.stC .pin .fl{display:block;width:14px;height:20px;background:linear-gradient(90deg,#3a2a1a 0 2px,transparent 2px),linear-gradient(#e14b4b,#9a2a2a) 2px 0/12px 10px no-repeat;filter:drop-shadow(0 2px 1px rgba(0,0,0,.6))}
+.stC .pin.nx{z-index:2;display:flex;flex-direction:column;align-items:center;animation:hmPin 1.4s ease-in-out infinite}
+.stC .pin.nx i{font-style:normal;font-size:26px;filter:drop-shadow(0 0 8px #ffd54a)}.stC .pin.nx b{font-family:var(--f-display);font-size:14px;color:#fff;background:#b3261e;border:2px solid #fff;border-radius:10px;padding:0 6px}
+@keyframes hmPin{0%,100%{translate:-50% -100%}50%{translate:-50% -112%}}
+.stC .cl{position:absolute;width:260px;height:90px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.55),rgba(255,255,255,0) 70%);pointer-events:none;animation:hmCloud 34s linear infinite}
+.stC .c1{top:12%;left:-60%}.stC .c2{top:48%;left:-80%;animation-duration:46s;animation-delay:-18s;scale:1.4}.stC .c3{top:70%;left:-70%;animation-duration:40s;animation-delay:-30s}
+@keyframes hmCloud{to{translate:260% 0}}
+.stC .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(80% 70% at 50% 45%,rgba(0,0,0,0),rgba(20,10,0,.55))}
+/* the chest slots */
+.hmslots{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:0 0 8px}
+.slot{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;aspect-ratio:1/1.05;padding:4px 2px 5px;border-radius:16px;border:3px solid var(--pb);background:conic-gradient(var(--ac) calc(var(--p)*1%),rgba(255,255,255,.08) 0) border-box;color:#fff;box-shadow:0 4px 0 var(--pb)}
+.slot::before{content:'';position:absolute;inset:3px;border-radius:12px;background:var(--pn)}
+.slot .si{position:relative;flex:1;width:84%;display:flex;align-items:center;justify-content:center;min-height:0}.slot .si>*{max-height:100%}.slot .si.dim{filter:grayscale(.7) brightness(.7)}
+.slot .si.gift{font-size:32px}
+.slot em{position:relative;font-style:normal;font-family:var(--f-display);font-size:10px;font-weight:900;letter-spacing:.04em;padding:1px 6px;border-radius:8px;background:rgba(0,0,0,.45);font-variant-numeric:tabular-nums}
+.slot.ready{box-shadow:0 4px 0 var(--pb),0 0 16px 2px var(--glow)}.slot.ready em{background:linear-gradient(180deg,#ffe97a,#f2a62c);color:#3a2205}
+.slot.ready .si{animation:jWig 2.6s ease-in-out infinite}
+.slot .cnt{position:absolute;top:-7px;right:-5px;min-width:22px;height:20px;border-radius:10px;background:#e14b4b;border:2px solid #fff;font-size:11px;line-height:16px;padding:0 4px;z-index:2}
+/* short phones (≤ 700 px tall): BATTLE stays on screen */
+@media (max-height:700px){
+ .hmstage{min-height:140px}
+ .hmstrip{margin-bottom:4px}.hpill{height:30px}
+ .hmslots{gap:6px;margin-bottom:6px}.slot{aspect-ratio:1/.8}
+ .homerow{margin:4px 4px 6px}.hbtn{padding:5px 2px 4px}.hbtn .ic{width:30px;height:30px}.hbtn .ic svg{width:22px;height:22px}
+}
+/* v1.0.79: drawn icons */
+.hbtn .ic svg{display:block;filter:drop-shadow(0 2px 0 rgba(0,0,0,.45))}
+.slot .si.gift svg{filter:drop-shadow(0 3px 2px rgba(0,0,0,.5))}
+.hpill svg,.subtabs.tks svg{vertical-align:-3px;filter:drop-shadow(0 1px 0 rgba(0,0,0,.5))}
+.qrow .tki svg{display:block}
+/* v1.0.80: Hold blessings */
+#boonOv{position:absolute;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%,rgba(20,30,60,.72),rgba(4,6,12,.9));animation:jPop .3s ease-out}
+#boonOv .bo-in{width:100%;max-width:400px;padding:16px 12px;text-align:center;color:#fff}
+#boonOv small{font-family:var(--f-display);font-size:11px;letter-spacing:.22em;color:#9fe0ff}
+#boonOv h2{margin:2px 0 14px;font-family:var(--f-display);font-size:24px;color:#ffd54a;text-shadow:0 3px 0 #000}
+#boonOv .bo-row{display:flex;gap:8px}
+#boonOv .bo-card{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px 12px;border-radius:16px;border:3px solid #7a4a10;background:linear-gradient(180deg,#3a2a5c,#1c1236);color:#fff;box-shadow:0 6px 0 #120b22,0 0 20px rgba(255,210,120,.25);animation:boIn .5s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes boIn{0%{opacity:0;transform:translateY(30px) rotateY(80deg)}100%{opacity:1;transform:none}}
+#boonOv .bo-e{font-size:34px;line-height:1;filter:drop-shadow(0 0 10px rgba(255,210,120,.6))}
+#boonOv .bo-card b{font-family:var(--f-display);font-size:13px;line-height:1.15}
+#boonOv .bo-card em{font-style:normal;font-size:11px;color:#d6c8f0;line-height:1.25}
+#boonOv .bo-have{margin:12px 0 0;font-size:13px;color:#cfd8e6}
+/* v1.0.82: the result screen */
+.card.res{position:relative;overflow:visible;text-align:center;border-radius:20px;border-width:3px}
+.card.res.win{background:radial-gradient(120% 60% at 50% 0%,#4a3a8a,#1c1440 55%,#0e0a22);border-color:#e3b661;box-shadow:0 0 0 2px #2a1a05,0 0 40px rgba(255,200,90,.35),0 18px 40px rgba(0,0,0,.6)}
+.card.res.lose{background:radial-gradient(120% 60% at 50% 0%,#5a1f1f,#2a0f12 55%,#140709);border-color:#9a2a2a;box-shadow:0 0 0 2px #1a0505,0 18px 40px rgba(0,0,0,.6)}
+.card.res h1{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:-34px}
+.card.res .rbn{display:inline-block;padding:8px 30px;font-family:var(--f-display);font-size:24px;font-weight:900;letter-spacing:.14em;color:#3a2205;
+  background:linear-gradient(180deg,#ffe97a,#f2a62c);border:3px solid #7a4a10;border-radius:10px;box-shadow:0 5px 0 #7a4a10,0 10px 20px rgba(0,0,0,.5);clip-path:polygon(0 0,100% 0,96% 50%,100% 100%,0 100%,4% 50%);animation:jPop .45s cubic-bezier(.2,1.6,.4,1)}
+.card.res.lose .rbn{color:#fff;background:linear-gradient(180deg,#e14b4b,#8a1d1d);border-color:#3a0808;box-shadow:0 5px 0 #3a0808,0 10px 20px rgba(0,0,0,.5)}
+.card.res .big.stars{position:relative;display:flex;justify-content:center;align-items:flex-end;gap:6px;height:84px;margin:6px 0 4px;font-size:0}
+.card.res .big.stars .rays{position:absolute;left:50%;top:50%;width:260px;height:260px;margin:-130px 0 0 -130px;border-radius:50%;background:repeating-conic-gradient(rgba(255,220,140,.22) 0 10deg,rgba(255,220,140,0) 10deg 24deg);animation:hmSpin 18s linear infinite;-webkit-mask:radial-gradient(circle,#000 20%,transparent 66%);mask:radial-gradient(circle,#000 20%,transparent 66%);pointer-events:none}
+.card.res .rs{position:relative;font-size:54px;line-height:1;color:rgba(255,255,255,.12);text-shadow:0 3px 0 rgba(0,0,0,.4);opacity:0;scale:2.4;rotate:-25deg}
+.card.res .rs:nth-of-type(2){font-size:68px;margin-bottom:8px}
+.card.res .rs.on{color:#ffd54a;text-shadow:0 3px 0 #7a4a10,0 0 18px rgba(255,210,80,.8)}
+.card.res .rs.landed{opacity:1;scale:1;rotate:0deg;transition:scale .35s cubic-bezier(.2,1.8,.4,1),rotate .35s ease-out,opacity .15s}
+.card.res .resrow{margin-top:8px}
+.rshake{animation:rShake .5s cubic-bezier(.36,.07,.19,.97)}
+@keyframes rShake{10%,90%{translate:-2px 0}20%,80%{translate:4px 0}30%,50%,70%{translate:-7px 0}40%,60%{translate:7px 0}}
+.rconf{position:fixed;top:-12px;z-index:150;width:8px;height:12px;border-radius:2px;pointer-events:none;animation:rFall 2s cubic-bezier(.3,.6,.5,1) both}
+@keyframes rFall{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(var(--rx),105vh) rotate(var(--rr));opacity:.9}}
+@media (prefers-reduced-motion: reduce){.card.res .rs{opacity:1;scale:1;rotate:0deg}.rconf{display:none}}
+/* v1.0.83: the currencies */
+.cic{display:inline-block;width:1.05em;height:1.05em;vertical-align:-.18em;margin:0 .05em}.cic svg{width:100%;height:100%;display:block;filter:drop-shadow(0 1px 0 rgba(0,0,0,.45))}
+/* v1.0.84: lucky chests */
+#cer.lucky .lkst{display:flex;gap:6px;margin:4px 0 2px;font-size:30px;line-height:1}
+#cer.lucky .lkst i{font-style:normal;color:rgba(255,255,255,.18);text-shadow:0 2px 0 rgba(0,0,0,.4)}
+#cer.lucky .lkst i.on{color:#ffd54a;text-shadow:0 2px 0 #7a4a10,0 0 14px rgba(255,210,80,.7)}
+#cer.lucky .lkst i.pop{animation:lkPop .55s cubic-bezier(.2,1.8,.4,1)}
+@keyframes lkPop{0%{scale:3;rotate:-40deg;opacity:0}100%{scale:1;rotate:0;opacity:1}}
+#cer.lucky .cchest{cursor:pointer}
+#cer.lucky .cchest.lkhit{animation:lkHit .6s cubic-bezier(.2,1.6,.4,1)}
+@keyframes lkHit{0%{scale:1}25%{scale:.86;filter:brightness(1.6)}60%{scale:1.18;filter:brightness(1.3)}100%{scale:1}}
+#cer.lucky .cchest.lkmiss{animation:lkMiss .35s ease-in-out}
+@keyframes lkMiss{0%,100%{rotate:0}30%{rotate:-6deg}70%{rotate:5deg}}
+#cer.lucky .tap b{color:#ffd54a;font-size:16px}
+#cer .lkres{min-height:22px;margin-top:6px;font-family:var(--f-display);font-size:14px;letter-spacing:.08em;color:#cfe6ff}
+#cer .lkres.up{color:#ffd54a;font-size:20px;text-shadow:0 2px 0 #7a4a10,0 0 16px rgba(255,210,80,.7);animation:jPop .4s cubic-bezier(.2,1.6,.4,1)}
+/* v1.0.85: drawn items */
+.gic svg{width:82%;height:82%;filter:drop-shadow(0 2px 1px rgba(0,0,0,.55))}
+.gic.r3,.gic.r4{overflow:hidden}
+.gic.r3::after,.gic.r4::after{content:'';position:absolute;inset:-40%;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.35) 50%,transparent 60%);animation:gaShine 3.4s ease-in-out infinite;pointer-events:none}
+@keyframes gaShine{0%,60%{transform:translateX(-60%)}100%{transform:translateX(60%)}}
+.gic.r4{box-shadow:0 0 12px rgba(255,200,90,.55)}
 </style>
 </head>
 <body>
@@ -1970,7 +2151,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.72';
+const VERSION='1.0.85';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -2585,6 +2766,7 @@ function camApply(){if(CAM.z===1&&CAM.x===W/2&&CAM.y===H/2)return;ctx.translate(
 function toWorld(x,y){return{x:(x-W/2)/CAM.z+CAM.x,y:(y-H/2)/CAM.z+CAM.y};}
 const overlay=$('#overlay'),card=$('#card'),sheet=$('#sheet');
 function resetRun(map){
+  G.boon=null;G.boons=[];G.boonDone={};G.boonAsk=null;clearTimeout(G.boonT);{const o=document.getElementById('boonOv');if(o)o.remove();}
   CAM.z=CAM.tz=1;CAM.x=CAM.tx=W/2;CAM.y=CAM.ty=H/2;
   G.map=map;G.tick=0;G.time=0;G.kills=0;G.wave=0;G.doorMax=Math.round((1000+(UP('leather')?200:0)+(UP('ironwood')?400:0))*DIFF().gate);G.doorHp=G.doorMax;
   G.enemies=[];G.allies=[];G.projs=[];G.fx=[];G.texts=[];G.traps=[];G.clouds=[];G.deaths=[];G.gateBonus=(UP('leather')?200:0)+(UP('ironwood')?400:0);
@@ -2661,6 +2843,7 @@ function buildWave(n,rng,o){
   return list;
 }
 function startWave(){
+  if(boonCheck())return;   /* v1.0.80: a blessing first; the wave starts when one is chosen */
   if(G.tut&&G.tut.want==='call')tutEvent('call');
   G.wave++;SFX.play('horn');G.spawnQueue=buildWave(G.wave,G.rng,G.wo);G.spawnT=0;G.waveDone=false;G.spawnInt=Math.max(0.42,0.95-G.wave*0.02);
   const q=G.spawnQueue,has=t=>q.indexOf(t)>=0;const nw=q.filter(k=>!G.seen[k]);nw.forEach(k=>G.seen[k]=1);
@@ -2685,13 +2868,13 @@ function heroXp(n){const h=G.hero;if(!h||h.dead||h.bLvl>=1)return;h.bxp+=n*(1+(s
 function dmg(e,a,src,quiet){if(e.hp<=0)return;if(!quiet&&src!=='burn'&&src!=='poison'&&src!=='glass')e.hitT=G.time;let v=a*e.mark;
   if(e.ice&&src!=='glass'&&src!=='hero'&&src!=='power'&&!(G.dgUntil>G.time))v*=1-e.ice;
   if(e.armorRanged&&(src==='watch'||src==='scorp'))v*=e.armorRanged;
-  if(e.physImmune&&(src==='watch'||src==='scorp'||src==='ally'))v*=e.physImmune;if(e.dragon&&src!=='scorp'&&src!=='dany'&&src!=='power')v*=0.3;if(e.armored&&src==='scorp')v*=tMile('scorp',1)?3:2.5;if(e.dragon&&src==='scorp'&&tMile('scorp',3))v*=1.3;if(G.time<G.warcryUntil&&(src==='watch'||src==='scorp'||src==='wild'||src==='glass'))v*=G.warcryMult;e.hp-=v;e.lastSrc=src;if(e.hp<=0)kill(e,src);}
+  if(e.physImmune&&(src==='watch'||src==='scorp'||src==='ally'))v*=e.physImmune;if(e.dragon&&src!=='scorp'&&src!=='dany'&&src!=='power')v*=0.3;if(e.armored&&src==='scorp')v*=tMile('scorp',1)?3:2.5;if(e.dragon&&src==='scorp'&&tMile('scorp',3))v*=1.3;if(G.time<G.warcryUntil&&(src==='watch'||src==='scorp'||src==='wild'||src==='glass'))v*=G.warcryMult;if(G.boon)v*=boonMul(src);e.hp-=v;e.lastSrc=src;if(e.hp<=0)kill(e,src);}
 function kill(e,src){
   if(e.dead)return;e.hp=0;e.dead=true;if(e.left)return;
   let g=Math.round(e.gold*(1+0.008*(G.wave-1))*((G.mod&&G.mod.gold)||1)*DIFF().gold*(UP('coin')?1.12:1));
   const q=posE(e);if(G.hero&&G.heroOn&&!G.hero.dead){const bm=skVal(G.hero,'bloodmagic');if(bm&&G.doorHp<G.doorMax&&dist(q.x,q.y,G.hero.x,G.hero.y)<=100){G.doorHp=Math.min(G.doorMax,G.doorHp+bm);const hg=heldGate();addFx({t:'wave',x:q.x,y:q.y-8,tx:hg.x,ty:GATE_Y-12,life:0.45,col:'#e14b4b'});}}if(src==='hero'&&G.hero&&skLvl(G.hero,'goldtouch')){g=Math.round(g*(1+skVal(G.hero,'goldtouch')/100));addFx({t:'coins',x:q.x,y:q.y-8,life:0.6});}
   if(src==='hero'&&G.hero&&G.hero.tal&&G.hero.tal.k==='goldkill')g=Math.round(g*(1+G.hero.tal.v));if(src==='hero'&&G.gearGold)g=Math.round(g*(1+G.gearGold/100));if(G.goldx2Until>G.time)g*=2;if(src==='hero'&&G.hero&&!G.hero.dead){const rv=skVal(G.hero,'reave');if(rv)G.hero.hp=Math.min(G.hero.max,G.hero.hp+G.hero.max*rv/100);}
-  G.gold+=g;G.kills++;SFX.play('die',45);if(ACC){ACC.kc=ACC.kc||{};ACC.kc[e.type]=(ACC.kc[e.type]||0)+1;}addText(q.x,q.y-10,'+'+g,'#e3b661');corpseFx(e,q);if(G.hero&&G.heroOn)heroXp(src==='hero'?1:0.25);
+  if(G.boon&&G.boon.loot)g=Math.round(g*(1+G.boon.loot));G.gold+=g;G.kills++;SFX.play('die',45);if(ACC){ACC.kc=ACC.kc||{};ACC.kc[e.type]=(ACC.kc[e.type]||0)+1;}addText(q.x,q.y-10,'+'+g,'#e3b661');corpseFx(e,q);feelKill(e,q);if(G.hero&&G.heroOn)heroXp(src==='hero'?1:0.25);
   if(!e.boss&&!e.fly)G.deaths.push({type:e.type,prog:e.prog,t:G.time,route:e.route});
   if(!e.fly&&G.decals.length<70)G.decals.push({x:q.x,y:q.y,r:e.giant?15:e.boss?17:8,ice:!!e.walker,life:9});
   if(e.split){for(let i=0;i<e.split[1];i++)spawn(e.split[0],e.prog-2-i*4,e.route);}
@@ -3538,7 +3721,9 @@ const TOURS={
  battle:()=>[
   {sel:'.hubtop .cur',wait:()=>!!$('#bBattle'),text:'<b>Gold</b> 🪙 and <b>cards</b> level up your champions, towers and spells. <b>Dragonglass</b> 💎 opens chests and buys deals. Battles pay both.'},
   {sel:'#hubAva',text:'This is you: your champion\'s face and your <b>level</b>. Every upgrade you buy adds to it, and every level pays a chest. Tap it later for settings and the book.'},
-  {sel:'.tro',text:'Your road north: fifty stages, and the stars you have won. Every three stars fill the chest below it — chests hold gold, dragonglass and cards.'},
+  {sel:'.hmgoal',text:'Your road north: the next stage, its stars and how far you are of fifty. Tap it to open the map.'},
+  {sel:'.hmslots',text:'Four chests: <b>stars</b> fill the first, <b>levels</b> the second, the third is <b>free</b> every day and the fourth is <b>today\'s gift</b>. Something is always on its way.'},
+  {sel:'.hubtabs button[data-tab="tasks"]',text:'<b>Tasks</b>: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'},
   {sel:'#bBattle',tap:1,text:'<b>BATTLE!</b> opens the map at your next stage. Tap it.'}],
  coll:()=>[
   {sel:'.subtabs',text:'<b>Collection</b>: your loadout, champions, towers and spells. Each one is a card — collect copies from chests, then pay gold to raise its level.'},
@@ -3551,6 +3736,9 @@ const TOURS={
   {sel:()=>document.querySelectorAll('.hubbody .shopgrid')[1]||null,text:'<b>Chests</b> hold gold, dragonglass and card stacks — the rarer the chest, the rarer the cards. The wooden one is free once a day.'}],
  hold:()=>[onlineOpen()?{sel:'#bHold',text:'<b>Hold</b>: one map for the whole world each day, three tries, endless waves. Your best wave counts for your realm and your house.'}
   :{sel:'.lockbanner',text:'The daily <b>Hold</b> opens after stage '+ONLINE_AT+'. Until then you can watch the standings below.'}],
+ tasks:()=>[
+  {sel:'.subtabs.tks',text:'Three kinds of tasks: <b>Quests</b> reset every day, week and month; <b>Social</b> tasks pay once; <b>Friends</b> pay when friends join.'},
+  {sel:()=>document.querySelector('.tkbody .qrow')||document.querySelector('.tkbody'),text:'Win battles to fill the bars, then tap <b>Claim</b>. On Monday and Tuesday <b>Quest Rush</b> doubles every quest.'}],
  events:()=>[
   {sel:()=>document.querySelector('.hubbody .evcard'),text:'<b>Events</b>: the daily Hold is live; wars between the houses and seasons come later. Realm and house standings are below.'}],
 };
@@ -4644,7 +4832,7 @@ async function ecoChest(t,source,done){
     if(!ecoOn()&&!(await ecoStart()))throw new Error(ECO.err||'offline');
     const r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('chest_open',{seat:seatNo(),tier:t,source},10000);ecoApply(x.state);await gearLoadRaw(true);return x;});
     ecoWait(false);
-    ECO.roll={id:r.chest,gold:+r.gold||0,gems:+r.gems||0,stacks:r.stacks,fills:+r.fills||0,books:r.books||[]};try{openChest(t,done);}finally{ECO.roll=null;}
+    ECO.roll={id:r.chest,taps:r.taps,tier:r.tier,gold:+r.gold||0,gems:+r.gems||0,stacks:r.stacks,fills:+r.fills||0,books:r.books||[]};try{openChest(t,done);}finally{ECO.roll=null;}
   }catch(e){ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))ecoRefresh();
     ecoModal('📦 The chest stays shut',ecoNet(m)?'No connection to the server. Chests on this seat open only through it — try again in a moment.':esc(m),[{t:'OK',f:ecoRedraw}]);}
   finally{ECO.busyC=false;}}
@@ -4770,7 +4958,7 @@ async function gearLoadRaw(announce){if(!CLOUD.on||!CLOUD.token)return;const sea
 function gearLoad(announce){return ecoLane(()=>gearLoadRaw(announce));}
 function tierPips(it){return '★'.repeat(gearTier(it))+'<i>'+'★'.repeat(5-gearTier(it))+'</i>';}
 function gearIcon(it,px){const R=GEAR_RAR[it.r],k=gearKind(it),art=GEAR_ART[it.slot+':'+k[0]]||GEAR_ART[it.slot],sa=SET_ART[it.set];
-  return `<span class="gic" style="--gc:${R[1]};${px?'font-size:'+px+'px':''}">${art?`<img src="${art}" alt="">`:k[1]}<b class="gset">${sa?`<img src="${sa}" alt="">`:GEAR_SET[it.set][0]}</b><u class="gtier">${tierPips(it)}</u>${it.perks&&it.perks.length?`<s class="gpk2">${'✦'.repeat(it.perks.length)}</s>`:''}${it.lvl?`<em>+${it.lvl}</em>`:''}</span>`;}
+  return `<span class="gic r${it.r}" style="--gc:${R[1]};${px?'font-size:'+px+'px':''}">${art?`<img src="${art}" alt="">`:gearArt(it.slot,k[0],it.r,it.set)}<b class="gset">${sa?`<img src="${sa}" alt="">`:GEAR_SET[it.set][0]}</b><u class="gtier">${tierPips(it)}</u>${it.perks&&it.perks.length?`<s class="gpk2">${'✦'.repeat(it.perks.length)}</s>`:''}${it.lvl?`<em>+${it.lvl}</em>`:''}</span>`;}
 /* ---------- the forge screen: the champion's 9 slots, its set bonuses, the bag ---------- */
 function gearBonusBlock(cid){const I=gearSetInfo(cid),C=gearCfg()||{},A=C.bonus_all||{},rows=[];
   for(const s of I.sets){const S=GEAR_SET[s.k];rows.push(`<div class="gbn ${s.steps.some(x=>x.on)?'on':''}"><b>${S[0]} ${S[1]} · ${s.n}</b>${s.steps.map(x=>`<span class="${x.on?'on':''}">${x.th}: ${gearBonusText(x.bonus,x.on?x.times:1)}${x.times>1?' ×'+x.times:''}</span>`).join('')}</div>`);}
@@ -4957,7 +5145,7 @@ function dailyLoad(force){if(!ecoOn())return Promise.resolve(null);
 function dailyReady(){const s=DAILY.st;if(!s||DAILY.seat!==seatNo())return 0;let n=s.login&&s.login.can?1:0;
   for(const k in (s.periods||{}))for(const q of s.periods[k].q)if(q.cur>=q.need&&!q.claimed)n++;return n;}
 function dailyBtnHTML(){const n=dailyOn()?dailyReady():0;
-  return `<button class="cbld" id="bDaily"><span class="ic">📜</span><span class="tx"><b>Daily &amp; quests</b><small>${dailyOn()?(n?`<em class="dn">${n} ready</em>`:'calendar · quests'):'a Telegram seat'}</small></span></button>`;}
+  return `<button class="hbtn" id="bDaily"><span class="ic">${icon('daily',26)}</span><b>Daily</b>${n?`<i class="dot">${n}</i>`:''}</button>`;}
 function dailyBtnRefresh(){if(!dailyOn())return;dailyLoad().then(()=>{const b=document.getElementById('bDaily');if(b)b.outerHTML=dailyBtnHTML(),dailyBtnBind();});}
 function dailyBtnBind(){const b=document.getElementById('bDaily');if(b)b.addEventListener('click',()=>{SFX.play('tap',60);showDaily();});}
 /* what a claim did */
@@ -4981,16 +5169,17 @@ const REF_BOT='https://t.me/HoldorTDBot/play?startapp=r_';
 function refLink(code){return REF_BOT+code;}
 function refShare(link){const u='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent('Hold the Door with me!');try{if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank');}catch(e){}}
 function refCopy(link){try{navigator.clipboard.writeText(link).then(()=>ecoToast('Link copied'),()=>ecoToast(link));}catch(e){ecoToast(link);}}
-function frLoad(){if(!ecoOn())return Promise.resolve(null);const seat=seatNo();
-  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('ref_state',{seat},9000);if(seat===seatNo()){DAILY.fr=r;DAILY.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
+function frLoad(force){if(!ecoOn())return Promise.resolve(null);const seat=seatNo();
+  if(!force&&DAILY.fr&&DAILY.seat===seat&&Date.now()-(DAILY.frAt||0)<8000)return Promise.resolve(DAILY.fr);
+  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('ref_state',{seat},9000);if(seat===seatNo()){DAILY.fr=r;DAILY.frAt=Date.now();DAILY.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
 async function dailyClaimFr(other){if(DAILY.busy||!ecoOn())return;DAILY.busy=true;ecoWait(true);
   try{const seat=seatNo(),args=other==null?{seat}:{seat,other},r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('ref_claim',args,10000);ecoApply(x.state);return x;});
     DAILY.fr=r.friends;DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);dailyClaimModal(r,'👥 A friend’s gift');}
   catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await frLoad();ecoModal('👥 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily('friends')}]);}}
 /* a new player who opened the game from an invite link joins his friend (once per device; the server checks he is really new) */
-function refJoinFromStart(){try{const sp=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.start_param;if(sp&&/^d_[0-9a-f]{8}$/i.test(sp)){DUEL.pending=sp.slice(2);ecoToast('🤝 A friend challenged you — open Events → Duel');return;}if(sp&&/^s_[a-z0-9_]{2,16}$/i.test(sp)&&CLOUD.token){const k0='holdor_src';if(localStorage.getItem(k0)===sp)return;localStorage.setItem(k0,sp);sbRpc('src_set',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).catch(()=>{});return;}if(!sp||!/^r_[0-9a-f]{8}$/i.test(sp)||!CLOUD.token)return;
+function refJoinFromStart(){try{const sp=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.start_param;if(sp&&/^d_[0-9a-f]{8}$/i.test(sp)){DUEL.pending=sp.slice(2);return;}if(sp&&/^s_[a-z0-9_]{2,16}$/i.test(sp)&&CLOUD.token){const k0='holdor_src';if(localStorage.getItem(k0)===sp)return;localStorage.setItem(k0,sp);sbRpc('src_set',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).catch(()=>{});return;}if(!sp||!/^r_[0-9a-f]{8}$/i.test(sp)||!CLOUD.token)return;
   const k='holdor_refjoin';if(localStorage.getItem(k)===sp)return;localStorage.setItem(k,sp);
-  sbRpc('ref_join',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).then(r=>{if(r&&r.by)ecoToast('👥 You joined '+r.by+'’s house of friends — clear 5 stages for a gift');}).catch(()=>{});}catch(e){}}
+  sbRpc('ref_join',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).then(r=>{if(r&&r.by)ecoToast('👥 You joined '+r.by+'’s house of friends — clear 5 stages for a gift');}).catch(e=>{const m=String(e&&e.message||e);if(/only a new player|already invited/.test(m))setTimeout(()=>ecoToast('👥 You already play HOLDOR — friend gifts are for new players. You can still duel your friend: ask for a duel link.'),2500);});}catch(e){}}
 /* the popup when the castle opens and today's reward waits (once a session; never over a tutorial or a tour) */
 function dailyPopupCheck(){
   if(DAILY.shown||!dailyOn()||G.state==='play'||(G.tut)||(typeof COACH!=='undefined'&&COACH.on)||CLOUD.screen!=='hub:battle')return;
@@ -5003,7 +5192,7 @@ function dailyPopupCheck(){
 function fmtLeft(s){const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return d?d+'d '+h+'h':h?h+'h '+m+'m':m+'m';}
 function showDaily(tab){
   DAILY.tab=tab||DAILY.tab||'cal';
-  const tabs=[['cal','📅 Calendar'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['levels','⭐ Levels'],['friends','👥 Invite']];
+  const tabs=[['cal','📅 Calendar'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['levels','⭐ Levels']];
   const head=`<div class="topbar"><h1>📜 Daily &amp; quests<small>Rewards are paid by the server. Progress counts only battles it has seen.</small></h1><button class="back" id="bBack">✖</button></div>
    <div class="subtabs">${tabs.map(([k,n])=>`<button class="${k===DAILY.tab?'on':''}" data-t="${k}">${n}</button>`).join('')}</div>`;
   const draw=body=>{show(head+body);CLOUD.screen='daily:'+DAILY.tab;$('#bBack').addEventListener('click',()=>showHub('battle'));card.querySelectorAll('.subtabs button').forEach(b=>b.addEventListener('click',()=>showDaily(b.dataset.t)));};
@@ -5052,6 +5241,7 @@ const CITY_SKY={stark:['#2c3e55','#7f95ad'],lannister:['#5a1f1f','#c9a24a'],targ
 const CITY_BLD=[
   ['keep','🏰','Keep','tower and spell cards',0,()=>showHub('coll')],
   ['barracks','⚔️','Barracks','train the house army',0,()=>showTrain()],
+  ['alchemist','🧪','Alchemist','one-shot battle items',0,()=>showSpellShop()],
   ['market','🏪','Market','chests, deals, dragonglass',0,()=>showShop()],
   ['treasury','📜','Treasury','daily calendar and quests',2,()=>showDaily()],
   ['forge','⚒️','Forge','gear, tiers, sets',3,()=>showForge()],
@@ -5090,19 +5280,33 @@ function duelRow(d){const who=d.kind==='ai'?'🤖 Bot':d.kind==='friend'?'🤝 '
   const dl=d.delta?`<small class="${d.delta>0?'dw':'dl'}">${d.delta>0?'+':''}${d.delta}</small>`:'';
   const sh=d.result==='win'?`<div class="pvrow"><button class="btn sec" data-shwin="${d.me.waves}|${d.me.kills}|${d.kind==='ai'?'a bot':esc(d.opponent)}">📨 Share the win</button></div>`:'';
   const link=d.kind==='friend'&&d.status==='open'&&d.mine&&d.waiting?`<div class="reflink"><code>${esc(DUEL_BOT+d.code)}</code></div><div class="pvrow"><button class="btn" data-share="${d.code}">📨 Send to a friend</button><button class="btn sec" data-copy="${d.code}">Copy</button></div>`:'';
+  const open=d.status==='open',mineRan=d.me&&d.me.score!=null,theyRan=d.them&&d.them.score!=null;
+  const mSt=open?(mineRan?'<small class="dw">✔ your run counts</small>':'<small class="dp">▶ play a Hold run</small>'):'';
+  const tSt=open&&d.kind==='friend'&&!d.waiting?(theyRan?'<small class="dw">✔ has played</small>':'<small class="dx">not played yet</small>'):'';
+  const play=open&&!mineRan&&!d.waiting?`<div class="pvrow"><button class="btn" data-play="1">▶ Play my Hold run</button></div>`:'';
   return `<div class="duelrow ${d.result||d.status}"><div class="dh"><span>${who}</span>${res}${dl}${left}</div>
-    <div class="ds"><span>You<br><em>${sc(d.me)}</em></span><i>vs</i><span>${d.waiting?'waiting for a friend':esc(d.kind==='ai'?'Bot':d.opponent)}<br><em>${sc(d.them)}</em></span></div>${link}${sh}</div>`;}
+    <div class="ds"><span>You<br><em>${sc(d.me)}</em>${mSt}</span><i>vs</i><span>${d.waiting?'waiting for a friend to open the link':esc(d.kind==='ai'?'Bot':d.opponent)}<br><em>${sc(d.them)}</em>${tSt}</span></div>${link}${play}${sh}</div>`;}
+/* the Hold run for a duel, straight from the duel (the same checks as the Hold button) */
+function duelPlay(){if(!onlineOpen()){ecoToast('🔒 The Hold opens after gate '+ONLINE_AT);return;}
+  if(ACC.online.attempts<=0){SFX.play('deny');ecoModal('🚪 No attempts left',"Today's Hold attempts are used — a new day brings more, or buy one for 40 💎 on the Hold tab.",[{t:'To the Hold',f:()=>showHub('hold')},{t:'Close'}]);return;}
+  SFX.play('tap',80);startGame({mode:'online'});}
+/* opened from a friend's link: join, then show the duel */
+function duelPendingOpen(){if(!DUEL.pending)return;if(!ecoOn()){setTimeout(duelPendingOpen,800);return;}
+  if(!duelOn()){const c=DUEL.pending;DUEL.pending=null;ecoModal('🤝 A duel challenge',!ACC.tut?'Finish the tutorial battle first — then open the link again.':'Duels are fought on the Hold map, which opens after gate '+ONLINE_AT+'. Hold '+ONLINE_AT+' gates and open the link again.',[{t:'OK'}]);return;}
+  showDuel();}
+function duelCardHTML(){if(!ACC||!ACC.tut)return '';const s=DUEL.st&&DUEL.seat===seatNo()?DUEL.st:null,n=s?s.duels.filter(d=>d.status==='open').length:0;
+  return `<button class="evcard live" id="bDuelCard"><span class="ic">⚔️</span><span class="tx"><b>Duel</b><small>${n?n+' open · play a Hold run to count':'challenge a friend by link, or a ranked opponent'}</small></span><span class="st">${onlineOpen()?'LIVE':'GATE '+ONLINE_AT}</span></button>`;}
 async function duelCall(fn,args,after){if(DUEL.busy||!ecoOn())return;DUEL.busy=true;ecoWait(true);
   try{const r=await ecoLane(async()=>{await ecoSyncRaw();return await ecoRpc(fn,Object.assign({seat:seatNo()},args),10000);});
     ecoWait(false);DUEL.busy=false;DUEL.at=0;DUEL.st=null;after&&after(r);}
   catch(e){DUEL.busy=false;ecoWait(false);const m=ecoMsg(e);ecoModal('⚔️ Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,140)),[{t:'OK',f:()=>showDuel()}]);}}
 function duelShare(code){const link=DUEL_BOT+code,u='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent('I challenge you to a Hold the Door duel!');try{if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank');}catch(e){}}
 async function duelJoinPending(){const code=DUEL.pending;if(!code||!ecoOn())return;DUEL.pending=null;
-  try{const r=await ecoLane(async()=>{await ecoSyncRaw();return await ecoRpc('duel_join',{seat:seatNo(),code},9000);});DUEL.at=0;ecoToast('🤝 You joined '+r.duel.opponent+'’s duel — play your Hold run');}
-  catch(e){ecoToast('⚠️ '+String(ecoMsg(e)).slice(0,80));}}
+  try{const r=await ecoLane(async()=>{await ecoSyncRaw();return await ecoRpc('duel_join',{seat:seatNo(),code},9000);});DUEL.at=0;DUEL.st=null;ecoToast('🤝 You joined '+r.duel.opponent+'’s duel — now play one Hold run',true);}
+  catch(e){const m=String(ecoMsg(e));ecoToast(/your own challenge/.test(m)?'🤝 This is your own challenge — send the link to a friend':/joined already/.test(m)?'🤝 Someone else has joined this duel already':/over/.test(m)?'🤝 This duel is over':'⚠️ '+m.slice(0,80));}}
 function showDuel(){
   const head=`<div class="topbar"><h1>⚔️ Duel<small>Same Hold map, two runs, one winner. The server compares what it recorded.</small></h1><button class="back" id="bBack">✖</button></div>`;
-  const draw=body=>{show(head+body);CLOUD.screen='duel';$('#bBack').addEventListener('click',()=>showHub('events'));};
+  const draw=body=>{show(head+body);CLOUD.screen='duel';$('#bBack').addEventListener('click',()=>showHub('hold'));};
   if(!duelOn()){draw(`<p class="m">${!ecoOn()?'Duels are recorded by the server — they need a seat signed in through Telegram.':!ACC.tut?'Finish the tutorial battle first.':'Duels open with the Hold, after gate '+ONLINE_AT+'.'}</p>`);return;}
   if(DUEL.pending){duelJoinPending().then(()=>{if(CLOUD.screen==='duel')showDuel();});}
   const s=DUEL.st&&DUEL.seat===seatNo()?DUEL.st:null;
@@ -5112,13 +5316,12 @@ function showDuel(){
   draw(`<div class="lg"><span class="le">${DUEL_LEAGUE[s.league]||'🥉'}</span><b>${s.league}</b><span class="rt">${s.rating}</span><small>${s.wins}W · ${s.losses}L · ${s.draws}D</small></div>
     <div class="dbtns"><button class="btn" id="bRank" ${s.rank_left>0?'':'disabled'}>⚔️ Ranked duel <small>${s.rank_left} left today</small></button>
     <button class="btn sec" id="bFriend">🤝 Challenge a friend</button><button class="btn sec" id="bAi">🤖 Practice vs a bot <small>no rating</small></button></div>
-    <p class="m">${open?'<b>Play your Hold run</b> (the Hold tab): the best run you finish from the moment a duel opens counts. Hold attempts are shared with the daily Hold.':'Pick a duel. Ranked: a recorded run of a real player near your rating (he is not asked and loses nothing), or a bot when nobody fits.'}</p>
-    ${open?'<button class="btn" id="bPlayHold">🚪 To the Hold</button>':''}
+    <p class="m">${open?'<b>How it works:</b> each of you plays <b>one Hold run</b> (endless waves on today\'s map). The best run finished after the duel opened counts; when both have played, the server picks the winner. A friend duel stays open two days.':'Pick a duel. Ranked: a recorded run of a real player near your rating (he is not asked and loses nothing), or a bot when nobody fits.'}</p>
     <div class="qlist">${s.duels.map(duelRow).join('')||'<p class="m">No duels yet.</p>'}</div>`);
-  const go=(kind)=>duelCall('duel_start',{kind},r=>showDuel());
+  const go=(kind)=>duelCall('duel_start',{kind},r=>{if(kind==='rank'&&r&&r.duel&&r.duel.kind==='ai')ecoToast('No ranked opponent near your rating yet — a practice duel against the bot instead');showDuel();});
   $('#bRank').addEventListener('click',()=>go('rank'));$('#bAi').addEventListener('click',()=>go('ai'));
   $('#bFriend').addEventListener('click',()=>duelCall('duel_start',{kind:'friend'},r=>{showDuel();}));
-  const ph=$('#bPlayHold');if(ph)ph.addEventListener('click',()=>showHub('hold'));
+  card.querySelectorAll('[data-play]').forEach(b=>b.addEventListener('click',duelPlay));
   card.querySelectorAll('[data-shwin]').forEach(b=>b.addEventListener('click',()=>{const [w,k,who]=b.dataset.shwin.split('|');shareDuel(w,k,who);}));
   card.querySelectorAll('[data-share]').forEach(b=>b.addEventListener('click',()=>duelShare(b.dataset.share)));
   card.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',()=>{try{navigator.clipboard.writeText(DUEL_BOT+b.dataset.copy).then(()=>ecoToast('Link copied'),()=>ecoToast(DUEL_BOT+b.dataset.copy));}catch(e){ecoToast(DUEL_BOT+b.dataset.copy);}}));
@@ -5133,8 +5336,8 @@ function seasonLoad(force){if(!ecoOn())return Promise.resolve(null);
   if(!force&&SEASON.st&&SEASON.seat===seatNo()&&Date.now()-SEASON.at<8000)return Promise.resolve(SEASON.st);
   const seat=seatNo();
   return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('season_state',{seat},9000);if(seat===seatNo()){SEASON.st=r;SEASON.at=Date.now();SEASON.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
-function seasonBtnHTML(){const s=seasonOn()&&SEASON.st&&SEASON.seat===seatNo()?SEASON.st:null;
-  return `<button class="cbld" id="bSeason"><span class="ic">🏆</span><span class="tx"><b>Season</b><small>${seasonOn()?(s?`tier ${s.tier}/${s.tiers}${s.pass?' · Pass':''}${s.vip.active?' · VIP':''}`:'pass · VIP · rewards'):'a Telegram seat'}</small></span></button>`;}
+function seasonBtnHTML(){
+  return `<button class="hbtn" id="bSeason"><span class="ic">${icon('season',26)}</span><b>Season</b></button>`;}
 function seasonBtnBind2(){const b=document.getElementById('bSeason');if(b)b.addEventListener('click',()=>{SFX.play('tap',60);showSeason();});}
 async function seasonClaim(t,track){if(SEASON.busy||!ecoOn())return;SEASON.busy=true;ecoWait(true);
   try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('season_claim',{seat,tier:t,track},10000);ecoApply(x.state);return x;});
@@ -5180,6 +5383,571 @@ function shareText(text){shareLink().then(link=>{const u='https://t.me/share/url
   try{if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank');}catch(e){}});}
 function shareWin(stage,stars){shareText(`I held gate ${stage} ${'⭐'.repeat(Math.max(1,stars||1))} in HOLDOR — Hold the Door! Join my house:`);}
 function shareDuel(waves,kills,who){shareText(`I won a HOLDOR duel: ${waves} waves, ${kills} of the dead put down, against ${who}. Beat that:`);}
+/* =========================== EVENTS + THE INVITATION BLOCK (v1.0.74; the estate was closed in v1.0.76, backend v20) ===========================
+   Events are no tab: two-day windows (Mon–Tue Quest Rush — quest rewards doubled; Fri–Sat Duel Cup — ranked duel gifts doubled) pop up once
+   with a countdown, and a small badge on the home screen brings the popup back. The schedule below is the server's rule (ev_at) in JavaScript.
+   The invitation block is drawn in the Tasks tab. */
+const EVT_KIND={rush:{n:'Quest Rush',e:'📜',d:'Every quest reward is doubled for these two days — daily, weekly and monthly.',go:'To the Tasks',f:()=>showHub('tasks','quests')},
+                cup:{n:'Duel Cup',e:'🏆',d:'Ranked duel gifts are doubled for these two days.',go:'To the Duel',f:()=>showDuel()}};
+/* the same rule as ev_at() in backend/holdor_v20.sql: Mon–Tue rush, Wed–Thu the cup is next, Fri–Sat cup, Sun the rush is next (UTC) */
+function evAt(ms){const d=new Date(ms),dow=((d.getUTCDay()+6)%7)+1,day0=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()),DAY=86400000;let kind,active,t0;
+  if(dow<=2){kind='rush';active=true;t0=day0-(dow-1)*DAY;}else if(dow===5||dow===6){kind='cup';active=true;t0=day0-(dow-5)*DAY;}
+  else if(dow<=4){kind='cup';active=false;t0=day0+(5-dow)*DAY;}else{kind='rush';active=false;t0=day0+DAY;}
+  return{kind,active,t0,t1:t0+2*DAY};}
+function evLeft(s){s=Math.max(0,Math.floor(s/1000));const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60),x=s%60;
+  return (d?d+'d ':'')+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0');}
+function evBadgeHTML(){if(!ACC||!ACC.tut)return '';const e=evAt(Date.now()),K=EVT_KIND[e.kind],t=e.active?e.t1-Date.now():e.t0-Date.now();
+  return `<button class="evbadge ${e.active?'on':''}" id="evBadge" data-t="${e.active?e.t1:e.t0}" data-a="${e.active?1:0}"><span>${K.e}</span><b>${K.n}</b><em>${e.active?'ends in':'in'} ${evLeft(t)}</em></button>`;}
+function evBadgeTick(){const b=document.getElementById('evBadge');if(b){const t=+b.dataset.t-Date.now();const em=b.querySelector('em');if(em)em.textContent=(b.dataset.a==='1'?'ends in ':'in ')+evLeft(t);}
+  const c=document.getElementById('evCd');if(c){const e=evAt(Date.now());c.textContent=(e.active?'ends in ':'starts in ')+evLeft(e.active?e.t1-Date.now():e.t0-Date.now());}
+  if(document.getElementById('evBadge')||document.getElementById('evCd'))setTimeout(evBadgeTick,1000);}
+function evBadgeBind(){const b=document.getElementById('evBadge');if(!b)return;b.addEventListener('click',()=>{SFX.play('tap',60);evPopup(true);});evBadgeTick();}
+/* the popup: once per event window, only over the home screen, never over a tutorial, a tour or another popup */
+function evPopup(force){const e=evAt(Date.now()),K=EVT_KIND[e.kind];if(!ACC||!ACC.tut)return;
+  if(!force&&!e.active)return;
+  ecoModal(`${K.e} ${K.n}`,`<div class="evpop"><div class="evcd" id="evCd">${e.active?'ends in':'starts in'} ${evLeft(e.active?e.t1-Date.now():e.t0-Date.now())}</div><p>${K.d}</p>${!ecoOn()?'<small>Needs a seat signed in through Telegram.</small>':''}</div>`,
+    [{t:K.go,f:()=>K.f()},{t:'Later'}]);evBadgeTick();}
+function evPopupCheck(){if(navigator.webdriver)return;   /* automated tests open the popup themselves (evPopup(true)) */
+  if(!ACC||!ACC.tut||G.state==='play'||G.tut||(typeof COACH!=='undefined'&&COACH.on)||CLOUD.screen!=='hub:battle')return;
+  if(document.querySelector('#ecoModal.on')||document.querySelector('#cer:not(.hidden)'))return;
+  const e=evAt(Date.now());if(!e.active)return;const key='holdor_ev',mark=e.kind+':'+e.t0;
+  try{if(localStorage.getItem(key)===mark)return;localStorage.setItem(key,mark);}catch(x){}
+  evPopup(false);}
+/* the invitation block (backend v14): the link, the two gifts, each friend's progress, the claims */
+function invBox(){
+  const head=`<div class="hh" style="margin-top:14px"><h2>Invite friends</h2><small>a gift for you both</small></div>`;
+  if(!ecoOn())return head+'<p class="m">Invitations are kept by the server — they need a seat signed in through Telegram.</p>';
+  const f=DAILY.fr&&DAILY.seat===seatNo()?DAILY.fr:null;
+  if(!f)return head+'<p class="m">⏳ asking the server…</p>';
+  const link=refLink(f.code),pc=x=>Math.round(100*x.stages/f.need);
+  const row=(x,mine)=>`<div class="qrow ${x.claimed?'done':''} ${x.done&&!x.claimed?'ready':''}"><div class="qt"><b>${esc(x.name)}${mine?' <small>invited you</small>':''}</b><span class="qbar"><i style="width:${pc(x)}%"></i><em>${x.stages} / ${f.need} stages</em></span><span class="qrw">${rewardChips(mine?f.invitee_gift:f.inviter_gift,1)}</span></div>
+    <button data-f="${mine?'me':x.who}" ${x.done&&!x.claimed?'':'disabled'}>${x.claimed?'✔':x.done?'Claim':'…'}</button></div>`;
+  return head+`<div class="invbox"><p class="m">When a friend clears <b>${f.need} stages</b>, you both get a gift: <span class="qrw">${rewardChips(f.inviter_gift,1)}</span> for you, <span class="qrw">${rewardChips(f.invitee_gift,1)}</span> for them. Up to ${f.cap} friends${f.paid?` · rewarded so far: <b>${f.paid}</b>`:''}.</p>
+    <div class="pvrow"><button class="btn" id="bInvShare">📨 Send to a friend</button><button class="btn sec" id="bInvCopy">Copy link</button></div>
+    <div class="qlist">${f.mine?row(f.mine,true):''}${f.invited.map(x=>row(x,false)).join('')||(f.mine?'':'<p class="m">Nobody has joined yet.</p>')}</div></div>`;}
+function invBind(){const f=DAILY.fr&&DAILY.seat===seatNo()?DAILY.fr:null;if(!f)return;const link=refLink(f.code);
+  const bs=$('#bInvShare');if(bs)bs.addEventListener('click',()=>{SFX.play('tap',60);refShare(link);});const bc=$('#bInvCopy');if(bc)bc.addEventListener('click',()=>refCopy(link));
+  card.querySelectorAll('.invbox .qrow button[data-f]').forEach(b=>b.addEventListener('click',()=>dailyClaimFr(b.dataset.f==='me'?null:+b.dataset.f)));}
+/* =========================== TASKS (v1.0.76, backend v20) ===========================
+   The Tasks tab took Earn's place in the bottom bar. Three parts, like the quest screens of Brawl Stars and Clash Royale:
+   Quests  — daily / weekly / monthly (quest_state, the same numbers as the Daily screen); Mon–Tue "Quest Rush" doubles every reward.
+   Social  — open a link (the HOLDOR channel, the chat, X, YouTube, TikTok) or share the game; the gift can be claimed ten seconds after
+             the server saw the link opened. A link task shows up only when the owner has filled its url on the server.
+   Friends — the friend tasks (one and three friends joined) and the invitation block (link, gifts, each friend's progress).
+   Everything is paid by the server; the app only shows what the server sends and asks it to pay. */
+const TASKS={st:null,at:0,seat:-1,sub:'quests',busy:false};
+function tasksOn(){return !!(ecoOn()&&ACC&&ACC.tut);}
+function tasksLoad(force){if(!ecoOn())return Promise.resolve(null);
+  if(!force&&TASKS.st&&TASKS.seat===seatNo()&&Date.now()-TASKS.at<8000)return Promise.resolve(TASKS.st);
+  const seat=seatNo();
+  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('task_state',{seat},9000);if(seat===seatNo()){TASKS.st=r;TASKS.at=Date.now();TASKS.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
+function tkState(){return TASKS.st&&TASKS.seat===seatNo()?TASKS.st:null;}
+function tkQuestsReady(){const s=DAILY.st&&DAILY.seat===seatNo()?DAILY.st:null;let n=0;if(!s)return 0;
+  for(const k in (s.periods||{}))for(const q of s.periods[k].q)if(q.cur>=q.need&&!q.claimed)n++;return n;}
+function tkReady(kind){const s=tkState();if(!s)return 0;return s.items.filter(i=>i.st==='ready'&&(kind==='social'?i.kind==='link':kind==='friends'?i.kind==='ref':true)).length;}
+/* the red number on the tab: quests to claim + tasks to claim */
+function tasksReady(){return tasksOn()?tkQuestsReady()+tkReady():0;}
+function tkRush(){const e=evAt(Date.now());return e.kind==='rush'&&e.active?e:null;}
+function tkDouble(r){if(!r)return r;const o={};if(r.gold)o.gold=r.gold*2;if(r.gems)o.gems=r.gems*2;if(r.books){o.books={};for(const k in r.books)o.books[k]=r.books[k]*2;}if(r.gear)o.gear=r.gear;return o;}
+function tkOpenUrl(u){try{if(/^https:\/\/t\.me\//i.test(u)&&TG&&TG.openTelegramLink)TG.openTelegramLink(u);else if(TG&&TG.openLink)TG.openLink(u);else window.open(u,'_blank');}catch(e){}}
+function tkShareLink(){const f=DAILY.fr&&DAILY.seat===seatNo()?DAILY.fr:null;return f?refLink(f.code):'https://t.me/HoldorTDBot/play?startapp=s_share';}
+
+/* ---------- drawing ---------- */
+function tkQuestRows(kind,P,rush){const list=QUESTS[kind]||[];
+  return P.q.map(q=>{const def=list.find(x=>x.id===q.id)||{t:q.id,r:{}},ready=q.cur>=q.need&&!q.claimed,pc=Math.round(100*q.cur/q.need);
+    return `<div class="qrow tk ${q.claimed?'done':''} ${ready?'ready':''}"><div class="qt"><b>${esc(def.t)}</b><span class="qbar"><i style="width:${pc}%"></i><em>${fmtN(q.cur)} / ${fmtN(q.need)}</em></span><span class="qrw">${rewardChips(rush&&!q.claimed?tkDouble(def.r):def.r,1)}${rush&&!q.claimed?'<b class="x2">×2</b>':''}</span></div>
+      <button class="${ready?'go':''}" data-q="${q.id}" ${ready?'':'disabled'}>${q.claimed?'✔':ready?'Claim':'…'}</button></div>`;}).join('');}
+function tkQuests(){const s=DAILY.st&&DAILY.seat===seatNo()?DAILY.st:null;if(!s)return '<p class="m">⏳ asking the server…</p>';
+  const rush=tkRush(),names={daily:'Daily',weekly:'Weekly',monthly:'Monthly'};
+  return ['daily','weekly','monthly'].map(k=>{const P=s.periods[k];if(!P)return '';
+    return `<div class="tksec"><h3>${names[k]}<small>resets in ${fmtLeft(P.left)}</small></h3><div class="qlist">${tkQuestRows(k,P,!!rush)}</div></div>`;}).join('')+
+    `<button class="tkmore" id="bTkCal">📅 Login calendar &amp; level gifts ›</button>`;}
+function tkBtn(i){if(i.st==='done')return '<button disabled>✔</button>';
+  if(i.st==='ready')return `<button class="go" data-c="${i.id}">Claim</button>`;
+  if(i.st==='wait')return `<button disabled data-w="${i.id}" data-until="${Date.now()+i.left*1000}">⏳ ${i.left}s</button>`;
+  return i.kind==='link'?`<button class="go" data-o="${i.id}">${i.url==='share'?'Share':'Go'}</button>`:'<button disabled>…</button>';}
+function tkRow(i){const prog=i.kind==='ref'?`<span class="qbar"><i style="width:${Math.round(100*i.cur/i.need)}%"></i><em>${i.cur} / ${i.need}</em></span>`:'';
+  return `<div class="qrow tkr ${i.st==='done'?'done':''} ${i.st==='ready'?'ready':''}"><span class="tki">${i.kind==='ref'?icon('friends',26):i.url==='share'?icon('social',26):(i.e||'⭐')}</span><div class="qt"><b>${esc(i.n)}</b>${prog}<span class="qrw">${rewardChips(i.r,1)}</span></div>${tkBtn(i)}</div>`;}
+function tkSocial(){const s=tkState();if(!s)return '<p class="m">⏳ asking the server…</p>';
+  const L=s.items.filter(i=>i.kind==='link');
+  return `<p class="m">Open a link, stay a few seconds, come back and claim. Each gift is once per Telegram account.</p><div class="qlist">${L.map(tkRow).join('')}</div>
+    ${L.filter(i=>i.url!=='share').length?'':'<p class="m dim">More tasks are coming: the HOLDOR channel, the players\' chat and our pages.</p>'}`;}
+function tkFriends(){const s=tkState();const F=s?s.items.filter(i=>i.kind==='ref'):[];
+  return `${F.length?`<div class="qlist">${F.map(tkRow).join('')}</div>`:''}${invBox()}`;}
+function hubTasks(sub){
+  const head=`<div class="hh"><h2>Tasks</h2><small>gifts paid by the server</small></div>`;
+  if(!tasksOn())return head+`<p class="m">${ecoOn()?'Finish the tutorial battle first.':'Tasks are kept by the server — they need a seat signed in through Telegram.'}</p>`;
+  if(sub)TASKS.sub=sub;sub=TASKS.sub;
+  const rush=tkRush(),e=evAt(Date.now());
+  const strip=rush?`<div class="rushstrip on"><b>📜 Quest Rush</b><span>every quest pays ×2</span><em id="tkRushCd">${evLeft(rush.t1-Date.now())}</em></div>`
+    :e.kind==='rush'?`<div class="rushstrip"><b>📜 Quest Rush</b><span>quests ×2 on Monday and Tuesday</span><em id="tkRushCd">in ${evLeft(e.t0-Date.now())}</em></div>`:'';
+  const n={quests:tkQuestsReady(),social:tkReady('social'),friends:tkReady('friends')+((DAILY.fr&&DAILY.seat===seatNo()&&DAILY.fr.invited||[]).filter(x=>x.done&&!x.claimed).length)};
+  const tabs=[['quests',icon('quests',16)+' Quests'],['social',icon('social',16)+' Social'],['friends',icon('friends',16)+' Friends']];
+  const body=sub==='social'?tkSocial():sub==='friends'?tkFriends():tkQuests();
+  return head+strip+`<div class="subtabs tks">${tabs.map(([k,t])=>`<button class="${k===sub?'on':''}" data-tk="${k}">${t}${n[k]?`<i class="dot">${n[k]}</i>`:''}</button>`).join('')}</div><div class="tkbody">${body}</div>`;}
+
+/* ---------- claims ---------- */
+async function tkCall(fn,args,after){if(TASKS.busy||!ecoOn())return;TASKS.busy=true;ecoWait(true);
+  try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc(fn,Object.assign({seat},args),10000);if(x.state)ecoApply(x.state);return x;});
+    if(r.tasks){TASKS.st=r.tasks;TASKS.at=Date.now();TASKS.seat=seat;}if(r.quests){DAILY.st=r.quests;DAILY.at=Date.now();DAILY.seat=seat;}
+    ecoWait(false);TASKS.busy=false;persist();after&&after(r);}
+  catch(e){TASKS.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m)){await tasksLoad(true);await dailyLoad(true);}
+    ecoModal('📜 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,140)),[{t:'OK',f:()=>{if(CLOUD.screen==='hub:tasks')showHub('tasks');}}]);}}
+function tkPaid(btn,r,title){SFX.play('collect');if(r.reward&&r.reward.gear)gearLoad(true);
+  const rw=r.reward||{};try{if(btn&&typeof flyReward==='function'){if(rw.gems)flyReward(btn,{k:'gems',n:'+'+rw.gems});else if(rw.gold)flyReward(btn,{k:'gold',n:'+'+fmtN(rw.gold)});}}catch(e){}
+  ecoToast(`${title} · ${[rw.gems?'+'+rw.gems+' 💎':'',rw.gold?'+'+fmtN(rw.gold)+' 🪙':''].filter(Boolean).join(' ')}${r.rush?' (×2 Quest Rush)':''}`,true);
+  if(CLOUD.screen==='hub:tasks')showHub('tasks');}
+function tkOpen(id,btn){const s=tkState();const i=s&&s.items.find(x=>x.id===id);if(!i)return;SFX.play('tap',60);
+  if(i.url==='share')refShare(tkShareLink());else tkOpenUrl(i.url);
+  tkCall('task_open',{task:id},()=>{if(CLOUD.screen==='hub:tasks')showHub('tasks');});}
+/* the ten-second countdown on opened links */
+function tkTick(){if(CLOUD.screen!=='hub:tasks')return;let any=false,done=false;
+  card.querySelectorAll('button[data-w]').forEach(b=>{const left=Math.ceil((+b.dataset.until-Date.now())/1000);if(left>0){b.textContent='⏳ '+left+'s';any=true;}else done=true;});
+  const c=document.getElementById('tkRushCd');if(c){const e=evAt(Date.now());c.textContent=e.active&&e.kind==='rush'?evLeft(e.t1-Date.now()):'in '+evLeft(e.t0-Date.now());any=true;}
+  if(done){tasksLoad(true).then(()=>{if(CLOUD.screen==='hub:tasks')showHub('tasks');});return;}
+  if(any)setTimeout(tkTick,1000);}
+function hubTasksBind(){
+  if(tasksOn()){const a=TASKS.st,b=DAILY.st,c=DAILY.fr;
+    tasksLoad().then(r=>{if(r&&r!==a&&CLOUD.screen==='hub:tasks')showHub('tasks');});
+    dailyLoad(Date.now()-DAILY.at>8000).then(r=>{if(r&&r!==b&&CLOUD.screen==='hub:tasks')showHub('tasks');});
+    if(TASKS.sub==='friends'||TASKS.sub==='social')frLoad().then(r=>{if(r&&r!==c&&CLOUD.screen==='hub:tasks')showHub('tasks');});}
+  card.querySelectorAll('.subtabs.tks button').forEach(b=>b.addEventListener('click',()=>{SFX.play('tap',50);TASKS.sub=b.dataset.tk;showHub('tasks');}));
+  card.querySelectorAll('.tkbody button[data-q]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.q,q=questName(id);tkCall('quest_claim',{quest:id},r=>tkPaid(b,r,'📜 '+(q?q.t:'Quest done')));}));
+  card.querySelectorAll('.tkbody button[data-o]').forEach(b=>b.addEventListener('click',()=>tkOpen(b.dataset.o,b)));
+  card.querySelectorAll('.tkbody button[data-c]').forEach(b=>b.addEventListener('click',()=>{const s=tkState(),i=s&&s.items.find(x=>x.id===b.dataset.c);tkCall('task_claim',{task:b.dataset.c},r=>tkPaid(b,r,(i?i.e+' '+i.n:'Task done')));}));
+  const cal=$('#bTkCal');if(cal)cal.addEventListener('click',()=>{SFX.play('tap',60);showDaily('cal');});
+  invBind();tkTick();
+}
+/* =========================== JUICE (v1.0.77) ===========================
+   Small motion everywhere, the way Royal Match, Random Dice and Galaxy Defense make a plain screen feel alive. Display only: nothing
+   here changes the game, the economy or the simulation (the battle reads G, never writes it).
+   · every button springs when pressed (the CSS `scale` property, so it adds to the buttons' own transforms)
+   · gold and dragonglass count up to their new value, and coins fly from where a reward came from into the counter
+   · the first time a tab opens, its rows and buttons rise in one after another
+   · in battle: the gold counter bumps when it grows, and kill streaks call out (×8 · RAMPAGE ×15 · UNSTOPPABLE ×25 · LEGENDARY ×40)
+   Players who ask their phone for less motion (prefers-reduced-motion) get none of it. */
+const JUICE={cur:{},tab:null,fly:0,streak:[],shout:0,hg:0,calm:false};
+try{JUICE.calm=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){}
+/* ---- the press spring ---- */
+function juicePressBind(){if(JUICE.bound)return;JUICE.bound=true;
+  const on=e=>{const b=e.target&&e.target.closest&&e.target.closest('button,.btn,.hbtn,.ebld,.cday');if(!b||b.disabled)return;b.classList.add('jp');JUICE.pb=b;};
+  const off=()=>{const b=JUICE.pb;if(!b)return;JUICE.pb=null;b.classList.remove('jp');if(JUICE.calm)return;b.classList.add('jr');setTimeout(()=>b.classList.remove('jr'),420);};
+  document.addEventListener('pointerdown',on,{passive:true});document.addEventListener('pointerup',off,{passive:true});document.addEventListener('pointercancel',off,{passive:true});}
+/* ---- numbers that count ---- */
+function juiceNumNode(el){for(const n of el.childNodes)if(n.nodeType===3&&/\d/.test(n.textContent))return n;return null;}
+function juiceParse(t){t=String(t).trim().replace(/,/g,'');const m=t.match(/^([\d.]+)\s*([kKmM]?)$/);if(!m)return null;return parseFloat(m[1])*(m[2]?(/k/i.test(m[2])?1e3:1e6):1);}
+function juiceCount(el,from,to,ms){const n=juiceNumNode(el);if(!n)return;if(JUICE.calm||from===to){n.textContent=fmtN(to);return;}
+  const t0=performance.now();el.classList.add('jbump');setTimeout(()=>el.classList.remove('jbump'),500);
+  const step=()=>{const k=Math.min(1,(performance.now()-t0)/ms),e=1-Math.pow(1-k,3);n.textContent=fmtN(Math.round(from+(to-from)*e));if(k<1&&n.isConnected)requestAnimationFrame(step);};requestAnimationFrame(step);}
+function juiceCurrencies(){const sp=document.querySelectorAll('.hubtop .cur > span');if(sp.length<2)return;
+  const now={gold:goldOf(),gems:ACC.gems};[['gold',sp[0]],['gems',sp[1]]].forEach(([k,el])=>{el.dataset.cur=k;const was=JUICE.cur[k];
+    if(was!=null&&was!==now[k]){const n=juiceNumNode(el);if(n)n.textContent=fmtN(was);juiceCount(el,was,now[k],700);}JUICE.cur[k]=now[k];});}
+/* ---- coins fly into the counter ---- */
+function juiceCoins(from,kind){if(JUICE.calm||!from||!from.getBoundingClientRect||(kind!=='gold'&&kind!=='gems'))return;
+  const to=document.querySelector(`.hubtop .cur > span[data-cur="${kind}"]`)||document.querySelectorAll('.hubtop .cur > span')[kind==='gold'?0:1];if(!to)return;
+  const a=from.getBoundingClientRect(),b=to.getBoundingClientRect();if(!a.width&&!a.height)return;
+  const x0=a.left+a.width/2,y0=a.top+a.height/2,x1=b.left+18,y1=b.top+b.height/2,N=8;
+  for(let i=0;i<N;i++){const c=document.createElement('div');c.className='jcoin';c.innerHTML=kind==='gold'?GOLD_SVG:GEM_SVG;document.body.appendChild(c);
+    const sx=x0+(Math.random()-0.5)*60,sy=y0+(Math.random()-0.5)*30,mx=(sx+x1)/2+(Math.random()-0.5)*120,my=Math.min(sy,y1)-60-Math.random()*80;
+    const fr=[];for(let s=0;s<=12;s++){const t=s/12,u=1-t;fr.push({transform:`translate(${u*u*sx+2*u*t*mx+t*t*x1-11}px,${u*u*sy+2*u*t*my+t*t*y1-11}px) scale(${1.15-0.45*t}) rotate(${t*300}deg)`,opacity:t<0.9?1:0.4});}
+    const an=c.animate(fr,{duration:620+i*45,easing:'cubic-bezier(.45,.05,.55,.95)',delay:i*35,fill:'both'});
+    an.onfinish=()=>{c.remove();if(i===N-1){to.classList.add('jbump');setTimeout(()=>to.classList.remove('jbump'),450);try{SFX.play('gold',80);}catch(e){}}};}}
+/* ---- a tab rises in (only when the tab changes, not on every redraw) ---- */
+function juiceRise(tab){if(JUICE.calm||JUICE.tab===tab){JUICE.tab=tab;return;}JUICE.tab=tab;
+  const items=[...document.querySelectorAll('#hubBody .hbtn,#hubBody .qrow,#hubBody .tksec h3,#hubBody .chestrow,#hubBody .battlerow,#hubBody .evcard,#hubBody .shopcard,#hubBody .deal,#hubBody .ccard')].slice(0,14);
+  items.forEach((el,i)=>{el.style.animationDelay=(i*45)+'ms';el.classList.add('jrise');setTimeout(()=>{el.classList.remove('jrise');el.style.animationDelay='';},700+i*45);});}
+function juiceHub(tab){try{juicePressBind();juiceCurrencies();juiceRise(tab);}catch(e){}}
+/* ---- battle: the gold counter and kill streaks (display only) ---- */
+const JUICE_SHOUT=[[40,'LEGENDARY','#ffd54a'],[25,'UNSTOPPABLE','#ff9a3c'],[15,'RAMPAGE','#ff6a4a'],[8,'×8','#e9eef5']];
+function juiceFrame(){if(G.state!=='play'||JUICE.calm)return;
+  const g=Math.floor(G.gold||0),pn=performance.now();if(g>JUICE.hg&&JUICE.hg>0&&pn-(JUICE.hgT||0)>300){JUICE.hgT=pn;const el=document.getElementById('hGold');if(el){el.classList.remove('jbump');void el.offsetWidth;el.classList.add('jbump');}}JUICE.hg=g;
+  const t=G.time||0,k=G.kills||0;if(JUICE.lastK==null||k<JUICE.lastK||t<(JUICE.lastT||0)){JUICE.lastK=k;JUICE.lastT=t;JUICE.streak=[];JUICE.shout=0;return;}
+  for(let i=JUICE.lastK;i<k;i++)JUICE.streak.push(t);JUICE.lastK=k;JUICE.lastT=t;
+  while(JUICE.streak.length&&t-JUICE.streak[0]>2.2)JUICE.streak.shift();
+  const n=JUICE.streak.length;if(n<8){if(n<3)JUICE.shout=0;return;}
+  const s=JUICE_SHOUT.find(x=>n>=x[0]);if(!s||s[0]<=JUICE.shout)return;JUICE.shout=s[0];
+  const st=document.getElementById('stage');if(!st)return;const d=document.createElement('div');d.className='jshout';d.style.color=s[2];
+  d.innerHTML=s[0]===8?`<b>${n} KILLS</b>`:`<b>${s[1]}</b><small>×${n}</small>`;st.appendChild(d);setTimeout(()=>d.remove(),1400);try{SFX.play(s[0]>=25?'crit':'hit',200);}catch(e){}}
+/* rewards that already call flyReward also send coins to the counter */
+if(typeof flyReward==='function'){const fly0=flyReward;flyReward=function(from,d){fly0(from,d);try{if(d&&(d.k==='gold'||d.k==='gems'))juiceCoins(from,d.k);}catch(e){}};}
+/* =========================== HOME: THREE LOOKS (v1.0.78) ===========================
+   The home screen is built so there is always something to take or to wait for — the lesson of Clash Royale, Brawl Stars and Kingdom Rush:
+     a live strip (rank · the event with its countdown · today's Hold runs), a big living stage, the next goal, four chest slots
+     (star chest · level chest · the free chest with its timer · today's gift), the five quick buttons and one big BATTLE.
+   Three looks, switched with the 🎨 button on the stage (kept on this device; ?skin=a|b|c also sets it):
+     A "Hero stage"  — the champion stands in a spotlight with turning rays and the house sigil (Brawl Stars / Arknights). Tap: he strikes.
+     B "Living gate" — a night scene drawn every frame: moon, fog, the dead walking out of the dark toward a gate with torches (Galaxy Defense).
+     C "War map"     — the map of the realm drifts under the clouds, flags on held stages, the next one pulsing (Kingdom Rush).
+   The ids the tutorial and the tests know (#bBattle, #starChest, #lvlChest, #bCity, #bTavern, #bForge, #bDaily, #bSeason, #hubTro,
+   #bChampH, #bMapH/#bDiffH, #evBadge) stay. Display only. */
+const SKINS={a:{n:'Hero stage',e:'🦸'},b:{n:'Living gate',e:'🚪'},c:{n:'War map',e:'🗺️'}};
+const HOME={raf:0,t0:0,skin:null,mobs:null,parts:null,hit:0,atk:0,tick:0};
+function skinOf(){try{const u=new URLSearchParams(location.search).get('skin');if(u&&SKINS[u]&&!HOME.urlDone){HOME.urlDone=1;localStorage.setItem('holdor_skin',u);}
+  const k=localStorage.getItem('holdor_skin');return SKINS[k]?k:'b';}catch(e){return 'b';}}
+function skinSet(k){try{localStorage.setItem('holdor_skin',k);}catch(e){}HOME.mobs=null;HOME.parts=null;if(CLOUD.screen==='hub:battle')showHub('battle');}
+function skinNext(){const o=['a','b','c'],k=o[(o.indexOf(skinOf())+1)%3];skinSet(k);ecoToast(`${SKINS[k].e} ${SKINS[k].n} · ${o.indexOf(k)+1} / 3`,true);}
+/* ---------- the pieces ---------- */
+function homeStrip(){const R=myRank(),e=evAt(Date.now()),K=EVT_KIND[e.kind],left=e.active?e.t1-Date.now():e.t0-Date.now();
+  const hold=onlineOpen()?`<button class="hpill ${ACC.online.attempts>0?'hot':''}" id="hmHold">${icon('door',18)}<b>${ACC.online.attempts}</b><small>Hold runs</small></button>`
+    :`<button class="hpill off" id="hmHold">🔒<small>Hold at stage ${ONLINE_AT}</small></button>`;
+  return `<div class="hmstrip"><button class="hpill" id="hubTro">${rankSVG(R.t,20,R.div)}<b>${trophiesOf()}</b></button>
+    <button class="hpill ev ${e.active?'on':''}" id="evBadge" data-t="${e.active?e.t1:e.t0}" data-a="${e.active?1:0}">${K.e}<b>${K.n}</b><em>${e.active?'ends in':'in'} ${evLeft(left)}</em></button>${hold}</div>`;}
+function homeGoal(){const L=nextStage(),NG=LEVELS.length,g=Object.keys(campOf()).length,st=campOf()[L.id]||0;
+  return `<button class="hmgoal" id="hmGoal"><span class="gl"><small>${campOf()[L.id]?'DEFEND AGAIN':'NEXT'}</small><b>${L.id} · ${esc(L.n)}</b></span><span class="gs">${'★'.repeat(st)}<i>${'★'.repeat(3-st)}</i></span><span class="gp"><i style="width:${Math.round(100*g/NG)}%"></i><em>${g}/${NG}</em></span></button>`;}
+function homeSlots(){const sN=starChestsReady(),prog=starsEarned()%3,lN=lvlChestsReady(),L=accLevel();
+  const fr=freeChestReady(),fl=fr?0:(ACC.freeChestAt+86400000-Date.now());
+  const d=dailyOn()?(DAILY.st&&DAILY.seat===seatNo()?DAILY.st.login:null):null,dReady=!!(d&&d.can);
+  const ring=p=>`style="--p:${Math.round(p*100)}"`;
+  return `<div class="hmslots">
+    <button class="slot ${sN>0?'ready':''}" id="starChest" ${ring(sN>0?1:prog/3)}><span class="si">${chestSVG('iron')}</span><em>${sN>0?'OPEN':prog+'/3 ★'}</em>${sN>1?`<b class="cnt">×${sN}</b>`:''}</button>
+    ${lN>0?`<button class="slot ready" id="lvlChest" ${ring(1)}><span class="si">${chestSVG(lvlChestTier((ACC.lvlChests||0)+2))}</span><em>OPEN</em>${lN>1?`<b class="cnt">×${lN}</b>`:''}</button>`
+      :`<button class="slot" id="lvlNext" ${ring(L.xp/L.need)}><span class="si dim">${chestSVG(lvlChestTier(L.l+1))}</span><em>LV ${L.l+1}</em></button>`}
+    <button class="slot ${fr?'ready':''}" id="freeChest" ${ring(fr?1:1-fl/86400000)}><span class="si">${chestSVG('wood')}</span><em data-until="${fr?0:ACC.freeChestAt+86400000}">${fr?'FREE':fmtT(fl).str}</em></button>
+    <button class="slot ${dReady?'ready':''}" id="dailyGift" ${ring(dReady?1:1-msToMidnightUTC()/86400000)}><span class="si gift">${icon('gift',38)}</span><em data-midnight="${dReady?0:1}">${!dailyOn()?'DAILY':dReady?'CLAIM':fmtT(msToMidnightUTC()).str}</em></button></div>`;}
+function homeQuick(){return `<div class="homerow"><button class="hbtn" id="bCity"><span class="ic">${icon('city',26)}</span><b>City</b></button><button class="hbtn" id="bTavern"><span class="ic">${icon('tavern',26)}</span><b>Tavern</b></button><button class="hbtn" id="bForge"><span class="ic">${icon('forge',26)}</span><b>Forge</b></button>${dailyBtnHTML()}${seasonBtnHTML()}</div>`;}
+function homeBattleRow(){const c=CBY[ACC.sel],L=nextStage(),pu=CHAMP_ART[c.id+'_portrait'];
+  return `<div class="battlerow">${hardOpen()?`<button class="bside" id="bDiffH"><span class="pe">${DIFFS[ACC.diff].e}</span>${DIFFS[ACC.diff].lbl}</button>`:`<button class="bside" id="bMapH"><span class="pe">🗺️</span>Map</button>`}
+    <button class="bbig ${ACC.tut?'':'pulse'}" id="bBattle">${ACC.tut?'BATTLE!':'BEGIN'}<small>${ACC.tut?(campOf()[L.id]?'DEFEND AGAIN':'STAGE '+L.id):'YOUR FIRST LESSON'}</small></button>
+    <button class="bside" id="bChampH">${pu?`<img src="${pu}" alt="">`:`<span class="pe">${c.e}</span>`}${shortName(c)}</button></div>`;}
+/* ---------- the three stages ---------- */
+function hmStageA(){const c=CBY[ACC.sel],p=cprog(ACC,c.id),hh=HOUSES[ACC.house];
+  return `<div class="stA"><div class="rays"></div><img class="sig" src="${SIGILS[ACC.house]||''}" alt=""><div class="plat"></div>
+    <img class="hero" id="hmHero" src="${CHAMP_ART[c.id]||''}" alt=""><canvas class="hmfx" id="hmFx"></canvas>
+    <div class="cn"><b>${esc(c.n)}</b><small>Level ${p.lvl} · House ${hh.n}</small></div></div>`;}
+function hmStageB(){return `<div class="stB"><canvas id="hmGate"></canvas></div>`;}
+function hmStageC(){const L=nextStage(),cam=campOf();
+  const pins=LEVELS.map(l=>{const q=MAPPOS[l.id];if(!q)return '';const done=!!cam[l.id],nx=l.id===L.id;if(!done&&!nx)return '';
+    return `<span class="pin ${nx?'nx':''}" style="left:${q[0]}px;top:${q[1]}px">${nx?`<i>⚔</i><b>${l.id}</b>`:'<i class="fl"></i>'}</span>`;}).join('');
+  return `<div class="stC"><div class="mapin" id="hmMap" data-x="${(MAPPOS[L.id]||[360,600])[0]}" data-y="${(MAPPOS[L.id]||[360,600])[1]}" style="width:${MAPW}px;height:${MAPH}px;background-image:url(${MAP_ART})">${pins}</div>
+    <div class="cl c1"></div><div class="cl c2"></div><div class="cl c3"></div><div class="vig"></div></div>`;}
+function hubHome(){const hh=HOUSES[ACC.house],k=skinOf();
+  const st=k==='a'?hmStageA():k==='c'?hmStageC():hmStageB();
+  return `${homeStrip()}<div class="hmstage st-${k}" id="hmStage">${st}<div class="hmtitle"><b>${hh.seat}</b></div><button class="hmskin" id="bSkin" title="Change the look">🎨</button>${homeGoal()}</div>
+    ${homeSlots()}${homeQuick()}${homeBattleRow()}
+    ${ACC.tut?'':'<div class="hint">▲ TAP BEGIN — YOUR CHAMPION WILL TEACH YOU</div>'}${ACC.refund?`<div class="hint" id="refundNote">🪙 Tower upgrades are now tower levels — ${ACC.refund} gold refunded. Collection → Towers.</div>`:''}`;}
+/* ---------- binding, timers ---------- */
+function homeBind(){
+  const on=(id,f)=>{const b=document.getElementById(id);if(b)b.addEventListener('click',f);};
+  on('bSkin',()=>{SFX.play('swipe',40);skinNext();});
+  on('hmGoal',()=>{SFX.play('tap',60);if(!ACC.tut)startTutorial();else showCampaign();});
+  on('hmHold',()=>{SFX.play('tap',60);if(onlineOpen())showHub('hold');else ecoToast(`🔒 The Hold opens after stage ${ONLINE_AT}`);});
+  on('lvlNext',()=>{SFX.play('tap',40);const L=accLevel();ecoToast(`⭐ Level ${L.l+1}: ${fmtN(L.need-L.xp)} XP more — then this chest is yours`);});
+  on('freeChest',e=>{if(!freeChestReady()){SFX.play('deny');ecoToast('🕑 The free chest comes back in '+fmtT(ACC.freeChestAt+86400000-Date.now()).str);return;}
+    SFX.play('tap',60);if(ecoWants()){ecoChest('wood','shop',()=>showHub('battle'));return;}ACC.freeChestAt=Date.now();persist();openChest('wood',()=>showHub('battle'));});
+  on('dailyGift',()=>{SFX.play('tap',60);if(!dailyOn()){showDaily();return;}const d=DAILY.st&&DAILY.seat===seatNo()?DAILY.st.login:null;if(d&&d.can)dailyClaimLogin();else showDaily('cal');});
+  if(dailyOn()&&!(DAILY.st&&DAILY.seat===seatNo()))dailyLoad().then(()=>{if(CLOUD.screen==='hub:battle'){const s=document.querySelector('.hmslots');if(s){s.outerHTML=homeSlots();homeSlotsRebind();}}});
+  const hero=document.getElementById('hmHero');if(hero)hero.addEventListener('click',homeStrike);
+  const gate=document.getElementById('hmGate');if(gate)gate.addEventListener('click',homeStrike);
+  const map=document.getElementById('hmMap');if(map)map.addEventListener('click',()=>{SFX.play('tap',60);showCampaign();});
+  HOME.skin=skinOf();homeStart();clearTimeout(HOME.tick);homeTickLoop();}
+/* the slots are redrawn alone when the calendar answers; their two old handlers are bound again */
+function homeSlotsRebind(){
+  const sc=$('#starChest');if(sc)sc.addEventListener('click',()=>{if(starChestsReady()>0){if(ecoWants()){ecoChest('iron','star',()=>showHub('battle'));return;}ACC.starChests=(ACC.starChests||0)+1;persist();openChest('iron',()=>showHub('battle'));}});
+  const lc=$('#lvlChest');if(lc)lc.addEventListener('click',()=>{if(lvlChestsReady()>0){const t=lvlChestTier((ACC.lvlChests||0)+2);if(ecoWants()){ecoChest(t,'level',()=>showHub('battle'));return;}ACC.lvlChests=(ACC.lvlChests||0)+1;persist();openChest(t,()=>showHub('battle'));}});
+  const on=(id,f)=>{const b=document.getElementById(id);if(b)b.addEventListener('click',f);};
+  on('lvlNext',()=>{SFX.play('tap',40);const L=accLevel();ecoToast(`⭐ Level ${L.l+1}: ${fmtN(L.need-L.xp)} XP more — then this chest is yours`);});
+  on('freeChest',()=>{if(!freeChestReady()){SFX.play('deny');ecoToast('🕑 The free chest comes back in '+fmtT(ACC.freeChestAt+86400000-Date.now()).str);return;}
+    SFX.play('tap',60);if(ecoWants()){ecoChest('wood','shop',()=>showHub('battle'));return;}ACC.freeChestAt=Date.now();persist();openChest('wood',()=>showHub('battle'));});
+  on('dailyGift',()=>{SFX.play('tap',60);if(!dailyOn()){showDaily();return;}const d=DAILY.st&&DAILY.seat===seatNo()?DAILY.st.login:null;if(d&&d.can)dailyClaimLogin();else showDaily('cal');});}
+function homeTickLoop(){if(CLOUD.screen!=='hub:battle'||!document.getElementById('hmStage'))return;
+  document.querySelectorAll('.hmslots em[data-until]').forEach(e=>{const u=+e.dataset.until;if(!u)return;const l=u-Date.now();if(l<=0){showHub('battle');return;}e.textContent=fmtT(l).str;});
+  document.querySelectorAll('.hmslots em[data-midnight="1"]').forEach(e=>{if(dailyOn())e.textContent=fmtT(msToMidnightUTC()).str;});
+  const eb=document.getElementById('evBadge');if(eb){const em=eb.querySelector('em');if(em)em.textContent=(eb.dataset.a==='1'?'ends in ':'in ')+evLeft(+eb.dataset.t-Date.now());}
+  HOME.tick=setTimeout(homeTickLoop,1000);}
+/* tap the champion or the gate: a strike */
+function homeStrike(){SFX.play('slash',120);HOME.atk=performance.now();const h=document.getElementById('hmHero');
+  if(h){const c=CBY[ACC.sel],a=CHAMP_ART[c.id+'_attack'];if(a){h.src=a;setTimeout(()=>{if(h.isConnected)h.src=CHAMP_ART[c.id];},380);}h.classList.remove('atk');void h.offsetWidth;h.classList.add('atk');}
+  if(HOME.mobs)for(const m of HOME.mobs)if(m.p>0.55&&!m.die)m.die=performance.now();}
+/* ---------- the animation loop (only while the home screen is on) ---------- */
+function homeStart(){cancelAnimationFrame(HOME.raf);HOME.t0=performance.now();const loop=now=>{if(CLOUD.screen!=='hub:battle'||!document.getElementById('hmStage')){HOME.raf=0;return;}
+    try{const k=HOME.skin;if(k==='b')hmDrawGate(now);else if(k==='a')hmDrawFx('hmFx',now);else hmDrawMap(now);}catch(e){HOME.err=e.message;}HOME.raf=requestAnimationFrame(loop);};
+  HOME.raf=requestAnimationFrame(loop);}
+function hmFit(cv){const r=cv.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1),w=Math.max(1,Math.round(r.width*d)),h=Math.max(1,Math.round(r.height*d));
+  if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}return {x:cv.getContext('2d'),W:r.width,H:r.height,d};}
+/* house weather: snow, embers, rain, petals, sand */
+function hmFxKind(){const P=ISLE_PAL[ACC.house]||ISLE_PAL.stark;return P.fx||'snow';}
+function hmFxStep(x,W,H,t,kind,n){if(!HOME.parts||HOME.parts.k!==kind||HOME.parts.W!==W){HOME.parts={k:kind,W,a:Array.from({length:n},()=>({x:Math.random()*W,y:Math.random()*H,v:0.4+Math.random(),s:0.6+Math.random()*1.6,ph:Math.random()*6.3}))};}
+  for(const p of HOME.parts.a){
+    if(kind==='ember'){p.y-=p.v*0.7;p.x+=Math.sin(t/700+p.ph)*0.4;if(p.y<-4){p.y=H+4;p.x=Math.random()*W;}x.fillStyle=`rgba(255,${150+Math.round(60*Math.sin(t/200+p.ph))},60,${0.55+0.4*Math.sin(t/300+p.ph)})`;x.beginPath();x.arc(p.x,p.y,p.s*0.9,0,6.28);x.fill();}
+    else if(kind==='rain'){p.y+=p.v*7;p.x-=p.v*1.2;if(p.y>H){p.y=-10;p.x=Math.random()*W*1.2;}x.strokeStyle='rgba(170,200,230,.35)';x.lineWidth=1;x.beginPath();x.moveTo(p.x,p.y);x.lineTo(p.x-2,p.y+9);x.stroke();}
+    else if(kind==='petal'){p.y+=p.v*0.6;p.x+=Math.sin(t/900+p.ph)*0.8;if(p.y>H+4){p.y=-4;p.x=Math.random()*W;}x.fillStyle='rgba(255,170,200,.75)';x.save();x.translate(p.x,p.y);x.rotate(t/600+p.ph);x.fillRect(-p.s*1.4,-p.s*0.7,p.s*2.8,p.s*1.4);x.restore();}
+    else if(kind==='sand'){p.x+=p.v*1.6;p.y+=Math.sin(t/500+p.ph)*0.3;if(p.x>W+4){p.x=-4;p.y=Math.random()*H;}x.fillStyle='rgba(240,200,140,.45)';x.fillRect(p.x,p.y,p.s,p.s);}
+    else{p.y+=p.v*0.8;p.x+=Math.sin(t/1000+p.ph)*0.5;if(p.y>H+4){p.y=-4;p.x=Math.random()*W;}x.fillStyle='rgba(255,255,255,.8)';x.beginPath();x.arc(p.x,p.y,p.s,0,6.28);x.fill();}}}
+function hmDrawFx(id,now){const cv=document.getElementById(id);if(!cv)return;const {x,W,H,d}=hmFit(cv);x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,W,H);hmFxStep(x,W,H,now,hmFxKind(),46);}
+function hmDrawMap(now){const m=document.getElementById('hmMap');if(!m)return;const st=document.getElementById('hmStage'),W=st.clientWidth,H=st.clientHeight,t=(now-HOME.t0)/1000;
+  const s=Math.max(W/MAPW*1.9,0.6),cx=+m.dataset.x,cy=+m.dataset.y,ox=W/2-cx*s+Math.sin(t*0.16)*26,oy=H*0.46-cy*s+Math.cos(t*0.12)*18;
+  m.style.transform=`translate(${ox}px,${oy}px) scale(${s*(1+0.03*Math.sin(t*0.1))})`;}
+/* B: the living gate */
+function hmDrawGate(now){const cv=document.getElementById('hmGate');if(!cv)return;const {x,W,H,d}=hmFit(cv),t=now-HOME.t0,P=ISLE_PAL[ACC.house]||ISLE_PAL.stark,hh=HOUSES[ACC.house];
+  x.setTransform(d,0,0,d,0,0);
+  let sh=0;if(HOME.hit&&now-HOME.hit<260)sh=(1-(now-HOME.hit)/260)*3;x.translate((Math.random()-0.5)*sh,(Math.random()-0.5)*sh);
+  const sky=x.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#060b18');sky.addColorStop(0.55,P.sky||'#22344a');sky.addColorStop(1,'#0a0f18');x.fillStyle=sky;x.fillRect(-4,-4,W+8,H+8);
+  // stars and the moon
+  for(let i=0;i<38;i++){const sx=(i*97.13)%W,sy=(i*53.7)%(H*0.42);x.fillStyle=`rgba(255,255,255,${0.25+0.35*Math.abs(Math.sin(t/900+i))})`;x.fillRect(sx,sy,1.3,1.3);}
+  const mx=W*0.8,my=H*0.17;let g=x.createRadialGradient(mx,my,4,mx,my,70);g.addColorStop(0,'rgba(230,240,255,.55)');g.addColorStop(1,'rgba(230,240,255,0)');x.fillStyle=g;x.fillRect(mx-70,my-70,140,140);
+  x.fillStyle='#e8eef8';x.beginPath();x.arc(mx,my,17,0,6.28);x.fill();x.fillStyle='rgba(150,165,190,.35)';x.beginPath();x.arc(mx-5,my-3,4,0,6.28);x.arc(mx+6,my+5,3,0,6.28);x.fill();
+  // far mountains, two layers
+  const hz=H*0.38,G0=H-50;   // the horizon; the ground line sits above the next-goal ribbon
+  for(const [col,amp,yb,sp] of [['#141d2c',38,hz-6,0.004],['#0e1520',26,hz+8,0.008]]){x.fillStyle=col;x.beginPath();x.moveTo(-4,H);for(let px=-4;px<=W+8;px+=8){const v=Math.sin(px*0.021+t*sp*0.01)*0.5+Math.sin(px*0.057+1.3)*0.35+Math.sin(px*0.009)*0.4;x.lineTo(px,yb-amp*(0.6+v*0.6));}x.lineTo(W+8,H);x.fill();}
+  // the dead walk out of the dark toward the gate
+  if(!HOME.mobs){const T=['walker','sword','axe','hound','crawler','spear','shield','giant','wolf','archer'];HOME.mobs=Array.from({length:7},(_,i)=>({k:T[i%T.length],p:i/7,lane:(Math.random()-0.5),v:0.000045+Math.random()*0.00003}));}
+  const gx=W/2,gy=H*0.56;
+  HOME.mobs.sort((a,b)=>a.p-b.p);
+  for(const m of HOME.mobs){m.p+=m.v*16;const y=hz+(gy-hz)*Math.pow(m.p,1.3),sc=0.25+0.75*m.p,mxp=gx+m.lane*W*0.9*(1-m.p)+m.lane*30*m.p;
+    if(m.die){const k=(now-m.die)/350;if(k>=1){m.die=0;m.p=0;m.lane=Math.random()-0.5;m.k=['walker','sword','axe','hound','crawler','spear'][Math.floor(Math.random()*6)];continue;}x.globalAlpha=1-k;}
+    if(m.p>=1){m.p=0;m.lane=Math.random()-0.5;HOME.hit=now;try{SFX.play('gate',900);}catch(e){}}
+    const im=enemyImg(m.k);const sz=78*sc;if(im){x.save();x.globalAlpha*=0.35+0.6*m.p;x.drawImage(im,mxp-sz/2,y-sz*0.9,sz,sz);x.restore();}
+    if(m.k==='walker'||m.k==='giant'){x.fillStyle=`rgba(120,210,255,${0.5+0.5*m.p})`;x.fillRect(mxp-3*sc,y-sz*0.68,2*sc,2*sc);x.fillRect(mxp+2*sc,y-sz*0.68,2*sc,2*sc);}
+    x.globalAlpha=1;}
+  // fog
+  for(let i=0;i<3;i++){const fy=hz+10+i*22,fx=((t*0.012*(i+1))%(W*2))-W*0.5;g=x.createRadialGradient(fx,fy,4,fx,fy,W*0.55);g.addColorStop(0,'rgba(200,215,235,.13)');g.addColorStop(1,'rgba(200,215,235,0)');x.fillStyle=g;x.fillRect(0,fy-60,W,120);}
+  // the wall and the gate
+  const wy=H*0.55;x.fillStyle=P.rock2||'#2f3742';x.fillRect(-4,wy,W+8,H-wy+4);
+  for(let r=0;r<Math.ceil((G0-wy)/12);r++){const by=wy+r*12;for(let c=-1;c<W/26+1;c++){const bx=c*26+(r%2?13:0);x.fillStyle=(r+c)%3?(P.rock||'#5b6674'):(P.rock2||'#2f3742');x.fillRect(bx+1,by+1,24,10);}}
+  for(let c=0;c<W/22+1;c++){x.fillStyle=P.rock||'#5b6674';if(c%2)x.fillRect(c*22,wy-10,22,11);}
+  const aw=92,ah=Math.min(104,G0-wy+6),ax=gx-aw/2,ay=G0-ah;
+  x.fillStyle='rgba(0,0,0,.55)';x.fillRect(-4,G0,W+8,H-G0+4);
+  x.fillStyle='#1a1410';x.beginPath();x.moveTo(ax-8,G0);x.lineTo(ax-8,ay+40);x.arc(gx,ay+40,aw/2+8,Math.PI,0);x.lineTo(ax+aw+8,G0);x.fill();
+  const lit=HOME.hit&&now-HOME.hit<300?1-(now-HOME.hit)/300:0;
+  const dg=x.createLinearGradient(0,ay,0,G0);dg.addColorStop(0,lit?'#a0724a':'#6b4a2a');dg.addColorStop(1,'#3d2814');x.fillStyle=dg;
+  x.beginPath();x.moveTo(ax,G0);x.lineTo(ax,ay+40);x.arc(gx,ay+40,aw/2,Math.PI,0);x.lineTo(ax+aw,G0);x.fill();
+  x.strokeStyle='rgba(0,0,0,.45)';x.lineWidth=2;for(let i=1;i<5;i++){x.beginPath();x.moveTo(ax+i*aw/5,ay+12);x.lineTo(ax+i*aw/5,G0);x.stroke();}
+  x.fillStyle='#2b2f36';x.fillRect(ax,ay+ah*0.45,aw,6);x.fillRect(ax,ay+ah*0.75,aw,6);
+  // torches
+  for(const tx of [ax-26,ax+aw+26]){const fl=1+0.18*Math.sin(t/70+tx)+0.1*Math.random();g=x.createRadialGradient(tx,wy-6,2,tx,wy-6,60*fl);g.addColorStop(0,'rgba(255,170,70,.45)');g.addColorStop(1,'rgba(255,120,40,0)');x.fillStyle=g;x.fillRect(tx-70,wy-76,140,140);
+    x.fillStyle='#3a2a1a';x.fillRect(tx-2,wy-4,4,22);x.fillStyle='#ffb347';x.beginPath();x.ellipse(tx,wy-9,4*fl,8*fl,0,0,6.28);x.fill();x.fillStyle='#fff1a8';x.beginPath();x.ellipse(tx,wy-7,2,4*fl,0,0,6.28);x.fill();}
+  // the champion in front of the gate
+  const c=CBY[ACC.sel],atk=now-HOME.atk<380,im=homeImg(atk?c.id+'_attack':c.id)||homeImg(c.id);
+  if(im&&im.complete&&im.naturalWidth){const hs=Math.min(124,H*0.46),bob=Math.sin(t/520)*2,lx=ax-hs*0.78+(atk?14:0);x.fillStyle='rgba(0,0,0,.4)';x.beginPath();x.ellipse(lx+hs/2,G0+2,hs*0.32,6,0,0,6.28);x.fill();x.drawImage(im,lx,G0-hs+6+bob,hs,hs);}
+  if(atk){const k=(now-HOME.atk)/380;x.strokeStyle=`rgba(255,255,255,${1-k})`;x.lineWidth=4;x.beginPath();x.arc(ax-10,G0-60,40+40*k,-2.4,-0.6);x.stroke();}
+  hmFxStep(x,W,H,now,hmFxKind(),40);
+  // a soft vignette
+  g=x.createRadialGradient(W/2,H*0.55,H*0.3,W/2,H*0.55,H*0.95);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.45)');x.fillStyle=g;x.fillRect(-4,-4,W+8,H+8);
+  x.setTransform(1,0,0,1,0,0);}
+const HOME_IMG={};
+function homeImg(k){if(!CHAMP_ART[k])return null;if(!HOME_IMG[k]){const im=new Image();im.src=CHAMP_ART[k];HOME_IMG[k]=im;}return HOME_IMG[k];}
+/* =========================== ICONS (v1.0.79) ===========================
+   Drawn icons in the style of the bottom bar (flat colour, a dark outline, one highlight) instead of emoji, which look different on
+   every phone and cheap next to the art. 24 × 24, used by the home screen, the Tasks tab and the strip. */
+const ICONS={
+ city:'<svg viewBox="0 0 24 24"><path d="M3 21V11l2-1.5L7 11v-4l2.5-2.5L12 7V4.5L14.5 2 17 4.5V7l2.5-2.5L22 7v14z" fill="#9fb3c8" stroke="#2a3442" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 21V11l2-1.5L7 11v10z" fill="#7d90a6"/><path d="M10.5 21v-4a1.5 1.5 0 0 1 3 0v4z" fill="#5a3a1c" stroke="#2a1a0c" stroke-width="1"/><rect x="15.5" y="10" width="2" height="2.6" rx=".6" fill="#ffd54a"/><rect x="8" y="11" width="2" height="2.6" rx=".6" fill="#ffd54a"/><path d="M14.5 2v-1.5l3 .9-3 .9" fill="#e14b4b" stroke="#7a1d1d" stroke-width=".6"/></svg>',
+ tavern:'<svg viewBox="0 0 24 24"><path d="M5 7h11v12.5a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 19.5z" fill="#d99a3c" stroke="#5a3410" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 9.5h2a2.5 2.5 0 0 1 2.5 2.5v2a2.5 2.5 0 0 1-2.5 2.5h-2" fill="none" stroke="#5a3410" stroke-width="1.8"/><path d="M4.5 7.5c0-2.6 1.6-4 3.5-4 .9-1.2 2.3-1.6 3.6-1 1.6-.6 3.6.3 4 2 1 .4 1.4 1.4 1 3z" fill="#fff6e0" stroke="#8a7a5a" stroke-width="1.1"/><path d="M8 11v7M11.5 11v7" stroke="#a86a1c" stroke-width="1.3" stroke-linecap="round"/></svg>',
+ forge:'<svg viewBox="0 0 24 24"><path d="M3 15h18l-2.5 3H5.5z" fill="#4a5361" stroke="#1d232c" stroke-width="1.4" stroke-linejoin="round"/><path d="M7 18h10v3H7z" fill="#323944" stroke="#1d232c" stroke-width="1.2"/><path d="M5 12.5h14v2.5H5z" fill="#6b7686" stroke="#1d232c" stroke-width="1.2"/><path d="M13.5 3.5l6 6-2 2-6-6z" fill="#9fb3c8" stroke="#2a3442" stroke-width="1.2"/><path d="M12.5 6.5 6 13" stroke="#8a5a2b" stroke-width="2.2" stroke-linecap="round"/><path d="M9 10.5l1-2M6.5 9l.4-1.8M11 11.5l1.7-.6" stroke="#ffb347" stroke-width="1.2" stroke-linecap="round"/></svg>',
+ daily:'<svg viewBox="0 0 24 24"><path d="M6 3.5h12a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2z" fill="#f3e2b8" stroke="#6b4a1c" stroke-width="1.5"/><path d="M4 5.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2V9H4z" fill="#e14b4b" stroke="#6b1d1d" stroke-width="1.5"/><path d="M8 2v3.5M16 2v3.5" stroke="#3a2010" stroke-width="1.8" stroke-linecap="round"/><path d="M12 11.3l1.3 2.6 2.9.4-2.1 2 .5 2.9-2.6-1.4-2.6 1.4.5-2.9-2.1-2 2.9-.4z" fill="#ffd54a" stroke="#7a4a10" stroke-width=".9"/></svg>',
+ season:'<svg viewBox="0 0 24 24"><path d="M7 3.5h10v5.5a5 5 0 0 1-10 0z" fill="#ffd54a" stroke="#7a4a10" stroke-width="1.5"/><path d="M7 5.5H4.2v1.8A3.5 3.5 0 0 0 7.5 11M17 5.5h2.8v1.8A3.5 3.5 0 0 1 16.5 11" fill="none" stroke="#7a4a10" stroke-width="1.6"/><path d="M10.5 13.8h3v3.2h-3z" fill="#d9a032" stroke="#7a4a10" stroke-width="1.1"/><path d="M7.5 17h9l1 3.5h-11z" fill="#b33fb0" stroke="#3a1146" stroke-width="1.3" stroke-linejoin="round"/><path d="M9 5.5c0 2 .6 3.4 2 4.2" stroke="#fff6c2" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>',
+ gift:'<svg viewBox="0 0 24 24"><rect x="3.5" y="9.5" width="17" height="11" rx="1.5" fill="#e14b4b" stroke="#6b1d1d" stroke-width="1.5"/><rect x="2.5" y="7" width="19" height="4" rx="1" fill="#ff6a5a" stroke="#6b1d1d" stroke-width="1.4"/><path d="M10.5 7h3v13.5h-3z" fill="#ffd54a" stroke="#7a4a10" stroke-width="1.1"/><path d="M12 7c-1.5-3.5-5.5-4-5.5-1.5S10 7 12 7zm0 0c1.5-3.5 5.5-4 5.5-1.5S14 7 12 7z" fill="#ffd54a" stroke="#7a4a10" stroke-width="1.1"/></svg>',
+ door:'<svg viewBox="0 0 24 24"><path d="M5 21V10a7 7 0 0 1 14 0v11z" fill="#8a5a2b" stroke="#3a2010" stroke-width="1.5"/><path d="M9 21V10.5M12 21V9M15 21V10.5" stroke="#5a3a1c" stroke-width="1.1"/><path d="M5 13.5h14M5 17.5h14" stroke="#2b2f36" stroke-width="1.6"/><circle cx="14.5" cy="15.5" r=".9" fill="#ffd54a"/></svg>',
+ quests:'<svg viewBox="0 0 24 24"><path d="M6 3.5h10.5a2 2 0 0 1 2 2V19a1.5 1.5 0 0 1-1.5 1.5H6.5A2.5 2.5 0 0 1 4 18V5.5a2 2 0 0 1 2-2z" fill="#f3e2b8" stroke="#6b4a1c" stroke-width="1.5"/><path d="M7 8.2l1.3 1.3 2.2-2.4M7 12.7l1.3 1.3 2.2-2.4M7 17.2l1.3 1.3 2.2-2.4" fill="none" stroke="#2f9a4a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5 8.6h4M12.5 13.1h4M12.5 17.6h4" stroke="#6b4a1c" stroke-width="1.4" stroke-linecap="round"/></svg>',
+ social:'<svg viewBox="0 0 24 24"><path d="M3 10v4l2.5.6L13 20V4L5.5 9.4z" fill="#4fc0ff" stroke="#0b3a5a" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.5 14.6l1.3 5 2.6-.2-.7-4" fill="#2b8fd6" stroke="#0b3a5a" stroke-width="1.2" stroke-linejoin="round"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="#ffd54a" stroke-width="1.8" stroke-linecap="round"/></svg>',
+ friends:'<svg viewBox="0 0 24 24"><circle cx="8.5" cy="8" r="3.5" fill="#ffcf9a" stroke="#5a3410" stroke-width="1.3"/><path d="M2.5 20a6 6 0 0 1 12 0z" fill="#4fc0ff" stroke="#0b3a5a" stroke-width="1.3"/><circle cx="16.5" cy="9" r="3" fill="#f0b47a" stroke="#5a3410" stroke-width="1.3"/><path d="M12.5 20a5 5 0 0 1 9 0z" fill="#e14b4b" stroke="#6b1d1d" stroke-width="1.3"/></svg>'
+};
+function icon(k,px){const s=ICONS[k];return s?s.replace('<svg ',`<svg width="${px||22}" height="${px||22}" `):'';}
+/* =========================== HOLD BLESSINGS (v1.0.80) ===========================
+   The roguelike beat of Galaxy Defense and the survivor games: in the Hold, after every fifth wave the game stops and offers three
+   blessings; one is chosen and lasts for the rest of the run, and they stack. The three on offer come from the day's seed and the wave
+   (the same offer for every defender on the same day), never from the battle's own random stream, so the waves themselves are untouched.
+   If nobody chooses within 20 seconds, the first is taken. Kills, waves and time are what the server checks, and none of the blessings
+   adds enemies or shortens a wave. */
+const BOONS={
+ arrows:{e:'🏹',n:'Sharper steel',d:'Towers deal +15% damage',f:b=>{b.tw=(b.tw||0)+0.15;}},
+ blade:{e:'⚔️',n:'Champion\'s edge',d:'Your champion deals +35% damage',f:b=>{b.hero=(b.hero||0)+0.35;}},
+ storm:{e:'🔥',n:'Wildfire',d:'Spells deal +40% damage',f:b=>{b.sp=(b.sp||0)+0.4;}},
+ mend:{e:'🧱',n:'Mend the door',d:'The door gets back 35% of its strength',f:()=>{G.doorHp=Math.min(G.doorMax,G.doorHp+G.doorMax*0.35);}},
+ oak:{e:'🚪',n:'Thicker oak',d:'The door grows 20% stronger',f:()=>{const add=Math.round(G.doorMax*0.2);G.doorMax+=add;G.doorHp+=add;}},
+ coin:{e:'💰',n:'Plunder',d:'+300 gold now',f:()=>{G.gold+=300;}},
+ loot:{e:'🪙',n:'Spoils of war',d:'+20% gold from every kill',f:b=>{b.loot=(b.loot||0)+0.2;}},
+ focus:{e:'✨',n:'Quick hands',d:'Spells recharge 25% faster, and are ready now',f:()=>{for(const k in G.powerMax){G.powerMax[k]*=0.75;G.powerCd[k]=0;}}}
+};
+const BOON_KEYS=Object.keys(BOONS);
+function boonOn(){return G.mode==='online';}
+/* the offer for a wave: three different blessings from the day's seed */
+function boonOffer(wave){let h=hash32('boon:'+(typeof todayKey!=='undefined'?todayKey:'')+':'+wave);const pool=BOON_KEYS.slice(),out=[];
+  while(out.length<3&&pool.length){h=Math.imul(h^(h>>>15),2246822507)>>>0;h=Math.imul(h^(h>>>13),3266489909)>>>0;h^=h>>>16;out.push(pool.splice(h%pool.length,1)[0]);}return out;}
+function boonMul(src){const b=G.boon;if(!b)return 1;
+  if(src==='hero'||src==='cleave'||src==='dany')return 1+(b.hero||0);
+  if(src==='power'||src==='storm')return 1+(b.sp||0);
+  if(src==='watch'||src==='scorp'||src==='wild'||src==='glass'||src==='weir'||src==='keep'||src==='ally'||src==='burn'||src==='poison')return 1+(b.tw||0);
+  return 1;}
+function boonPick(k){const B=BOONS[k];if(!B||!G.boonAsk)return;G.boon=G.boon||{};B.f(G.boon);(G.boons=G.boons||[]).push(k);G.log.push({t:G.tick,a:'boon',k});
+  G.boonAsk=null;clearTimeout(G.boonT);const el=document.getElementById('boonOv');if(el)el.remove();G.paused=false;try{SFX.play('levelup');}catch(e){}
+  try{addText(W/2,H*0.4,B.e+' '+B.n,'#ffd54a',1);}catch(e){}}
+/* called before a wave starts: after waves 5, 10, 15 … of the Hold */
+function boonCheck(){if(G.boonAsk)return true;   /* still waiting for a choice: the wave waits too */
+  if(!boonOn()||G.wave<5||G.wave%5!==0)return false;G.boonDone=G.boonDone||{};if(G.boonDone[G.wave])return false;G.boonDone[G.wave]=1;
+  const offer=boonOffer(G.wave);G.boonAsk=offer;G.paused=true;
+  const ov=document.createElement('div');ov.id='boonOv';
+  ov.innerHTML=`<div class="bo-in"><small>WAVE ${G.wave} HELD</small><h2>Choose a blessing</h2><div class="bo-row">${offer.map((k,i)=>{const B=BOONS[k];
+    return `<button class="bo-card" data-boon="${k}" style="animation-delay:${i*90}ms"><span class="bo-e">${B.e}</span><b>${B.n}</b><em>${B.d}</em></button>`;}).join('')}</div>
+    ${(G.boons||[]).length?`<p class="bo-have">Yours: ${(G.boons||[]).map(k=>BOONS[k].e).join(' ')}</p>`:''}</div>`;
+  (document.getElementById('stage')||document.body).appendChild(ov);
+  ov.querySelectorAll('[data-boon]').forEach(b=>b.addEventListener('click',()=>boonPick(b.dataset.boon)));
+  try{SFX.play('chest');}catch(e){}
+  clearTimeout(G.boonT);G.boonT=setTimeout(()=>{if(G.boonAsk===offer)boonPick(offer[0]);},20000);
+  return true;}
+/* =========================== FEEL (v1.0.81) ===========================
+   The phone answers the hand: Telegram's haptic feedback on taps and rewards, and big kills that land.
+   · a light tap on every button; success on claims, chests, level-ups and wins; a warning on a refusal; a heavy thump for the
+     Night King, a lieutenant or a roar; a medium knock when the door is hit (at most every 0.4 s)
+   · a boss, a lieutenant, a giant or a mini-boss going down: a short hit-stop, a shake, a white flash and a ring — display only
+     (the frame waits a moment; the simulation runs the same steps)
+   Off when Telegram has no haptics (a browser) or the sound is muted. */
+const FEEL={t:0,door:0};
+function hapt(kind){try{if(typeof SFX!=='undefined'&&SFX.muted)return;const h=TG&&TG.HapticFeedback;if(!h)return;const now=performance.now();
+  if(kind==='door'){if(now-FEEL.door<400)return;FEEL.door=now;}else if(now-FEEL.t<60)return;FEEL.t=now;
+  if(kind==='ok')h.notificationOccurred('success');else if(kind==='no')h.notificationOccurred('error');else if(kind==='warn')h.notificationOccurred('warning');
+  else h.impactOccurred(kind==='heavy'?'heavy':kind==='door'||kind==='mid'?'medium':kind==='soft'?'soft':'light');}catch(e){}}
+const FEEL_SFX={tap:'light',swipe:'soft',collect:'ok',buy:'ok',levelup:'ok',win:'ok',chestopen:'mid',legend:'heavy',epic:'mid',deny:'no',lose:'warn',gate:'door',king:'heavy',roar:'heavy',dragon:'heavy',ult:'mid',upgrade:'ok',unlock:'ok'};
+if(typeof SFX!=='undefined'&&SFX.play){const play0=SFX.play.bind(SFX);SFX.play=function(n,gap){play0(n,gap);const k=FEEL_SFX[n];if(k)hapt(k);};}
+/* a big kill lands: called from kill() — reads the enemy, writes only display fields */
+function feelKill(e,q){if(!(e.boss||e.lord||e.giant||e.mini||e.king))return;
+  G.hitStop=Math.max(G.hitStop||0,e.king?0.22:e.boss||e.lord?0.14:0.08);G.shake=Math.min(10,(G.shake||0)+(e.king?8:e.boss||e.lord?5:3));
+  addFx({t:'flash',x:q.x,y:q.y,life:e.king?0.5:0.3,col:'#ffffff'});addFx({t:'ring',x:q.x,y:q.y,r0:8,r1:e.king?200:110,life:0.5,col:e.walker||e.king?'#cdf1ff':'#ffe1a0'});
+  hapt(e.king||e.boss||e.lord?'heavy':'mid');}
+/* =========================== THE RESULT SCREEN (v1.0.82) ===========================
+   A win should feel like one. On top of the old result card (its text, buttons and ids stay): a ribbon, turning rays, three big stars
+   that land one after another with a sound and a buzz, the gold counting up, and confetti for three stars. A loss: a red ribbon and one
+   shake. Display only; prefers-reduced-motion shows the final state at once. */
+function resultFx(win,stars){try{if(!card)return;if(typeof curSwap==='function')curSwap(card);card.classList.add('res',win?'win':'lose');
+  const calm=typeof JUICE!=='undefined'&&JUICE.calm;
+  const h1=card.querySelector('h1');if(h1&&!h1.querySelector('.rbn'))h1.insertAdjacentHTML('afterbegin',`<span class="rbn">${win?'VICTORY':'DEFEAT'}</span>`);
+  if(!win){if(!calm){card.classList.add('rshake');setTimeout(()=>card.classList.remove('rshake'),600);}return;}
+  const st=card.querySelector('.big.stars');
+  if(st){st.innerHTML=`<i class="rays"></i>${[0,1,2].map(i=>`<span class="rs ${i<stars?'on':'off'}">★</span>`).join('')}`;
+    const S=[...st.querySelectorAll('.rs')];
+    if(calm)S.forEach(s=>s.classList.add('landed'));
+    else S.forEach((s,i)=>setTimeout(()=>{if(!s.isConnected)return;s.classList.add('landed');if(i<stars){try{SFX.play(i===2?'levelup':'card');}catch(e){}}},350+i*380));}
+  const b=card.querySelector('p.m b');if(b){const m=b.textContent.match(/\+(\d+)/);if(m){const to=+m[1],node=[...b.childNodes].find(n=>n.nodeType===3&&/\+\d+/.test(n.textContent));
+    if(node&&to>0&&!calm){const t0=performance.now(),D=900,tail=node.textContent.replace(/\+\d+/,'');const tick=()=>{const k=Math.min(1,(performance.now()-t0-400)/D);if(k>=0)node.textContent='+'+Math.round(to*(1-Math.pow(1-Math.max(0,k),3)))+tail;if(k<1&&node.isConnected)requestAnimationFrame(tick);};node.textContent='+0'+tail;requestAnimationFrame(tick);}}}
+  if(stars===3&&!calm)setTimeout(resultConfetti,350+2*380);}catch(e){}}
+function resultConfetti(){const box=document.getElementById('app')||document.body,cols=['#ffd54a','#ff6a5a','#4fc0ff','#7fd06a','#ff7ab8','#ffffff'];
+  for(let i=0;i<36;i++){const c=document.createElement('i');c.className='rconf';c.style.left=(Math.random()*100)+'%';c.style.background=cols[i%cols.length];
+    c.style.animationDuration=(1.6+Math.random()*1.4)+'s';c.style.animationDelay=(Math.random()*0.35)+'s';c.style.setProperty('--rx',((Math.random()-0.5)*160)+'px');c.style.setProperty('--rr',(Math.random()*900-450)+'deg');
+    box.appendChild(c);setTimeout(()=>c.remove(),3400);}}
+{const scr0=showCampaignResult;showCampaignResult=function(win,stars,newUnlocks,gained){scr0(win,stars,newUnlocks,gained);resultFx(win,stars);};}
+/* =========================== THE CURRENCIES, REDRAWN (v1.0.83) ===========================
+   Gold is a "gold dragon" coin: a thick rim, a dragon's head struck in relief, a shine. Dragonglass is what the name says — a black
+   obsidian shard with a cold violet-teal glint — instead of a blue diamond that belonged to no world. The emoji 💎 and 🪙 in the
+   game's texts become the same two drawings as they appear on screen (a MutationObserver; text inputs and the battle canvas are left alone). */
+const CUR_GOLD='<svg viewBox="0 0 24 24"><defs><radialGradient id="hgC" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#fff2a8"/><stop offset=".45" stop-color="#f4c242"/><stop offset="1" stop-color="#b8741a"/></radialGradient><linearGradient id="hgR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#8a4f0e"/></linearGradient></defs>'+
+ '<circle cx="12" cy="12" r="10.6" fill="url(#hgR)" stroke="#5a3006" stroke-width="1"/><circle cx="12" cy="12" r="8.3" fill="url(#hgC)" stroke="#9a5e14" stroke-width=".8"/>'+
+ '<path d="M7.4 17.4 7.9 10.6 6.5 6.6l3 2.2 2.5-.9 1-2.9.9 3.1 1.9 1 2.9 1.4 .4 1.3-2.8.6 2.3 1.9-.5.4-3.3-.9-1.6 1.6-.4 2.3z" fill="#9a5a0c" stroke="#5a3006" stroke-width=".55" stroke-linejoin="round"/>'+
+ '<path d="M9.4 12.4c1-.5 2-.5 2.9.2M9.2 14.6c1-.4 1.9-.3 2.6.3" fill="none" stroke="#6a3a06" stroke-width=".5" stroke-linecap="round"/>'+
+ '<circle cx="14.5" cy="10.3" r=".6" fill="#fff2a8"/><path d="M6.2 9.2a6.6 6.6 0 0 1 3.4-3.1" fill="none" stroke="#fffbe0" stroke-width="1.3" stroke-linecap="round" opacity=".9"/></svg>';
+const CUR_GEM='<svg viewBox="0 0 24 24"><defs><linearGradient id="hdA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a2f5a"/><stop offset=".55" stop-color="#14101f"/><stop offset="1" stop-color="#05040a"/></linearGradient><linearGradient id="hdB" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7ff0ff"/><stop offset="1" stop-color="#b47cff"/></linearGradient></defs>'+
+ '<path d="M12.6 1.6 18.4 8l-1.9 12.2-5.2 2.4-4.7-4.6L5.2 7.8z" fill="url(#hdA)" stroke="#0b0812" stroke-width="1.1" stroke-linejoin="round"/>'+
+ '<path d="M12.6 1.6 11.3 9.4l5.2 10.8M11.3 9.4 5.2 7.8M11.3 9.4 6.6 18" fill="none" stroke="#5a4a8a" stroke-width=".7"/>'+
+ '<path d="M12.6 1.6 18.4 8M18.4 8l-1.9 12.2" fill="none" stroke="url(#hdB)" stroke-width="1.2" stroke-linecap="round"/>'+
+ '<path d="M8.3 6.4 11.3 9.4" stroke="#c9b8ff" stroke-width=".9" stroke-linecap="round" opacity=".85"/><circle cx="13.2" cy="4.4" r=".9" fill="#e6fbff"/></svg>';
+/* the two emoji in text become the drawings */
+const CUR_RE=/(💎|🪙)/u;
+function curSwap(root){if(!root)return;const walk=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentNode;if(!p||p.closest&&p.closest('textarea,input,script,style,.cic,svg'))return NodeFilter.FILTER_REJECT;return CUR_RE.test(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_SKIP;}});
+  const list=[];while(walk.nextNode())list.push(walk.currentNode);
+  for(const n of list){const parts=n.nodeValue.split(/(💎|🪙)/u);if(parts.length<2)continue;const f=document.createDocumentFragment();
+    for(const p of parts){if(p==='💎'||p==='🪙'){const s=document.createElement('span');s.className='cic';s.innerHTML=p==='💎'?CUR_GEM:CUR_GOLD;f.appendChild(s);}else if(p)f.appendChild(document.createTextNode(p));}
+    n.parentNode.replaceChild(f,n);}}
+function curWatch(){if(curWatch.on||typeof MutationObserver==='undefined')return;curWatch.on=true;curSwap(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData'){if(CUR_RE.test(m.target.nodeValue||''))curSwap(m.target.parentNode);continue;}
+    for(const a of m.addedNodes){if(a.nodeType===1)curSwap(a);else if(a.nodeType===3&&CUR_RE.test(a.nodeValue)&&a.parentNode)curSwap(a.parentNode);}}}).observe(document.body,{childList:true,subtree:true,characterData:true});}
+setTimeout(curWatch,0);   /* after the whole script has run */
+/* =========================== LUCKY CHESTS (v1.0.84, backend v21) ===========================
+   Clash Royale's lucky drops: before a chest opens, three taps. Each tap may raise it one tier — wood → iron → valyrian → dragon — and
+   its stars (★1–4) with it; the rewards are the final tier's. On a seat kept by the server the server rolls the taps inside chest_open
+   and the app only plays them back; a guest rolls them here with the same chances. Untouched, the taps play by themselves.
+   A dragon chest is already at the top and opens straight away. */
+const LUCKY={order:['wood','iron','valyrian','dragon'],p:{wood:35,iron:20,valyrian:8,dragon:0},taps:3,step:750};
+function luckyNext(t){return LUCKY.order[Math.min(LUCKY.order.length-1,LUCKY.order.indexOf(t)+1)];}
+function luckyRoll(t){let f=t;const taps=[];for(let i=0;i<LUCKY.taps;i++){const hit=Math.random()*100<(LUCKY.p[f]||0);taps.push(hit);if(hit)f=luckyNext(f);}return{taps,tier:f};}
+function luckyStars(t){const n=LUCKY.order.indexOf(t)+1;return [0,1,2,3].map(i=>`<i class="${i<n?'on':''}">★</i>`).join('');}
+function luckyShow(t,L,next){
+  let el=$('#cer');if(!el){el=document.createElement('div');el.id='cer';document.getElementById('app').appendChild(el);}
+  const T=CHEST_TIERS[t];el.className='lucky';
+  el.innerHTML=`<h2 id="lkN">${T.n}</h2><div class="lkst" id="lkSt">${luckyStars(t)}</div><div class="cchest" id="cch"><div class="glow" id="cglow"></div><div class="cimg" id="cimg">${chestSVG(t)}</div></div>
+    <div class="tap" id="ctap">TAP FOR LUCK · <b id="lkLeft">${L.taps.length}</b></div><div class="lkres" id="lkRes">each tap may raise the chest</div>`;
+  let i=0,cur=t,busy=false,timer=0,done=false;
+  const finish=()=>{if(done)return;done=true;clearTimeout(timer);el.onclick=null;next(cur);};
+  const step=()=>{if(busy||done||i>=L.taps.length)return;busy=true;clearTimeout(timer);const hit=!!L.taps[i++];const ch=$('#cch');
+    ch.classList.remove('lkhit','lkmiss');void ch.offsetWidth;ch.classList.add(hit?'lkhit':'lkmiss');const lf=$('#lkLeft');if(lf)lf.textContent=L.taps.length-i;
+    try{SFX.play('chest',0);}catch(e){}
+    setTimeout(()=>{if(done)return;const res=$('#lkRes');
+      if(hit){cur=luckyNext(cur);const C=CHEST_TIERS[cur];$('#cimg').innerHTML=chestSVG(cur);$('#lkN').textContent=C.n;const st=$('#lkSt');st.innerHTML=luckyStars(cur);
+        const stars=st.querySelectorAll('i.on'),last=stars[stars.length-1];if(last)last.classList.add('pop');$('#cglow').classList.add('on');
+        if(res){res.textContent=`★ ${C.sub.toUpperCase()}!`;res.className='lkres up';}
+        for(let k=0;k<18;k++){const s=document.createElement('span');s.className='sparkle';s.style.left='50%';s.style.top='45%';s.style.setProperty('--dx',(Math.random()*260-130)+'px');s.style.setProperty('--dy',(Math.random()*220-170)+'px');ch.appendChild(s);setTimeout(()=>s.remove(),1200);}
+        try{SFX.play(cur==='dragon'?'legend':'epic');}catch(e){}}
+      else if(res){res.textContent=i<L.taps.length?'…not this time':'';res.className='lkres';}
+      busy=false;
+      if(i>=L.taps.length){const tp=$('#ctap');if(tp)tp.textContent='';timer=setTimeout(finish,hit?900:500);}else timer=setTimeout(step,LUCKY.step);},260);};
+  el.onclick=step;timer=setTimeout(step,LUCKY.step+300);}
+{const openChest0=openChest;
+ openChest=function(t,done){
+   if(LUCKY.order.indexOf(t)<0||t==='dragon')return openChest0(t,done);
+   const R=ECO.roll;const L=R?(Array.isArray(R.taps)?{taps:R.taps,tier:R.tier||t}:{taps:[false,false,false],tier:t}):luckyRoll(t);
+   luckyShow(t,L,final=>{const keep=ECO.roll;ECO.roll=R;try{openChest0(final,done);}finally{ECO.roll=keep;}
+     setTimeout(()=>{const c=$('#cch');if(c)c.click();},300);});};}
+/* =========================== ITEM ART (v1.0.85) ===========================
+   Every item is drawn, not an emoji: a family of shapes (blades, axes, polearms, bows, shields, helms, armour, gloves, boots, rings,
+   amulets, banners …) and, per kind, its own proportions and details. The metal follows the rarity — iron, steel, blue steel, Valyrian
+   (dark with a violet ripple), gold — and the gem / cloth takes the set's colour. Painted art (GEAR_ART) still wins when it exists. */
+const GA_METAL=[['#c3cbd4','#6b7580','#3c444d'],['#dfe7ef','#8796a6','#4a5868'],['#bfe2ff','#4d86c4','#22426a'],['#d8c8ff','#6c4fa8','#2a1a4a'],['#fff0a0','#e0a12c','#7a4a0e']];
+const GA_SET={wolf:'#dfe8f2',lion:'#ffcf3d',dragon:'#ff4a3a',kraken:'#3fd1c8',stag:'#f0b44a',rose:'#ff6fae',sun:'#ff9a3c',anvil:'#9aa1aa',wall:'#c9b48a',blood:'#d0202a',raven:'#7a62c8',hunt:'#7fd06a'};
+const GA_WOOD=['#8a5a2b','#5a3a1a'],GA_LEATHER=['#7a4a26','#4a2a14'],GA_CLOTH=['#a33a2a','#5a1a14'];
+function gaHash(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return h;}
+/* the kind → its family and the numbers that make it its own (v: 0..1 from the name) */
+function gaFamily(slot,name){const n=name.toLowerCase();
+  const F=[[/greatsword|claymore|zweih/,'blade',{len:1,w:1.3}],[/dagger|dirk|knife|stiletto|kris|kukri/,'blade',{len:.55,w:.9}],[/falchion|scimitar|sabre|saber|cutlass|arakh|tulwar|shamshir/,'blade',{len:.85,curve:1}],
+   [/sword|blade|brand|edge|longsword|rapier|estoc|gladius|spatha/,'blade',{len:.85}],[/halberd|glaive|bardiche|poleaxe|voulge|partisan|bill/,'pole',{}],[/axe|hatchet|cleaver|tomahawk|labrys/,'axe',{}],
+   [/hammer|maul|mace|club|morningstar|cudgel/,'hammer',{}],[/flail|chain|scourge/,'flail',{}],[/trident|fork/,'spear',{prong:3}],[/spear|lance|pike|javelin|harpoon|partisan/,'spear',{}],
+   [/crossbow|arbalest|ballista/,'xbow',{}],[/bow|longbow|recurve/,'bow',{}],[/staff|rod|wand|sceptre|scepter|crook/,'staff',{}],[/torch|lantern|brazier/,'torch',{}],
+   [/orb|globe|sphere|eye|crystal|skull/,'orb',{}],[/tome|book|grimoire|codex|scroll|ledger/,'tome',{}],
+   [/kite|tower|pavise|heater/,'shield',{shape:'kite'}],[/buckler|targe/,'shield',{shape:'round',small:1}],[/shield|aegis|bulwark|ward/,'shield',{shape:'round'}],
+   [/crown|circlet|diadem|tiara/,'crown',{}],[/hood|cowl/,'hood',{}],[/mask|visage/,'mask',{}],[/horn(ed)? helm|horned|antler/,'helm',{horns:1}],[/coif|hauberk hood/,'helm',{coif:1}],[/helm|helmet|barbute|sallet|bascinet|casque|cap/,'helm',{}],
+   [/robe|vestment|cassock|tabard/,'robe',{}],[/cloak|mantle|cape|shroud/,'cloak',{}],[/plate|cuirass|breastplate|carapace/,'chest',{plate:1}],[/mail|hauberk|byrnie|scale|lamellar/,'chest',{mail:1}],[/brigandine|jack/,'chest',{brig:1}],[/gambeson|jerkin|vest|coat|doublet|harness/,'chest',{}],
+   [/gauntlet/,'hand',{metal:1}],[/bracer|vambrace|cuff/,'bracer',{}],[/mitt/,'hand',{mitt:1}],[/glove|grip|hand/,'hand',{}],
+   [/greave|sabaton/,'boot',{metal:1}],[/sandal/,'boot',{sandal:1}],[/spur/,'boot',{spur:1}],[/boot|shoe|tread|step/,'boot',{}],
+   [/signet/,'ring',{signet:1}],[/seal/,'ring',{seal:1}],[/claw/,'ring',{claw:1}],[/band|hoop/,'ring',{band:1}],[/loop|coil|braid/,'ring',{loop:1}],[/ring/,'ring',{}],
+   [/fang|tooth|tusk/,'amulet',{fang:1}],[/charm|clover|token/,'amulet',{charm:1}],[/relic|reliquary|urn|phial|vial/,'amulet',{relic:1}],[/talisman|idol|rune/,'amulet',{talisman:1}],[/pendant|locket|tear/,'amulet',{drop:1}],[/amulet|medallion|torc|necklace|chain/,'amulet',{}],
+   [/war horn|horn/,'horn',{}],[/totem|effigy|pole/,'totem',{}],[/pennant|streamer/,'banner',{pennant:1}],[/standard|gonfalon|vexill/,'banner',{standard:1}],[/sigil|plaque/,'banner',{sigil:1}],[/banner|flag|ensign|colours|colors/,'banner',{}]];
+  for(const [re,f,o] of F)if(re.test(n))return [f,o,true];
+  const D={weapon:'blade',offhand:'shield',helmet:'helm',armor:'chest',gloves:'hand',boots:'boot',ring:'ring',amulet:'amulet',banner:'banner'};return [D[slot]||'orb',{},false];}
+function gearArt(slot,name,r,set){const [fam,o]=gaFamily(slot,name),h=gaHash(slot+':'+name),v=(h%1000)/1000,v2=((h>>>10)%1000)/1000,M=GA_METAL[Math.max(0,Math.min(4,r||0))],A=GA_SET[set]||'#ffd54a';
+  const id='ga'+(h%100000)+'r'+(r||0),g=`<defs><linearGradient id="${id}m" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${M[0]}"/><stop offset=".55" stop-color="${M[1]}"/><stop offset="1" stop-color="${M[2]}"/></linearGradient></defs>`;
+  const m=`url(#${id}m)`,k=M[2],W=GA_WOOD,L=GA_LEATHER,gem=(x,y,s)=>`<circle cx="${x}" cy="${y}" r="${s}" fill="${A}" stroke="#1a1208" stroke-width=".8"/><circle cx="${x-s*.35}" cy="${y-s*.35}" r="${s*.35}" fill="#fff" opacity=".7"/>`;
+  const rip=r>=3?`<path d="M18 30q4-3 8 0t8 0" stroke="${r===4?'#fff6c8':'#e6d8ff'}" stroke-width=".8" fill="none" opacity=".6"/>`:'';
+  let b='';
+  if(fam==='blade'){const L1=12+30*(o.len||.85)*(0.9+0.2*v),w=3*(o.w||1)*(0.85+0.3*v2),y0=40-L1,c=o.curve?6+4*v:0;
+    b=`<g transform="rotate(${-35+10*v} 24 24)"><path d="M24 ${y0} ${c?`C${24+w+c} ${y0+10} ${24+w+c*.6} 30 ${24+w} 36`:`L${24+w} ${y0+4} L${24+w} 36`} L${24-w} 36 ${c?`C${24-w+c*.3} 28 ${24-w+c*.2} ${y0+12} 24 ${y0}`:`L${24-w} ${y0+4}`}Z" fill="${m}" stroke="${k}" stroke-width="1"/><path d="M24 ${y0+3}V35" stroke="#fff" stroke-width=".7" opacity=".55"/>
+      <rect x="${24-6-4*v2}" y="35.5" width="${12+8*v2}" height="3" rx="1.4" fill="${M[1]}" stroke="${k}" stroke-width=".8"/><rect x="22.6" y="38.5" width="2.8" height="7" fill="${L[0]}" stroke="${L[1]}" stroke-width=".6"/>${gem(24,46.5,1.8)}</g>`;}
+  else if(fam==='axe'){const big=v>.5;b=`<g transform="rotate(-25 24 24)"><rect x="22.6" y="8" width="2.8" height="36" rx="1.2" fill="${W[0]}" stroke="${W[1]}"/><path d="M25 ${big?8:10}c${big?14:10} 0 ${big?16:12} 6 ${big?15:12} ${big?14:11}-5-2-10-2-15 0z" fill="${m}" stroke="${k}"/>${v2>.5?`<path d="M23 ${big?9:11}c-8 1-10 5-9 9 3-1 6-1 9 0z" fill="${m}" stroke="${k}"/>`:''}${rip}${gem(24,8,1.6)}</g>`;}
+  else if(fam==='pole'){b=`<g transform="rotate(-20 24 24)"><rect x="22.8" y="4" width="2.4" height="42" fill="${W[0]}" stroke="${W[1]}" stroke-width=".8"/><path d="M24 2l2 7h-4z" fill="${m}" stroke="${k}"/><path d="M25 9c9 1 11 6 10 13-4-2-7-2-10-1z" fill="${m}" stroke="${k}"/><path d="M23 11l-6 3 6 2z" fill="${m}" stroke="${k}"/>${gem(24,24,1.4)}</g>`;}
+  else if(fam==='hammer'){const sp=v>.5;b=`<g transform="rotate(-20 24 24)"><rect x="22.6" y="14" width="2.8" height="30" rx="1" fill="${W[0]}" stroke="${W[1]}"/>${sp?`<circle cx="24" cy="12" r="8" fill="${m}" stroke="${k}"/>${[0,1,2,3,4,5].map(i=>{const a=i*1.047;return `<path d="M${24+7*Math.cos(a)} ${12+7*Math.sin(a)}l${4*Math.cos(a)} ${4*Math.sin(a)}" stroke="${k}" stroke-width="2"/>`;}).join('')}`:`<rect x="12" y="6" width="24" height="12" rx="2" fill="${m}" stroke="${k}"/><rect x="12" y="6" width="5" height="12" fill="${M[0]}" opacity=".6"/>`}${rip}${gem(24,12,1.8)}</g>`;}
+  else if(fam==='flail'){b=`<rect x="10" y="30" width="3" height="15" rx="1" fill="${W[0]}" stroke="${W[1]}" transform="rotate(-25 11 37)"/><path d="M14 30q6-8 12-12" fill="none" stroke="${M[1]}" stroke-width="2.2" stroke-dasharray="2 1.4"/><circle cx="31" cy="15" r="8" fill="${m}" stroke="${k}"/>${[0,1,2,3,4,5,6,7].map(i=>{const a=i*.785;return `<path d="M${31+7*Math.cos(a)} ${15+7*Math.sin(a)}l${3.5*Math.cos(a)} ${3.5*Math.sin(a)}" stroke="${k}" stroke-width="1.8"/>`;}).join('')}${gem(31,15,1.6)}`;}
+  else if(fam==='spear'){const p=o.prong||1;b=`<g transform="rotate(-25 24 24)"><rect x="22.9" y="10" width="2.2" height="36" fill="${W[0]}" stroke="${W[1]}" stroke-width=".7"/>${p===3?`<path d="M18 4v8h12V4M24 2v10" fill="none" stroke="${M[1]}" stroke-width="2.4"/><path d="M18 4l-1.5 3M30 4l1.5 3M24 1l-1.5 3" stroke="${k}"/>`:`<path d="M24 1c${4+3*v} 6 ${4+3*v} 10 0 ${14+2*v}c-${4+3*v}-${4+2*v}-${4+3*v}-8 0-${14+2*v}z" fill="${m}" stroke="${k}"/>`}<rect x="21.5" y="15" width="5" height="2.5" fill="${A}" stroke="#1a1208" stroke-width=".6"/></g>`;}
+  else if(fam==='bow'){b=`<path d="M16 4c14 6 14 34 0 40" fill="none" stroke="${W[1]}" stroke-width="5.4" stroke-linecap="round"/><path d="M16 4c14 6 14 34 0 40" fill="none" stroke="${r>=1?M[1]:W[0]}" stroke-width="3.4" stroke-linecap="round"/><path d="M16 4V44" stroke="#e8e0c8" stroke-width=".8"/><rect x="24" y="21" width="4" height="6" rx="1" fill="${L[0]}"/>${gem(27,24,1.4)}`;}
+  else if(fam==='xbow'){b=`<rect x="22" y="10" width="4" height="34" rx="1.5" fill="${W[0]}" stroke="${W[1]}"/><path d="M8 18q16-10 32 0" fill="none" stroke="${M[1]}" stroke-width="3"/><path d="M8 18l16 6 16-6" fill="none" stroke="#e8e0c8" stroke-width=".8"/><path d="M24 4l2 6h-4z" fill="${m}" stroke="${k}"/>${gem(24,30,1.6)}`;}
+  else if(fam==='staff'){const hd=v>.66?'curl':v>.33?'orb':'fork';b=`<g transform="rotate(-15 24 24)"><path d="M24 14V46" stroke="${W[1]}" stroke-width="4" stroke-linecap="round"/><path d="M24 14V46" stroke="${W[0]}" stroke-width="2.4" stroke-linecap="round"/>${hd==='curl'?`<path d="M24 14c0-6 8-8 9-3s-5 6-6 2" fill="none" stroke="${W[0]}" stroke-width="3"/>${gem(27,10,3)}`:hd==='orb'?`<path d="M19 8l5 6 5-6" fill="none" stroke="${M[1]}" stroke-width="2"/>${gem(24,7,4.5)}`:`<path d="M24 14l-5-9M24 14l5-9" stroke="${M[1]}" stroke-width="2.4"/>${gem(24,9,2.4)}`}</g>`;}
+  else if(fam==='torch'){b=`<path d="M21 20h6l-1 26h-4z" fill="${W[0]}" stroke="${W[1]}"/><rect x="20" y="18" width="8" height="5" rx="1" fill="${M[1]}" stroke="${k}"/><path d="M24 2c6 6 8 10 4 16h-8c-4-6-1-10 4-16z" fill="#ff9a3c"/><path d="M24 7c3 4 4 7 2 11h-4c-2-4 0-7 2-11z" fill="#fff1a8"/>`;}
+  else if(fam==='orb'){b=`<path d="M14 40h20l-3-6H17z" fill="${M[1]}" stroke="${k}"/><path d="M16 34c-2-3 0-5 2-5M32 34c2-3 0-5-2-5" stroke="${k}" stroke-width="1.6" fill="none"/><circle cx="24" cy="20" r="12" fill="${A}" opacity=".85" stroke="${k}"/><circle cx="20" cy="15" r="4" fill="#fff" opacity=".55"/><circle cx="24" cy="20" r="5" fill="none" stroke="#fff" opacity=".3"/>`;}
+  else if(fam==='tome'){b=`<rect x="11" y="7" width="26" height="34" rx="2" fill="${r>=3?M[2]:L[0]}" stroke="${L[1]}"/><rect x="13" y="9" width="22" height="30" fill="none" stroke="${M[1]}" stroke-width="1"/><path d="M11 7h4v34h-4" fill="${L[1]}"/><path d="M33 7v6l2-2v-4" fill="${M[1]}"/>${gem(25,24,3.2)}<path d="M37 12h1.5v24H37" fill="#efe4c8"/>`;}
+  else if(fam==='shield'){if(o.shape==='kite')b=`<path d="M24 4c7 0 13 2 15 4 0 16-6 28-15 36C15 36 9 24 9 8c2-2 8-4 15-4z" fill="${m}" stroke="${k}" stroke-width="1.4"/><path d="M24 7c5 0 9 1 12 3-1 13-5 23-12 29-7-6-11-16-12-29 3-2 7-3 12-3z" fill="${A}" opacity=".9"/><path d="M24 7v32M13 14h22" stroke="${k}" stroke-width="1.2" opacity=".6"/>${gem(24,17,2.4)}`;
+    else{const R=o.small?13:18;b=`<circle cx="24" cy="24" r="${R}" fill="${o.small?m:W[0]}" stroke="${k}" stroke-width="1.4"/>${o.small?'':`<circle cx="24" cy="24" r="${R-2.5}" fill="none" stroke="${M[1]}" stroke-width="3"/>${[0,1,2,3,4,5,6,7].map(i=>`<circle cx="${24+(R-2.5)*Math.cos(i*.785)}" cy="${24+(R-2.5)*Math.sin(i*.785)}" r="1" fill="${M[0]}"/>`).join('')}`}<circle cx="24" cy="24" r="${o.small?6:7}" fill="${m}" stroke="${k}"/>${gem(24,24,2.6)}${rip}`;}}
+  else if(fam==='helm'){b=`${o.horns?`<path d="M12 18C4 14 4 6 8 3c0 6 3 10 7 11zM36 18c8-4 8-12 4-15 0 6-3 10-7 11z" fill="#efe4c8" stroke="#6a5a3a"/>`:''}<path d="M10 30c0-14 6-22 14-22s14 8 14 22v8H10z" fill="${o.coif?'none':m}" stroke="${k}" stroke-width="1.3"/>${o.coif?`<path d="M10 30c0-14 6-22 14-22s14 8 14 22v10c-4 4-24 4-28 0z" fill="${M[1]}" stroke="${k}"/><path d="M12 22h24M11 28h26M11 34h26" stroke="${M[0]}" stroke-dasharray="1.5 1.5"/>`:v>.5?`<rect x="15" y="22" width="18" height="3" rx="1" fill="#14181f"/><path d="M24 25v9" stroke="#14181f" stroke-width="2"/>`:`<path d="M22.5 16h3v18h-3z" fill="${M[1]}" stroke="${k}" stroke-width=".7"/><path d="M14 22h8M26 22h8" stroke="#14181f" stroke-width="3"/>`}<path d="M10 36h28v4H10z" fill="${A}" stroke="#1a1208" stroke-width=".7"/>${rip}`;}
+  else if(fam==='crown'){b=`<path d="M8 34l2-18 7 8 7-12 7 12 7-8 2 18z" fill="${m}" stroke="${k}" stroke-width="1.2"/><rect x="8" y="33" width="32" height="6" rx="1" fill="${M[1]}" stroke="${k}"/>${gem(24,36,2)}${gem(15,36,1.4)}${gem(33,36,1.4)}${gem(24,13,1.6)}`;}
+  else if(fam==='hood'){b=`<path d="M24 5c10 0 15 10 15 22v14H9V27C9 15 14 5 24 5z" fill="${GA_CLOTH[1]}" stroke="#1a0a08"/><path d="M24 12c6 0 9 6 9 14v8H15v-8c0-8 3-14 9-14z" fill="#0c0a10"/><circle cx="20.5" cy="25" r="1.3" fill="${A}"/><circle cx="27.5" cy="25" r="1.3" fill="${A}"/><path d="M9 37h30" stroke="${A}" stroke-width="2"/>`;}
+  else if(fam==='mask'){b=`<path d="M8 14c6-6 26-6 32 0-1 14-7 22-16 24C15 36 9 28 8 14z" fill="${m}" stroke="${k}" stroke-width="1.2"/><path d="M13 19c3-2 6-2 8 1-3 2-6 2-8-1zM35 19c-3-2-6-2-8 1 3 2 6 2 8-1z" fill="#0c0a10"/><path d="M24 22v8" stroke="${k}"/>${gem(24,13,1.8)}`;}
+  else if(fam==='robe'){b=`<path d="M17 6h14l6 8-3 3v27H14V17l-3-3z" fill="${GA_CLOTH[0]}" stroke="${GA_CLOTH[1]}"/><path d="M24 6v38" stroke="${A}" stroke-width="2.4"/><path d="M14 26h20" stroke="${M[1]}" stroke-width="2"/>${gem(24,26,1.8)}`;}
+  else if(fam==='cloak'){b=`<path d="M14 7c4 3 16 3 20 0l6 37c-6 3-26 3-32 0z" fill="${GA_CLOTH[1]}" stroke="#1a0a08"/><path d="M14 7c4 3 16 3 20 0l2 10c-6 4-18 4-24 0z" fill="${GA_CLOTH[0]}"/>${gem(24,12,2.4)}<path d="M18 20l-3 22M30 20l3 22" stroke="#000" opacity=".25"/>`;}
+  else if(fam==='chest'){b=`<path d="M12 8l7-3c2 3 8 3 10 0l7 3 4 8-5 3v24H13V19l-5-3z" fill="${o.plate?m:o.mail?M[1]:L[0]}" stroke="${k}" stroke-width="1.2"/>${o.mail?`${[14,19,24,29,34,39].map(y=>`<path d="M14 ${y}h20" stroke="${M[0]}" stroke-dasharray="1.3 1.3" opacity=".8"/>`).join('')}`:o.plate?`<path d="M24 9v34M14 22c6 2 14 2 20 0" stroke="${k}" opacity=".7"/>${rip}`:o.brig?`${[14,20,26,32].map(y=>[15,21,27].map(x=>`<rect x="${x}" y="${y}" width="5" height="4" rx=".6" fill="${M[1]}" stroke="${k}" stroke-width=".4"/>`).join('')).join('')}`:`<path d="M21 10l6 4-6 4 6 4-6 4 6 4" fill="none" stroke="#e8d8b0" stroke-width="1"/>${[16,24,32].map(y=>`<circle cx="16" cy="${y}" r=".9" fill="${M[1]}"/><circle cx="32" cy="${y}" r=".9" fill="${M[1]}"/>`).join('')}`}<path d="M13 36h22" stroke="${A}" stroke-width="2.4"/>${gem(24,36,1.8)}`;}
+  else if(fam==='hand'&&o.mitt){b=`<path d="M14 44V22c0-8 4-13 10-13s10 5 10 13v22z" fill="${L[0]}" stroke="${L[1]}" stroke-width="1.2"/><path d="M14 26c-5-2-6-8-2-10 3-1 5 2 5 6" fill="${L[0]}" stroke="${L[1]}"/><rect x="12" y="35" width="24" height="9" rx="3" fill="#efe4c8" stroke="#8a7a5a"/><path d="M14 38h20M14 41h20" stroke="#c9b98f" stroke-dasharray="1.5 1.5"/>${gem(24,24,1.8)}<path d="M12 35h24" stroke="${M[1]}" stroke-width="1.6"/>`;}
+  else if(fam==='hand'){const met=o.metal;b=`<path d="M14 44V24c0-3 1-5 2-5V10c0-2 3-2 3 0v9-12c0-2 3-2 3 0v12-13c0-2 3-2 3 0v13-11c0-2 3-2 3 0v16l3-5c1-2 4-1 3 1l-5 11v9z" fill="${met?m:L[0]}" stroke="${met?k:L[1]}" stroke-width="1.1"/>${met?`<path d="M16 20h12M16 26h12" stroke="${k}" opacity=".6"/>`:''}<rect x="13" y="37" width="18" height="7" rx="1.5" fill="${M[1]}" stroke="${k}" stroke-width=".8"/>${gem(22,40.5,1.6)}`;}
+  else if(fam==='bracer'){b=`<path d="M12 10h24l-3 30H15z" fill="${L[0]}" stroke="${L[1]}" stroke-width="1.2"/><path d="M13 16h22M14 34h20" stroke="${M[1]}" stroke-width="2.4"/>${[20,25,30].map(y=>`<circle cx="18" cy="${y}" r="1" fill="${M[0]}"/><circle cx="30" cy="${y}" r="1" fill="${M[0]}"/>`).join('')}${gem(24,25,2.4)}`;}
+  else if(fam==='boot'){const met=o.metal;b=`<path d="M16 4h12v24c0 3 2 5 6 6 4 1 6 3 6 6v2H12V28z" fill="${o.sandal?'none':met?m:L[0]}" stroke="${met?k:L[1]}" stroke-width="1.3"/>${o.sandal?`<path d="M14 42h26M16 6l12 6M16 14l12 6M16 22l12 6M28 30l10 6" stroke="${L[0]}" stroke-width="2.2"/>`:''}<path d="M12 39h28v3H12z" fill="${M[1]}" stroke="${k}" stroke-width=".6"/>${met?`<path d="M16 12h12M16 20h12" stroke="${k}" opacity=".6"/>`:''}${o.spur?`<path d="M12 36l-6 2" stroke="${M[1]}" stroke-width="2"/><circle cx="5" cy="38.4" r="2.4" fill="none" stroke="${M[1]}" stroke-width="1.4"/>`:''}<path d="M16 8h12" stroke="${A}" stroke-width="2.2"/>`;}
+  else if(fam==='ring'){b=`<ellipse cx="24" cy="30" rx="13" ry="12" fill="none" stroke="${M[2]}" stroke-width="6"/><ellipse cx="24" cy="30" rx="13" ry="12" fill="none" stroke="${m}" stroke-width="4"/>${o.band?`<ellipse cx="24" cy="30" rx="13" ry="12" fill="none" stroke="${M[0]}" stroke-width="1.4" stroke-dasharray="3 2"/>`:o.loop?`<ellipse cx="24" cy="30" rx="13" ry="12" fill="none" stroke="${L[0]}" stroke-width="5" stroke-dasharray="4 1.5"/>${gem(24,18,3)}`:o.seal?`<circle cx="24" cy="15" r="7" fill="${m}" stroke="${k}"/><circle cx="24" cy="15" r="4.6" fill="none" stroke="${k}" stroke-width="1.2"/><path d="M21.5 15h5M24 12.5v5" stroke="${k}"/>`:o.signet?`<rect x="16" y="12" width="16" height="10" rx="3" fill="${m}" stroke="${k}"/><path d="M20 17h8" stroke="${k}"/>`:o.claw?`<path d="M18 19c2-8 6-12 10-10-4 2-5 6-4 10zM22 19c4-9 9-11 12-8-4 1-6 5-6 8z" fill="#efe4c8" stroke="#6a5a3a"/>`:`<path d="M18 19l6-7 6 7z" fill="${M[1]}" stroke="${k}"/>${gem(24,14,4.2)}`}`;}
+  else if(fam==='amulet'){b=`<path d="M10 4c2 14 8 18 14 18s12-4 14-18" fill="none" stroke="${M[1]}" stroke-width="1.6" stroke-dasharray="2 1"/>${o.fang?`<path d="M20 22h8l-3 20c-1 2-2 2-3 0z" fill="#efe4c8" stroke="#6a5a3a"/><rect x="19" y="20" width="10" height="4" rx="1" fill="${m}" stroke="${k}"/>`:o.charm?`${[[-5,0],[5,0],[0,-5],[0,5]].map(([dx,dy])=>`<circle cx="${24+dx}" cy="${32+dy}" r="5" fill="${A}" stroke="#1a1208"/>`).join('')}<circle cx="24" cy="32" r="2" fill="${M[0]}"/>`:o.relic?`<rect x="17" y="22" width="14" height="18" rx="2" fill="${m}" stroke="${k}"/><path d="M17 28h14" stroke="${k}"/>${gem(24,34,2.2)}`:o.talisman?`<path d="M24 22l9 9-9 12-9-12z" fill="#efe4c8" stroke="#6a5a3a"/><path d="M24 26v13M20 31h8" stroke="${A}" stroke-width="1.6"/>`:o.drop?`<path d="M24 21c6 7 8 11 8 15a8 8 0 0 1-16 0c0-4 2-8 8-15z" fill="${m}" stroke="${k}"/>${gem(24,36,3.4)}`:`<circle cx="24" cy="32" r="10" fill="${m}" stroke="${k}" stroke-width="1.2"/><circle cx="24" cy="32" r="7" fill="none" stroke="${M[0]}" stroke-dasharray="1.5 1.5"/>${gem(24,32,3.4)}`}`;}
+  else if(fam==='horn'){b=`<path d="M6 34c10 0 22-8 30-24l6 4c-6 18-20 28-36 26z" fill="#efe4c8" stroke="#6a5a3a" stroke-width="1.2"/><path d="M36 10l6 4" stroke="${M[1]}" stroke-width="4"/><path d="M14 33c3-2 4-4 4-6M24 28c2-2 3-5 3-7" stroke="${M[1]}" stroke-width="2"/><path d="M8 38c8 4 22 0 30-14" fill="none" stroke="${L[0]}" stroke-width="1.6"/>${gem(18,31,1.8)}`;}
+  else if(fam==='totem'){b=`<rect x="16" y="4" width="16" height="40" rx="3" fill="${W[0]}" stroke="${W[1]}" stroke-width="1.2"/><path d="M16 17h16M16 31h16" stroke="${W[1]}"/><circle cx="20.5" cy="10" r="1.6" fill="${A}"/><circle cx="27.5" cy="10" r="1.6" fill="${A}"/><path d="M20 24h8M21 38h6" stroke="#1a1208" stroke-width="1.6"/><path d="M16 22l-6-3M32 22l6-3" stroke="${W[0]}" stroke-width="3"/>`;}
+  else if(o.sigil){b=`<rect x="22.7" y="18" width="2.6" height="28" rx="1" fill="${W[0]}" stroke="${W[1]}" stroke-width=".7"/><path d="M12 6h24v14l-12 6-12-6z" fill="${m}" stroke="${k}" stroke-width="1.2"/><path d="M24 9l5 5-5 5-5-5z" fill="${A}" stroke="#1a1208"/>${rip}`;}
+  else{/* banner */const p=o.pennant,s=o.standard;b=`<rect x="10" y="3" width="2.6" height="42" rx="1" fill="${W[0]}" stroke="${W[1]}" stroke-width=".7"/><circle cx="11.3" cy="3" r="2" fill="${M[1]}"/>${s?`<path d="M12 7h26M12 7v0" stroke="${W[1]}" stroke-width="2"/><path d="M14 8h22v24l-11-4-11 4z" fill="${A}" stroke="#1a1208"/>`:p?`<path d="M13 7l28 8-28 8z" fill="${A}" stroke="#1a1208"/>`:`<path d="M13 6h24v22l-6-4-6 4-6-4-6 4z" fill="${A}" stroke="#1a1208"/>`}<circle cx="${p?20:25}" cy="${p?15:16}" r="4" fill="${M[0]}" stroke="${k}"/>`;}
+  return `<svg viewBox="0 0 48 48">${g}${b}</svg>`;}
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -5923,7 +6691,7 @@ window.addEventListener('resize',resize);
 let last=performance.now(),acc=0;
 function frame(now){
   const real=Math.min(0.1,(now-last)/1000);last=now;
-  if(G.state==='play'&&!G.paused){refreshSheet();let spm=G.speed;if(G.slowmoT>0){G.slowmoT-=real;spm*=0.3;}if(G.hitStop>0){G.hitStop-=real;spm=0;}acc+=real*spm;let n=0;const cap=Math.max(6,G.speed*4);while(acc>=DT&&n<cap&&G.state==='play'){step();acc-=DT;n++;}if(n>=cap)acc=0;updateHUD();updateBar();}
+  if(G.state==='play'&&!G.paused){refreshSheet();juiceFrame();let spm=G.speed;if(G.slowmoT>0){G.slowmoT-=real;spm*=0.3;}if(G.hitStop>0){G.hitStop-=real;spm=0;}acc+=real*spm;let n=0;const cap=Math.max(6,G.speed*4);while(acc>=DT&&n<cap&&G.state==='play'){step();acc-=DT;n++;}if(n>=cap)acc=0;updateHUD();updateBar();}
   G.shake*=0.86;G.hurt=Math.max(0,G.hurt-real*0.55);camStep(real);ringFrame();tutFrame(real);
   draw(now);requestAnimationFrame(frame);
 }
@@ -5941,11 +6709,13 @@ const HUB_ICON={
  shop:'<svg viewBox="0 0 24 24"><path d="M3 10.5h18v8.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#a8652b" stroke="#3a2010" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 10.5V8a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v2.5z" fill="#d9944a" stroke="#3a2010" stroke-width="1.6" stroke-linejoin="round"/><rect x="9.5" y="9" width="5" height="5" rx="1" fill="#ffd54a" stroke="#3a2010" stroke-width="1.2"/><path d="M7 3.5l1.5-2 1.5 2-1.5 2.2zM12 2.5l1.6-2.1 1.6 2.1-1.6 2.3zM16.8 3.6l1.4-1.9 1.4 1.9-1.4 2.1z" fill="#ff6fb1" stroke="#7a1d4a" stroke-width=".8"/></svg>',
  coll:'<svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="11" height="15" rx="2" transform="rotate(-12 8 13.5)" fill="#b47cff" stroke="#2a0f4a" stroke-width="1.5"/><rect x="7" y="4.5" width="11" height="15" rx="2" fill="#ff7ab8" stroke="#5a1236" stroke-width="1.5"/><rect x="11" y="6" width="11" height="15" rx="2" transform="rotate(12 16.5 13.5)" fill="#4fc0ff" stroke="#0b3a5a" stroke-width="1.5"/><path d="M14 11l1.6 1.9 2.4-2.3 1 4.4h-6.8l.6-4.4z" fill="#ffd54a" stroke="#7a4a10" stroke-width=".9"/></svg>',
  battle:'<svg viewBox="0 0 24 24"><path d="M5 19.5 17.5 7l1.2-3.7L15 4.5 2.5 17z" fill="#e9eef5" stroke="#3a4655" stroke-width="1.4" stroke-linejoin="round"/><path d="M19 19.5 6.5 7 5.3 3.3 9 4.5 21.5 17z" fill="#dfe6ee" stroke="#3a4655" stroke-width="1.4" stroke-linejoin="round"/><path d="M4 16.2l3.8 3.8M20 16.2l-3.8 3.8" stroke="#ffd54a" stroke-width="3" stroke-linecap="round"/><path d="M4 16.2l3.8 3.8M20 16.2l-3.8 3.8" stroke="#7a4a10" stroke-width="1" stroke-linecap="round"/><circle cx="3.2" cy="21" r="1.4" fill="#ff6fb1" stroke="#7a1d4a" stroke-width=".8"/><circle cx="20.8" cy="21" r="1.4" fill="#4fc0ff" stroke="#0b3a5a" stroke-width=".8"/></svg>',
+ tasks:'<svg viewBox="0 0 24 24"><path d="M6 3.5h10.5a2 2 0 0 1 2 2V19a1.5 1.5 0 0 1-1.5 1.5H6.5A2.5 2.5 0 0 1 4 18V5.5a2 2 0 0 1 2-2z" fill="#f3e2b8" stroke="#6b4a1c" stroke-width="1.5"/><path d="M7 8.2l1.3 1.3 2.2-2.4M7 12.7l1.3 1.3 2.2-2.4M7 17.2l1.3 1.3 2.2-2.4" fill="none" stroke="#2f9a4a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5 8.6h4M12.5 13.1h4M12.5 17.6h4" stroke="#6b4a1c" stroke-width="1.4" stroke-linecap="round"/></svg>',
+ earn:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="#f2a62c" stroke="#7a4a10" stroke-width="1.6"/><circle cx="12" cy="12" r="6.2" fill="none" stroke="#fff0c2" stroke-width="1.2"/><path d="M12 7v10M9.5 9.5h4a1.6 1.6 0 0 1 0 3.2h-3a1.6 1.6 0 0 0 0 3.2h4" fill="none" stroke="#7a4a10" stroke-width="1.5" stroke-linecap="round"/></svg>',
  events:'<svg viewBox="0 0 24 24"><path d="M5 2.5h14v12l-7 5-7-5z" fill="#b33fb0" stroke="#3a1146" stroke-width="1.5" stroke-linejoin="round"/><path d="M7 2.5v10.6l5 3.6 5-3.6V2.5" fill="none" stroke="#e08ae0" stroke-width="1.2"/><path d="M12 5.2l1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5z" fill="#ffd54a" stroke="#7a4a10" stroke-width=".9"/><path d="M9 21.5h6" stroke="#3a1146" stroke-width="2" stroke-linecap="round"/></svg>',
  hold:'<svg viewBox="0 0 24 24"><path d="M12 2.5l8 3v6c0 5.2-3.4 8.4-8 10.5-4.6-2.1-8-5.3-8-10.5v-6z" fill="#4fc0ff" stroke="#0b3a5a" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 4.6l6 2.2v4.7c0 4-2.5 6.6-6 8.3-3.5-1.7-6-4.3-6-8.3V6.8z" fill="#2b8fd6" stroke="none"/><path d="M8.5 17V11a3.5 3.5 0 0 1 7 0v6z" fill="#8a5a2b" stroke="#3a2010" stroke-width="1.2"/><path d="M12 17v-6" stroke="#3a2010" stroke-width="1"/><circle cx="10.8" cy="13.5" r=".7" fill="#ffd54a"/><circle cx="13.2" cy="13.5" r=".7" fill="#ffd54a"/></svg>'
 };
-const GEM_SVG='<svg viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z" fill="#8fd3ff" stroke="#dff3ff" stroke-width="1.2"/><path d="M2 9h20M9 3l3 6 3-6M12 9v12" stroke="#2b6b9a" stroke-width="1" fill="none"/></svg>';
-const GOLD_SVG='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="#f2a62c" stroke="#7a4a10" stroke-width="1.4"/><circle cx="12" cy="12" r="6.8" fill="none" stroke="#ffe36e" stroke-width="1.3"/><path d="M12 7.2v9.6M9.4 9.3h4.1a1.9 1.9 0 0 1 0 3.8H9.9a1.9 1.9 0 0 0 0 3.8h4.6" fill="none" stroke="#7a4a10" stroke-width="1.7" stroke-linecap="round"/><path d="M6 8.5a7 7 0 0 1 4-3.6" fill="none" stroke="#fff3b0" stroke-width="1.4" stroke-linecap="round"/></svg>';
+const GEM_SVG=CUR_GEM;
+const GOLD_SVG=CUR_GOLD;
 const STAR_SVG='<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.4 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z" fill="#e3b661" stroke="#fff0c2" stroke-width="1"/></svg>';
 const TROPHY_SVG='<svg viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0z" fill="#e3b661" stroke="#fff0c2"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3" fill="none" stroke="#e3b661" stroke-width="1.6"/><path d="M10 14h4v3h-4zM8 17h8v3H8z" fill="#c99b3f"/></svg>';
 const CHEST_TIERS={
@@ -6082,24 +6852,24 @@ function hubTop(){const c=CBY[ACC.sel],L=accLevel(),hh=HOUSES[ACC.house];const p
   return `<div class="hubtop"><div class="ava" id="hubAva">${pu?`<img src="${pu}" alt="">`:`<span class="pe">${c.e}</span>`}<span class="lv">${L.l}</span></div>
   <div class="who"><div class="nmrow"><b>${esc(playerName())}</b><span id="hubRank">${rankChip()}</span></div><small>House ${hh.n} · ${flag(lang().c,14)} ${lang().c}</small><div class="xp" title="Level ${L.l}"><i style="width:${Math.round(100*L.xp/L.need)}%"></i></div></div>
   <div class="cur ${ecoOn()?'three':''}"><span title="Gold — levels, skills, upgrades">${GOLD_SVG}${fmtN(goldOf())}<i class="plus" data-go="shop">+</i></span><span title="Dragonglass — chests and deals">${GEM_SVG}${fmtN(ACC.gems)}<i class="plus" data-go="shop">+</i></span>${ecoOn()?ecoChip():''}</div></div>`;}
-function hubTabs(on){const t=[['shop','Shop'],['coll','Collection'],['battle','Battle'],['events','Events'],['hold','Hold']];
-  const dot={shop:freeChestReady()||starChestsReady()>0,battle:starChestsReady()>0,coll:bookNewCount()>0,hold:onlineOpen()&&ACC.online.attempts>0&&!(ACC.online.runs||[]).length};
+function hubTabs(on){const t=[['shop','Shop'],['coll','Collection'],['battle','Battle'],['tasks','Tasks'],['hold','Hold']];
+  const dot={tasks:tasksReady()>0,shop:freeChestReady()||starChestsReady()>0,battle:starChestsReady()>0,coll:bookNewCount()>0,hold:onlineOpen()&&ACC.online.attempts>0&&!(ACC.online.runs||[]).length};
   return `<div class="hubtabs">${t.map(([k,n])=>`<button class="${k===on?'on':''} ${k==='battle'?'mid':''} ${k==='hold'&&!onlineOpen()?'lock':''}" data-tab="${k}">${HUB_ICON[k]}${n}${dot[k]?'<span class="dot"></span>':''}</button>`).join('')}</div>`;}
-const HUB_ORDER=['shop','coll','battle','events','hold'];
+const HUB_ORDER=['shop','coll','battle','tasks','hold'];
 let hubDir=0; /* -1: slid in from the left, 1: from the right (swipe animation) */
 function showHub(tab,sub){
   if(!ACC){showTitle();return;}
   if(ecoWants()&&!ecoOn()&&!ECO.starting&&Date.now()-ECO.failAt>20000)ecoStart();else if(ecoOn()&&Date.now()-ECO.at>60000&&ecoCalm())ecoRefresh();
   rollDay();tab=tab||'battle';
-  const body=tab==='shop'?hubShop():tab==='coll'?hubCollection(sub):tab==='events'?hubEvents(sub):tab==='hold'?hubHold():hubBattle();
-  show(`<div class="hub" style="--sig:url(${SIGILS[ACC.house]||''})">${hubTop()}<div class="hubbody ${tab} ${hubDir>0?'slide-r':hubDir<0?'slide-l':''}" id="hubBody">${body}</div>${hubTabs(tab)}</div>`,'full');
+  const body=tab==='shop'?hubShop():tab==='coll'?hubCollection(sub):tab==='events'?hubEvents(sub):tab==='tasks'?hubTasks(sub):tab==='hold'?hubHold():hubHome();
+  show(`<div class="hub look-${skinOf()}" style="--sig:url(${SIGILS[ACC.house]||''})">${hubTop()}<div class="hubbody ${tab} ${hubDir>0?'slide-r':hubDir<0?'slide-l':''}" id="hubBody">${body}</div>${hubTabs(tab)}</div>`,'full');
   hubDir=0;CLOUD.screen='hub:'+tab;
   card.querySelectorAll('.hubtabs button').forEach(b=>b.addEventListener('click',()=>{SFX.play('tap',60);hubDir=Math.sign(HUB_ORDER.indexOf(b.dataset.tab)-HUB_ORDER.indexOf(tab));showHub(b.dataset.tab);}));
   $('#hubAva').addEventListener('click',()=>showSettings());const he=$('#hubEn');if(he)he.addEventListener('click',()=>{SFX.play('tap',60);ecoEnergySheet(0,null);});const hr=$('#hubRank');if(hr)hr.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});card.querySelectorAll('.plus').forEach(b=>b.addEventListener('click',()=>showHub(b.dataset.go)));
-  hubSwipe(card.querySelector('.hub'),tab);
-  if(tab==='battle')hubBattleBind();else if(tab==='coll')hubCollectionBind(sub);else if(tab==='shop')hubShopBind();else if(tab==='events')hubEventsBind(sub);else hubHoldBind();
+  hubSwipe(card.querySelector('.hub'),tab);juiceHub(tab);
+  if(tab==='battle'){hubBattleBind();homeBind();}else if(tab==='coll')hubCollectionBind(sub);else if(tab==='shop')hubShopBind();else if(tab==='events')hubEventsBind(sub);else if(tab==='tasks')hubTasksBind();else hubHoldBind();
   setTimeout(()=>hubTour(tab),400);
-  if(tab==='battle')setTimeout(dailyPopupCheck,1100);
+  if(tab==='battle'){if(DUEL.pending)setTimeout(duelPendingOpen,500);else{setTimeout(dailyPopupCheck,1100);setTimeout(evPopupCheck,2600);}}
 }
 /* horizontal swipe between the five tabs (touch and mouse) */
 function hubSwipe(el,tab){
@@ -6116,13 +6886,10 @@ function hubSwipe(el,tab){
 function hubBattle(){const hh=HOUSES[ACC.house],c=CBY[ACC.sel],g=Object.keys(campOf()).length,se=starsEarned();const chestsN=starChestsReady(),prog=se%3,pu=CHAMP_ART[c.id+'_portrait'];
   const nextL=nextStage();
   const NG=LEVELS.length;
-  return `<div class="seatname"><b>${hh.seat}</b><small>Seat of House ${hh.n} · ${hh.words}</small></div>
+  return `<div class="seatname"><b>${hh.seat}</b></div>${evBadgeHTML()}
   <div class="islewrap"><canvas class="isle" id="isle" width="680" height="700"></canvas></div>
-  <div class="castlerow"><button class="cbld" id="bTrain"><span class="ic">⚔️</span><span class="tx"><b>Train</b><small>Army level ${armyLvl()}${armyLvl()>=ARMY_HOUSE_AT?' · '+HOUSE_UNIT[ACC.house].n:' · '+HOUSE_UNIT[ACC.house].n+' at '+ARMY_HOUSE_AT}</small></span></button><button class="cbld" id="bSpellShop"><span class="ic">🧪</span><span class="tx"><b>Spell shop</b><small>${packCount()?packCount()+' in the pack':'one-shot battle items'}</small></span></button></div>
-  <div class="castlerow forgerow"><button class="cbld" id="bTavern"><span class="ic">🍺</span><span class="tx"><b>Tavern</b><small>stars · skills · portal</small></span></button><button class="cbld" id="bForge"><span class="ic">⚒️</span><span class="tx"><b>Forge</b><small>${ecoOn()?gearItems().length+' items · '+GEAR_SLOTS.filter(k=>gearItems().some(it=>it.champ===ACC.sel&&it.slot===k)).length+'/9 worn':'gear — a Telegram seat'}</small></span></button></div>
-  <div class="castlerow forgerow">${dailyBtnHTML()}</div>
-  <div class="castlerow"><button class="cbld" id="bCity"><span class="ic">🏰</span><span class="tx"><b>City</b><small>${CITY_NAME[ACC.house]||'your city'} · ${cityCleared()} stage${cityCleared()===1?'':'s'} cleared</small></span></button>${seasonBtnHTML()}</div>
-  <div class="tro"><span class="tr" id="hubTro">${rankSVG(myRank().t,22,myRank().div)}${TROPHY_SVG}${trophiesOf()}</span><span class="bar"><i style="width:${Math.round(100*g/NG)}%"></i><em>STAGE ${Math.min(NG,g+1)} OF ${NG} · ${nextL.n.toUpperCase()}</em></span></div>
+  <div class="homerow"><button class="hbtn" id="bCity"><span class="ic">🏰</span><b>City</b></button><button class="hbtn" id="bTavern"><span class="ic">🍺</span><b>Tavern</b></button><button class="hbtn" id="bForge"><span class="ic">⚒️</span><b>Forge</b></button>${dailyBtnHTML()}${seasonBtnHTML()}</div>
+  <div class="tro"><span class="tr" id="hubTro">${rankSVG(myRank().t,22,myRank().div)}${TROPHY_SVG}${trophiesOf()}</span><span class="bar"><i style="width:${Math.round(100*g/NG)}%"></i><em>${g} / ${NG}</em></span></div>
   <div class="chestrow"><span class="ch ${chestsN>0?'ready':''}" id="starChest">${chestSVG('iron')}</span><span class="sbar"><i style="width:${chestsN>0?100:Math.round(100*prog/3)}%"></i><em>${chestsN>0?'CHEST READY · TAP TO OPEN':`${prog}/3 STARS TO THE NEXT CHEST`}</em></span>${chestsN>1?`<b class="cnt">×${chestsN}</b>`:''}</div>
   ${lvlChestsReady()>0?`<div class="chestrow lvl"><span class="ch ready" id="lvlChest">${chestSVG(lvlChestTier((ACC.lvlChests||0)+2))}</span><span class="sbar"><i style="width:100%"></i><em>LEVEL ${(ACC.lvlChests||0)+2} CHEST · TAP TO OPEN</em></span>${lvlChestsReady()>1?`<b class="cnt">×${lvlChestsReady()}</b>`:''}</div>`:''}
   <div class="battlerow">${hardOpen()?`<button class="bside" id="bDiffH"><span class="pe">${DIFFS[ACC.diff].e}</span>${DIFFS[ACC.diff].lbl}</button>`:`<button class="bside" id="bMapH"><span class="pe">🗺️</span>Map</button>`}
@@ -6130,7 +6897,7 @@ function hubBattle(){const hh=HOUSES[ACC.house],c=CBY[ACC.sel],g=Object.keys(cam
     <button class="bside" id="bChampH">${pu?`<img src="${pu}" alt="">`:`<span class="pe">${c.e}</span>`}${shortName(c)}</button></div>
   ${ACC.tut?'':'<div class="hint">▲ TAP BEGIN — YOUR CHAMPION WILL TEACH YOU</div>'}${ACC.refund?`<div class="hint" id="refundNote">🪙 Tower upgrades are now tower levels — ${ACC.refund} gold refunded. Collection → Towers.</div>`:''}`;}
 function hubBattleBind(){if(ACC.refund){ACC.refund=0;persist();}
-  const cv=$('#isle');if(cv)drawIsland(cv,ACC.house);seasonBtnBind2();if(seasonOn())seasonLoad().then(()=>{const c=document.getElementById('bSeason');if(c&&SEASON.st){c.outerHTML=seasonBtnHTML();seasonBtnBind2();}});const bcy=$('#bCity');if(bcy)bcy.addEventListener('click',()=>{SFX.play('tap',60);showCity();});const bt=$('#bTrain');if(bt)bt.addEventListener('click',()=>{SFX.play('tap',60);showTrain();});const bs=$('#bSpellShop');if(bs)bs.addEventListener('click',()=>{SFX.play('tap',60);showSpellShop();});const btv=$('#bTavern');if(btv)btv.addEventListener('click',()=>{SFX.play('tap',60);showHeroRoom();});dailyBtnBind();dailyBtnRefresh();const bf=$('#bForge');if(bf)bf.addEventListener('click',()=>{SFX.play('tap',60);showForge();});const ht=$('#hubTro');if(ht)ht.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});
+  const cv=$('#isle');if(cv)drawIsland(cv,ACC.house);evBadgeBind();seasonBtnBind2();if(seasonOn())seasonLoad().then(()=>{const c=document.getElementById('bSeason');if(c&&SEASON.st){c.outerHTML=seasonBtnHTML();seasonBtnBind2();}});const bcy=$('#bCity');if(bcy)bcy.addEventListener('click',()=>{SFX.play('tap',60);showCity();});const bt=$('#bTrain');if(bt)bt.addEventListener('click',()=>{SFX.play('tap',60);showTrain();});const bs=$('#bSpellShop');if(bs)bs.addEventListener('click',()=>{SFX.play('tap',60);showSpellShop();});const btv=$('#bTavern');if(btv)btv.addEventListener('click',()=>{SFX.play('tap',60);showHeroRoom();});dailyBtnBind();dailyBtnRefresh();const bf=$('#bForge');if(bf)bf.addEventListener('click',()=>{SFX.play('tap',60);showForge();});const ht=$('#hubTro');if(ht)ht.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});
   $('#bBattle').addEventListener('click',()=>{SFX.play('tap',80);if(!ACC.tut)startTutorial();else showCampaign();});
   const bdh=$('#bDiffH');if(bdh)bdh.addEventListener('click',()=>showDifficulty(false));const bmh=$('#bMapH');if(bmh)bmh.addEventListener('click',()=>{SFX.play('tap',60);showCampaign();});
   $('#bChampH').addEventListener('click',()=>showHeroRoom(ACC.sel));
@@ -6309,7 +7076,7 @@ function hubEventsBind(sub){
 function hubHold(){rollDay();const gm=genDaily(hash32(dayKeyUTC())),runs=ACC.online.runs||[],best=runs.length?Math.max(...runs.map(r=>r.waves)):0,open=onlineOpen(),lb=cachedLb(),t=fmtT(msToMidnightUTC());
   const today=(lb&&lb.today)||null;const me=lbMine(lb).myday;
   const list=(today||((lb&&lb.top)||[])).slice(0,10);
-  return `<div class="holdhead"><b>HOLD THE DOOR</b><small>daily siege · ${gm.mod.e} ${gm.mod.n} — ${gm.mod.desc}</small></div>
+  return `${duelCardHTML()}<div class="holdhead"><b>HOLD THE DOOR</b><small>daily siege · ${gm.mod.e} ${gm.mod.n} — ${gm.mod.desc}</small></div>
   <div class="cd"><div><b id="cdH">${t.h}</b><small>hours</small></div><div><b id="cdM">${t.m}</b><small>min</small></div><div><b id="cdS">${t.s}</b><small>sec</small></div></div>
   <p class="holdnote">until the next map · the waves never stop · every realm and house counts</p>
   ${open?'':`<div class="lockbanner"><span style="font-size:22px">🔒</span><span><b>Opens after stage ${ONLINE_AT}</b><br>Hold ${ONLINE_AT} stages in the campaign to join the daily siege. You can already watch the standings.</span></div>`}
@@ -6323,7 +7090,7 @@ function hubHoldBind(){
   const tick=()=>{if(CLOUD.screen!=='hub:hold')return;const t=fmtT(msToMidnightUTC());const h=$('#cdH');if(!h)return;h.textContent=t.h;$('#cdM').textContent=t.m;$('#cdS').textContent=t.s;setTimeout(tick,1000);};tick();
   if(sbReady()&&lbStale())fetchLeaderboard(true).then(r=>{if(r&&CLOUD.screen==='hub:hold')showHub('hold');});
   const go=()=>{if(!onlineOpen()||ACC.online.attempts<=0)return;startGame({mode:'online'});};
-  $('#bHold').addEventListener('click',()=>{if(!ACC.holdTut){holdTutorial(go);}else go();});
+  $('#bHold').addEventListener('click',()=>{if(!ACC.holdTut){holdTutorial(go);}else go();});const bdc=$('#bDuelCard');if(bdc)bdc.addEventListener('click',()=>{SFX.play('tap',60);showDuel();});
   const ba=$('#bBuyAtt');if(ba)ba.addEventListener('click',()=>{if(ecoBuyAtt())showHub('hold');});
   $('#bHoldHelp').addEventListener('click',()=>holdTutorial(()=>showHub('hold')));
   if(onlineOpen()&&!ACC.holdTut&&!ACC.holdIntro){ACC.holdIntro=1;persist();holdTutorial(()=>showHub('hold'));}
@@ -6356,9 +7123,20 @@ window.HOLDOR_TAVERN={CH_RAR,RAR_STAT,RAR_N,ST_MAX,ASC_GOLD,ASC_BURN,BOOK_N,BOOK
 window.HOLDOR_STARS={STARS_SHOP,STARS,starsBuy,starsWait,starsCan,starsShopHTML};
 window.HOLDOR_DAILY={LOGIN_CAL,QUESTS,DAILY,LOGIN_SPECIAL_GEMS,showDaily,dailyLoad,dailyReady,dailyClaimLogin,dailyClaimQuest,dailyPopupCheck,rewardChips};
 window.HOLDOR_CITY={showCity,cityCleared,CITY_BLD,CITY_NAME};
-window.HOLDOR_DUEL={DUEL,showDuel,duelLoad,duelRow};
+window.HOLDOR_DUEL={DUEL,showDuel,duelLoad,duelRow,duelPlay,duelPendingOpen,duelCardHTML};
 window.HOLDOR_SEASON={SEASON,showSeason,seasonLoad};
 window.HOLDOR_MARKET={shareText,shareWin,shareDuel,shareLink,showCampaignResult};
+window.HOLDOR_EARN={evAt,evLeft,evPopup,evPopupCheck,EVT_KIND};
+window.HOLDOR_TASKS={TASKS,tasksLoad,tasksReady,hubTasks,tkCall,tkOpen,tkRush,tkDouble};
+window.HOLDOR_JUICE={JUICE,juiceCoins,juiceCount,juiceFrame,juiceHub,JUICE_SHOUT};
+window.HOLDOR_HOME={HOME,SKINS,skinOf,skinSet,skinNext,hubHome,homeStrike};
+window.HOLDOR_ICONS=ICONS;
+window.HOLDOR_BOONS={BOONS,BOON_KEYS,boonOffer,boonMul,boonPick,boonCheck};
+window.HOLDOR_FEEL={FEEL,FEEL_SFX,hapt,feelKill};
+window.HOLDOR_RESULT={resultFx,resultConfetti};
+window.HOLDOR_CUR={CUR_GOLD,CUR_GEM,curSwap};
+window.HOLDOR_LUCKY={LUCKY,luckyRoll,luckyNext,luckyShow};
+window.HOLDOR_GA={gearArt,gaFamily,GA_METAL,GA_SET};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();

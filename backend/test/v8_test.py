@@ -19,6 +19,8 @@ def anon_err(fn, **kw):
     try: anon(fn, **kw); return None
     except Exception as e: return str(e).split('\n')[0]
 fails = []
+# v21 lucky chests climb at random; these checks are about one tier, so the taps are off while they run
+q("update econ_config set v = jsonb_set(v, '{taps}', '0') where k = 'lucky'")
 def check(name, cond, info=''):
     print(('OK  ' if cond else 'FAIL'), name, '' if cond and not os.environ.get('V') else info)
     if not cond: fails.append(name)
@@ -115,7 +117,7 @@ check('ten summons: 540 dragonglass, ten Stark champions', len(rolls) == 10 and 
 check('ten hold a Rare or better', any(x['r'] >= 2 for x in rolls), rolls)
 check('every roll has its rarity', all(C['champs'][x['c']]['rar'] == x['r'] for x in rolls))
 new = [x['c'] for x in rolls if x['new']]
-check('a sealed one joins (Arya or Jon), an open one brings cards', all(x in ('arya', 'jon') for x in new) and all(x['n'] == max(1, round(10 * C['mul'][x['r']])) for x in rolls if not x['new']), rolls)
+check('a sealed one joins (Arya or Jon), an open one brings cards', all(x in ('arya', 'jon') for x in new) and all(x['n'] == max(1, int(10 * C['mul'][x['r']] + 0.5)) for x in rolls if not x['new']), rolls)
 check('the app sees who joined', all(x in r['state']['copen'] for x in new), r['state']['copen'])
 check('kept in the summons table', q1("select count(*) from summons where tg_id = %s", T1) == 1)
 e = anon_err('champ_summon', token=tok[T1], seat=0, n=5)
@@ -135,5 +137,6 @@ with db.cursor() as c:
     except Exception: denied = True
     finally: c.execute('reset role')
 check('anon cannot call the star helper', denied)
+q("update econ_config set v = jsonb_set(v, '{taps}', '3') where k = 'lucky'")
 print('FAILS', fails)
 raise SystemExit(1 if fails else 0)

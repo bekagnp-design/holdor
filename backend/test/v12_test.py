@@ -31,6 +31,7 @@ want = lambda r: [0, 1, 1, 2, 2][r]
 check('perk count: Common 0, Uncommon 0–1, Rare 1, Epic/Legendary 2 (pool permitting)',
       all((len(r[4]) == 0) if r[2] == 0 else (len(r[4]) <= 1) if r[2] == 1 else len(r[4]) == want(r[2]) if r[2] >= 2 else True for r in rows) and all(len(r[4]) == 1 for r in rows if r[2] == 2))
 check('every kind rolls', len({(r[0], r[1]) for r in rows}) == 54, len({(r[0], r[1]) for r in rows}))
+q("select ge_new2(%s, 0, 4, 'test', 'win', 1) from generate_series(1, 5)", T)   # Legendary is 0.1 % of the rolls: make sure there is one
 j = q1("select ge_json(i) from items i where tg_id = %s and rar = 4 limit 1", T)
 check('ge_json carries kind, perks and rank', 'kind' in j and len(j['perks']) == 2 and 1 <= j['pr'] <= 5, j)
 q("update econ_config set v = jsonb_set(v, '{cap}', '300') where k = 'gear'")

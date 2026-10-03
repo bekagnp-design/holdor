@@ -104,6 +104,13 @@ e = anon('duel_start', token=tok[C], seat=0, kind='friend')['duel']
 q("update duels set expires_at = now() - interval '1 minute' where id = %s", e['id'])
 check('an unanswered friend duel expires', anon('duel_state', token=tok[C], seat=0)['duels'][0]['status'] == 'expired')
 
+# v19: a ranked duel with nobody to match falls back to the bot, and tapping again does not open more
+q("update battles set finished_at = finished_at - interval '30 days' where kind = 'hold'")
+q("delete from duels where a = %s", C)
+d1 = anon('duel_start', token=tok[C], seat=0, kind='rank')['duel']
+d2 = anon('duel_start', token=tok[C], seat=0, kind='rank')['duel']
+d3 = anon('duel_start', token=tok[C], seat=0, kind='rank')['duel']
+check('v19: ranked with nobody to match gives the bot, and three taps give one duel, not three', d1['kind'] == 'ai' and d1['id'] == d2['id'] == d3['id'] and q1("select count(*) from duels where a = %s and status = 'open'", C) == 1, (d1['id'], d2['id'], d3['id']))
 check('no token, no state', err('duel_state', token='00000000-0000-0000-0000-000000000000', seat=0) == 'bad session')
 try:
     with db.cursor() as c:

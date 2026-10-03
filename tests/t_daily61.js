@@ -17,7 +17,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1 }; a.learn = { chest: 1, hold: 1, champ: 1, glass: 1, keep: 1, tier2: 1, fire: 1 }; H.setAcc(a); H.showHub('battle'); });
   await page.waitForTimeout(1800);
   const b = await page.evaluate(() => ({ btn: (document.querySelector('#bDaily') || {}).textContent, modal: !!document.querySelector('#ecoModal.on') }));
-  ok('the button is there and says it needs a Telegram seat', /Telegram/.test(b.btn || ''), b.btn);
+  ok('the Daily button is there (an icon button, no number for a guest)', /Daily/.test(b.btn || '') && !/\d/.test(b.btn || ''), b.btn);
   ok('no popup for a guest', !b.modal);
   await page.locator('#bDaily').tap({ force: true }); await page.waitForTimeout(500);
   const t = await page.evaluate(() => document.querySelector('#card').innerText);

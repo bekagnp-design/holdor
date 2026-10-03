@@ -140,7 +140,7 @@ with sync_playwright() as p:
     check('exchange: 40 dragonglass → 350 gold', wallet()['gems'] == gm - 40 and q1("select delta from ledger where tg_id=%s and reason='xch' and cur='gold'", TG) == 350)
     ev("HOLDOR.showHub('shop')"); pg.wait_for_timeout(400)
     tap('[data-buy="wood"]', 900)
-    check('chest opened by the server', q1("select tier||'/'||source from chests where tg_id=%s", TG) == 'wood/shop')
+    check('chest opened by the server', q1("select coalesce(asked, tier)||'/'||source from chests where tg_id=%s", TG) == 'wood/shop')
     tap('#cch', 200); wait("document.querySelector('#ccol')&&document.querySelector('#ccol').classList.contains('in')", 12000); tap('#ccol', 500)
     settle()
     ch = q("select gold, gems from chests where tg_id=%s", TG)[0]
@@ -172,7 +172,7 @@ with sync_playwright() as p:
     # ---- 9. offline: the purchase waits in the queue and goes when the server is back ----
     ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(400)
     pg.route('**/rest/v1/rpc/econ_sync', lambda r: r.abort())
-    tap('#bTrain'); tap('#bTrainUp', 1500)
+    ev("HOLDOR_CASTLE.showTrain()"); pg.wait_for_timeout(400); tap('#bTrainUp', 1500)
     check('offline: the operation waits', ev("HOLDOR_ECON.ECO.q.length") == 1 and acc("A.army.lvl") == 2, str(ev("HOLDOR_ECON.ECO.err")))
     check('offline: stored for the next start', ev("JSON.parse(localStorage.getItem('holdor_eco')).q.length") == 1)
     pg.unroute('**/rest/v1/rpc/econ_sync')
@@ -200,7 +200,7 @@ with sync_playwright() as p:
         tap(sel, 900, True); tap('#cch', 200, True); wait("document.querySelector('#ccol')&&document.querySelector('#ccol').classList.contains('in')", 12000); tap('#ccol', 500); settle()
     ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(500)
     open_chest('#starChest')
-    check('star chest from the server', q1("select count(*) from chests where tg_id=%s and source='star' and tier='iron'", TG) == 1 and wallet()['claims'].get('star_chests') == 1)
+    check('star chest from the server', q1("select count(*) from chests where tg_id=%s and source='star' and coalesce(asked, tier)='iron'", TG) == 1 and wallet()['claims'].get('star_chests') == 1)
     lv = acc("HOLDOR.accLevel().l")
     if ev("!!document.querySelector('#lvlChest')"):
         open_chest('#lvlChest')

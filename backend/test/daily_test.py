@@ -39,7 +39,7 @@ with sync_playwright() as p:
     def tap(sel, ms=400): pg.locator(sel).first.tap(force=True); pg.wait_for_timeout(ms)
     def W(): return q("select gold, gems, cards from wallets where tg_id = %s and seat = 0", TG)[0]
     check('login', wait("HOLDOR.CLOUD.on", 12000))
-    ev("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;a.tour=1;a.tours={win:1,battle:1,coll:1,shop:1,hold:1,events:1};a.learn={chest:1,hold:1,champ:1,glass:1,keep:1,tier2:1,fire:1};a.holdTut=1;a.holdIntro=1;
+    ev("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;a.tour=1;a.tours={win:1,battle:1,coll:1,shop:1,hold:1,events:1,earn:1};a.learn={chest:1,hold:1,champ:1,glass:1,keep:1,tier2:1,fire:1};a.holdTut=1;a.holdIntro=1;
       H.SAVE.slots[0]=a;H.SAVE.cur=0;H.setAcc(a);H.persist();H.afterLoad();})()""")
     check('seat managed', wait("HOLDOR_ECON.ecoOn()", 12000)); settle()
     q("update wallets set created_at = now() - interval '3 days' where tg_id = %s and seat = 0", TG)
@@ -61,7 +61,7 @@ with sync_playwright() as p:
 
     # ---- the screen ----
     ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(500)
-    tap('#bDaily', 700)
+    tap('#bDaily', 700); settle(); ev("HOLDOR_DAILY.showDaily('cal')"); pg.wait_for_timeout(600)
     check('the calendar: 30 tiles, day 1 done, day 2 is today', ev("document.querySelectorAll('.cday').length") == 30 and ev("document.querySelector('.cday.done b').textContent") == '1' and ev("document.querySelector('.cday.today b').textContent") == '2')
     check('today\'s reward is already claimed (the button says so and is disabled)', ev("document.querySelector('#bLogin').disabled") and 'claimed' in ev("document.querySelector('#bLogin').textContent"))
     pg.screenshot(path=SHOTS + '/daily_calendar.png')
@@ -84,7 +84,7 @@ with sync_playwright() as p:
     check('weekly quests are listed with a reset time', ev("document.querySelectorAll('.qrow').length") == 4 and 'Resets in' in ev("document.querySelector('.m').textContent"))
     # ---- the Battle tab tells how many are waiting ----
     ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(600); ev("HOLDOR_DAILY.dailyLoad(true)"); settle(); ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(700)
-    check('the button shows what is ready (the kills quest)', 'ready' in ev("document.querySelector('#bDaily').textContent"), ev("document.querySelector('#bDaily').textContent"))
+    check('the button shows what is ready (a red number: the kills quest)', ev("(document.querySelector('#bDaily .dot')||{}).textContent") == '1', ev("document.querySelector('#bDaily').textContent"))
     check('ledger = wallet (gold and gems)', q1("select sum(delta) from ledger where tg_id = %s and seat = 0 and cur = 'gold'", TG) == W()[0] and q1("select sum(delta) from ledger where tg_id = %s and seat = 0 and cur = 'gems'", TG) == W()[1])
     # ---- v1.0.65: the Levels tab (milestone gifts) ----
     need10 = sum(15 + 8 * k + k * k for k in range(1, 10))
@@ -97,25 +97,27 @@ with sync_playwright() as p:
     check('level 10 claimed: 30 dragonglass and one item on the server', W()[1] - g1 == 30 and q1("select count(*) from items where tg_id = %s", TG) == i1 + 1, (W()[1] - g1))
     tap('#ecoModal button[data-i="0"]', 400)
     check('the row is done and the app balance equals the server', ev("document.querySelector('.qrow.done b').textContent") == 'Account level 10' and ev("HOLDOR.ACC.gems") == W()[1], (ev("HOLDOR.ACC.gems"), W()[1]))
-    # ---- v1.0.65: the Invite tab ----
+    # ---- the invitations, in the Tasks tab (Friends) since v1.0.76 ----
     FR = 777000124
     q("delete from referrals where invitee = %s", FR); q("delete from progress where tg_id = %s", FR); q("delete from players where tg_id = %s", FR)
-    ev("HOLDOR_DAILY.DAILY.fr=null"); ev("HOLDOR_DAILY.showDaily('friends')"); pg.wait_for_timeout(1200); settle(); pg.wait_for_timeout(500)
+    ev("HOLDOR_DAILY.DAILY.fr=null"); ev("HOLDOR_TASKS.TASKS.st=null"); ev("HOLDOR.showHub('tasks','friends')"); pg.wait_for_timeout(1200); settle(); pg.wait_for_timeout(500)
     mycode = q1("select ref_code from players where tg_id = %s", TG)
-    check('Invite tab: my own link with my code, nobody has joined', mycode in ev("document.querySelector('.reflink').textContent") and 'startapp=r_' in ev("document.querySelector('.reflink').textContent") and 'Nobody has joined' in ev("document.querySelector('#card').innerText"))
+    check('Tasks → Friends, Invite friends: the box is there, my code is the server\'s, nobody has joined', ev("!!document.querySelector('.invbox')") and ev("HOLDOR_DAILY.DAILY.fr.code") == mycode and 'Nobody has joined' in ev("document.querySelector('.invbox').innerText") and ev("!!document.querySelector('#bInvShare')"))
     pg.screenshot(path=SHOTS + '/invite_tab.png')
     q("insert into players (tg_id, name, house, realm, save, save_ver) values (%s, 'Friend', 'stark', 0, '{}', 1)", FR)
     q("insert into referrals (invitee, inviter) values (%s, %s)", FR, TG)
     for st in range(1, 4): q("insert into progress (tg_id, seat, mode, stage, stars) values (%s, 0, 'c', %s, 3)", FR, st)
-    ev("HOLDOR_DAILY.DAILY.fr=null"); ev("HOLDOR_DAILY.showDaily('friends')"); pg.wait_for_timeout(1200); settle(); pg.wait_for_timeout(500)
-    check('a friend with 3 of 5 stages: a progress bar, no claim yet', 'Friend' in ev("document.querySelector('.qrow b').textContent") and '3 / 5' in ev("document.querySelector('.qrow em').textContent") and ev("document.querySelector('.qrow button').disabled"))
+    ev("HOLDOR_DAILY.DAILY.fr=null"); ev("HOLDOR_TASKS.TASKS.st=null"); ev("HOLDOR.showHub('tasks','friends')"); pg.wait_for_timeout(1200); settle(); pg.wait_for_timeout(500)
+    check('a friend with 3 of 5 stages: a progress bar, no claim yet', 'Friend' in ev("document.querySelector('.invbox .qrow b').textContent") and '3 / 5' in ev("document.querySelector('.invbox .qrow em').textContent") and ev("document.querySelector('.invbox .qrow button').disabled"))
     for st in (4, 5): q("insert into progress (tg_id, seat, mode, stage, stars) values (%s, 0, 'c', %s, 3)", FR, st)
-    ev("HOLDOR_DAILY.DAILY.fr=null"); ev("HOLDOR_DAILY.showDaily('friends')"); pg.wait_for_timeout(1200); settle(); pg.wait_for_timeout(500)
+    ev("HOLDOR_DAILY.DAILY.fr=null"); ev("HOLDOR_TASKS.TASKS.st=null"); ev("HOLDOR.showHub('tasks','friends')"); pg.wait_for_timeout(1200); settle(); pg.wait_for_timeout(500)
     g2, r2 = W()[1], W()[2].get('b:r', 0)
-    tap('.qrow button[data-f]', 500); settle()
+    wait("(()=>{const b=document.querySelector('.invbox .qrow button[data-f]');return b&&!b.disabled})()", 6000)
+    ev("document.querySelector('.invbox .qrow button[data-f]').scrollIntoView({block:'center'})"); pg.wait_for_timeout(300)   # the row sits under the bottom bar otherwise
+    ev("document.querySelector('.invbox .qrow button[data-f]').click()"); pg.wait_for_timeout(500); settle()   # a click: the gear toast from the level gift can still cover the row
     check('5 of 5: the claim pays 60 dragonglass and a Rare book, once', W()[1] - g2 == 60 and W()[2].get('b:r', 0) - r2 == 1, (W()[1] - g2))
     tap('#ecoModal button[data-i="0"]', 400)
-    check('the row is done', ev("document.querySelector('.qrow.done button').disabled"))
+    check('the row is done', ev("document.querySelector('.invbox .qrow.done button').disabled"))
     check('the app balance equals the server (gems and gold)', ev("HOLDOR.ACC.gems") == W()[1] and ev("HOLDOR.ACC.gold") == W()[0])
     q("delete from referrals where invitee = %s", FR); q("delete from progress where tg_id = %s", FR); q("delete from players where tg_id = %s", FR)
     check('no refusals, no flags', q1("select count(*) from econ_flags where tg_id = %s", TG) == 0)

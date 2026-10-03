@@ -392,6 +392,99 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **`docs/launch-checklist.md`** (Georgian): the steps before money comes in (the lawyer, BotFather, the ⭐50 test purchase and refund), the table of source links, the SQL that reads the views, the rule for deciding where to spend.
 - **Tests:** `backend/test/v17_test.py` (source once, first touch only, bad codes, ref, funnel, a cohort's D0/D1/D7, permissions), `tests/t_market72.js` (the share sheet opened by real taps on the win screen, texts and link).
 - **Rollout:** v17 goes into Supabase with the next release, after v16.
+
+### v1.0.73 — a calmer home (client only) (2026-09-30)
+- MR B: the home page (the Battle tab) shows too much text. Seven wide buttons with subtitles (Train, Spell shop, Tavern, Forge, Daily & quests, City, Season) became **one row of five icon buttons** — City, Tavern, Forge, Daily, Season — with a red number where something waits (Daily). The subtitle under the city name and the text in the progress bar are gone; the island is bigger.
+- Train and Spell shop live in the City now (Barracks, **Alchemist**); the City has nine buildings.
+- Tests adapted: `t_castle` (Train and Spell shop through the City), `t_city64`, `t_daily61`, `daily_test`, `econ_test`.
+
+### v1.0.74 — Earn: the estate, two-day events, invitations moved (backend v18) (2026-09-30)
+- **The bottom bar:** Events gave its place to **Earn**. Events are no tab any more (the Events screen with the Duel card and the standings stays reachable from the City's Council hall).
+- **Events are two-day popups** with a live countdown (Mon–Tue **Builders' Boom**: estate income +50 % for the hours that fall inside it; Fri–Sat **Duel Cup**: ranked duel gifts ×2), shown once per window, and a small badge on the home island brings the popup back. The schedule is one rule, `ev_at()` in SQL, mirrored by `evAt()` in the app (the test compares 8 moments).
+- **The estate (Hamster-style hourly income, deliberately small):** nine buildings (farm, lumberyard, quarry, iron mine, market stalls, harbor, scriptorium, vault, crown lands) open with the ACCOUNT LEVEL (3 … 55) and are built and upgraded with gold. Level n costs 1.8× level n−1 and adds only half of the first level's income, so the first level pays back in ~40 hours, level 5 in ~140 h, level 10 in 400+ h. Level n needs account level unlock + 2·(n−1). Income piles up for at most 3 hours and is collected by hand; building or upgrading first collects the pile at the old rate. It is a small extra: fights stay the main income. `estate_state` / `estate_build` / `estate_collect`; ledger reasons `estate` and `estate_income`; owner view `v_estate`.
+- **Invitations** (backend v14) moved from the Daily screen into the Earn tab (the link, send, copy, each friend's progress, the claims), and the guided tour points at Earn (a step in the home tour and a three-step Earn tour).
+- **A bug found on the way:** the Earn tab redrew itself in a loop after every answer (the redraw asked for the data again). It now redraws only when the data really changed.
+- **Not built:** timed construction (a build finishing after hours), as in Hamster Kombat — everything is instant; only gold and account level gate it.
+- **Tests:** `backend/test/v18_test.py` (36 checks: costs, paybacks, level gates, collecting, the 3-hour pile, the Boom share, the schedule), `earn_test.py` (real taps: the tab bar, the badge and popup, the schedule, build, collect), `daily_test.py` (invitations in Earn).
+- **Rollout:** v18 goes into Supabase with the next release, after v17.
+
+### v1.0.75 — playing a friend by link (backend v19) (2026-09-30)
+- MR B could not play his friend. The server showed why: the friend had joined his friend duel, but neither had played a Hold run since (a duel compares Hold runs finished after it opened) and the app did not say so; the friend's invitation was refused because he already had an account (gifts are for new players), silently; and "Ranked" with nobody to match opened a new bot duel on every tap (10 in two minutes).
+- **Server (v19, applied to production at once — it works with the live app):** the ranked fallback reuses the open practice duel; the duplicates were closed.
+- **App:** a `startapp=d_<code>` link joins the duel as soon as the seat is on the server and opens the Duel screen by itself; each duel row says what each side still has to do (▶ play a Hold run / ✔ your run counts, not played yet / ✔ has played) and has a **▶ Play my Hold run** button that starts the run (the same checks as the Hold button); a plain explanation of how a duel is decided; a refused invitation says the friend already plays and points at the duel; a Duel card at the top of the Hold tab (Events is no tab since v1.0.74); "Ranked" says when it had to fall back to the bot.
+- **Tests:** `v15_test` (three ranked taps with nobody to match = one duel), `duel_test` (a friend's link: joins, opens, the per-side status, the Play button starts a Hold battle on the server, the result, the Hold-tab card). `t_gear63`'s thorns check depended on the day's map; it now spawns the enemy at the gate.
+### v1.0.85 — drawn items (2026-10-03)
+- MR B: the item pictures look plain (emoji). Every item is now a drawing.
+- **App:** `mod/gearart.js` draws each item as a 48×48 SVG from its kind's name: 28 shape families (blade, axe, pole arm, hammer, flail, spear, bow, crossbow, staff, torch, orb, tome, shield, helm, crown, hood, mask, robe, cloak, chest piece, gauntlet, bracer, boot, ring, amulet, horn, totem, banner) with options (brigandine, mitten, band, loop, seal, signet, claw, sigil…). The metal follows the rarity (iron → steel → blue steel → Valyrian → gold), the gem / cloth the set's colour. Epic and Legendary icons shine. `gearIcon` falls back to the drawing wherever the forge, the bag, gifts and chests show an item; the stored art (if any) still wins.
+- **Tests:** `tests/t_gearart85.js` (core: all 54 kinds drawn and each different, every kind matched its own family, five metals, set colours, the forge has no emoji left).
+### v1.0.84 — lucky chests (backend v21) (2026-10-03)
+- MR B: chests like Clash Royale's star (lucky) drops — tap, and a tap may add a star and a better chest.
+- **Server (v21):** `chest_open` rolls three taps; each may raise the chest one tier (`econ_config.lucky`: wood→iron 35%, iron→valyrian 20%, valyrian→dragon 8%, dragon 0). Gold, dragonglass, card stacks, books and the gear drop (the `chests` row's tier) are the **final** tier's; the source rules and the price still check the tier asked for. The answer carries `from`, `tier`, `taps`; `chests.asked` keeps the start; `v_lucky` for the owner.
+- **App:** `mod/lucky.js` wraps `openChest`: the chest shows ★1–4 for its tier and "TAP FOR LUCK · 3"; each tap shakes it, a lucky one swaps the art and the name, pops a star in, sparkles and says RARE! / EPIC! / LEGENDARY!; untouched, the taps play by themselves (0.75 s each). Then the old opening runs for the final tier and opens by itself. Managed seats play the server's taps; guests roll the same chances locally. A dragon chest opens straight away.
+- **Tests:** `backend/test/v21_test.py` (600 iron chests: shape, final tier = start + lucky taps, ~20 % first-tap rate, rewards from the final tier, price of the asked tier, dragon never climbs, free chest once a day, the view), `tests/t_lucky84.js` (core: three real taps wood → dragon, untouched auto-play, collect, dragon skips). Older backend suites switch the taps off; `econ_test` checks the asked tier. **v21 applied to production 2026-10-03** (migration `holdor_v21_lucky_chests`, backup `holdor_backup.*_pre_v21`, `chest_open` hash equals the file).
+
+### v1.0.83 — the currencies redrawn (2026-10-03)
+- MR B: gold should look better, and the blue diamond does not belong to Westeros. **Gold** is now a *gold dragon* coin (a thick rim, a dragon's head struck in relief, a shine); **dragonglass** is what its name says — a black obsidian shard with a violet-teal glint. `mod/currency.js` (`CUR_GOLD`, `CUR_GEM`; `GOLD_SVG` / `GEM_SVG` point at them).
+- The 💎 / 🪙 emoji the game writes into its texts (rewards, prices, toasts, modals) turn into the same drawings as they reach the screen (a `MutationObserver`; text fields and the battle canvas untouched). The result screen swaps before it starts counting.
+- **Tests:** `tests/t_currency83.js` (core); `t_gear62` reads the price with or without the emoji; `t_tavern59` marks every first-time lesson seen (the Hold lesson could cover the Tavern button).
+
+### v1.0.82 — the result screen (2026-10-03)
+- `mod/result.js` wraps `showCampaignResult`; the old card's text, buttons and ids stay. A win: a gold VICTORY ribbon on a purple-gold card, turning rays, three big stars that land one after another (a sound and a buzz each, the third louder), the gold counting up from 0, confetti for three stars. A loss: a red DEFEAT ribbon on a red card and one shake. `prefers-reduced-motion` shows the end state at once.
+- **Tests:** `tests/t_result82.js` (core): the ribbon and card, the stars landing in turn, the gold count, confetti, NEXT still starts the next stage, the loss card. `t_tavern59` marks the first-chest lesson seen (it covered the Tavern button).
+
+### v1.0.81 — feel: haptics and big kills (2026-10-03)
+- `mod/haptics.js`. Telegram's haptic feedback follows the sounds (`SFX.play` is wrapped): a light tap on buttons, success on claims / chests / level-ups / wins, an error buzz on a refusal, a medium knock when the door is hit (at most every 0.4 s), heavy for the Night King, roars and dragons. At most one buzz per 60 ms; none when the sound is muted or Telegram has no haptics.
+- A big kill lands (`feelKill` from `kill()`): giants, mini-bosses, lieutenants, bosses, the Night King — a short hit-stop of the frame (0.08–0.22 s), a shake, a white flash and a ring. Display only: the frame waits; the simulation runs the same steps.
+- Short phones (≤ 700 px tall): the home screen's stage, slots and quick buttons shrink so BATTLE stays on screen (found on a 360 × 640 check of v1.0.78).
+- **Tests:** `tests/t_feel81.js` (core).
+
+### v1.0.80 — Hold blessings (2026-10-03)
+- The roguelike beat of Galaxy Defense: in the Hold, after every 5th wave the game stops and offers **three blessings**; one is taken (a tap, or the first after 20 s) and lasts the run; they stack. `mod/boons.js`.
+- Eight: Sharper steel (towers +15%), Champion's edge (+35%), Wildfire (spells +40%), Mend the door (+35% now), Thicker oak (door +20%), Plunder (+300 gold), Spoils of war (+20% kill gold), Quick hands (spells recharge 25% faster, ready now).
+- The offer comes from the day and the wave (`hash32('boon:'+day+':'+wave)`), the same for every defender on the same day and never from the battle's random stream, so the waves are untouched. The pick is in `G.log`. Kills, waves and time — what the server checks — are not inflated: no blessing adds enemies or shortens a wave.
+- Damage multipliers sit in `dmg()` by source; kill gold in `kill()`; `resetRun` clears everything; a campaign stage never offers.
+- **Tests:** `tests/t_boons80.js` (core): the offer after wave 5, the same offer for the day, a real tap, each effect, the next wave starts, the multipliers, the 20-second fallback and stacking at wave 10, no offer in the campaign, the offer and the pick take nothing from the battle's random stream.
+
+### v1.0.79 — drawn icons (2026-10-03)
+- Emoji look different on every phone and cheap next to the art. `mod/icons.js`: ten drawn icons in the bottom bar's style (flat colour, dark outline, one highlight): city, tavern, forge, daily, season, gift, door, quests, social, friends; `icon(k, px)`.
+- Used by the five quick buttons, today's gift slot, the Hold pill, the Tasks tabs and the share / friend task rows.
+- **Tests:** `tests/t_icons79.js` (core).
+
+### v1.0.78 — the home screen rebuilt, in three looks (2026-10-03)
+- MR B: the home screen was "banal"; it must make the player want to stay; offer three variants. The research models: Clash Royale (chest slots with timers), Brawl Stars / Arknights (the hero in the middle), Kingdom Rush (the map is the menu), Galaxy Defense (a living fortress + motion).
+- **One structure for all looks** (`mod/skins.js`), built so something is always ready or on its way:
+  - a live strip (rank; the event with its countdown; today's Hold runs);
+  - a big living stage with the seat's name and a **next goal** ribbon (next stage, its stars, n/50; a tap opens the map);
+  - **four chest slots** with a progress ring: star chest (n/3 ★), level chest (or the next level's XP), the **free chest** with its 24-hour countdown (opens from home now), **today's gift** (claim, or the time to UTC midnight);
+  - the five quick buttons and the BATTLE row.
+  - The old ids stay (`#bBattle`, `#starChest`, `#lvlChest`, `#bCity`, `#hubTro`, `#evBadge`, …); the home tour points at the goal and the slots.
+- **Three looks**, switched with 🎨 on the stage, kept per device (`localStorage holdor_skin`, `?skin=a|b|c`), default B:
+  - **A Hero stage** — the champion's full art in a spotlight, turning rays, the house sigil breathing behind, house weather; a tap and he strikes (attack art). Purple and gold.
+  - **B Living gate** — a canvas drawn every frame: stars, moon, two mountain layers, the dead (real enemy art) walking out of the fog to the wall, torches flickering, a thud and a shake when one reaches the gate, the champion beside the gate; a tap strikes the closest. Night blue.
+  - **C War map** — the realm's map drifting slowly around the next stage under moving clouds, a flag on every held stage, the next one pulsing; a tap opens the map. Wood.
+  - The animation runs only while the home screen is open. Function names carry an `hm` prefix (the game already has `drawGate` / `drawFx`); look classes are `look-a/b/c` (`.skb` was taken).
+- **Tests:** `tests/t_home78.js` (core): default B, the strip and slots and old ids, B draws and moves, 🎨 → C (pins and flags) → A (kept), a tap strikes, `?skin=c`, the free chest counts down, the goal opens the map, the Hold pill opens Hold, the star chest opens, the loop stops off the home screen, 7 houses × 3 looks without an error.
+
+### v1.0.77 — juice (2026-10-03)
+- MR B: "super dynamic". The research lesson (Royal Match, Random Dice, Galaxy Defense): most of the life is small motion, not new art. `mod/juice.js` + `juice.css`, display only.
+- Every button sinks on press and springs back (the CSS `scale` property, so it adds to the buttons' own transforms); modals pop in; the active tab icon hops; red dots breathe; a ready chest wiggles; the BATTLE button shines.
+- Gold and dragonglass count up to a new value; coins fly from a reward (every `flyReward`) into the counter, which bumps.
+- The first time a tab opens, its rows rise in one after another (not on every redraw).
+- Battle: the gold counter bumps as it grows (at most every 0.3 s); kill streaks in 2.2 s call out — 8+ "N KILLS", 15 RAMPAGE, 25 UNSTOPPABLE, 40 LEGENDARY. It only reads `G`.
+- `prefers-reduced-motion` turns it all off.
+- **Tests:** `tests/t_juice77.js` (in the core set): the press spring, the count-up, eight coins that land and vanish, rise once per tab, the streak call-outs, and a 40-second battle that ends the same with and without the juice.
+
+### v1.0.76 — Tasks instead of Earn (backend v20) (2026-10-03)
+- MR B: the estate's hourly income goes; a **Tasks** tab takes its place. Research first: 20 tower-defense games; their quest screens (Brawl Stars, Clash Royale) and Hamster-style social tasks are the model.
+- **Server (v20):**
+  - `task_state` / `task_open` / `task_claim` over `econ_config.tasks`. Three kinds: `link` (open, then claim ten seconds later; once per Telegram account; hidden while its url is empty), `ref` (friends joined through your link; once per account), `metric` (lifetime progress per seat; supported, none in the default list).
+  - Default list: channel, chat, X, YouTube, TikTok (urls come from MR B later — a server row, no app version), "Share HOLDOR" (500 gold), one friend (40 💎), three friends (120 💎 + Rare book).
+  - The estate is closed (`estate.closed`): build and collect refuse. `es_refund_all()` paid every seat that built: what had piled up + all the gold spent on buildings (ledger `estate_income` / `estate_refund`), once.
+  - Mon–Tue is **Quest Rush** now (`ev_at` kind `rush`): `quest_claim` doubles every quest reward while it runs; Fri–Sat Duel Cup stays.
+  - `task_marks` table (closed to the app), `v_tasks` for the owner.
+- **App:** `mod/tasks.js` — the Tasks tab with three parts: Quests (daily / weekly / monthly with reset timers and claims; ×2 badges in Quest Rush), Social (Go → the link opens inside Telegram → a live ten-second countdown → Claim), Friends (friend tasks + the invitation block). The estate code left `mod/earn.js` (events and the invitation block stay). Tour texts updated.
+- **Tests:** `v20_test.py` (events, doubling, closing + refund, link/ref/metric tasks, once per account vs per seat, refusals, privileges), `tasks_test.py` replaces `earn_test.py` (real taps: a quest claim, a link opened and claimed after the countdown, a friend task), `v18_test` opens the estate for its own run, `daily_test` finds the invitations under Tasks → Friends.
+
 ### v1.0.61 — login calendar and quests (backend v10) (2026-09-29)
 The retention loop. Every reward is paid by the server and progress is counted from the server's own records, so nothing here can be forged.
 - **Login calendar (30 days):**
