@@ -413,6 +413,15 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **Server (v19, applied to production at once — it works with the live app):** the ranked fallback reuses the open practice duel; the duplicates were closed.
 - **App:** a `startapp=d_<code>` link joins the duel as soon as the seat is on the server and opens the Duel screen by itself; each duel row says what each side still has to do (▶ play a Hold run / ✔ your run counts, not played yet / ✔ has played) and has a **▶ Play my Hold run** button that starts the run (the same checks as the Hold button); a plain explanation of how a duel is decided; a refused invitation says the friend already plays and points at the duel; a Duel card at the top of the Hold tab (Events is no tab since v1.0.74); "Ranked" says when it had to fall back to the bot.
 - **Tests:** `v15_test` (three ranked taps with nobody to match = one duel), `duel_test` (a friend's link: joins, opens, the per-side status, the Play button starts a Hold battle on the server, the result, the Hold-tab card). `t_gear63`'s thorns check depended on the day's map; it now spawns the enemy at the gate.
+### v1.0.89 — a cleaner item sheet, SELL on the tower ring (2026-10-03)
+- MR B: "the sword is nice, but Strike and so much text make no sense — redo it, make it prettier"; "when selling a tower, write Sell — with only a bag you can't tell what the button does".
+- **Item sheet (part `92_sheet.py`, gearSheet rewritten):**
+  - Layout: the item large on a dark leather card; its name and +level; a rarity badge and tier stars; a level bar; the stats as chips (main bold, subs without the long explanation); the set and its steps in one line.
+  - Buttons: one wide gold **⚒️ Upgrade to +N** button with "chance · price" small under it (at the cap: **⬆ Tier N** with "price + one item of this rarity"); **Equip** and **Sell** side by side; **✕** in the corner.
+  - Wording: "Strike" is gone everywhere (button, forge intro, the failure toast "Upgrade failed"). The forge intro is one short line.
+- **Tower ring:** the sell button shows the bag, **SELL** under it, and the gold it returns.
+- **Tests:** `tests/t_sheet89.js` (core: the sheet's parts, no "Strike", the wide Upgrade button with chance and price, Equip/Sell side by side, ✕ closes; a built tower's ring says SELL with +gold); `t_gear62` reads the new tier button; backend `gear_test` (real upgrade, failed upgrade and tier on a server seat through the new buttons) passes.
+
 ### v1.0.88 — the item up close (2026-10-03)
 - Tapping an item in the forge opens its sheet with the item large, in place of the small icon (`mod/gearbig.js`, part `91_gearbig.py`):
   - about 156 px on a dark leather stand, the rarity on its rim (Epic and Legendary glow);

@@ -1267,6 +1267,37 @@ button,.btn,.hbtn,.ebld,.cday{transition:scale .22s cubic-bezier(.3,1.7,.5,1),fi
 @keyframes gbShadow{0%,100%{transform:scaleX(1);opacity:1}50%{transform:scaleX(.82);opacity:.7}}
 @keyframes gbGlint{0%,55%{transform:translateX(-60%)}100%{transform:translateX(60%)}}
 @media (prefers-reduced-motion:reduce){.gbw svg,.gbw img,.gbsh,.gbgl{animation:none}}
+/* v1.0.89: the item sheet */
+#ecoModal .em.gsm{position:relative;background:linear-gradient(180deg,#2a2219,#17120d);border-color:#0a0806;padding-top:12px}
+#ecoModal .em.gsm h3:empty{display:none}
+.gs2{gap:4px}
+.gs2 .gbig{margin:2px auto 6px}
+.gs2 .gsn{display:flex;align-items:baseline;gap:6px;justify-content:center}
+.gs2 .gsn b{font-size:20px;color:var(--gc);text-shadow:0 2px 0 rgba(0,0,0,.6)}
+.gs2 .gsn em{font-style:normal;font:900 15px var(--f-display);color:#ffe08a}
+.gs2 .gsr{display:flex;gap:8px;align-items:center;justify-content:center}
+.gs2 .gsrar{font:900 10px var(--f-display);letter-spacing:1.2px;text-transform:uppercase;color:#1a120a;background:var(--gc);border-radius:6px;padding:2px 7px}
+.gs2 .gtr{font-size:14px;letter-spacing:1px;color:#ffd54a}.gs2 .gtr s{text-decoration:none;color:rgba(255,255,255,.18)}
+.gs2 .gsbar{position:relative;width:78%;height:14px;border-radius:8px;background:#0e0a07;box-shadow:inset 0 1px 3px rgba(0,0,0,.8);overflow:hidden;margin:4px 0}
+.gs2 .gsbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(180deg,#ffe08a,#c98a22)}
+.gs2 .gsbar small{position:relative;display:block;font:900 9.5px/14px var(--f-display);color:#fff;text-shadow:0 1px 1px #000}
+.gs2 .gst{display:flex;flex-wrap:wrap;gap:5px;justify-content:center}
+.gs2 .gst em,.gs2 .gst span{font-style:normal;border-radius:8px;padding:3px 8px;background:rgba(255,255,255,.07);font-size:12px;color:#e9dcc4}
+.gs2 .gst em{font:900 14px var(--f-display);background:rgba(255,213,74,.14);color:#fff}
+.gs2 .gsset{display:flex;flex-wrap:wrap;gap:4px 8px;justify-content:center;font-size:11px;color:#b8a888;margin-top:2px}
+.gs2 .gsset b{color:#d8c8a8;font-family:inherit;font-weight:700}
+.gs2 .gsset span i{font-style:normal;color:#ffd54a;margin-right:3px}
+.gs2 .gsnote{font-size:11px;color:#ffd54a}
+#ecoModal .em.gsm .eb{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+#ecoModal .em.gsm .eb button{min-height:40px;font-size:13px}
+#ecoModal .em.gsm .eb button:first-child:not(.sec){grid-column:1/3;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+#ecoModal .em.gsm .eb button .bt{font-size:17px}
+#ecoModal .em.gsm .eb button small{font-size:11px;font-weight:700;opacity:.75;margin-top:2px}
+#ecoModal .em.gsm .eb button.sec{background:#3a2e22;color:#efe2c8;border-color:#0a0806}
+#ecoModal .em.gsm .eb button:last-child{position:absolute;top:8px;right:8px;width:34px;height:34px;min-height:34px;padding:0;border-radius:50%;font-size:16px;line-height:1}
+/* v1.0.89: SELL on the tower ring */
+#ring .rb .em.sm{font-size:20px;margin-top:-8px}
+#ring .rb .rw{position:absolute;left:0;right:0;top:33px;text-align:center;font:900 10.5px/1 var(--f-display);letter-spacing:.8px;color:#ffe9b0;text-shadow:0 1px 0 #0b1a2e,0 0 3px #000;pointer-events:none}
 </style>
 </head>
 <body>
@@ -2170,7 +2201,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.88';
+const VERSION='1.0.89';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -3325,7 +3356,7 @@ function ringBtnHTML(it,s){
     if(t.lvl>=5)return `<span class="em">⭐</span><span class="rp">MAX</span>`;
     if(t.lvl>=maxTowerLvl())return `${towerIconHTML(t.type,t.lvl+1,44)}<span class="bd">🔒</span><span class="rp">${ROMAN[t.lvl]}</span>`;
     return `${towerIconHTML(t.type,t.lvl+1,44)}<span class="bd">⬆</span><span class="rp">${coin}${upCost(t)}</span>`;}
-  if(it.act==='sell')return `<span class="em">💰</span><span class="rp">+${sellValue(t)}</span>`;
+  if(it.act==='sell')return `<span class="em sm">💰</span><b class="rw">SELL</b><span class="rp">+${sellValue(t)}</span>`;
   if(it.act==='rally')return `<span class="em">🚩</span><span class="rp">Banner</span>`;
   return `<span class="em ii">i</span><span class="rp">Info</span>`;}
 function statLine(k,st){const d=TOWERS[k];
@@ -4994,7 +5025,7 @@ function showForge(cid,filter){
   const bag=all.filter(it=>it.champ!==cid&&(!filter||it.slot===filter)).sort((a,b)=>b.r-a.r||gearTier(b)-gearTier(a)||b.lvl-a.lvl||(a.slot<b.slot?-1:1));
   const champs=mine.map(x=>`<button class="gch ${x.id===cid?'on':''}" data-c="${x.id}">${CHAMP_ART[x.id+'_portrait']?`<img src="${CHAMP_ART[x.id+'_portrait']}" alt="">`:`<span>${x.e}</span>`}</button>`).join('');
   const slots=GEAR_SLOTS.map(k=>{const it=worn[k];return `<button class="gslot ${it?'':'empty'} ${filter===k?'on':''}" data-s="${k}" ${it?`data-i="${it.id}" style="--gc:${GEAR_RAR[it.r][1]}"`:''}>${it?gearIcon(it):`<span class="gic e">${GEAR_SLOT[k][0]}</span>`}<small>${GEAR_SLOT[k][1]}</small></button>`;}).join('');
-  show(`<div class="topbar"><h1>⚒️ Forge<small>Gear drops from battles, the Hold, chests and daily gifts. Strike at the anvil — a failed strike costs the gold, never the item. A tier ★ opens four more levels.</small></h1><button class="back" id="bBack">✖</button></div>
+  show(`<div class="topbar"><h1>⚒️ Forge<small>Upgrade at the anvil: a failed try costs gold, never the item.</small></h1><button class="back" id="bBack">✖</button></div>
   <div class="gchs">${champs}</div>
   <div class="gwho"><b>${esc(c.n)}</b><div class="gsl">${stl}</div></div>
   <div class="gslots">${slots}</div>
@@ -5016,19 +5047,23 @@ function gearSetBook(cid,filter){const C=gearCfg();if(!C)return;const I=gearSetI
     +`<div class="sbk"><h4>Collections</h4><div class="sbr"><b>🌈 Rainbow</b><span>one item of each of the 5 rarities: ${gearBonusText((C.bonus_all||{}).rainbow||{})}</span></div><div class="sbr"><b>🎽 Full kit</b><span>all 9 slots filled: ${gearBonusText((C.bonus_all||{}).full||{})}</span></div></div>`;
   ecoModal('📚 Sets',`<div class="sbook">${html}</div>`,[{t:'Close',f:()=>showForge(cid,filter)}]);}
 function gearSheet(id,cid,filter){const it=gearItems().find(x=>x.id===id);if(!it)return;const R=GEAR_RAR[it.r],S=GEAR_SET[it.set],C=gearCfg(),sb=(C&&C.sets[it.set])||{};
-  const worn=it.champ===cid,cost=gearCost(it),ch=gearChance(it),cap=gearCap(it),atCap=it.lvl>=cap,t=gearTier(it),tcost=gearTierCost(it);
-  const steps=Object.keys(sb).filter(x=>/^\d+$/.test(x)).sort().map(x=>`${x}: ${gearBonusText(sb[x])}`).join(' · ')+(sb.stack?' · repeats':'');
-  const html=`<div class="gsheet" style="--gc:${R[1]}">${gearBig(it)}<b>${gearName(it)}</b><small class="gtr">Tier ${'★'.repeat(t)}${'☆'.repeat(5-t)} · level ${it.lvl}/${cap}</small>
-    <div class="gst"><em>${gearLine(it.main.k,it.main.v)}</em>${(it.subs||[]).map(x=>`<span>${gearLine(x.k,x.v)}</span>`).join('')}</div>
+  const worn=it.champ===cid,cost=gearCost(it),ch=gearChance(it),cap=gearCap(it),atCap=it.lvl>=cap,t=gearTier(it),tcost=gearTierCost(it),k=gearKind(it);
+  const steps=Object.keys(sb).filter(x=>/^\d+$/.test(x)).sort().map(x=>`<span><i>${x}</i>${gearBonusText(sb[x])}</span>`).join('')+(sb.stack?'<span><i>↻</i>repeats</span>':'');
+  const html=`<div class="gsheet gs2" style="--gc:${R[1]}">${gearBig(it)}
+    <div class="gsn"><b>${S[1]} ${k[0]}</b>${it.lvl?`<em>+${it.lvl}</em>`:''}</div>
+    <div class="gsr"><span class="gsrar">${R[0]}</span><span class="gtr">${'★'.repeat(t)}<s>${'★'.repeat(5-t)}</s></span></div>
+    <div class="gsbar"><i style="width:${Math.round(100*Math.min(it.lvl,cap)/Math.max(1,cap))}%"></i><small>Level ${it.lvl} / ${cap}</small></div>
+    <div class="gst"><em>${gearLine(it.main.k,it.main.v)}</em>${(it.subs||[]).map(x=>`<span>${gearLine(x.k,x.v).replace(/\s*\(.*?\)\s*$/,'')}</span>`).join('')}</div>
     ${(it.perks&&it.perks.length)?`<div class="gperk">${it.perks.map(p=>`<span>${gearPerkText(p,gearPerkRank(it))}</span>`).join('')}</div>`:''}
-    <small>${S[0]} ${S[1]} set · ${steps}</small>
-    ${!atCap?`<small>Next strike: +${it.lvl+1} · ${ch}% · 🪙${cost}${(it.lvl+1)%4===0?' · a substat grows':''}</small>`:t<5?`<small>At its cap. Raise the tier: 🪙${tcost} and another ${R[0]} item of tier ${t}+ to burn — the item goes on to +${cap+4}.</small>`:'<small>Fully forged: tier 5, +20.</small>'}</div>`;
-  ecoModal(`${S[0]} ${gearKind(it)[0]}`,html,[
-    !atCap?{t:`⚒️ Strike +${it.lvl+1} · ${ch}% · 🪙${cost}`,dis:goldOf()<cost,f:()=>gearUpgrade(it.id,cid,filter)}:null,
-    atCap&&t<5?{t:`⬆ Tier ${t+1} · 🪙${tcost}`,dis:goldOf()<tcost,f:()=>gearTierPick(it.id,cid,filter)}:null,
-    {t:worn?'Take off':`Put on ${esc(shortName(CBY[cid]))}`,f:()=>gearEquip(it.id,worn?null:cid,cid,filter)},
+    <div class="gsset"><b>${S[0]} ${S[1]} set</b>${steps}</div>
+    ${atCap?`<small class="gsnote">${t<5?'At its cap: raise the tier to go on':'Fully forged: tier 5, +20'}</small>`:''}</div>`;
+  ecoModal('',html,[
+    !atCap?{t:`<span class="bt">⚒️ Upgrade to +${it.lvl+1}</span><small>${ch}% chance · 🪙${cost}</small>`,dis:goldOf()<cost,f:()=>gearUpgrade(it.id,cid,filter)}:null,
+    atCap&&t<5?{t:`<span class="bt">⬆ Tier ${t+1}</span><small>🪙${tcost} + one ${R[0]} item</small>`,dis:goldOf()<tcost,f:()=>gearTierPick(it.id,cid,filter)}:null,
+    {t:worn?'Take off':`Equip · ${esc(shortName(CBY[cid]))}`,f:()=>gearEquip(it.id,worn?null:cid,cid,filter)},
     {t:`Sell · 🪙${gearSellPrice(it)}`,f:()=>ecoModal('Sell it?',`${gearName(it)} for 🪙${gearSellPrice(it)}. This cannot be undone.`,[{t:'Sell',f:()=>gearSell(it.id,cid,filter)},{t:'Keep',f:()=>gearSheet(id,cid,filter)}])},
-    {t:'Close'}].filter(Boolean));}
+    {t:'✕'}].filter(Boolean));
+  const em=document.querySelector('#ecoModal .em');if(em)em.classList.add('gsm');}
 /* which item to burn for the tier: same rarity, the same tier or higher, not the item itself */
 function gearTierPick(id,cid,filter){const it=gearItems().find(x=>x.id===id);if(!it)return;const t=gearTier(it);
   const list=gearItems().filter(x=>x.id!==id&&x.r===it.r&&gearTier(x)>=t).sort((a,b)=>gearTier(a)-gearTier(b)||(a.champ?1:0)-(b.champ?1:0)||a.lvl-b.lvl);
@@ -5043,7 +5078,7 @@ async function gearCall(fn,args,after){ecoWait(true);
   catch(e){ecoWait(false);const m=ecoMsg(e);ecoToast('⚠️ '+(ecoNet(m)?'No connection to the server':m));SFX.play('deny');}}
 function gearUpgrade(id,cid,filter){gearCall('gear_upgrade',{item:id,op:ecoUuid()},r=>{
   if(r.item){const L=ECO.gear.items;const i=L.findIndex(x=>x.id===r.item.id);if(i>=0)L[i]=r.item;}
-  if(r.ok){SFX.play('upgrade');ecoToast(`⚒️ Success: ${gearName(r.item)}`,true);}else{SFX.play('deny');ecoToast(`The strike failed — 🪙${r.cost} gone, the item is safe`);}
+  if(r.ok){SFX.play('upgrade');ecoToast(`⚒️ Success: ${gearName(r.item)}`,true);}else{SFX.play('deny');ecoToast(`Upgrade failed — 🪙${r.cost} gone, the item is safe`);}
   persist();showForge(cid,filter);gearSheet(id,cid,filter);});}
 function gearTierUp(id,fodder,cid,filter){gearCall('gear_tier_up',{item:id,fodder,op:ecoUuid()},r=>{SFX.play('levelup');ecoToast(`⬆ ${gearName(r.item)} is now tier ${gearTier(r.item)}`,true);persist();showForge(cid,filter);gearSheet(id,cid,filter);});}
 function gearEquip(id,to,cid,filter){gearCall('gear_equip',{item:id,champ:to},()=>{SFX.play('upgrade');showForge(cid,filter);});}
