@@ -10,7 +10,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_TAVERN, { timeout: 20000 }); await page.waitForTimeout(300);
   const R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
   const tap = async (sel) => { await page.locator(sel).first().tap({ force: true }); await page.waitForTimeout(250); };
-  await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1 };
+  await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1 }; a.learn = { chest: 1 };
     for (let i = 1; i <= 30; i++) a.campaign[i] = 3; a.gold = 60000; a.gems = 1000; a.sel = 'robb'; a.champs.robb = { lvl: 9, sk: [1, 1, 1], tal: 0 };
     a.cards = { 'c:robb': 200, 'c:brienne': 15, 'c:sansa': 30, 'b:c': 2 }; H.setAcc(a); H.persist(); });
   const T = await page.evaluate(() => { const T = window.HOLDOR_TAVERN, C = window.HOLDOR_CH52.CBY; return { rar: ['brienne', 'robb', 'bran', 'sansa', 'ned', 'arya', 'jon'].map(id => T.champRar(C[id])), stat: T.RAR_STAT }; });
@@ -49,7 +49,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   const s5 = await page.evaluate(() => { const H = window.HOLDOR; const b0 = Object.assign({}, H.ACC.cards); const r = H.rollChest('dragon'); return { r: r && r.filter(x => x.key && x.key[0] === 'b').map(x => x.key + ':' + x.cnt), c: (H.ACC.cards['b:c'] || 0) - (b0['b:c'] || 0), rr: (H.ACC.cards['b:r'] || 0) - (b0['b:r'] || 0), e: (H.ACC.cards['b:e'] || 0) - (b0['b:e'] || 0) }; });
   ok('dragon chest books', s5.c === 3 && s5.rr === 2 && s5.e === 1, JSON.stringify(s5));
   // the collection shows stars and the Tavern button sits beside the Forge
-  await page.evaluate(() => window.HOLDOR.showHub('battle')); await page.waitForTimeout(900);   // the home screen rises in and may redraw once
+  await page.evaluate(() => window.HOLDOR.showHub('battle')); await page.waitForTimeout(400);
   ok('Tavern button', await page.evaluate(() => !!document.querySelector('#bTavern')));
   await tap('#bTavern'); await page.waitForTimeout(300);
   ok('it opens the tavern', /Tavern/.test(await page.evaluate(() => document.querySelector('#card').innerText.slice(0, 40))));

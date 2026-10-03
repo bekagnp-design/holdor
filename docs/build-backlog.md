@@ -413,11 +413,15 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **Server (v19, applied to production at once — it works with the live app):** the ranked fallback reuses the open practice duel; the duplicates were closed.
 - **App:** a `startapp=d_<code>` link joins the duel as soon as the seat is on the server and opens the Duel screen by itself; each duel row says what each side still has to do (▶ play a Hold run / ✔ your run counts, not played yet / ✔ has played) and has a **▶ Play my Hold run** button that starts the run (the same checks as the Hold button); a plain explanation of how a duel is decided; a refused invitation says the friend already plays and points at the duel; a Duel card at the top of the Hold tab (Events is no tab since v1.0.74); "Ranked" says when it had to fall back to the bot.
 - **Tests:** `v15_test` (three ranked taps with nobody to match = one duel), `duel_test` (a friend's link: joins, opens, the per-side status, the Play button starts a Hold battle on the server, the result, the Hold-tab card). `t_gear63`'s thorns check depended on the day's map; it now spawns the enemy at the gate.
+### v1.0.82 — the result screen (2026-10-03)
+- `mod/result.js` wraps `showCampaignResult`; the old card's text, buttons and ids stay. A win: a gold VICTORY ribbon on a purple-gold card, turning rays, three big stars that land one after another (a sound and a buzz each, the third louder), the gold counting up from 0, confetti for three stars. A loss: a red DEFEAT ribbon on a red card and one shake. `prefers-reduced-motion` shows the end state at once.
+- **Tests:** `tests/t_result82.js` (core): the ribbon and card, the stars landing in turn, the gold count, confetti, NEXT still starts the next stage, the loss card. `t_tavern59` marks the first-chest lesson seen (it covered the Tavern button).
+
 ### v1.0.81 — feel: haptics and big kills (2026-10-03)
 - `mod/haptics.js`. Telegram's haptic feedback follows the sounds (`SFX.play` is wrapped): a light tap on buttons, success on claims / chests / level-ups / wins, an error buzz on a refusal, a medium knock when the door is hit (at most every 0.4 s), heavy for the Night King, roars and dragons. At most one buzz per 60 ms; none when the sound is muted or Telegram has no haptics.
 - A big kill lands (`feelKill` from `kill()`): giants, mini-bosses, lieutenants, bosses, the Night King — a short hit-stop of the frame (0.08–0.22 s), a shake, a white flash and a ring. Display only: the frame waits; the simulation runs the same steps.
 - Short phones (≤ 700 px tall): the home screen's stage, slots and quick buttons shrink so BATTLE stays on screen (found on a 360 × 640 check of v1.0.78).
-- **Tests:** `tests/t_feel81.js` (core); `t_tavern59` waits for the home screen to settle before its tap.
+- **Tests:** `tests/t_feel81.js` (core).
 
 ### v1.0.80 — Hold blessings (2026-10-03)
 - The roguelike beat of Galaxy Defense: in the Hold, after every 5th wave the game stops and offers **three blessings**; one is taken (a tap, or the first after 20 s) and lasts the run; they stack. `mod/boons.js`.

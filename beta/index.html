@@ -1206,6 +1206,26 @@ button,.btn,.hbtn,.ebld,.cday{transition:scale .22s cubic-bezier(.3,1.7,.5,1),fi
 #boonOv .bo-card b{font-family:var(--f-display);font-size:13px;line-height:1.15}
 #boonOv .bo-card em{font-style:normal;font-size:11px;color:#d6c8f0;line-height:1.25}
 #boonOv .bo-have{margin:12px 0 0;font-size:13px;color:#cfd8e6}
+/* v1.0.82: the result screen */
+.card.res{position:relative;overflow:visible;text-align:center;border-radius:20px;border-width:3px}
+.card.res.win{background:radial-gradient(120% 60% at 50% 0%,#4a3a8a,#1c1440 55%,#0e0a22);border-color:#e3b661;box-shadow:0 0 0 2px #2a1a05,0 0 40px rgba(255,200,90,.35),0 18px 40px rgba(0,0,0,.6)}
+.card.res.lose{background:radial-gradient(120% 60% at 50% 0%,#5a1f1f,#2a0f12 55%,#140709);border-color:#9a2a2a;box-shadow:0 0 0 2px #1a0505,0 18px 40px rgba(0,0,0,.6)}
+.card.res h1{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:-34px}
+.card.res .rbn{display:inline-block;padding:8px 30px;font-family:var(--f-display);font-size:24px;font-weight:900;letter-spacing:.14em;color:#3a2205;
+  background:linear-gradient(180deg,#ffe97a,#f2a62c);border:3px solid #7a4a10;border-radius:10px;box-shadow:0 5px 0 #7a4a10,0 10px 20px rgba(0,0,0,.5);clip-path:polygon(0 0,100% 0,96% 50%,100% 100%,0 100%,4% 50%);animation:jPop .45s cubic-bezier(.2,1.6,.4,1)}
+.card.res.lose .rbn{color:#fff;background:linear-gradient(180deg,#e14b4b,#8a1d1d);border-color:#3a0808;box-shadow:0 5px 0 #3a0808,0 10px 20px rgba(0,0,0,.5)}
+.card.res .big.stars{position:relative;display:flex;justify-content:center;align-items:flex-end;gap:6px;height:84px;margin:6px 0 4px;font-size:0}
+.card.res .big.stars .rays{position:absolute;left:50%;top:50%;width:260px;height:260px;margin:-130px 0 0 -130px;border-radius:50%;background:repeating-conic-gradient(rgba(255,220,140,.22) 0 10deg,rgba(255,220,140,0) 10deg 24deg);animation:hmSpin 18s linear infinite;-webkit-mask:radial-gradient(circle,#000 20%,transparent 66%);mask:radial-gradient(circle,#000 20%,transparent 66%);pointer-events:none}
+.card.res .rs{position:relative;font-size:54px;line-height:1;color:rgba(255,255,255,.12);text-shadow:0 3px 0 rgba(0,0,0,.4);opacity:0;scale:2.4;rotate:-25deg}
+.card.res .rs:nth-of-type(2){font-size:68px;margin-bottom:8px}
+.card.res .rs.on{color:#ffd54a;text-shadow:0 3px 0 #7a4a10,0 0 18px rgba(255,210,80,.8)}
+.card.res .rs.landed{opacity:1;scale:1;rotate:0deg;transition:scale .35s cubic-bezier(.2,1.8,.4,1),rotate .35s ease-out,opacity .15s}
+.card.res .resrow{margin-top:8px}
+.rshake{animation:rShake .5s cubic-bezier(.36,.07,.19,.97)}
+@keyframes rShake{10%,90%{translate:-2px 0}20%,80%{translate:4px 0}30%,50%,70%{translate:-7px 0}40%,60%{translate:7px 0}}
+.rconf{position:fixed;top:-12px;z-index:150;width:8px;height:12px;border-radius:2px;pointer-events:none;animation:rFall 2s cubic-bezier(.3,.6,.5,1) both}
+@keyframes rFall{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(var(--rx),105vh) rotate(var(--rr));opacity:.9}}
+@media (prefers-reduced-motion: reduce){.card.res .rs{opacity:1;scale:1;rotate:0deg}.rconf{display:none}}
 </style>
 </head>
 <body>
@@ -2109,7 +2129,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.81';
+const VERSION='1.0.82';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -5761,6 +5781,27 @@ function feelKill(e,q){if(!(e.boss||e.lord||e.giant||e.mini||e.king))return;
   G.hitStop=Math.max(G.hitStop||0,e.king?0.22:e.boss||e.lord?0.14:0.08);G.shake=Math.min(10,(G.shake||0)+(e.king?8:e.boss||e.lord?5:3));
   addFx({t:'flash',x:q.x,y:q.y,life:e.king?0.5:0.3,col:'#ffffff'});addFx({t:'ring',x:q.x,y:q.y,r0:8,r1:e.king?200:110,life:0.5,col:e.walker||e.king?'#cdf1ff':'#ffe1a0'});
   hapt(e.king||e.boss||e.lord?'heavy':'mid');}
+/* =========================== THE RESULT SCREEN (v1.0.82) ===========================
+   A win should feel like one. On top of the old result card (its text, buttons and ids stay): a ribbon, turning rays, three big stars
+   that land one after another with a sound and a buzz, the gold counting up, and confetti for three stars. A loss: a red ribbon and one
+   shake. Display only; prefers-reduced-motion shows the final state at once. */
+function resultFx(win,stars){try{if(!card)return;card.classList.add('res',win?'win':'lose');
+  const calm=typeof JUICE!=='undefined'&&JUICE.calm;
+  const h1=card.querySelector('h1');if(h1&&!h1.querySelector('.rbn'))h1.insertAdjacentHTML('afterbegin',`<span class="rbn">${win?'VICTORY':'DEFEAT'}</span>`);
+  if(!win){if(!calm){card.classList.add('rshake');setTimeout(()=>card.classList.remove('rshake'),600);}return;}
+  const st=card.querySelector('.big.stars');
+  if(st){st.innerHTML=`<i class="rays"></i>${[0,1,2].map(i=>`<span class="rs ${i<stars?'on':'off'}">★</span>`).join('')}`;
+    const S=[...st.querySelectorAll('.rs')];
+    if(calm)S.forEach(s=>s.classList.add('landed'));
+    else S.forEach((s,i)=>setTimeout(()=>{if(!s.isConnected)return;s.classList.add('landed');if(i<stars){try{SFX.play(i===2?'levelup':'card');}catch(e){}}},350+i*380));}
+  const b=card.querySelector('p.m b');if(b){const m=b.textContent.match(/\+(\d+)/);if(m){const to=+m[1],node=[...b.childNodes].find(n=>n.nodeType===3&&/\+\d+/.test(n.textContent));
+    if(node&&to>0&&!calm){const t0=performance.now(),D=900,tail=node.textContent.replace(/\+\d+/,'');const tick=()=>{const k=Math.min(1,(performance.now()-t0-400)/D);if(k>=0)node.textContent='+'+Math.round(to*(1-Math.pow(1-Math.max(0,k),3)))+tail;if(k<1&&node.isConnected)requestAnimationFrame(tick);};node.textContent='+0'+tail;requestAnimationFrame(tick);}}}
+  if(stars===3&&!calm)setTimeout(resultConfetti,350+2*380);}catch(e){}}
+function resultConfetti(){const box=document.getElementById('app')||document.body,cols=['#ffd54a','#ff6a5a','#4fc0ff','#7fd06a','#ff7ab8','#ffffff'];
+  for(let i=0;i<36;i++){const c=document.createElement('i');c.className='rconf';c.style.left=(Math.random()*100)+'%';c.style.background=cols[i%cols.length];
+    c.style.animationDuration=(1.6+Math.random()*1.4)+'s';c.style.animationDelay=(Math.random()*0.35)+'s';c.style.setProperty('--rx',((Math.random()-0.5)*160)+'px');c.style.setProperty('--rr',(Math.random()*900-450)+'deg');
+    box.appendChild(c);setTimeout(()=>c.remove(),3400);}}
+{const scr0=showCampaignResult;showCampaignResult=function(win,stars,newUnlocks,gained){scr0(win,stars,newUnlocks,gained);resultFx(win,stars);};}
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -6946,6 +6987,7 @@ window.HOLDOR_HOME={HOME,SKINS,skinOf,skinSet,skinNext,hubHome,homeStrike};
 window.HOLDOR_ICONS=ICONS;
 window.HOLDOR_BOONS={BOONS,BOON_KEYS,boonOffer,boonMul,boonPick,boonCheck};
 window.HOLDOR_FEEL={FEEL,FEEL_SFX,hapt,feelKill};
+window.HOLDOR_RESULT={resultFx,resultConfetti};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();
