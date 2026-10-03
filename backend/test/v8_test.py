@@ -19,6 +19,8 @@ def anon_err(fn, **kw):
     try: anon(fn, **kw); return None
     except Exception as e: return str(e).split('\n')[0]
 fails = []
+# v21 lucky chests climb at random; these checks are about one tier, so the taps are off while they run
+q("update econ_config set v = jsonb_set(v, '{taps}', '0') where k = 'lucky'")
 def check(name, cond, info=''):
     print(('OK  ' if cond else 'FAIL'), name, '' if cond and not os.environ.get('V') else info)
     if not cond: fails.append(name)
@@ -135,5 +137,6 @@ with db.cursor() as c:
     except Exception: denied = True
     finally: c.execute('reset role')
 check('anon cannot call the star helper', denied)
+q("update econ_config set v = jsonb_set(v, '{taps}', '3') where k = 'lucky'")
 print('FAILS', fails)
 raise SystemExit(1 if fails else 0)

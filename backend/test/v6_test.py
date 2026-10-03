@@ -20,6 +20,8 @@ def anon_err(fn, **kw):
     try: return 'no error: ' + json.dumps(anon(fn, **kw))[:120]
     except Exception as e: return str(e).split('\n')[0]
 fails = []
+# v21 lucky chests climb at random; these checks are about one tier, so the taps are off while they run
+q("update econ_config set v = jsonb_set(v, '{taps}', '0') where k = 'lucky'")
 def check(name, cond, info=''):
     print(('OK  ' if cond else 'FAIL'), name, '' if cond and not os.environ.get('V') else info)
     if not cond: fails.append(name)
@@ -164,5 +166,6 @@ try:
     check('bad token', 'bad session' in anon_err('gear_list', token=str(uuid.uuid4()), seat=0))
 finally:
     restore()
+q("update econ_config set v = jsonb_set(v, '{taps}', '3') where k = 'lucky'")
 print('FAILS', fails)
 raise SystemExit(1 if fails else 0)
