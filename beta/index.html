@@ -1182,6 +1182,13 @@ button,.btn,.hbtn,.ebld,.cday{transition:scale .22s cubic-bezier(.3,1.7,.5,1),fi
 .slot.ready{box-shadow:0 4px 0 var(--pb),0 0 16px 2px var(--glow)}.slot.ready em{background:linear-gradient(180deg,#ffe97a,#f2a62c);color:#3a2205}
 .slot.ready .si{animation:jWig 2.6s ease-in-out infinite}
 .slot .cnt{position:absolute;top:-7px;right:-5px;min-width:22px;height:20px;border-radius:10px;background:#e14b4b;border:2px solid #fff;font-size:11px;line-height:16px;padding:0 4px;z-index:2}
+/* short phones (≤ 700 px tall): BATTLE stays on screen */
+@media (max-height:700px){
+ .hmstage{min-height:140px}
+ .hmstrip{margin-bottom:4px}.hpill{height:30px}
+ .hmslots{gap:6px;margin-bottom:6px}.slot{aspect-ratio:1/.8}
+ .homerow{margin:4px 4px 6px}.hbtn{padding:5px 2px 4px}.hbtn .ic{width:30px;height:30px}.hbtn .ic svg{width:22px;height:22px}
+}
 /* v1.0.79: drawn icons */
 .hbtn .ic svg{display:block;filter:drop-shadow(0 2px 0 rgba(0,0,0,.45))}
 .slot .si.gift svg{filter:drop-shadow(0 3px 2px rgba(0,0,0,.5))}
@@ -2102,7 +2109,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.80';
+const VERSION='1.0.81';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -2825,7 +2832,7 @@ function kill(e,src){
   let g=Math.round(e.gold*(1+0.008*(G.wave-1))*((G.mod&&G.mod.gold)||1)*DIFF().gold*(UP('coin')?1.12:1));
   const q=posE(e);if(G.hero&&G.heroOn&&!G.hero.dead){const bm=skVal(G.hero,'bloodmagic');if(bm&&G.doorHp<G.doorMax&&dist(q.x,q.y,G.hero.x,G.hero.y)<=100){G.doorHp=Math.min(G.doorMax,G.doorHp+bm);const hg=heldGate();addFx({t:'wave',x:q.x,y:q.y-8,tx:hg.x,ty:GATE_Y-12,life:0.45,col:'#e14b4b'});}}if(src==='hero'&&G.hero&&skLvl(G.hero,'goldtouch')){g=Math.round(g*(1+skVal(G.hero,'goldtouch')/100));addFx({t:'coins',x:q.x,y:q.y-8,life:0.6});}
   if(src==='hero'&&G.hero&&G.hero.tal&&G.hero.tal.k==='goldkill')g=Math.round(g*(1+G.hero.tal.v));if(src==='hero'&&G.gearGold)g=Math.round(g*(1+G.gearGold/100));if(G.goldx2Until>G.time)g*=2;if(src==='hero'&&G.hero&&!G.hero.dead){const rv=skVal(G.hero,'reave');if(rv)G.hero.hp=Math.min(G.hero.max,G.hero.hp+G.hero.max*rv/100);}
-  if(G.boon&&G.boon.loot)g=Math.round(g*(1+G.boon.loot));G.gold+=g;G.kills++;SFX.play('die',45);if(ACC){ACC.kc=ACC.kc||{};ACC.kc[e.type]=(ACC.kc[e.type]||0)+1;}addText(q.x,q.y-10,'+'+g,'#e3b661');corpseFx(e,q);if(G.hero&&G.heroOn)heroXp(src==='hero'?1:0.25);
+  if(G.boon&&G.boon.loot)g=Math.round(g*(1+G.boon.loot));G.gold+=g;G.kills++;SFX.play('die',45);if(ACC){ACC.kc=ACC.kc||{};ACC.kc[e.type]=(ACC.kc[e.type]||0)+1;}addText(q.x,q.y-10,'+'+g,'#e3b661');corpseFx(e,q);feelKill(e,q);if(G.hero&&G.heroOn)heroXp(src==='hero'?1:0.25);
   if(!e.boss&&!e.fly)G.deaths.push({type:e.type,prog:e.prog,t:G.time,route:e.route});
   if(!e.fly&&G.decals.length<70)G.decals.push({x:q.x,y:q.y,r:e.giant?15:e.boss?17:8,ice:!!e.walker,life:9});
   if(e.split){for(let i=0;i<e.split[1];i++)spawn(e.split[0],e.prog-2-i*4,e.route);}
@@ -5735,6 +5742,25 @@ function boonCheck(){if(G.boonAsk)return true;   /* still waiting for a choice: 
   try{SFX.play('chest');}catch(e){}
   clearTimeout(G.boonT);G.boonT=setTimeout(()=>{if(G.boonAsk===offer)boonPick(offer[0]);},20000);
   return true;}
+/* =========================== FEEL (v1.0.81) ===========================
+   The phone answers the hand: Telegram's haptic feedback on taps and rewards, and big kills that land.
+   · a light tap on every button; success on claims, chests, level-ups and wins; a warning on a refusal; a heavy thump for the
+     Night King, a lieutenant or a roar; a medium knock when the door is hit (at most every 0.4 s)
+   · a boss, a lieutenant, a giant or a mini-boss going down: a short hit-stop, a shake, a white flash and a ring — display only
+     (the frame waits a moment; the simulation runs the same steps)
+   Off when Telegram has no haptics (a browser) or the sound is muted. */
+const FEEL={t:0,door:0};
+function hapt(kind){try{if(typeof SFX!=='undefined'&&SFX.muted)return;const h=TG&&TG.HapticFeedback;if(!h)return;const now=performance.now();
+  if(kind==='door'){if(now-FEEL.door<400)return;FEEL.door=now;}else if(now-FEEL.t<60)return;FEEL.t=now;
+  if(kind==='ok')h.notificationOccurred('success');else if(kind==='no')h.notificationOccurred('error');else if(kind==='warn')h.notificationOccurred('warning');
+  else h.impactOccurred(kind==='heavy'?'heavy':kind==='door'||kind==='mid'?'medium':kind==='soft'?'soft':'light');}catch(e){}}
+const FEEL_SFX={tap:'light',swipe:'soft',collect:'ok',buy:'ok',levelup:'ok',win:'ok',chestopen:'mid',legend:'heavy',epic:'mid',deny:'no',lose:'warn',gate:'door',king:'heavy',roar:'heavy',dragon:'heavy',ult:'mid',upgrade:'ok',unlock:'ok'};
+if(typeof SFX!=='undefined'&&SFX.play){const play0=SFX.play.bind(SFX);SFX.play=function(n,gap){play0(n,gap);const k=FEEL_SFX[n];if(k)hapt(k);};}
+/* a big kill lands: called from kill() — reads the enemy, writes only display fields */
+function feelKill(e,q){if(!(e.boss||e.lord||e.giant||e.mini||e.king))return;
+  G.hitStop=Math.max(G.hitStop||0,e.king?0.22:e.boss||e.lord?0.14:0.08);G.shake=Math.min(10,(G.shake||0)+(e.king?8:e.boss||e.lord?5:3));
+  addFx({t:'flash',x:q.x,y:q.y,life:e.king?0.5:0.3,col:'#ffffff'});addFx({t:'ring',x:q.x,y:q.y,r0:8,r1:e.king?200:110,life:0.5,col:e.walker||e.king?'#cdf1ff':'#ffe1a0'});
+  hapt(e.king||e.boss||e.lord?'heavy':'mid');}
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -6919,6 +6945,7 @@ window.HOLDOR_JUICE={JUICE,juiceCoins,juiceCount,juiceFrame,juiceHub,JUICE_SHOUT
 window.HOLDOR_HOME={HOME,SKINS,skinOf,skinSet,skinNext,hubHome,homeStrike};
 window.HOLDOR_ICONS=ICONS;
 window.HOLDOR_BOONS={BOONS,BOON_KEYS,boonOffer,boonMul,boonPick,boonCheck};
+window.HOLDOR_FEEL={FEEL,FEEL_SFX,hapt,feelKill};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();

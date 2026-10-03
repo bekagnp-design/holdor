@@ -49,7 +49,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   const s5 = await page.evaluate(() => { const H = window.HOLDOR; const b0 = Object.assign({}, H.ACC.cards); const r = H.rollChest('dragon'); return { r: r && r.filter(x => x.key && x.key[0] === 'b').map(x => x.key + ':' + x.cnt), c: (H.ACC.cards['b:c'] || 0) - (b0['b:c'] || 0), rr: (H.ACC.cards['b:r'] || 0) - (b0['b:r'] || 0), e: (H.ACC.cards['b:e'] || 0) - (b0['b:e'] || 0) }; });
   ok('dragon chest books', s5.c === 3 && s5.rr === 2 && s5.e === 1, JSON.stringify(s5));
   // the collection shows stars and the Tavern button sits beside the Forge
-  await page.evaluate(() => window.HOLDOR.showHub('battle')); await page.waitForTimeout(400);
+  await page.evaluate(() => window.HOLDOR.showHub('battle')); await page.waitForTimeout(900);   // the home screen rises in and may redraw once
   ok('Tavern button', await page.evaluate(() => !!document.querySelector('#bTavern')));
   await tap('#bTavern'); await page.waitForTimeout(300);
   ok('it opens the tavern', /Tavern/.test(await page.evaluate(() => document.querySelector('#card').innerText.slice(0, 40))));

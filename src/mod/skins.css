@@ -59,3 +59,10 @@
 .slot.ready{box-shadow:0 4px 0 var(--pb),0 0 16px 2px var(--glow)}.slot.ready em{background:linear-gradient(180deg,#ffe97a,#f2a62c);color:#3a2205}
 .slot.ready .si{animation:jWig 2.6s ease-in-out infinite}
 .slot .cnt{position:absolute;top:-7px;right:-5px;min-width:22px;height:20px;border-radius:10px;background:#e14b4b;border:2px solid #fff;font-size:11px;line-height:16px;padding:0 4px;z-index:2}
+/* short phones (≤ 700 px tall): BATTLE stays on screen */
+@media (max-height:700px){
+ .hmstage{min-height:140px}
+ .hmstrip{margin-bottom:4px}.hpill{height:30px}
+ .hmslots{gap:6px;margin-bottom:6px}.slot{aspect-ratio:1/.8}
+ .homerow{margin:4px 4px 6px}.hbtn{padding:5px 2px 4px}.hbtn .ic{width:30px;height:30px}.hbtn .ic svg{width:22px;height:22px}
+}
