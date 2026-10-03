@@ -18,6 +18,8 @@ for t in ('summons', 'econ_flags', 'econ_ops', 'ledger', 'econ_legacy', 'daily_s
 INIT = open(HERE + '/init.txt').read()
 MOCK = """window.Telegram={WebApp:{platform:'android',version:'8.0',initData:%s,ready(){},expand(){},onEvent(){},isVersionAtLeast(){return true},requestFullscreen(){},disableVerticalSwipes(){},lockOrientation(){},setHeaderColor(){},setBackgroundColor(){},setBottomBarColor(){},enableClosingConfirmation(){}}};""" % json.dumps(INIT)
 fails = []
+# v21 lucky chests climb at random; the book checks are about one tier, so the taps are off while they run
+q("update econ_config set v = jsonb_set(v, '{taps}', '0') where k = 'lucky'")
 def check(name, cond, info=''):
     print(('OK  ' if cond else 'FAIL'), name, info)
     if not cond: fails.append(name)
@@ -92,5 +94,6 @@ with sync_playwright() as p:
     check('no refusals', q1("select count(*) from econ_flags where tg_id = %s", TG) == 0, q("select kind, detail from econ_flags where tg_id = %s", TG))
     check('no page errors', not errs, errs[:3])
     br.close()
+q("update econ_config set v = jsonb_set(v, '{taps}', '3') where k = 'lucky'")
 print('FAILS', fails)
 raise SystemExit(1 if fails else 0)

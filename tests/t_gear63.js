@@ -17,7 +17,7 @@ Object.assign(CFG, JSON.parse(/v \|\| '(\{[\s\S]*?\})'::jsonb where k = 'gear'/.
   const total = Object.values(CFG.kinds).flat().length;
   // ---- the kinds ----
   const K = await page.evaluate(() => { const G = window.HOLDOR_GEAR; return Object.fromEntries(Object.keys(G.GEAR_KIND).map(s => [s, G.GEAR_KIND[s].map(x => x[0])])); });
-  ok('54 kinds; the names and their order agree with the server config', total === 54 && Object.keys(CFG.kinds).every(s => JSON.stringify(K[s]) === JSON.stringify(CFG.kinds[s].map(k => k.n))), JSON.stringify(K));
+  ok('54 kinds; the names and their order agree with the server config (v1.0.86 appends more: t_kinds86)', total === 54 && Object.keys(CFG.kinds).every(s => JSON.stringify(K[s].slice(0, CFG.kinds[s].length)) === JSON.stringify(CFG.kinds[s].map(k => k.n))), JSON.stringify(K));
   ok('an item shows the kind it was rolled with (kind 5 of weapons = Staff, kind 2 of rings = Band)', await page.evaluate(() => { const G = window.HOLDOR_GEAR; return G.gearKind({ slot: 'weapon', kind: 5 })[0] === 'Staff' && G.gearKind({ slot: 'ring', kind: 2 })[0] === 'Band'; }));
   // ---- every perk is a real, non-ultimate skill mechanic ----
   const P = await page.evaluate(ids => { const G = window.HOLDOR_GEAR; return ids.map(id => { const S = G.SK[id]; return { id, has: !!S, ult: !!(S && S.ult), n: S && S.v.length, txt: S && G.gearPerkText(id, 3) }; }); }, perkIds);

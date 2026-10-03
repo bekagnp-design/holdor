@@ -70,6 +70,36 @@ K = {
   ('Totem', '🗿', ['regen', 'hp'], ['sunaura', 'heal', 'rations', 'bloodmagic'], 'a short carved wooden totem pole with a simple face'),
   ('Sigil', '🔱', ['crit', 'range'], ['forge', 'siegecraft', 'sunder', 'hand'], 'a flat iron plaque on a short pole with a plain geometric mark')],
 }
+# v1.0.86: the kinds grow to the hundreds. Each new kind is named for itself and built on one of the first 54 (its main stats and
+# perk pool, the perks turned so that siblings differ); the first 54 keep their places, so every item already rolled keeps its kind.
+X = {
+ 'weapon': [('Longsword','Sword'),('Greatsword','Sword'),('Bastard sword','Sword'),('Falchion','Sword'),('Scimitar','Sword'),('Sabre','Sword'),('Rapier','Dagger'),('Estoc','Sword'),('Gladius','Sword'),('Cutlass','Sword'),
+  ('Dirk','Dagger'),('Stiletto','Dagger'),('Kris','Dagger'),('Battle axe','Axe'),('Hatchet','Axe'),('Bearded axe','Axe'),('Labrys','Axe'),('Great axe','Axe'),('Glaive','Halberd'),('Bardiche','Halberd'),
+  ('Poleaxe','Halberd'),('Pike','Spear'),('Lance','Spear'),('Javelin','Spear'),('Trident','Spear'),('Morningstar','Warhammer'),('Maul','Warhammer'),('Mace','Warhammer'),('Longbow','Bow'),('Recurve bow','Bow'),
+  ('Arbalest','Crossbow'),('Wand','Staff'),('Sceptre','Staff'),('Scourge','Flail'),('Chain flail','Flail'),('Weirwood staff','Staff'),('Hunting bow','Bow'),('War pick hammer','Warhammer'),('Cleaver','Axe'),('Harpoon','Spear')],
+ 'offhand': [('Tower shield','Kite shield'),('Heater shield','Kite shield'),('Pavise','Kite shield'),('Targe','Buckler'),('Aegis','Shield'),('Bulwark','Shield'),('Ward','Shield'),('Grimoire','Tome'),('Codex','Tome'),
+  ('Scroll','Tome'),('Ledger','Tome'),('Lantern','Torch'),('Brazier','Torch'),('Globe','Orb'),('Skull','Orb'),('Crystal','Orb'),('Seer\'s eye','Orb'),('Iron targe','Buckler'),('Oak shield','Shield'),('Raven tome','Tome')],
+ 'helmet': [('Great helm','Helm'),('Barbute','Helm'),('Sallet','Helm'),('Bascinet','Helm'),('Casque','Helm'),('Kettle helm','Helm'),('Circlet','Crown'),('Diadem','Crown'),('Tiara','Crown'),('Cowl','Hood'),
+  ('Visage','Mask'),('Antler helm','Horned helm'),('Mail coif','Coif'),('Iron cap','Coif'),('Winged helm','Helm'),('Ram helm','Horned helm'),('Shadow hood','Hood'),('Death mask','Mask')],
+ 'armor': [('Hauberk','Mail'),('Byrnie','Mail'),('Scale','Mail'),('Lamellar','Mail'),('Cuirass','Plate'),('Breastplate','Plate'),('Carapace','Plate'),('Vestment','Robe'),('Cassock','Robe'),('Tabard','Robe'),
+  ('Mantle','Cloak'),('Cape','Cloak'),('Shroud','Cloak'),('Jack','Brigandine'),('Gambeson','Jerkin'),('Doublet','Jerkin'),('Harness','Jerkin'),('Coat of plates','Brigandine'),('Fur cloak','Cloak'),('Night\'s robe','Robe')],
+ 'gloves': [('War gauntlets','Gauntlets'),('Iron gauntlets','Gauntlets'),('Vambraces','Bracers'),('Cuffs','Bracers'),('Riding gloves','Gloves'),('Archer\'s gloves','Gloves'),('Grips','Gloves'),('Fur mitts','Mitts'),
+  ('Wool mitts','Mitts'),('Steel bracers','Bracers'),('Plate gauntlets','Gauntlets'),('Hunter\'s gloves','Gloves')],
+ 'boots': [('Sabatons','Greaves'),('War boots','Boots'),('Riding boots','Boots'),('Traveller\'s boots','Boots'),('Iron greaves','Greaves'),('Silk sandals','Sandals'),('Ranger boots','Boots'),
+  ('Steel treads','Boots'),('Swift steps','Boots'),('Knight\'s spurs','Spurs'),('Desert sandals','Sandals'),('Snow boots','Boots')],
+ 'ring': [('Hoop','Band'),('Coil','Loop'),('Braid','Loop'),('Iron ring','Ring'),('Ruby ring','Ring'),('Lord\'s signet','Signet'),('Maester\'s seal','Seal'),('Wolf claw ring','Claw ring'),('Twin band','Band'),
+  ('Silver ring','Ring'),('Old seal','Seal'),('Merchant\'s signet','Signet'),('Bone ring','Ring'),('Leather loop','Loop'),('Dragon claw ring','Claw ring'),('Gold band','Band')],
+ 'amulet': [('Medallion','Amulet'),('Torc','Amulet'),('Necklace','Amulet'),('Locket','Pendant'),('Tear','Pendant'),('Idol','Talisman'),('Rune','Talisman'),('Token','Charm'),('Clover','Charm'),('Tooth','Fang'),
+  ('Tusk','Fang'),('Phial','Relic'),('Vial','Relic'),('Urn','Relic'),('Chain of office','Amulet'),('Wolf fang','Fang'),('Lucky token','Charm'),('Old idol','Talisman')],
+ 'banner': [('Flag','Banner'),('Ensign','Banner'),('Colours','Banner'),('Gonfalon','Standard'),('Vexillum','Standard'),('Streamer','Pennant'),('Battle horn','War horn'),('Effigy','Totem'),('Plaque','Sigil'),
+  ('House banner','Banner'),('War standard','Standard'),('Long pennant','Pennant'),('Hunting horn','War horn'),('Weirwood totem','Totem')],
+}
+for _s, _lst in X.items():
+    _by = {k[0]: k for k in K[_s]}
+    for _i, (_n, _base) in enumerate(_lst):
+        n0, e0, m0, p0, a0 = _by[_base]
+        _r = (_i % len(p0)) or 1
+        K[_s].append((_n, e0, list(m0) if _i % 2 == 0 else list(reversed(m0)), p0[_r:] + p0[:_r], a0.replace(_base.lower(), _n.lower())))
 SLOTS = list(K)
 def cfg():
     return {'kinds': {s: [{'n': n, 'main': m, 'perks': p} for (n, e, m, p, a) in K[s]] for s in SLOTS},
@@ -78,6 +108,16 @@ def sheets():   # the icons in reading order, nine to a sheet
     flat = [(s, n, a) for s in SLOTS for (n, e, m, p, a) in K[s]]
     return [flat[i:i + 9] for i in range(0, len(flat), 9)]
 if __name__ == '__main__':
+    import sys
+    if '--v22' in sys.argv:   # v1.0.86: the full list goes to holdor_v22.sql and src/gear_kinds.json (the app's names and emoji)
+        js = json.dumps(cfg(), separators=(',', ':'), ensure_ascii=False).replace("'", "''")
+        p = os.path.join(B, 'holdor_v22.sql'); t = open(p).read()
+        t = re.sub(r"(-- KINDS-BEGIN\n).*?(\n-- KINDS-END)", lambda m: m.group(1) + "update econ_config set v = v || '" + js + "'::jsonb where k = 'gear';" + m.group(2), t, flags=re.S)
+        open(p, 'w').write(t)
+        open(os.path.join(R, 'src', 'gear_kinds.json'), 'w').write(json.dumps({s: [[n, e] for (n, e, m, p, a) in K[s]] for s in SLOTS}, ensure_ascii=False, separators=(',', ':')))
+        print('kinds:', sum(len(v) for v in K.values()), {s: len(K[s]) for s in SLOTS}); sys.exit(0)
+    K54 = {s: v[:{'weapon': 10, 'offhand': 6, 'helmet': 6, 'armor': 6, 'gloves': 4, 'boots': 4, 'ring': 6, 'amulet': 6, 'banner': 6}[s]] for s, v in K.items()}
+    K.clear(); K.update(K54)   # holdor_v12.sql keeps the first 54
     p = os.path.join(B, 'holdor_v12.sql'); t = open(p).read()
     js = json.dumps(cfg(), separators=(',', ':'), ensure_ascii=False).replace("'", "''")
     t = re.sub(r"(-- KINDS-BEGIN\n).*?(\n-- KINDS-END)", lambda m: m.group(1) + "update econ_config set v = v || '" + js + "'::jsonb where k = 'gear';" + m.group(2), t, flags=re.S)

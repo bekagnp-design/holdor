@@ -31,5 +31,6 @@ function luckyShow(t,L,next){
  openChest=function(t,done){
    if(LUCKY.order.indexOf(t)<0||t==='dragon')return openChest0(t,done);
    const R=ECO.roll;const L=R?(Array.isArray(R.taps)?{taps:R.taps,tier:R.tier||t}:{taps:[false,false,false],tier:t}):luckyRoll(t);
+   if(!L.taps.length)return openChest0(L.tier||t,done);   /* the server sent no taps (lucky off): the plain opening */
    luckyShow(t,L,final=>{const keep=ECO.roll;ECO.roll=R;try{openChest0(final,done);}finally{ECO.roll=keep;}
      setTimeout(()=>{const c=$('#cch');if(c)c.click();},300);});};}

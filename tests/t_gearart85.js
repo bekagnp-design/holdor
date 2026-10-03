@@ -1,4 +1,4 @@
-// v1.0.85: drawn items. Every kind of every slot is drawn (no emoji), the metal changes with the rarity and the gem / cloth with the set,
+// v1.0.85: drawn items (v1.0.86: all 224 kinds). Every kind of every slot is drawn (no emoji), the metal changes with the rarity and the gem / cloth with the set,
 // Epic and Legendary items shine, and the forge shows the drawings in the slots and the bag.
 const { chromium } = require('playwright');
 const fs = require('fs');
@@ -21,7 +21,7 @@ const CFG = JSON.parse(/insert into econ_config \(k, v\) values \('gear', '(\{[\
     const m = [0, 1, 2, 3, 4].map(r => G.gearArt('weapon', 'Sword', r, 'wolf').match(/stop-color="(#[0-9a-f]+)"/)[1]);
     const s = ['wolf', 'dragon'].map(x => G.gearArt('ring', 'Ring', 2, x).includes(G.GA_SET[x]));
     return { ...out, metals: new Set(m).size, sets: s }; });
-  ok('all 54 kinds are drawn, each its own picture', A.n === 54 && !A.bad.length && A.same === 0, JSON.stringify({ n: A.n, bad: A.bad, same: A.same }));
+  ok('all ' + A.n + ' kinds are drawn, each its own picture', A.n === 224 && !A.bad.length && A.same === 0, JSON.stringify({ n: A.n, bad: A.bad, same: A.same }));
   ok('every kind finds its own family (no fallback shape by accident)', A.fallback.length === 0, A.fallback.join(','));
   ok('five rarities, five metals; the set colours the gem', A.metals === 5 && A.sets.every(Boolean), JSON.stringify([A.metals, A.sets]));
   await page.evaluate(([cfg]) => { const H = window.HOLDOR, GX = window.HOLDOR_GEAR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tours = {}; a.gold = 99999; a.sel = 'jon'; a.copen = { jon: 1 }; H.setAcc(a);
@@ -30,7 +30,7 @@ const CFG = JSON.parse(/insert into econ_config \(k, v\) values \('gear', '(\{[\
   await page.waitForTimeout(600);
   const F = await page.evaluate(() => { const ic = [...document.querySelectorAll('.gslot .gic, .gitem .gic')]; return { n: ic.length, svg: ic.filter(e => e.querySelector('svg')).length,
     emoji: ic.filter(e => /\p{Extended_Pictographic}/u.test([...e.childNodes].filter(c => c.nodeType === 3).map(c => c.nodeValue).join(''))).length, shine: document.querySelectorAll('.gic.r4, .gic.r3').length }; });
-  ok('the forge: every item icon is a drawing, none an emoji; Epic and Legendary shine', F.n >= 54 && F.svg === F.n && F.emoji === 0 && F.shine > 0, JSON.stringify(F));
+  ok('the forge: every item icon is a drawing, none an emoji; Epic and Legendary shine', F.n >= 224 && F.svg === F.n && F.emoji === 0 && F.shine > 0, JSON.stringify(F));
   await page.screenshot({ path: SC + 'gearart85_forge.png', fullPage: true });
   console.log(JSON.stringify(R, null, 1)); console.log('ERR', errors);
   await browser.close();
