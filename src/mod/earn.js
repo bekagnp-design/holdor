@@ -1,16 +1,13 @@
-/* =========================== EARN — the estate + the two-day events (v1.0.74, backend v18) ===========================
-   The Earn tab (it took the place of Events in the bottom bar). Nine buildings open with the ACCOUNT LEVEL and are built and upgraded with
-   gold; each level costs 1.8× the one before and adds only half of the first level's income, so the income is a small extra (the first
-   level pays back in about 40 hours, higher levels in hundreds), collected by hand, and it stops piling up after 3 hours. Everything shown
-   is what the server sends. Events are no tab any more: two-day windows (Mon–Tue Builders' Boom, Fri–Sat Duel Cup) pop up once with a
-   countdown, and a small badge on the home island brings the popup back. The schedule below is the server's rule (ev_at) in JavaScript. */
-const EARN={st:null,at:0,seat:-1,busy:false};
-const EVT_KIND={boom:{n:"Builders' Boom",e:'🔥',d:'Estate income +50 % for the hours that fall inside these two days.',go:'To the Estate',f:()=>showHub('earn')},
+/* =========================== EVENTS + THE INVITATION BLOCK (v1.0.74; the estate was closed in v1.0.76, backend v20) ===========================
+   Events are no tab: two-day windows (Mon–Tue Quest Rush — quest rewards doubled; Fri–Sat Duel Cup — ranked duel gifts doubled) pop up once
+   with a countdown, and a small badge on the home screen brings the popup back. The schedule below is the server's rule (ev_at) in JavaScript.
+   The invitation block is drawn in the Tasks tab. */
+const EVT_KIND={rush:{n:'Quest Rush',e:'📜',d:'Every quest reward is doubled for these two days — daily, weekly and monthly.',go:'To the Tasks',f:()=>showHub('tasks','quests')},
                 cup:{n:'Duel Cup',e:'🏆',d:'Ranked duel gifts are doubled for these two days.',go:'To the Duel',f:()=>showDuel()}};
-/* the same rule as ev_at() in backend/holdor_v18.sql: Mon–Tue boom, Wed–Thu the cup is next, Fri–Sat cup, Sun the boom is next (UTC) */
+/* the same rule as ev_at() in backend/holdor_v20.sql: Mon–Tue rush, Wed–Thu the cup is next, Fri–Sat cup, Sun the rush is next (UTC) */
 function evAt(ms){const d=new Date(ms),dow=((d.getUTCDay()+6)%7)+1,day0=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()),DAY=86400000;let kind,active,t0;
-  if(dow<=2){kind='boom';active=true;t0=day0-(dow-1)*DAY;}else if(dow===5||dow===6){kind='cup';active=true;t0=day0-(dow-5)*DAY;}
-  else if(dow<=4){kind='cup';active=false;t0=day0+(5-dow)*DAY;}else{kind='boom';active=false;t0=day0+DAY;}
+  if(dow<=2){kind='rush';active=true;t0=day0-(dow-1)*DAY;}else if(dow===5||dow===6){kind='cup';active=true;t0=day0-(dow-5)*DAY;}
+  else if(dow<=4){kind='cup';active=false;t0=day0+(5-dow)*DAY;}else{kind='rush';active=false;t0=day0+DAY;}
   return{kind,active,t0,t1:t0+2*DAY};}
 function evLeft(s){s=Math.max(0,Math.floor(s/1000));const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60),x=s%60;
   return (d?d+'d ':'')+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0');}
@@ -31,16 +28,6 @@ function evPopupCheck(){if(navigator.webdriver)return;   /* automated tests open
   const e=evAt(Date.now());if(!e.active)return;const key='holdor_ev',mark=e.kind+':'+e.t0;
   try{if(localStorage.getItem(key)===mark)return;localStorage.setItem(key,mark);}catch(x){}
   evPopup(false);}
-/* ---------- the estate ---------- */
-function earnOn(){return !!(ecoOn()&&ACC&&ACC.tut);}
-function earnLoad(force){if(!ecoOn())return Promise.resolve(null);
-  if(!force&&EARN.st&&EARN.seat===seatNo()&&Date.now()-EARN.at<8000)return Promise.resolve(EARN.st);
-  const seat=seatNo();
-  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('estate_state',{seat},9000);if(seat===seatNo()){EARN.st=r;EARN.at=Date.now();EARN.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
-function earnReady(){const s=EARN.st;return !!(s&&EARN.seat===seatNo()&&s.pending>0&&s.pending>=s.per_hour*s.cap_h*0.9);}
-function earnCard(i,gold){const max=i.lvl>=i.max,pay=!max&&i.next_income>i.income?Math.round(i.cost/(i.next_income-i.income)):0;
-  const foot=max?'<span class="ec mx">MAX</span>':i.open?`<span class="ec ${gold>=i.cost?'':'poor'}">🪙 ${fmtN(i.cost)}</span>`:`<span class="ec lk">🔒 level ${i.need}</span>`;
-  return `<button class="ebld ${i.lvl?'own':''} ${!max&&!i.open?'lock':''}" data-b="${i.id}"><span class="ei">${i.e}</span><b>${esc(i.n)}</b><small>${i.lvl?`Lv ${i.lvl} · +${fmtN(i.income)}/h`:`opens at level ${i.unlock}`}</small>${foot}</button>`;}
 /* the invitation block (backend v14): the link, the two gifts, each friend's progress, the claims */
 function invBox(){
   const head=`<div class="hh" style="margin-top:14px"><h2>Invite friends</h2><small>a gift for you both</small></div>`;
@@ -56,32 +43,3 @@ function invBox(){
 function invBind(){const f=DAILY.fr&&DAILY.seat===seatNo()?DAILY.fr:null;if(!f)return;const link=refLink(f.code);
   const bs=$('#bInvShare');if(bs)bs.addEventListener('click',()=>{SFX.play('tap',60);refShare(link);});const bc=$('#bInvCopy');if(bc)bc.addEventListener('click',()=>refCopy(link));
   card.querySelectorAll('.invbox .qrow button[data-f]').forEach(b=>b.addEventListener('click',()=>dailyClaimFr(b.dataset.f==='me'?null:+b.dataset.f)));}
-function hubEarn(){
-  const head=`<div class="hh"><h2>Estate</h2><small>a little gold, by the hour</small></div>`;
-  if(!earnOn())return head+`<p class="m">${ecoOn()?'Finish the tutorial battle first.':'The estate is kept by the server — it needs a seat signed in through Telegram.'}</p>`;
-  const s=EARN.st&&EARN.seat===seatNo()?EARN.st:null;
-  if(!s)return head+'<p class="m">⏳ asking the server…</p>';
-  const e=s.event,K=EVT_KIND[e.kind],gold=goldOf();
-  const strip=e.kind==='boom'&&e.active?`<div class="evstrip on">🔥 Builders' Boom — income +${e.boom_pct}% until the end of the day after tomorrow</div>`:'';
-  return head+`<div class="collectbox"><div class="ch1">${GOLD_SVG}<b>${fmtN(s.pending)}</b></div><small>${s.per_hour?`+${fmtN(s.per_hour)} an hour · it stops piling up after ${s.cap_h} hours`:'Build something — it earns while you are away'}</small>
-    <button class="btn" id="bCollect" ${s.pending>0?'':'disabled'}>${s.pending>0?'Collect':'Nothing yet'}</button></div>${strip}
-    <div class="egrid">${s.items.map(i=>earnCard(i,gold)).join('')}</div>
-    <p class="holdnote">Buildings open with your account level (now ${s.level}). Each level costs 1.8× the one before and adds only half of the first level's income — battles stay the way to earn.</p>${invBox()}`;}
-async function earnCall(fn,args,after){if(EARN.busy||!ecoOn())return;EARN.busy=true;ecoWait(true);
-  try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc(fn,Object.assign({seat},args),10000);ecoApply(x.state);return x;});
-    EARN.st=r.estate;EARN.at=Date.now();EARN.seat=seat;ecoWait(false);EARN.busy=false;persist();after&&after(r);}
-  catch(e){EARN.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await earnLoad(true);ecoModal('🏗️ Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,140)),[{t:'OK',f:()=>{if(CLOUD.screen==='hub:earn')showHub('earn');}}]);}}
-function earnAsk(id){const s=EARN.st;if(!s)return;const i=s.items.find(x=>x.id===id);if(!i)return;
-  if(i.lvl>=i.max){SFX.play('deny');ecoToast(i.n+' is at its top level');return;}
-  if(!i.open){SFX.play('deny');ecoToast(`🔒 ${i.n} level ${i.lvl+1} needs account level ${i.need}`);return;}
-  const extra=i.next_income-i.income,pay=Math.round(i.cost/Math.max(1,extra));
-  ecoModal(`${i.e} ${esc(i.n)} → level ${i.lvl+1}`,`<p class="m">🪙 ${fmtN(i.cost)} for <b>+${fmtN(extra)} gold an hour</b> (${fmtN(i.next_income)}/h in all).<br><small>It pays for itself in about ${fmtN(pay)} hours.</small></p>`,
-    [{t:`🏗️ ${i.lvl?'Upgrade':'Build'} · 🪙 ${fmtN(i.cost)}`,dis:goldOf()<i.cost,f:()=>earnCall('estate_build',{bld:id},r=>{SFX.play('upgrade');ecoToast(`${i.e} ${i.n} — level ${r.lvl}${r.collected?' · +'+fmtN(r.collected)+' gold collected':''}`,true);showHub('earn');})},{t:'Not now'}]);}
-function hubEarnBind(){
-  if(earnOn()){const had=EARN.st,hadF=DAILY.fr;
-    earnLoad().then(r=>{if(r&&r!==had&&CLOUD.screen==='hub:earn')showHub('earn');});
-    frLoad().then(r=>{if(r&&r!==hadF&&CLOUD.screen==='hub:earn')showHub('earn');});}
-  invBind();
-  const bc=$('#bCollect');if(bc)bc.addEventListener('click',()=>earnCall('estate_collect',{},r=>{SFX.play('collect');ecoToast('🪙 +'+fmtN(r.gold)+' gold from the estate',true);showHub('earn');}));
-  card.querySelectorAll('.ebld').forEach(b=>b.addEventListener('click',()=>{SFX.play('tap',50);earnAsk(b.dataset.b);}));
-}

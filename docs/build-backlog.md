@@ -413,6 +413,17 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **Server (v19, applied to production at once — it works with the live app):** the ranked fallback reuses the open practice duel; the duplicates were closed.
 - **App:** a `startapp=d_<code>` link joins the duel as soon as the seat is on the server and opens the Duel screen by itself; each duel row says what each side still has to do (▶ play a Hold run / ✔ your run counts, not played yet / ✔ has played) and has a **▶ Play my Hold run** button that starts the run (the same checks as the Hold button); a plain explanation of how a duel is decided; a refused invitation says the friend already plays and points at the duel; a Duel card at the top of the Hold tab (Events is no tab since v1.0.74); "Ranked" says when it had to fall back to the bot.
 - **Tests:** `v15_test` (three ranked taps with nobody to match = one duel), `duel_test` (a friend's link: joins, opens, the per-side status, the Play button starts a Hold battle on the server, the result, the Hold-tab card). `t_gear63`'s thorns check depended on the day's map; it now spawns the enemy at the gate.
+### v1.0.76 — Tasks instead of Earn (backend v20) (2026-10-03)
+- MR B: the estate's hourly income goes; a **Tasks** tab takes its place. Research first: 20 tower-defense games; their quest screens (Brawl Stars, Clash Royale) and Hamster-style social tasks are the model.
+- **Server (v20):**
+  - `task_state` / `task_open` / `task_claim` over `econ_config.tasks`. Three kinds: `link` (open, then claim ten seconds later; once per Telegram account; hidden while its url is empty), `ref` (friends joined through your link; once per account), `metric` (lifetime progress per seat; supported, none in the default list).
+  - Default list: channel, chat, X, YouTube, TikTok (urls come from MR B later — a server row, no app version), "Share HOLDOR" (500 gold), one friend (40 💎), three friends (120 💎 + Rare book).
+  - The estate is closed (`estate.closed`): build and collect refuse. `es_refund_all()` paid every seat that built: what had piled up + all the gold spent on buildings (ledger `estate_income` / `estate_refund`), once.
+  - Mon–Tue is **Quest Rush** now (`ev_at` kind `rush`): `quest_claim` doubles every quest reward while it runs; Fri–Sat Duel Cup stays.
+  - `task_marks` table (closed to the app), `v_tasks` for the owner.
+- **App:** `mod/tasks.js` — the Tasks tab with three parts: Quests (daily / weekly / monthly with reset timers and claims; ×2 badges in Quest Rush), Social (Go → the link opens inside Telegram → a live ten-second countdown → Claim), Friends (friend tasks + the invitation block). The estate code left `mod/earn.js` (events and the invitation block stay). Tour texts updated.
+- **Tests:** `v20_test.py` (events, doubling, closing + refund, link/ref/metric tasks, once per account vs per seat, refusals, privileges), `tasks_test.py` replaces `earn_test.py` (real taps: a quest claim, a link opened and claimed after the countdown, a friend task), `v18_test` opens the estate for its own run, `daily_test` finds the invitations under Tasks → Friends.
+
 ### v1.0.61 — login calendar and quests (backend v10) (2026-09-29)
 The retention loop. Every reward is paid by the server and progress is counted from the server's own records, so nothing here can be forged.
 - **Login calendar (30 days):**

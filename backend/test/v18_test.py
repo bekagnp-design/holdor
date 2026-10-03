@@ -26,6 +26,8 @@ for t in ('econ_flags', 'econ_ops', 'ledger', 'battles', 'progress', 'sessions',
     q(f'delete from {t} where tg_id = %s', A)
 q("insert into players (tg_id, name, house, realm, save, save_ver) values (%s, 'Ann', 'stark', 0, %s, 1)", A, json.dumps({'v': 4, 'cur': 0, 'ver': 1, 'slots': [{'house': 'stark', 'langI': 0, 'made': '2026-09-30', 'campaign': {}, 'stats': {'kills': 0, 'onlineBest': 0}}, None, None]}))
 tok = q1('insert into sessions (tg_id) values (%s) returning token::text', A); anon('econ_state', token=tok, seat=0)
+# v20 closes the estate; these checks open it for their run and close it again at the end
+q("update econ_config set v = v || '{\"closed\":false}'::jsonb where k = 'estate'")
 CFG = q1("select v from econ_config where k = 'estate'"); B = {b['id']: b for b in CFG['buildings']}
 def need(l): return sum(15 + 8 * k + k * k for k in range(1, l))
 def setxp(l): q("update wallets set xp = %s where tg_id = %s and seat = 0", need(l), A)
@@ -68,10 +70,11 @@ check('collected: the gold is in the wallet, the ledger says estate_income', r['
 check('a second collection at once is refused', err('estate_collect', token=tok, seat=0) == 'nothing to collect yet')
 back(10); s = anon('estate_state', token=tok, seat=0)
 check('10 hours away: the pile stops at 3 hours', s['pending'] == expect_pending(30, 10.0) and s['pending'] <= int(30 * 3 * 1.5), s['pending'])
-# the Boom
+# the Boom (v20 renames the Mon–Tue window to Quest Rush)
+MT = q1("select kind from ev_at('2026-09-28 12:00+00')")
 ev = s['event']; boom_now = ev['kind'] == 'boom' and ev['active']
-check('the state carries the event: kind, whether it is on, start and end (two days)', ev['kind'] in ('boom', 'cup') and (ev['ends'] > ev['starts']) and ev['boom_pct'] == 50, ev)
-check('the schedule: Mon–Tue Boom, Wed–Thu the Cup is next, Fri–Sat Cup, Sun the Boom is next', [tuple(q("select kind, active from ev_at(%s)", t)[0]) for t in ('2026-09-28 00:00+00', '2026-09-29 23:59+00', '2026-09-30 12:00+00', '2026-10-01 12:00+00', '2026-10-02 00:00+00', '2026-10-03 23:59+00', '2026-10-04 12:00+00')] == [('boom', True), ('boom', True), ('cup', False), ('cup', False), ('cup', True), ('cup', True), ('boom', False)])
+check('the state carries the event: kind, whether it is on, start and end (two days)', ev['kind'] in ('boom', 'rush', 'cup') and (ev['ends'] > ev['starts']) and ev['boom_pct'] == 50, ev)
+check('the schedule: Mon–Tue Boom, Wed–Thu the Cup is next, Fri–Sat Cup, Sun the Boom is next', [tuple(q("select kind, active from ev_at(%s)", t)[0]) for t in ('2026-09-28 00:00+00', '2026-09-29 23:59+00', '2026-09-30 12:00+00', '2026-10-01 12:00+00', '2026-10-02 00:00+00', '2026-10-03 23:59+00', '2026-10-04 12:00+00')] == [(MT, True), (MT, True), ('cup', False), ('cup', False), ('cup', True), ('cup', True), (MT, False)])
 check('an event lasts two days', all(q1("select extract(epoch from t1 - t0) from ev_at(%s)", t) == 172800 for t in ('2026-09-28 12:00+00', '2026-10-02 12:00+00', '2026-10-01 12:00+00', '2026-10-04 12:00+00')))
 check('the Cup doubles ranked duel gifts (the settling code knows it)', 'cup' in q1("select prosrc from pg_proc where proname = 'du_settle'"))
 # upgrades to the top and the account-level rule
@@ -89,6 +92,7 @@ try:
 except Exception as e: bad = 'permission denied' in str(e)
 finally: db.cursor().execute('reset role')
 check('the internals are closed to the app; the owner view counts', bad and q1("select count(*) from v_estate") >= 1)
+q("update econ_config set v = v || '{\"closed\":true}'::jsonb where k = 'estate'") if q1("select to_regproc('es_refund_all')") else None
 for t in ('ledger', 'sessions'): q(f'delete from {t} where tg_id = %s', A)
 q('delete from players where tg_id = %s', A)
 print('FAILED:' if fails else 'all v18 checks OK', fails or ''); raise SystemExit(1 if fails else 0)

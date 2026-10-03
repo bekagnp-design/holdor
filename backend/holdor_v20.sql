@@ -1,5 +1,4 @@
 -- ============================================================
---  DRAFT (paused 2026-10-03 at the owner's word): not applied, not in run_all.sh, untested end to end. Do not apply before the Tasks client exists.
 --  HOLDOR backend v20 (2026-10-03) — Tasks instead of the estate (game v1.0.76)
 --  Run AFTER holdor_v19.sql. Safe to re-run.
 --  * Tasks: one-time jobs with a gift, in three kinds.
@@ -7,7 +6,8 @@
 --               `wait` seconds after the server saw the link opened (task_open). One per Telegram account, on any seat.
 --               A task whose url is empty is not shown (the owner fills the links in econ_config 'tasks').
 --      ref    — invite friends who join through your link (the referrals table, v14). One per Telegram account.
---      metric — lifetime progress of this seat (stages cleared, wins, kills, stars, Hold runs; the quest metrics of v10). One per seat.
+--      metric — lifetime progress of this seat (the quest metrics of v10). One per seat. Supported, but the default list has none:
+--               the owner chose socials, invitations and the quests for the Tasks tab (2026-10-03).
 --  * The estate is closed: estate_build / estate_collect refuse (econ_config estate.closed). Every seat that built something gets
 --    what has piled up plus ALL the gold it spent on buildings back (ledger reasons estate_income / estate_refund), once.
 --  * The Mon–Tue event is now "Quest Rush" (kind 'rush'): quest rewards are doubled while it runs. Fri–Sat "Duel Cup" stays.
@@ -144,17 +144,7 @@ insert into econ_config (k, v) values ('tasks', '{"wait":10,"list":[
   {"id":"tiktok","kind":"link","e":"🎵","n":"Follow HOLDOR on TikTok","url":"","r":{"gems":30}},
   {"id":"share","kind":"link","e":"📨","n":"Share HOLDOR with a friend","url":"share","r":{"gold":500}},
   {"id":"friend1","kind":"ref","e":"🤝","n":"A friend joins through your link","need":1,"r":{"gems":40}},
-  {"id":"friend3","kind":"ref","e":"👥","n":"Three friends join","need":3,"r":{"gems":120,"books":{"b:r":1}}},
-  {"id":"stages5","kind":"metric","m":"new_stages","e":"🏰","n":"Clear 5 stages","need":5,"r":{"gold":800}},
-  {"id":"stages15","kind":"metric","m":"new_stages","e":"🏰","n":"Clear 15 stages","need":15,"r":{"gems":40}},
-  {"id":"stages30","kind":"metric","m":"new_stages","e":"🏯","n":"Clear 30 stages","need":30,"r":{"gems":80,"books":{"b:r":1}}},
-  {"id":"stages50","kind":"metric","m":"new_stages","e":"👑","n":"Clear all 50 stages","need":50,"r":{"gems":200,"books":{"b:e":1}}},
-  {"id":"wins25","kind":"metric","m":"wins","e":"⚔️","n":"Win 25 battles","need":25,"r":{"gold":2000}},
-  {"id":"stars60","kind":"metric","m":"stars","e":"⭐","n":"Earn 60 stars","need":60,"r":{"gems":60}},
-  {"id":"kills2k","kind":"metric","m":"kills","e":"💀","n":"Put down 2,000 of the dead","need":2000,"r":{"gold":1500}},
-  {"id":"kills20k","kind":"metric","m":"kills","e":"☠️","n":"Put down 20,000 of the dead","need":20000,"r":{"gems":100}},
-  {"id":"hold5","kind":"metric","m":"hold_runs","e":"🚪","n":"Play 5 Hold runs","need":5,"r":{"gems":40}},
-  {"id":"days7","kind":"metric","m":"days","e":"📅","n":"Fight on 7 different days","need":7,"r":{"gems":70}}
+  {"id":"friend3","kind":"ref","e":"👥","n":"Three friends join","need":3,"r":{"gems":120,"books":{"b:r":1}}}
 ]}'::jsonb) on conflict (k) do update set v = jsonb_set(excluded.v, '{list}',
   -- keep the links the owner has already filled in
   (select jsonb_agg(case when x->>'kind' = 'link' and coalesce(o->>'url', '') <> '' then x || jsonb_build_object('url', o->>'url') else x end order by i)

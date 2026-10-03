@@ -1073,21 +1073,26 @@ canvas{touch-action:none}/* v1.0.61 — login calendar and quests */
 .hbtn:active{transform:translateY(2px);border-bottom-width:3px}
 .hbtn .ic{width:36px;height:36px;border-radius:10px;background:#0c1f3a;border:2px solid #0b1a2e;display:flex;align-items:center;justify-content:center;font-size:20px}
 .hbtn b{font-family:var(--f-display);font-size:10px;letter-spacing:.6px;text-transform:uppercase}
-.hbtn .dot{position:absolute;top:-6px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:#e14b4b;color:#fff;font-style:normal;font-size:11px;font-weight:800;line-height:14px;text-align:center;padding:0 4px;border:2px solid #0b1a2e}/* v1.0.74: Earn and events */
-.collectbox{display:flex;flex-direction:column;align-items:center;gap:6px;margin:8px 0;padding:12px;border-radius:16px;background:#13284a;border:2px solid #0b1a2e;color:#dbe9f6;text-align:center}
-.collectbox .ch1{display:flex;align-items:center;gap:8px;font-size:30px;font-family:var(--f-display);color:#ffd54a}.collectbox .ch1 svg{width:30px;height:30px}
-.collectbox small{font-size:11px;color:#9fb6c9}.collectbox .btn{min-width:60%}
-.evstrip{margin:6px 0;padding:8px 10px;border-radius:12px;background:#3a1f10;border:2px solid #e39a3a;color:#ffd9a6;font-size:12px;text-align:center}
-.egrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
-.ebld{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 6px;border-radius:14px;border:2px solid #0b1a2e;background:#13284a;color:#dbe9f6;min-width:0}
-.ebld.own{border-color:#3d9a54}.ebld.lock{opacity:.55}
-.ebld .ei{font-size:30px;line-height:1}.ebld b{font-size:13px;color:#fff}.ebld small{font-size:10.5px;color:#9fb6c9}
-.ebld .ec{margin-top:2px;padding:3px 8px;border-radius:9px;background:#0b1a2e;font-size:12px;font-weight:800;color:#ffd54a}
-.ebld .ec.poor{color:#ff8a8a}.ebld .ec.lk{color:#9fb6c9}.ebld .ec.mx{color:#7fd06a}
+.hbtn .dot{position:absolute;top:-6px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:#e14b4b;color:#fff;font-style:normal;font-size:11px;font-weight:800;line-height:14px;text-align:center;padding:0 4px;border:2px solid #0b1a2e}/* v1.0.74: events (the estate styles left with the estate in v1.0.76) */
 .evbadge{position:absolute;top:56px;right:8px;z-index:3;display:flex;flex-direction:column;align-items:flex-start;padding:5px 9px;border-radius:12px;border:2px solid #0b1a2e;background:rgba(19,40,74,.92);color:#fff;text-align:left;line-height:1.15}
 .evbadge.on{border-color:#e39a3a;background:rgba(58,31,16,.94)}
 .evbadge span{position:absolute;top:-10px;left:-8px;font-size:18px}.evbadge b{font-size:11px;margin-left:8px}.evbadge em{font-style:normal;font-size:10px;color:#ffd9a6;margin-left:8px}
-.evpop{text-align:center}.evpop .evcd{font-family:var(--f-display);font-size:26px;color:#ffd54a;margin:6px 0}.evpop p{margin:6px 0;color:#dbe9f6}
+.evpop{text-align:center}.evpop .evcd{font-family:var(--f-display);font-size:26px;color:#ffd54a;margin:6px 0}.evpop p{margin:6px 0;color:#dbe9f6}/* v1.0.76: Tasks */
+.rushstrip{display:flex;align-items:center;gap:8px;margin:6px 0 8px;padding:8px 12px;border-radius:14px;background:#13284a;border:2px solid #0b1a2e;color:#dbe9f6;font-size:12px}
+.rushstrip b{font-family:var(--f-display);font-size:13px;color:#ffd54a;white-space:nowrap}.rushstrip span{flex:1;min-width:0}.rushstrip em{font-style:normal;font-weight:800;color:#ffd9a6;white-space:nowrap}
+.rushstrip.on{background:linear-gradient(90deg,#4a2a0c,#7a3f0e);border-color:#e39a3a;box-shadow:0 0 0 0 rgba(255,190,80,.6);animation:rushGlow 2.4s ease-in-out infinite}
+@keyframes rushGlow{0%,100%{box-shadow:0 0 0 0 rgba(255,190,80,.0)}50%{box-shadow:0 0 18px 2px rgba(255,190,80,.45)}}
+.subtabs.tks{display:flex;gap:6px;margin:4px 0 8px}.subtabs.tks button{position:relative;flex:1}
+.subtabs.tks .dot{position:absolute;top:-6px;right:-2px;min-width:18px;height:18px;border-radius:9px;background:#e14b4b;color:#fff;font-style:normal;font-size:11px;font-weight:800;line-height:14px;text-align:center;padding:0 4px;border:2px solid #0b1a2e}
+.tksec h3{display:flex;align-items:baseline;justify-content:space-between;margin:10px 2px 4px;font-family:var(--f-display);font-size:14px;color:#fff;letter-spacing:.5px}
+.tksec h3 small{font-family:inherit;font-size:11px;color:#9fb6c9;letter-spacing:0}
+.qrow .x2{margin-left:4px;padding:1px 6px;border-radius:8px;background:#e39a3a;color:#2a1a05;font-size:11px}
+.qrow.tkr{align-items:center}.qrow .tki{flex:0 0 40px;height:40px;margin-right:8px;border-radius:12px;background:#0c1f3a;border:2px solid #0b1a2e;display:flex;align-items:center;justify-content:center;font-size:22px}
+.qrow button.go{background:linear-gradient(#ffd66b,#f0a92c);color:#2a1a05;border-color:#7a4a10}
+.qrow.ready{animation:tkReady 1.6s ease-in-out infinite}
+@keyframes tkReady{0%,100%{transform:none}50%{transform:scale(1.015)}}
+.tkmore{display:block;width:100%;margin:12px 0 4px;padding:10px;border-radius:12px;border:2px dashed #2a4a74;background:transparent;color:#9fc3ff;font-size:13px}
+.m.dim{opacity:.7;font-size:12px}
 </style>
 </head>
 <body>
@@ -1991,7 +1996,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.75';
+const VERSION='1.0.76';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -3560,7 +3565,7 @@ const TOURS={
   {sel:'.hubtop .cur',wait:()=>!!$('#bBattle'),text:'<b>Gold</b> 🪙 and <b>cards</b> level up your champions, towers and spells. <b>Dragonglass</b> 💎 opens chests and buys deals. Battles pay both.'},
   {sel:'#hubAva',text:'This is you: your champion\'s face and your <b>level</b>. Every upgrade you buy adds to it, and every level pays a chest. Tap it later for settings and the book.'},
   {sel:'.tro',text:'Your road north: fifty stages, and the stars you have won. Every three stars fill the chest below it — chests hold gold, dragonglass and cards.'},
-  {sel:'.hubtabs button[data-tab="earn"]',text:'<b>Earn</b>: build an estate that pays a little gold every hour, and <b>invite friends</b> — when a friend clears five stages you both get a gift.'},
+  {sel:'.hubtabs button[data-tab="tasks"]',text:'<b>Tasks</b>: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'},
   {sel:'#bBattle',tap:1,text:'<b>BATTLE!</b> opens the map at your next stage. Tap it.'}],
  coll:()=>[
   {sel:'.subtabs',text:'<b>Collection</b>: your loadout, champions, towers and spells. Each one is a card — collect copies from chests, then pay gold to raise its level.'},
@@ -3573,10 +3578,9 @@ const TOURS={
   {sel:()=>document.querySelectorAll('.hubbody .shopgrid')[1]||null,text:'<b>Chests</b> hold gold, dragonglass and card stacks — the rarer the chest, the rarer the cards. The wooden one is free once a day.'}],
  hold:()=>[onlineOpen()?{sel:'#bHold',text:'<b>Hold</b>: one map for the whole world each day, three tries, endless waves. Your best wave counts for your realm and your house.'}
   :{sel:'.lockbanner',text:'The daily <b>Hold</b> opens after stage '+ONLINE_AT+'. Until then you can watch the standings below.'}],
- earn:()=>[
-  {sel:'.collectbox',text:'Your <b>estate</b> earns gold by the hour, even while you are away. It stops piling up after three hours, so come back and collect.'},
-  {sel:'.egrid',text:'Buildings open with your account level. Upgrades are expensive and add a little each — battles stay your main income.'},
-  {sel:()=>document.querySelector('.invbox')||document.querySelector('.hubbody .hh:last-of-type'),text:'<b>Invite friends</b>: send your link. When a friend clears five stages you both get a gift.'}],
+ tasks:()=>[
+  {sel:'.subtabs.tks',text:'Three kinds of tasks: <b>Quests</b> reset every day, week and month; <b>Social</b> tasks pay once; <b>Friends</b> pay when friends join.'},
+  {sel:()=>document.querySelector('.tkbody .qrow')||document.querySelector('.tkbody'),text:'Win battles to fill the bars, then tap <b>Claim</b>. On Monday and Tuesday <b>Quest Rush</b> doubles every quest.'}],
  events:()=>[
   {sel:()=>document.querySelector('.hubbody .evcard'),text:'<b>Events</b>: the daily Hold is live; wars between the houses and seasons come later. Realm and house standings are below.'}],
 };
@@ -5221,19 +5225,16 @@ function shareText(text){shareLink().then(link=>{const u='https://t.me/share/url
   try{if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank');}catch(e){}});}
 function shareWin(stage,stars){shareText(`I held gate ${stage} ${'⭐'.repeat(Math.max(1,stars||1))} in HOLDOR — Hold the Door! Join my house:`);}
 function shareDuel(waves,kills,who){shareText(`I won a HOLDOR duel: ${waves} waves, ${kills} of the dead put down, against ${who}. Beat that:`);}
-/* =========================== EARN — the estate + the two-day events (v1.0.74, backend v18) ===========================
-   The Earn tab (it took the place of Events in the bottom bar). Nine buildings open with the ACCOUNT LEVEL and are built and upgraded with
-   gold; each level costs 1.8× the one before and adds only half of the first level's income, so the income is a small extra (the first
-   level pays back in about 40 hours, higher levels in hundreds), collected by hand, and it stops piling up after 3 hours. Everything shown
-   is what the server sends. Events are no tab any more: two-day windows (Mon–Tue Builders' Boom, Fri–Sat Duel Cup) pop up once with a
-   countdown, and a small badge on the home island brings the popup back. The schedule below is the server's rule (ev_at) in JavaScript. */
-const EARN={st:null,at:0,seat:-1,busy:false};
-const EVT_KIND={boom:{n:"Builders' Boom",e:'🔥',d:'Estate income +50 % for the hours that fall inside these two days.',go:'To the Estate',f:()=>showHub('earn')},
+/* =========================== EVENTS + THE INVITATION BLOCK (v1.0.74; the estate was closed in v1.0.76, backend v20) ===========================
+   Events are no tab: two-day windows (Mon–Tue Quest Rush — quest rewards doubled; Fri–Sat Duel Cup — ranked duel gifts doubled) pop up once
+   with a countdown, and a small badge on the home screen brings the popup back. The schedule below is the server's rule (ev_at) in JavaScript.
+   The invitation block is drawn in the Tasks tab. */
+const EVT_KIND={rush:{n:'Quest Rush',e:'📜',d:'Every quest reward is doubled for these two days — daily, weekly and monthly.',go:'To the Tasks',f:()=>showHub('tasks','quests')},
                 cup:{n:'Duel Cup',e:'🏆',d:'Ranked duel gifts are doubled for these two days.',go:'To the Duel',f:()=>showDuel()}};
-/* the same rule as ev_at() in backend/holdor_v18.sql: Mon–Tue boom, Wed–Thu the cup is next, Fri–Sat cup, Sun the boom is next (UTC) */
+/* the same rule as ev_at() in backend/holdor_v20.sql: Mon–Tue rush, Wed–Thu the cup is next, Fri–Sat cup, Sun the rush is next (UTC) */
 function evAt(ms){const d=new Date(ms),dow=((d.getUTCDay()+6)%7)+1,day0=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()),DAY=86400000;let kind,active,t0;
-  if(dow<=2){kind='boom';active=true;t0=day0-(dow-1)*DAY;}else if(dow===5||dow===6){kind='cup';active=true;t0=day0-(dow-5)*DAY;}
-  else if(dow<=4){kind='cup';active=false;t0=day0+(5-dow)*DAY;}else{kind='boom';active=false;t0=day0+DAY;}
+  if(dow<=2){kind='rush';active=true;t0=day0-(dow-1)*DAY;}else if(dow===5||dow===6){kind='cup';active=true;t0=day0-(dow-5)*DAY;}
+  else if(dow<=4){kind='cup';active=false;t0=day0+(5-dow)*DAY;}else{kind='rush';active=false;t0=day0+DAY;}
   return{kind,active,t0,t1:t0+2*DAY};}
 function evLeft(s){s=Math.max(0,Math.floor(s/1000));const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60),x=s%60;
   return (d?d+'d ':'')+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0');}
@@ -5254,16 +5255,6 @@ function evPopupCheck(){if(navigator.webdriver)return;   /* automated tests open
   const e=evAt(Date.now());if(!e.active)return;const key='holdor_ev',mark=e.kind+':'+e.t0;
   try{if(localStorage.getItem(key)===mark)return;localStorage.setItem(key,mark);}catch(x){}
   evPopup(false);}
-/* ---------- the estate ---------- */
-function earnOn(){return !!(ecoOn()&&ACC&&ACC.tut);}
-function earnLoad(force){if(!ecoOn())return Promise.resolve(null);
-  if(!force&&EARN.st&&EARN.seat===seatNo()&&Date.now()-EARN.at<8000)return Promise.resolve(EARN.st);
-  const seat=seatNo();
-  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('estate_state',{seat},9000);if(seat===seatNo()){EARN.st=r;EARN.at=Date.now();EARN.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
-function earnReady(){const s=EARN.st;return !!(s&&EARN.seat===seatNo()&&s.pending>0&&s.pending>=s.per_hour*s.cap_h*0.9);}
-function earnCard(i,gold){const max=i.lvl>=i.max,pay=!max&&i.next_income>i.income?Math.round(i.cost/(i.next_income-i.income)):0;
-  const foot=max?'<span class="ec mx">MAX</span>':i.open?`<span class="ec ${gold>=i.cost?'':'poor'}">🪙 ${fmtN(i.cost)}</span>`:`<span class="ec lk">🔒 level ${i.need}</span>`;
-  return `<button class="ebld ${i.lvl?'own':''} ${!max&&!i.open?'lock':''}" data-b="${i.id}"><span class="ei">${i.e}</span><b>${esc(i.n)}</b><small>${i.lvl?`Lv ${i.lvl} · +${fmtN(i.income)}/h`:`opens at level ${i.unlock}`}</small>${foot}</button>`;}
 /* the invitation block (backend v14): the link, the two gifts, each friend's progress, the claims */
 function invBox(){
   const head=`<div class="hh" style="margin-top:14px"><h2>Invite friends</h2><small>a gift for you both</small></div>`;
@@ -5279,34 +5270,95 @@ function invBox(){
 function invBind(){const f=DAILY.fr&&DAILY.seat===seatNo()?DAILY.fr:null;if(!f)return;const link=refLink(f.code);
   const bs=$('#bInvShare');if(bs)bs.addEventListener('click',()=>{SFX.play('tap',60);refShare(link);});const bc=$('#bInvCopy');if(bc)bc.addEventListener('click',()=>refCopy(link));
   card.querySelectorAll('.invbox .qrow button[data-f]').forEach(b=>b.addEventListener('click',()=>dailyClaimFr(b.dataset.f==='me'?null:+b.dataset.f)));}
-function hubEarn(){
-  const head=`<div class="hh"><h2>Estate</h2><small>a little gold, by the hour</small></div>`;
-  if(!earnOn())return head+`<p class="m">${ecoOn()?'Finish the tutorial battle first.':'The estate is kept by the server — it needs a seat signed in through Telegram.'}</p>`;
-  const s=EARN.st&&EARN.seat===seatNo()?EARN.st:null;
-  if(!s)return head+'<p class="m">⏳ asking the server…</p>';
-  const e=s.event,K=EVT_KIND[e.kind],gold=goldOf();
-  const strip=e.kind==='boom'&&e.active?`<div class="evstrip on">🔥 Builders' Boom — income +${e.boom_pct}% until the end of the day after tomorrow</div>`:'';
-  return head+`<div class="collectbox"><div class="ch1">${GOLD_SVG}<b>${fmtN(s.pending)}</b></div><small>${s.per_hour?`+${fmtN(s.per_hour)} an hour · it stops piling up after ${s.cap_h} hours`:'Build something — it earns while you are away'}</small>
-    <button class="btn" id="bCollect" ${s.pending>0?'':'disabled'}>${s.pending>0?'Collect':'Nothing yet'}</button></div>${strip}
-    <div class="egrid">${s.items.map(i=>earnCard(i,gold)).join('')}</div>
-    <p class="holdnote">Buildings open with your account level (now ${s.level}). Each level costs 1.8× the one before and adds only half of the first level's income — battles stay the way to earn.</p>${invBox()}`;}
-async function earnCall(fn,args,after){if(EARN.busy||!ecoOn())return;EARN.busy=true;ecoWait(true);
-  try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc(fn,Object.assign({seat},args),10000);ecoApply(x.state);return x;});
-    EARN.st=r.estate;EARN.at=Date.now();EARN.seat=seat;ecoWait(false);EARN.busy=false;persist();after&&after(r);}
-  catch(e){EARN.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await earnLoad(true);ecoModal('🏗️ Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,140)),[{t:'OK',f:()=>{if(CLOUD.screen==='hub:earn')showHub('earn');}}]);}}
-function earnAsk(id){const s=EARN.st;if(!s)return;const i=s.items.find(x=>x.id===id);if(!i)return;
-  if(i.lvl>=i.max){SFX.play('deny');ecoToast(i.n+' is at its top level');return;}
-  if(!i.open){SFX.play('deny');ecoToast(`🔒 ${i.n} level ${i.lvl+1} needs account level ${i.need}`);return;}
-  const extra=i.next_income-i.income,pay=Math.round(i.cost/Math.max(1,extra));
-  ecoModal(`${i.e} ${esc(i.n)} → level ${i.lvl+1}`,`<p class="m">🪙 ${fmtN(i.cost)} for <b>+${fmtN(extra)} gold an hour</b> (${fmtN(i.next_income)}/h in all).<br><small>It pays for itself in about ${fmtN(pay)} hours.</small></p>`,
-    [{t:`🏗️ ${i.lvl?'Upgrade':'Build'} · 🪙 ${fmtN(i.cost)}`,dis:goldOf()<i.cost,f:()=>earnCall('estate_build',{bld:id},r=>{SFX.play('upgrade');ecoToast(`${i.e} ${i.n} — level ${r.lvl}${r.collected?' · +'+fmtN(r.collected)+' gold collected':''}`,true);showHub('earn');})},{t:'Not now'}]);}
-function hubEarnBind(){
-  if(earnOn()){const had=EARN.st,hadF=DAILY.fr;
-    earnLoad().then(r=>{if(r&&r!==had&&CLOUD.screen==='hub:earn')showHub('earn');});
-    frLoad().then(r=>{if(r&&r!==hadF&&CLOUD.screen==='hub:earn')showHub('earn');});}
-  invBind();
-  const bc=$('#bCollect');if(bc)bc.addEventListener('click',()=>earnCall('estate_collect',{},r=>{SFX.play('collect');ecoToast('🪙 +'+fmtN(r.gold)+' gold from the estate',true);showHub('earn');}));
-  card.querySelectorAll('.ebld').forEach(b=>b.addEventListener('click',()=>{SFX.play('tap',50);earnAsk(b.dataset.b);}));
+/* =========================== TASKS (v1.0.76, backend v20) ===========================
+   The Tasks tab took Earn's place in the bottom bar. Three parts, like the quest screens of Brawl Stars and Clash Royale:
+   Quests  — daily / weekly / monthly (quest_state, the same numbers as the Daily screen); Mon–Tue "Quest Rush" doubles every reward.
+   Social  — open a link (the HOLDOR channel, the chat, X, YouTube, TikTok) or share the game; the gift can be claimed ten seconds after
+             the server saw the link opened. A link task shows up only when the owner has filled its url on the server.
+   Friends — the friend tasks (one and three friends joined) and the invitation block (link, gifts, each friend's progress).
+   Everything is paid by the server; the app only shows what the server sends and asks it to pay. */
+const TASKS={st:null,at:0,seat:-1,sub:'quests',busy:false};
+function tasksOn(){return !!(ecoOn()&&ACC&&ACC.tut);}
+function tasksLoad(force){if(!ecoOn())return Promise.resolve(null);
+  if(!force&&TASKS.st&&TASKS.seat===seatNo()&&Date.now()-TASKS.at<8000)return Promise.resolve(TASKS.st);
+  const seat=seatNo();
+  return ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('task_state',{seat},9000);if(seat===seatNo()){TASKS.st=r;TASKS.at=Date.now();TASKS.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
+function tkState(){return TASKS.st&&TASKS.seat===seatNo()?TASKS.st:null;}
+function tkQuestsReady(){const s=DAILY.st&&DAILY.seat===seatNo()?DAILY.st:null;let n=0;if(!s)return 0;
+  for(const k in (s.periods||{}))for(const q of s.periods[k].q)if(q.cur>=q.need&&!q.claimed)n++;return n;}
+function tkReady(kind){const s=tkState();if(!s)return 0;return s.items.filter(i=>i.st==='ready'&&(kind==='social'?i.kind==='link':kind==='friends'?i.kind==='ref':true)).length;}
+/* the red number on the tab: quests to claim + tasks to claim */
+function tasksReady(){return tasksOn()?tkQuestsReady()+tkReady():0;}
+function tkRush(){const e=evAt(Date.now());return e.kind==='rush'&&e.active?e:null;}
+function tkDouble(r){if(!r)return r;const o={};if(r.gold)o.gold=r.gold*2;if(r.gems)o.gems=r.gems*2;if(r.books){o.books={};for(const k in r.books)o.books[k]=r.books[k]*2;}if(r.gear)o.gear=r.gear;return o;}
+function tkOpenUrl(u){try{if(/^https:\/\/t\.me\//i.test(u)&&TG&&TG.openTelegramLink)TG.openTelegramLink(u);else if(TG&&TG.openLink)TG.openLink(u);else window.open(u,'_blank');}catch(e){}}
+function tkShareLink(){const f=DAILY.fr&&DAILY.seat===seatNo()?DAILY.fr:null;return f?refLink(f.code):'https://t.me/HoldorTDBot/play?startapp=s_share';}
+
+/* ---------- drawing ---------- */
+function tkQuestRows(kind,P,rush){const list=QUESTS[kind]||[];
+  return P.q.map(q=>{const def=list.find(x=>x.id===q.id)||{t:q.id,r:{}},ready=q.cur>=q.need&&!q.claimed,pc=Math.round(100*q.cur/q.need);
+    return `<div class="qrow tk ${q.claimed?'done':''} ${ready?'ready':''}"><div class="qt"><b>${esc(def.t)}</b><span class="qbar"><i style="width:${pc}%"></i><em>${fmtN(q.cur)} / ${fmtN(q.need)}</em></span><span class="qrw">${rewardChips(rush&&!q.claimed?tkDouble(def.r):def.r,1)}${rush&&!q.claimed?'<b class="x2">×2</b>':''}</span></div>
+      <button class="${ready?'go':''}" data-q="${q.id}" ${ready?'':'disabled'}>${q.claimed?'✔':ready?'Claim':'…'}</button></div>`;}).join('');}
+function tkQuests(){const s=DAILY.st&&DAILY.seat===seatNo()?DAILY.st:null;if(!s)return '<p class="m">⏳ asking the server…</p>';
+  const rush=tkRush(),names={daily:'Daily',weekly:'Weekly',monthly:'Monthly'};
+  return ['daily','weekly','monthly'].map(k=>{const P=s.periods[k];if(!P)return '';
+    return `<div class="tksec"><h3>${names[k]}<small>resets in ${fmtLeft(P.left)}</small></h3><div class="qlist">${tkQuestRows(k,P,!!rush)}</div></div>`;}).join('')+
+    `<button class="tkmore" id="bTkCal">📅 Login calendar &amp; level gifts ›</button>`;}
+function tkBtn(i){if(i.st==='done')return '<button disabled>✔</button>';
+  if(i.st==='ready')return `<button class="go" data-c="${i.id}">Claim</button>`;
+  if(i.st==='wait')return `<button disabled data-w="${i.id}" data-until="${Date.now()+i.left*1000}">⏳ ${i.left}s</button>`;
+  return i.kind==='link'?`<button class="go" data-o="${i.id}">${i.url==='share'?'Share':'Go'}</button>`:'<button disabled>…</button>';}
+function tkRow(i){const prog=i.kind==='ref'?`<span class="qbar"><i style="width:${Math.round(100*i.cur/i.need)}%"></i><em>${i.cur} / ${i.need}</em></span>`:'';
+  return `<div class="qrow tkr ${i.st==='done'?'done':''} ${i.st==='ready'?'ready':''}"><span class="tki">${i.e||'⭐'}</span><div class="qt"><b>${esc(i.n)}</b>${prog}<span class="qrw">${rewardChips(i.r,1)}</span></div>${tkBtn(i)}</div>`;}
+function tkSocial(){const s=tkState();if(!s)return '<p class="m">⏳ asking the server…</p>';
+  const L=s.items.filter(i=>i.kind==='link');
+  return `<p class="m">Open a link, stay a few seconds, come back and claim. Each gift is once per Telegram account.</p><div class="qlist">${L.map(tkRow).join('')}</div>
+    ${L.filter(i=>i.url!=='share').length?'':'<p class="m dim">More tasks are coming: the HOLDOR channel, the players\' chat and our pages.</p>'}`;}
+function tkFriends(){const s=tkState();const F=s?s.items.filter(i=>i.kind==='ref'):[];
+  return `${F.length?`<div class="qlist">${F.map(tkRow).join('')}</div>`:''}${invBox()}`;}
+function hubTasks(sub){
+  const head=`<div class="hh"><h2>Tasks</h2><small>gifts paid by the server</small></div>`;
+  if(!tasksOn())return head+`<p class="m">${ecoOn()?'Finish the tutorial battle first.':'Tasks are kept by the server — they need a seat signed in through Telegram.'}</p>`;
+  if(sub)TASKS.sub=sub;sub=TASKS.sub;
+  const rush=tkRush(),e=evAt(Date.now());
+  const strip=rush?`<div class="rushstrip on"><b>📜 Quest Rush</b><span>every quest pays ×2</span><em id="tkRushCd">${evLeft(rush.t1-Date.now())}</em></div>`
+    :e.kind==='rush'?`<div class="rushstrip"><b>📜 Quest Rush</b><span>quests ×2 on Monday and Tuesday</span><em id="tkRushCd">in ${evLeft(e.t0-Date.now())}</em></div>`:'';
+  const n={quests:tkQuestsReady(),social:tkReady('social'),friends:tkReady('friends')+((DAILY.fr&&DAILY.seat===seatNo()&&DAILY.fr.invited||[]).filter(x=>x.done&&!x.claimed).length)};
+  const tabs=[['quests','📜 Quests'],['social','📣 Social'],['friends','👥 Friends']];
+  const body=sub==='social'?tkSocial():sub==='friends'?tkFriends():tkQuests();
+  return head+strip+`<div class="subtabs tks">${tabs.map(([k,t])=>`<button class="${k===sub?'on':''}" data-tk="${k}">${t}${n[k]?`<i class="dot">${n[k]}</i>`:''}</button>`).join('')}</div><div class="tkbody">${body}</div>`;}
+
+/* ---------- claims ---------- */
+async function tkCall(fn,args,after){if(TASKS.busy||!ecoOn())return;TASKS.busy=true;ecoWait(true);
+  try{const seat=seatNo(),r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc(fn,Object.assign({seat},args),10000);if(x.state)ecoApply(x.state);return x;});
+    if(r.tasks){TASKS.st=r.tasks;TASKS.at=Date.now();TASKS.seat=seat;}if(r.quests){DAILY.st=r.quests;DAILY.at=Date.now();DAILY.seat=seat;}
+    ecoWait(false);TASKS.busy=false;persist();after&&after(r);}
+  catch(e){TASKS.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m)){await tasksLoad(true);await dailyLoad(true);}
+    ecoModal('📜 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,140)),[{t:'OK',f:()=>{if(CLOUD.screen==='hub:tasks')showHub('tasks');}}]);}}
+function tkPaid(btn,r,title){SFX.play('collect');if(r.reward&&r.reward.gear)gearLoad(true);
+  const rw=r.reward||{};try{if(btn&&typeof flyReward==='function'){if(rw.gems)flyReward(btn,{k:'gems',n:'+'+rw.gems});else if(rw.gold)flyReward(btn,{k:'gold',n:'+'+fmtN(rw.gold)});}}catch(e){}
+  ecoToast(`${title} · ${[rw.gems?'+'+rw.gems+' 💎':'',rw.gold?'+'+fmtN(rw.gold)+' 🪙':''].filter(Boolean).join(' ')}${r.rush?' (×2 Quest Rush)':''}`,true);
+  if(CLOUD.screen==='hub:tasks')showHub('tasks');}
+function tkOpen(id,btn){const s=tkState();const i=s&&s.items.find(x=>x.id===id);if(!i)return;SFX.play('tap',60);
+  if(i.url==='share')refShare(tkShareLink());else tkOpenUrl(i.url);
+  tkCall('task_open',{task:id},()=>{if(CLOUD.screen==='hub:tasks')showHub('tasks');});}
+/* the ten-second countdown on opened links */
+function tkTick(){if(CLOUD.screen!=='hub:tasks')return;let any=false,done=false;
+  card.querySelectorAll('button[data-w]').forEach(b=>{const left=Math.ceil((+b.dataset.until-Date.now())/1000);if(left>0){b.textContent='⏳ '+left+'s';any=true;}else done=true;});
+  const c=document.getElementById('tkRushCd');if(c){const e=evAt(Date.now());c.textContent=e.active&&e.kind==='rush'?evLeft(e.t1-Date.now()):'in '+evLeft(e.t0-Date.now());any=true;}
+  if(done){tasksLoad(true).then(()=>{if(CLOUD.screen==='hub:tasks')showHub('tasks');});return;}
+  if(any)setTimeout(tkTick,1000);}
+function hubTasksBind(){
+  if(tasksOn()){const a=TASKS.st,b=DAILY.st,c=DAILY.fr;
+    tasksLoad().then(r=>{if(r&&r!==a&&CLOUD.screen==='hub:tasks')showHub('tasks');});
+    dailyLoad(Date.now()-DAILY.at>8000).then(r=>{if(r&&r!==b&&CLOUD.screen==='hub:tasks')showHub('tasks');});
+    if(TASKS.sub==='friends'||TASKS.sub==='social')frLoad().then(r=>{if(r&&r!==c&&CLOUD.screen==='hub:tasks')showHub('tasks');});}
+  card.querySelectorAll('.subtabs.tks button').forEach(b=>b.addEventListener('click',()=>{SFX.play('tap',50);TASKS.sub=b.dataset.tk;showHub('tasks');}));
+  card.querySelectorAll('.tkbody button[data-q]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.q,q=questName(id);tkCall('quest_claim',{quest:id},r=>tkPaid(b,r,'📜 '+(q?q.t:'Quest done')));}));
+  card.querySelectorAll('.tkbody button[data-o]').forEach(b=>b.addEventListener('click',()=>tkOpen(b.dataset.o,b)));
+  card.querySelectorAll('.tkbody button[data-c]').forEach(b=>b.addEventListener('click',()=>{const s=tkState(),i=s&&s.items.find(x=>x.id===b.dataset.c);tkCall('task_claim',{task:b.dataset.c},r=>tkPaid(b,r,(i?i.e+' '+i.n:'Task done')));}));
+  const cal=$('#bTkCal');if(cal)cal.addEventListener('click',()=>{SFX.play('tap',60);showDaily('cal');});
+  invBind();tkTick();
 }
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
@@ -6069,6 +6121,7 @@ const HUB_ICON={
  shop:'<svg viewBox="0 0 24 24"><path d="M3 10.5h18v8.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#a8652b" stroke="#3a2010" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 10.5V8a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v2.5z" fill="#d9944a" stroke="#3a2010" stroke-width="1.6" stroke-linejoin="round"/><rect x="9.5" y="9" width="5" height="5" rx="1" fill="#ffd54a" stroke="#3a2010" stroke-width="1.2"/><path d="M7 3.5l1.5-2 1.5 2-1.5 2.2zM12 2.5l1.6-2.1 1.6 2.1-1.6 2.3zM16.8 3.6l1.4-1.9 1.4 1.9-1.4 2.1z" fill="#ff6fb1" stroke="#7a1d4a" stroke-width=".8"/></svg>',
  coll:'<svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="11" height="15" rx="2" transform="rotate(-12 8 13.5)" fill="#b47cff" stroke="#2a0f4a" stroke-width="1.5"/><rect x="7" y="4.5" width="11" height="15" rx="2" fill="#ff7ab8" stroke="#5a1236" stroke-width="1.5"/><rect x="11" y="6" width="11" height="15" rx="2" transform="rotate(12 16.5 13.5)" fill="#4fc0ff" stroke="#0b3a5a" stroke-width="1.5"/><path d="M14 11l1.6 1.9 2.4-2.3 1 4.4h-6.8l.6-4.4z" fill="#ffd54a" stroke="#7a4a10" stroke-width=".9"/></svg>',
  battle:'<svg viewBox="0 0 24 24"><path d="M5 19.5 17.5 7l1.2-3.7L15 4.5 2.5 17z" fill="#e9eef5" stroke="#3a4655" stroke-width="1.4" stroke-linejoin="round"/><path d="M19 19.5 6.5 7 5.3 3.3 9 4.5 21.5 17z" fill="#dfe6ee" stroke="#3a4655" stroke-width="1.4" stroke-linejoin="round"/><path d="M4 16.2l3.8 3.8M20 16.2l-3.8 3.8" stroke="#ffd54a" stroke-width="3" stroke-linecap="round"/><path d="M4 16.2l3.8 3.8M20 16.2l-3.8 3.8" stroke="#7a4a10" stroke-width="1" stroke-linecap="round"/><circle cx="3.2" cy="21" r="1.4" fill="#ff6fb1" stroke="#7a1d4a" stroke-width=".8"/><circle cx="20.8" cy="21" r="1.4" fill="#4fc0ff" stroke="#0b3a5a" stroke-width=".8"/></svg>',
+ tasks:'<svg viewBox="0 0 24 24"><path d="M6 3.5h10.5a2 2 0 0 1 2 2V19a1.5 1.5 0 0 1-1.5 1.5H6.5A2.5 2.5 0 0 1 4 18V5.5a2 2 0 0 1 2-2z" fill="#f3e2b8" stroke="#6b4a1c" stroke-width="1.5"/><path d="M7 8.2l1.3 1.3 2.2-2.4M7 12.7l1.3 1.3 2.2-2.4M7 17.2l1.3 1.3 2.2-2.4" fill="none" stroke="#2f9a4a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5 8.6h4M12.5 13.1h4M12.5 17.6h4" stroke="#6b4a1c" stroke-width="1.4" stroke-linecap="round"/></svg>',
  earn:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="#f2a62c" stroke="#7a4a10" stroke-width="1.6"/><circle cx="12" cy="12" r="6.2" fill="none" stroke="#fff0c2" stroke-width="1.2"/><path d="M12 7v10M9.5 9.5h4a1.6 1.6 0 0 1 0 3.2h-3a1.6 1.6 0 0 0 0 3.2h4" fill="none" stroke="#7a4a10" stroke-width="1.5" stroke-linecap="round"/></svg>',
  events:'<svg viewBox="0 0 24 24"><path d="M5 2.5h14v12l-7 5-7-5z" fill="#b33fb0" stroke="#3a1146" stroke-width="1.5" stroke-linejoin="round"/><path d="M7 2.5v10.6l5 3.6 5-3.6V2.5" fill="none" stroke="#e08ae0" stroke-width="1.2"/><path d="M12 5.2l1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5z" fill="#ffd54a" stroke="#7a4a10" stroke-width=".9"/><path d="M9 21.5h6" stroke="#3a1146" stroke-width="2" stroke-linecap="round"/></svg>',
  hold:'<svg viewBox="0 0 24 24"><path d="M12 2.5l8 3v6c0 5.2-3.4 8.4-8 10.5-4.6-2.1-8-5.3-8-10.5v-6z" fill="#4fc0ff" stroke="#0b3a5a" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 4.6l6 2.2v4.7c0 4-2.5 6.6-6 8.3-3.5-1.7-6-4.3-6-8.3V6.8z" fill="#2b8fd6" stroke="none"/><path d="M8.5 17V11a3.5 3.5 0 0 1 7 0v6z" fill="#8a5a2b" stroke="#3a2010" stroke-width="1.2"/><path d="M12 17v-6" stroke="#3a2010" stroke-width="1"/><circle cx="10.8" cy="13.5" r=".7" fill="#ffd54a"/><circle cx="13.2" cy="13.5" r=".7" fill="#ffd54a"/></svg>'
@@ -6211,22 +6264,22 @@ function hubTop(){const c=CBY[ACC.sel],L=accLevel(),hh=HOUSES[ACC.house];const p
   return `<div class="hubtop"><div class="ava" id="hubAva">${pu?`<img src="${pu}" alt="">`:`<span class="pe">${c.e}</span>`}<span class="lv">${L.l}</span></div>
   <div class="who"><div class="nmrow"><b>${esc(playerName())}</b><span id="hubRank">${rankChip()}</span></div><small>House ${hh.n} · ${flag(lang().c,14)} ${lang().c}</small><div class="xp" title="Level ${L.l}"><i style="width:${Math.round(100*L.xp/L.need)}%"></i></div></div>
   <div class="cur ${ecoOn()?'three':''}"><span title="Gold — levels, skills, upgrades">${GOLD_SVG}${fmtN(goldOf())}<i class="plus" data-go="shop">+</i></span><span title="Dragonglass — chests and deals">${GEM_SVG}${fmtN(ACC.gems)}<i class="plus" data-go="shop">+</i></span>${ecoOn()?ecoChip():''}</div></div>`;}
-function hubTabs(on){const t=[['shop','Shop'],['coll','Collection'],['battle','Battle'],['earn','Earn'],['hold','Hold']];
-  const dot={earn:earnReady(),shop:freeChestReady()||starChestsReady()>0,battle:starChestsReady()>0,coll:bookNewCount()>0,hold:onlineOpen()&&ACC.online.attempts>0&&!(ACC.online.runs||[]).length};
+function hubTabs(on){const t=[['shop','Shop'],['coll','Collection'],['battle','Battle'],['tasks','Tasks'],['hold','Hold']];
+  const dot={tasks:tasksReady()>0,shop:freeChestReady()||starChestsReady()>0,battle:starChestsReady()>0,coll:bookNewCount()>0,hold:onlineOpen()&&ACC.online.attempts>0&&!(ACC.online.runs||[]).length};
   return `<div class="hubtabs">${t.map(([k,n])=>`<button class="${k===on?'on':''} ${k==='battle'?'mid':''} ${k==='hold'&&!onlineOpen()?'lock':''}" data-tab="${k}">${HUB_ICON[k]}${n}${dot[k]?'<span class="dot"></span>':''}</button>`).join('')}</div>`;}
-const HUB_ORDER=['shop','coll','battle','earn','hold'];
+const HUB_ORDER=['shop','coll','battle','tasks','hold'];
 let hubDir=0; /* -1: slid in from the left, 1: from the right (swipe animation) */
 function showHub(tab,sub){
   if(!ACC){showTitle();return;}
   if(ecoWants()&&!ecoOn()&&!ECO.starting&&Date.now()-ECO.failAt>20000)ecoStart();else if(ecoOn()&&Date.now()-ECO.at>60000&&ecoCalm())ecoRefresh();
   rollDay();tab=tab||'battle';
-  const body=tab==='shop'?hubShop():tab==='coll'?hubCollection(sub):tab==='events'?hubEvents(sub):tab==='earn'?hubEarn():tab==='hold'?hubHold():hubBattle();
+  const body=tab==='shop'?hubShop():tab==='coll'?hubCollection(sub):tab==='events'?hubEvents(sub):tab==='tasks'?hubTasks(sub):tab==='hold'?hubHold():hubBattle();
   show(`<div class="hub" style="--sig:url(${SIGILS[ACC.house]||''})">${hubTop()}<div class="hubbody ${tab} ${hubDir>0?'slide-r':hubDir<0?'slide-l':''}" id="hubBody">${body}</div>${hubTabs(tab)}</div>`,'full');
   hubDir=0;CLOUD.screen='hub:'+tab;
   card.querySelectorAll('.hubtabs button').forEach(b=>b.addEventListener('click',()=>{SFX.play('tap',60);hubDir=Math.sign(HUB_ORDER.indexOf(b.dataset.tab)-HUB_ORDER.indexOf(tab));showHub(b.dataset.tab);}));
   $('#hubAva').addEventListener('click',()=>showSettings());const he=$('#hubEn');if(he)he.addEventListener('click',()=>{SFX.play('tap',60);ecoEnergySheet(0,null);});const hr=$('#hubRank');if(hr)hr.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});card.querySelectorAll('.plus').forEach(b=>b.addEventListener('click',()=>showHub(b.dataset.go)));
   hubSwipe(card.querySelector('.hub'),tab);
-  if(tab==='battle')hubBattleBind();else if(tab==='coll')hubCollectionBind(sub);else if(tab==='shop')hubShopBind();else if(tab==='events')hubEventsBind(sub);else if(tab==='earn')hubEarnBind();else hubHoldBind();
+  if(tab==='battle')hubBattleBind();else if(tab==='coll')hubCollectionBind(sub);else if(tab==='shop')hubShopBind();else if(tab==='events')hubEventsBind(sub);else if(tab==='tasks')hubTasksBind();else hubHoldBind();
   setTimeout(()=>hubTour(tab),400);
   if(tab==='battle'){if(DUEL.pending)setTimeout(duelPendingOpen,500);else{setTimeout(dailyPopupCheck,1100);setTimeout(evPopupCheck,2600);}}
 }
@@ -6485,7 +6538,8 @@ window.HOLDOR_CITY={showCity,cityCleared,CITY_BLD,CITY_NAME};
 window.HOLDOR_DUEL={DUEL,showDuel,duelLoad,duelRow,duelPlay,duelPendingOpen,duelCardHTML};
 window.HOLDOR_SEASON={SEASON,showSeason,seasonLoad};
 window.HOLDOR_MARKET={shareText,shareWin,shareDuel,shareLink,showCampaignResult};
-window.HOLDOR_EARN={earnCall,earnAsk,EARN,evAt,evLeft,earnLoad,hubEarn,evPopup,evPopupCheck,EVT_KIND};
+window.HOLDOR_EARN={evAt,evLeft,evPopup,evPopupCheck,EVT_KIND};
+window.HOLDOR_TASKS={TASKS,tasksLoad,tasksReady,hubTasks,tkCall,tkOpen,tkRush,tkDouble};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();

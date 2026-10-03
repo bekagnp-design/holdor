@@ -1,0 +1,16 @@
+/* v1.0.76: Tasks */
+.rushstrip{display:flex;align-items:center;gap:8px;margin:6px 0 8px;padding:8px 12px;border-radius:14px;background:#13284a;border:2px solid #0b1a2e;color:#dbe9f6;font-size:12px}
+.rushstrip b{font-family:var(--f-display);font-size:13px;color:#ffd54a;white-space:nowrap}.rushstrip span{flex:1;min-width:0}.rushstrip em{font-style:normal;font-weight:800;color:#ffd9a6;white-space:nowrap}
+.rushstrip.on{background:linear-gradient(90deg,#4a2a0c,#7a3f0e);border-color:#e39a3a;box-shadow:0 0 0 0 rgba(255,190,80,.6);animation:rushGlow 2.4s ease-in-out infinite}
+@keyframes rushGlow{0%,100%{box-shadow:0 0 0 0 rgba(255,190,80,.0)}50%{box-shadow:0 0 18px 2px rgba(255,190,80,.45)}}
+.subtabs.tks{display:flex;gap:6px;margin:4px 0 8px}.subtabs.tks button{position:relative;flex:1}
+.subtabs.tks .dot{position:absolute;top:-6px;right:-2px;min-width:18px;height:18px;border-radius:9px;background:#e14b4b;color:#fff;font-style:normal;font-size:11px;font-weight:800;line-height:14px;text-align:center;padding:0 4px;border:2px solid #0b1a2e}
+.tksec h3{display:flex;align-items:baseline;justify-content:space-between;margin:10px 2px 4px;font-family:var(--f-display);font-size:14px;color:#fff;letter-spacing:.5px}
+.tksec h3 small{font-family:inherit;font-size:11px;color:#9fb6c9;letter-spacing:0}
+.qrow .x2{margin-left:4px;padding:1px 6px;border-radius:8px;background:#e39a3a;color:#2a1a05;font-size:11px}
+.qrow.tkr{align-items:center}.qrow .tki{flex:0 0 40px;height:40px;margin-right:8px;border-radius:12px;background:#0c1f3a;border:2px solid #0b1a2e;display:flex;align-items:center;justify-content:center;font-size:22px}
+.qrow button.go{background:linear-gradient(#ffd66b,#f0a92c);color:#2a1a05;border-color:#7a4a10}
+.qrow.ready{animation:tkReady 1.6s ease-in-out infinite}
+@keyframes tkReady{0%,100%{transform:none}50%{transform:scale(1.015)}}
+.tkmore{display:block;width:100%;margin:12px 0 4px;padding:10px;border-radius:12px;border:2px dashed #2a4a74;background:transparent;color:#9fc3ff;font-size:13px}
+.m.dim{opacity:.7;font-size:12px}

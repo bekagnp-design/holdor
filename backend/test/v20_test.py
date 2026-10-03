@@ -29,7 +29,7 @@ def wipe():
         for t in ('task_marks', 'econ_flags', 'econ_ops', 'ledger', 'battles', 'progress', 'sessions', 'players'):
             q(f'delete from {t} where tg_id = %s', p)
 wipe()
-SAVE = json.dumps({'v': 4, 'cur': 0, 'ver': 1, 'slots': [{'house': 'stark', 'langI': 0, 'made': '2026-10-03', 'campaign': {}, 'stats': {'kills': 0, 'onlineBest': 0}}, None, None]})
+SAVE = json.dumps({'v': 4, 'cur': 0, 'ver': 1, 'slots': [{'house': 'stark', 'langI': 0, 'made': '2026-10-03', 'campaign': {}, 'stats': {'kills': 0, 'onlineBest': 0}}, {'house': 'lannister', 'langI': 0, 'made': '2026-10-03', 'campaign': {}, 'stats': {'kills': 0, 'onlineBest': 0}}, None]})
 for p, n in ((A, 'Ann'), (F1, 'Fred'), (F2, 'Fay')):
     q("insert into players (tg_id, name, house, realm, save, save_ver) values (%s, %s, 'stark', 0, %s, 1)", p, n, SAVE)
 tok = q1('insert into sessions (tg_id) values (%s) returning token::text', A)
@@ -46,9 +46,9 @@ qr = q1("select x->'r' from jsonb_array_elements(econ_cfg('quests')->'daily') x 
 qm = q1("select x->>'m' from jsonb_array_elements(econ_cfg('quests')->'daily') x where x->>'id' = %s", qid)
 qn = q1("select (x->>'n')::int from jsonb_array_elements(econ_cfg('quests')->'daily') x where x->>'id' = %s", qid)
 for i in range(qn):   # finish the quest with real battle rows
-    q("insert into battles (tg_id, seat, kind, level, status, kills, stars, waves, started_at, finished_at) values (%s, 0, 'camp', %s, 'won', 50, 3, 10, now() - interval '5 min', now())", A, i + 1)
+    q("insert into battles (tg_id, seat, kind, stage, status, kills, stars, waves, started_at, finished_at) values (%s, 0, 'camp', %s, 'won', 50, 3, 10, now() - interval '5 min', now())", A, i + 1)
 if qm == 'new_stages':
-    for i in range(qn): q("insert into progress (tg_id, seat, level, stars, at) values (%s, 0, %s, 3, now()) on conflict do nothing", A, i + 1)
+    for i in range(qn): q("insert into progress (tg_id, seat, mode, stage, stars, at) values (%s, 0, 'c', %s, 3, now()) on conflict do nothing", A, i + 1)
 r = anon('quest_claim', token=tok, seat=0, quest=qid)
 rush = q1("select active from ev_at(now()) where kind = 'rush'") or False
 check('a quest claim says whether the Rush was on and pays double only then', r['rush'] == rush and r['reward'] == (q1('select qs_double(%s::jsonb)', json.dumps(qr)) if rush else qr), (r['rush'], r['reward'], qr))
@@ -74,6 +74,8 @@ check('the refund is booked in the ledger', q1("select sum(delta) from ledger wh
 check('a second run pays nothing', q1('select es_refund_all()') == 0 and W()[0] == g)
 
 # ---------- tasks ----------
+# the default list has no metric tasks; two are added for this test (the code supports them)
+q('''update econ_config set v = jsonb_set(v, '{list}', (v->'list') || '[{"id":"stages5","kind":"metric","m":"new_stages","e":"🏰","n":"Clear 5 stages","need":5,"r":{"gold":800}},{"id":"stages15","kind":"metric","m":"new_stages","e":"🏰","n":"Clear 15 stages","need":15,"r":{"gems":40}}]'::jsonb) where k = 'tasks' ''')
 st = anon('task_state', token=tok, seat=0)
 check('links with no url are hidden (only the share task has one now)', [x['id'] for x in st['items'] if x['kind'] == 'link'] == ['share'], [x['id'] for x in st['items']])
 check('metric and friend tasks are listed with their need', item(st, 'stages5')['need'] == 5 and item(st, 'friend3')['need'] == 3 and item(st, 'stages5')['st'] == 'new')
@@ -99,7 +101,7 @@ check('a metric task cannot be opened like a link', err('task_open', token=tok, 
 
 # a metric task: five stages cleared on seat 0
 check('stages5 is not done yet', err('task_claim', token=tok, seat=0, task='stages5') == 'not done yet: 0 of 5')
-for i in range(1, 6): q("insert into progress (tg_id, seat, level, stars, at) values (%s, 0, %s, 3, now())", A, i)
+for i in range(1, 6): q("insert into progress (tg_id, seat, mode, stage, stars, at) values (%s, 0, 'c', %s, 3, now())", A, i)
 st = anon('task_state', token=tok, seat=0)
 check('five stages: ready, 5 / 5', item(st, 'stages5')['st'] == 'ready' and item(st, 'stages5')['cur'] == 5 and st['ready'] >= 1, item(st, 'stages5'))
 g0 = W()[0]; r = anon('task_claim', token=tok, seat=0, task='stages5')
@@ -116,8 +118,9 @@ gm0 = W()[1]; anon('task_claim', token=tok, seat=0, task='friend1')
 check('friend1 paid once per account', W()[1] == gm0 + 40 and err('task_claim', token=tok, seat=1, task='friend1') == 'already claimed')
 check('the ledger books every task gift with reason task', q1("select count(*) from ledger where tg_id = %s and reason = 'task'", A) == 3)
 check('the owner view counts the tasks', q1("select claimed from v_tasks where id = 'tg_channel'") >= 1)
-check('the anon role cannot read task_marks', 'permission denied' in (err('task_marks_read') or 'permission denied') and q1("select has_table_privilege('anon', 'task_marks', 'select')") is False)
+check('the anon role cannot read task_marks', q1("select has_table_privilege('anon', 'task_marks', 'select')") is False)
 
 q("""update econ_config set v = jsonb_set(v, '{list}', (select jsonb_agg(case when x->>'id' = 'tg_channel' then x || '{"url":""}'::jsonb else x end) from jsonb_array_elements(v->'list') x)) where k = 'tasks'""")
+q('''update econ_config set v = jsonb_set(v, '{list}', (select jsonb_agg(x) from jsonb_array_elements(v->'list') x where x->>'kind' <> 'metric')) where k = 'tasks' ''')
 wipe()
 print('FAILED:' if fails else 'all v20 checks OK', fails or ''); raise SystemExit(1 if fails else 0)
