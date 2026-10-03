@@ -1228,6 +1228,20 @@ button,.btn,.hbtn,.ebld,.cday{transition:scale .22s cubic-bezier(.3,1.7,.5,1),fi
 @media (prefers-reduced-motion: reduce){.card.res .rs{opacity:1;scale:1;rotate:0deg}.rconf{display:none}}
 /* v1.0.83: the currencies */
 .cic{display:inline-block;width:1.05em;height:1.05em;vertical-align:-.18em;margin:0 .05em}.cic svg{width:100%;height:100%;display:block;filter:drop-shadow(0 1px 0 rgba(0,0,0,.45))}
+/* v1.0.84: lucky chests */
+#cer.lucky .lkst{display:flex;gap:6px;margin:4px 0 2px;font-size:30px;line-height:1}
+#cer.lucky .lkst i{font-style:normal;color:rgba(255,255,255,.18);text-shadow:0 2px 0 rgba(0,0,0,.4)}
+#cer.lucky .lkst i.on{color:#ffd54a;text-shadow:0 2px 0 #7a4a10,0 0 14px rgba(255,210,80,.7)}
+#cer.lucky .lkst i.pop{animation:lkPop .55s cubic-bezier(.2,1.8,.4,1)}
+@keyframes lkPop{0%{scale:3;rotate:-40deg;opacity:0}100%{scale:1;rotate:0;opacity:1}}
+#cer.lucky .cchest{cursor:pointer}
+#cer.lucky .cchest.lkhit{animation:lkHit .6s cubic-bezier(.2,1.6,.4,1)}
+@keyframes lkHit{0%{scale:1}25%{scale:.86;filter:brightness(1.6)}60%{scale:1.18;filter:brightness(1.3)}100%{scale:1}}
+#cer.lucky .cchest.lkmiss{animation:lkMiss .35s ease-in-out}
+@keyframes lkMiss{0%,100%{rotate:0}30%{rotate:-6deg}70%{rotate:5deg}}
+#cer.lucky .tap b{color:#ffd54a;font-size:16px}
+#cer .lkres{min-height:22px;margin-top:6px;font-family:var(--f-display);font-size:14px;letter-spacing:.08em;color:#cfe6ff}
+#cer .lkres.up{color:#ffd54a;font-size:20px;text-shadow:0 2px 0 #7a4a10,0 0 16px rgba(255,210,80,.7);animation:jPop .4s cubic-bezier(.2,1.6,.4,1)}
 </style>
 </head>
 <body>
@@ -2131,7 +2145,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.83';
+const VERSION='1.0.84';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -4812,7 +4826,7 @@ async function ecoChest(t,source,done){
     if(!ecoOn()&&!(await ecoStart()))throw new Error(ECO.err||'offline');
     const r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('chest_open',{seat:seatNo(),tier:t,source},10000);ecoApply(x.state);await gearLoadRaw(true);return x;});
     ecoWait(false);
-    ECO.roll={id:r.chest,gold:+r.gold||0,gems:+r.gems||0,stacks:r.stacks,fills:+r.fills||0,books:r.books||[]};try{openChest(t,done);}finally{ECO.roll=null;}
+    ECO.roll={id:r.chest,taps:r.taps,tier:r.tier,gold:+r.gold||0,gems:+r.gems||0,stacks:r.stacks,fills:+r.fills||0,books:r.books||[]};try{openChest(t,done);}finally{ECO.roll=null;}
   }catch(e){ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))ecoRefresh();
     ecoModal('📦 The chest stays shut',ecoNet(m)?'No connection to the server. Chests on this seat open only through it — try again in a moment.':esc(m),[{t:'OK',f:ecoRedraw}]);}
   finally{ECO.busyC=false;}}
@@ -5829,6 +5843,41 @@ function curWatch(){if(curWatch.on||typeof MutationObserver==='undefined')return
   new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData'){if(CUR_RE.test(m.target.nodeValue||''))curSwap(m.target.parentNode);continue;}
     for(const a of m.addedNodes){if(a.nodeType===1)curSwap(a);else if(a.nodeType===3&&CUR_RE.test(a.nodeValue)&&a.parentNode)curSwap(a.parentNode);}}}).observe(document.body,{childList:true,subtree:true,characterData:true});}
 setTimeout(curWatch,0);   /* after the whole script has run */
+/* =========================== LUCKY CHESTS (v1.0.84, backend v21) ===========================
+   Clash Royale's lucky drops: before a chest opens, three taps. Each tap may raise it one tier — wood → iron → valyrian → dragon — and
+   its stars (★1–4) with it; the rewards are the final tier's. On a seat kept by the server the server rolls the taps inside chest_open
+   and the app only plays them back; a guest rolls them here with the same chances. Untouched, the taps play by themselves.
+   A dragon chest is already at the top and opens straight away. */
+const LUCKY={order:['wood','iron','valyrian','dragon'],p:{wood:35,iron:20,valyrian:8,dragon:0},taps:3,step:750};
+function luckyNext(t){return LUCKY.order[Math.min(LUCKY.order.length-1,LUCKY.order.indexOf(t)+1)];}
+function luckyRoll(t){let f=t;const taps=[];for(let i=0;i<LUCKY.taps;i++){const hit=Math.random()*100<(LUCKY.p[f]||0);taps.push(hit);if(hit)f=luckyNext(f);}return{taps,tier:f};}
+function luckyStars(t){const n=LUCKY.order.indexOf(t)+1;return [0,1,2,3].map(i=>`<i class="${i<n?'on':''}">★</i>`).join('');}
+function luckyShow(t,L,next){
+  let el=$('#cer');if(!el){el=document.createElement('div');el.id='cer';document.getElementById('app').appendChild(el);}
+  const T=CHEST_TIERS[t];el.className='lucky';
+  el.innerHTML=`<h2 id="lkN">${T.n}</h2><div class="lkst" id="lkSt">${luckyStars(t)}</div><div class="cchest" id="cch"><div class="glow" id="cglow"></div><div class="cimg" id="cimg">${chestSVG(t)}</div></div>
+    <div class="tap" id="ctap">TAP FOR LUCK · <b id="lkLeft">${L.taps.length}</b></div><div class="lkres" id="lkRes">each tap may raise the chest</div>`;
+  let i=0,cur=t,busy=false,timer=0,done=false;
+  const finish=()=>{if(done)return;done=true;clearTimeout(timer);el.onclick=null;next(cur);};
+  const step=()=>{if(busy||done||i>=L.taps.length)return;busy=true;clearTimeout(timer);const hit=!!L.taps[i++];const ch=$('#cch');
+    ch.classList.remove('lkhit','lkmiss');void ch.offsetWidth;ch.classList.add(hit?'lkhit':'lkmiss');const lf=$('#lkLeft');if(lf)lf.textContent=L.taps.length-i;
+    try{SFX.play('chest',0);}catch(e){}
+    setTimeout(()=>{if(done)return;const res=$('#lkRes');
+      if(hit){cur=luckyNext(cur);const C=CHEST_TIERS[cur];$('#cimg').innerHTML=chestSVG(cur);$('#lkN').textContent=C.n;const st=$('#lkSt');st.innerHTML=luckyStars(cur);
+        const stars=st.querySelectorAll('i.on'),last=stars[stars.length-1];if(last)last.classList.add('pop');$('#cglow').classList.add('on');
+        if(res){res.textContent=`★ ${C.sub.toUpperCase()}!`;res.className='lkres up';}
+        for(let k=0;k<18;k++){const s=document.createElement('span');s.className='sparkle';s.style.left='50%';s.style.top='45%';s.style.setProperty('--dx',(Math.random()*260-130)+'px');s.style.setProperty('--dy',(Math.random()*220-170)+'px');ch.appendChild(s);setTimeout(()=>s.remove(),1200);}
+        try{SFX.play(cur==='dragon'?'legend':'epic');}catch(e){}}
+      else if(res){res.textContent=i<L.taps.length?'…not this time':'';res.className='lkres';}
+      busy=false;
+      if(i>=L.taps.length){const tp=$('#ctap');if(tp)tp.textContent='';timer=setTimeout(finish,hit?900:500);}else timer=setTimeout(step,LUCKY.step);},260);};
+  el.onclick=step;timer=setTimeout(step,LUCKY.step+300);}
+{const openChest0=openChest;
+ openChest=function(t,done){
+   if(LUCKY.order.indexOf(t)<0||t==='dragon')return openChest0(t,done);
+   const R=ECO.roll;const L=R?(Array.isArray(R.taps)?{taps:R.taps,tier:R.tier||t}:{taps:[false,false,false],tier:t}):luckyRoll(t);
+   luckyShow(t,L,final=>{const keep=ECO.roll;ECO.roll=R;try{openChest0(final,done);}finally{ECO.roll=keep;}
+     setTimeout(()=>{const c=$('#cch');if(c)c.click();},300);});};}
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -7016,6 +7065,7 @@ window.HOLDOR_BOONS={BOONS,BOON_KEYS,boonOffer,boonMul,boonPick,boonCheck};
 window.HOLDOR_FEEL={FEEL,FEEL_SFX,hapt,feelKill};
 window.HOLDOR_RESULT={resultFx,resultConfetti};
 window.HOLDOR_CUR={CUR_GOLD,CUR_GEM,curSwap};
+window.HOLDOR_LUCKY={LUCKY,luckyRoll,luckyNext,luckyShow};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();
