@@ -1187,6 +1187,18 @@ button,.btn,.hbtn,.ebld,.cday{transition:scale .22s cubic-bezier(.3,1.7,.5,1),fi
 .slot .si.gift svg{filter:drop-shadow(0 3px 2px rgba(0,0,0,.5))}
 .hpill svg,.subtabs.tks svg{vertical-align:-3px;filter:drop-shadow(0 1px 0 rgba(0,0,0,.5))}
 .qrow .tki svg{display:block}
+/* v1.0.80: Hold blessings */
+#boonOv{position:absolute;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%,rgba(20,30,60,.72),rgba(4,6,12,.9));animation:jPop .3s ease-out}
+#boonOv .bo-in{width:100%;max-width:400px;padding:16px 12px;text-align:center;color:#fff}
+#boonOv small{font-family:var(--f-display);font-size:11px;letter-spacing:.22em;color:#9fe0ff}
+#boonOv h2{margin:2px 0 14px;font-family:var(--f-display);font-size:24px;color:#ffd54a;text-shadow:0 3px 0 #000}
+#boonOv .bo-row{display:flex;gap:8px}
+#boonOv .bo-card{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px 12px;border-radius:16px;border:3px solid #7a4a10;background:linear-gradient(180deg,#3a2a5c,#1c1236);color:#fff;box-shadow:0 6px 0 #120b22,0 0 20px rgba(255,210,120,.25);animation:boIn .5s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes boIn{0%{opacity:0;transform:translateY(30px) rotateY(80deg)}100%{opacity:1;transform:none}}
+#boonOv .bo-e{font-size:34px;line-height:1;filter:drop-shadow(0 0 10px rgba(255,210,120,.6))}
+#boonOv .bo-card b{font-family:var(--f-display);font-size:13px;line-height:1.15}
+#boonOv .bo-card em{font-style:normal;font-size:11px;color:#d6c8f0;line-height:1.25}
+#boonOv .bo-have{margin:12px 0 0;font-size:13px;color:#cfd8e6}
 </style>
 </head>
 <body>
@@ -2090,7 +2102,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.79';
+const VERSION='1.0.80';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -2705,6 +2717,7 @@ function camApply(){if(CAM.z===1&&CAM.x===W/2&&CAM.y===H/2)return;ctx.translate(
 function toWorld(x,y){return{x:(x-W/2)/CAM.z+CAM.x,y:(y-H/2)/CAM.z+CAM.y};}
 const overlay=$('#overlay'),card=$('#card'),sheet=$('#sheet');
 function resetRun(map){
+  G.boon=null;G.boons=[];G.boonDone={};G.boonAsk=null;clearTimeout(G.boonT);{const o=document.getElementById('boonOv');if(o)o.remove();}
   CAM.z=CAM.tz=1;CAM.x=CAM.tx=W/2;CAM.y=CAM.ty=H/2;
   G.map=map;G.tick=0;G.time=0;G.kills=0;G.wave=0;G.doorMax=Math.round((1000+(UP('leather')?200:0)+(UP('ironwood')?400:0))*DIFF().gate);G.doorHp=G.doorMax;
   G.enemies=[];G.allies=[];G.projs=[];G.fx=[];G.texts=[];G.traps=[];G.clouds=[];G.deaths=[];G.gateBonus=(UP('leather')?200:0)+(UP('ironwood')?400:0);
@@ -2781,6 +2794,7 @@ function buildWave(n,rng,o){
   return list;
 }
 function startWave(){
+  if(boonCheck())return;   /* v1.0.80: a blessing first; the wave starts when one is chosen */
   if(G.tut&&G.tut.want==='call')tutEvent('call');
   G.wave++;SFX.play('horn');G.spawnQueue=buildWave(G.wave,G.rng,G.wo);G.spawnT=0;G.waveDone=false;G.spawnInt=Math.max(0.42,0.95-G.wave*0.02);
   const q=G.spawnQueue,has=t=>q.indexOf(t)>=0;const nw=q.filter(k=>!G.seen[k]);nw.forEach(k=>G.seen[k]=1);
@@ -2805,13 +2819,13 @@ function heroXp(n){const h=G.hero;if(!h||h.dead||h.bLvl>=1)return;h.bxp+=n*(1+(s
 function dmg(e,a,src,quiet){if(e.hp<=0)return;if(!quiet&&src!=='burn'&&src!=='poison'&&src!=='glass')e.hitT=G.time;let v=a*e.mark;
   if(e.ice&&src!=='glass'&&src!=='hero'&&src!=='power'&&!(G.dgUntil>G.time))v*=1-e.ice;
   if(e.armorRanged&&(src==='watch'||src==='scorp'))v*=e.armorRanged;
-  if(e.physImmune&&(src==='watch'||src==='scorp'||src==='ally'))v*=e.physImmune;if(e.dragon&&src!=='scorp'&&src!=='dany'&&src!=='power')v*=0.3;if(e.armored&&src==='scorp')v*=tMile('scorp',1)?3:2.5;if(e.dragon&&src==='scorp'&&tMile('scorp',3))v*=1.3;if(G.time<G.warcryUntil&&(src==='watch'||src==='scorp'||src==='wild'||src==='glass'))v*=G.warcryMult;e.hp-=v;e.lastSrc=src;if(e.hp<=0)kill(e,src);}
+  if(e.physImmune&&(src==='watch'||src==='scorp'||src==='ally'))v*=e.physImmune;if(e.dragon&&src!=='scorp'&&src!=='dany'&&src!=='power')v*=0.3;if(e.armored&&src==='scorp')v*=tMile('scorp',1)?3:2.5;if(e.dragon&&src==='scorp'&&tMile('scorp',3))v*=1.3;if(G.time<G.warcryUntil&&(src==='watch'||src==='scorp'||src==='wild'||src==='glass'))v*=G.warcryMult;if(G.boon)v*=boonMul(src);e.hp-=v;e.lastSrc=src;if(e.hp<=0)kill(e,src);}
 function kill(e,src){
   if(e.dead)return;e.hp=0;e.dead=true;if(e.left)return;
   let g=Math.round(e.gold*(1+0.008*(G.wave-1))*((G.mod&&G.mod.gold)||1)*DIFF().gold*(UP('coin')?1.12:1));
   const q=posE(e);if(G.hero&&G.heroOn&&!G.hero.dead){const bm=skVal(G.hero,'bloodmagic');if(bm&&G.doorHp<G.doorMax&&dist(q.x,q.y,G.hero.x,G.hero.y)<=100){G.doorHp=Math.min(G.doorMax,G.doorHp+bm);const hg=heldGate();addFx({t:'wave',x:q.x,y:q.y-8,tx:hg.x,ty:GATE_Y-12,life:0.45,col:'#e14b4b'});}}if(src==='hero'&&G.hero&&skLvl(G.hero,'goldtouch')){g=Math.round(g*(1+skVal(G.hero,'goldtouch')/100));addFx({t:'coins',x:q.x,y:q.y-8,life:0.6});}
   if(src==='hero'&&G.hero&&G.hero.tal&&G.hero.tal.k==='goldkill')g=Math.round(g*(1+G.hero.tal.v));if(src==='hero'&&G.gearGold)g=Math.round(g*(1+G.gearGold/100));if(G.goldx2Until>G.time)g*=2;if(src==='hero'&&G.hero&&!G.hero.dead){const rv=skVal(G.hero,'reave');if(rv)G.hero.hp=Math.min(G.hero.max,G.hero.hp+G.hero.max*rv/100);}
-  G.gold+=g;G.kills++;SFX.play('die',45);if(ACC){ACC.kc=ACC.kc||{};ACC.kc[e.type]=(ACC.kc[e.type]||0)+1;}addText(q.x,q.y-10,'+'+g,'#e3b661');corpseFx(e,q);if(G.hero&&G.heroOn)heroXp(src==='hero'?1:0.25);
+  if(G.boon&&G.boon.loot)g=Math.round(g*(1+G.boon.loot));G.gold+=g;G.kills++;SFX.play('die',45);if(ACC){ACC.kc=ACC.kc||{};ACC.kc[e.type]=(ACC.kc[e.type]||0)+1;}addText(q.x,q.y-10,'+'+g,'#e3b661');corpseFx(e,q);if(G.hero&&G.heroOn)heroXp(src==='hero'?1:0.25);
   if(!e.boss&&!e.fly)G.deaths.push({type:e.type,prog:e.prog,t:G.time,route:e.route});
   if(!e.fly&&G.decals.length<70)G.decals.push({x:q.x,y:q.y,r:e.giant?15:e.boss?17:8,ice:!!e.walker,life:9});
   if(e.split){for(let i=0;i<e.split[1];i++)spawn(e.split[0],e.prog-2-i*4,e.route);}
@@ -5679,6 +5693,48 @@ const ICONS={
  friends:'<svg viewBox="0 0 24 24"><circle cx="8.5" cy="8" r="3.5" fill="#ffcf9a" stroke="#5a3410" stroke-width="1.3"/><path d="M2.5 20a6 6 0 0 1 12 0z" fill="#4fc0ff" stroke="#0b3a5a" stroke-width="1.3"/><circle cx="16.5" cy="9" r="3" fill="#f0b47a" stroke="#5a3410" stroke-width="1.3"/><path d="M12.5 20a5 5 0 0 1 9 0z" fill="#e14b4b" stroke="#6b1d1d" stroke-width="1.3"/></svg>'
 };
 function icon(k,px){const s=ICONS[k];return s?s.replace('<svg ',`<svg width="${px||22}" height="${px||22}" `):'';}
+/* =========================== HOLD BLESSINGS (v1.0.80) ===========================
+   The roguelike beat of Galaxy Defense and the survivor games: in the Hold, after every fifth wave the game stops and offers three
+   blessings; one is chosen and lasts for the rest of the run, and they stack. The three on offer come from the day's seed and the wave
+   (the same offer for every defender on the same day), never from the battle's own random stream, so the waves themselves are untouched.
+   If nobody chooses within 20 seconds, the first is taken. Kills, waves and time are what the server checks, and none of the blessings
+   adds enemies or shortens a wave. */
+const BOONS={
+ arrows:{e:'🏹',n:'Sharper steel',d:'Towers deal +15% damage',f:b=>{b.tw=(b.tw||0)+0.15;}},
+ blade:{e:'⚔️',n:'Champion\'s edge',d:'Your champion deals +35% damage',f:b=>{b.hero=(b.hero||0)+0.35;}},
+ storm:{e:'🔥',n:'Wildfire',d:'Spells deal +40% damage',f:b=>{b.sp=(b.sp||0)+0.4;}},
+ mend:{e:'🧱',n:'Mend the door',d:'The door gets back 35% of its strength',f:()=>{G.doorHp=Math.min(G.doorMax,G.doorHp+G.doorMax*0.35);}},
+ oak:{e:'🚪',n:'Thicker oak',d:'The door grows 20% stronger',f:()=>{const add=Math.round(G.doorMax*0.2);G.doorMax+=add;G.doorHp+=add;}},
+ coin:{e:'💰',n:'Plunder',d:'+300 gold now',f:()=>{G.gold+=300;}},
+ loot:{e:'🪙',n:'Spoils of war',d:'+20% gold from every kill',f:b=>{b.loot=(b.loot||0)+0.2;}},
+ focus:{e:'✨',n:'Quick hands',d:'Spells recharge 25% faster, and are ready now',f:()=>{for(const k in G.powerMax){G.powerMax[k]*=0.75;G.powerCd[k]=0;}}}
+};
+const BOON_KEYS=Object.keys(BOONS);
+function boonOn(){return G.mode==='online';}
+/* the offer for a wave: three different blessings from the day's seed */
+function boonOffer(wave){let h=hash32('boon:'+(typeof todayKey!=='undefined'?todayKey:'')+':'+wave);const pool=BOON_KEYS.slice(),out=[];
+  while(out.length<3&&pool.length){h=Math.imul(h^(h>>>15),2246822507)>>>0;h=Math.imul(h^(h>>>13),3266489909)>>>0;h^=h>>>16;out.push(pool.splice(h%pool.length,1)[0]);}return out;}
+function boonMul(src){const b=G.boon;if(!b)return 1;
+  if(src==='hero'||src==='cleave'||src==='dany')return 1+(b.hero||0);
+  if(src==='power'||src==='storm')return 1+(b.sp||0);
+  if(src==='watch'||src==='scorp'||src==='wild'||src==='glass'||src==='weir'||src==='keep'||src==='ally'||src==='burn'||src==='poison')return 1+(b.tw||0);
+  return 1;}
+function boonPick(k){const B=BOONS[k];if(!B||!G.boonAsk)return;G.boon=G.boon||{};B.f(G.boon);(G.boons=G.boons||[]).push(k);G.log.push({t:G.tick,a:'boon',k});
+  G.boonAsk=null;clearTimeout(G.boonT);const el=document.getElementById('boonOv');if(el)el.remove();G.paused=false;try{SFX.play('levelup');}catch(e){}
+  try{addText(W/2,H*0.4,B.e+' '+B.n,'#ffd54a',1);}catch(e){}}
+/* called before a wave starts: after waves 5, 10, 15 … of the Hold */
+function boonCheck(){if(G.boonAsk)return true;   /* still waiting for a choice: the wave waits too */
+  if(!boonOn()||G.wave<5||G.wave%5!==0)return false;G.boonDone=G.boonDone||{};if(G.boonDone[G.wave])return false;G.boonDone[G.wave]=1;
+  const offer=boonOffer(G.wave);G.boonAsk=offer;G.paused=true;
+  const ov=document.createElement('div');ov.id='boonOv';
+  ov.innerHTML=`<div class="bo-in"><small>WAVE ${G.wave} HELD</small><h2>Choose a blessing</h2><div class="bo-row">${offer.map((k,i)=>{const B=BOONS[k];
+    return `<button class="bo-card" data-boon="${k}" style="animation-delay:${i*90}ms"><span class="bo-e">${B.e}</span><b>${B.n}</b><em>${B.d}</em></button>`;}).join('')}</div>
+    ${(G.boons||[]).length?`<p class="bo-have">Yours: ${(G.boons||[]).map(k=>BOONS[k].e).join(' ')}</p>`:''}</div>`;
+  (document.getElementById('stage')||document.body).appendChild(ov);
+  ov.querySelectorAll('[data-boon]').forEach(b=>b.addEventListener('click',()=>boonPick(b.dataset.boon)));
+  try{SFX.play('chest');}catch(e){}
+  clearTimeout(G.boonT);G.boonT=setTimeout(()=>{if(G.boonAsk===offer)boonPick(offer[0]);},20000);
+  return true;}
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -6862,6 +6918,7 @@ window.HOLDOR_TASKS={TASKS,tasksLoad,tasksReady,hubTasks,tkCall,tkOpen,tkRush,tk
 window.HOLDOR_JUICE={JUICE,juiceCoins,juiceCount,juiceFrame,juiceHub,JUICE_SHOUT};
 window.HOLDOR_HOME={HOME,SKINS,skinOf,skinSet,skinNext,hubHome,homeStrike};
 window.HOLDOR_ICONS=ICONS;
+window.HOLDOR_BOONS={BOONS,BOON_KEYS,boonOffer,boonMul,boonPick,boonCheck};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();
