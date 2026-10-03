@@ -413,6 +413,15 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **Server (v19, applied to production at once — it works with the live app):** the ranked fallback reuses the open practice duel; the duplicates were closed.
 - **App:** a `startapp=d_<code>` link joins the duel as soon as the seat is on the server and opens the Duel screen by itself; each duel row says what each side still has to do (▶ play a Hold run / ✔ your run counts, not played yet / ✔ has played) and has a **▶ Play my Hold run** button that starts the run (the same checks as the Hold button); a plain explanation of how a duel is decided; a refused invitation says the friend already plays and points at the duel; a Duel card at the top of the Hold tab (Events is no tab since v1.0.74); "Ranked" says when it had to fall back to the bot.
 - **Tests:** `v15_test` (three ranked taps with nobody to match = one duel), `duel_test` (a friend's link: joins, opens, the per-side status, the Play button starts a Hold battle on the server, the result, the Hold-tab card). `t_gear63`'s thorns check depended on the day's map; it now spawns the enemy at the gate.
+### v1.0.77 — juice (2026-10-03)
+- MR B: "super dynamic". The research lesson (Royal Match, Random Dice, Galaxy Defense): most of the life is small motion, not new art. `mod/juice.js` + `juice.css`, display only.
+- Every button sinks on press and springs back (the CSS `scale` property, so it adds to the buttons' own transforms); modals pop in; the active tab icon hops; red dots breathe; a ready chest wiggles; the BATTLE button shines.
+- Gold and dragonglass count up to a new value; coins fly from a reward (every `flyReward`) into the counter, which bumps.
+- The first time a tab opens, its rows rise in one after another (not on every redraw).
+- Battle: the gold counter bumps as it grows (at most every 0.3 s); kill streaks in 2.2 s call out — 8+ "N KILLS", 15 RAMPAGE, 25 UNSTOPPABLE, 40 LEGENDARY. It only reads `G`.
+- `prefers-reduced-motion` turns it all off.
+- **Tests:** `tests/t_juice77.js` (in the core set): the press spring, the count-up, eight coins that land and vanish, rise once per tab, the streak call-outs, and a 40-second battle that ends the same with and without the juice.
+
 ### v1.0.76 — Tasks instead of Earn (backend v20) (2026-10-03)
 - MR B: the estate's hourly income goes; a **Tasks** tab takes its place. Research first: 20 tower-defense games; their quest screens (Brawl Stars, Clash Royale) and Hamster-style social tasks are the model.
 - **Server (v20):**
