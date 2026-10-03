@@ -413,6 +413,15 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **Server (v19, applied to production at once — it works with the live app):** the ranked fallback reuses the open practice duel; the duplicates were closed.
 - **App:** a `startapp=d_<code>` link joins the duel as soon as the seat is on the server and opens the Duel screen by itself; each duel row says what each side still has to do (▶ play a Hold run / ✔ your run counts, not played yet / ✔ has played) and has a **▶ Play my Hold run** button that starts the run (the same checks as the Hold button); a plain explanation of how a duel is decided; a refused invitation says the friend already plays and points at the duel; a Duel card at the top of the Hold tab (Events is no tab since v1.0.74); "Ranked" says when it had to fall back to the bot.
 - **Tests:** `v15_test` (three ranked taps with nobody to match = one duel), `duel_test` (a friend's link: joins, opens, the per-side status, the Play button starts a Hold battle on the server, the result, the Hold-tab card). `t_gear63`'s thorns check depended on the day's map; it now spawns the enemy at the gate.
+### v1.0.88 — the item up close (2026-10-03)
+- Tapping an item in the forge opens its sheet with the item large, in place of the small icon (`mod/gearbig.js`, part `91_gearbig.py`):
+  - about 156 px on a dark leather stand, the rarity on its rim (Epic and Legendary glow);
+  - it sways slowly with a breathing shadow, and a glint of light passes over it;
+  - the finger (or the mouse) tilts it in 3D; letting go sets it straight;
+  - painted art, when it exists, is shown the same way. Reduced motion shows it still.
+- **Tests:** `tests/t_bigitem88.js` (core: the large view of the right drawing, sway and glint running, finger tilt and reset).
+- **Release v1.0.87:** Supabase v22 was applied to production 2026-10-03 (migration `holdor_v22_gear_kinds`, backup `holdor_backup.econ_config_pre_v22`; the 224 kinds equal the local file by hash). The root `index.html` waits for MR B's release.
+
 ### v1.0.87 — natural items (2026-10-03)
 - MR B: "no plastic weapons — make them look natural".
 - **App (`gearart.js`, part `90_natural.py`):**
