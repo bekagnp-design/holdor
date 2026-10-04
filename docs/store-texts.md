@@ -14,6 +14,7 @@
 | `/setuserpic` | ატვირთე `avatar_640.png` |
 | `/setmenubutton` | ღილაკის ტექსტი: `▶ Play free` · URL: `https://bekagnp-design.github.io/holdor/` (ისევე, როგორც ახლა გაქვს) |
 | `/setcommands` | **მხოლოდ ბოტის /start მისალმების (ავტო 1) გაშვების შემდეგ:** `start - Start playing` · `play - Open the game` |
+`card_1280x720.png` / `card_640x360.png` — ბმულის ბარათი (BotFather → Mini Apps → Direct Link → Set Photo or GIF), ნამდვილი კადრებით v1.0.96-დან; თავიდან აიგება `docs/marketing/tools/make_card.js` + `compose_card.js`-ით.
 ბოტის ენის მიხედვით აღწერა: BotFather-ში ყოველ ენაზე ცალკე (`/setdescription` → აირჩიე ენა). ქართულისთვის — §1.2.
 
 ### 1.1 Description (EN, ≤512)
