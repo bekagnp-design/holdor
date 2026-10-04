@@ -1,0 +1,62 @@
+/* v1.0.96: the menus move (src/mod/fxui.js). Everything sits under html.fxui: the class is there only in menus, on a visible page,
+   for players who did not ask for less motion. Compositor properties only (opacity, translate, scale, rotate). */
+/* home: motes over the stage art, a light sweep, parallax */
+.fxamb{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;display:none}
+html.fxui .fxamb{display:block;translate:calc(var(--fxpx,0)*9px) calc(var(--fxpy,0)*6px);transition:translate .45s ease-out}
+.fxamb i{position:absolute;top:0;width:var(--s);height:var(--s);margin-left:calc(var(--s)/-2);border-radius:50%;background:radial-gradient(circle,var(--c) 0,var(--c) 20%,rgba(255,255,255,0) 68%);opacity:0;will-change:translate,opacity}
+html.fxui .fxamb.fall i{animation:fxFall var(--d) linear infinite}
+html.fxui .fxamb.rise i{top:auto;bottom:0;animation:fxRise var(--d) linear infinite}
+.fxamb.rain i{width:2px;height:18px;margin-left:-1px;border-radius:1px;background:linear-gradient(180deg,rgba(255,255,255,0),var(--c))}
+html.fxui .fxamb.rain i{animation:fxFall calc(var(--d)*.22) linear infinite}
+@keyframes fxFall{0%{translate:0 -24px;opacity:0}12%{opacity:var(--o)}50%{translate:var(--dx) calc(var(--h)*.5)}88%{opacity:var(--o)}100%{translate:0 var(--h);opacity:0}}
+@keyframes fxRise{0%{translate:0 24px;opacity:0}12%{opacity:var(--o)}50%{translate:var(--dx) calc(var(--h)*-.5)}88%{opacity:var(--o)}100%{translate:0 calc(var(--h)*-1);opacity:0}}
+.fxamb .fxsw{position:absolute;top:-30%;bottom:-30%;left:0;width:42%;rotate:10deg;translate:-130% 0;background:linear-gradient(90deg,rgba(255,240,200,0),rgba(255,240,200,.1) 38%,rgba(255,250,232,.2) 50%,rgba(255,240,200,.1) 62%,rgba(255,240,200,0))}
+html.fxui .fxamb .fxsw{animation:fxSweep 9s ease-in-out infinite}
+@keyframes fxSweep{0%,52%{translate:-130% 0}100%{translate:270% 0}}
+html.fxui .stA .rays,html.fxui .stA .sig,html.fxui .stA .plat,html.fxui .stA .hero,html.fxui .stB,html.fxui .stC .mapin{transition:translate .45s ease-out}
+html.fxui .stA .rays{translate:calc(var(--fxpx,0)*-3px) calc(var(--fxpy,0)*-2px)}
+html.fxui .stA .sig{translate:calc(-50% + var(--fxpx,0)*-6px) calc(-50% + var(--fxpy,0)*-4px)}
+html.fxui .stA .plat{translate:calc(-50% + var(--fxpx,0)*3px) 0}
+html.fxui .stA .hero{translate:calc(-50% + var(--fxpx,0)*4px) calc(var(--fxpy,0)*2px)}
+html.fxui .stB{left:-8px;width:calc(100% + 16px);translate:calc(var(--fxpx,0)*-6px) 0}
+html.fxui .stC .mapin{translate:calc(var(--fxpx,0)*-10px) calc(var(--fxpy,0)*-7px)}
+/* BATTLE breathes: a glow behind the button (the juice shine still sweeps over it) */
+html.fxui .battlerow{position:relative}
+html.fxui .battlerow>button{position:relative;z-index:1}
+.fxglow{display:none}
+html.fxui .fxglow{display:block;position:absolute;z-index:0;border-radius:20px;pointer-events:none;box-shadow:0 0 16px 5px rgba(255,214,100,.85),0 0 34px 10px rgba(255,170,60,.4);opacity:.2;animation:fxBreathe 2.8s ease-in-out infinite}
+@keyframes fxBreathe{0%,100%{opacity:.15;scale:.97}50%{opacity:.95;scale:1.03}}
+/* tabs: the new tab grows out of the tapped tab's side; the tapped tab flashes */
+.hubbody{--fxd:1}.hubbody.slide-l{--fxd:-1}
+html.fxui .hubbody.fxin{animation:fxTabIn .22s cubic-bezier(.2,.9,.3,1) backwards;transform-origin:var(--fxox,50%) 100%}
+@keyframes fxTabIn{0%{opacity:0;translate:calc(var(--fxd)*30px) 8px;scale:.965}100%{opacity:1;translate:0 0;scale:1}}
+.fxtapf{display:none}
+html.fxui .fxtapf{display:block;position:absolute;left:50%;top:38%;width:60px;height:60px;margin:-30px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(255,236,160,.8),rgba(255,200,90,0) 70%);animation:fxTap .5s ease-out forwards}
+@keyframes fxTap{0%{opacity:1;scale:.3}100%{opacity:0;scale:1.7}}
+/* attention: ready slots glow, today's calendar day pulses, the currencies glint, the modal pops on a spring */
+html.fxui .slot.ready::after{content:'';position:absolute;inset:-3px;border-radius:17px;pointer-events:none;box-shadow:0 0 12px 3px var(--glow,rgba(255,210,120,.5)),inset 0 0 10px 2px rgba(255,230,150,.35);opacity:0;animation:fxHalo 2.6s ease-in-out infinite}
+html.fxui .slot.ready:nth-child(2)::after{animation-delay:-.7s}html.fxui .slot.ready:nth-child(3)::after{animation-delay:-1.4s}html.fxui .slot.ready:nth-child(4)::after{animation-delay:-2.1s}
+@keyframes fxHalo{0%,100%{opacity:.12}50%{opacity:1}}
+html.fxui .cday.today:not(.done)::after{content:'';position:absolute;inset:-3px;border-radius:12px;pointer-events:none;box-shadow:0 0 14px 4px rgba(255,213,74,.7);opacity:0;animation:fxHalo 1.8s ease-in-out infinite}
+html.fxui .hubtop .cur>span{position:relative}
+html.fxui .hubtop .cur>span::after{content:'';position:absolute;left:10px;top:1px;width:14px;height:14px;margin:-3px 0 0 -3px;pointer-events:none;opacity:0;scale:0;
+  background:radial-gradient(circle,#fff 0 1.6px,rgba(255,255,255,0) 3px),linear-gradient(0deg,rgba(255,255,255,0) 44%,rgba(255,255,255,.95) 50%,rgba(255,255,255,0) 56%),linear-gradient(90deg,rgba(255,255,255,0) 44%,rgba(255,255,255,.95) 50%,rgba(255,255,255,0) 56%);
+  animation:fxGlint 7s ease-in-out infinite}
+html.fxui .hubtop .cur>span:nth-child(2)::after{animation-delay:-3.3s}html.fxui .hubtop .cur>span:nth-child(3)::after{animation-delay:-5.1s}
+@keyframes fxGlint{0%,84%,100%{opacity:0;scale:0;rotate:0deg}89%{opacity:1;scale:1;rotate:45deg}95%{opacity:0;scale:.2;rotate:90deg}}
+html.fxui #ecoModal.on{animation:fxFade .18s ease-out}
+html.fxui #ecoModal.on .em{animation:fxPop .46s cubic-bezier(.25,.9,.35,1) backwards}
+@keyframes fxFade{from{opacity:0}to{opacity:1}}
+@keyframes fxPop{0%{opacity:0;scale:.72;translate:0 22px}55%{opacity:1;scale:1.045;translate:0 -3px}78%{scale:.988;translate:0 0}100%{scale:1;translate:0 0}}
+/* collection: portraits breathe, Epic and Legendary shimmer (only the cards on screen) */
+html.fxui .ccard.fxbr.fxvis .im img,html.fxui .ccard.fxbr.fxvis .im .pe{animation:fxBreath 3.8s ease-in-out infinite;animation-delay:var(--fxph,0s)}
+@keyframes fxBreath{0%,100%{scale:1}50%{scale:1.015}}
+.ccard.fxrE{--fxsh:222,192,255}.ccard.fxrL{--fxsh:255,228,150}
+html.fxui .ccard.fxrE.fxvis::after,html.fxui .ccard.fxrL.fxvis::after{content:'';position:absolute;top:-12%;bottom:-12%;left:0;width:34%;z-index:3;pointer-events:none;rotate:12deg;translate:-160% 0;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(var(--fxsh),.45) 50%,rgba(255,255,255,0));animation:fxSheen 5.2s ease-in-out infinite;animation-delay:var(--fxph,0s)}
+html.fxui .ccard.fxrL.fxvis::after{animation-duration:3.9s}
+@keyframes fxSheen{0%,58%{translate:-160% 0}92%,100%{translate:330% 0}}
+/* a slow phone: half the motes, still portraits */
+html.fxlite .fxamb i:nth-of-type(2n){display:none}
+html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
+@media (prefers-reduced-motion: reduce){.fxamb,.fxglow,.fxtapf{display:none!important}
+ html.fxui .hubbody.fxin,html.fxui .slot.ready::after,html.fxui .cday.today::after,html.fxui .hubtop .cur>span::after,html.fxui #ecoModal.on,html.fxui #ecoModal.on .em,html.fxui .ccard .im img,html.fxui .ccard::after{animation:none!important}}
