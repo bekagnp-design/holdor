@@ -1298,6 +1298,72 @@ button,.btn,.hbtn,.ebld,.cday{transition:scale .22s cubic-bezier(.3,1.7,.5,1),fi
 /* v1.0.89: SELL on the tower ring */
 #ring .rb .em.sm{font-size:20px;margin-top:-8px}
 #ring .rb .rw{position:absolute;left:0;right:0;top:33px;text-align:center;font:900 10.5px/1 var(--f-display);letter-spacing:.8px;color:#ffe9b0;text-shadow:0 1px 0 #0b1a2e,0 0 3px #000;pointer-events:none}
+/* v1.0.90: the forge scene */
+#gfx{position:fixed;inset:0;z-index:95;display:flex;align-items:center;justify-content:center;background:rgba(6,4,3,.93);animation:gfIn .25s ease-out}
+@keyframes gfIn{from{opacity:0}to{opacity:1}}
+#gfx .gfs{position:relative;width:300px;height:380px}
+#gfx .gfi{position:absolute;left:50%;top:70px;transform:translateX(-50%);transform-origin:50% 100%}
+#gfx .gfi .gbig{margin:0;pointer-events:none}
+#gfx .gfa{position:absolute;left:50%;top:238px;width:230px;transform:translateX(-50%);filter:drop-shadow(0 8px 6px rgba(0,0,0,.6))}
+#gfx .gfh{position:absolute;left:158px;top:34px;width:130px;height:130px;transform-origin:50% 96%;animation:gfSwing .62s ease-in infinite;filter:drop-shadow(0 6px 4px rgba(0,0,0,.55))}
+#gfx .gfh.calm{animation:none;transform:rotate(-40deg)}
+@keyframes gfSwing{0%{transform:rotate(26deg)}45%{transform:rotate(34deg)}62%{transform:rotate(-62deg)}72%{transform:rotate(-52deg)}100%{transform:rotate(26deg)}}
+#gfx.hit .gfi{animation:gfThump .2s ease-out}
+@keyframes gfThump{0%{transform:translateX(-50%) scaleY(.94)}100%{transform:translateX(-50%) scaleY(1)}}
+#gfx .gfk{position:absolute;width:5px;height:5px;margin:-2px;border-radius:50%;background:#ffd98a;box-shadow:0 0 6px 2px rgba(255,170,60,.9);animation:gfFly .6s ease-out forwards;pointer-events:none}
+#gfx .gfk.g{width:6px;height:6px;background:#fff3c0;box-shadow:0 0 9px 3px rgba(255,200,80,1)}
+@keyframes gfFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+#gfx .gft{position:absolute;left:0;right:0;top:10px;text-align:center;pointer-events:none}
+#gfx .gft b{display:block;font:900 54px/1 var(--f-display);color:#ffe08a;text-shadow:0 3px 0 #5a3a08,0 0 22px rgba(255,200,80,.9);animation:gfRise .9s cubic-bezier(.2,1.3,.4,1) both}
+#gfx.lose .gft b{font-size:26px;color:#c9c2b8;text-shadow:0 2px 0 #2a2622;animation:gfRise .5s ease-out both}
+#gfx .gft small{display:block;margin-top:4px;font:700 13px var(--f-display);color:#9fb6c9}
+@keyframes gfRise{0%{transform:translateY(24px) scale(.4);opacity:0}100%{transform:translateY(0) scale(1);opacity:1}}
+#gfx.win .gfi .gbig{animation:gfWin .7s ease-out;box-shadow:0 0 36px 8px rgba(255,210,100,.75)}
+@keyframes gfWin{0%{filter:brightness(3.2)}100%{filter:brightness(1)}}
+#gfx.win .gfs::before{content:'';position:absolute;left:50%;top:148px;width:30px;height:30px;margin:-15px;border-radius:50%;border:5px solid #ffe08a;box-shadow:0 0 20px #ffd060;animation:gfRing .8s ease-out forwards}
+@keyframes gfRing{0%{transform:scale(.4);opacity:1}100%{transform:scale(11);opacity:0}}
+#gfx.lose .gfi{animation:gfShake .5s linear}
+@keyframes gfShake{0%,100%{transform:translateX(-50%)}20%{transform:translateX(calc(-50% - 7px))}40%{transform:translateX(calc(-50% + 7px))}60%{transform:translateX(calc(-50% - 4px))}80%{transform:translateX(calc(-50% + 3px))}}
+#gfx .gfm{position:absolute;top:190px;width:34px;height:34px;margin-left:-17px;border-radius:50%;background:radial-gradient(circle,rgba(150,148,142,.8),rgba(90,88,84,0) 70%);animation:gfSmoke 1.1s ease-out forwards;opacity:0}
+@keyframes gfSmoke{0%{transform:translateY(0) scale(.5);opacity:.9}100%{transform:translateY(-120px) scale(2.6);opacity:0}}
+#gfx.tier .gfs::before{border-color:#c8a2ff;box-shadow:0 0 20px #9a5cff}
+@media (prefers-reduced-motion:reduce){#gfx,#gfx *{animation-duration:.01s!important}}/* v1.0.91: the realm chat */
+.chlist{height:calc(100vh - 250px);min-height:220px;max-height:560px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;padding:8px;margin:6px 0;border-radius:14px;background:#0c1b30;border:2px solid #0b1a2e;box-shadow:inset 0 2px 8px rgba(0,0,0,.5);-webkit-overflow-scrolling:touch}
+.chm{display:flex;gap:7px;align-items:flex-start;max-width:86%}
+.chm .cr{flex:none;width:24px;height:24px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.chm .cb{background:#17304f;border-radius:4px 12px 12px 12px;padding:5px 10px 4px;color:#e9eef5;min-width:70px}
+.chm .cb b{display:block;font:900 11px var(--f-display);color:#ffd54a;letter-spacing:.3px}
+.chm .cb span{display:block;font-size:13.5px;line-height:1.3;word-break:break-word}
+.chm .cb small{display:block;text-align:right;font-size:9.5px;color:#7f98b3;margin-top:1px}
+.chm.me{align-self:flex-end;flex-direction:row-reverse}
+.chm.me .cb{background:#2c4a2a;border-radius:12px 4px 12px 12px}.chm.me .cb b{color:#9be28a}
+.chempty{position:relative;margin:-170px 24px 130px;text-align:center;font-size:13px;color:#7f98b3;pointer-events:none}
+.chbar{display:flex;gap:8px}
+.chbar input{flex:1;min-width:0;height:44px;border-radius:12px;border:2px solid #0b1a2e;background:#10243e;color:#fff;padding:0 12px;font:inherit;font-size:15px}
+.chbar .go{width:52px;border-radius:12px;border:2px solid #0b1a2e;background:linear-gradient(180deg,#ffd76a,#e0a526);color:#2a1a05;font-size:20px}
+.chbar .go:disabled{filter:grayscale(1);opacity:.6}
+.chnote{margin:6px 2px 0;font-size:11px;color:#7f98b3;text-align:center}.chnote.err{color:#ff9a8a}
+.chq{margin:2px 0 4px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.07);font-style:italic}
+/* v1.0.92: Legendary drops in the chat */
+.chm.drop{max-width:96%;align-self:stretch;align-items:center}
+.chm.drop .ic{flex:none;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:radial-gradient(circle at 50% 38%,#4c4034,#1e1813);border:2px solid #e3b661;box-shadow:0 0 10px rgba(230,180,90,.45)}
+.chm.drop .ic svg{width:34px;height:34px}
+.chm.drop .cb{flex:1;background:linear-gradient(90deg,#4a3410,#2a2010);border:1px solid #e3b661;border-radius:12px}
+.chm.drop .cb span{font-size:13px;color:#f3e2b8}.chm.drop .cb em{font-style:normal;font-weight:900;color:#ffd54a}/* v1.0.93: the realm war */
+.wst{font-size:12px;color:#9fb6c9}
+.wleft{margin:2px 0 8px}.wleft b{color:#ffd54a}
+.wlist{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+.wrow{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:12px;background:#13284a;border:2px solid #0b1a2e}
+.wrow.me{background:linear-gradient(90deg,#4a3410,#2a2010);border-color:#e3b661;box-shadow:0 0 12px rgba(230,180,90,.35)}
+.wrow .wk{flex:none;min-width:34px;text-align:center;font:900 15px var(--f-display);color:#ffd54a}
+.wrow .wn{flex:1;min-width:0}.wrow .wn b{display:block;font:900 14px var(--f-display);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrow .wn small{display:block;font-size:10.5px;color:#8fa6bd}
+.wrow .ws{flex:none;font:900 20px var(--f-display);color:#ffe08a;text-shadow:0 2px 0 rgba(0,0,0,.5)}
+.wempty{text-align:center;margin:18px 10px}.whow{font-size:11px;color:#7f98b3}
+/* v1.0.94: last week's war */
+.wlast .wlp{margin:4px 0 8px;font-size:13px}.wlast .wlp b{color:#ffd54a}
+.wlast .wcl{margin:2px 0 4px;font-size:12px;color:#9fb6c9}.wlast .wcl.done{color:#9be28a;font-weight:700}
+.wlast .btn{width:100%}
 </style>
 </head>
 <body>
@@ -2201,7 +2267,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.89';
+const VERSION='1.0.95';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -2514,7 +2580,7 @@ function scoreSummary(){
 }
 function seatNo(){return SAVE&&SAVE.cur>=0?SAVE.cur|0:-1;}
 /* leaderboard rows: "me" is my Telegram id AND the seat I am playing; other seats of mine show as "Name II" / "Name III" */
-function lbIsMe(p){return !!(p&&CLOUD.tg_id&&p.tg_id===CLOUD.tg_id&&((p.seat==null?0:+p.seat)===Math.max(0,seatNo())));}
+function lbIsMe(p){if(!p)return false;if(p.mine!==undefined)return !!p.mine;return !!(CLOUD.tg_id&&p.tg_id===CLOUD.tg_id&&((p.seat==null?0:+p.seat)===Math.max(0,seatNo())));}
 function lbName(p){const s=p&&p.seat!=null?+p.seat:0;return esc(p.name)+(s>0&&s<3?' '+ROMAN3[s]:'');}
 function lbStale(){return !CLOUD.lb||Date.now()-CLOUD.lbAt>60000||CLOUD.lb._seat!==Math.max(0,seatNo());}
 function lbMine(lb){return lb&&lb._seat===Math.max(0,seatNo())?{me:lb.me||null,myday:lb.myday||null}:{me:null,myday:null};}
@@ -4398,6 +4464,7 @@ function showRealms(fromTitle,q,noFetch){
   show(fs('realm',`
    <h1>🌍 Global realm competition</h1>
    <p class="sub">Every star and every endless wave counts for your realm's banner. <span style="color:var(--gold)">${st}</span></p>
+   <button class="btn" id="bWar" style="margin:6px 0 8px">⚔️ Realm war · this week</button>
    <input class="searchbox" id="q" placeholder="Search realms or countries" value="${q||''}">
    ${mine?`<div class="statbox tap" id="bMyRealm" data-j="${mine.j}"><div class="hd">${flag(mine.c,42)}<b>${mine.c}</b><span style="margin-left:auto;color:var(--gold);font-family:var(--f-display)">Rank ${mine.rank<=3&&mine.waves>0?['🥇','🥈','🥉'][mine.rank-1]:'#'+mine.rank}</span></div>
    <div class="gr"><div><b>${mine.waves.toLocaleString()}</b><small>realm waves</small></div><div><b>${meRow?'#'+meRow.rank:ACC.stats.onlineBest}</b><small>${meRow?'your world rank':'your best run'}</small></div><div><b>${mine.players.toLocaleString()}</b><small>${mine.players===1?'player':'players'}</small></div></div></div>`:''}
@@ -4676,9 +4743,10 @@ function showRealmCard(j,back,noFetch){
       :`<p class="m" style="font-size:12px;margin:6px 0 0">No house holds ${r.c} yet.</p>`}</div>
   <div class="statbox"><div class="hd"><b>🏆 Best defenders of ${r.c}</b><span class="lg">🏆 · ⭐ · 🌊</span></div>
     ${top.length?top.map(rcDefRow).join('')+(me&&me.rank>top.length?rcDefRow(me):''):`<p class="m" style="font-size:12px;margin:6px 0 0">No defender yet — be the first to fight for ${r.c}.</p>`}</div>`:''}
-  <button class="btn sec" id="bRcBack">◀ Back</button>`);
+  ${j===ACC.langI?'<button class="btn" id="bRcChat">💬 Realm chat</button>':''}<button class="btn sec" id="bRcBack">◀ Back</button>`);
   CLOUD.screen='realm:'+j;
   $('#bBack').addEventListener('click',back);$('#bRcBack').addEventListener('click',back);
+  const rc=$('#bRcChat');if(rc)rc.addEventListener('click',()=>showChat(()=>showRealmCard(j,back)));
 }
 /* =========================== SERVER ECONOMY (v1.0.56) ===========================
    A seat played while logged in (Telegram + backend v5) is managed by the server: gold, dragonglass, energy, account XP,
@@ -5075,12 +5143,7 @@ function gearTierPick(id,cid,filter){const it=gearItems().find(x=>x.id===id);if(
     ecoModal('Burn it?',`${gearName(x)} is burnt for good, and ${gearName(it)} rises to tier ${t+1} for 🪙${gearTierCost(it)}.`,[{t:'🔥 Burn',f:()=>gearTierUp(id,fo,cid,filter)},{t:'Keep',f:()=>gearSheet(id,cid,filter)}]);}));}
 async function gearCall(fn,args,after){ecoWait(true);
   try{const r=await ecoLane(async()=>{const x=await ecoRpc(fn,Object.assign({seat:seatNo()},args),10000);if(x&&x.state)ecoApply(x.state);if(x&&x.items)ECO.gear=Object.assign({},ECO.gear,{items:x.items,cfg:x.cfg||gearCfg()});return x;});ecoWait(false);after&&after(r);}
-  catch(e){ecoWait(false);const m=ecoMsg(e);ecoToast('⚠️ '+(ecoNet(m)?'No connection to the server':m));SFX.play('deny');}}
-function gearUpgrade(id,cid,filter){gearCall('gear_upgrade',{item:id,op:ecoUuid()},r=>{
-  if(r.item){const L=ECO.gear.items;const i=L.findIndex(x=>x.id===r.item.id);if(i>=0)L[i]=r.item;}
-  if(r.ok){SFX.play('upgrade');ecoToast(`⚒️ Success: ${gearName(r.item)}`,true);}else{SFX.play('deny');ecoToast(`Upgrade failed — 🪙${r.cost} gone, the item is safe`);}
-  persist();showForge(cid,filter);gearSheet(id,cid,filter);});}
-function gearTierUp(id,fodder,cid,filter){gearCall('gear_tier_up',{item:id,fodder,op:ecoUuid()},r=>{SFX.play('levelup');ecoToast(`⬆ ${gearName(r.item)} is now tier ${gearTier(r.item)}`,true);persist();showForge(cid,filter);gearSheet(id,cid,filter);});}
+  catch(e){ecoWait(false);const m=ecoMsg(e);ecoToast('⚠️ '+(ecoNet(m)?'No connection to the server':m));SFX.play('deny');gfxEnd();}}
 function gearEquip(id,to,cid,filter){gearCall('gear_equip',{item:id,champ:to},()=>{SFX.play('upgrade');showForge(cid,filter);});}
 function gearSell(id,cid,filter){gearCall('gear_sell',{item:id},r=>{SFX.play('buy');ecoToast(`+🪙${r.gold}`,true);persist();showForge(cid,filter);});}
 /* =========================== TELEGRAM STARS (v1.0.60) ===========================
@@ -6082,6 +6145,141 @@ function gearBigTilt(e){const w=e.target&&e.target.closest&&e.target.closest('.g
 function gearBigRest(e){const w=e.target&&e.target.closest&&e.target.closest('.gbw');if(!w)return;w.style.setProperty('--ry','0deg');w.style.setProperty('--rx','0deg');w.classList.remove('tilt');}
 document.addEventListener('pointermove',gearBigTilt,{passive:true});document.addEventListener('pointerdown',gearBigTilt,{passive:true});
 document.addEventListener('pointerup',gearBigRest,{passive:true});document.addEventListener('pointerleave',gearBigRest,{passive:true});document.addEventListener('pointercancel',gearBigRest,{passive:true});
+/* =========================== THE FORGE SCENE (v1.0.90) ===========================
+   Upgrading an item (or raising its tier) plays a short scene instead of a silent wait: the item lies on an anvil, a hammer strikes it
+   three times with sparks while the server decides; then the verdict — success: a flash, a golden ring, sparks, "+3" rising;
+   failure: the item shakes, grey smoke, "NOT THIS TIME · the item is safe". The result comes from the server as before; the scene only
+   shows it (and waits for at least 1.9 s so the hammer lands). Tap to skip the verdict. Calm mode (reduced motion) is shorter and still. */
+let GFX=null;
+function gfxCalm(){return (typeof JUICE!=='undefined'&&JUICE.calm)||(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches);}
+function gfxEnd(){const g=GFX;GFX=null;if(!g)return;clearTimeout(g.t1);clearInterval(g.t2);clearTimeout(g.t3);clearTimeout(g.t4);if(g.el&&g.el.parentNode)g.el.remove();}
+function gfxSpark(el,n,gold){const box=el.querySelector('.gfs');if(!box)return;
+  for(let k=0;k<n;k++){const s=document.createElement('i');s.className='gfk'+(gold?' g':'');s.style.left=(gold?50:46)+'%';s.style.top=(gold?36:52)+'%';
+    s.style.setProperty('--dx',((Math.random()-.5)*(gold?260:150))+'px');s.style.setProperty('--dy',(-30-Math.random()*(gold?190:90))+'px');s.style.animationDuration=(0.45+Math.random()*(gold?.7:.35))+'s';
+    box.appendChild(s);setTimeout(()=>s.remove(),1300);}}
+function gfxStart(it,mode){gfxEnd();const app=document.getElementById('app');if(!app||!it)return null;const calm=gfxCalm();
+  const el=document.createElement('div');el.id='gfx';el.className=mode==='tier'?'tier':'';
+  el.innerHTML=`<div class="gfs"><div class="gfi">${gearBig(it)}</div>
+    <svg class="gfa" viewBox="0 0 140 60"><path d="M10 14h112c10 0 14 8 6 14-8 4-22 4-30 6l-4 12h16v8H34v-8h16l-4-12c-12-2-26-2-34-6-6-5-4-14 6-14z" fill="#3a3d42" stroke="#101214" stroke-width="2"/><path d="M14 17h104" stroke="#8a9098" stroke-width="2" opacity=".6"/><path d="M42 36h56" stroke="#000" opacity=".3"/></svg>
+    <svg class="gfh${calm?' calm':''}" viewBox="0 0 120 120"><rect x="56" y="38" width="9" height="80" rx="3" fill="url(#gaWd)" stroke="#3a2414"/><path d="M28 12h66c5 0 7 3 7 7v18c0 4-2 7-7 7H28c-4 0-6-3-6-7V19c0-4 2-7 6-7z" fill="#7e868e" stroke="#15181b" stroke-width="2"/><path d="M30 16h60" stroke="#d6dce2" stroke-width="2" opacity=".6"/><path d="M22 40h79" stroke="#3a4046" stroke-width="3"/></svg>
+    <div class="gft" id="gft"></div></div>`;
+  app.appendChild(el);const g={el,t0:performance.now(),calm,rev:false,done:null};GFX=g;
+  if(!calm){g.t1=setTimeout(()=>{if(GFX!==g)return;hit();g.t2=setInterval(()=>{if(GFX!==g)return;hit();},620);},385);}
+  function hit(){gfxSpark(el,9,false);try{SFX.play('tap',0);}catch(e){}el.classList.remove('hit');void el.offsetWidth;el.classList.add('hit');}
+  el.addEventListener('click',()=>{if(g.rev&&g.done){const d=g.done;g.done=null;gfxEnd();d();}});
+  return g;}
+function gfxReveal(g,ok,item,text,done){
+  if(!g||GFX!==g){done();return;}
+  const wait=g.calm?500:Math.max(0,1900-(performance.now()-g.t0));
+  g.t3=setTimeout(()=>{if(GFX!==g){done();return;}clearInterval(g.t2);g.rev=true;const el=g.el,calm=g.calm;
+    const h=el.querySelector('.gfh');if(h)h.style.display='none';
+    if(item){const fi=el.querySelector('.gfi');if(fi)fi.innerHTML=gearBig(item);}
+    el.classList.add(ok?'win':'lose');const t=el.querySelector('#gft');
+    if(t)t.innerHTML=ok?`<b>${text}</b>`:`<b>NOT THIS TIME</b><small>the item is safe</small>`;
+    if(!calm){if(ok){gfxSpark(el,26,true);}else{const box=el.querySelector('.gfs');for(let k=0;k<7;k++){const s=document.createElement('i');s.className='gfm';s.style.left=(36+Math.random()*28)+'%';s.style.animationDelay=(k*.09)+'s';box.appendChild(s);}}}
+    try{SFX.play(ok?(g.mode==='tier'?'levelup':'upgrade'):'deny');}catch(e){}
+    g.done=()=>done();g.t4=setTimeout(()=>{if(GFX!==g)return;const d=g.done;g.done=null;gfxEnd();if(d)d();},calm?600:(ok?1500:1250));},wait);}
+function gearUpgrade(id,cid,filter){const it0=gearItems().find(x=>x.id===id),g=gfxStart(it0,'up');
+  gearCall('gear_upgrade',{item:id,op:ecoUuid()},r=>{
+    if(r.item){const L=ECO.gear.items;const i=L.findIndex(x=>x.id===r.item.id);if(i>=0)L[i]=r.item;}
+    const ok=!!r.ok;
+    gfxReveal(g,ok,r.item||it0,ok&&r.item?'+'+r.item.lvl:'',()=>{
+      if(ok)ecoToast(`⚒️ Success: ${gearName(r.item)}`,true);else ecoToast(`Upgrade failed — 🪙${r.cost} gone, the item is safe`);
+      persist();showForge(cid,filter);gearSheet(id,cid,filter);});});}
+function gearTierUp(id,fodder,cid,filter){const it0=gearItems().find(x=>x.id===id),g=gfxStart(it0,'tier');if(g)g.mode='tier';
+  gearCall('gear_tier_up',{item:id,fodder,op:ecoUuid()},r=>{
+    gfxReveal(g,true,r.item,'★ Tier '+gearTier(r.item),()=>{ecoToast(`⬆ ${gearName(r.item)} is now tier ${gearTier(r.item)}`,true);persist();showForge(cid,filter);gearSheet(id,cid,filter);});});}
+/* =========================== THE REALM CHAT (v1.0.91, backend v23) ===========================
+   One chat per realm (country): you speak as one of your seats, in the realm that seat fights for. Everything lives on the server
+   (chat_send / chat_list / chat_block / chat_report): 200 characters, links and a word list hidden, one message per 2 seconds, three
+   different reporters mute an author for an hour. No Telegram id ever reaches the app: a message carries a name, a house and a time.
+   The screen polls every 4 s while it is open. Tap someone else's message to report it or block the player.
+   v1.0.92 (backend v24): when a defender gets a Legendary item, the server adds a gold "found a Legendary …" line with the item's picture. */
+const CHAT={msgs:[],last:0,timer:0,busy:false,back:null,rpc:null,err:'',realm:null};
+function chatOnline(){return CHAT.rpc?true:(typeof sbReady==='function'&&sbReady()&&!!CLOUD.token);}
+function chatRpc(fn,a){return CHAT.rpc?CHAT.rpc(fn,a):sbRpc(fn,Object.assign({token:CLOUD.token,seat:Math.max(0,seatNo())},a),{timeout:8000});}
+function chatTime(t){const d=new Date(t);return isNaN(d)?'':d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+function chatDrop(m){const [slot,kind,set]=String(m.body).split(':'),K=(GEAR_KIND[slot]||[])[+kind],S=GEAR_SET[set];return K&&S?{slot,set,k:K[0],S}:null;}
+function chatRow(m){const H=HOUSES[m.house];
+  if(m.kind==='drop'){const d=chatDrop(m);
+    return `<div class="chm drop" data-id="${m.id}"><span class="ic">${d?gearArt(d.slot,d.k,4,d.set):'🏆'}</span><div class="cb"><b>${esc(m.name||'Defender')}</b><span>found a <em>Legendary</em> ${d?`${d.S[0]} ${esc(d.S[1])} ${esc(d.k)}`:'item'}!</span><small>${chatTime(m.at)}</small></div></div>`;}
+  return `<div class="chm ${m.mine?'me':''}" data-id="${m.id}"><span class="cr">${H?crest(m.house,20):'🛡️'}</span><div class="cb"><b>${esc(m.name||'Defender')}</b><span>${esc(m.body)}</span><small>${chatTime(m.at)}</small></div></div>`;}
+function chatNear(l){return l.scrollHeight-l.scrollTop-l.clientHeight<90;}
+function chatDraw(add){const l=$('#chList');if(!l)return;const stick=chatNear(l)||!l.children.length;
+  if(add&&add.length)l.insertAdjacentHTML('beforeend',add.map(chatRow).join(''));
+  const em=$('#chEmpty');if(em)em.style.display=CHAT.msgs.length?'none':'';
+  if(stick)l.scrollTop=l.scrollHeight;}
+async function chatPoll(){if(CHAT.busy||CLOUD.screen!=='chat')return;CHAT.busy=true;
+  try{const r=await chatRpc('chat_list',{since:CHAT.last});CHAT.realm=r.realm;const fresh=(r.msgs||[]).filter(m=>m.id>CHAT.last);
+    if(fresh.length){CHAT.msgs=CHAT.msgs.concat(fresh).slice(-120);CHAT.last=fresh[fresh.length-1].id;chatDraw(fresh);}else chatDraw();
+    chatNote('');}
+  catch(e){chatNote(chatErr(e));}
+  CHAT.busy=false;}
+function chatErr(e){const m=ecoMsg(e);return /play a battle first/.test(m)?'Play a battle first — the chat opens for defenders.':ecoNet(m)?'No connection — retrying…':m.replace(/^.*?: /,'');}
+function chatNote(t){const n=$('#chNote');if(n){n.textContent=t||'Be kind. Links are hidden. Tap a message to report or block.';n.className='chnote'+(t?' err':'');}}
+async function chatSend(){const inp=$('#chIn');if(!inp)return;const t=inp.value.trim();if(!t)return;const b=$('#chSend');if(b)b.disabled=true;
+  try{await chatRpc('chat_send',{body:t});inp.value='';chatNote('');CHAT.busy=false;await chatPoll();try{SFX.play('tap',50);}catch(e){}}
+  catch(e){chatNote(chatErr(e));try{SFX.play('deny');}catch(x){}}
+  if(b)b.disabled=false;}
+function chatActions(id){const m=CHAT.msgs.find(x=>x.id===id);if(!m||m.mine||m.kind==='drop')return;
+  ecoModal(`${esc(m.name||'Defender')}`,`<p class="m chq">${esc(m.body)}</p>`,[
+    {t:'🚩 Report this message',f:async()=>{try{await chatRpc('chat_report',{msg:id,reason:'chat'});ecoToast('Thanks — reported.',true);}catch(e){ecoToast(chatErr(e));}}},
+    {t:'🚫 Block this player',f:async()=>{try{await chatRpc('chat_block',{msg:id});CHAT.msgs=CHAT.msgs.filter(x=>x.id>0);const l=$('#chList');if(l){l.innerHTML='';CHAT.last=0;CHAT.msgs=[];}ecoToast('Blocked. You will not see their messages.',true);chatPoll();}catch(e){ecoToast(chatErr(e));}}},
+    {t:'✕'}]);}
+function showChat(back){CHAT.back=back||(()=>showRealms(false));CHAT.msgs=[];CHAT.last=0;CHAT.busy=false;
+  const rows=typeof realmStats==='function'?realmStats():[],r=rows.find(x=>x.j===ACC.langI)||{c:'your realm',l:''};
+  if(!chatOnline()){show(`<div class="topbar"><h1>💬 Realm chat</h1><button class="back" id="bBack">✖</button></div><p class="m">The realm chat needs the online backend: sign in with Telegram to talk with the defenders of ${esc(r.c)}.</p><button class="btn sec" id="bChBack">◀ Back</button>`);
+    CLOUD.screen='chat:off';$('#bBack').addEventListener('click',CHAT.back);$('#bChBack').addEventListener('click',CHAT.back);return;}
+  show(`<div class="topbar"><h1 class="rch1">${flag(r.c,26)} ${esc(r.c)}<small>realm chat</small></h1><button class="back" id="bBack">✖</button></div>
+    <div class="chlist" id="chList"></div><p class="chempty" id="chEmpty">No one has spoken yet. Say something to the defenders of ${esc(r.c)}.</p>
+    <div class="chbar"><input id="chIn" maxlength="200" autocomplete="off" placeholder="Say something…"><button id="chSend" class="go">➤</button></div><p class="chnote" id="chNote"></p>`);
+  CLOUD.screen='chat';chatNote('');
+  $('#bBack').addEventListener('click',()=>{CLOUD.screen='';clearInterval(CHAT.timer);CHAT.back();});
+  $('#chSend').addEventListener('click',chatSend);$('#chIn').addEventListener('keydown',e=>{if(e.key==='Enter')chatSend();});
+  $('#chList').addEventListener('click',e=>{const m=e.target.closest&&e.target.closest('.chm');if(m)chatActions(+m.dataset.id);});
+  clearInterval(CHAT.timer);CHAT.timer=setInterval(()=>{if(CLOUD.screen!=='chat'){clearInterval(CHAT.timer);return;}chatPoll();},4000);
+  chatPoll();}
+/* =========================== THE REALM WAR (v1.0.93, backend v25) ===========================
+   The weekly standings between the realms (countries), Monday 00:00 → Sunday 24:00 UTC, from the players' Hold runs. A realm's score is the
+   average weekly waves of its top 50 players + 0.5 for every player who played on 3+ days of the week (at most 40 players count), so a small
+   realm can win against a big one. Everything shown is the server's (realm_war): the realms in order, and — when you are signed in — your
+   own week. v1.0.94 (backend v26): LAST week's war pays — the realms that finished 1st/2nd/3rd pay 3000 🪙 + 50 💎 / 2000 + 30 / 1000 + 15, any other
+   realm 300 🪙 for taking part, to every player who played on 3+ days of that week, once per week (the server settles it when you claim).
+   Entered from the Realms screen. */
+const WAR={data:null,last:null,err:'',back:null,rpc:null,timer:0,busy:false};
+function warOnline(){return WAR.rpc?true:(typeof sbReady==='function'&&sbReady());}
+function warCall(){return WAR.rpc?WAR.rpc('realm_war',{}):sbRpc('realm_war',CLOUD.token?{token:CLOUD.token}:{},{timeout:8000});}
+function warLeft(iso){const ms=new Date(iso)-Date.now();if(!(ms>0))return 'ending now';const m=Math.floor(ms/60000),d=Math.floor(m/1440),h=Math.floor(m%1440/60),n=m%60;return d?`${d}d ${h}h`:h?`${h}h ${n}m`:`${n}m`;}
+function warRow(r,names,mine){const nm=names[r.realm]||{c:'Realm '+r.realm,l:''},isMe=mine&&mine.realm===r.realm,medal=r.pos<=3?['🥇','🥈','🥉'][r.pos-1]:'#'+r.pos;
+  return `<div class="wrow ${isMe?'me':''}"><span class="wk">${medal}</span>${nm.c&&typeof flag==='function'?flag(nm.c,30):''}<span class="wn"><b>${esc(nm.c)}</b><small>top-50 avg ${(+r.avg50||0).toLocaleString()} · ${r.players.toLocaleString()} ${r.players===1?'player':'players'} · ${r.active.toLocaleString()} active</small></span><span class="ws">${(+r.score||0).toLocaleString()}</span></div>`;}
+function warRew(r){return r?[r.gems?'+'+r.gems+' 💎':'',r.gold?'+'+(+r.gold).toLocaleString()+' 🪙':''].filter(Boolean).join(' '):'';}
+function warLastHTML(names){const l=WAR.last;if(!l||l.realm==null)return '';const n=names[l.realm],c=n?esc(n.c):'your realm';
+  const head=`<p class="m wlp">Your realm <b>${c}</b> finished <b>${l.pos?'#'+l.pos:'—'}</b>${l.realms?' of '+l.realms:''} · your ${(+l.points||0).toLocaleString()} waves on ${l.days} ${l.days===1?'day':'days'}.</p>`;
+  const act=l.claimed?`<p class="wcl done">✔ Claimed${l.reward?': '+warRew(l.reward):''}</p>`:l.eligible?`<button class="btn" id="bWarClaim">🎁 Claim ${warRew(l.reward)}</button>`:`<p class="wcl">${esc(l.why||'Not eligible')}.</p>`;
+  return `<div class="statbox wlast"><div class="hd"><b>🏆 Last week's war</b></div>${head}${act}</div>`;}
+function warDraw(){const d=WAR.data;if(!d||CLOUD.screen!=='war')return;const box=$('#warBody');if(!box)return;
+  const rows=realmStats?realmStats():[],names={};rows.forEach(r=>{names[r.j]=r;});
+  const m=d.mine&&d.mine.realm!=null?d.mine:null,mn=m?names[m.realm]:null;
+  box.innerHTML=`${warLastHTML(names)}<p class="m wleft">⏳ This week ends in <b>${warLeft(d.ends_at)}</b></p>
+    ${m?`<div class="statbox"><div class="hd"><b>Your week</b></div><div class="gr"><div><b>${(+m.points||0).toLocaleString()}</b><small>Hold waves</small></div><div><b>${m.days||0}</b><small>days played</small></div><div><b>${m.pos?'#'+m.pos:'—'}</b><small>${mn?esc(mn.c):'your realm'}</small></div></div></div>`:''}
+    ${d.realms.length?`<div class="wlist">${d.realms.map(r=>warRow(r,names,m)).join('')}</div>`:'<p class="m wempty">No Hold runs yet this week. The war starts with the first run — play one for your realm.</p>'}
+    <p class="m whow">Score = the average weekly Hold waves of the realm's top 50 players + 0.5 for every player who played on 3 or more days (at most 40 players count, +20 at most). Last week's war pays the realms that finished in the top 3, and a little to everyone who took part.</p>`;}
+async function warLastLoad(){if(!(WAR.rpc||(typeof ecoOn==='function'&&ecoOn())))return;
+  try{const r=WAR.rpc?await WAR.rpc('war_state',{}):await ecoRpc('war_state',{},8000);WAR.last=r.last;}catch(e){}warDraw();}
+async function warClaim(){if(WAR.busy)return;WAR.busy=true;
+  try{let r;if(WAR.rpc)r=await WAR.rpc('war_claim',{seat:0});else{ecoWait(true);try{r=await ecoLane(async()=>{await ecoSyncRaw();const x=await ecoRpc('war_claim',{seat:seatNo()},10000);if(x.state)ecoApply(x.state);return x;});}finally{ecoWait(false);}try{persist();}catch(e){}}
+    WAR.last=r.last;try{SFX.play('collect');}catch(e){}ecoToast('🏆 Realm war · '+warRew(r.reward),true);warDraw();}
+  catch(e){const m=ecoMsg(e);ecoToast(ecoNet(m)?'No connection to the server. Try again in a moment.':m.replace(/^.*?: /,''));await warLastLoad();}
+  WAR.busy=false;}
+async function warFetch(){try{WAR.data=await warCall();WAR.err='';}catch(e){WAR.err=ecoMsg(e);}
+  const st=$('#warSt');if(st)st.textContent=WAR.err?(ecoNet(WAR.err)?'No connection — showing the last standings.':WAR.err):'';warDraw();}
+function showRealmWar(back){WAR.back=back||(()=>showRealms(false));
+  if(!warOnline()){show(`<div class="topbar"><h1>⚔️ Realm war</h1><button class="back" id="bBack">✖</button></div><p class="m">The realm war needs the online backend: open the game inside Telegram to see how the realms stand this week.</p><button class="btn sec" id="bWarBack">◀ Back</button>`);
+    CLOUD.screen='war:off';$('#bBack').addEventListener('click',WAR.back);$('#bWarBack').addEventListener('click',WAR.back);return;}
+  show(`<div class="topbar"><h1>⚔️ Realm war<small>this week · by Hold waves</small></h1><button class="back" id="bBack">✖</button></div><p class="m wst" id="warSt">Loading the standings…</p><div id="warBody"></div><button class="btn sec" id="bWarBack">◀ Back</button>`);
+  CLOUD.screen='war';$('#bBack').addEventListener('click',()=>{CLOUD.screen='';clearInterval(WAR.timer);WAR.back();});$('#bWarBack').addEventListener('click',()=>{CLOUD.screen='';clearInterval(WAR.timer);WAR.back();});
+  if(WAR.data)warDraw();warFetch();warLastLoad();clearInterval(WAR.timer);WAR.timer=setInterval(()=>{if(CLOUD.screen!=='war'){clearInterval(WAR.timer);return;}warFetch();},30000);}
+document.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('#bWarClaim')){warClaim();return;}const b=e.target&&e.target.closest&&e.target.closest('#bWar');if(b){try{SFX.play('tap',50);}catch(x){}showRealmWar(()=>showRealms(false));}});
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -7271,6 +7469,9 @@ window.HOLDOR_RESULT={resultFx,resultConfetti};
 window.HOLDOR_CUR={CUR_GOLD,CUR_GEM,curSwap};
 window.HOLDOR_LUCKY={LUCKY,luckyRoll,luckyNext,luckyShow};
 window.HOLDOR_GA={gearArt,gaFamily,GA_METAL,GA_SET};
+window.HOLDOR_GFX={gfxStart,gfxReveal,gfxEnd};
+window.HOLDOR_CHAT={showChat,CHAT,chatClean:null};
+window.HOLDOR_WAR={showRealmWar,showRealms,WAR};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();
