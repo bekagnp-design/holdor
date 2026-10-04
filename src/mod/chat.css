@@ -1,0 +1,17 @@
+/* v1.0.91: the realm chat */
+.chlist{height:calc(100vh - 250px);min-height:220px;max-height:560px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;padding:8px;margin:6px 0;border-radius:14px;background:#0c1b30;border:2px solid #0b1a2e;box-shadow:inset 0 2px 8px rgba(0,0,0,.5);-webkit-overflow-scrolling:touch}
+.chm{display:flex;gap:7px;align-items:flex-start;max-width:86%}
+.chm .cr{flex:none;width:24px;height:24px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.chm .cb{background:#17304f;border-radius:4px 12px 12px 12px;padding:5px 10px 4px;color:#e9eef5;min-width:70px}
+.chm .cb b{display:block;font:900 11px var(--f-display);color:#ffd54a;letter-spacing:.3px}
+.chm .cb span{display:block;font-size:13.5px;line-height:1.3;word-break:break-word}
+.chm .cb small{display:block;text-align:right;font-size:9.5px;color:#7f98b3;margin-top:1px}
+.chm.me{align-self:flex-end;flex-direction:row-reverse}
+.chm.me .cb{background:#2c4a2a;border-radius:12px 4px 12px 12px}.chm.me .cb b{color:#9be28a}
+.chempty{position:relative;margin:-170px 24px 130px;text-align:center;font-size:13px;color:#7f98b3;pointer-events:none}
+.chbar{display:flex;gap:8px}
+.chbar input{flex:1;min-width:0;height:44px;border-radius:12px;border:2px solid #0b1a2e;background:#10243e;color:#fff;padding:0 12px;font:inherit;font-size:15px}
+.chbar .go{width:52px;border-radius:12px;border:2px solid #0b1a2e;background:linear-gradient(180deg,#ffd76a,#e0a526);color:#2a1a05;font-size:20px}
+.chbar .go:disabled{filter:grayscale(1);opacity:.6}
+.chnote{margin:6px 2px 0;font-size:11px;color:#7f98b3;text-align:center}.chnote.err{color:#ff9a8a}
+.chq{margin:2px 0 4px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.07);font-style:italic}
