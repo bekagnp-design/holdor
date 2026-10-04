@@ -15,3 +15,9 @@
 .chbar .go:disabled{filter:grayscale(1);opacity:.6}
 .chnote{margin:6px 2px 0;font-size:11px;color:#7f98b3;text-align:center}.chnote.err{color:#ff9a8a}
 .chq{margin:2px 0 4px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.07);font-style:italic}
+/* v1.0.92: Legendary drops in the chat */
+.chm.drop{max-width:96%;align-self:stretch;align-items:center}
+.chm.drop .ic{flex:none;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:radial-gradient(circle at 50% 38%,#4c4034,#1e1813);border:2px solid #e3b661;box-shadow:0 0 10px rgba(230,180,90,.45)}
+.chm.drop .ic svg{width:34px;height:34px}
+.chm.drop .cb{flex:1;background:linear-gradient(90deg,#4a3410,#2a2010);border:1px solid #e3b661;border-radius:12px}
+.chm.drop .cb span{font-size:13px;color:#f3e2b8}.chm.drop .cb em{font-style:normal;font-weight:900;color:#ffd54a}

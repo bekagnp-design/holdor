@@ -1,4 +1,4 @@
-// v1.0.91: the realm chat screen, with real taps against an in-memory fake of the server's chat functions (the real ones are tested in
+// v1.0.91 (+ the Legendary drop line of v1.0.92): the realm chat screen, with real taps against an in-memory fake of the server's chat functions (the real ones are tested in
 // backend/test/v23_test.py). The realm card of the player's own realm has the 💬 button; the chat lists the realm's messages, a typed
 // message goes out and shows as "mine", the server's refusals show under the box, another player's message offers Report / Block, block
 // clears the list and asks again, and a guest sees that the chat needs the online backend.
@@ -50,8 +50,14 @@ const SC = path.resolve(__dirname, '..', '.shots') + '/'; fs.mkdirSync(SC, { rec
   await page.locator('#chList .chm.me').first().tap(); await page.waitForTimeout(250);
   ok('my own message has no report / block menu', await page.evaluate(() => !document.getElementById('ecoModal').classList.contains('on')));
   // polling: a new message arrives by itself
-  await page.evaluate(() => window.__db.push({ id: 99, name: 'Jon', house: 'stark', body: 'Eyes north', at: new Date().toISOString(), mine: false }));
+  await page.evaluate(() => { window.__db.push({ id: 99, name: 'Jon', house: 'stark', body: 'Eyes north', at: new Date().toISOString(), mine: false });
+    window.__db.push({ id: 100, name: 'Daenerys', house: 'targaryen', body: 'weapon:11:dragon', kind: 'drop', at: new Date().toISOString(), mine: false }); });
   await page.waitForTimeout(4600);
+  const DR = await page.evaluate(() => { const d = document.querySelector('#chList .chm.drop'); return d && { txt: d.textContent.replace(/\s+/g, ' '), svg: !!d.querySelector('.ic svg') }; });
+  await page.screenshot({ path: SC + 'chat91_drop.png' });
+  ok('a Legendary drop shows as a gold line with the item\'s picture (v1.0.92)', DR && /Daenerys/.test(DR.txt) && /found a Legendary/.test(DR.txt) && /Greatsword/.test(DR.txt) && DR.svg, JSON.stringify(DR));
+  await page.locator('#chList .chm.drop').tap(); await page.waitForTimeout(250);
+  ok('a drop line has no report / block menu', await page.evaluate(() => !document.getElementById('ecoModal').classList.contains('on')));
   ok('the screen polls: a message from someone else appears by itself', await page.evaluate(() => [...document.querySelectorAll('#chList .cb span')].some(e => e.textContent === 'Eyes north')));
   // leaving stops the polling
   await page.locator('#bBack').tap(); await page.waitForTimeout(300);

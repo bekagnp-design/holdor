@@ -60,7 +60,7 @@ check('a realm sees only its own chat', [m['body'] for m in l0['msgs']] == ['fro
 l2 = anon('chat_list', token=tok[P[2]], seat=1)
 check('each seat chats in its own realm (P2: seat 0 → realm 3, seat 1 → realm 5)', l2['realm'] == 5 and anon('chat_list', token=tok[P[2]], seat=0)['realm'] == 3)
 m = l0['msgs'][0]
-check('a message shows name, house, time and "mine", and no Telegram id anywhere', set(m) == {'id', 'name', 'house', 'body', 'at', 'mine'} and m['mine'] is False and 'tg_id' not in json.dumps(l0) and anon('chat_list', token=tok[P[0]], seat=0)['msgs'][0]['mine'] is True)
+check('a message shows name, house, time and "mine", and no Telegram id anywhere', set(m) - {'kind'} == {'id', 'name', 'house', 'body', 'at', 'mine'} and m['mine'] is False and 'tg_id' not in json.dumps(l0) and anon('chat_list', token=tok[P[0]], seat=0)['msgs'][0]['mine'] is True)
 say(P[1], 'second one'); slow()
 check('since = the last id: only newer messages', [x['body'] for x in anon('chat_list', token=tok[P[0]], seat=0, since=m['id'])['msgs']] == ['second one'])
 bid = anon('chat_list', token=tok[P[0]], seat=0)['msgs'][-1]['id']

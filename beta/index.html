@@ -1344,6 +1344,12 @@ button,.btn,.hbtn,.ebld,.cday{transition:scale .22s cubic-bezier(.3,1.7,.5,1),fi
 .chbar .go:disabled{filter:grayscale(1);opacity:.6}
 .chnote{margin:6px 2px 0;font-size:11px;color:#7f98b3;text-align:center}.chnote.err{color:#ff9a8a}
 .chq{margin:2px 0 4px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.07);font-style:italic}
+/* v1.0.92: Legendary drops in the chat */
+.chm.drop{max-width:96%;align-self:stretch;align-items:center}
+.chm.drop .ic{flex:none;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:radial-gradient(circle at 50% 38%,#4c4034,#1e1813);border:2px solid #e3b661;box-shadow:0 0 10px rgba(230,180,90,.45)}
+.chm.drop .ic svg{width:34px;height:34px}
+.chm.drop .cb{flex:1;background:linear-gradient(90deg,#4a3410,#2a2010);border:1px solid #e3b661;border-radius:12px}
+.chm.drop .cb span{font-size:13px;color:#f3e2b8}.chm.drop .cb em{font-style:normal;font-weight:900;color:#ffd54a}
 </style>
 </head>
 <body>
@@ -2247,7 +2253,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.91';
+const VERSION='1.0.92';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -6172,12 +6178,16 @@ function gearTierUp(id,fodder,cid,filter){const it0=gearItems().find(x=>x.id===i
    One chat per realm (country): you speak as one of your seats, in the realm that seat fights for. Everything lives on the server
    (chat_send / chat_list / chat_block / chat_report): 200 characters, links and a word list hidden, one message per 2 seconds, three
    different reporters mute an author for an hour. No Telegram id ever reaches the app: a message carries a name, a house and a time.
-   The screen polls every 4 s while it is open. Tap someone else's message to report it or block the player. */
+   The screen polls every 4 s while it is open. Tap someone else's message to report it or block the player.
+   v1.0.92 (backend v24): when a defender gets a Legendary item, the server adds a gold "found a Legendary …" line with the item's picture. */
 const CHAT={msgs:[],last:0,timer:0,busy:false,back:null,rpc:null,err:'',realm:null};
 function chatOnline(){return CHAT.rpc?true:(typeof sbReady==='function'&&sbReady()&&!!CLOUD.token);}
 function chatRpc(fn,a){return CHAT.rpc?CHAT.rpc(fn,a):sbRpc(fn,Object.assign({token:CLOUD.token,seat:Math.max(0,seatNo())},a),{timeout:8000});}
 function chatTime(t){const d=new Date(t);return isNaN(d)?'':d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+function chatDrop(m){const [slot,kind,set]=String(m.body).split(':'),K=(GEAR_KIND[slot]||[])[+kind],S=GEAR_SET[set];return K&&S?{slot,set,k:K[0],S}:null;}
 function chatRow(m){const H=HOUSES[m.house];
+  if(m.kind==='drop'){const d=chatDrop(m);
+    return `<div class="chm drop" data-id="${m.id}"><span class="ic">${d?gearArt(d.slot,d.k,4,d.set):'🏆'}</span><div class="cb"><b>${esc(m.name||'Defender')}</b><span>found a <em>Legendary</em> ${d?`${d.S[0]} ${esc(d.S[1])} ${esc(d.k)}`:'item'}!</span><small>${chatTime(m.at)}</small></div></div>`;}
   return `<div class="chm ${m.mine?'me':''}" data-id="${m.id}"><span class="cr">${H?crest(m.house,20):'🛡️'}</span><div class="cb"><b>${esc(m.name||'Defender')}</b><span>${esc(m.body)}</span><small>${chatTime(m.at)}</small></div></div>`;}
 function chatNear(l){return l.scrollHeight-l.scrollTop-l.clientHeight<90;}
 function chatDraw(add){const l=$('#chList');if(!l)return;const stick=chatNear(l)||!l.children.length;
@@ -6196,7 +6206,7 @@ async function chatSend(){const inp=$('#chIn');if(!inp)return;const t=inp.value.
   try{await chatRpc('chat_send',{body:t});inp.value='';chatNote('');CHAT.busy=false;await chatPoll();try{SFX.play('tap',50);}catch(e){}}
   catch(e){chatNote(chatErr(e));try{SFX.play('deny');}catch(x){}}
   if(b)b.disabled=false;}
-function chatActions(id){const m=CHAT.msgs.find(x=>x.id===id);if(!m||m.mine)return;
+function chatActions(id){const m=CHAT.msgs.find(x=>x.id===id);if(!m||m.mine||m.kind==='drop')return;
   ecoModal(`${esc(m.name||'Defender')}`,`<p class="m chq">${esc(m.body)}</p>`,[
     {t:'🚩 Report this message',f:async()=>{try{await chatRpc('chat_report',{msg:id,reason:'chat'});ecoToast('Thanks — reported.',true);}catch(e){ecoToast(chatErr(e));}}},
     {t:'🚫 Block this player',f:async()=>{try{await chatRpc('chat_block',{msg:id});CHAT.msgs=CHAT.msgs.filter(x=>x.id>0);const l=$('#chList');if(l){l.innerHTML='';CHAT.last=0;CHAT.msgs=[];}ecoToast('Blocked. You will not see their messages.',true);chatPoll();}catch(e){ecoToast(chatErr(e));}}},
