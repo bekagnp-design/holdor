@@ -7,14 +7,17 @@
 //        (`t.me/HoldorTDBot?start=s_x` → `startapp=s_x`, so the source / duel / invitation code survives). Nothing is stored.
 //   POST {op:'digest', kind:'day'|'war', code}  the schedule (pg_cron, backend v28) asks for the channel posts: the text is the database's
 //        own (bot_digest), sent as plain text to the channels set in app_secrets (channel_en / channel_ka); the code is app_secrets digest_code.
+//   POST {op:'remind', code}  (backend v29) the hourly schedule: ONE message, with a ▶ Play button, to each person who pressed /start
+//        24–72 hours ago and never opened the game; whoever blocked the bot is marked and never written to again. /start notes the
+//        person (bot_seen) for this; nothing else is kept.
 // Money never moves here: every decision is a SQL function (pay_*) that only the service key may call. The bot token is read from
 // app_secrets per request and is never logged or returned; error text is scrubbed of it.
 const BOT = 'HoldorTDBot';
 const ART = 'https://bekagnp-design.github.io/holdor/docs/marketing/bot_banner_1280x720.png';
 const TXT = {
-  en: { start: '🚪 Welcome, defender!\n\nThe dead are at the gate and you are the last wall. Build towers, lead your champion, and hold the door.\n\nTap PLAY — the first battle takes two minutes.',
+  en: { remind: '🚪 The door is still open.\n\nThe dead are waiting, defender. The first battle takes two minutes.', start: '🚪 Welcome, defender!\n\nThe dead are at the gate and you are the last wall. Build towers, lead your champion, and hold the door.\n\nTap PLAY — the first battle takes two minutes.',
         help: '⚔️ How to play\n\n1. Tap a free spot on the road side to build a tower.\n2. Tap a tower to upgrade or sell it.\n3. Move your champion where the dead break through.\n4. Hold the gate until the last wave.\n\nEvery day: the Hold. Every week: your country\'s war.', play: '▶ Play free' },
-  ka: { start: '🚪 კეთილი იყოს შენი მობრძანება, დამცველო!\n\nმკვდრები კართან არიან და შენ ბოლო კედელი ხარ. ააშენე კოშკები, უხელმძღვანელე ჩემპიონს და დაიცავი კარი.\n\nდააჭირე PLAY-ს — პირველი ბრძოლა ორ წუთს გრძელდება.',
+  ka: { remind: '🚪 კარი ჯერ კიდევ ღიაა.\n\nმკვდრები ელოდებიან, დამცველო. პირველი ბრძოლა ორ წუთს გრძელდება.', start: '🚪 კეთილი იყოს შენი მობრძანება, დამცველო!\n\nმკვდრები კართან არიან და შენ ბოლო კედელი ხარ. ააშენე კოშკები, უხელმძღვანელე ჩემპიონს და დაიცავი კარი.\n\nდააჭირე PLAY-ს — პირველი ბრძოლა ორ წუთს გრძელდება.',
         help: '⚔️ როგორ ვითამაშო\n\n1. გზის პირას თავისუფალ ადგილზე დააჭირე და ააშენე კოშკი.\n2. კოშკზე დაჭერით გააძლიერებ ან გაყიდი.\n3. ჩემპიონი იქ გადაიყვანე, სადაც მკვდრები გაარღვევენ.\n4. გაუძელი კარს ბოლო ტალღამდე.\n\nყოველდღე: Hold. ყოველ კვირას: შენი ქვეყნის ომი.', play: '▶ თამაში უფასოა' } };
 // a command in a private chat: which one, the payload to carry into the Mini App, the language
 export function botCommand(m) {
@@ -90,6 +93,24 @@ export function makeHandler(env, f = fetch) {
         return reply({ ok: true, sent });
       }
 
+      // ---- the schedule: one reminder to those who started the bot and never played ----
+      if (b.op === 'remind') {
+        const want = await secret('digest_code');
+        if (!want || typeof b.code !== 'string' || b.code !== want) return reply({ ok: false, error: 'no' }, 403);
+        const due = (await rpc('bot_remind_due', { lim: 50 })) || [];
+        let sent = 0, blocked = 0, failed = 0;
+        for (const d of due) {
+          const t = TXT[d.lang === 'ka' ? 'ka' : 'en'];
+          try { await tg('sendMessage', { chat_id: d.tg, text: t.remind, reply_markup: { inline_keyboard: [[{ text: t.play, url: 'https://t.me/' + BOT + '/play?startapp=s_remind' }]] } });
+                await rpc('bot_reminded', { tg: d.tg, blocked: false }); sent++; }
+          catch (e) {
+            if (/blocked|deactivated|chat not found|403/i.test(String(e && e.message))) { await rpc('bot_reminded', { tg: d.tg, blocked: true }); blocked++; }
+            else failed++;   // Telegram is busy: the next hour tries again
+          }
+        }
+        return reply({ ok: true, due: due.length, sent, blocked, failed });
+      }
+
       // ---- the app: an invoice for one item on one seat ----
       if (b.op === 'invoice') {
         if (typeof b.token !== 'string' || typeof b.sku !== 'string' || !Number.isInteger(b.seat)) return reply({ error: 'bad request' }, 400);
@@ -117,6 +138,7 @@ export function makeHandler(env, f = fetch) {
         const m = b.message;
         const cmd = botCommand(m);
         if (cmd) {   // the welcome never fails the update: Telegram must not retry a greeting
+          try { await rpc('bot_seen', { tg: m.from && m.from.id, lang: cmd.lang, start: cmd.start }); } catch (e) { /* a note for the reminder: not worth failing for */ }
           const t = TXT[cmd.lang], kb = { inline_keyboard: [[{ text: t.play, url: 'https://t.me/' + BOT + '/play?startapp=' + cmd.start }]] };
           try {
             if (cmd.cmd === 'help') await tg('sendMessage', { chat_id: m.chat.id, text: t.help, reply_markup: kb });

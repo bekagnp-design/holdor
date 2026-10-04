@@ -2,17 +2,22 @@
 // Telegram. No network, no token: the fake answers pay_secret with test values and records every Telegram call.
 import { makeHandler, botCommand } from '../edge/stars/handler.js';
 const TOKEN = '123456789:TESTTOKENabcDEFghiJKLmnoPQRstuVWXyz', HOOK = 'hook-secret-1';
-let calls = [], photoFails = false, tgDown = false, digests = [];
+let calls = [], photoFails = false, tgDown = false, digests = [], seen = [], reminded = [], DUE = [];
 const SECRETS = { bot_token: TOKEN, webhook_secret: HOOK, digest_code: 'dig-1', channel_en: '@holdor_news', channel_ka: '@holdor_ge' };
 const DIG = { 'day:en': { ok: true, text: "⚔️ Yesterday's Hold top-2\n\n1. Arya — 41 🌊\n2. Bran — 30 🌊" }, 'day:ka': { ok: true, text: '⚔️ გუშინდელი Hold-ის ტოპ-2' }, 'war:en': { ok: false, why: 'no realm fought last week' } };
 const f = async (url, init) => {
   const body = init && init.body ? JSON.parse(init.body) : {};
   if (url.includes('/rest/v1/rpc/pay_secret')) return new Response(JSON.stringify(SECRETS[body.k] === undefined ? null : SECRETS[body.k]), { status: 200 });
   if (url.includes('/rest/v1/rpc/bot_digest')) { digests.push(body); return new Response(JSON.stringify(DIG[body.kind + ':' + body.lang] || { ok: false, why: 'nothing' }), { status: 200 }); }
+  if (url.includes('/rest/v1/rpc/bot_seen')) { seen.push(body); return new Response('null', { status: 200 }); }
+  if (url.includes('/rest/v1/rpc/bot_remind_due')) return new Response(JSON.stringify(DUE), { status: 200 });
+  if (url.includes('/rest/v1/rpc/bot_reminded')) { reminded.push(body); return new Response('null', { status: 200 }); }
   if (url.includes('/rest/v1/rpc/')) return new Response('{}', { status: 200 });
   const m = /\/bot([^/]+)\/(\w+)$/.exec(url);
   if (tgDown) throw new Error('down');
   calls.push({ method: m[2], tokOk: m[1] === TOKEN, body });
+  if (m[2] === 'sendMessage' && body.chat_id === 777) return new Response(JSON.stringify({ ok: false, error_code: 403, description: 'Forbidden: bot was blocked by the user' }), { status: 403 });
+  if (m[2] === 'sendMessage' && body.chat_id === 888) return new Response(JSON.stringify({ ok: false, error_code: 429, description: 'Too Many Requests: retry after 5' }), { status: 429 });
   if (m[2] === 'sendPhoto' && photoFails) return new Response(JSON.stringify({ ok: false, description: 'Bad Request: wrong file identifier/HTTP URL specified' }), { status: 400 });
   return new Response(JSON.stringify({ ok: true, result: { message_id: 1 } }), { status: 200 });
 };
@@ -59,6 +64,18 @@ delete SECRETS.channel_ka; calls = [];   // a fresh handler: the secrets are cac
 check('a channel that is not set is skipped', calls.length === 1 && calls[0].body.chat_id === '@holdor_news');
 r = await dpost({ op: 'digest', kind: 'other', code: 'dig-1' });
 check('an unknown kind is refused', r.status === 400);
+// the reminder (backend v29)
+seen = []; calls = []; await post(upd('/start s_yt1', { lang: 'ka' }));
+check('/start notes the person for the reminder (id, language, payload)', seen.length === 1 && seen[0].tg === 555 && seen[0].lang === 'ka' && seen[0].start === 's_yt1', seen);
+seen = []; await post(upd('/help')); await post(upd('hello'));
+check('/help notes too; a plain message does not', seen.length === 1);
+DUE = [{ tg: 101, lang: 'en' }, { tg: 102, lang: 'ka' }, { tg: 777, lang: 'en' }, { tg: 888, lang: 'en' }]; calls = []; reminded = [];
+r = await dpost({ op: 'remind', code: 'wrong' });
+check('the reminder without the code is refused (403)', r.status === 403 && calls.length === 0);
+r = await dpost({ op: 'remind', code: 'dig-1' });
+const sentTo = calls.filter(c => c.method === 'sendMessage').map(c => c.body.chat_id);
+check('one message to each person due, in his language, with a Play button (startapp=s_remind)', sentTo.join() === '101,102,777,888' && /door is still open/.test(calls[0].body.text) && /კარი ჯერ კიდევ ღიაა/.test(calls[1].body.text) && url(calls[0]).endsWith('startapp=s_remind'), calls.map(c => c.body.text));
+check('sent ones are marked; a blocked bot is marked blocked; a busy Telegram is left for the next hour', JSON.stringify(reminded) === JSON.stringify([{ tg: 101, blocked: false }, { tg: 102, blocked: false }, { tg: 777, blocked: true }]) && r.body.sent === 2 && r.body.blocked === 1 && r.body.failed === 1, [reminded, r.body]);
 const flat = JSON.stringify(calls);
 check('the token never appears in what is sent', !flat.includes(TOKEN));
 console.log(fails.length ? 'FAILED: ' + fails.join(' | ') : 'all bot checks OK'); process.exit(fails.length ? 1 : 0);
