@@ -2267,7 +2267,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.94';
+const VERSION='1.0.95';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -2580,7 +2580,7 @@ function scoreSummary(){
 }
 function seatNo(){return SAVE&&SAVE.cur>=0?SAVE.cur|0:-1;}
 /* leaderboard rows: "me" is my Telegram id AND the seat I am playing; other seats of mine show as "Name II" / "Name III" */
-function lbIsMe(p){return !!(p&&CLOUD.tg_id&&p.tg_id===CLOUD.tg_id&&((p.seat==null?0:+p.seat)===Math.max(0,seatNo())));}
+function lbIsMe(p){if(!p)return false;if(p.mine!==undefined)return !!p.mine;return !!(CLOUD.tg_id&&p.tg_id===CLOUD.tg_id&&((p.seat==null?0:+p.seat)===Math.max(0,seatNo())));}
 function lbName(p){const s=p&&p.seat!=null?+p.seat:0;return esc(p.name)+(s>0&&s<3?' '+ROMAN3[s]:'');}
 function lbStale(){return !CLOUD.lb||Date.now()-CLOUD.lbAt>60000||CLOUD.lb._seat!==Math.max(0,seatNo());}
 function lbMine(lb){return lb&&lb._seat===Math.max(0,seatNo())?{me:lb.me||null,myday:lb.myday||null}:{me:null,myday:null};}

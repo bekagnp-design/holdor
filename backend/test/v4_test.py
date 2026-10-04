@@ -8,7 +8,7 @@ def psql_file(*files):
     sql = ''.join(open(os.path.join(BACK, f), encoding='utf-8').read() + '\n' for f in files)
     r = subprocess.run(['su', 'postgres', '-c', 'psql -q -v ON_ERROR_STOP=1 -o /dev/null'], input=sql, capture_output=True, text=True)
     if r.returncode: raise SystemExit('load failed: ' + r.stderr[-800:])
-psql_file('test/prod_like.sql', 'holdor_v3.sql', 'holdor_v4.sql', 'holdor_v5.sql', 'holdor_econ_data.sql', 'holdor_v6.sql', 'holdor_v7.sql', 'holdor_v8.sql', 'holdor_v9.sql', 'holdor_v10.sql', 'holdor_v11.sql', 'holdor_v12.sql', 'holdor_v13.sql', 'holdor_v14.sql', 'holdor_v15.sql', 'holdor_v16.sql', 'holdor_v17.sql', 'holdor_v18.sql', 'holdor_v19.sql', 'holdor_v20.sql', 'holdor_v21.sql', 'holdor_v22.sql', 'holdor_v23.sql', 'holdor_v24.sql', 'holdor_v25.sql', 'holdor_v26.sql')
+psql_file('test/prod_like.sql', 'holdor_v3.sql', 'holdor_v4.sql', 'holdor_v5.sql', 'holdor_econ_data.sql', 'holdor_v6.sql', 'holdor_v7.sql', 'holdor_v8.sql', 'holdor_v9.sql', 'holdor_v10.sql', 'holdor_v11.sql', 'holdor_v12.sql', 'holdor_v13.sql', 'holdor_v14.sql', 'holdor_v15.sql', 'holdor_v16.sql', 'holdor_v17.sql', 'holdor_v18.sql', 'holdor_v19.sql', 'holdor_v20.sql', 'holdor_v21.sql', 'holdor_v22.sql', 'holdor_v23.sql', 'holdor_v24.sql', 'holdor_v25.sql', 'holdor_v26.sql', 'holdor_v27.sql', 'holdor_v28.sql')
 subprocess.run(['su', 'postgres', '-c', 'psql -q -c "delete from players where tg_id in (777000123, 555)"'], check=True)  # the browser tests' users
 
 db = psycopg2.connect(host='127.0.0.1', dbname='postgres', user='postgres', password='pg'); db.autocommit = True
@@ -97,7 +97,7 @@ check('realm_card me', card['me'] and card['me']['rank'] == 1 and card['me']['se
 check('realm_card houses', card['houses'] == [{'house': 'lannister', 'players': 1, 'seats': 1, 'waves': 9, 'stars': 3}], card['houses'])
 card = anon('realm_card', realm=3, me=P2)
 check('realm_card Germany', (card['players'], card['seats'], card['waves'], card['stars']) == (2, 2, 31 + 13, 50 + 17), card)
-check('realm_card Germany top', [(t['tg_id'], t['seat'], t['rank']) for t in card['top']] == [(P2, 2, 1), (P3, 0, 2)], card['top'])
+check('realm_card Germany top (v27: a `mine` flag instead of a Telegram id)', [(t['mine'], t['seat'], t['rank']) for t in card['top']] == [(True, 2, 1), (False, 0, 2)] and 'tg_id' not in json.dumps(card), card['top'])
 check('realm_card me (old app, no seat)', card['me'] and card['me']['seat'] == 2 and card['me']['rank'] == 1, card['me'])
 check('realm_card houses order', [(h['house'], h['seats'], h['waves']) for h in card['houses']] == [('targaryen', 1, 31), ('stark', 1, 13)], card['houses'])
 empty = anon('realm_card', realm=150)

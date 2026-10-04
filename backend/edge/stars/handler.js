@@ -1,9 +1,30 @@
-// Telegram Stars for HOLDOR (game v1.0.60, backend v9). One Supabase Edge Function, three jobs:
+// Telegram Stars for HOLDOR (game v1.0.60, backend v9) and the bot's own messages. One Supabase Edge Function, four jobs:
 //   POST {op:'invoice', token, seat, sku}  the app asks for an invoice link (the server records the order, Telegram makes the link)
 //   POST <Telegram update>                 pre_checkout_query → "may I take the Stars?", successful_payment → credit, refunded_payment → take back
 //   GET  ?setup=<one-time code>            points the bot's webhook at this function (the code lives in app_secrets and is deleted after use)
+//   POST <Telegram update: /start /play /help in a private chat>   the welcome: the banner, two lines in the player's language
+//        (Georgian for `ka`, English otherwise) and a ▶ Play button that opens the Mini App and carries the deep-link payload
+//        (`t.me/HoldorTDBot?start=s_x` → `startapp=s_x`, so the source / duel / invitation code survives). Nothing is stored.
+//   POST {op:'digest', kind:'day'|'war', code}  the schedule (pg_cron, backend v28) asks for the channel posts: the text is the database's
+//        own (bot_digest), sent as plain text to the channels set in app_secrets (channel_en / channel_ka); the code is app_secrets digest_code.
 // Money never moves here: every decision is a SQL function (pay_*) that only the service key may call. The bot token is read from
 // app_secrets per request and is never logged or returned; error text is scrubbed of it.
+const BOT = 'HoldorTDBot';
+const ART = 'https://bekagnp-design.github.io/holdor/docs/marketing/bot_banner_1280x720.png';
+const TXT = {
+  en: { start: '🚪 Welcome, defender!\n\nThe dead are at the gate and you are the last wall. Build towers, lead your champion, and hold the door.\n\nTap PLAY — the first battle takes two minutes.',
+        help: '⚔️ How to play\n\n1. Tap a free spot on the road side to build a tower.\n2. Tap a tower to upgrade or sell it.\n3. Move your champion where the dead break through.\n4. Hold the gate until the last wave.\n\nEvery day: the Hold. Every week: your country\'s war.', play: '▶ Play free' },
+  ka: { start: '🚪 კეთილი იყოს შენი მობრძანება, დამცველო!\n\nმკვდრები კართან არიან და შენ ბოლო კედელი ხარ. ააშენე კოშკები, უხელმძღვანელე ჩემპიონს და დაიცავი კარი.\n\nდააჭირე PLAY-ს — პირველი ბრძოლა ორ წუთს გრძელდება.',
+        help: '⚔️ როგორ ვითამაშო\n\n1. გზის პირას თავისუფალ ადგილზე დააჭირე და ააშენე კოშკი.\n2. კოშკზე დაჭერით გააძლიერებ ან გაყიდი.\n3. ჩემპიონი იქ გადაიყვანე, სადაც მკვდრები გაარღვევენ.\n4. გაუძელი კარს ბოლო ტალღამდე.\n\nყოველდღე: Hold. ყოველ კვირას: შენი ქვეყნის ომი.', play: '▶ თამაში უფასოა' } };
+// a command in a private chat: which one, the payload to carry into the Mini App, the language
+export function botCommand(m) {
+  if (!m || typeof m.text !== 'string' || !m.chat || m.chat.type !== 'private') return null;
+  const c = /^\/(start|play|help)(?:@\w+)?(?:\s+(\S+))?\s*$/.exec(m.text.trim());
+  if (!c) return null;
+  const arg = c[2] || '';
+  const lang = /^ka/i.test((m.from && m.from.language_code) || '') ? 'ka' : 'en';
+  return { cmd: c[1], start: /^[A-Za-z0-9_-]{1,64}$/.test(arg) ? arg : 's_bot', lang };
+}
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*', 'Access-Control-Allow-Methods': 'POST, GET, OPTIONS' };
 const reply = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...CORS, 'Content-Type': 'application/json' } });
 class Rpc extends Error { constructor(m, status) { super(m); this.status = status; } }
@@ -53,6 +74,22 @@ export function makeHandler(env, f = fetch) {
       let b; try { b = await req.json(); } catch (e) { return reply({ error: 'bad body' }, 400); }
       if (!b || typeof b !== 'object') return reply({ error: 'bad body' }, 400);
 
+      // ---- the schedule: real results into the channels ----
+      if (b.op === 'digest') {
+        const want = await secret('digest_code');
+        if (!want || typeof b.code !== 'string' || b.code !== want) return reply({ ok: false, error: 'no' }, 403);
+        if (b.kind !== 'day' && b.kind !== 'war') return reply({ error: 'bad kind' }, 400);
+        const sent = [];
+        for (const lang of ['en', 'ka']) {
+          const chat = await secret('channel_' + lang); if (!chat) continue;
+          let d; try { d = await rpc('bot_digest', { kind: b.kind, lang }); } catch (e) { sent.push({ lang, error: clean(e) }); continue; }
+          if (!d || !d.ok) { sent.push({ lang, skipped: (d && d.why) || 'nothing' }); continue; }
+          try { await tg('sendMessage', { chat_id: chat, text: String(d.text).slice(0, 4000), disable_web_page_preview: true }); sent.push({ lang, ok: true }); }
+          catch (e) { sent.push({ lang, error: clean(e) }); }
+        }
+        return reply({ ok: true, sent });
+      }
+
       // ---- the app: an invoice for one item on one seat ----
       if (b.op === 'invoice') {
         if (typeof b.token !== 'string' || typeof b.sku !== 'string' || !Number.isInteger(b.seat)) return reply({ error: 'bad request' }, 400);
@@ -78,6 +115,18 @@ export function makeHandler(env, f = fetch) {
           return reply({ ok: true });
         }
         const m = b.message;
+        const cmd = botCommand(m);
+        if (cmd) {   // the welcome never fails the update: Telegram must not retry a greeting
+          const t = TXT[cmd.lang], kb = { inline_keyboard: [[{ text: t.play, url: 'https://t.me/' + BOT + '/play?startapp=' + cmd.start }]] };
+          try {
+            if (cmd.cmd === 'help') await tg('sendMessage', { chat_id: m.chat.id, text: t.help, reply_markup: kb });
+            else {
+              try { await tg('sendPhoto', { chat_id: m.chat.id, photo: ART, caption: t.start, reply_markup: kb }); }
+              catch (e) { await tg('sendMessage', { chat_id: m.chat.id, text: t.start, reply_markup: kb }); }   // the picture could not be fetched
+            }
+          } catch (e) { /* the player blocked the bot, or Telegram is down: nothing to do */ }
+          return reply({ ok: true });
+        }
         if (m && m.successful_payment) {
           const p = m.successful_payment;
           try { await rpc('pay_confirm', { id: p.invoice_payload, tg: m.from && m.from.id, stars: p.total_amount, currency: p.currency, charge: p.telegram_payment_charge_id }); }
