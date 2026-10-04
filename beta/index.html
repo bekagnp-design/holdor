@@ -1349,7 +1349,69 @@ button,.btn,.hbtn,.ebld,.cday{transition:scale .22s cubic-bezier(.3,1.7,.5,1),fi
 .chm.drop .ic{flex:none;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:radial-gradient(circle at 50% 38%,#4c4034,#1e1813);border:2px solid #e3b661;box-shadow:0 0 10px rgba(230,180,90,.45)}
 .chm.drop .ic svg{width:34px;height:34px}
 .chm.drop .cb{flex:1;background:linear-gradient(90deg,#4a3410,#2a2010);border:1px solid #e3b661;border-radius:12px}
-.chm.drop .cb span{font-size:13px;color:#f3e2b8}.chm.drop .cb em{font-style:normal;font-weight:900;color:#ffd54a}/* v1.0.93: the realm war */
+.chm.drop .cb span{font-size:13px;color:#f3e2b8}.chm.drop .cb em{font-style:normal;font-weight:900;color:#ffd54a}
+/* v1.0.96: the menus move (src/mod/fxui.js). Everything sits under html.fxui: the class is there only in menus, on a visible page,
+   for players who did not ask for less motion. Compositor properties only (opacity, translate, scale, rotate). */
+/* home: motes over the stage art, a light sweep, parallax */
+.fxamb{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;display:none}
+html.fxui .fxamb{display:block;translate:calc(var(--fxpx,0)*9px) calc(var(--fxpy,0)*6px);transition:translate .45s ease-out}
+.fxamb i{position:absolute;top:0;width:var(--s);height:var(--s);margin-left:calc(var(--s)/-2);border-radius:50%;background:radial-gradient(circle,var(--c) 0,var(--c) 20%,rgba(255,255,255,0) 68%);opacity:0;will-change:translate,opacity}
+html.fxui .fxamb.fall i{animation:fxFall var(--d) linear infinite}
+html.fxui .fxamb.rise i{top:auto;bottom:0;animation:fxRise var(--d) linear infinite}
+.fxamb.rain i{width:2px;height:18px;margin-left:-1px;border-radius:1px;background:linear-gradient(180deg,rgba(255,255,255,0),var(--c))}
+html.fxui .fxamb.rain i{animation:fxFall calc(var(--d)*.22) linear infinite}
+@keyframes fxFall{0%{translate:0 -24px;opacity:0}12%{opacity:var(--o)}50%{translate:var(--dx) calc(var(--h)*.5)}88%{opacity:var(--o)}100%{translate:0 var(--h);opacity:0}}
+@keyframes fxRise{0%{translate:0 24px;opacity:0}12%{opacity:var(--o)}50%{translate:var(--dx) calc(var(--h)*-.5)}88%{opacity:var(--o)}100%{translate:0 calc(var(--h)*-1);opacity:0}}
+.fxamb .fxsw{position:absolute;top:-30%;bottom:-30%;left:0;width:42%;rotate:10deg;translate:-130% 0;background:linear-gradient(90deg,rgba(255,240,200,0),rgba(255,240,200,.1) 38%,rgba(255,250,232,.2) 50%,rgba(255,240,200,.1) 62%,rgba(255,240,200,0))}
+html.fxui .fxamb .fxsw{animation:fxSweep 9s ease-in-out infinite}
+@keyframes fxSweep{0%,52%{translate:-130% 0}100%{translate:270% 0}}
+html.fxui .stA .rays,html.fxui .stA .sig,html.fxui .stA .plat,html.fxui .stA .hero,html.fxui .stB,html.fxui .stC .mapin{transition:translate .45s ease-out}
+html.fxui .stA .rays{translate:calc(var(--fxpx,0)*-3px) calc(var(--fxpy,0)*-2px)}
+html.fxui .stA .sig{translate:calc(-50% + var(--fxpx,0)*-6px) calc(-50% + var(--fxpy,0)*-4px)}
+html.fxui .stA .plat{translate:calc(-50% + var(--fxpx,0)*3px) 0}
+html.fxui .stA .hero{translate:calc(-50% + var(--fxpx,0)*4px) calc(var(--fxpy,0)*2px)}
+html.fxui .stB{left:-8px;width:calc(100% + 16px);translate:calc(var(--fxpx,0)*-6px) 0}
+html.fxui .stC .mapin{translate:calc(var(--fxpx,0)*-10px) calc(var(--fxpy,0)*-7px)}
+/* BATTLE breathes: a glow behind the button (the juice shine still sweeps over it) */
+html.fxui .battlerow{position:relative}
+html.fxui .battlerow>button{position:relative;z-index:1}
+.fxglow{display:none}
+html.fxui .fxglow{display:block;position:absolute;z-index:0;border-radius:20px;pointer-events:none;box-shadow:0 0 16px 5px rgba(255,214,100,.85),0 0 34px 10px rgba(255,170,60,.4);opacity:.2;animation:fxBreathe 2.8s ease-in-out infinite}
+@keyframes fxBreathe{0%,100%{opacity:.15;scale:.97}50%{opacity:.95;scale:1.03}}
+/* tabs: the new tab grows out of the tapped tab's side; the tapped tab flashes */
+.hubbody{--fxd:1}.hubbody.slide-l{--fxd:-1}
+html.fxui .hubbody.fxin{animation:fxTabIn .22s cubic-bezier(.2,.9,.3,1) backwards;transform-origin:var(--fxox,50%) 100%}
+@keyframes fxTabIn{0%{opacity:0;translate:calc(var(--fxd)*30px) 8px;scale:.965}100%{opacity:1;translate:0 0;scale:1}}
+.fxtapf{display:none}
+html.fxui .fxtapf{display:block;position:absolute;left:50%;top:38%;width:60px;height:60px;margin:-30px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(255,236,160,.8),rgba(255,200,90,0) 70%);animation:fxTap .5s ease-out forwards}
+@keyframes fxTap{0%{opacity:1;scale:.3}100%{opacity:0;scale:1.7}}
+/* attention: ready slots glow, today's calendar day pulses, the currencies glint, the modal pops on a spring */
+html.fxui .slot.ready::after{content:'';position:absolute;inset:-3px;border-radius:17px;pointer-events:none;box-shadow:0 0 12px 3px var(--glow,rgba(255,210,120,.5)),inset 0 0 10px 2px rgba(255,230,150,.35);opacity:0;animation:fxHalo 2.6s ease-in-out infinite}
+html.fxui .slot.ready:nth-child(2)::after{animation-delay:-.7s}html.fxui .slot.ready:nth-child(3)::after{animation-delay:-1.4s}html.fxui .slot.ready:nth-child(4)::after{animation-delay:-2.1s}
+@keyframes fxHalo{0%,100%{opacity:.12}50%{opacity:1}}
+html.fxui .cday.today:not(.done)::after{content:'';position:absolute;inset:-3px;border-radius:12px;pointer-events:none;box-shadow:0 0 14px 4px rgba(255,213,74,.7);opacity:0;animation:fxHalo 1.8s ease-in-out infinite}
+html.fxui .hubtop .cur>span{position:relative}
+html.fxui .hubtop .cur>span::after{content:'';position:absolute;left:10px;top:1px;width:14px;height:14px;margin:-3px 0 0 -3px;pointer-events:none;opacity:0;scale:0;
+  background:radial-gradient(circle,#fff 0 1.6px,rgba(255,255,255,0) 3px),linear-gradient(0deg,rgba(255,255,255,0) 44%,rgba(255,255,255,.95) 50%,rgba(255,255,255,0) 56%),linear-gradient(90deg,rgba(255,255,255,0) 44%,rgba(255,255,255,.95) 50%,rgba(255,255,255,0) 56%);
+  animation:fxGlint 7s ease-in-out infinite}
+html.fxui .hubtop .cur>span:nth-child(2)::after{animation-delay:-3.3s}html.fxui .hubtop .cur>span:nth-child(3)::after{animation-delay:-5.1s}
+@keyframes fxGlint{0%,84%,100%{opacity:0;scale:0;rotate:0deg}89%{opacity:1;scale:1;rotate:45deg}95%{opacity:0;scale:.2;rotate:90deg}}
+html.fxui #ecoModal.on{animation:fxFade .18s ease-out}
+html.fxui #ecoModal.on .em{animation:fxPop .46s cubic-bezier(.25,.9,.35,1) backwards}
+@keyframes fxFade{from{opacity:0}to{opacity:1}}
+@keyframes fxPop{0%{opacity:0;scale:.72;translate:0 22px}55%{opacity:1;scale:1.045;translate:0 -3px}78%{scale:.988;translate:0 0}100%{scale:1;translate:0 0}}
+/* collection: portraits breathe, Epic and Legendary shimmer (only the cards on screen) */
+html.fxui .ccard.fxbr.fxvis .im img,html.fxui .ccard.fxbr.fxvis .im .pe{animation:fxBreath 3.8s ease-in-out infinite;animation-delay:var(--fxph,0s)}
+@keyframes fxBreath{0%,100%{scale:1}50%{scale:1.015}}
+.ccard.fxrE{--fxsh:222,192,255}.ccard.fxrL{--fxsh:255,228,150}
+html.fxui .ccard.fxrE.fxvis::after,html.fxui .ccard.fxrL.fxvis::after{content:'';position:absolute;top:-12%;bottom:-12%;left:0;width:34%;z-index:3;pointer-events:none;rotate:12deg;translate:-160% 0;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(var(--fxsh),.45) 50%,rgba(255,255,255,0));animation:fxSheen 5.2s ease-in-out infinite;animation-delay:var(--fxph,0s)}
+html.fxui .ccard.fxrL.fxvis::after{animation-duration:3.9s}
+@keyframes fxSheen{0%,58%{translate:-160% 0}92%,100%{translate:330% 0}}
+/* a slow phone: half the motes, still portraits */
+html.fxlite .fxamb i:nth-of-type(2n){display:none}
+html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
+@media (prefers-reduced-motion: reduce){.fxamb,.fxglow,.fxtapf{display:none!important}
+ html.fxui .hubbody.fxin,html.fxui .slot.ready::after,html.fxui .cday.today::after,html.fxui .hubtop .cur>span::after,html.fxui #ecoModal.on,html.fxui #ecoModal.on .em,html.fxui .ccard .im img,html.fxui .ccard::after{animation:none!important}}/* v1.0.93: the realm war */
 .wst{font-size:12px;color:#9fb6c9}
 .wleft{margin:2px 0 8px}.wleft b{color:#ffd54a}
 .wlist{display:flex;flex-direction:column;gap:6px;margin:8px 0}
@@ -2267,7 +2329,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.95';
+const VERSION='1.0.96';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -4035,7 +4097,7 @@ function drawEnemySprite(e,x,y,now,s){
     ctx.translate(x,y+hover);ctx.rotate(ang);if(left)ctx.scale(1,-1);
     ctx.translate(0,H/2);                                   /* local space: feet line at 0 → centre the body on the point */
     drawWalking(im,m,sc,D,cfg.an,0,t,s,e,true);
-    if(hit&&wh){ctx.globalAlpha=0.7;ctx.drawImage(wh,-m.cx*sc,-m.by*sc,D,D);}
+    if(hit&&wh){ctx.globalAlpha=0.7;ctx.drawImage(fxbTint(e,wh),-m.cx*sc,-m.by*sc,D,D);}
   }else{
     const f=enemyFace(e);
     /* turn animation: squeeze through zero instead of an instant flip */
@@ -4048,7 +4110,7 @@ function drawEnemySprite(e,x,y,now,s){
     ctx.globalAlpha*=alpha;
     const lift=drawWalking(im,m,sc,D,cfg.an,e.walk||0,t,s,e,moving);
     e.lift=lift;
-    if(hit&&wh){ctx.globalAlpha=0.7;ctx.drawImage(wh,-m.cx*sc,-m.by*sc,D,D);}
+    if(hit&&wh){ctx.globalAlpha=0.7;ctx.drawImage(fxbTint(e,wh),-m.cx*sc,-m.by*sc,D,D);}
   }
   ctx.restore();
   /* footstep puffs for heavy walkers */
@@ -6239,6 +6301,291 @@ function showChat(back){CHAT.back=back||(()=>showRealms(false));CHAT.msgs=[];CHA
   $('#chList').addEventListener('click',e=>{const m=e.target.closest&&e.target.closest('.chm');if(m)chatActions(+m.dataset.id);});
   clearInterval(CHAT.timer);CHAT.timer=setInterval(()=>{if(CLOUD.screen!=='chat'){clearInterval(CHAT.timer);return;}chatPoll();},4000);
   chatPoll();}
+/* =========================== FX UI (v1.0.96) — the menus move ===========================
+   Display only and menus only: nothing here exists during a battle (it is taken down when a battle starts) and nothing reads or
+   writes the simulation. It builds on the v1.0.77 juice (press springs, count-up, coin flight, rise-in, chest wiggle, Battle shine,
+   tab hop, dot pulse) and adds:
+   · home, all three looks: house-coloured motes drifting over the stage art (snow falls, embers and dust rise, rain streaks),
+     a soft light sweep, a slight parallax on drag or on tilt (DeviceOrientation when the phone sends it), a breathing glow behind BATTLE
+   · tabs: the new tab's content grows out of the tapped tab's side (220 ms); the tapped tab flashes
+   · attention: ready chest slots glow, today's calendar day pulses, the currency icons glint now and then, the modal pops on a spring
+   · collection: unlocked portraits breathe (1 → 1.015), Epic and Legendary cards shimmer (only the cards on screen)
+   CSS animations do the moving (opacity, translate, scale: the compositor); JS only places and tags. Off when the phone asks for less
+   motion, paused when the page is hidden (the root class goes), a slow phone gets half the motes and still portraits. */
+const FXUI={off:false,lite:false,tapX:null,tapAt:0,tapTab:null,bound:false,io:null,probed:0,err:null,par:{x:0,y:0,tx:0,ty:0,raf:0,g0:null,b0:null,drag:null}};
+const FXUI_COL={stark:'#eef6ff',targaryen:'#ff8a3c',lannister:'#ffd46b',baratheon:'#ffc861',greyjoy:'#bfe3ff',tyrell:'#ffc0d8',martell:'#ffb45a'};
+function fxuiCalm(){if(FXUI.off)return true;try{return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){return false;}}
+function fxuiLive(){return !fxuiCalm()&&!document.hidden&&!(typeof G!=='undefined'&&G&&G.state==='play');}
+function fxuiRoot(on){document.documentElement.classList.toggle('fxui',!!on);}
+function fxuiBind(){if(FXUI.bound)return;FXUI.bound=true;
+  const tap=e=>{const b=e.target&&e.target.closest&&e.target.closest('.hubtabs button');if(!b)return;const r=b.getBoundingClientRect();FXUI.tapX=r.left+r.width/2;FXUI.tapAt=performance.now();FXUI.tapTab=b.dataset.tab;};
+  document.addEventListener('pointerdown',tap,{passive:true,capture:true});document.addEventListener('click',tap,{passive:true,capture:true});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)fxuiRoot(false);else if(fxuiLive())fxuiRoot(true);});
+  window.addEventListener('deviceorientation',fxuiTilt,{passive:true});
+  window.addEventListener('resize',()=>{if(fxuiLive())fxuiGlowPlace();},{passive:true});}
+/* called after every hub render (wrapped around juiceHub below) */
+function fxuiHub(tab){try{fxuiBind();if(fxuiCalm()||(typeof G!=='undefined'&&G&&G.state==='play')){fxuiOff();return;}fxuiRoot(fxuiLive());
+    const fresh=FXUI.tapAt&&performance.now()-FXUI.tapAt<900;
+    const body=document.getElementById('hubBody');
+    if(body&&(body.classList.contains('slide-r')||body.classList.contains('slide-l'))){
+      body.style.setProperty('--fxox',fresh&&FXUI.tapX!=null?Math.round(100*FXUI.tapX/Math.max(1,window.innerWidth))+'%':'50%');body.classList.add('fxin');
+      let done=false;const end=e=>{if(done||(e&&(e.target!==body||e.animationName!=='fxTabIn')))return;done=true;body.classList.remove('fxin','slide-r','slide-l');body.removeEventListener('animationend',end);};
+      body.addEventListener('animationend',end);setTimeout(()=>end(),450);}
+    if(fresh){const on=document.querySelector('.hubtabs button.on');if(on&&on.dataset.tab===FXUI.tapTab){const f=document.createElement('i');f.className='fxtapf';on.appendChild(f);setTimeout(()=>f.remove(),600);}FXUI.tapAt=0;}
+    if(tab==='battle')fxuiHome();
+    if(tab==='coll')fxuiColl();else if(FXUI.io){FXUI.io.disconnect();FXUI.io=null;}
+  }catch(e){FXUI.err=e.message;}}
+/* ---- home: motes, light sweep, parallax, the breathing BATTLE ---- */
+function fxuiHome(){const st=document.getElementById('hmStage');if(!st)return;
+  if(!st.querySelector('.fxamb')){
+    const k=typeof hmFxKind==='function'?hmFxKind():'snow',mode=k==='ember'||k==='sand'?'rise':k==='rain'?'rain':'fall',look=typeof skinOf==='function'?skinOf():'b';
+    const n=look==='c'?14:10,H=Math.max(160,st.clientHeight||300);let h='';
+    for(let i=0;i<n;i++){const s=mode==='rain'?2:Math.round(5+Math.random()*(look==='c'?9:12)),d=(mode==='rise'?9:12)+Math.random()*9;
+      h+=`<i style="left:${(4+92*(i+Math.random())/n).toFixed(1)}%;--s:${s}px;--d:${d.toFixed(1)}s;--dx:${Math.round((Math.random()-0.5)*50)}px;--o:${(0.35+Math.random()*0.45).toFixed(2)};animation-delay:${(-Math.random()*d).toFixed(1)}s"></i>`;}
+    const L=document.createElement('div');L.className='fxamb '+mode;L.style.setProperty('--h',(H+40)+'px');L.style.setProperty('--c',FXUI_COL[ACC&&ACC.house]||'#fff');
+    L.innerHTML=h+'<b class="fxsw"></b>';st.insertBefore(L,st.querySelector('.hmtitle'));}
+  const P=FXUI.par;P.x=P.y=P.tx=P.ty=0;P.drag=null;
+  if(!st.dataset.fxp){st.dataset.fxp='1';
+    st.addEventListener('pointerdown',e=>{FXUI.par.drag={x:e.clientX,y:e.clientY};},{passive:true});
+    st.addEventListener('pointermove',e=>{const d=FXUI.par.drag;if(d)fxuiParTo((e.clientX-d.x)/90,(e.clientY-d.y)/90);},{passive:true});
+    const up=()=>{if(FXUI.par.drag){FXUI.par.drag=null;fxuiParTo(0,0);}};
+    for(const ev of ['pointerup','pointercancel','pointerleave'])st.addEventListener(ev,up,{passive:true});}
+  fxuiGlowPlace();fxuiProbe();}
+function fxuiParTo(x,y){const P=FXUI.par;P.tx=Math.max(-1,Math.min(1,x));P.ty=Math.max(-1,Math.min(1,y));if(P.raf)return;
+  P.raf=requestAnimationFrame(()=>{P.raf=0;const st=document.getElementById('hmStage');if(!st||!fxuiLive())return;
+    if(Math.abs(P.tx-P.x)<0.02&&Math.abs(P.ty-P.y)<0.02)return;P.x=P.tx;P.y=P.ty;st.style.setProperty('--fxpx',P.x.toFixed(2));st.style.setProperty('--fxpy',P.y.toFixed(2));});}
+function fxuiTilt(e){if(e.gamma==null||FXUI.par.drag||typeof CLOUD==='undefined'||CLOUD.screen!=='hub:battle')return;const P=FXUI.par;
+  if(P.g0==null){P.g0=e.gamma;P.b0=e.beta;}P.g0+=(e.gamma-P.g0)*0.02;P.b0+=(e.beta-P.b0)*0.02;   /* the rest position follows slowly */
+  fxuiParTo((e.gamma-P.g0)/16,(e.beta-P.b0)/16);}
+function fxuiGlowPlace(){const bb=document.getElementById('bBattle');if(!bb||!document.getElementById('hmStage'))return;const row=bb.parentElement;let g=row.querySelector('.fxglow');
+  if(bb.classList.contains('pulse')){if(g)g.remove();return;}   /* before the first lesson the old pulse already calls */
+  if(!g){g=document.createElement('i');g.className='fxglow';row.insertBefore(g,bb);}
+  g.style.cssText=`left:${bb.offsetLeft}px;top:${bb.offsetTop}px;width:${bb.offsetWidth}px;height:${bb.offsetHeight}px`;}
+/* a slow phone (40 % of 90 frames over 30 ms) gets half the motes and still portraits, for the rest of the session */
+function fxuiProbe(){if(FXUI.probed||FXUI.lite)return;FXUI.probed=1;let n=0,slow=0,last=0;
+  const f=now=>{if(document.hidden||CLOUD.screen!=='hub:battle'){FXUI.probed=0;return;}if(last){n++;if(now-last>30)slow++;}last=now;
+    if(n<90){requestAnimationFrame(f);return;}if(slow>n*0.4){FXUI.lite=true;document.documentElement.classList.add('fxlite');}};
+  requestAnimationFrame(f);}
+/* ---- collection: rarity tags, breathing portraits, only for the cards on screen ---- */
+function fxuiColl(){const body=document.getElementById('hubBody');if(FXUI.io){FXUI.io.disconnect();FXUI.io=null;}if(!body)return;
+  const cards=body.querySelectorAll('.ccard[data-c]');if(!cards.length)return;
+  if('IntersectionObserver' in window)FXUI.io=new IntersectionObserver(es=>{for(const e of es)e.target.classList.toggle('fxvis',e.isIntersecting);},{root:body,rootMargin:'40px'});
+  cards.forEach((el,i)=>{const c=CBY[el.dataset.c];if(!c)return;const r=rarOf(c)[0];if(el.classList.contains('lock'))return;if(r==='Epic')el.classList.add('fxrE');else if(r==='Legendary')el.classList.add('fxrL');
+    if(!el.classList.contains('lock'))el.classList.add('fxbr');el.style.setProperty('--fxph',(-((i*0.61)%3.8)).toFixed(2)+'s');
+    if(FXUI.io)FXUI.io.observe(el);else el.classList.add('fxvis');});}
+/* ---- off: a battle starts, or the phone asks for less motion ---- */
+function fxuiOff(){fxuiRoot(false);document.querySelectorAll('.fxamb,.fxglow,.fxtapf').forEach(e=>e.remove());
+  if(FXUI.io){FXUI.io.disconnect();FXUI.io=null;}const P=FXUI.par;if(P.raf){cancelAnimationFrame(P.raf);P.raf=0;}P.drag=null;}
+if(typeof juiceHub==='function'){const jh0=juiceHub;juiceHub=function(tab){jh0(tab);fxuiHub(tab);};}
+if(typeof startGame==='function'){const sg0=startGame;startGame=function(){try{fxuiOff();cancelAnimationFrame(HOME.raf);HOME.raf=0;clearTimeout(HOME.tick);}catch(e){}return sg0.apply(this,arguments);};   /* the home canvas loop stops too: it only checked the screen name, which a battle does not change */}
+/* =========================== BATTLE FX (v1.0.96) ===========================
+   The battlefield answers every blow. Display only: it reads G and never writes the simulation (no G.rng, no sim fields; the one
+   write is the display-only G.shake, a small capped nudge when a giant falls). Everything is pooled and capped (combat ≤ 160
+   particles, ambient ≤ 90, numbers ≤ 8); a self-throttle halves the effects when frames get slow; nothing moves while the battle
+   is paused or the tab is hidden; prefers-reduced-motion turns it all off. When the battle ends the jolt stops at once and the last
+   sparks fall and fade; a new run starts clean (pools, numbers, trails and the jolt reset).
+   · a hit: the white flash takes the colour of the blow (wildfire green, fire orange, ice blue, steel stays white) + sparks
+   · merged damage numbers: one per enemy per half second, small, at most 8 on the field
+   · a death bursts by kind: ice shards + frost for walkers and wraiths, dust + bone for wights, dust + fur for beasts, feathers
+     for birds, chitin for spiders; giants and bosses burst bigger
+   · projectile trails and glow; a tower recoils with a muzzle flash and a puff of smoke when it fires
+   · the gate jolts and sheds splinters (and frost in the cold) when it is hit
+   · ambient life by biome, on top of drawAmbient: gusts, embers + heat haze, tumbling leaves, sand drift, rain splashes + soft
+     lightning, low mist, sea spray + gull shadows, dust motes, glints on water, flickering fire light */
+const FXB={on:true,calm:false,q:1,qLock:0,t:0,dt:0,last:0,ema:16.7,slowT:0,fastT:0,frame:0,CAP:160,ACAP:90,NCAP:8,
+  runs:-1,cost:0,cema:0,P:[],np:0,A:[],na:0,N:[],nn:0,ER:new WeakMap(),TR:new WeakMap(),TW:new WeakMap(),trA:[],trF:[],pp:{x:0,y:0,h:0},
+  kick:0,gateT:-9,flash:0,boltIn:9,gust:0,gustIn:5,wind:0,map:null,prof:null,glint:[],fires:[],dust:'200,185,160',soft:{},tint:new Map(),rgb:new Map(),
+  st:{hits:0,deaths:0,shots:0,gate:0,nums:0}};
+try{FXB.calm=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){}
+/* the layer's own CPU time per frame (summed by the hooks), for the self-throttle */
+const fxbClock=()=>performance.now();
+function fxbMk(){return{x:0,y:0,vx:0,vy:0,g:0,dr:0,life:0,max:1,sz:1,gr:0,k:0,c:'#fff',im:null,r:0,vr:0,a:1,add:0,fl:0,ph:0};}
+for(let i=0;i<FXB.CAP;i++)FXB.P.push(fxbMk());for(let i=0;i<FXB.ACAP;i++)FXB.A.push(fxbMk());for(let i=0;i<FXB.NCAP;i++)FXB.N.push({x:0,y:0,v:0,life:0,c:'#fff'});
+const FXB_R=Math.random;
+/* cached sprites: a soft disc per colour, a heat-haze strip */
+function fxbSoft(rgb){let c=FXB.soft[rgb];if(c)return c;c=document.createElement('canvas');c.width=c.height=48;const x=c.getContext('2d'),g=x.createRadialGradient(24,24,0,24,24,24);
+  g.addColorStop(0,'rgba('+rgb+',1)');g.addColorStop(0.42,'rgba('+rgb+',0.55)');g.addColorStop(1,'rgba('+rgb+',0)');x.fillStyle=g;x.fillRect(0,0,48,48);FXB.soft[rgb]=c;return c;}
+function fxbRgb(hex){let v=FXB.rgb.get(hex);if(v)return v;if(!hex||hex[0]!=='#'){v='255,255,255';}else{const n=parseInt(hex.slice(1),16);v=(n>>16)+','+((n>>8)&255)+','+(n&255);}FXB.rgb.set(hex,v);return v;}
+/* a particle from the combat pool (null when the pool is full at this quality) */
+function fxbP(k,x,y,vx,vy,life,sz,c,g){if(FXB.np>=Math.floor(FXB.CAP*FXB.q))return null;const p=FXB.P[FXB.np++];
+  p.k=k;p.x=x;p.y=y;p.vx=vx;p.vy=vy;p.life=p.max=life;p.sz=sz;p.c=c;p.g=g||0;p.dr=0;p.gr=0;p.im=null;p.r=FXB_R()*6.28;p.vr=0;p.a=1;p.add=0;p.fl=0;return p;}
+function fxbSoftP(x,y,vx,vy,life,sz,rgb,gr,a,add){const p=fxbP(2,x,y,vx,vy,life,sz,'');if(!p)return null;p.im=fxbSoft(rgb);p.gr=gr||0;p.a=a==null?1:a;p.add=add?1:0;return p;}
+/* the blow is the source that set e.hitT: damage over time (burn, poison, glass) never sets hitT, it only overwrites e.lastSrc */
+const FXB_DOT={burn:1,poison:1,glass:1};
+const FXB_TINT={wild:'#b4ff86',dany:'#ffb15c',power:'#ffb15c',dragon:'#ffb15c'};
+const FXB_SPARK={wild:'#b4ff86',poison:'#b4ff86',burn:'#ffb15c',dany:'#ffb15c',power:'#ffb15c',glass:'#c9ecff',scorp:'#ffe2a0'};
+/* the hit flash: the white silhouette, tinted by the kind of blow (cached per enemy type and colour) */
+function fxbTint(e,wh){if(!FXB.on||FXB.calm||!wh)return wh;const r=FXB.ER.get(e),c=r&&FXB_TINT[r.src];if(!c)return wh;const key=e.type+c;let cv=FXB.tint.get(key);
+  if(!cv){const w=wh.naturalWidth||wh.width,h=wh.naturalHeight||wh.height;if(!w||!h)return wh;cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');
+    x.drawImage(wh,0,0,w,h);x.globalCompositeOperation='source-in';x.fillStyle=c;x.fillRect(0,0,w,h);FXB.tint.set(key,cv);}return cv;}
+/* where an enemy is drawn (same jitter as drawEnemy), into one shared object */
+function fxbPos(e){const p=posE(e),o=FXB.pp;o.x=e.fly?p.x:p.x+((e.id%5)-2)*3.2;o.y=e.fly?p.y:p.y+((e.id%3)-1)*3;o.h=e.dragon?44:e.arch==='bird'?14:28*(e.scale||1)*(e.big||1);return o;}
+/* ---- events ---- */
+function fxbHit(e,q,src){const c=FXB_SPARK[src]||'#fff4dc',n=src==='scorp'?5:3,hy=q.y-q.h*0.55;FXB.st.hits++;
+  for(let i=0;i<n;i++){const a=-Math.PI/2+(FXB_R()-0.5)*2.6,v=70+FXB_R()*90;const p=fxbP(3,q.x+(FXB_R()-0.5)*5,hy+(FXB_R()-0.5)*5,Math.cos(a)*v,Math.sin(a)*v,0.16+FXB_R()*0.12,src==='scorp'?1.6:1.1,c,260);if(p)p.add=1;}
+  if(c!=='#fff4dc'&&src!=='scorp'){const p=fxbSoftP(q.x,hy,0,-10,0.22,6,fxbRgb(c),0.6,0.7,1);}}
+function fxbNum(x,y,v,src){if(FXB.nn>=FXB.NCAP)return;x+=(FXB_R()-0.5)*8;
+  /* a number never lands on a tower: slide it to the free side */
+  for(const s of G.map.slots){if(!s.tower)continue;const dx=x-s.x;if(dx>-24&&dx<24&&y>s.y-54&&y<s.y+14){x=s.x+(dx<0?-30:30);if(x<10||x>W-10){x=s.x+(dx<0?30:-30);}break;}}
+  const o=FXB.N[FXB.nn++];o.x=x;o.y=y;o.v=v;o.life=0.8;o.c=src==='wild'||src==='poison'?'#c8ff9e':src==='burn'||src==='dany'||src==='power'?'#ffc27a':src==='glass'?'#bfe8ff':'#f2ead8';FXB.st.nums++;}
+function fxbDeath(e){if(!FXB.on||FXB.calm||!G.map)return;FXB.st.deaths++;const q=fxbPos(e),x=q.x,y=q.y,h=q.h;
+  const big=!!(e.boss||e.mini||e.lord||e.king||e.dragon||(e.big||1)>=1.4),m=big?1.8:1,zs=big?1.4:1,ice=!!(e.walker||e.king||e.lord||e.arch==='wraith'||e.ice),cy=y-h*0.45,fl=y+3;
+  const R=FXB_R,dust=FXB.dust;
+  const shards=(n,c1,c2)=>{for(let i=0;i<n;i++){const a=-Math.PI*(0.1+0.8*R()),v=(60+R()*110)*zs;const p=fxbP(1,x+(R()-0.5)*8,cy+(R()-0.5)*h*0.4,Math.cos(a)*v*(R()<0.5?-1:1),Math.sin(a)*v,0.55+R()*0.35,(2.2+R()*2.2)*zs,i%2?c1:c2,340);if(p){p.vr=(R()-0.5)*18;p.fl=fl+R()*6;}}};
+  const puffs=(n,rgb,a)=>{for(let i=0;i<n;i++)fxbSoftP(x+(R()-0.5)*14*zs,y-2-R()*h*0.3,(R()-0.5)*26,-8-R()*14,0.55+R()*0.3,(7+R()*5)*zs,rgb,1.3,a,0);};
+  const bits=(k,n,c,sz,g)=>{for(let i=0;i<n;i++){const a=-Math.PI*(0.15+0.7*R()),v=(40+R()*80)*zs;const p=fxbP(k,x+(R()-0.5)*8,cy,Math.cos(a)*v*(R()<0.5?-1:1),Math.sin(a)*v,0.6+R()*0.4,sz*zs,c,g);if(p){p.vr=(R()-0.5)*12;p.fl=fl+R()*5;p.dr=g<200?2.2:0;}}};
+  if(e.dragon){shards(Math.round(10*m),'#dff4ff','#8ed2ee');puffs(4,'255,170,90',0.55);puffs(3,'215,235,250',0.5);}
+  else if(ice){shards(Math.round(7*m),'#eaf8ff','#9fd6f5');puffs(Math.round(2*m),'215,238,252',0.55);const p=fxbSoftP(x,cy,0,0,0.25,12*zs,'225,245,255',1.4,0.8,1);}
+  else if(e.arch==='bird'){bits(5,Math.round(5*m),'#2a2a33',3,60);puffs(1,dust,0.35);}
+  else if(e.arch==='spider'){bits(4,Math.round(5*m),'#2b3d4d',2.4,320);puffs(1,'215,238,252',0.45);}
+  else if(e.arch==='beast'||e.arch==='mount'){puffs(Math.round(2*m),dust,0.5);bits(5,Math.round(5*m),e.pal?mixHex(e.pal,'#cfc6b4',0.45):'#8a8070',3.2,140);}
+  else{puffs(Math.round(2*m),dust,0.45);bits(4,Math.round(4*m),'#e6dcc4',2.2,380);}
+  if(big){const p=fxbP(6,x,y+2,0,0,0.5,10*zs,'rgba('+dust+',0.7)');if(p)p.gr=2.4;if(!(e.boss||e.lord||e.giant||e.mini||e.king))G.shake=Math.min(4,(G.shake||0)+1.2);}}
+function fxbGate(gi,a){if(!FXB.on||FXB.calm||!G.map)return;FXB.st.gate++;if(G.state==='play')FXB.kick=Math.min(1,FXB.kick+0.4+a/90);
+  if(FXB.t-FXB.gateT<0.1)return;FXB.gateT=FXB.t;const gs=G.map.gates||[],g=gs[gi]||gs[0]||{x:GX},x=g.x,y=GATE_Y+18,R=FXB_R,cold=!!(G.map.B&&G.map.B.cold);
+  const n=1+Math.round(5*FXB.q);for(let i=0;i<n;i++){const p=fxbP(4,x+(R()-0.5)*44,y+R()*22,(R()-0.5)*170,-70-R()*120,0.6+R()*0.35,2+R()*2.4,R()<0.5?'#8a5a30':'#5c3a1c',430);if(p){p.vr=(R()-0.5)*16;p.fl=GATE_Y+56+R()*8;}}
+  fxbSoftP(x+(R()-0.5)*20,y+26,(R()-0.5)*20,-10,0.6,10,FXB.dust,1.4,0.4,0);
+  if(cold){for(let i=0;i<3;i++){const p=fxbP(1,x+(R()-0.5)*40,y+R()*14,(R()-0.5)*120,-50-R()*80,0.55,2.4,'#e6f6ff',360);if(p){p.vr=(R()-0.5)*14;p.fl=GATE_Y+58;}}fxbSoftP(x,y+10,0,-6,0.5,12,'225,242,255',1.2,0.45,0);}}
+function fxbGateKick(now){if(!FXB.on||FXB.calm||G.state!=='play'||FXB.kick<0.02||G.paused)return 0;return Math.sin(now/22)*FXB.kick*3.2;}
+function fxbMuzzle(s,t,def){const f=t.face||-Math.PI/2,x=s.x+Math.cos(f)*7,y=s.y-14+Math.sin(f)*5,R=FXB_R;FXB.st.shots++;
+  const wild=t.type==='wild';fxbSoftP(x,y,0,0,0.1,t.type==='scorp'?10:wild?9:7,wild?'170,255,140':'255,214,140',0.5,0.9,1);
+  fxbSoftP(x,y-2,Math.cos(f)*10+(R()-0.5)*6,-14-R()*8,0.55+R()*0.2,wild?6:5,wild?'150,190,140':'175,170,160',1.6,0.4,0);}
+/* ---- ambient set-up per map ---- */
+const FXB_AMB={snow:{big:10,gust:1},northcity:{big:8,gust:1},vale:{big:8,gust:1},wall:{big:8,gust:1.6},mountain:{flake:34,big:6,gust:1},
+  ash:{ember:16,haze:1},forest:{leaf:10,gust:0.6},river:{leaf:8},reach:{leaf:8},desert:{sand:14,gust:1},storm:{splash:16,bolt:1},
+  sea:{spray:12,gull:3},coast:{spray:10,gull:3},swamp:{mist:6},city:{mote:16}};
+const FXB_LEAF={forest:['#c98a2e','#a8b04a','#8a5a2a','#d6a33c'],river:['#a8b04a','#c9a640','#7f9a3a'],reach:['#c9d27a','#e6b8c8','#d9a640']};
+function fxbTrFree(){const A=FXB.trA;for(let i=0;i<A.length;i++){A[i].n=0;A[i].p=null;FXB.trF.push(A[i]);}A.length=0;}
+function fxbClear(){FXB.np=0;FXB.nn=0;FXB.kick=0;fxbTrFree();}
+function fxbAmbInit(map){fxbClear();FXB.map=map;FXB.runs=G.runs;FXB.na=0;FXB.glint.length=0;FXB.fires.length=0;const bi=map.biome,pr=FXB_AMB[bi]||{},B=map.B||{},R=FXB_R;FXB.prof=pr;
+  FXB.dust=B.cold?'228,236,244':B.path?fxbRgb(B.path):'200,185,160';FXB.boltIn=6+R()*8;FXB.gustIn=3+R()*5;FXB.gust=0;FXB.flash=0;
+  const add=(k,n)=>{for(let i=0;i<n&&FXB.na<FXB.ACAP;i++){const p=FXB.A[FXB.na++];p.k=k;p.x=R()*W;p.y=R()*H;p.ph=R()*6.28;p.sz=R();p.vx=0;p.vy=0;p.r=R()*6.28;p.life=R();p.max=1;
+    p.c=k===13?(FXB_LEAF[bi]||FXB_LEAF.forest)[i%(FXB_LEAF[bi]||FXB_LEAF.forest).length]:'';}};
+  add(10,pr.flake||0);add(11,pr.big||0);add(12,pr.ember||0);add(13,pr.leaf||0);add(14,pr.sand||0);add(15,pr.splash||0);add(18,pr.mist||0);add(19,pr.mote||0);add(17,pr.gull||0);
+  const f=map.feat;if(f&&f.sea)add(16,pr.spray||6);
+  if(f){for(let i=0;i<14;i++){let x,y;if(f.sea&&(i%2||!f.river)){y=20+R()*(H-60);const e=seaEdge(f,y);x=f.sea.side==='L'?R()*(e-12):W-R()*(e-12);}
+      else if(f.river){x=R()*W;y=riverY(f,x)+(R()-0.5)*f.river.w*0.55;}
+      else if(f.ponds&&f.ponds.length){const pd=f.ponds[i%f.ponds.length],a=R()*6.28,rr=R()*0.7;x=pd.x+Math.cos(a)*pd.rx*rr;y=pd.y+Math.sin(a)*pd.ry*rr;}else break;
+      FXB.glint.push({x,y,ph:R()*6.28,s:0.8+R()*0.7});}}
+  for(const d of map.deco||[]){if(FXB.fires.length>=12)break;if(d.t==='fire'||d.t==='lavarock')FXB.fires.push({x:d.x,y:d.y-(d.t==='fire'?d.r*0.6:d.r*0.3),r:d.t==='fire'?22+d.r:14+d.r*0.8,lava:d.t==='lavarock',ph:R()*6.28});}}
+function fxbAmbStep(dt){const pr=FXB.prof||{},R=FXB_R;
+  if(pr.gust){FXB.gustIn-=dt;if(FXB.gustIn<=0&&FXB.gust<=0){FXB.gust=2.4;FXB.gustIn=7+R()*8;}}
+  if(FXB.gust>0){FXB.gust=Math.max(0,FXB.gust-dt);}const env=FXB.gust>0?Math.sin(Math.PI*(1-FXB.gust/2.4)):0;FXB.wind=env*120*(pr.gust||0);
+  if(pr.bolt){FXB.boltIn-=dt;if(FXB.boltIn<=0){FXB.flash=0.5;FXB.boltIn=10+R()*12;}}if(FXB.flash>0)FXB.flash=Math.max(0,FXB.flash-dt);
+  const A=FXB.A,f=FXB.map&&FXB.map.feat,lim=Math.ceil(FXB.na*Math.max(0.5,FXB.q)),t=FXB.t;
+  for(let i=0;i<lim;i++){const p=A[i];switch(p.k){
+    case 10:p.y+=(20+p.sz*24)*dt;p.x+=(Math.sin(t*0.8+p.ph)*9+FXB.wind*0.8)*dt;break;
+    case 11:p.y+=(48+p.sz*34)*dt;p.x+=(Math.sin(t*0.6+p.ph)*14+FXB.wind)*dt;break;
+    case 12:p.y-=(20+p.sz*26)*dt;p.x+=Math.sin(t*1.4+p.ph)*16*dt;if(p.y<-10){p.y=H+10;p.x=R()*W;}break;
+    case 13:p.x+=(14+p.sz*12+FXB.wind*0.9)*dt;p.y+=(16+p.sz*14)*dt+Math.sin(t*1.7+p.ph)*0.4;p.r+=(1.4+p.sz*2)*dt;break;
+    case 14:p.x+=(46+p.sz*50+FXB.wind)*dt;break;
+    case 15:p.life-=dt*2.6;if(p.life<=0){p.life=1;p.x=R()*W;p.y=40+R()*(GATE_Y-40);}break;
+    case 16:p.life-=dt*1.4;if(p.life<=0&&f&&f.sea){p.life=1;p.y=30+R()*(H-90);const e=seaEdge(f,p.y);p.x=f.sea.side==='L'?e:W-e;p.vx=(f.sea.side==='L'?1:-1)*(10+R()*26);p.vy=-40-R()*40;}p.vy+=110*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;break;
+    case 17:p.x+=(34+p.sz*16)*dt;p.y+=(10+p.sz*8)*dt;if(p.x>W+40){p.x=-40;p.y=R()*H*0.8;}if(p.y>H+20)p.y=-20;break;
+    case 18:p.x+=(6+p.sz*8)*dt;if(p.x>W+120)p.x=-120;break;
+    case 19:p.x+=Math.sin(t*0.3+p.ph)*6*dt;p.y-=(3+p.sz*4)*dt;if(p.y<-6){p.y=H+6;p.x=R()*W;}break;}
+    if(p.k!==12&&p.k!==17&&p.k!==18&&p.k!==19&&p.k!==15&&p.k!==16){if(p.y>H+8){p.y=-8;p.x=R()*W;}if(p.x>W+10)p.x-=W+20;else if(p.x<-10)p.x+=W+20;}}}
+/* ---- the frame tick: called once per draw, right after the ground is painted ---- */
+/* combat particles and numbers move on, the jolt settles */
+function fxbAdvance(dt){const P=FXB.P;for(let i=0;i<FXB.np;i++){const p=P[i];p.life-=dt;if(p.life<=0){FXB.np--;P[i]=P[FXB.np];P[FXB.np]=p;i--;continue;}
+    p.vy+=p.g*dt;if(p.dr){const d=Math.max(0,1-p.dr*dt);p.vx*=d;p.vy*=d;}p.x+=p.vx*dt;p.y+=p.vy*dt;p.r+=p.vr*dt;
+    if(p.fl&&p.y>p.fl){p.y=p.fl;p.vy*=-0.25;p.vx*=0.55;p.vr*=0.4;}}
+  const N=FXB.N;for(let i=0;i<FXB.nn;i++){const o=N[i];o.life-=dt;o.y-=20*dt;if(o.life<=0){FXB.nn--;N[i]=N[FXB.nn];N[FXB.nn]=o;i--;}}
+  FXB.kick=Math.max(0,FXB.kick-dt*3);}
+function fxbTick(now){const ms=now-FXB.last;FXB.last=now;FXB.dt=0;FXB.cema+=(FXB.cost-FXB.cema)*0.08;FXB.cost=0;if(!FXB.on||FXB.calm||!G.map)return;
+  if(G.map!==FXB.map||G.runs!==FXB.runs)fxbAmbInit(G.map);
+  if(document.hidden)return;
+  const dt=Math.min(0.05,Math.max(0,ms/1000));
+  /* the battle is over: no jolt, no trails; the last sparks fall and fade (on the result screen), elsewhere everything is cleared */
+  if(G.state!=='play'){FXB.kick=0;if(G.state!=='over'){if(FXB.np||FXB.nn||FXB.trA.length)fxbClear();return;}
+    if(FXB.trA.length)fxbTrFree();FXB.dt=dt;fxbAdvance(dt);return;}
+  if(G.paused)return;
+  FXB.dt=dt;FXB.t+=dt;FXB.frame++;
+  /* self-throttle: halve when frames are slow AND this layer is a real part of the cost (a 30 fps cap alone is not a reason);
+     come back when frames are quick again or the layer costs next to nothing */
+  if(ms>0&&ms<250&&!FXB.qLock){FXB.ema+=(ms-FXB.ema)*0.08;
+    if(FXB.ema>30&&FXB.cema>1.2){FXB.slowT+=ms/1000;FXB.fastT=0;if(FXB.slowT>1.5){FXB.q=Math.max(0.25,FXB.q*0.5);FXB.slowT=0;}}
+    else if(FXB.q<1&&(FXB.ema<24||FXB.cema<0.45)){FXB.fastT+=ms/1000;FXB.slowT=0;if(FXB.fastT>4){FXB.q=Math.min(1,FXB.q*2);FXB.fastT=0;}}
+    else{FXB.slowT=0;FXB.fastT=0;}}
+  fxbAdvance(dt);
+  /* hits and merged numbers: what changed on each enemy since the last frame */
+  let budget=Math.ceil(10*FXB.q);
+  for(const e of G.enemies){if(e.hp<=0)continue;let r=FXB.ER.get(e);if(!r){FXB.ER.set(e,{hp:e.hp,ht:e.hitT,acc:0,nt:FXB.t,hit:0,src:null});continue;}
+    if(e.hp<r.hp)r.acc+=r.hp-e.hp;r.hp=e.hp;const fresh=e.hitT!=null&&e.hitT!==r.ht;r.ht=e.hitT;
+    if(fresh){r.hit=1;r.src=FXB_DOT[e.lastSrc]?null:e.lastSrc;}
+    if(fresh&&budget>0){budget--;fxbHit(e,fxbPos(e),r.src);}
+    if(r.hit&&r.acc>=1&&FXB.t-r.nt>=0.5){const q=fxbPos(e);fxbNum(q.x,q.y-q.h-4,Math.round(r.acc),r.src);r.acc=0;r.hit=0;r.nt=FXB.t;}}
+  /* towers that just fired: their cooldown jumped back up */
+  for(const s of G.map.slots){const t=s.tower;if(!t)continue;const def=TOWERS[t.type];if(!def||(def.kind!=='single'&&def.kind!=='splash'))continue;
+    let r=FXB.TW.get(t);if(!r){FXB.TW.set(t,{cd:t.cd,ft:-9});continue;}if(t.cd>r.cd+0.02){r.ft=FXB.t;fxbMuzzle(s,t,def);}r.cd=t.cd;}
+  /* projectile trails: a few recent points per projectile, records recycled */
+  const fr=FXB.frame;for(const p of G.projs){let r=FXB.TR.get(p);if(!r||r.p!==p){r=FXB.trF.pop()||{xs:new Float32Array(7),ys:new Float32Array(7),n:0,f:0,p:null};r.n=0;r.p=p;FXB.TR.set(p,r);FXB.trA.push(r);}
+    r.f=fr;if(!r.n||Math.abs(r.xs[0]-p.x)+Math.abs(r.ys[0]-p.y)>0.5){r.xs.copyWithin(1,0,6);r.ys.copyWithin(1,0,6);r.xs[0]=p.x;r.ys[0]=p.y;if(r.n<7)r.n++;}r.src=p.src;r.col=p.col;r.orb=p.orb;
+    if(p.src==='wild'&&FXB_R()<0.35*FXB.q){const e=fxbP(0,p.x+(FXB_R()-0.5)*4,p.y,(FXB_R()-0.5)*20,-10-FXB_R()*20,0.35,1.8,'#c8ff9e',0);if(e)e.add=1;}}
+  const A=FXB.trA;let j=0;for(let i=0;i<A.length;i++){const r=A[i];if(r.f===fr)A[j++]=r;else{r.n=0;r.p=null;FXB.trF.push(r);}}A.length=j;
+  fxbAmbStep(dt);}
+/* ---- drawing ---- */
+const FXB_TRAIL={watch:['#eef3fa',1.3,4,0.55],scorp:['#ffe2a0',2.4,5,0.6],wild:['#9dff6b',3.2,7,0.5],hero:['#ffffff',1.7,5,0.5]};
+function fxbSafe(){ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.lineCap='butt';}
+function fxbUnder(now){const t0=fxbClock();try{fxbUnderB(now);}catch(_){fxbSafe();}FXB.cost+=fxbClock()-t0;}
+function fxbOver(now){const t0=fxbClock();try{fxbOverB(now);}catch(_){fxbSafe();}FXB.cost+=fxbClock()-t0;}
+function fxbUnderB(now){if(!FXB.on||FXB.calm)return;const A=FXB.trA;if(!A.length)return;ctx.lineCap='round';
+  for(let i=0;i<A.length;i++){const r=A[i];if(r.n<2)continue;const st=FXB_TRAIL[r.src]||FXB_TRAIL.watch,col=r.src==='hero'&&r.col?r.col:st[0],L=Math.min(r.n,st[2]);
+    if(r.src==='wild'||r.orb){ctx.globalCompositeOperation='lighter';const g=fxbSoft(r.src==='wild'?'130,255,110':fxbRgb(r.col));ctx.globalAlpha=0.55;ctx.drawImage(g,r.xs[0]-10,r.ys[0]-10,20,20);}
+    ctx.strokeStyle=col;for(let k=1;k<L;k++){const f=1-k/L;ctx.globalAlpha=st[3]*f;ctx.lineWidth=st[1]*(0.4+0.6*f);ctx.beginPath();ctx.moveTo(r.xs[k-1],r.ys[k-1]);ctx.lineTo(r.xs[k],r.ys[k]);ctx.stroke();}
+    ctx.globalCompositeOperation='source-over';}
+  ctx.globalAlpha=1;ctx.lineCap='butt';}
+function fxbOverB(now){if(!FXB.on||FXB.calm)return;const P=FXB.P;let add=0;
+  for(let i=0;i<FXB.np;i++){const p=P[i],k=p.life/p.max;if(p.add!==add){add=p.add;ctx.globalCompositeOperation=add?'lighter':'source-over';}
+    ctx.globalAlpha=p.a*(k<0.4?k/0.4:1);
+    switch(p.k){
+      case 0:ctx.fillStyle=p.c;ctx.fillRect(p.x-p.sz/2,p.y-p.sz/2,p.sz,p.sz);break;
+      case 1:{const c=Math.cos(p.r),s=Math.sin(p.r),L=p.sz;ctx.fillStyle=p.c;ctx.beginPath();ctx.moveTo(p.x+c*L,p.y+s*L);ctx.lineTo(p.x-s*L*0.4,p.y+c*L*0.4);ctx.lineTo(p.x-c*L*0.7,p.y-s*L*0.7);ctx.closePath();ctx.fill();break;}
+      case 2:{const rr=p.sz*(1+p.gr*(1-k));ctx.drawImage(p.im,p.x-rr,p.y-rr,rr*2,rr*2);break;}
+      case 3:ctx.strokeStyle=p.c;ctx.lineWidth=p.sz;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x-p.vx*0.04,p.y-p.vy*0.04);ctx.stroke();break;
+      case 4:{const c=Math.cos(p.r)*p.sz,s=Math.sin(p.r)*p.sz,c2=-s*0.35,s2=c*0.35;ctx.fillStyle=p.c;ctx.beginPath();ctx.moveTo(p.x+c+c2,p.y+s+s2);ctx.lineTo(p.x+c-c2,p.y+s-s2);ctx.lineTo(p.x-c-c2,p.y-s-s2);ctx.lineTo(p.x-c+c2,p.y-s+s2);ctx.closePath();ctx.fill();break;}
+      case 5:{const c=Math.cos(p.r)*p.sz,s=Math.sin(p.r)*p.sz;ctx.strokeStyle=p.c;ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(p.x-c,p.y-s);ctx.quadraticCurveTo(p.x+s*0.6,p.y-c*0.6,p.x+c,p.y+s);ctx.stroke();break;}
+      case 6:{const rr=p.sz*(1+p.gr*(1-k));ctx.strokeStyle=p.c;ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(p.x,p.y,rr,rr*0.42,0,0,6.283);ctx.stroke();break;}}}
+  if(add)ctx.globalCompositeOperation='source-over';
+  if(FXB.nn){ctx.font='700 9px Cinzel,serif';ctx.textAlign='center';ctx.lineWidth=2.4;ctx.strokeStyle='rgba(6,11,20,0.85)';
+    for(let i=0;i<FXB.nn;i++){const o=FXB.N[i];ctx.globalAlpha=Math.min(1,o.life/0.35);ctx.strokeText(o.v,o.x,o.y);ctx.fillStyle=o.c;ctx.fillText(o.v,o.x,o.y);}}
+  ctx.globalAlpha=1;}
+/* ground layer (world space, under the units): water glints, fire light, mist, sand, splashes, spray, gull shadows */
+function fxbGround(now){if(!FXB.on||FXB.calm||!FXB.map||!(G.state==='play'||G.state==='over'))return;const t=FXB.t,A=FXB.A,lim=Math.ceil(FXB.na*Math.max(0.5,FXB.q));
+  if(FXB.glint.length){const im=fxbSoft('255,255,255');for(const g of FXB.glint){const a=Math.pow(Math.max(0,Math.sin(t*1.3+g.ph)),6)*0.85;if(a<0.03)continue;ctx.globalAlpha=a;ctx.fillStyle='#ffffff';ctx.fillRect(g.x-3*g.s,g.y-0.5,6*g.s,1);ctx.drawImage(im,g.x-3,g.y-3,6,6);}}
+  if(FXB.fires.length){ctx.globalCompositeOperation='lighter';for(const f of FXB.fires){const fl=f.lava?0.55+0.25*Math.sin(t*1.6+f.ph):0.75+0.15*Math.sin(t*9+f.ph)+0.1*Math.sin(t*23+f.ph*2);
+      ctx.globalAlpha=(f.lava?0.28:0.34)*fl;const r=f.r*(0.9+0.12*fl);ctx.drawImage(fxbSoft(f.lava?'255,110,40':'255,170,70'),f.x-r,f.y-r*0.8,r*2,r*1.6);}ctx.globalCompositeOperation='source-over';}
+  for(let i=0;i<lim;i++){const p=A[i];switch(p.k){
+    case 14:{const L=40+p.sz*50;ctx.globalAlpha=0.24+0.1*Math.sin(t+p.ph);ctx.drawImage(fxbSoft('255,242,212'),p.x-L/2,p.y-2,L,4+p.sz*3);
+      ctx.globalAlpha=0.6;ctx.fillStyle='#93693a';for(let k=0;k<3;k++){const gx=p.x-L/2+((k*37+t*70*(1+p.sz))%L),gy=p.y+Math.sin(t*3+p.ph+k*2)*2.5;ctx.fillRect(gx,gy,1.5,1.5);}
+      if(p.x-L/2>W)p.x=-L;break;}
+    case 15:{const k=1-p.life;ctx.globalAlpha=0.5*(1-k);ctx.strokeStyle='#d6e4f0';ctx.lineWidth=0.8;ctx.beginPath();ctx.ellipse(p.x,p.y,1+k*5,0.5+k*2,0,0,6.283);ctx.stroke();break;}
+    case 16:if(p.life>0&&p.life<1){ctx.globalAlpha=0.75*p.life;ctx.fillStyle='#f4faff';ctx.fillRect(p.x-1,p.y-1,2,2);}break;
+    case 17:{const w=Math.sin(t*6+p.ph)*2.5;ctx.globalAlpha=0.14;ctx.fillStyle='#000';ctx.beginPath();ctx.moveTo(p.x-9,p.y-w);ctx.quadraticCurveTo(p.x-3,p.y-3,p.x,p.y+1);ctx.quadraticCurveTo(p.x+3,p.y-3,p.x+9,p.y-w);ctx.quadraticCurveTo(p.x+3,p.y,p.x,p.y+3);ctx.quadraticCurveTo(p.x-3,p.y,p.x-9,p.y-w);ctx.fill();break;}
+    case 18:{const r=70+p.sz*50;ctx.globalAlpha=0.13+0.04*Math.sin(t*0.4+p.ph);ctx.drawImage(fxbSoft('205,220,205'),p.x-r,p.y-r*0.4+Math.sin(t*0.2+p.ph)*8,r*2,r*0.8);break;}}}
+  ctx.globalAlpha=1;}
+/* screen layer (over the field, like drawAmbient): flakes, gusts, embers + haze, leaves, motes, lightning */
+function fxbSky(now){if(!FXB.on||FXB.calm||!FXB.map||G.state!=='play')return;const t=FXB.t,A=FXB.A,pr=FXB.prof||{},lim=Math.ceil(FXB.na*Math.max(0.5,FXB.q));
+  if(pr.haze){ctx.globalAlpha=0.07;const im=fxbSoft('255,190,120');for(let i=0;i<3;i++){const y=H-((t*14+i*240)%(H+120))+40,x=Math.sin(t*0.7+i*2)*30;ctx.drawImage(im,x-60,y-24,W+120,48);}}
+  for(let i=0;i<lim;i++){const p=A[i];switch(p.k){
+    case 10:ctx.globalAlpha=0.8;ctx.drawImage(fxbSoft('245,250,255'),p.x-1.6-p.sz,p.y-1.6-p.sz,3.2+p.sz*2,3.2+p.sz*2);break;
+    case 11:ctx.globalAlpha=0.32;ctx.drawImage(fxbSoft('245,250,255'),p.x-4-p.sz*3,p.y-4-p.sz*3,8+p.sz*6,8+p.sz*6);break;
+    case 12:{ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.45+0.35*Math.sin(t*5+p.ph);const r=2.4+p.sz*2.6;ctx.drawImage(fxbSoft('255,140,50'),p.x-r,p.y-r,r*2,r*2);ctx.globalCompositeOperation='source-over';break;}
+    case 13:{ctx.globalAlpha=0.85;ctx.fillStyle=p.c;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.scale(Math.cos(t*2.3+p.ph),1);ctx.beginPath();ctx.ellipse(0,0,3.4,1.6,0,0,6.283);ctx.fill();ctx.restore();break;}
+    case 19:{ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.25+0.2*Math.sin(t*1.8+p.ph);const r=1.6+p.sz*1.6;ctx.drawImage(fxbSoft('255,232,180'),p.x-r,p.y-r,r*2,r*2);ctx.globalCompositeOperation='source-over';break;}}}
+  if(FXB.gust>0&&pr.gust&&FXB.map.biome!=='forest'){const env=Math.sin(Math.PI*(1-FXB.gust/2.4)),k=1-FXB.gust/2.4;const ds=FXB.map.biome==='desert';ctx.strokeStyle=ds?'#fff6e2':'#f4f8ff';ctx.lineWidth=ds?1.4:1;ctx.lineCap='round';
+    for(let i=0;i<7;i++){const y=(i*97+31)%(H-80)+30,x=k*(W+260)-130+((i*53)%90)-45,L=26+(i%3)*12;ctx.globalAlpha=(ds?0.36:0.22)*env;ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+L*0.5,y-3,x+L,y+1);ctx.stroke();}ctx.lineCap='butt';}
+  if(FXB.flash>0){const k=1-FXB.flash/0.5,a=k<0.08?k/0.08:k<0.16?0.35:k<0.24?1:Math.max(0,(1-k)/0.76);ctx.globalAlpha=0.17*a;ctx.fillStyle='#dce9ff';ctx.fillRect(0,0,W,H);}
+  ctx.globalAlpha=1;}
+function fxbCounts(){return{cema:FXB.cema,np:FXB.np,na:FXB.na,nn:FXB.nn,trails:FXB.trA.length,kick:FXB.kick,q:FXB.q,glint:FXB.glint.length,fires:FXB.fires.length,biome:FXB.map&&FXB.map.biome,st:Object.assign({},FXB.st)};}
+/* ---- hooks: wrap the base functions (all plain declarations in this script) ---- */
+{const kill0=kill;kill=function(e,src){const was=e.dead;kill0(e,src);if(!was&&e.dead&&!e.left&&FXB.on&&!FXB.calm){try{fxbDeath(e);}catch(_){}}};}
+{const door0=hitDoor;hitDoor=function(a,gi){const play=G.state==='play'&&!(G.vengUntil>G.time);door0(a,gi);if(play&&FXB.on&&!FXB.calm){try{fxbGate(gi||0,a);}catch(_){}}};}
+{const tower0=drawTower;drawTower=function(s,now){const t=s.tower,r=t&&FXB.on&&!FXB.calm?FXB.TW.get(t):null,age=r?FXB.t-r.ft:9;
+  if(age<0.16){const k=1-age/0.16,kk=k*k,f=t.face||0;ctx.save();ctx.translate(s.x-Math.cos(f)*1.6*kk,s.y+9-Math.sin(f)*0.8*kk);ctx.scale(1+0.035*kk,1-0.07*kk);ctx.translate(-s.x,-(s.y+9));tower0(s,now);ctx.restore();}
+  else tower0(s,now);};}
+{const ground0=drawCloudShadows;drawCloudShadows=function(now){ground0(now);const t0=fxbClock();try{fxbTick(now);fxbGround(now);}catch(_){fxbSafe();}FXB.cost+=fxbClock()-t0;};}
+{const amb0=drawAmbient;drawAmbient=function(now){amb0(now);const t0=fxbClock();try{fxbSky(now);}catch(_){fxbSafe();}FXB.cost+=fxbClock()-t0;};}
 /* =========================== THE REALM WAR (v1.0.93, backend v25) ===========================
    The weekly standings between the realms (countries), Monday 00:00 → Sunday 24:00 UTC, from the players' Hold runs. A realm's score is the
    average weekly waves of its top 50 players + 0.5 for every player who played on 3+ days of the week (at most 40 players count), so a small
@@ -6881,7 +7228,7 @@ function drawGate(now){
   /* torches: between and beside the gates */
   const tx=[];const xs=gates.map(g=>g.x);tx.push(Math.max(20,xs[0]-67));for(let i=0;i<xs.length-1;i++)tx.push((xs[i]+xs[i+1])/2);tx.push(Math.min(W-20,xs[xs.length-1]+67));
   for(const t of tx){const fl=0.8+0.2*Math.sin(now/90+t);ctx.fillStyle='#5a3a20';ctx.fillRect(t-2,y+14,4,14);const gr=ctx.createRadialGradient(t,y+10,1,t,y+10,16*fl);gr.addColorStop(0,'rgba(255,200,90,0.85)');gr.addColorStop(0.4,'rgba(255,130,40,0.5)');gr.addColorStop(1,'rgba(255,100,20,0)');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(t,y+10,16*fl,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffd27a';ell(ctx,t,y+9,2.5,4*fl);}
-  const shakeX=stress?Math.sin(now/35)*Math.min(3,stress):0;
+  const shakeX=(stress?Math.sin(now/35)*Math.min(3,stress):0)+fxbGateKick(now);
   const held=G.hod?G.hod.at:0;
   for(const g of gates){
     const sx=(G.lastHitGate===g.i||gates.length===1)?shakeX:0;
@@ -6955,9 +7302,9 @@ function draw(now){
     if(G.hero&&G.heroOn)items.push({y:G.hero.y,f:()=>drawHero(now)});
     for(const e of G.enemies){if(!e.fly){items.push({y:posE(e).y,f:()=>drawEnemy(e,now)});}}
     items.sort((a,b)=>a.y-b.y);for(const it of items)it.f();
-    for(const p of G.projs)drawProj(p);
+    fxbUnder(now);for(const p of G.projs)drawProj(p);
     for(const e of G.enemies)if(e.fly)drawEnemy(e,now);
-    for(const f of G.fx)drawFx(f,now);
+    for(const f of G.fx)drawFx(f,now);fxbOver(now);
     if(G.dragonFx>0)drawDrogon(now);
     for(const t of G.texts){ctx.globalAlpha=Math.min(1,t.life);ctx.textAlign='center';if(t.big){ctx.font='900 15px Cinzel,serif';ctx.lineWidth=3;ctx.strokeStyle='rgba(6,11,20,0.85)';ctx.strokeText(t.txt,t.x,t.y);}else ctx.font='700 11px Cinzel,serif';ctx.fillStyle=t.col;ctx.fillText(t.txt,t.x,t.y);ctx.globalAlpha=1;}
     if(G.pending){const s0=G.pending.slot,d=TOWERS[G.pending.type];
@@ -7472,6 +7819,9 @@ window.HOLDOR_GA={gearArt,gaFamily,GA_METAL,GA_SET};
 window.HOLDOR_GFX={gfxStart,gfxReveal,gfxEnd};
 window.HOLDOR_CHAT={showChat,CHAT,chatClean:null};
 window.HOLDOR_WAR={showRealmWar,showRealms,WAR};
+window.HOLDOR_FXB={FXB,fxbCounts,fxbTint,fxbGateKick,fxbDeath,fxbTick,fxbNum,drawFrame:n=>draw(n)};
+window.HOLDOR_FXUI={FXUI,fxuiHub,fxuiOff,fxuiCalm,fxuiLive,fxuiParTo,ecoModal,homeRaf:()=>HOME.raf,
+  drawTimer(){if(window.__fxDT)return window.__fxDT;const T={ms:0,n:0},d0=draw;draw=function(){const t=performance.now();const r=d0.apply(this,arguments);T.ms+=performance.now()-t;T.n++;return r;};window.__fxDT=T;return T;}};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();

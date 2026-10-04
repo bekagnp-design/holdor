@@ -413,6 +413,25 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **Server (v19, applied to production at once — it works with the live app):** the ranked fallback reuses the open practice duel; the duplicates were closed.
 - **App:** a `startapp=d_<code>` link joins the duel as soon as the seat is on the server and opens the Duel screen by itself; each duel row says what each side still has to do (▶ play a Hold run / ✔ your run counts, not played yet / ✔ has played) and has a **▶ Play my Hold run** button that starts the run (the same checks as the Hold button); a plain explanation of how a duel is decided; a refused invitation says the friend already plays and points at the duel; a Duel card at the top of the Hold tab (Events is no tab since v1.0.74); "Ranked" says when it had to fall back to the bot.
 - **Tests:** `v15_test` (three ranked taps with nobody to match = one duel), `duel_test` (a friend's link: joins, opens, the per-side status, the Play button starts a Hold battle on the server, the result, the Hold-tab card). `t_gear63`'s thorns check depended on the day's map; it now spawns the enemy at the gate.
+### v1.0.96 — the visuals move (2026-10-04)
+- Display only: the battle ends with the same numbers with both layers on and off (tests compare the same seeded Hold battle off / on / off). `prefers-reduced-motion` turns both off.
+- **Battle (`src/mod/fxbattle.js`, part `96_fxbattle.py`):**
+  - The white hit flash takes the colour of the blow (wildfire green, fire orange, dragonglass blue, steel white) and throws sparks.
+  - Damage numbers are merged per enemy every 0.5 s, at most 8 on the field, and slide off towers.
+  - Deaths burst by kind: ice shards and frost for walkers and wraiths, dust and bone for wights, fur for beasts, feathers for birds, chitin for spiders; giants and bosses burst bigger.
+  - Projectiles leave short trails; wildfire glows. Towers recoil with a muzzle flash and a smoke puff. The gate jolts and sheds splinters, plus frost in the cold.
+  - Each biome has its own life on top of `drawAmbient`: gusts, embers with heat haze, leaves, sand drift, rain with a rare soft lightning flash, mist, sea spray with gull shadows, dust motes, water glints, flickering fire light.
+  - Pooled and capped (combat 160, ambient 90). A self-throttle halves the effects when frames are slow and the layer is costly. Paused battles freeze. A lost gate does not keep shaking, and a new run starts clean.
+  - Headless cost: about +0.7 ms per frame.
+- **Menus (`src/mod/fxui.js`, `fxui.css`, part `94_fxui.py`):**
+  - In all three home looks, house-coloured motes drift over the art with a light sweep, a slight parallax follows a drag or a tilt, and a glow breathes behind BATTLE.
+  - A tab tap grows the new tab out of the tapped side in 220 ms.
+  - Ready chests glow, currency icons glint, the modal pops on a spring, champion portraits breathe, and unlocked Epic/Legendary cards shimmer.
+  - Nothing of it runs during a battle. A hidden page pauses it, and slow phones get half the motes.
+- **A fix found on the way:** the home screen's canvas loop kept drawing during a battle, because it only checked the screen name, which a battle does not change. Starting a battle now stops it, and the home screen restarts it.
+- **Process:** built by two agents in separate git worktrees. Each branch got an adversarial review. The battle review found the gate shaking forever behind the defeat screen; it was fixed and tested.
+- **Tests:** `t_fxbattle96.js` (17 checks) and `t_fxui96.js` (23 checks), both in the core set.
+
 ### Release v1.0.95 + Supabase v23–v30 (2026-10-04)
 - On MR B's "release": backup (`holdor_backup.functions_pre_v23` = leaderboard, realm_card, pay_secret; `holdor_backup.econ_config_pre_v23`), then the migrations `holdor_v23_realm_chat` … `holdor_v30_ref_gift_news`. All 23 function hashes equal the local files. Live checks: the leaderboard returns `mine` and no `tg_id`, the Legendary trigger exists, the chat is open to the app, the bot functions are closed to it. Release PR #15 copies `beta/index.html` → `index.html`.
 - `holdor_v24.sql` now says `create or replace trigger chat_drop_t` instead of `drop trigger if exists` + `create trigger`: the same result, but the Supabase connector waits for a confirmation of any `drop` and timed out twice. The local suite passed again (38 OK).
