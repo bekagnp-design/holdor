@@ -10,14 +10,16 @@
 //   POST {op:'remind', code}  (backend v29) the hourly schedule: ONE message, with a ▶ Play button, to each person who pressed /start
 //        24–72 hours ago and never opened the game; whoever blocked the bot is marked and never written to again. /start notes the
 //        person (bot_seen) for this; nothing else is kept.
+//   POST {op:'refgift', code}  (backend v30) the hourly schedule: ONE message to each inviter whose friends (joined by his link) have
+//        cleared the stages, naming them, with a ▶ Play button; the friends are marked so the same news never comes twice.
 // Money never moves here: every decision is a SQL function (pay_*) that only the service key may call. The bot token is read from
 // app_secrets per request and is never logged or returned; error text is scrubbed of it.
 const BOT = 'HoldorTDBot';
 const ART = 'https://bekagnp-design.github.io/holdor/docs/marketing/bot_banner_1280x720.png';
 const TXT = {
-  en: { remind: '🚪 The door is still open.\n\nThe dead are waiting, defender. The first battle takes two minutes.', start: '🚪 Welcome, defender!\n\nThe dead are at the gate and you are the last wall. Build towers, lead your champion, and hold the door.\n\nTap PLAY — the first battle takes two minutes.',
+  en: { gift: n => '🎁 Your friend' + (n.length > 1 ? 's ' : ' ') + n.join(', ') + (n.length > 1 ? ' have' : ' has') + ' cleared the first stages.\n\nYour invitation gift is waiting: Tasks → Friends → Claim.', remind: '🚪 The door is still open.\n\nThe dead are waiting, defender. The first battle takes two minutes.', start: '🚪 Welcome, defender!\n\nThe dead are at the gate and you are the last wall. Build towers, lead your champion, and hold the door.\n\nTap PLAY — the first battle takes two minutes.',
         help: '⚔️ How to play\n\n1. Tap a free spot on the road side to build a tower.\n2. Tap a tower to upgrade or sell it.\n3. Move your champion where the dead break through.\n4. Hold the gate until the last wave.\n\nEvery day: the Hold. Every week: your country\'s war.', play: '▶ Play free' },
-  ka: { remind: '🚪 კარი ჯერ კიდევ ღიაა.\n\nმკვდრები ელოდებიან, დამცველო. პირველი ბრძოლა ორ წუთს გრძელდება.', start: '🚪 კეთილი იყოს შენი მობრძანება, დამცველო!\n\nმკვდრები კართან არიან და შენ ბოლო კედელი ხარ. ააშენე კოშკები, უხელმძღვანელე ჩემპიონს და დაიცავი კარი.\n\nდააჭირე PLAY-ს — პირველი ბრძოლა ორ წუთს გრძელდება.',
+  ka: { gift: n => '🎁 შენმა ' + (n.length > 1 ? 'მეგობრებმა ' : 'მეგობარმა ') + n.join(', ') + ' პირველი ეტაპები გაიარ' + (n.length > 1 ? 'ეს' : 'ა') + '.\n\nმოწვევის საჩუქარი გელოდება: Tasks → Friends → Claim.', remind: '🚪 კარი ჯერ კიდევ ღიაა.\n\nმკვდრები ელოდებიან, დამცველო. პირველი ბრძოლა ორ წუთს გრძელდება.', start: '🚪 კეთილი იყოს შენი მობრძანება, დამცველო!\n\nმკვდრები კართან არიან და შენ ბოლო კედელი ხარ. ააშენე კოშკები, უხელმძღვანელე ჩემპიონს და დაიცავი კარი.\n\nდააჭირე PLAY-ს — პირველი ბრძოლა ორ წუთს გრძელდება.',
         help: '⚔️ როგორ ვითამაშო\n\n1. გზის პირას თავისუფალ ადგილზე დააჭირე და ააშენე კოშკი.\n2. კოშკზე დაჭერით გააძლიერებ ან გაყიდი.\n3. ჩემპიონი იქ გადაიყვანე, სადაც მკვდრები გაარღვევენ.\n4. გაუძელი კარს ბოლო ტალღამდე.\n\nყოველდღე: Hold. ყოველ კვირას: შენი ქვეყნის ომი.', play: '▶ თამაში უფასოა' } };
 // a command in a private chat: which one, the payload to carry into the Mini App, the language
 export function botCommand(m) {
@@ -106,6 +108,26 @@ export function makeHandler(env, f = fetch) {
           catch (e) {
             if (/blocked|deactivated|chat not found|403/i.test(String(e && e.message))) { await rpc('bot_reminded', { tg: d.tg, blocked: true }); blocked++; }
             else failed++;   // Telegram is busy: the next hour tries again
+          }
+        }
+        return reply({ ok: true, due: due.length, sent, blocked, failed });
+      }
+
+      // ---- the schedule: tell an inviter that a friend's gift is ready (backend v30) ----
+      if (b.op === 'refgift') {
+        const want = await secret('digest_code');
+        if (!want || typeof b.code !== 'string' || b.code !== want) return reply({ ok: false, error: 'no' }, 403);
+        const due = (await rpc('bot_ref_due', { lim: 50 })) || [];
+        let sent = 0, blocked = 0, failed = 0;
+        for (const d of due) {
+          const t = TXT[d.lang === 'ka' ? 'ka' : 'en'], names = (d.names || []).slice(0, 5).map(String);
+          if ((d.names || []).length > 5) names.push('…');
+          try { await tg('sendMessage', { chat_id: d.tg, text: t.gift(names), reply_markup: { inline_keyboard: [[{ text: t.play, url: 'https://t.me/' + BOT + '/play?startapp=s_refgift' }]] } });
+                await rpc('bot_ref_notified', { tg: d.tg, friends: d.friends, blocked: false }); sent++; }
+          catch (e) {
+            // blocked, or never started the bot (Telegram does not let a bot write first): mark, so it is not tried every hour
+            if (/blocked|deactivated|chat not found|initiate|403/i.test(String(e && e.message))) { await rpc('bot_ref_notified', { tg: d.tg, friends: d.friends, blocked: /blocked|deactivated/i.test(String(e && e.message)) }); blocked++; }
+            else failed++;
           }
         }
         return reply({ ok: true, due: due.length, sent, blocked, failed });

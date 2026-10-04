@@ -2,7 +2,7 @@
 // Telegram. No network, no token: the fake answers pay_secret with test values and records every Telegram call.
 import { makeHandler, botCommand } from '../edge/stars/handler.js';
 const TOKEN = '123456789:TESTTOKENabcDEFghiJKLmnoPQRstuVWXyz', HOOK = 'hook-secret-1';
-let calls = [], photoFails = false, tgDown = false, digests = [], seen = [], reminded = [], DUE = [];
+let calls = [], photoFails = false, tgDown = false, digests = [], seen = [], reminded = [], DUE = [], RDUE = [], rnote = [];
 const SECRETS = { bot_token: TOKEN, webhook_secret: HOOK, digest_code: 'dig-1', channel_en: '@holdor_news', channel_ka: '@holdor_ge' };
 const DIG = { 'day:en': { ok: true, text: "⚔️ Yesterday's Hold top-2\n\n1. Arya — 41 🌊\n2. Bran — 30 🌊" }, 'day:ka': { ok: true, text: '⚔️ გუშინდელი Hold-ის ტოპ-2' }, 'war:en': { ok: false, why: 'no realm fought last week' } };
 const f = async (url, init) => {
@@ -12,6 +12,8 @@ const f = async (url, init) => {
   if (url.includes('/rest/v1/rpc/bot_seen')) { seen.push(body); return new Response('null', { status: 200 }); }
   if (url.includes('/rest/v1/rpc/bot_remind_due')) return new Response(JSON.stringify(DUE), { status: 200 });
   if (url.includes('/rest/v1/rpc/bot_reminded')) { reminded.push(body); return new Response('null', { status: 200 }); }
+  if (url.includes('/rest/v1/rpc/bot_ref_due')) return new Response(JSON.stringify(RDUE), { status: 200 });
+  if (url.includes('/rest/v1/rpc/bot_ref_notified')) { rnote.push(body); return new Response('null', { status: 200 }); }
   if (url.includes('/rest/v1/rpc/')) return new Response('{}', { status: 200 });
   const m = /\/bot([^/]+)\/(\w+)$/.exec(url);
   if (tgDown) throw new Error('down');
@@ -76,6 +78,17 @@ r = await dpost({ op: 'remind', code: 'dig-1' });
 const sentTo = calls.filter(c => c.method === 'sendMessage').map(c => c.body.chat_id);
 check('one message to each person due, in his language, with a Play button (startapp=s_remind)', sentTo.join() === '101,102,777,888' && /door is still open/.test(calls[0].body.text) && /კარი ჯერ კიდევ ღიაა/.test(calls[1].body.text) && url(calls[0]).endsWith('startapp=s_remind'), calls.map(c => c.body.text));
 check('sent ones are marked; a blocked bot is marked blocked; a busy Telegram is left for the next hour', JSON.stringify(reminded) === JSON.stringify([{ tg: 101, blocked: false }, { tg: 102, blocked: false }, { tg: 777, blocked: true }]) && r.body.sent === 2 && r.body.blocked === 1 && r.body.failed === 1, [reminded, r.body]);
+// the invitation gift news (backend v30)
+RDUE = [{ tg: 201, lang: 'en', friends: [11], names: ['Bob'] }, { tg: 202, lang: 'ka', friends: [12, 13], names: ['Dee', 'Ed'] },
+        { tg: 203, lang: 'en', friends: [1, 2, 3, 4, 5, 6, 7], names: ['a', 'b', 'c', 'd', 'e', 'f', 'g'] }, { tg: 777, lang: 'en', friends: [14], names: ['Fay'] }, { tg: 888, lang: 'en', friends: [15], names: ['Gus'] }];
+calls = [];
+r = await dpost({ op: 'refgift', code: 'nope' });
+check('the gift news without the code is refused (403)', r.status === 403 && calls.length === 0);
+r = await dpost({ op: 'refgift', code: 'dig-1' });
+const gm = calls.filter(c => c.method === 'sendMessage');
+check('one message per inviter naming the friends, in his language, with a Play button (startapp=s_refgift)', gm.map(c => c.body.chat_id).join() === '201,202,203,777,888' && /Your friend Bob has cleared/.test(gm[0].body.text) && /მეგობრებმა Dee, Ed .*გაიარეს/.test(gm[1].body.text) && url(gm[0]).endsWith('startapp=s_refgift'), gm.map(c => c.body.text));
+check('at most five names, then …', /a, b, c, d, e, …/.test(gm[2].body.text) && !/\bf\b/.test(gm[2].body.text.split('.')[0]), gm[2].body.text);
+check('sent and blocked ones are marked with their friends; a busy Telegram is left for the next hour', JSON.stringify(rnote) === JSON.stringify([{ tg: 201, friends: [11], blocked: false }, { tg: 202, friends: [12, 13], blocked: false }, { tg: 203, friends: [1, 2, 3, 4, 5, 6, 7], blocked: false }, { tg: 777, friends: [14], blocked: true }]) && r.body.sent === 3 && r.body.blocked === 1 && r.body.failed === 1, [rnote, r.body]);
 const flat = JSON.stringify(calls);
 check('the token never appears in what is sent', !flat.includes(TOKEN));
 console.log(fails.length ? 'FAILED: ' + fails.join(' | ') : 'all bot checks OK'); process.exit(fails.length ? 1 : 0);
