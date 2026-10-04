@@ -5,7 +5,7 @@ import os, json, subprocess
 from playwright.sync_api import sync_playwright
 HERE = os.path.dirname(os.path.abspath(__file__)); BACK = os.path.dirname(HERE); ROOT = os.path.dirname(BACK)
 SHOTS = os.path.join(ROOT, '.shots'); os.makedirs(SHOTS, exist_ok=True)
-sql = ''.join(open(os.path.join(BACK, f), encoding='utf-8').read() + '\n' for f in ('test/prod_like.sql', 'holdor_v3.sql', 'holdor_v4.sql', 'holdor_v5.sql', 'holdor_econ_data.sql', 'holdor_v6.sql', 'holdor_v7.sql', 'holdor_v8.sql', 'holdor_v9.sql', 'holdor_v10.sql', 'holdor_v11.sql', 'holdor_v12.sql', 'holdor_v13.sql', 'holdor_v14.sql', 'holdor_v15.sql', 'holdor_v16.sql', 'holdor_v17.sql', 'holdor_v18.sql', 'holdor_v19.sql', 'holdor_v20.sql', 'holdor_v21.sql', 'holdor_v22.sql', 'holdor_v23.sql', 'holdor_v24.sql', 'holdor_v25.sql', 'holdor_v26.sql', 'holdor_v27.sql', 'holdor_v28.sql'))
+sql = ''.join(open(os.path.join(BACK, f), encoding='utf-8').read() + '\n' for f in ('test/prod_like.sql', 'holdor_v3.sql', 'holdor_v4.sql', 'holdor_v5.sql', 'holdor_econ_data.sql', 'holdor_v6.sql', 'holdor_v7.sql', 'holdor_v8.sql', 'holdor_v9.sql', 'holdor_v10.sql', 'holdor_v11.sql', 'holdor_v12.sql', 'holdor_v13.sql', 'holdor_v14.sql', 'holdor_v15.sql', 'holdor_v16.sql', 'holdor_v17.sql', 'holdor_v18.sql', 'holdor_v19.sql', 'holdor_v20.sql', 'holdor_v21.sql', 'holdor_v22.sql', 'holdor_v23.sql', 'holdor_v24.sql', 'holdor_v25.sql', 'holdor_v26.sql', 'holdor_v27.sql', 'holdor_v28.sql', 'holdor_v29.sql', 'holdor_v30.sql'))
 sql += "delete from players where tg_id in (777000123, 555);\n"
 r = subprocess.run(['su', 'postgres', '-c', 'psql -q -v ON_ERROR_STOP=1 -o /dev/null'], input=sql, capture_output=True, text=True)
 if r.returncode: raise SystemExit('load failed: ' + r.stderr[-600:])
