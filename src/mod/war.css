@@ -1,0 +1,15 @@
+/* v1.0.93: the realm war */
+.wst{font-size:12px;color:#9fb6c9}
+.wleft{margin:2px 0 8px}.wleft b{color:#ffd54a}
+.wlist{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+.wrow{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:12px;background:#13284a;border:2px solid #0b1a2e}
+.wrow.me{background:linear-gradient(90deg,#4a3410,#2a2010);border-color:#e3b661;box-shadow:0 0 12px rgba(230,180,90,.35)}
+.wrow .wk{flex:none;min-width:34px;text-align:center;font:900 15px var(--f-display);color:#ffd54a}
+.wrow .wn{flex:1;min-width:0}.wrow .wn b{display:block;font:900 14px var(--f-display);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrow .wn small{display:block;font-size:10.5px;color:#8fa6bd}
+.wrow .ws{flex:none;font:900 20px var(--f-display);color:#ffe08a;text-shadow:0 2px 0 rgba(0,0,0,.5)}
+.wempty{text-align:center;margin:18px 10px}.whow{font-size:11px;color:#7f98b3}
+/* v1.0.94: last week's war */
+.wlast .wlp{margin:4px 0 8px;font-size:13px}.wlast .wlp b{color:#ffd54a}
+.wlast .wcl{margin:2px 0 4px;font-size:12px;color:#9fb6c9}.wlast .wcl.done{color:#9be28a;font-weight:700}
+.wlast .btn{width:100%}

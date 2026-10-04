@@ -43,7 +43,7 @@ try:
             pg.wait_for_timeout(100)
         return None
     def settle():
-        ok = wait("(()=>{const E=HOLDOR_ECON.ECO;return !E.q.length&&!E.fly.length&&!E.fin&&!E.n&&!E.busyB&&!E.busyC&&!E.starting&&!document.querySelector('#ecoWait.on')})()", 15000)
+        ok = wait("(()=>{const E=HOLDOR_ECON.ECO;return !E.q.length&&!E.fly.length&&!E.fin&&!E.n&&!E.busyB&&!E.busyC&&!E.starting&&!document.querySelector('#ecoWait.on')&&!document.getElementById('gfx')})()", 15000)
         pg.wait_for_timeout(300); return ok
     def tap(sel, ms=400, force=False): pg.locator(sel).first.tap(force=force); pg.wait_for_timeout(ms)
     def items(): return q("select id::text, slot, rar, main_k, lvl, champ from items where tg_id = %s and seat = 0 order by created_at", TG)

@@ -413,6 +413,67 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **Server (v19, applied to production at once — it works with the live app):** the ranked fallback reuses the open practice duel; the duplicates were closed.
 - **App:** a `startapp=d_<code>` link joins the duel as soon as the seat is on the server and opens the Duel screen by itself; each duel row says what each side still has to do (▶ play a Hold run / ✔ your run counts, not played yet / ✔ has played) and has a **▶ Play my Hold run** button that starts the run (the same checks as the Hold button); a plain explanation of how a duel is decided; a refused invitation says the friend already plays and points at the duel; a Duel card at the top of the Hold tab (Events is no tab since v1.0.74); "Ranked" says when it had to fall back to the bot.
 - **Tests:** `v15_test` (three ranked taps with nobody to match = one duel), `duel_test` (a friend's link: joins, opens, the per-side status, the Play button starts a Hold battle on the server, the result, the Hold-tab card). `t_gear63`'s thorns check depended on the day's map; it now spawns the enemy at the gate.
+### v1.0.94 — the realm war pays (backend v26) (2026-10-04)
+- **LAST week's war is settled for whoever asks** (no scheduler): a player who played on **3+ days** of that week claims once per week (per player, not per seat; the reward goes to the seat that claims).
+  - His realm finished **1st**: 3000 gold + 50 dragonglass; **2nd**: 2000 + 30; **3rd**: 1000 + 15; **any other realm**: 300 gold for taking part.
+  - A week that is not claimed by the end of the following week is lost: only the last finished week can be claimed.
+- **Server (v26, local only until the release):** `econ_config 'war'` (the owner can change the numbers without a new version); table `war_claims` (one row per player and week); `realm_war_rows_at(week)` (v25's helper with the week as a parameter; `realm_war_rows()` is its wrapper for the current week); `war_last(pid)` (internal, read-only); `war_state(token)` and `war_claim(token, seat)` (paid through `qs_pay`, reason `war`, so the ledger shows it; the wallet state is returned like every other claim); the owner's view `v_war_paid`.
+- **App (`mod/war.js`):** the war screen opens with a **🏆 Last week's war** card: "Your realm Georgia finished #2 of 6 · your 41 waves on 3 days." and a **🎁 Claim** button with the reward; after it, "✔ Claimed: …"; a player who was not active sees the reason (no button); no Hold run last week = no card. Guests (no managed seat) just do not see the card.
+- **Tests:** `backend/test/v26_test.py` (the ranking of last week, the three rewards and the participation reward, the 3-days rule even inside a winning realm, no run = no realm, the claim pays gold and dragonglass and writes the ledger, a second claim and a claim from another seat are refused, an ineligible claim is refused with the reason, `v_war_paid`, a bad token, closed helpers and table, this week stays separate from last week); `tests/t_war93.js` (core: the card, the claim, "✔ Claimed", the reason, no card).
+- Backend v23 + v24 + v25 + v26 go to Supabase together before the release that carries v1.0.91–94.
+
+### v1.0.93 — the realm war, standings (backend v25) (2026-10-04)
+- The first slice of v1.0.69 (the weekly war between countries): the **standings**. Rewards for the winning realms come later.
+- **Server (v25, read-only, local only until the release):** `realm_war(token)` reads `daily_scores` (the Hold runs) for the current week (Monday 00:00 → Sunday 24:00 UTC). A player's week = the sum of his daily waves. A realm's score = **the average weekly waves of its top 50 players + 0.5 for every player who played on 3+ days (at most 40 players, +20 at most)**, so a small realm can beat a big one. The answer carries the week's start and end, the top 30 realms (score, top-50 average, players, active, total waves, position) and — with a token — the caller's realm, week points, days and the realm's position. No Telegram id. The helper `realm_war_rows()` is closed to the app.
+- **App (`mod/war.js`, part `96_war.py`):** a **⚔️ Realm war · this week** button on the Realms screen. The screen: a countdown to the end of the week, "Your week" (waves, days, your realm's rank), the realms in order with medals, flags, score and details, my realm highlighted, and the scoring rule in one paragraph. It refreshes every 30 s while open; a failing server keeps the last standings; an empty week says so; offline says it needs the backend.
+- **Tests:** `backend/test/v25_test.py` (the average of the top 50, the activity bonus and its cap, a small realm beating a big one, last week not counting, the personal block with a token, a bad token refused, no Telegram id, the helper closed); `tests/t_war93.js` (core: real taps against a fake of `realm_war`).
+- Backend v23 + v24 + v25 go to Supabase together before the release that carries v1.0.91–93.
+
+### v1.0.92 — Legendary drops in the realm chat (backend v24) (2026-10-04)
+- When a defender's seat gets a **Legendary** item (from any source: a win, a chest, a gift, the Hold), the server writes one line into that seat's realm chat: "**<name> found a Legendary 🐉 Dragon Greatsword!**" with the item's own picture, as a gold banner.
+- **Server (v24, local only until the release):** a trigger on `items` (rarity 4) adds a `chat_msgs` row of kind `drop`; its text is `slot:kind:set`, built by the server, so there is nothing typed to filter or report. Drop lines do not count against the sender's rate limits (2 s, 15 a minute, same text twice), cannot be reported, and a muted author's lines are hidden like his messages. `chat_list` returns `kind`; `chat_send` and `chat_report` count only `say` lines.
+- **App:** `chat.js` draws `drop` lines (the picture, the set emoji, the kind); tapping one opens no menu. An app without v24 on the server simply sees no drop lines.
+- **Tests:** `backend/test/v24_test.py` (Epic and lower say nothing; one Legendary = one line in the right realm; a seat the server does not know says nothing; everyone sees it without a Telegram id; the limits ignore drop lines; a drop cannot be reported; a muted author's drops are hidden; the helper is closed); `t_chat91` draws a drop line and checks it has no menu.
+- Backend v23 + v24 go to Supabase together, before the release that carries v1.0.91 / v1.0.92.
+
+### v1.0.91 — the realm chat, first slice (backend v23) (2026-10-04)
+- The first slice of v1.0.66 (chats): **one chat per realm (country)**. Friends / private chats, groups and the Battle chat come later.
+- **Server (v23, local only until the release):**
+  - Tables `chat_msgs`, `chat_blocks`, `chat_reports`, `chat_mutes`, `chat_words`; functions `chat_send`, `chat_list`, `chat_block`, `chat_unblock_all`, `chat_report`; the owner's view `v_chat_reports`.
+  - Who speaks: a defender speaks as one of his seats, with that seat's name and house, in the realm that seat fights for (`scores`). A player without a seat on the server cannot chat yet. No Telegram id ever leaves the server (a message carries id, name, house, text, time, "mine").
+  - Limits: 200 characters; links, `@handles` and a word list are hidden (`chat_words` is the owner's to extend, Georgian words too); one message per 2 seconds, 15 per minute; the same text twice within 30 seconds is refused; the newest 300 messages of a realm are kept.
+  - Moderation: a player can block an author (his messages vanish for the blocker only) or report a message from the message itself; three different reporters within a day mute the author for an hour (and hide his messages).
+- **App (`mod/chat.js`, part `94_chat.py`):** a **💬 Realm chat** button on the realm card of the player's own realm (the Realms screen → your country). The chat screen: house crest, name, text and time per message; mine on the right in green; a box with ➤; the server's refusals under the box; tap someone else's message → Report / Block; it polls every 4 s only while it is open. A guest sees that the chat needs the online backend.
+- **Tests:** `backend/test/v23_test.py` (22 checks: realms, seats, cleaning, limits, block, report, mute, privacy, closed tables); `tests/t_chat91.js` (core: real taps against an in-memory fake of the server's chat functions).
+- **Not in this slice:** the "Legendary drop" announcement, friends / private chats, groups, the Battle chat, a mute switch per player. Backend v23 goes to Supabase **before the release that carries v1.0.91** (an older app does not call it).
+
+### v1.0.90 — the forge scene (2026-10-04)
+- Upgrading an item or raising its tier no longer waits silently (`mod/upgradefx.js`, part `93_upgradefx.py`):
+  - A dark overlay shows the item on an anvil while a hammer strikes it three times, with sparks, a thump on every blow and the Telegram haptic buzz.
+  - Then the verdict from the server: **success** = a flash, a golden ring, gold sparks and "+3" (or "★ Tier N") rising; **failure** = the item shakes, grey smoke rises and "NOT THIS TIME · the item is safe". The old toasts and the forge redraw follow.
+  - The scene waits at least 1.9 s so the hammer lands (0.5 s in calm mode), the verdict stays about 1.5 s (1.25 s on failure), and a tap skips it. If the server cannot be reached the scene ends at once, with the same error toast as before.
+  - Calm mode (reduced motion): no swing and no sparks, a short still scene.
+- The result still comes only from the server (`gear_upgrade`, `gear_tier_up`); the scene only shows it.
+- **Tests:** `tests/t_forgefx90.js` (core: the scene's parts and the swing; the verdict waits for the hammer; "+3" with gold sparks; failure text and smoke; a tap skips; the continuation runs once; no server → the scene ends). `backend/test/gear_test.py` (real upgrade, failed upgrade and tier on a server seat) now waits for the scene to end and passes.
+
+### v1.0.89 — a cleaner item sheet, SELL on the tower ring (2026-10-03)
+- MR B: "the sword is nice, but Strike and so much text make no sense — redo it, make it prettier"; "when selling a tower, write Sell — with only a bag you can't tell what the button does".
+- **Item sheet (part `92_sheet.py`, gearSheet rewritten):**
+  - Layout: the item large on a dark leather card; its name and +level; a rarity badge and tier stars; a level bar; the stats as chips (main bold, subs without the long explanation); the set and its steps in one line.
+  - Buttons: one wide gold **⚒️ Upgrade to +N** button with "chance · price" small under it (at the cap: **⬆ Tier N** with "price + one item of this rarity"); **Equip** and **Sell** side by side; **✕** in the corner.
+  - Wording: "Strike" is gone everywhere (button, forge intro, the failure toast "Upgrade failed"). The forge intro is one short line.
+- **Tower ring:** the sell button shows the bag, **SELL** under it, and the gold it returns.
+- **Tests:** `tests/t_sheet89.js` (core: the sheet's parts, no "Strike", the wide Upgrade button with chance and price, Equip/Sell side by side, ✕ closes; a built tower's ring says SELL with +gold); `t_gear62` reads the new tier button; backend `gear_test` (real upgrade, failed upgrade and tier on a server seat through the new buttons) passes.
+
+### v1.0.88 — the item up close (2026-10-03)
+- Tapping an item in the forge opens its sheet with the item large, in place of the small icon (`mod/gearbig.js`, part `91_gearbig.py`):
+  - about 156 px on a dark leather stand, the rarity on its rim (Epic and Legendary glow);
+  - it sways slowly with a breathing shadow, and a glint of light passes over it;
+  - the finger (or the mouse) tilts it in 3D; letting go sets it straight;
+  - painted art, when it exists, is shown the same way. Reduced motion shows it still.
+- **Tests:** `tests/t_bigitem88.js` (core: the large view of the right drawing, sway and glint running, finger tilt and reset).
+- **Release v1.0.87:** Supabase v22 was applied to production 2026-10-03 (migration `holdor_v22_gear_kinds`, backup `holdor_backup.econ_config_pre_v22`; the 224 kinds equal the local file by hash). The root `index.html` waits for MR B's release.
+
 ### v1.0.87 — natural items (2026-10-03)
 - MR B: "no plastic weapons — make them look natural".
 - **App (`gearart.js`, part `90_natural.py`):**
