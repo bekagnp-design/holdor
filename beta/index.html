@@ -1298,6 +1298,36 @@ button,.btn,.hbtn,.ebld,.cday{transition:scale .22s cubic-bezier(.3,1.7,.5,1),fi
 /* v1.0.89: SELL on the tower ring */
 #ring .rb .em.sm{font-size:20px;margin-top:-8px}
 #ring .rb .rw{position:absolute;left:0;right:0;top:33px;text-align:center;font:900 10.5px/1 var(--f-display);letter-spacing:.8px;color:#ffe9b0;text-shadow:0 1px 0 #0b1a2e,0 0 3px #000;pointer-events:none}
+/* v1.0.90: the forge scene */
+#gfx{position:fixed;inset:0;z-index:95;display:flex;align-items:center;justify-content:center;background:rgba(6,4,3,.93);animation:gfIn .25s ease-out}
+@keyframes gfIn{from{opacity:0}to{opacity:1}}
+#gfx .gfs{position:relative;width:300px;height:380px}
+#gfx .gfi{position:absolute;left:50%;top:70px;transform:translateX(-50%);transform-origin:50% 100%}
+#gfx .gfi .gbig{margin:0;pointer-events:none}
+#gfx .gfa{position:absolute;left:50%;top:238px;width:230px;transform:translateX(-50%);filter:drop-shadow(0 8px 6px rgba(0,0,0,.6))}
+#gfx .gfh{position:absolute;left:158px;top:34px;width:130px;height:130px;transform-origin:50% 96%;animation:gfSwing .62s ease-in infinite;filter:drop-shadow(0 6px 4px rgba(0,0,0,.55))}
+#gfx .gfh.calm{animation:none;transform:rotate(-40deg)}
+@keyframes gfSwing{0%{transform:rotate(26deg)}45%{transform:rotate(34deg)}62%{transform:rotate(-62deg)}72%{transform:rotate(-52deg)}100%{transform:rotate(26deg)}}
+#gfx.hit .gfi{animation:gfThump .2s ease-out}
+@keyframes gfThump{0%{transform:translateX(-50%) scaleY(.94)}100%{transform:translateX(-50%) scaleY(1)}}
+#gfx .gfk{position:absolute;width:5px;height:5px;margin:-2px;border-radius:50%;background:#ffd98a;box-shadow:0 0 6px 2px rgba(255,170,60,.9);animation:gfFly .6s ease-out forwards;pointer-events:none}
+#gfx .gfk.g{width:6px;height:6px;background:#fff3c0;box-shadow:0 0 9px 3px rgba(255,200,80,1)}
+@keyframes gfFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+#gfx .gft{position:absolute;left:0;right:0;top:10px;text-align:center;pointer-events:none}
+#gfx .gft b{display:block;font:900 54px/1 var(--f-display);color:#ffe08a;text-shadow:0 3px 0 #5a3a08,0 0 22px rgba(255,200,80,.9);animation:gfRise .9s cubic-bezier(.2,1.3,.4,1) both}
+#gfx.lose .gft b{font-size:26px;color:#c9c2b8;text-shadow:0 2px 0 #2a2622;animation:gfRise .5s ease-out both}
+#gfx .gft small{display:block;margin-top:4px;font:700 13px var(--f-display);color:#9fb6c9}
+@keyframes gfRise{0%{transform:translateY(24px) scale(.4);opacity:0}100%{transform:translateY(0) scale(1);opacity:1}}
+#gfx.win .gfi .gbig{animation:gfWin .7s ease-out;box-shadow:0 0 36px 8px rgba(255,210,100,.75)}
+@keyframes gfWin{0%{filter:brightness(3.2)}100%{filter:brightness(1)}}
+#gfx.win .gfs::before{content:'';position:absolute;left:50%;top:148px;width:30px;height:30px;margin:-15px;border-radius:50%;border:5px solid #ffe08a;box-shadow:0 0 20px #ffd060;animation:gfRing .8s ease-out forwards}
+@keyframes gfRing{0%{transform:scale(.4);opacity:1}100%{transform:scale(11);opacity:0}}
+#gfx.lose .gfi{animation:gfShake .5s linear}
+@keyframes gfShake{0%,100%{transform:translateX(-50%)}20%{transform:translateX(calc(-50% - 7px))}40%{transform:translateX(calc(-50% + 7px))}60%{transform:translateX(calc(-50% - 4px))}80%{transform:translateX(calc(-50% + 3px))}}
+#gfx .gfm{position:absolute;top:190px;width:34px;height:34px;margin-left:-17px;border-radius:50%;background:radial-gradient(circle,rgba(150,148,142,.8),rgba(90,88,84,0) 70%);animation:gfSmoke 1.1s ease-out forwards;opacity:0}
+@keyframes gfSmoke{0%{transform:translateY(0) scale(.5);opacity:.9}100%{transform:translateY(-120px) scale(2.6);opacity:0}}
+#gfx.tier .gfs::before{border-color:#c8a2ff;box-shadow:0 0 20px #9a5cff}
+@media (prefers-reduced-motion:reduce){#gfx,#gfx *{animation-duration:.01s!important}}
 </style>
 </head>
 <body>
@@ -2201,7 +2231,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.89';
+const VERSION='1.0.90';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -5075,12 +5105,7 @@ function gearTierPick(id,cid,filter){const it=gearItems().find(x=>x.id===id);if(
     ecoModal('Burn it?',`${gearName(x)} is burnt for good, and ${gearName(it)} rises to tier ${t+1} for 🪙${gearTierCost(it)}.`,[{t:'🔥 Burn',f:()=>gearTierUp(id,fo,cid,filter)},{t:'Keep',f:()=>gearSheet(id,cid,filter)}]);}));}
 async function gearCall(fn,args,after){ecoWait(true);
   try{const r=await ecoLane(async()=>{const x=await ecoRpc(fn,Object.assign({seat:seatNo()},args),10000);if(x&&x.state)ecoApply(x.state);if(x&&x.items)ECO.gear=Object.assign({},ECO.gear,{items:x.items,cfg:x.cfg||gearCfg()});return x;});ecoWait(false);after&&after(r);}
-  catch(e){ecoWait(false);const m=ecoMsg(e);ecoToast('⚠️ '+(ecoNet(m)?'No connection to the server':m));SFX.play('deny');}}
-function gearUpgrade(id,cid,filter){gearCall('gear_upgrade',{item:id,op:ecoUuid()},r=>{
-  if(r.item){const L=ECO.gear.items;const i=L.findIndex(x=>x.id===r.item.id);if(i>=0)L[i]=r.item;}
-  if(r.ok){SFX.play('upgrade');ecoToast(`⚒️ Success: ${gearName(r.item)}`,true);}else{SFX.play('deny');ecoToast(`Upgrade failed — 🪙${r.cost} gone, the item is safe`);}
-  persist();showForge(cid,filter);gearSheet(id,cid,filter);});}
-function gearTierUp(id,fodder,cid,filter){gearCall('gear_tier_up',{item:id,fodder,op:ecoUuid()},r=>{SFX.play('levelup');ecoToast(`⬆ ${gearName(r.item)} is now tier ${gearTier(r.item)}`,true);persist();showForge(cid,filter);gearSheet(id,cid,filter);});}
+  catch(e){ecoWait(false);const m=ecoMsg(e);ecoToast('⚠️ '+(ecoNet(m)?'No connection to the server':m));SFX.play('deny');gfxEnd();}}
 function gearEquip(id,to,cid,filter){gearCall('gear_equip',{item:id,champ:to},()=>{SFX.play('upgrade');showForge(cid,filter);});}
 function gearSell(id,cid,filter){gearCall('gear_sell',{item:id},r=>{SFX.play('buy');ecoToast(`+🪙${r.gold}`,true);persist();showForge(cid,filter);});}
 /* =========================== TELEGRAM STARS (v1.0.60) ===========================
@@ -6082,6 +6107,50 @@ function gearBigTilt(e){const w=e.target&&e.target.closest&&e.target.closest('.g
 function gearBigRest(e){const w=e.target&&e.target.closest&&e.target.closest('.gbw');if(!w)return;w.style.setProperty('--ry','0deg');w.style.setProperty('--rx','0deg');w.classList.remove('tilt');}
 document.addEventListener('pointermove',gearBigTilt,{passive:true});document.addEventListener('pointerdown',gearBigTilt,{passive:true});
 document.addEventListener('pointerup',gearBigRest,{passive:true});document.addEventListener('pointerleave',gearBigRest,{passive:true});document.addEventListener('pointercancel',gearBigRest,{passive:true});
+/* =========================== THE FORGE SCENE (v1.0.90) ===========================
+   Upgrading an item (or raising its tier) plays a short scene instead of a silent wait: the item lies on an anvil, a hammer strikes it
+   three times with sparks while the server decides; then the verdict — success: a flash, a golden ring, sparks, "+3" rising;
+   failure: the item shakes, grey smoke, "NOT THIS TIME · the item is safe". The result comes from the server as before; the scene only
+   shows it (and waits for at least 1.9 s so the hammer lands). Tap to skip the verdict. Calm mode (reduced motion) is shorter and still. */
+let GFX=null;
+function gfxCalm(){return (typeof JUICE!=='undefined'&&JUICE.calm)||(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches);}
+function gfxEnd(){const g=GFX;GFX=null;if(!g)return;clearTimeout(g.t1);clearInterval(g.t2);clearTimeout(g.t3);clearTimeout(g.t4);if(g.el&&g.el.parentNode)g.el.remove();}
+function gfxSpark(el,n,gold){const box=el.querySelector('.gfs');if(!box)return;
+  for(let k=0;k<n;k++){const s=document.createElement('i');s.className='gfk'+(gold?' g':'');s.style.left=(gold?50:46)+'%';s.style.top=(gold?36:52)+'%';
+    s.style.setProperty('--dx',((Math.random()-.5)*(gold?260:150))+'px');s.style.setProperty('--dy',(-30-Math.random()*(gold?190:90))+'px');s.style.animationDuration=(0.45+Math.random()*(gold?.7:.35))+'s';
+    box.appendChild(s);setTimeout(()=>s.remove(),1300);}}
+function gfxStart(it,mode){gfxEnd();const app=document.getElementById('app');if(!app||!it)return null;const calm=gfxCalm();
+  const el=document.createElement('div');el.id='gfx';el.className=mode==='tier'?'tier':'';
+  el.innerHTML=`<div class="gfs"><div class="gfi">${gearBig(it)}</div>
+    <svg class="gfa" viewBox="0 0 140 60"><path d="M10 14h112c10 0 14 8 6 14-8 4-22 4-30 6l-4 12h16v8H34v-8h16l-4-12c-12-2-26-2-34-6-6-5-4-14 6-14z" fill="#3a3d42" stroke="#101214" stroke-width="2"/><path d="M14 17h104" stroke="#8a9098" stroke-width="2" opacity=".6"/><path d="M42 36h56" stroke="#000" opacity=".3"/></svg>
+    <svg class="gfh${calm?' calm':''}" viewBox="0 0 120 120"><rect x="56" y="38" width="9" height="80" rx="3" fill="url(#gaWd)" stroke="#3a2414"/><path d="M28 12h66c5 0 7 3 7 7v18c0 4-2 7-7 7H28c-4 0-6-3-6-7V19c0-4 2-7 6-7z" fill="#7e868e" stroke="#15181b" stroke-width="2"/><path d="M30 16h60" stroke="#d6dce2" stroke-width="2" opacity=".6"/><path d="M22 40h79" stroke="#3a4046" stroke-width="3"/></svg>
+    <div class="gft" id="gft"></div></div>`;
+  app.appendChild(el);const g={el,t0:performance.now(),calm,rev:false,done:null};GFX=g;
+  if(!calm){g.t1=setTimeout(()=>{if(GFX!==g)return;hit();g.t2=setInterval(()=>{if(GFX!==g)return;hit();},620);},385);}
+  function hit(){gfxSpark(el,9,false);try{SFX.play('tap',0);}catch(e){}el.classList.remove('hit');void el.offsetWidth;el.classList.add('hit');}
+  el.addEventListener('click',()=>{if(g.rev&&g.done){const d=g.done;g.done=null;gfxEnd();d();}});
+  return g;}
+function gfxReveal(g,ok,item,text,done){
+  if(!g||GFX!==g){done();return;}
+  const wait=g.calm?500:Math.max(0,1900-(performance.now()-g.t0));
+  g.t3=setTimeout(()=>{if(GFX!==g){done();return;}clearInterval(g.t2);g.rev=true;const el=g.el,calm=g.calm;
+    const h=el.querySelector('.gfh');if(h)h.style.display='none';
+    if(item){const fi=el.querySelector('.gfi');if(fi)fi.innerHTML=gearBig(item);}
+    el.classList.add(ok?'win':'lose');const t=el.querySelector('#gft');
+    if(t)t.innerHTML=ok?`<b>${text}</b>`:`<b>NOT THIS TIME</b><small>the item is safe</small>`;
+    if(!calm){if(ok){gfxSpark(el,26,true);}else{const box=el.querySelector('.gfs');for(let k=0;k<7;k++){const s=document.createElement('i');s.className='gfm';s.style.left=(36+Math.random()*28)+'%';s.style.animationDelay=(k*.09)+'s';box.appendChild(s);}}}
+    try{SFX.play(ok?(g.mode==='tier'?'levelup':'upgrade'):'deny');}catch(e){}
+    g.done=()=>done();g.t4=setTimeout(()=>{if(GFX!==g)return;const d=g.done;g.done=null;gfxEnd();if(d)d();},calm?600:(ok?1500:1250));},wait);}
+function gearUpgrade(id,cid,filter){const it0=gearItems().find(x=>x.id===id),g=gfxStart(it0,'up');
+  gearCall('gear_upgrade',{item:id,op:ecoUuid()},r=>{
+    if(r.item){const L=ECO.gear.items;const i=L.findIndex(x=>x.id===r.item.id);if(i>=0)L[i]=r.item;}
+    const ok=!!r.ok;
+    gfxReveal(g,ok,r.item||it0,ok&&r.item?'+'+r.item.lvl:'',()=>{
+      if(ok)ecoToast(`⚒️ Success: ${gearName(r.item)}`,true);else ecoToast(`Upgrade failed — 🪙${r.cost} gone, the item is safe`);
+      persist();showForge(cid,filter);gearSheet(id,cid,filter);});});}
+function gearTierUp(id,fodder,cid,filter){const it0=gearItems().find(x=>x.id===id),g=gfxStart(it0,'tier');if(g)g.mode='tier';
+  gearCall('gear_tier_up',{item:id,fodder,op:ecoUuid()},r=>{
+    gfxReveal(g,true,r.item,'★ Tier '+gearTier(r.item),()=>{ecoToast(`⬆ ${gearName(r.item)} is now tier ${gearTier(r.item)}`,true);persist();showForge(cid,filter);gearSheet(id,cid,filter);});});}
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -7271,6 +7340,7 @@ window.HOLDOR_RESULT={resultFx,resultConfetti};
 window.HOLDOR_CUR={CUR_GOLD,CUR_GEM,curSwap};
 window.HOLDOR_LUCKY={LUCKY,luckyRoll,luckyNext,luckyShow};
 window.HOLDOR_GA={gearArt,gaFamily,GA_METAL,GA_SET};
+window.HOLDOR_GFX={gfxStart,gfxReveal,gfxEnd};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();

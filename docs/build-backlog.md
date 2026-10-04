@@ -413,6 +413,15 @@ Built on v1.0.57's forge: the same nine slots, five rarities and server-side rol
 - **Server (v19, applied to production at once — it works with the live app):** the ranked fallback reuses the open practice duel; the duplicates were closed.
 - **App:** a `startapp=d_<code>` link joins the duel as soon as the seat is on the server and opens the Duel screen by itself; each duel row says what each side still has to do (▶ play a Hold run / ✔ your run counts, not played yet / ✔ has played) and has a **▶ Play my Hold run** button that starts the run (the same checks as the Hold button); a plain explanation of how a duel is decided; a refused invitation says the friend already plays and points at the duel; a Duel card at the top of the Hold tab (Events is no tab since v1.0.74); "Ranked" says when it had to fall back to the bot.
 - **Tests:** `v15_test` (three ranked taps with nobody to match = one duel), `duel_test` (a friend's link: joins, opens, the per-side status, the Play button starts a Hold battle on the server, the result, the Hold-tab card). `t_gear63`'s thorns check depended on the day's map; it now spawns the enemy at the gate.
+### v1.0.90 — the forge scene (2026-10-04)
+- Upgrading an item or raising its tier no longer waits silently (`mod/upgradefx.js`, part `93_upgradefx.py`):
+  - A dark overlay shows the item on an anvil while a hammer strikes it three times, with sparks, a thump on every blow and the Telegram haptic buzz.
+  - Then the verdict from the server: **success** = a flash, a golden ring, gold sparks and "+3" (or "★ Tier N") rising; **failure** = the item shakes, grey smoke rises and "NOT THIS TIME · the item is safe". The old toasts and the forge redraw follow.
+  - The scene waits at least 1.9 s so the hammer lands (0.5 s in calm mode), the verdict stays about 1.5 s (1.25 s on failure), and a tap skips it. If the server cannot be reached the scene ends at once, with the same error toast as before.
+  - Calm mode (reduced motion): no swing and no sparks, a short still scene.
+- The result still comes only from the server (`gear_upgrade`, `gear_tier_up`); the scene only shows it.
+- **Tests:** `tests/t_forgefx90.js` (core: the scene's parts and the swing; the verdict waits for the hammer; "+3" with gold sparks; failure text and smoke; a tap skips; the continuation runs once; no server → the scene ends). `backend/test/gear_test.py` (real upgrade, failed upgrade and tier on a server seat) now waits for the scene to end and passes.
+
 ### v1.0.89 — a cleaner item sheet, SELL on the tower ring (2026-10-03)
 - MR B: "the sword is nice, but Strike and so much text make no sense — redo it, make it prettier"; "when selling a tower, write Sell — with only a bag you can't tell what the button does".
 - **Item sheet (part `92_sheet.py`, gearSheet rewritten):**
