@@ -9,3 +9,7 @@
 .wrow .wn small{display:block;font-size:10.5px;color:#8fa6bd}
 .wrow .ws{flex:none;font:900 20px var(--f-display);color:#ffe08a;text-shadow:0 2px 0 rgba(0,0,0,.5)}
 .wempty{text-align:center;margin:18px 10px}.whow{font-size:11px;color:#7f98b3}
+/* v1.0.94: last week's war */
+.wlast .wlp{margin:4px 0 8px;font-size:13px}.wlast .wlp b{color:#ffd54a}
+.wlast .wcl{margin:2px 0 4px;font-size:12px;color:#9fb6c9}.wlast .wcl.done{color:#9be28a;font-weight:700}
+.wlast .btn{width:100%}
