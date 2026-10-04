@@ -67,11 +67,11 @@ function fxuiProbe(){if(FXUI.probed||FXUI.lite)return;FXUI.probed=1;let n=0,slow
 function fxuiColl(){const body=document.getElementById('hubBody');if(FXUI.io){FXUI.io.disconnect();FXUI.io=null;}if(!body)return;
   const cards=body.querySelectorAll('.ccard[data-c]');if(!cards.length)return;
   if('IntersectionObserver' in window)FXUI.io=new IntersectionObserver(es=>{for(const e of es)e.target.classList.toggle('fxvis',e.isIntersecting);},{root:body,rootMargin:'40px'});
-  cards.forEach((el,i)=>{const c=CBY[el.dataset.c];if(!c)return;const r=rarOf(c)[0];if(r==='Epic')el.classList.add('fxrE');else if(r==='Legendary')el.classList.add('fxrL');
+  cards.forEach((el,i)=>{const c=CBY[el.dataset.c];if(!c)return;const r=rarOf(c)[0];if(el.classList.contains('lock'))return;if(r==='Epic')el.classList.add('fxrE');else if(r==='Legendary')el.classList.add('fxrL');
     if(!el.classList.contains('lock'))el.classList.add('fxbr');el.style.setProperty('--fxph',(-((i*0.61)%3.8)).toFixed(2)+'s');
     if(FXUI.io)FXUI.io.observe(el);else el.classList.add('fxvis');});}
 /* ---- off: a battle starts, or the phone asks for less motion ---- */
 function fxuiOff(){fxuiRoot(false);document.querySelectorAll('.fxamb,.fxglow,.fxtapf').forEach(e=>e.remove());
   if(FXUI.io){FXUI.io.disconnect();FXUI.io=null;}const P=FXUI.par;if(P.raf){cancelAnimationFrame(P.raf);P.raf=0;}P.drag=null;}
 if(typeof juiceHub==='function'){const jh0=juiceHub;juiceHub=function(tab){jh0(tab);fxuiHub(tab);};}
-if(typeof startGame==='function'){const sg0=startGame;startGame=function(){try{fxuiOff();}catch(e){}return sg0.apply(this,arguments);};}
+if(typeof startGame==='function'){const sg0=startGame;startGame=function(){try{fxuiOff();cancelAnimationFrame(HOME.raf);HOME.raf=0;clearTimeout(HOME.tick);}catch(e){}return sg0.apply(this,arguments);};   /* the home canvas loop stops too: it only checked the screen name, which a battle does not change */}

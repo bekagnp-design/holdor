@@ -66,6 +66,10 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
   ok('the tab animation ends: no class left, opacity 1, nothing half-transparent', !after.fxin && !after.slide && after.op === '1' && after.anims === 0 && after.rise === 0 && !after.half.length, JSON.stringify(after));
   // ---- Champions: portraits breathe, Epic/Legendary shimmer
   await tap('.subtabs button[data-sub="heroes"]', 900);
+  const lockedSheen = await page.evaluate(() => ({ locked: document.querySelectorAll('#hubBody .ccard.lock[data-c]').length, sheen: document.querySelectorAll('#hubBody .ccard.lock.fxrE,#hubBody .ccard.lock.fxrL').length }));
+  ok('locked Epic/Legendary cards do not shimmer', lockedSheen.locked > 0 && lockedSheen.sheen === 0, JSON.stringify(lockedSheen));
+  await page.evaluate(() => { const H = window.HOLDOR; for (let i = 1; i <= 50; i++) H.ACC.campaign[i] = 3; });   // every rarity unlocked
+  await tap('.subtabs button[data-sub="heroes"]', 900);
   const col = await page.evaluate(() => { const br = document.querySelector('#hubBody .ccard.fxbr.fxvis .im img, #hubBody .ccard.fxbr.fxvis .im .pe'), sh = document.querySelector('#hubBody .ccard.fxrL.fxvis,#hubBody .ccard.fxrE.fxvis');
     return { cards: document.querySelectorAll('#hubBody .ccard[data-c]').length, leg: document.querySelectorAll('#hubBody .ccard.fxrL').length, epic: document.querySelectorAll('#hubBody .ccard.fxrE').length,
       breath: br ? getComputedStyle(br).animationName : '', sheen: sh ? getComputedStyle(sh, '::after').animationName : '',
@@ -87,9 +91,11 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
     delete document.hidden; return { hid, back }; });
   ok('a hidden page pauses it all (the root class goes) and it comes back', !vis.hid && vis.back, JSON.stringify(vis));
   // ---- battle: no layer, and the numbers are the same with the layer on and off
-  const inb = await page.evaluate(() => { const H = window.HOLDOR; H.startGame({ level: H.stageLevel(3) }); for (let i = 0; i < 60; i++) H.step();
-    return { amb: document.querySelectorAll('.fxamb').length, glow: document.querySelectorAll('.fxglow').length, root: document.documentElement.classList.contains('fxui'), state: H.G.state }; });
+  const inb = await page.evaluate(async () => { const H = window.HOLDOR; H.showHub('battle'); await new Promise(r => setTimeout(r, 300)); const before = window.HOLDOR_FXUI.homeRaf();
+    H.startGame({ level: H.stageLevel(3) }); for (let i = 0; i < 60; i++) H.step(); await new Promise(r => setTimeout(r, 400));
+    return { amb: document.querySelectorAll('.fxamb').length, glow: document.querySelectorAll('.fxglow').length, root: document.documentElement.classList.contains('fxui'), state: H.G.state, homeLoopBefore: !!before, homeLoop: window.HOLDOR_FXUI.homeRaf() }; });
   ok('no layer exists during a battle (and the root class is off)', inb.state === 'play' && !inb.amb && !inb.glow && !inb.root, JSON.stringify(inb));
+  ok('the home canvas loop stops when a battle starts (it ran on the home screen)', inb.homeLoopBefore && inb.homeLoop === 0, JSON.stringify(inb));
   const same = await page.evaluate(() => { const H = window.HOLDOR, F = window.HOLDOR_FXUI;
     const run = on => { F.FXUI.off = !on; H.G.state = 'menu'; H.showHub('battle'); const lay = !!document.querySelector('.fxamb'); H.startGame({ level: H.stageLevel(4) }); const G = H.G; G.lq = []; G.tut = null; G.paused = false;
       for (let i = 0; i < 60 * 45; i++) { if (H.canCall()) H.callWave(); H.step(); }
