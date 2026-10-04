@@ -64,8 +64,7 @@ begin
   return new;
 end $$;
 revoke all on function chat_drop() from public, anon, authenticated;
-drop trigger if exists chat_drop_t on items;
-create trigger chat_drop_t after insert on items for each row when (new.rar = 4) execute function chat_drop();
+create or replace trigger chat_drop_t after insert on items for each row when (new.rar = 4) execute function chat_drop();
 
 revoke all on function chat_send(uuid, int, text), chat_list(uuid, int, bigint), chat_report(uuid, bigint, text) from public;
 grant execute on function chat_send(uuid, int, text), chat_list(uuid, int, bigint), chat_report(uuid, bigint, text) to anon, authenticated;
