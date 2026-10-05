@@ -1426,6 +1426,30 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 .wlast .wlp{margin:4px 0 8px;font-size:13px}.wlast .wlp b{color:#ffd54a}
 .wlast .wcl{margin:2px 0 4px;font-size:12px;color:#9fb6c9}.wlast .wcl.done{color:#9be28a;font-weight:700}
 .wlast .btn{width:100%}
+/* v1.0.97: the tower guide */
+.tg{margin:6px 0 4px;font-size:12px;line-height:1.35;color:#c9d6e8}
+.tg .tgh{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.tg .tgh span{font-weight:700;color:#e3b661;font-size:11px;letter-spacing:.04em}.tg .tgh em{font-style:normal;color:#dfe8f5}
+.tg .tgn{display:flex;flex-wrap:wrap;gap:4px 10px;margin:5px 0}.tg .tgn span{white-space:nowrap}.tg .tgn b{color:#fff;font-weight:700}
+.tg .tgs{display:flex;flex-direction:column;gap:2px}.tg .tgs i{font-style:normal}.tg .tgs .ok{color:#9fe3a4}.tg .tgs .no{color:#f1a79c}
+.tgd{position:relative;height:58px;margin:8px 0 2px;border-radius:10px;background:linear-gradient(#1b2b44,#0f1a2c);overflow:hidden}
+.tgd .tw{position:absolute;left:10px;bottom:6px;text-decoration:none}.tgd .en{position:absolute;bottom:10px;width:12px;height:22px;border-radius:6px 6px 3px 3px;background:#6f7d90;box-shadow:0 0 0 1px #2a3446;text-decoration:none}
+.tgd .fx,.tgd .fx2{position:absolute;text-decoration:none;pointer-events:none}
+.tgd.arrow .en{left:78%;animation:tgHit 1.4s ease-out infinite}.tgd.arrow .fx{left:22%;bottom:30px;width:14px;height:2px;background:#e8eef7;box-shadow:-6px 0 0 -0 #8a96a6;animation:tgArrow 1.4s linear infinite}
+.tgd.bolt .en{left:80%;width:18px;height:28px;background:#59687b;animation:tgHit 2.4s ease-out infinite}.tgd.bolt .fx{left:22%;bottom:28px;width:26px;height:4px;background:#e3b661;box-shadow:0 0 8px #e3b661;animation:tgBolt 2.4s linear infinite}
+.tgd.lob .en{left:76%;animation:tgHit 2.2s ease-out infinite}.tgd.lob .fx{left:22%;bottom:30px;width:9px;height:9px;border-radius:50%;background:#8dff6d;box-shadow:0 0 8px #6cf05a;animation:tgLob 2.2s linear infinite}.tgd.lob .fx2{left:68%;bottom:6px;width:46px;height:30px;border-radius:50%;background:radial-gradient(#9dff7d,rgba(110,240,90,0));opacity:0;animation:tgBloom 2.2s linear infinite}
+.tgd.spears .en{left:50%;animation:tgSlow 3.2s linear infinite}.tgd.spears .fx{left:calc(50% + 2px);bottom:6px;width:0;height:0;border:4px solid transparent;border-bottom:26px solid #9fe0ff;border-top:0;transform-origin:50% 100%;animation:tgSpear 3.2s ease-out infinite}.tgd.spears .fx2{left:calc(50% - 14px);bottom:8px;width:30px;height:10px;border-radius:50%;border:1px solid rgba(143,211,255,.5)}
+.tgd.roots .en{left:34%;animation:tgSlow2 4s ease-in-out infinite}.tgd.roots .fx{left:6%;bottom:2px;width:70%;height:34px;border-radius:50%;border:2px solid rgba(155,230,110,.65);animation:tgWave 2.2s ease-out infinite}.tgd.roots .fx2{left:calc(34% - 4px);bottom:7px;width:22px;height:6px;border-bottom:2px solid #7a5230;border-radius:0 0 50% 50%}
+.tgd.clash .en{left:62%;animation:tgBump 1.2s ease-in-out infinite}.tgd.clash .fx{left:calc(62% - 12px);bottom:24px;width:10px;height:10px;border-radius:50%;background:#fff1c0;box-shadow:0 0 10px 3px #ffd479;animation:tgSpark 1.2s ease-out infinite}
+@keyframes tgArrow{0%{transform:translateX(0)}60%,100%{transform:translateX(150px);opacity:1}100%{opacity:0}}
+@keyframes tgBolt{0%{transform:translateX(0);opacity:0}15%{opacity:1}60%{transform:translateX(170px)}100%{transform:translateX(170px);opacity:0}}
+@keyframes tgLob{0%{transform:translate(0,0)}50%{transform:translate(85px,-26px)}100%{transform:translate(170px,0);opacity:0}}
+@keyframes tgBloom{0%,70%{opacity:0;transform:scale(.5)}80%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(1.2)}}
+@keyframes tgHit{0%,55%{filter:none}60%{filter:brightness(2.4)}100%{filter:none}}
+@keyframes tgSlow{0%{left:30%}100%{left:80%}}@keyframes tgSlow2{0%{left:30%}100%{left:56%}}
+@keyframes tgSpear{0%,10%{transform:scaleY(0)}25%{transform:scaleY(1)}60%{opacity:1}100%{opacity:0;transform:scaleY(1)}}
+@keyframes tgWave{0%{transform:scale(.2);opacity:.9}100%{transform:scale(1);opacity:0}}
+@keyframes tgBump{0%,100%{transform:translateX(4px)}50%{transform:translateX(-3px)}}@keyframes tgSpark{0%,40%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.6)}}
+@media (prefers-reduced-motion:reduce){.tgd *{animation:none!important}}
 </style>
 </head>
 <body>
@@ -2329,7 +2353,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.96';
+const VERSION='1.0.97';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -3419,7 +3443,7 @@ function openConfirm(s,type){
   const d=TOWERS[type],c=costOf(type),st={range:d.range,dmg:d.dmg,rate:d.rate,dps:d.dps,count:d.count?d.count[0]:0};
   G.pending={slot:s,type};
   const line=d.kind==='barracks'?`${st.count} men hold the road`:d.kind==='aura'?`slows everything nearby`:d.kind==='zone'?`${d.dps} damage per second in melee`:`${d.dmg} damage, ${d.rate.toFixed(2)}/s`;
-  sheet.innerHTML=`<h3>${towerIconHTML(type,1,26)} ${d.n}</h3><p class="sub">${d.sub}. ${line}${d.kind==='barracks'?'':' · range '+d.range}</p>
+  sheet.innerHTML=`<h3>${towerIconHTML(type,1,26)} ${d.n}</h3><p class="sub">${d.sub}</p>${towerGuideMini(type,1)}
   <div class="row"><button id="cOk" style="flex:1.6;background:var(--gold);color:#1a1405;font-family:var(--f-display);font-weight:700" ${G.gold<c?'disabled':''}>✔ Build · ${c}g</button><button id="cNo">✖ Cancel</button></div>`;
   sheet.classList.add('open');
   $('#cOk').addEventListener('click',()=>build(s,type));
@@ -3428,7 +3452,7 @@ function openConfirm(s,type){
 function openSheet(s){
   if(s.tower){const t=s.tower,def=TOWERS[t.type];const up=t.lvl<5?upCost(t):0;const sell=Math.round(t.invested*(UP('salvage')?0.9:0.6));const st=towerStats(t);
     const line=def.kind==='aura'?`Slow ${Math.round((1-st.slow)*100)}%, +${Math.round((st.mark-1)*100)}% damage taken`:def.kind==='zone'?`${Math.round(st.dps)} dmg/s, slow ${Math.round((1-st.slow)*100)}%`:def.kind==='barracks'?`${st.count} men · ${st.shp} hp · ${st.sdmg} dmg · back in ${st.resp}s`:`${Math.round(st.dmg)} dmg, ${st.rate.toFixed(2)}/s`;
-    sheet.innerHTML=`<h3>${towerIconHTML(t.type,t.lvl,26)} ${def.n} ${ROMAN[t.lvl-1]} <small style="font-size:11px;color:var(--muted)">· Lv ${tLvl(t.type)}</small></h3><p class="sub">${def.sub}. ${line}${def.kind==='barracks'?'':', range '+Math.round(st.range)}</p><div class="row">${def.kind==='barracks'?'<button id="sRally">🚩 Move banner</button>':''}${t.lvl>=5?`<button disabled>⭐ Max</button>`:t.lvl>=maxTowerLvl()?`<button disabled>🔒 ${ROMAN[t.lvl]} after stage ${LVL_GATES[t.lvl]}</button>`:`<button id="sUp" ${G.gold<up?'disabled':''}>⬆️ ${ROMAN[t.lvl]} · ${up}g</button>`}<button id="sSell">💸 +${sell}g</button><button id="sClose">✖</button></div>`;
+    sheet.innerHTML=`<h3>${towerIconHTML(t.type,t.lvl,26)} ${def.n} ${ROMAN[t.lvl-1]} <small style="font-size:11px;color:var(--muted)">· Lv ${tLvl(t.type)}</small></h3><p class="sub">${def.sub}</p>${towerGuideMini(t.type,t.lvl)}<div class="row">${def.kind==='barracks'?'<button id="sRally">🚩 Move banner</button>':''}${t.lvl>=5?`<button disabled>⭐ Max</button>`:t.lvl>=maxTowerLvl()?`<button disabled>🔒 ${ROMAN[t.lvl]} after stage ${LVL_GATES[t.lvl]}</button>`:`<button id="sUp" ${G.gold<up?'disabled':''}>⬆️ ${ROMAN[t.lvl]} · ${up}g</button>`}<button id="sSell">💸 +${sell}g</button><button id="sClose">✖</button></div>`;
     const rb=$('#sRally');if(rb)rb.addEventListener('click',()=>{G.armed='rally';G.rallySlot=s;G.heroSel=false;closeSheet();updateBar();});
     const u=$('#sUp');if(u)u.addEventListener('click',()=>{if(upgradeTower(s))openSheet(s);});
     $('#sSell').addEventListener('click',()=>{sellTower(s);G.sel=null;closeSheet();});
@@ -6627,6 +6651,73 @@ function showRealmWar(back){WAR.back=back||(()=>showRealms(false));
   CLOUD.screen='war';$('#bBack').addEventListener('click',()=>{CLOUD.screen='';clearInterval(WAR.timer);WAR.back();});$('#bWarBack').addEventListener('click',()=>{CLOUD.screen='';clearInterval(WAR.timer);WAR.back();});
   if(WAR.data)warDraw();warFetch();warLastLoad();clearInterval(WAR.timer);WAR.timer=setInterval(()=>{if(CLOUD.screen!=='war'){clearInterval(WAR.timer);return;}warFetch();},30000);}
 document.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('#bWarClaim')){warClaim();return;}const b=e.target&&e.target.closest&&e.target.closest('#bWar');if(b){try{SFX.play('tap',50);}catch(x){}showRealmWar(()=>showRealms(false));}});
+/* =========================== TOWER GUIDE + TOWER FX (v1.0.97) ===========================
+   Every tower says what it does, in plain numbers taken from the game's own data (towerStats), and shows it working.
+   · towerGuideMini(type, lvl): who it hits, how much (damage, rate, damage per second, splash, burn, slow), strong / weak against.
+     Shown in the build sheet and in the tower's sheet (ℹ on the ring); the Collection → Towers page gets a looping demo (towerGuideDemo).
+   · battle fx (display only: reads G, writes nothing of the simulation, no G.rng): Dragonglass spears burst from the ground under
+     what the zone cuts (bigger on a White Walker), Weirwood sends a wave over its ground and roots tangle the slowed, a Wildfire
+     shell blooms in green fire where it lands, a Scorpion glows as its bolt loads, the Keep's men throw sparks when they strike.
+     Capped, off under prefers-reduced-motion, frozen while paused or hidden. */
+const FXT={on:true,calm:false,last:0,S:new WeakMap(),sp:[],bl:[],pp:new Map(),map:null,runs:-1,AS:new WeakMap()};
+try{FXT.calm=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){}
+const FXT_R=Math.random;
+/* ---- the guide: facts that are true in the code (dmg(), the target loop, the zone / aura loop, the keep's men) ---- */
+const TGUIDE={
+  watch:{hits:'Ground + air (fliers only when nothing else is in range)',role:'Fast arrows, one target at a time',strong:'Light, quick enemies and birds',weak:'Armoured and arrow-proof enemies take much less. Pair it with Wildfire or Dragonglass',demo:'arrow'},
+  scorp:{hits:'Ground + air (aims at flyers first)',role:'Slow, heavy bolt',strong:'Armoured enemies ×2.5. The only tower that hurts a dragon fully; everything else deals only 30% to it',weak:'Slow reload: wasted on swarms',demo:'bolt'},
+  wild:{hits:'Ground + air (fliers only when nothing else is in range)',role:'A shell that bursts and sets enemies on fire',strong:'Packs: everyone in the blast takes the damage, then burns',weak:'Cannot hit what is closer than 45 to it; a flier is the last target it picks',demo:'lob'},
+  glass:{hits:'Ground only',role:'A zone: hurts and slows everything inside, no shots',strong:'White Walkers take ×3. All enemies inside are slowed',weak:'Short range, and it cannot touch flyers',demo:'spears'},
+  weir:{hits:'Ground + air (no damage of its own)',role:'An aura: slows and makes enemies take more damage',strong:'Everything inside takes more damage from every tower and hero',weak:'Deals no damage itself. Build it beside damage towers',demo:'roots'},
+  keep:{hits:'Ground only',role:'Your men block the road and fight',strong:'Holds the road so other towers keep firing; fallen men return',weak:'Flyers pass over them',demo:'clash'}};
+function tgNums(type,lvl){const d=TOWERS[type],st=towerStats({type,lvl:lvl||1}),r=Math.round(st.range),f=x=>Math.round(x*10)/10,o=[];
+  if(d.kind==='single'||d.kind==='splash'){o.push(['⚔','Damage',Math.round(st.dmg)+' per hit']);o.push(['⏱','Rate',st.rate.toFixed(2)+' / s']);o.push(['🔥','Damage per second',f(st.dmg*st.rate)]);
+    if(d.kind==='splash'){o.push(['💥','Blast radius',Math.round(st.splash)]);o.push(['🔥','Burn',f(st.burn)+' / s for 3 s']);}o.push(['🎯','Range',r]);}
+  else if(d.kind==='zone'){o.push(['🔷','Damage per second',Math.round(st.dps)+' (×3 vs White Walkers)']);o.push(['🐌','Slow',Math.round((1-st.slow)*100)+'%']);o.push(['🎯','Range',r]);}
+  else if(d.kind==='aura'){o.push(['🐌','Slow',Math.round((1-st.slow)*100)+'%']);o.push(['⬆','Damage taken','+'+Math.round((st.mark-1)*100)+'%']);o.push(['🎯','Range',r]);}
+  else{o.push(['🛡','Men',st.count+' × '+st.shp+' hp']);o.push(['⚔','Their damage',st.sdmg+' per hit']);o.push(['⏳','Back in',st.resp+' s']);o.push(['🎯','Range',r]);}
+  return o;}
+function towerGuideMini(type,lvl){const g=TGUIDE[type];if(!g)return '';const n=tgNums(type,lvl);
+  return `<div class="tg"><div class="tgh"><span>${g.hits}</span><em>${g.role}</em></div><div class="tgn">${n.map(x=>`<span title="${x[1]}">${x[0]} <b>${x[2]}</b></span>`).join('')}</div>
+  <div class="tgs"><i class="ok">✔ ${g.strong}</i><i class="no">✖ ${g.weak}</i></div></div>`;}
+function towerGuideDemo(type,lvl){const g=TGUIDE[type];if(!g)return '';return `<div class="tgd ${g.demo}"><u class="tw">${towerIconHTML(type,lvl||1,30)}</u><u class="en"></u><u class="fx"></u><u class="fx2"></u></div>`;}
+/* ---- battle fx ---- */
+function fxtOk(){return FXT.on&&!FXT.calm&&G.map&&G.state==='play'&&!G.paused&&!document.hidden;}
+function fxtUnder(now){try{fxtUnderB(now);}catch(_){FXT.on=false;}}
+function fxtUnderB(now){const ms=now-FXT.last;FXT.last=now;if(!fxtOk()){if(G.state!=='play'&&(FXT.sp.length||FXT.bl.length)){FXT.sp.length=0;FXT.bl.length=0;FXT.pp.clear();}return;}
+  if(G.map!==FXT.map||G.runs!==FXT.runs){FXT.map=G.map;FXT.runs=G.runs;FXT.sp.length=0;FXT.bl.length=0;FXT.pp.clear();}
+  const dt=Math.min(0.05,Math.max(0,ms/1000)),R=FXT_R,slots=G.map.slots;
+  /* wildfire shells: remember where each one is going; when it is gone, a green bloom there */
+  if(G.projs.length||FXT.pp.size){const live=new Set();for(const p of G.projs){if(p.src==='wild'){live.add(p);FXT.pp.set(p,{x:p.lx,y:p.ly,r:p.splash||48});}}
+    for(const [p,v] of FXT.pp){if(!live.has(p)){FXT.pp.delete(p);if(FXT.bl.length<8)FXT.bl.push({x:v.x,y:v.y,r:v.r,life:0.7,max:0.7});}}}
+  for(let si=0;si<slots.length;si++){const s=slots[si],t=s.tower;if(!t)continue;const def=TOWERS[t.type];
+    let S=FXT.S.get(t);if(!S){S={a:0,b:0,rg:0,rng:0,n:0};FXT.S.set(t,S);}
+    if((S.n++&31)===0)S.rng=towerStats(t).range;const range=S.rng;
+    if(def.kind==='zone'){let tg=null,k=0;for(const e of G.enemies){if(e.hp<=0||e.fly)continue;const p=posE(e);if(dist(p.x,p.y,s.x,s.y)>range+e.r)continue;k++;if(R()*k<1)tg=e;}
+      if(k){const pulse=0.1+0.05*Math.sin(now/180);ctx.globalAlpha=pulse;ctx.strokeStyle='#8fd3ff';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(s.x,s.y+8,range,range*0.5,0,0,6.283);ctx.stroke();ctx.globalAlpha=1;
+        S.a-=dt;if(S.a<=0&&FXT.sp.length<24){S.a=0.26;const p=posE(tg);FXT.sp.push({x:p.x+(R()-0.5)*14,y:p.y+3,life:0.5,max:0.5,big:!!tg.walker,sd:R()});}}}
+    else if(def.kind==='aura'){let any=false;S.b-=dt;
+      for(const e of G.enemies){if(e.hp<=0)continue;const p=posE(e);if(dist(p.x,p.y,s.x,s.y)>range+e.r)continue;any=true;
+        const q=e.fly?p.y+18:p.y+4;ctx.strokeStyle='rgba(120,80,48,0.75)';ctx.lineWidth=1.4;const w=9+Math.sin(now/260+e.id)*1.5;ctx.beginPath();ctx.moveTo(p.x-w,q+2);ctx.quadraticCurveTo(p.x-w*0.3,q-4,p.x,q+1);ctx.quadraticCurveTo(p.x+w*0.4,q+5,p.x+w,q-1);ctx.stroke();
+        ctx.strokeStyle='rgba(150,235,110,0.55)';ctx.beginPath();ctx.moveTo(p.x-w*0.7,q);ctx.quadraticCurveTo(p.x,q+4,p.x+w*0.7,q+1);ctx.stroke();}
+      if(any){S.rg+=dt;if(S.rg>1.5)S.rg=0;const k=S.rg/1.5;ctx.globalAlpha=0.28*(1-k);ctx.strokeStyle='#9be66e';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(s.x,s.y+8,range*k,range*k*0.5,0,0,6.283);ctx.stroke();ctx.globalAlpha=1;}}
+    else if(t.type==='scorp'){const c=t.cd;if(c<0.32){const k=Math.max(0,1-c/0.32),g=fxbSoft('255,214,120');ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.35+0.5*k*(0.7+0.3*Math.sin(now/45));ctx.drawImage(g,s.x-10-8*k,s.y-34-8*k,20+16*k,20+16*k);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;}}
+    else if(def.kind==='barracks'){for(const a of G.allies){if(a.home!==s.id||a.strikeT==null)continue;if(G.time-a.strikeT>0.07)continue;if(FXT.AS.get(a)===a.strikeT)continue;FXT.AS.set(a,a.strikeT);
+      const x=a.x+(a.face||1)*11,y=a.y-8;for(let i=0;i<5;i++){const an=-Math.PI/2+(R()-0.5)*2.4,v=60+R()*80,p=fxbP(3,x,y,Math.cos(an)*v,Math.sin(an)*v,0.14+R()*0.1,1.3,i%2?'#fff1c0':'#ffd479',240);if(p)p.add=1;}}}}
+  /* dragonglass spears */
+  for(let i=FXT.sp.length-1;i>=0;i--){const o=FXT.sp[i];o.life-=dt;if(o.life<=0){FXT.sp.splice(i,1);continue;}const k=1-o.life/o.max,rise=k<0.3?k/0.3:1,fade=k<0.6?1:(1-k)/0.4,L=(o.big?30:20)*rise,w=o.big?4.2:3;
+    ctx.globalAlpha=fade;ctx.fillStyle='#16303f';ctx.beginPath();ctx.moveTo(o.x-w,o.y);ctx.lineTo(o.x,o.y-L);ctx.lineTo(o.x+w,o.y);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#9fe0ff';ctx.beginPath();ctx.moveTo(o.x-w*0.2,o.y);ctx.lineTo(o.x,o.y-L);ctx.lineTo(o.x+w*0.5,o.y);ctx.closePath();ctx.fill();
+    if(k<0.35){const g=fxbSoft('140,215,255');ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.7*(1-k/0.35);ctx.drawImage(g,o.x-14,o.y-10,28,18);ctx.globalCompositeOperation='source-over';}
+    if(o.big&&k>0.15&&!o.sh){o.sh=1;for(let j=0;j<4;j++){const an=-Math.PI*(0.15+0.7*R()),v=50+R()*60,p=fxbP(1,o.x,o.y-12,Math.cos(an)*v*(R()<0.5?-1:1),Math.sin(an)*v,0.5,2.4,'#dff4ff',300);}}}
+  ctx.globalAlpha=1;
+  /* wildfire blooms */
+  for(let i=FXT.bl.length-1;i>=0;i--){const o=FXT.bl[i];o.life-=dt;if(o.life<=0){FXT.bl.splice(i,1);continue;}const k=1-o.life/o.max,r=o.r*(0.55+0.45*Math.min(1,k*3)),g=fxbSoft('140,255,100');
+    ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.6*(1-k);ctx.drawImage(g,o.x-r,o.y-r*0.7,r*2,r*1.4);
+    ctx.globalCompositeOperation='source-over';
+    for(let j=0;j<5;j++){const a=j*1.26+o.x,fx=o.x+Math.cos(a)*r*0.6,fy=o.y+Math.sin(a)*r*0.3,fh=7+5*Math.abs(Math.sin(now/60+j*2));ctx.globalAlpha=0.7*(1-k);ctx.fillStyle=j%2?'#b8f27a':'#4fd94a';ctx.beginPath();ctx.moveTo(fx-3,fy);ctx.quadraticCurveTo(fx,fy-fh,fx+3,fy);ctx.closePath();ctx.fill();}
+    ctx.globalCompositeOperation='source-over';}
+  ctx.globalAlpha=1;}
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -6699,7 +6790,7 @@ function bookTower(k){const D=TOWERS[k],TS=tseenMap(),lv=TS[k]||0,open=towerOpen
   const miles=TMILE[k].map((m,i)=>`<span class="${L>=T_MILE[i]?'':'lk'}">${m[0]} ${m[1]} <em>${L>=T_MILE[i]?'✓ '+m[2]:m[2]+' · Lv '+T_MILE[i]}</em></span>`).join('');
   const vs=TOWER_VS[k];
   return `<div class="bkdet"><div class="bkpic">${towerIconHTML(k,tier,86)}</div><div class="tx"><h3>${D.n}${bookIsNew('towers',k)?'<span class="bknew">NEW</span>':''}</h3><span class="sub">${BOOK_ROLE[D.kind]||''} · opens after stage ${TOWER_UNLOCK[k]} · ${D.cost[0]} gold</span><p>${TOWER_C[k]}</p></div></div>
-  <div class="bktiers">${tiers}</div>
+  ${towerGuideDemo(k,tier)}<div class="bktiers">${tiers}</div>
   <div class="bkst">${stats.join('')}</div>
   <div class="bkdisc">${reached?reached+' · ':''}${nextT}<br>${cost}</div>
   <div class="bkh">Good against</div><div class="bkchips">${vs.good.map(x=>`<span class="good">${x}</span>`).join('')}</div>
@@ -7302,7 +7393,7 @@ function draw(now){
     if(G.hero&&G.heroOn)items.push({y:G.hero.y,f:()=>drawHero(now)});
     for(const e of G.enemies){if(!e.fly){items.push({y:posE(e).y,f:()=>drawEnemy(e,now)});}}
     items.sort((a,b)=>a.y-b.y);for(const it of items)it.f();
-    fxbUnder(now);for(const p of G.projs)drawProj(p);
+    fxbUnder(now);fxtUnder(now);for(const p of G.projs)drawProj(p);
     for(const e of G.enemies)if(e.fly)drawEnemy(e,now);
     for(const f of G.fx)drawFx(f,now);fxbOver(now);
     if(G.dragonFx>0)drawDrogon(now);
@@ -7822,6 +7913,7 @@ window.HOLDOR_WAR={showRealmWar,showRealms,WAR};
 window.HOLDOR_FXB={FXB,fxbCounts,fxbTint,fxbGateKick,fxbDeath,fxbTick,fxbNum,drawFrame:n=>draw(n)};
 window.HOLDOR_FXUI={FXUI,fxuiHub,fxuiOff,fxuiCalm,fxuiLive,fxuiParTo,ecoModal,homeRaf:()=>HOME.raf,
   drawTimer(){if(window.__fxDT)return window.__fxDT;const T={ms:0,n:0},d0=draw;draw=function(){const t=performance.now();const r=d0.apply(this,arguments);T.ms+=performance.now()-t;T.n++;return r;};window.__fxDT=T;return T;}};
+window.HOLDOR_FXT={FXT,TGUIDE,tgNums,towerGuideMini,towerGuideDemo,fxtUnder,openSheet,posE};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();
