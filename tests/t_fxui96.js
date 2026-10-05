@@ -15,6 +15,7 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
   const R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
   const tap = async (sel, ms) => { await page.locator(sel).first().tap({ force: true }); await page.waitForTimeout(ms == null ? 400 : ms); };
   const setup = async () => { await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_FXUI && window.HOLDOR_HOME, { timeout: 20000 }); await page.waitForTimeout(300);
+    await page.evaluate(() => { window.HOLDOR_FXUI.FXUI.probed = 1; document.documentElement.classList.remove('fxlite'); });   // the slow-phone probe is not what this suite checks (it trips on a loaded machine)
     await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tour = 99;
       a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1, tasks: 1 }; a.learn = { chest: 1, hold: 1, champ: 1, glass: 1, keep: 1, tier2: 1, fire: 1 };
       for (let i = 1; i <= 9; i++) a.campaign[i] = 3; a.freeChestAt = Date.now() - 90000000; a.holdTut = 1; a.holdIntro = 1; a.gold = 900; a.gems = 60; H.setAcc(a); H.showHub('shop'); });
@@ -72,7 +73,7 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
   await tap('.subtabs button[data-sub="heroes"]', 900);
   const col = await page.evaluate(() => { const br = document.querySelector('#hubBody .ccard.fxbr.fxvis .im img, #hubBody .ccard.fxbr.fxvis .im .pe'), sh = document.querySelector('#hubBody .ccard.fxrL.fxvis,#hubBody .ccard.fxrE.fxvis');
     return { cards: document.querySelectorAll('#hubBody .ccard[data-c]').length, leg: document.querySelectorAll('#hubBody .ccard.fxrL').length, epic: document.querySelectorAll('#hubBody .ccard.fxrE').length,
-      breath: br ? getComputedStyle(br).animationName : '', sheen: sh ? getComputedStyle(sh, '::after').animationName : '',
+      breath: br ? getComputedStyle(br).animationName : '', dbg: br ? [br.tagName, br.className, br.closest('.ccard').className, document.documentElement.className, getComputedStyle(br).animation].join(' | ') : 'none found', sheen: sh ? getComputedStyle(sh, '::after').animationName : '',
       offscreen: [...document.querySelectorAll('#hubBody .ccard[data-c]')].filter(e => e.getBoundingClientRect().top > innerHeight + 60 && e.classList.contains('fxvis')).length }; });
   ok('Champions: unlocked portraits breathe, Epic and Legendary cards shimmer, cards off screen rest', col.cards > 10 && col.leg > 0 && col.epic > 0 && col.breath === 'fxBreath' && col.sheen === 'fxSheen' && col.offscreen === 0, JSON.stringify(col));
   await page.screenshot({ path: SC + 'fx96_ui_collection.png' });
