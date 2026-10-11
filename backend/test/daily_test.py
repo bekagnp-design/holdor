@@ -39,7 +39,7 @@ with sync_playwright() as p:
     def tap(sel, ms=400): pg.locator(sel).first.tap(force=True); pg.wait_for_timeout(ms)
     def W(): return q("select gold, gems, cards from wallets where tg_id = %s and seat = 0", TG)[0]
     check('login', wait("HOLDOR.CLOUD.on", 12000))
-    ev("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;a.tour=1;a.tours={win:1,battle:1,coll:1,shop:1,hold:1,events:1,earn:1};a.learn={chest:1,hold:1,champ:1,glass:1,keep:1,tier2:1,fire:1};a.holdTut=1;a.holdIntro=1;
+    ev("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;for(let i=1;i<=5;i++)a.campaign[i]=3;a.tour=1;a.tours={win:1,battle:1,coll:1,shop:1,hold:1,events:1,earn:1};a.learn={chest:1,hold:1,champ:1,glass:1,keep:1,tier2:1,fire:1};a.holdTut=1;a.holdIntro=1;
       H.SAVE.slots[0]=a;H.SAVE.cur=0;H.setAcc(a);H.persist();H.afterLoad();})()""")
     check('seat managed', wait("HOLDOR_ECON.ecoOn()", 12000)); settle()
     q("update wallets set created_at = now() - interval '3 days' where tg_id = %s and seat = 0", TG)
@@ -47,8 +47,9 @@ with sync_playwright() as p:
     ev("HOLDOR_DAILY.DAILY.st=null;HOLDOR_DAILY.DAILY.shown=false")
 
     # ---- the popup when the castle opens ----
+    ev("HOLDOR.showHub('tasks')")
+    check('the Daily card is inside Tasks (v1.0.98)', wait("!!document.querySelector('#bDaily')", 4000))
     ev("HOLDOR.showHub('battle')")
-    check('the Daily button is on the Battle tab', wait("!!document.querySelector('#bDaily')", 4000))
     check('a popup: day 1 of 30 with its reward', wait("/Day 1 of 30/.test((document.querySelector('#ecoModal.on')||{}).textContent||'')", 6000))
     pg.screenshot(path=SHOTS + '/daily_popup.png')
     m0 = W()[1]
@@ -61,7 +62,7 @@ with sync_playwright() as p:
 
     # ---- the screen ----
     ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(500)
-    tap('#bDaily', 700); settle(); ev("HOLDOR_DAILY.showDaily('cal')"); pg.wait_for_timeout(600)
+    ev("HOLDOR.showHub('tasks')"); pg.wait_for_timeout(500); tap('#bDaily', 700); settle(); ev("HOLDOR_DAILY.showDaily('cal')"); pg.wait_for_timeout(600)
     check('the calendar: 30 tiles, day 1 done, day 2 is today', ev("document.querySelectorAll('.cday').length") == 30 and ev("document.querySelector('.cday.done b').textContent") == '1' and ev("document.querySelector('.cday.today b').textContent") == '2')
     check('today\'s reward is already claimed (the button says so and is disabled)', ev("document.querySelector('#bLogin').disabled") and 'claimed' in ev("document.querySelector('#bLogin').textContent"))
     pg.screenshot(path=SHOTS + '/daily_calendar.png')
@@ -83,8 +84,8 @@ with sync_playwright() as p:
     tap('.subtabs button[data-t="weekly"]', 500)
     check('weekly quests are listed with a reset time', ev("document.querySelectorAll('.qrow').length") == 4 and 'Resets in' in ev("document.querySelector('.m').textContent"))
     # ---- the Battle tab tells how many are waiting ----
-    ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(600); ev("HOLDOR_DAILY.dailyLoad(true)"); settle(); ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(700)
-    check('the button shows what is ready (a red number: the kills quest)', ev("(document.querySelector('#bDaily .dot')||{}).textContent") == '1', ev("document.querySelector('#bDaily').textContent"))
+    ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(600); ev("HOLDOR_DAILY.dailyLoad(true)"); settle(); ev("HOLDOR.showHub('tasks')"); pg.wait_for_timeout(700)
+    check('the Daily card inside Tasks shows what is ready (a red number: the kills quest)', ev("(document.querySelector('#bDaily .st')||{}).textContent") == '1', ev("(document.querySelector('#bDaily')||{}).textContent"))
     check('ledger = wallet (gold and gems)', q1("select sum(delta) from ledger where tg_id = %s and seat = 0 and cur = 'gold'", TG) == W()[0] and q1("select sum(delta) from ledger where tg_id = %s and seat = 0 and cur = 'gems'", TG) == W()[1])
     # ---- v1.0.65: the Levels tab (milestone gifts) ----
     need10 = sum(15 + 8 * k + k * k for k in range(1, 10))

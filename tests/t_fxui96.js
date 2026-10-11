@@ -29,8 +29,7 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
       under: L ? +getComputedStyle(L).zIndex < +getComputedStyle(document.querySelector('.hmgoal')).zIndex : false,
       sweep: sw ? getComputedStyle(sw).animationName : '', glow: g ? getComputedStyle(g).animationName : '', glowOp: g ? +getComputedStyle(g).opacity : -1,
       glowFits: g ? Math.abs(g.getBoundingClientRect().width - document.getElementById('bBattle').getBoundingClientRect().width) < 12 : false }; });
-  for (const look of ['b', 'c', 'a']) {
-    if (look !== 'b') await tap('#bSkin', 900);
+  for (const look of ['b']) {   // v1.0.98: one look
     const s1 = await homeState(), m1 = await motes(); await page.waitForTimeout(700); const s2 = await homeState(), m2 = await motes();
     ok(`home ${look.toUpperCase()}: the motes layer sits over the art under the goal, its motes move, the light sweeps`,
       s1.skin === look && s1.root && s1.layer && s1.n >= 10 && s1.under && m1 !== m2 && s1.sweep === 'fxSweep', JSON.stringify({ s1, m1, m2 }));

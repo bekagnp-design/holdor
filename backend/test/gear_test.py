@@ -49,7 +49,7 @@ try:
     def items(): return q("select id::text, slot, rar, main_k, lvl, champ from items where tg_id = %s and seat = 0 order by created_at", TG)
     def wgold(): return q1("select gold from wallets where tg_id = %s and seat = 0", TG)
     check('login', wait("HOLDOR.CLOUD.on", 12000))
-    ev("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;a.tour=1;a.learn={chest:1,hold:1,champ:1};a.holdTut=1;a.holdIntro=1;
+    ev("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;for(let i=1;i<=5;i++)a.campaign[i]=3;a.tour=1;a.learn={chest:1,hold:1,champ:1};a.holdTut=1;a.holdIntro=1;
       H.SAVE.slots[0]=a;H.SAVE.cur=0;H.setAcc(a);H.persist();H.afterLoad();})()""")
     check('seat managed', wait("HOLDOR_ECON.ecoOn()", 12000)); settle()
     check('an empty bag at the start', ev("HOLDOR_GEAR.gearItems().length") == 0 and items() == [])
@@ -68,7 +68,7 @@ try:
     # ---- a known Legendary weapon (+10.8 % damage) through the forge's taps ----
     wid = q1("insert into items (tg_id, seat, slot, rar, set_k, main_k, subs, src) values (%s, 0, 'weapon', 4, 'wolf', 'dmg', '[]', 'test') returning id::text", TG)
     ev("HOLDOR_GEAR.gearLoad()"); settle()
-    ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(500)
+    ev("HOLDOR.showHub('coll')"); pg.wait_for_timeout(500)   # the Forge is at the top of Army (v1.0.98)
     tap('#bForge', 600)
     check('forge: 9 slots, the bag', ev("document.querySelectorAll('.gslot').length") == 9 and ev("document.querySelectorAll('.gitem').length") == 2)
     pg.screenshot(path=SHOTS + '/gear_forge.png')

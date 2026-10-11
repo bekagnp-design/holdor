@@ -39,7 +39,7 @@ with sync_playwright() as p:
     def tap(sel, ms=400): pg.locator(sel).first.tap(force=True); pg.wait_for_timeout(ms)
     def W(): return q("select gold, gems, cards from wallets where tg_id = %s and seat = 0", TG)[0]
     check('login', wait("HOLDOR.CLOUD.on", 12000))
-    ev("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;a.tour=1;a.tours={win:1,battle:1,coll:1,shop:1,hold:1,events:1,earn:1};a.learn={chest:1,hold:1,champ:1,glass:1,keep:1,tier2:1,fire:1};a.holdTut=1;a.holdIntro=1;
+    ev("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;for(let i=1;i<=5;i++)a.campaign[i]=3;a.tour=1;a.tours={win:1,battle:1,coll:1,shop:1,hold:1,events:1,earn:1};a.learn={chest:1,hold:1,champ:1,glass:1,keep:1,tier2:1,fire:1};a.holdTut=1;a.holdIntro=1;
       H.SAVE.slots[0]=a;H.SAVE.cur=0;H.setAcc(a);H.persist();H.afterLoad();})()""")
     check('seat managed', wait("HOLDOR_ECON.ecoOn()", 12000)); settle()
     q("update wallets set created_at = now() - interval '3 days' where tg_id = %s and seat = 0", TG)
@@ -49,8 +49,8 @@ with sync_playwright() as p:
     def wins(n):
         for _ in range(n): q("insert into battles (tg_id, seat, kind, stage, status, stars, kills, waves, started_at, finished_at) values (%s, 0, 'camp', 1, 'won', 3, 10, 5, now() - interval '1 minute', now())", TG)
     wins(25)
-    ev("HOLDOR_SEASON.SEASON.st=null"); ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(1200); settle()
-    check('the Battle tab has a Season button beside City', wait("!!document.querySelector('#bSeason') && !!document.querySelector('#bCity')", 4000))
+    ev("HOLDOR_SEASON.SEASON.st=null"); ev("HOLDOR.showHub('shop')"); pg.wait_for_timeout(1200); settle()
+    check('the Shop has the Season card on top (v1.0.98)', wait("!!document.querySelector('#bSeason')", 4000))
     tap('#bSeason', 900); settle(); pg.wait_for_timeout(600)
     check('the Season screen: tier 2 of 20 (25 points), no Pass, no VIP, 20 rows', 'Tier 2 / 20' in ev("document.querySelector('.sbox').textContent") and ev("document.querySelectorAll('.srow').length") == 20 and ev("document.querySelectorAll('[data-buy]').length") == 2, ev("document.querySelector('.sbox').textContent"))
     pg.screenshot(path=SHOTS + '/season_home.png')

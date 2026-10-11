@@ -10,11 +10,11 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_CITY, { timeout: 20000 }); await page.waitForTimeout(300);
   const R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
   const setup = (cleared, house) => page.evaluate(([n, hs]) => { const H = window.HOLDOR; const a = H.newAccount(hs || 'stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1 }; a.learn = { chest: 1, hold: 1, champ: 1, glass: 1, keep: 1, tier2: 1, fire: 1 };
-    for (let i = 1; i <= n; i++) a.campaign[i] = 3; H.setAcc(a); H.showHub('battle'); }, [cleared, house]);
+    for (let i = 1; i <= n; i++) a.campaign[i] = 3; H.setAcc(a); H.showHub('coll'); }, [cleared, house]);
   const C = await page.evaluate(() => { const X = window.HOLDOR_CITY; return { n: X.CITY_BLD.length, ids: X.CITY_BLD.map(b => b[0]), names: Object.keys(X.CITY_NAME) }; });
   ok('nine buildings with unique ids; seven house cities', C.n === 9 && new Set(C.ids).size === 9 && C.names.length === 7, JSON.stringify(C));
   await setup(0); await page.waitForTimeout(1200);
-  ok('the Battle tab has a City button among five icon buttons', /City/.test(await page.locator('#bCity').textContent()) && await page.evaluate(() => document.querySelectorAll('.homerow .hbtn').length === 5));
+  ok('the Army tab has a City button among three icon buttons', /City/.test(await page.locator('#bCity').textContent()) && await page.evaluate(() => document.querySelectorAll('.homerow.army .hbtn').length === 3));
   await page.locator('#bCity').tap({ force: true }); await page.waitForTimeout(500);
   let S = await page.evaluate(() => ({ b: document.querySelectorAll('.cbd').length, lock: document.querySelectorAll('.cbd.lock').length, head: document.querySelector('.topbar h1').textContent.replace(/\s+/g, ' ') }));
   ok('a fresh seat: 9 buildings, 5 locked (Treasury 2, Forge 3, Tavern 5, Library 8, Hall 10), the name of its city', S.b === 9 && S.lock === 5 && /Winterfell/.test(S.head) && /0 stages cleared/.test(S.head), JSON.stringify(S));
@@ -25,7 +25,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   ok('the Barracks open the Train screen', /Army level|Train/i.test(await page.evaluate(() => document.querySelector('#card').innerText)));
   await page.evaluate(() => window.HOLDOR_CITY.showCity()); await page.waitForTimeout(200);
   await page.locator('#bBack').tap({ force: true }); await page.waitForTimeout(500);
-  ok('back returns to the Battle tab', await page.evaluate(() => !!document.querySelector('#bCity')));
+  ok('back returns to the hub', await page.evaluate(() => /^hub:/.test(window.HOLDOR.CLOUD.screen)));
   await setup(6, 'targaryen'); await page.waitForTimeout(1000);
   await page.locator('#bCity').tap({ force: true }); await page.waitForTimeout(500);
   S = await page.evaluate(() => ({ lock: [...document.querySelectorAll('.cbd.lock')].map(x => x.dataset.b), head: document.querySelector('.topbar h1').textContent.replace(/\s+/g, ' ') }));
