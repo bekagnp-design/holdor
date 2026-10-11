@@ -27,7 +27,7 @@ function tkSocial(){const s=tkState();if(!s)return '<p class="m">⏳ asking the 
 function tkFriends(){const s=tkState();const F=s?s.items.filter(i=>i.kind==='ref'):[];
   return `${F.length?`<div class="qlist">${F.map(tkRow).join('')}</div>`:''}<button class="tkmore inv" data-tog="tk-inv">👥 Invite friends — a gift for you both ${TASKS.invOpen?'⌃':'›'}</button><div data-tgt="tk-inv" ${TASKS.invOpen?'':'hidden'}>${invBox().replace(/<div class="hh"[^>]*>.*?<\/div>/,'')}</div>`;}
 function hubTasks(sub){
-  if(!tasksOn())return `<p class="m">${ecoOn()?'Finish the tutorial battle first.':'Tasks are kept by the server — they need a seat signed in through Telegram.'}</p>`;
+  if(!tasksOn())return tkDailyHTML()+`<p class="m">${ecoOn()?'Finish the tutorial battle first.':'Tasks are kept by the server — they need a seat signed in through Telegram.'}</p>`;
   if(sub)TASKS.sub=sub;sub=TASKS.sub;
   const rush=tkRush(),e=evAt(Date.now());
   const strip=rush?`<div class="rushstrip on"><b>📜 Quest Rush</b><span>every quest ×2</span><em id="tkRushCd">${evLeft(rush.t1-Date.now())}</em></div>`
