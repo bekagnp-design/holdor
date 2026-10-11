@@ -1,0 +1,1463 @@
+{
+ "logline": "A lone rider begs at the gate and counts the hours to dawn. Frost creeps over burning desert sand, the knocks come in threes, and the one thing that never breathes is the man asking to be let in.",
+ "motif": "Three knocks, frost on warm sand, and a countdown. Every film ends on a number (7, 6, 5, 4 hours, then 2 and 1 fires, then 8). Each beacon that lights doubles as a menu-unlock beat. The clue is breath: the champion's breath smokes, the rider's never does.",
+ "twist": "The rider is not fleeing the dead, he is leading them. Dawn is his word for the eighth beacon, the moment the host reaches the south. Fair-play clues: no hoofbeats (F0), the champion asks to see his breath (F0), a warm-waxed letter says not to answer (F1), a shape standing too still and the one breath that does not smoke (F3). F4 pays them off and cuts to the Night King.",
+ "notes": "Validated: all scene ids, sfx keys and caption kinds allowed; every caption <= 8 words, hold >= 1.6, at+hold <= shot d, never more than 2 visible at once; tutorial_lines has 13 entries (2 and 6 blank, {SKILL} in 5, line 12 without castle/menu). Fix applied: F6 title card now '1 FIRE' (was '1 HOUR') to match the hours-to-fires switch in F4. Seconds per film: F0 42.0 s / 11 shots (title at 34.2 s = 81%); F1 21.6 s / 6 shots; F2 12.8 s / 4 shots; F3 13.4 s / 4 shots; F4 30.0 s / 8 shots; F5 8.2 s / 3 shots; F6 8.2 s / 3 shots; F7 8.4 s / 3 shots.",
+ "films": [
+  {
+   "id": "f0",
+   "title": "Seven Hours",
+   "chapter": "Cold open",
+   "shots": [
+    {
+     "scene": "black",
+     "d": 3.4,
+     "p": {
+      "pulse": true
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.1,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "heartbeat"
+      },
+      {
+       "at": 2.6,
+       "k": "thud"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.4,
+       "text": "Count the knocks.",
+       "kind": "whisper",
+       "hold": 2.0
+      }
+     ],
+     "flash": [
+      2.6
+     ]
+    },
+    {
+     "scene": "dunes",
+     "d": 6,
+     "p": {
+      "frost": 0.3,
+      "palms": true,
+      "fires": 2
+     },
+     "cam": {
+      "from": 1.02,
+      "to": 1.12,
+      "dx": 0,
+      "dy": -10
+     },
+     "cut": "fade",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "wind"
+      },
+      {
+       "at": 2.5,
+       "k": "cold"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.5,
+       "text": "Dorne. Midsummer.",
+       "kind": "line",
+       "hold": 2.2
+      },
+      {
+       "at": 3.2,
+       "text": "Frost. On the sand.",
+       "kind": "whisper",
+       "hold": 2.2
+      }
+     ]
+    },
+    {
+     "scene": "wall",
+     "d": 4.2,
+     "p": {
+      "aurora": 0.6,
+      "snow": 0.4,
+      "beacons": 0
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.2,
+      "dx": 0,
+      "dy": 12
+     },
+     "cut": "fade",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "drone"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.3,
+       "text": "Eight beacons run south from the Wall.",
+       "kind": "line",
+       "hold": 2.4
+      },
+      {
+       "at": 2.6,
+       "text": "None lit. Yet.",
+       "kind": "whisper",
+       "hold": 1.6
+      }
+     ]
+    },
+    {
+     "scene": "beacons",
+     "d": 3.2,
+     "p": {
+      "n": 1
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.1,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 1,
+       "k": "horn"
+      }
+     ],
+     "flash": [
+      1
+     ],
+     "cap": [
+      {
+       "at": 1,
+       "text": "ONE.",
+       "kind": "shout",
+       "hold": 1.8
+      }
+     ]
+    },
+    {
+     "scene": "road",
+     "d": 3.8,
+     "p": {
+      "rider": true,
+      "eyes": 3,
+      "fog": 0.7,
+      "snow": 0.5
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.25,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "gallop"
+      },
+      {
+       "at": 2,
+       "k": "silence"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.2,
+       "text": "A lone rider, racing the dead.",
+       "kind": "line",
+       "hold": 1.8
+      },
+      {
+       "at": 2,
+       "text": "No hoofbeats.",
+       "kind": "whisper",
+       "hold": 1.7
+      }
+     ]
+    },
+    {
+     "scene": "black",
+     "d": 1.2,
+     "p": {
+      "eyes": 6
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.05,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "sting"
+      }
+     ],
+     "flash": [
+      0.1
+     ]
+    },
+    {
+     "scene": "gate",
+     "d": 5,
+     "p": {
+      "knock": 3,
+      "frost": 0.2
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.15,
+      "dx": 0,
+      "dy": -6
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0.2,
+       "k": "silence"
+      },
+      {
+       "at": 1,
+       "k": "knock3"
+      }
+     ],
+     "shake": [
+      {
+       "at": 1,
+       "amp": 7,
+       "dur": 0.6
+      }
+     ],
+     "cap": [
+      {
+       "at": 1.8,
+       "text": "Open! The dead are behind me!",
+       "kind": "speech",
+       "who": "Rider",
+       "hold": 1.8
+      },
+      {
+       "at": 3.3,
+       "text": "Dawn is seven hours off!",
+       "kind": "speech",
+       "who": "Rider",
+       "hold": 1.7
+      }
+     ]
+    },
+    {
+     "scene": "hodor",
+     "d": 3.4,
+     "p": {
+      "look": "ahead",
+      "sweat": true
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.2,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "heartbeat"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.5,
+       "text": "Hodor.",
+       "kind": "speech",
+       "who": "Hodor",
+       "hold": 1.7
+      },
+      {
+       "at": 1.6,
+       "text": "Hodor did not open.",
+       "kind": "line",
+       "hold": 1.8
+      }
+     ]
+    },
+    {
+     "scene": "champion",
+     "d": 3.4,
+     "p": {
+      "rim": true,
+      "eyes": true,
+      "breath": true
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.15,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "cold"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.5,
+       "text": "Show me your breath.",
+       "kind": "speech",
+       "who": "Champion",
+       "hold": 2.4
+      }
+     ]
+    },
+    {
+     "scene": "title",
+     "d": 3.2,
+     "p": {
+      "text": "HOLD THE DOOR",
+      "sub": "Seven hours to dawn.",
+      "crack": 0.7
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.05,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "sting"
+      }
+     ],
+     "flash": [
+      0
+     ]
+    },
+    {
+     "scene": "door",
+     "d": 4.6,
+     "p": {
+      "thuds": 5,
+      "frost": 0.5,
+      "light": 0.6
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.3,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0.3,
+       "k": "thud"
+      },
+      {
+       "at": 1,
+       "k": "thud"
+      },
+      {
+       "at": 1.7,
+       "k": "thud"
+      },
+      {
+       "at": 2.4,
+       "k": "thud"
+      },
+      {
+       "at": 3.1,
+       "k": "thud"
+      }
+     ],
+     "shake": [
+      {
+       "at": 0.3,
+       "amp": 8,
+       "dur": 0.4
+      },
+      {
+       "at": 1,
+       "amp": 8,
+       "dur": 0.4
+      },
+      {
+       "at": 1.7,
+       "amp": 9,
+       "dur": 0.4
+      },
+      {
+       "at": 2.4,
+       "amp": 10,
+       "dur": 0.4
+      },
+      {
+       "at": 3.1,
+       "amp": 12,
+       "dur": 0.5
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.3,
+       "text": "HOLD THE DOOR!",
+       "kind": "shout",
+       "hold": 2
+      },
+      {
+       "at": 2.8,
+       "text": "Seven hours. One door.",
+       "kind": "line",
+       "hold": 1.8
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "f1",
+   "title": "Do Not Answer",
+   "chapter": "Stage 1 - Sunspear",
+   "shots": [
+    {
+     "scene": "gate",
+     "d": 4,
+     "p": {
+      "knock": 3,
+      "frost": 0.4
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.15,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0.3,
+       "k": "knock3"
+      }
+     ],
+     "shake": [
+      {
+       "at": 0.3,
+       "amp": 6,
+       "dur": 0.5
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.9,
+       "text": "Still holding? Six hours to dawn.",
+       "kind": "speech",
+       "who": "Rider",
+       "hold": 2.6
+      }
+     ]
+    },
+    {
+     "scene": "dunes",
+     "d": 4.6,
+     "p": {
+      "frost": 0.5,
+      "palms": true,
+      "fires": 3
+     },
+     "cam": {
+      "from": 1.05,
+      "to": 1.05,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "fade",
+     "sfx": [
+      {
+       "at": 1,
+       "k": "cold"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.6,
+       "text": "Frost on sand. Past midnight.",
+       "kind": "line",
+       "hold": 2.2
+      },
+      {
+       "at": 2.6,
+       "text": "Where is the sentry?",
+       "kind": "whisper",
+       "hold": 1.8
+      }
+     ]
+    },
+    {
+     "scene": "raven",
+     "d": 3.6,
+     "p": {
+      "letter": true
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.15,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "fade",
+     "sfx": [
+      {
+       "at": 0.3,
+       "k": "crow"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.4,
+       "text": "A raven. Sealed in {HOUSE} wax.",
+       "kind": "line",
+       "hold": 2.4
+      }
+     ]
+    },
+    {
+     "scene": "raven",
+     "d": 2,
+     "p": {
+      "close": true,
+      "letter": true
+     },
+     "cam": {
+      "from": 1.1,
+      "to": 1.3,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "sting"
+      }
+     ],
+     "flash": [
+      0.2
+     ],
+     "cap": [
+      {
+       "at": 0.1,
+       "text": "Do not answer. They wear voices.",
+       "kind": "speech",
+       "who": "Letter",
+       "hold": 1.9
+      }
+     ]
+    },
+    {
+     "scene": "hodor",
+     "d": 4.2,
+     "p": {
+      "look": "down"
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.15,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "cold"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.4,
+       "text": "The wax was still warm.",
+       "kind": "line",
+       "hold": 2.2
+      },
+      {
+       "at": 2.5,
+       "text": "Hodor?",
+       "kind": "speech",
+       "who": "Hodor",
+       "hold": 1.7
+      }
+     ]
+    },
+    {
+     "scene": "title",
+     "d": 3.2,
+     "p": {
+      "text": "6 HOURS",
+      "sub": "Hold the door.",
+      "crack": 0.4
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.05,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 1.2,
+       "k": "knock3"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "f2",
+   "title": "The Third Fire",
+   "chapter": "Stage 2 - Salt Shore",
+   "shots": [
+    {
+     "scene": "beacons",
+     "d": 3.2,
+     "p": {
+      "n": 3
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.15,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 1.2,
+       "k": "horn"
+      }
+     ],
+     "flash": [
+      1.2
+     ],
+     "cap": [
+      {
+       "at": 0.3,
+       "text": "The third beacon lit itself.",
+       "kind": "line",
+       "hold": 2.4
+      }
+     ]
+    },
+    {
+     "scene": "dunes",
+     "d": 3.6,
+     "p": {
+      "frost": 0.9,
+      "palms": true,
+      "fires": 1
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.15,
+      "dx": 0,
+      "dy": -8
+     },
+     "cut": "fade",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "wind"
+      },
+      {
+       "at": 1.5,
+       "k": "cold"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.4,
+       "text": "Snow on the palm trees.",
+       "kind": "whisper",
+       "hold": 2.2
+      }
+     ]
+    },
+    {
+     "scene": "gate",
+     "d": 3.4,
+     "p": {
+      "knock": 3,
+      "crack": 0.5
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.2,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 1.8,
+       "k": "knock3"
+      }
+     ],
+     "shake": [
+      {
+       "at": 1.8,
+       "amp": 8,
+       "dur": 0.6
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.2,
+       "text": "Five hours, friend. Open.",
+       "kind": "speech",
+       "who": "Rider",
+       "hold": 1.7
+      }
+     ]
+    },
+    {
+     "scene": "title",
+     "d": 2.6,
+     "p": {
+      "text": "5 HOURS",
+      "sub": "Count the knocks.",
+      "crack": 0.6
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.05,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "sting"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "f3",
+   "title": "No Breath",
+   "chapter": "Stage 3 - Yronwood",
+   "shots": [
+    {
+     "scene": "champion",
+     "d": 4,
+     "p": {
+      "rim": true,
+      "breath": true
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.15,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "cold"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.3,
+       "text": "Every breath smoked in the cold.",
+       "kind": "line",
+       "hold": 2.2
+      },
+      {
+       "at": 2.3,
+       "text": "Except one.",
+       "kind": "whisper",
+       "hold": 1.7
+      }
+     ]
+    },
+    {
+     "scene": "road",
+     "d": 3.4,
+     "p": {
+      "figure": true,
+      "fog": 0.85,
+      "snow": 0.3
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.2,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0.2,
+       "k": "drone"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.4,
+       "text": "A shape. Standing too still.",
+       "kind": "whisper",
+       "hold": 2
+      }
+     ]
+    },
+    {
+     "scene": "gate",
+     "d": 3,
+     "p": {
+      "knock": 3,
+      "frost": 0.6
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.15,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 1.5,
+       "k": "knock3"
+      }
+     ],
+     "shake": [
+      {
+       "at": 1.5,
+       "amp": 6,
+       "dur": 0.5
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.3,
+       "text": "Four hours. Open up.",
+       "kind": "speech",
+       "who": "Rider",
+       "hold": 1.7
+      }
+     ]
+    },
+    {
+     "scene": "title",
+     "d": 3,
+     "p": {
+      "text": "4 HOURS",
+      "sub": "Something is wrong. Hold.",
+      "crack": 0.8
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.05,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "sting"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "f4",
+   "title": "The War Room",
+   "chapter": "The keep opens",
+   "shots": [
+    {
+     "scene": "hall",
+     "d": 3.6,
+     "p": {
+      "crest": true,
+      "embers": 0.5
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.1,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "fade",
+     "sfx": [
+      {
+       "at": 0.2,
+       "k": "relief"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.3,
+       "text": "Three gates held. Behind them, {SEAT}.",
+       "kind": "line",
+       "hold": 2.6
+      }
+     ]
+    },
+    {
+     "scene": "map",
+     "d": 5.2,
+     "p": {
+      "frost": 0.45,
+      "mark": 4
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.3,
+      "dx": 0,
+      "dy": 10
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "cold"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.3,
+       "text": "Fifty gates. Frost runs south.",
+       "kind": "line",
+       "hold": 2
+      },
+      {
+       "at": 2.7,
+       "text": "Each fire marks where they walked.",
+       "kind": "line",
+       "hold": 2.4
+      }
+     ]
+    },
+    {
+     "scene": "beacons",
+     "d": 3.2,
+     "p": {
+      "n": 5
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.1,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0.2,
+       "k": "horn"
+      }
+     ],
+     "flash": [
+      0.3
+     ],
+     "cap": [
+      {
+       "at": 0.4,
+       "text": "Five lit. Three to go.",
+       "kind": "line",
+       "hold": 2
+      }
+     ]
+    },
+    {
+     "scene": "black",
+     "d": 4,
+     "p": {
+      "flame": true
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.08,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "silence"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.6,
+       "text": "He always knew the hour.",
+       "kind": "speech",
+       "who": "Champion",
+       "hold": 2.8
+      }
+     ]
+    },
+    {
+     "scene": "road",
+     "d": 3.4,
+     "p": {
+      "rider": true,
+      "eyes": 8,
+      "fog": 0.8,
+      "snow": 0.5
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.25,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "silence"
+      },
+      {
+       "at": 1.6,
+       "k": "sting"
+      }
+     ],
+     "flash": [
+      1.6
+     ],
+     "shake": [
+      {
+       "at": 1.6,
+       "amp": 6,
+       "dur": 0.5
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.3,
+       "text": "No hoofbeats. No breath.",
+       "kind": "line",
+       "hold": 1.8
+      },
+      {
+       "at": 1.6,
+       "text": "HE LEADS THEM.",
+       "kind": "shout",
+       "hold": 1.8
+      }
+     ]
+    },
+    {
+     "scene": "king",
+     "d": 3.6,
+     "p": {
+      "eyes": true,
+      "wind": 0.7
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.2,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0.1,
+       "k": "sting"
+      },
+      {
+       "at": 0.2,
+       "k": "drone"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.3,
+       "text": "Dawn was their word for the eighth fire.",
+       "kind": "line",
+       "hold": 2.7
+      },
+      {
+       "at": 2,
+       "text": "Dawn is not coming.",
+       "kind": "whisper",
+       "hold": 1.6
+      }
+     ]
+    },
+    {
+     "scene": "hall",
+     "d": 3.6,
+     "p": {
+      "crest": true,
+      "embers": 0.8
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.12,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "fade",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "relief"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.4,
+       "text": "Behind this door, we are still warm.",
+       "kind": "line",
+       "hold": 2.6
+      }
+     ]
+    },
+    {
+     "scene": "crest",
+     "d": 3.4,
+     "p": {
+      "glow": 0.8
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.1,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "fade",
+     "sfx": [
+      {
+       "at": 0.2,
+       "k": "horn"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.5,
+       "text": "THE WAR ROOM",
+       "kind": "title",
+       "hold": 2.6
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "f5",
+   "title": "Muster",
+   "chapter": "Stage 4 - the Army opens",
+   "shots": [
+    {
+     "scene": "hall",
+     "d": 3,
+     "p": {
+      "crest": true,
+      "embers": 0.6
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.1,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "relief"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.3,
+       "text": "The banners answer. The army wakes.",
+       "kind": "line",
+       "hold": 2.4
+      }
+     ]
+    },
+    {
+     "scene": "beacons",
+     "d": 2.6,
+     "p": {
+      "n": 6
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.1,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0.2,
+       "k": "horn"
+      }
+     ],
+     "flash": [
+      0.3
+     ],
+     "cap": [
+      {
+       "at": 0.3,
+       "text": "SIX LIT.",
+       "kind": "shout",
+       "hold": 1.7
+      }
+     ]
+    },
+    {
+     "scene": "title",
+     "d": 2.6,
+     "p": {
+      "text": "2 FIRES",
+      "sub": "Hold the door.",
+      "crack": 0.4
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.05,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "knock3"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "f6",
+   "title": "Buy Time",
+   "chapter": "Stage 5 - the Shop opens",
+   "shots": [
+    {
+     "scene": "hall",
+     "d": 3,
+     "p": {
+      "embers": 0.5
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.1,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "relief"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.3,
+       "text": "Merchants come with the cold. Buy time.",
+       "kind": "line",
+       "hold": 2.5
+      }
+     ]
+    },
+    {
+     "scene": "beacons",
+     "d": 2.6,
+     "p": {
+      "n": 7
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.1,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0.2,
+       "k": "horn"
+      }
+     ],
+     "flash": [
+      0.3
+     ],
+     "cap": [
+      {
+       "at": 0.3,
+       "text": "ONE FIRE LEFT.",
+       "kind": "shout",
+       "hold": 1.8
+      }
+     ]
+    },
+    {
+     "scene": "title",
+     "d": 2.6,
+     "p": {
+      "text": "1 FIRE",
+      "sub": "Hold the door.",
+      "crack": 0.6
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.05,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "knock3"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "f7",
+   "title": "Not Alone",
+   "chapter": "Stage 6 - the Clan opens",
+   "shots": [
+    {
+     "scene": "beacons",
+     "d": 2.6,
+     "p": {
+      "n": 8
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.1,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0.2,
+       "k": "horn"
+      },
+      {
+       "at": 0.3,
+       "k": "thunder"
+      }
+     ],
+     "flash": [
+      0.3
+     ],
+     "cap": [
+      {
+       "at": 0.3,
+       "text": "EIGHT.",
+       "kind": "shout",
+       "hold": 1.7
+      }
+     ]
+    },
+    {
+     "scene": "dawn",
+     "d": 2.8,
+     "p": {
+      "sun": 0.15,
+      "smoke": 0.8
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.1,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "fade",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "wind"
+      }
+     ],
+     "cap": [
+      {
+       "at": 0.2,
+       "text": "The eighth fire burns. We still stand.",
+       "kind": "line",
+       "hold": 2.5
+      }
+     ]
+    },
+    {
+     "scene": "title",
+     "d": 3,
+     "p": {
+      "text": "YOU ARE NOT ALONE",
+      "sub": "Other houses answer. Hold Starfall.",
+      "crack": 0.3
+     },
+     "cam": {
+      "from": 1,
+      "to": 1.05,
+      "dx": 0,
+      "dy": 0
+     },
+     "cut": "hard",
+     "sfx": [
+      {
+       "at": 0,
+       "k": "relief"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "tutorial_lines": [
+  "Seven hours to dawn. The dead march on the door. Hodor holds it; you build the towers that stop them.",
+  "A Watchtower already stands by the door. Tap the ⚔ banner at the top of the road, call the first wave, and count the knocks.",
+  "",
+  "Gold builds towers. Tap the glowing stone ring and raise a second Watchtower. The clock is running.",
+  "Your champion rides up from the keep. Tap the ground where they should stand.",
+  "The framed card is your champion; the skill beside it is theirs alone: {SKILL}. Tap it before the dark closes in.",
+  "",
+  "Towers grow with gold. Tap your Watchtower, then ⬆ and ✓. Faster. Dawn will not wait.",
+  "Another knock is coming. Tap the ⚔ banner and call the second wave.",
+  "Your house's spells wait on the right. Arrow rain is a volley from the wall: tap it, then tap the dead on the road.",
+  "A spell needs time to return: the dark cover drains away while it recharges. Your champion's skill works the same way.",
+  "Tap the ⚔ banner for the last wave. Seven hours, one door. Hold it!",
+  "That is all I can teach you. Hold the gate, and listen for the knock."
+ ]
+}

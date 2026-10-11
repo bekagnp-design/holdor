@@ -26,13 +26,12 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
   const realm = await page.evaluate(() => ({ scr: window.HOLDOR.CLOUD.screen, pick: (document.querySelector('#bPick') || {}).textContent }));
   ok('the realm screen opens with the guessed realm preselected: one tap "Fight for United States"', /Fight for United States/.test(realm.pick || ''), JSON.stringify(realm));
   await tap('#bPick', 600); await tap('.hbig[data-h="stark"]', 900);
-  const cine = await page.evaluate(() => !!document.querySelector('.cine #skip')); ok('the cinematic plays after the house', cine);
-  await tap('#skip', 1500);
+  await page.waitForTimeout(1500);   // v1.1.3: the old cinematic is gone for new accounts — the story's first film plays (automation skips films) and the battle begins
   const first = await page.evaluate(() => { const H = window.HOLDOR, G = H.G, X = window.HOLDOR_TUT; const tw = G.map ? G.map.slots.filter(s => s.tower) : [];
     const hero = document.getElementById('rowHero'), sp = document.querySelector('.brow.spells');
     return { state: G.state, tutorial: !!G.tutorial, tut: !!G.tut, step: G.tut && G.tut.i, towers: tw.map(s => s.tower.type + s.tower.lvl), gold: Math.round(G.gold), steps: X.TUT_STEPS.length, acts: X.TUT_STEPS.filter(s => s.want).length,
       frame: hero ? getComputedStyle(hero).borderTopWidth : '', label: hero ? getComputedStyle(hero, '::before').content : '', spells: sp ? getComputedStyle(sp, '::before').content : '', ult: !!document.querySelector('#rowHero #bUlt'), hub: !!document.querySelector('.hubtabs') }; });
-  ok('the first battle begins by itself after the house (no home first): the tutorial is on at step 0', first.state === 'play' && first.tutorial && first.tut && first.step === 0 && !first.hub, JSON.stringify(first));
+  ok('the first battle begins by itself after the house (no home first, no cinematic screen): the tutorial is on at step 0', first.state === 'play' && first.tutorial && first.tut && first.step === 0 && !first.hub, JSON.stringify(first));
   ok('a Watchtower already stands by the door and the gold is still 90', first.towers.join() === 'watch1' && first.gold === 90, JSON.stringify(first));
   ok('the tutorial has 13 steps, 10 of them actions (the rest became lessons on later stages)', first.steps === 13 && first.acts === 10, first.steps + '/' + first.acts);
   ok('the champion and the skill share a framed row labelled YOUR CHAMPION; the spells their own, labelled SPELLS', parseFloat(first.frame) >= 2 && /YOUR CHAMPION/.test(first.label) && /SPELLS/.test(first.spells) && first.ult, JSON.stringify([first.frame, first.label, first.spells]));
@@ -41,7 +40,7 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
   const run = await page.evaluate(() => { const H = window.HOLDOR, G = H.G, X = window.HOLDOR_TUT, OB = window.HOLDOR_OB; X.tutNext(); const w0 = X.TS().want; H.callWave(); let n = 0; while (n++ < 60 * 25 && G.state === 'play' && X.TS() && X.TS().want === 'kill') { H.step(); OB.tutFrame(1 / 60); } return { w0, kills: G.kills, want: X.TS() ? X.TS().want : null, shots: G.projs.length + G.kills }; });
   ok('step 1 asks to call the wave; after it the prebuilt tower kills by itself and step 2 (kill) passes to step 3 (build)', run.w0 === 'call' && run.kills > 0 && run.want === 'build', JSON.stringify(run));
   // ---- finish the tutorial: the account is marked for the staged lessons; the home for a player with no stage: three locked tabs
-  await page.evaluate(() => { const H = window.HOLDOR, X = window.HOLDOR_TUT; H.G.tut.i = X.TUT_STEPS.length - 1; X.tutAdvance(); H.G.state = 'menu'; H.showHub('battle'); }); await page.waitForTimeout(700);
+  await page.evaluate(() => { const H = window.HOLDOR, X = window.HOLDOR_TUT; H.G.tut.i = X.TUT_STEPS.length - 1; X.tutAdvance(); H.G.state = 'menu'; H.ACC.sv = 0; H.ACC.castle = 1; H.showHub('battle'); }); await page.waitForTimeout(700);   // sv off: this test is the v1.0.99 staged home; the story flow has its own test (t_story103)
   const h0 = await page.evaluate(() => ({ tut: window.HOLDOR.ACC.tut, tutv: window.HOLDOR.ACC.tutv, locks: [...document.querySelectorAll('.hubtabs button.lock')].map(b => b.dataset.tab + ':' + b.dataset.lock), pills: [...document.querySelectorAll('.hmstrip .hpill')].map(b => b.id), slots: document.querySelectorAll('.hmslots .slot').length, hold: !!document.getElementById('hmHold'), battle: document.getElementById('bBattle').textContent }));
   ok('finishing the tutorial marks the account (tutv 99); with no stage held: Army, Shop and Clan locked with their stages, the rank pill only, no chests, no Hold card, BATTLE! STAGE 1', h0.tut === 1 && h0.tutv === 99 && h0.locks.join() === 'shop:2,coll:1,clan:3' && h0.pills.join() === 'hubTro' && h0.slots === 0 && !h0.hold && /STAGE 1/.test(h0.battle), JSON.stringify(h0));
   await page.screenshot({ path: SC + 'ob99_home_locked.png' });
