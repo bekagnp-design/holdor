@@ -1637,6 +1637,104 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 .ga-skill{animation:gaskill 1.2s ease-in-out infinite}
 @keyframes gaskill{0%,100%{transform:scale(1) rotate(0);filter:drop-shadow(0 0 2px #ffd060)}50%{transform:scale(1.35) rotate(18deg);filter:drop-shadow(0 0 9px #ffd060)}}
 @media (prefers-reduced-motion:reduce){.pop-in{animation:none}.ga *,.ga{animation:none!important}}
+/* v1.1.5: the Army, made clear */
+.hgrid.strip{display:flex;grid-template-columns:none;overflow-x:auto;gap:8px;padding:14px 2px 14px;margin:0 -2px 4px;scroll-snap-type:x proximity;scrollbar-width:none}
+.hgrid.strip::-webkit-scrollbar{display:none}
+.hgrid.strip .htile{flex:0 0 76px;width:76px;scroll-snap-align:center}
+.hgrid.strip .htile.view{transform:translateY(-3px) scale(1.06)}
+.p.cur,.m.cur{text-align:center;margin:0 0 4px}
+.hdet2{display:flex;flex-direction:column;gap:10px;padding:2px 0 12px}
+.hstage{position:relative;perspective:900px;height:236px;display:flex;justify-content:center;align-items:center;touch-action:pan-y}
+.acard{position:relative;width:164px;height:226px;transform-style:preserve-3d;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));--gx:50%;--gy:40%}
+.aback{position:absolute;inset:-12px;border-radius:24px;background:radial-gradient(circle,var(--hc),transparent 68%);opacity:.5;filter:blur(14px);transform:translateZ(-44px)}
+.aface{position:absolute;inset:0;border-radius:16px;overflow:hidden;border:3px solid var(--rc);background:#0b1220;box-shadow:0 0 0 2px rgba(0,0,0,.55),0 14px 30px rgba(0,0,0,.55),0 0 24px var(--rc)}
+.aimg{position:absolute;inset:0;background-size:cover;background-position:50% 14%}
+.aimg.emoji,.aimg.sealed{display:flex;align-items:center;justify-content:center;font-size:96px;background:linear-gradient(180deg,#1d2a3c,#0b1220)}
+.aimg.sealed{filter:grayscale(1);opacity:.7}
+.aglare{position:absolute;inset:0;background:radial-gradient(circle at var(--gx) var(--gy),rgba(255,255,255,.5),rgba(255,255,255,0) 46%);mix-blend-mode:screen;pointer-events:none}
+.arar{position:absolute;left:0;right:0;bottom:0;padding:16px 0 7px;text-align:center;font:800 11px/1 var(--f-display);letter-spacing:.2em;background:linear-gradient(0deg,rgba(0,0,0,.85),transparent);text-transform:uppercase}
+.asig{position:absolute;right:-10px;top:-12px;transform:translateZ(40px);filter:drop-shadow(0 5px 7px rgba(0,0,0,.6))}
+.hname{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
+.hname b{font:900 23px/1.1 var(--f-display);color:#f3e7c4;text-shadow:0 2px 8px #000}
+.hname small{font:600 12.5px/1.25 var(--f-body);color:#b9c8d8}
+.hname .stars{display:block;font-size:17px}
+.hact{display:flex;flex-direction:column;gap:8px}
+.hlv{display:flex;align-items:center;gap:7px;font-family:var(--f-display);color:#f3e7c4}
+.hlv b{font-size:16px}.hlv em{font-style:normal;color:var(--muted);font-size:12px}
+.hlv .bar{flex:1;height:12px;border-radius:7px;background:rgba(0,0,0,.45);overflow:hidden;border:1px solid rgba(255,255,255,.14)}
+.hlv .bar i{display:block;height:100%;background:linear-gradient(90deg,#7fd06a,#c9f08a)}
+.bigbtn{width:100%;min-height:62px;border-radius:16px;border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#e9eef5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:10px 14px;font-family:var(--f-display)}
+.bigbtn .bt{font:900 19px/1 var(--f-display);letter-spacing:.06em}
+.bigbtn .bs{font:700 13px/1 var(--f-body);opacity:.9}
+.bigbtn.lvl.ready{background:linear-gradient(180deg,#8be26a,#3f9a3a);border-color:#d8ffbf;color:#0b2a0a;box-shadow:0 8px 20px rgba(0,0,0,.45),0 0 22px rgba(120,230,100,.55);animation:armpulse 1.4s ease-in-out infinite}
+.bigbtn.lvl.need{background:rgba(255,255,255,.07);color:#9fb6c9}
+.bigbtn.lvl.need .bt{font-size:17px}
+.bigbtn.max{background:linear-gradient(180deg,#ffd060,#d89a2a);color:#2a1a04;border-color:#fff3b0}
+.bigbtn.ride{background:linear-gradient(180deg,#5aa0ff,#2f63c7);border-color:#cfe2ff;color:#fff}
+.bigbtn.ride.on,.bigbtn.ride:disabled{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.18);color:#9fd89a}
+.bigbtn:disabled{filter:none}
+@keyframes armpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+.cardpips{display:flex;justify-content:center;gap:5px;flex-wrap:wrap}
+.cardpips i{width:16px;height:22px;border-radius:4px;border:2px solid rgba(255,255,255,.28);background:transparent}
+.cardpips i.on{background:linear-gradient(180deg,#a7d8ff,#4f9be8);border-color:#d8efff;box-shadow:0 0 6px rgba(120,190,255,.7)}
+.linkbtn{background:none;border:none;color:#ffd060;text-decoration:underline;font:600 13px/1 var(--f-body);padding:4px}
+.ascbox{margin:0;padding:10px;border-radius:14px;border:2px solid #ffd54a;background:rgba(255,213,74,.08);color:#f2e6c9;display:flex;flex-direction:column;gap:8px}
+.ascbox>b{font:900 18px/1 var(--f-display);color:#ffd54a}
+.ascbox>small{font-size:12px;color:#cfe0ee}
+.skl{display:flex;flex-direction:column;gap:7px}
+.skr{border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);overflow:hidden}
+.skr.gold{border-color:#ffd060}
+.skrh{display:flex;align-items:center;gap:9px;padding:8px 10px;min-height:60px}
+.skn{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.skn b{font:800 15px/1.1 var(--f-display);color:#f3e7c4}
+.skn b em{font-style:normal;font-size:8.5px;letter-spacing:.14em;color:#ffd060;border:1px solid #ffd060;border-radius:5px;padding:1px 4px;margin-left:6px;vertical-align:middle}
+.skn small{font:600 12px/1.2 var(--f-body);color:#9fb6c9}
+.skr .pips{font-size:9px;letter-spacing:1px;color:#ffd060;white-space:nowrap}
+.skr .skrh button{min-width:78px;min-height:40px;border-radius:11px;font:800 12px/1.1 var(--f-display)}
+.skr .skrh button.go{background:linear-gradient(180deg,#8be26a,#3f9a3a);color:#0b2a0a;border:2px solid #d8ffbf}
+.skrb{display:none;padding:0 10px 10px}
+.skr.open .skrb{display:block}
+.skrb .rvdemo{display:block;width:100%;aspect-ratio:16/9;border-radius:12px;border:1px solid rgba(255,255,255,.14)}
+.skrb p{margin:7px 2px 0;font:500 13px/1.35 var(--f-body);color:#dbe3ec}
+.skrb p.nx{color:#9fb6c9;font-size:12px}
+.tgl{width:100%;text-align:left;padding:11px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#e9eef5;font:700 13.5px/1.1 var(--f-display)}
+.tal2 .chk{color:#8be26a;font-weight:900}
+.tstage{display:flex;justify-content:center;padding:6px 0;filter:drop-shadow(0 8px 14px rgba(0,0,0,.5))}
+.nownext{display:flex;flex-direction:column;gap:6px}
+.nownext>div{padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font:600 13px/1.3 var(--f-body);color:#dbe3ec}
+.nownext>div.nx{border-color:#8be26a;background:rgba(139,226,106,.08)}
+.nownext small{display:block;font:800 9.5px/1 var(--f-display);letter-spacing:.18em;color:#9fb6c9;margin-bottom:3px}
+.nownext .nx small{color:#8be26a}
+.mrow{display:flex;gap:7px}
+.mchip{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:#9fb6c9;min-height:54px}
+.mchip.got{border-color:#ffd060;color:#ffd060}
+.mchip i{font-style:normal;font-size:20px}.mchip b{font:800 10.5px/1 var(--f-display)}
+.mtx{margin:2px 2px 0;font:500 13px/1.35 var(--f-body);color:#dbe3ec;background:rgba(255,255,255,.06);padding:8px 10px;border-radius:10px}
+@media (prefers-reduced-motion:reduce){.bigbtn.lvl.ready{animation:none}}
+/* v1.1.6: Tasks */
+.tkhead{display:flex;align-items:center;gap:10px;margin:2px 0 8px;padding:10px 14px;border-radius:16px;background:#12294a;border:2px solid #0b1a2e;color:#b9cfe6}
+.tkhead .tkn{min-width:34px;height:34px;border-radius:17px;background:#2a4a74;color:#fff;font:800 18px/34px var(--f-display);text-align:center}
+.tkhead b{font-family:var(--f-display);font-size:16px;letter-spacing:.3px}
+.tkhead.on{background:linear-gradient(90deg,#4a3410,#7a5412);border-color:#e39a3a;color:#fff3cf}.tkhead.on .tkn{background:#ffd54a;color:#3a2504;animation:tkPop 1.4s ease-in-out infinite}
+@keyframes tkPop{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+.tkbody .evcard.wide{margin:0 0 6px;padding:8px 12px}
+.qrow.tk6{display:flex;align-items:center;gap:12px;padding:10px 12px;margin:0 0 8px;border-radius:16px}
+.qrow.tk6 .qt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.qrow.tk6 .qt b{font-size:14px;line-height:1.2}
+.qrow.tk6 .tkc{font-size:11px;color:#8fa9c4}
+.tkring{flex:0 0 46px;height:46px;border-radius:50%;background:conic-gradient(#6fd36f calc(var(--p)*1%),#0c1f3a 0);display:flex;align-items:center;justify-content:center}
+.tkring i{width:36px;height:36px;border-radius:50%;background:#14284a;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;font-weight:800;color:#dbe9f6}
+.tkring.rd{background:conic-gradient(#ffd54a 100%,#ffd54a 0)}.tkring.rd i{font-size:20px}.tkring.dn i{color:#7fe08a;font-size:18px}
+.qrow.tk6.ready{background:linear-gradient(90deg,#3d2f10,#5a4313);border:2px solid #e3a93a}
+.qrow.tk6.done{opacity:.55}
+.qrow button.claim{flex:0 0 auto;min-width:104px;height:48px;border-radius:14px;font:800 16px var(--f-display);letter-spacing:.6px;background:linear-gradient(#ffe27a,#f0a92c);color:#2a1a05;border:2px solid #7a4a10;box-shadow:0 3px 0 #7a4a10,0 0 16px rgba(255,200,80,.5);animation:tkClaim 1.3s ease-in-out infinite}
+@keyframes tkClaim{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.qrow button.tkgo{flex:0 0 auto;min-width:76px;height:42px;border-radius:12px;font-weight:800}
+.qrow button.tkw{flex:0 0 auto;min-width:76px;height:42px;border-radius:12px;opacity:.8}
+.tkdone{display:block;width:100%;margin:2px 0 8px;padding:8px;border-radius:12px;border:0;background:transparent;color:#8fa9c4;font-size:12px;text-align:left}
+.tkmore.inv{margin-top:10px;border-style:solid;font-weight:700}
+.tksec h3{margin-top:12px}
+.tkbody .evcard.wide{padding:6px 12px;min-height:0;gap:10px}.tkbody .evcard.wide .ic{flex:0 0 40px;width:40px;height:40px}.tkbody .evcard.wide .ic svg,.tkbody .evcard.wide .ic img{width:26px;height:26px}
+.tkbody .evcard.wide .tx b{font-size:14px}.tkbody .evcard.wide .tx small{font-size:11px}
 </style>
 </head>
 <body>
@@ -2540,7 +2638,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.1.4';
+const VERSION='1.1.6';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -5903,6 +6001,7 @@ function hubTasksBind(){homeMovedBind();
   card.querySelectorAll('.tkbody button[data-o]').forEach(b=>b.addEventListener('click',()=>tkOpen(b.dataset.o,b)));
   card.querySelectorAll('.tkbody button[data-c]').forEach(b=>b.addEventListener('click',()=>{const s=tkState(),i=s&&s.items.find(x=>x.id===b.dataset.c);tkCall('task_claim',{task:b.dataset.c},r=>tkPaid(b,r,(i?i.e+' '+i.n:'Task done')));}));
   const cal=$('#bTkCal');if(cal)cal.addEventListener('click',()=>{SFX.play('tap',60);showDaily('cal');});
+  card.querySelectorAll('.tkbody [data-tog]').forEach(b=>b.addEventListener('click',()=>{SFX.play('tap',50);const t=card.querySelector('[data-tgt="'+b.dataset.tog+'"]');if(!t)return;t.hidden=!t.hidden;if(b.dataset.tog==='tk-inv'){TASKS.invOpen=!t.hidden;b.textContent=b.textContent.replace(/[⌃›]\s*$/,t.hidden?'›':'⌃');}}));
   invBind();tkTick();
 }
 /* =========================== JUICE (v1.0.77) ===========================
@@ -7943,16 +8042,16 @@ function hubCollection(sub){sub=sub||'deck';const mine=CHAMPS.filter(c=>c.house=
     <div class="hh"><h2>Towers</h2><small>${TKEYS.filter(towerOpen).length}/${TKEYS.length} open · tier ${ROMAN[maxTowerLvl()-1]}</small></div>
     <div class="cgrid c3">${TKEYS.map(towerCard).join('')}</div>`;}
   else if(sub==='heroes'){body=`<div class="hh"><h2>House ${HOUSES[ACC.house].n}</h2><small>${mine.filter(c=>unlocked(null,c)).length}/${mine.length} found</small></div><div class="cgrid">${mine.map(c=>champCard(c)).join('')}</div>
-    <div class="hh" style="margin-top:12px"><h2>Other houses</h2><small>ride for them from another seat</small></div><div class="cgrid">${others.map(c=>champCard(c)).join('')}</div>`;}
+    <button class="tgl" data-tog="others" style="margin-top:12px">Other houses · ride for them from another seat ›</button><div class="cgrid" data-tgt="others" hidden style="margin-top:8px">${others.map(c=>champCard(c)).join('')}</div>`;}
   else if(sub==='towers'){body=`<div class="hh"><h2>Towers</h2><small>${TKEYS.filter(towerOpen).length}/${TKEYS.length} open · ${GOLD_SVG.replace('<svg','<svg style="width:12px;height:12px;vertical-align:-2px"')} ${fmtN(goldOf())} gold</small></div><div class="cgrid c3">${TKEYS.map(towerCard).join('')}</div>
-    <p class="m" style="font-size:11.5px;margin-top:8px">Tap a tower to level it up: cards from chests + gold (1–16, +3% a level). In battle, tiers open with stages held: II after 3, III after 8, IV after 15, V after 24.</p>`;}
+    <button class="tgl" data-tog="tinfo" style="margin-top:8px">ⓘ How towers level up ›</button><p class="m" data-tgt="tinfo" hidden style="font-size:12px;margin-top:6px">Cards from chests + gold (1–16, +3% a level). In battle, tiers open with stages held: II after 3, III after 8, IV after 15, V after 24.</p>`;}
   else{body=`<div class="hh"><h2>Spells of the house</h2><small>the spell buttons in battle · tap one to level it</small></div><div class="cgrid c3">${['arrows','fire','reinf'].map(spellCard).join('')}</div>
     <div class="cgrid c3" style="margin-top:10px">${UPG.filter(u=>u.g==='power').map(u=>`<button class="ccard ${ACC.upg[u.id]?'':'lock'}" style="--rc:#b47cff" data-u="1"><span class="im" style="font-size:26px">${u.e}</span><span class="nm">${u.n}</span><span class="rar">${ACC.upg[u.id]?'owned':fmtN(ECON.upgCost(u))+' gold'}</span></button>`).join('')}</div>`;}
   return tabs+body;}
 function hubCollectionBind(sub){homeMovedBind();
   bind('.subtabs button',b=>{if(b.dataset.sub==='book'){SFX.play('tap',60);showBook('towers',null,false);}else showHub('coll',b.dataset.sub);});
   bind('.ccard[data-c]',b=>{const c=CBY[b.dataset.c];if(c.house!==ACC.house){SFX.play('tap',40);return;}showHeroRoom(c.id);});
-  bind('.ccard[data-t]',b=>showTowerRoom(b.dataset.t));bind('.ccard[data-s]',b=>showSpellRoom(b.dataset.s));bind('.ccard[data-u]',()=>showUpgrades());
+  bind('.ccard[data-t]',b=>showTowerRoom(b.dataset.t));card.querySelectorAll('[data-tog]').forEach(b=>b.addEventListener('click',()=>{const t=card.querySelector('[data-tgt="'+b.dataset.tog+'"]');if(t){t.hidden=!t.hidden;SFX.play('tap',50);}}));bind('.ccard[data-s]',b=>showSpellRoom(b.dataset.s));bind('.ccard[data-u]',()=>showUpgrades());
 }
 /* ---------- SHOP ---------- */
 function priceHTML(p){if(p.gold)return `${GOLD_SVG}${fmtN(p.gold)}`;if(p.gems)return `${GEM_SVG}${p.gems}`;return 'FREE';}
@@ -8974,12 +9073,152 @@ const GANIM={
  lock:'<span class="ga ga-lock"><i>🔒</i><b>🔓</b></span>',
  coin:'<span class="ga ga-coin">🪙</span>',
  skill:'<span class="ga ga-skill">✨</span>'};
+/* =========================== THE ARMY, MADE CLEAR (v1.1.5) ===========================
+   A tester and the owner: "choosing a champion means scrolling down a long way; there is too much text; the upgrade must show clearly
+   and with a big button; if I want a detail I will tap and open it." So:
+   · the champions of the house sit in ONE strip you swipe sideways (the other houses' 42 cards are folded away);
+   · the champion stands as a big 3D card (it sways and follows a finger), name, rarity, level and a bar;
+   · ONE big button says what to do next — LEVEL UP (with the cards you have drawn as pips), RAISE TO ★n, or what is missing;
+   · RIDE WITH X is the second big button;
+   · the three skills are three short rows (icon, name, five words, rank pips, a small upgrade button); tapping a row opens its picture
+     (skilldemo.js) and the full text; talents, the portal and the gear are folded away until asked;
+   · the tower workshop follows the same pattern: a strip, a big tower, a bar, one big UPGRADE button, Now → Next, four milestone chips.
+   The same ids and data-a hooks as before (#clist, .htile[data-c], button[data-a=lvl|asc|sk|tal|sel|gear|tl|fod|s1|s10|odds]). */
+const ARM={stop:null,tilt:null};
+function armStop(){if(ARM.stop){ARM.stop();ARM.stop=null;}if(ARM.tilt){cancelAnimationFrame(ARM.tilt.raf);ARM.tilt=null;}}
+function armTilt(stage){const el=stage.querySelector('.acard');if(!el)return;const T={x:0,y:0,tx:0,ty:0,drag:0,t0:performance.now(),raf:0};ARM.tilt=T;
+  const pt=e=>{const q=e.touches?e.touches[0]:e,b=stage.getBoundingClientRect();T.drag=1;T.tx=fClamp((q.clientX-(b.left+b.width/2))/(b.width/2),-1,1)*24;T.ty=fClamp((q.clientY-(b.top+b.height/2))/(b.height/2),-1,1)*14;};
+  stage.addEventListener('pointerdown',pt);stage.addEventListener('pointermove',e=>{if(T.drag)pt(e);});['pointerup','pointercancel','pointerleave'].forEach(n=>stage.addEventListener(n,()=>{T.drag=0;}));
+  const f=()=>{if(!stage.isConnected){return;}const t=(performance.now()-T.t0)/1000;if(!T.drag){T.tx=Math.sin(t*.9)*10;T.ty=Math.cos(t*.7)*5;}T.x+=(T.tx-T.x)*.12;T.y+=(T.ty-T.y)*.12;
+    el.style.setProperty('--ry',T.x.toFixed(2)+'deg');el.style.setProperty('--rx',(-T.y).toFixed(2)+'deg');el.style.setProperty('--gx',(50+T.x*2.6).toFixed(1)+'%');el.style.setProperty('--gy',(40-T.y*3).toFixed(1)+'%');T.raf=requestAnimationFrame(f);};T.raf=requestAnimationFrame(f);}
+function armStrip(q){const s=card.querySelector(q),v=s&&s.querySelector('.view');if(s&&v)s.scrollLeft=Math.max(0,v.offsetLeft-s.clientWidth/2+v.offsetWidth/2);}
+function armPips(h,n){const k=Math.min(h,n);return `<span class="cardpips" aria-label="${h} of ${n} cards">${'<i class="on"></i>'.repeat(k)}${'<i></i>'.repeat(Math.max(0,n-k))}</span>`;}
+function armWake(key){return key;}
+/* the one big button for a level: ready (green, pulsing), missing (grey, says what), max */
+function armLvlBtn(key,attr,l,mx){const h=cardHave(key),n=cardNeed(key),g=cardGold(key),can=cardCan(key);
+  if(l>=mx)return `<button class="bigbtn max" disabled><span class="bt">★ FULLY FORGED</span></button>`;
+  const need=h<n?`Need ${n-h} more 🃏`:goldOf()<g?`Need ${fmtN(g-goldOf())} more 🪙`:'';
+  return `<button class="bigbtn lvl ${can?'ready':'need'}" ${attr} ${can?'':'disabled'}><span class="bt">⬆ LEVEL UP</span><span class="bs">${can?`🃏 ${n} · 🪙 ${fmtN(g)}`:need}</span></button>${armPips(h,n)}`;}
+function armSkRankLock(l,lvl){for(let x=lvl+1;x<=CH_MAX;x++)if(rankCap(x)>l)return x;return CH_MAX;}
+/* ---------- the champion room ---------- */
+function showHeroRoom(viewId,fod,openSk){armStop();
+  const hh=HOUSES[ACC.house],list=CHAMPS.filter(c=>c.house===ACC.house);
+  const c=list.find(x=>x.id===viewId)||list.find(x=>x.id===ACC.sel)||list[0],p=cprog(null,c.id),un=unlocked(null,c),ride=ACC.sel===c.id,cap=rankCap(p.lvl),r=champRar(c),st=cstar(c.id),lc=champCap(c.id),key='c:'+c.id;
+  const tiles=list.map(x=>{const u=unlocked(null,x),rd=ACC.sel===x.id,v=x.id===c.id,rr=champRar(x);
+    return `<button class="htile tvt ${u?'':'lock'} ${v?'view':''} ${rd?'ride':''}" style="--rc:${RAR_C[rr]}" data-c="${x.id}">${u?portraitHTML(x,58):'<span class="pe">🔒</span>'}<span class="nm">${u?shortName(x)+' · '+cprog(null,x.id).lvl:'After '+UNLOCK_STAGE[x.tier]}</span>${u?starsHTML(cstar(x.id),'sm'):''}${rd?'<i class="rb">RIDING</i>':''}${u&&(cardCan('c:'+x.id)||(ascReady(x.id)&&list.some(f=>ascCan(x.id,f.id))))?'<span class="upb">⬆</span>':''}</button>`;}).join('');
+  const art=CHAMP_ART[c.id+'_portrait'];
+  const stage=`<div class="hstage"><div class="acard" style="--rc:${RAR_C[r]};--hc:${hh.col}"><div class="aback"></div><div class="aface">${un?(art?`<div class="aimg" style="background-image:url(${art})"></div>`:`<div class="aimg emoji">${c.e}</div>`):'<div class="aimg sealed">🔒</div>'}<span class="aglare"></span><span class="arar" style="color:${RAR_C[r]}">${un?RAR_N[r]:'SEALED'}</span></div><span class="asig">${crest(ACC.house,30)}</span></div></div>`;
+  const name=`<div class="hname"><b>${un?esc(c.n):'Sealed champion'}</b><small>${un?`<em style="color:${RAR_C[r]}">${RAR_N[r]}</em> · ${String(TYPE_LBL[c.type]).split(',')[0]} · House ${hh.n}`:`🔒 After ${UNLOCK_STAGE[c.tier]} stages — or from the portal`}</small>${un?starsHTML(st):''}</div>`;
+  let act='';
+  if(un){
+    if(ascReady(c.id)){
+      const fods=list.filter(f=>f.id!==c.id&&cardHave('c:'+f.id)>0);const fsel=fods.find(f=>f.id===fod&&ascCan(c.id,f.id))||fods.find(f=>ascCan(c.id,f.id));
+      act=`<div class="ascbox"><b>★${st} → ★${st+1}</b><small>opens levels ${10*st+1}–${Math.min(CH_MAX,10*st+10)} · 🪙 ${fmtN(ascGold(c.id))} + burn the cards of another champion:</small>
+        <div class="fods">${fods.length?fods.map(f=>{const n=ascNeed(c.id,f.id),h=cardHave('c:'+f.id);return `<button class="fod ${fsel&&fsel.id===f.id?'on':''} ${h>=n?'':'short'}" data-a="fod" data-f="${f.id}" style="--rc:${RAR_C[champRar(f)]}">${portraitHTML(f,34)}<small>${h}/${n}</small></button>`;}).join(''):'<small class="none">No cards of another champion yet — chests and the portal bring them.</small>'}</div>
+        <button class="bigbtn lvl ${fsel?'ready':'need'} ascgo" data-a="asc" data-f="${fsel?fsel.id:''}" ${fsel?'':'disabled'}><span class="bt">⭐ RAISE TO ★${st+1}</span><span class="bs">${fsel?`burn ${ascNeed(c.id,fsel.id)} ${esc(shortName(fsel))}`:'pick a champion to burn'}</span></button></div>`;}
+    else{act=`<div class="hlv"><b>Lv ${p.lvl}</b><em>/ ${lc}</em><span class="bar"><i style="width:${Math.round(100*p.lvl/lc)}%"></i></span></div>${armLvlBtn(key,'data-a="lvl"',p.lvl,CH_MAX)}${cardHave(key)<cardNeed(key)&&p.lvl<CH_MAX?`<button class="linkbtn" data-a="chests">🎁 Cards come from chests ›</button>`:''}`;}}
+  const ridebtn=`<button class="bigbtn ride ${ride?'on':''}" data-a="sel" ${!un||ride?'disabled':''}><span class="bt">${ride?'✔ RIDING WITH YOU':'⚔ RIDE WITH '+esc(shortName(c)).toUpperCase()}</span></button>`;
+  const skills=`<div class="skl">${c.sk.map((sk,i)=>{const S=SK[sk],l=p.sk[i],capd=l>=cap&&l<SK_MAX,nb=skBooks(l),cat=skCat(sk),op=openSk===i,can=skCan(c.id,i);
+    const lab=l>=SK_MAX?'MAX':capd?`🔒 Lv ${armSkRankLock(l,p.lvl)}`:`⬆ 📖${nb} · 🪙${fmtN(ECON.skCost(l))}`;
+    return `<div class="skr ${op?'open':''} ${l>=SK_MAX?'gold':''}" data-i="${i}"><div class="skrh" data-row="${i}">${skillIcon(sk,44,0)}<span class="skn"><b>${esc(S.n)}${S.ult?'<em>ULT</em>':''}</b><small>${SKTAG[cat]}</small></span><span class="pips">${'●'.repeat(l)}${'○'.repeat(SK_MAX-l)}</span><button data-a="sk" data-i="${i}" ${can?'':'disabled'} class="${can?'go':''}">${lab}</button></div>
+      <div class="skrb"><canvas class="rvdemo" width="640" height="360" data-sk="${sk}"></canvas><p>${esc(S.d(S.v[l-1]))}</p>${l<SK_MAX?`<p class="nx">Next rank: ${esc(S.d(S.v[l]))}</p>`:''}</div></div>`;}).join('')}</div>`;
+  const tal=un?`<button class="tgl" data-tog="tal">⭐ Bonus talent ${p.lvl>=TAL_AT?(p.tal?'· '+esc(TALENTS[c.id][p.tal-1].n):'· pick one'):'· at level '+TAL_AT} ›</button><div class="ctal ${p.lvl>=TAL_AT?'':'locked'}" data-tgt="tal" ${p.lvl>=TAL_AT&&!p.tal?'':'hidden'}>${TALENTS[c.id].map((t,i)=>`<button class="tal2 ${p.tal===i+1?'on':''}" ${p.lvl>=TAL_AT?`data-a="tal" data-i="${i+1}"`:'disabled'}><span class="e">${talEmoji(t)}</span><span style="flex:1"><b>${esc(t.n)}</b><br>${talDesc(t)}</span><span class="chk">${p.tal===i+1?'✔':''}</span></button>`).join('')}</div>`:'';
+  const foot=`<div class="tvfoot"><button data-a="gear" ${un?'':'disabled'}>⚒️ Gear</button><button data-tog="portal">🌀 Portal</button></div>
+    <div class="tvsum" data-tgt="portal" hidden><span class="pt">🌀</span><span class="tx"><b>The portal</b><small>A champion of House ${hh.n} · <a data-a="odds">Odds</a></small></span><button data-a="s1" ${ACC.gems>=SUMMON.one?'':'disabled'}>×1<small>💎${SUMMON.one}</small></button><button data-a="s10" ${ACC.gems>=SUMMON.ten?'':'disabled'}>×10<small>💎${SUMMON.ten}</small></button></div>`;
+  show(`<div class="topbar"><h1>🍺 Champions<small>swipe, tap, level up</small></h1><button class="back" id="bBack">✖</button></div>
+  <p class="m cur">🪙 <b style="color:var(--gold)">${fmtN(goldOf())}</b> · 💎 ${ACC.gems} · <span class="bkl">${booksLine()}</span></p>
+  <div class="hgrid strip" id="armStrip">${tiles}</div>
+  <div id="clist"><div class="hdet2" style="--hc:${hh.col};--hc2:${hh.col2}">${stage}${name}<div class="hact">${act}</div>${ridebtn}${skills}${tal}${foot}</div></div>`);
+  CLOUD.screen='hero';armStrip('#armStrip');armTilt(card.querySelector('.hstage'));
+  const openDemo=row=>{if(ARM.stop){ARM.stop();ARM.stop=null;}const cv=row&&row.querySelector('canvas');if(cv)ARM.stop=skillDemoLoop(cv,cv.dataset.sk,c.house);};
+  const o=card.querySelector('.skr.open');if(o)openDemo(o);
+  $('#bBack').addEventListener('click',()=>{armStop();showHub('coll','heroes');});
+  card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showHeroRoom(t.dataset.c)));
+  card.querySelectorAll('.skrh').forEach(h=>h.addEventListener('click',e=>{if(e.target.closest('button'))return;const row=h.parentNode,was=row.classList.contains('open');card.querySelectorAll('.skr.open').forEach(x=>x.classList.remove('open'));if(ARM.stop){ARM.stop();ARM.stop=null;}if(!was){row.classList.add('open');SFX.play('tap',50);openDemo(row);}}));
+  card.querySelectorAll('[data-tog]').forEach(b=>b.addEventListener('click',()=>{const t=card.querySelector('[data-tgt="'+b.dataset.tog+'"]');if(t){t.hidden=!t.hidden;SFX.play('tap',50);}}));
+  card.querySelectorAll('.tvsum [data-a]').forEach(b=>b.addEventListener('click',()=>{const a=b.dataset.a;if(a==='odds')summonOdds();else summon(a==='s10'?10:1);}));
+  card.querySelectorAll('#clist [data-a]').forEach(b=>b.addEventListener('click',()=>{
+    const id=c.id,a=b.dataset.a;
+    if(a==='fod'){showHeroRoom(id,b.dataset.f);return;}
+    if(a==='gear'){armStop();showForge(id);return;}
+    if(a==='chests'){if(typeof hubLocked==='function'&&hubLocked('shop')){SFX.play('deny');ecoToast('🔒 The Shop opens a little later — battles pay chests too');}else{armStop();showHub('shop');}return;}
+    let was=null;const op=card.querySelector('.skr.open');if(op)was=+op.dataset.i;
+    if(a==='lvl'){if(cardLevelUp(key))SFX.play('levelup');else SFX.play('deny');}
+    else if(a==='asc'){if(ascend(id,b.dataset.f))SFX.play('levelup');else SFX.play('deny');}
+    else if(a==='sk'){if(skillUp(id,+b.dataset.i)){SFX.play('upgrade');was=+b.dataset.i;}else SFX.play('deny');}
+    else if(a==='tal'){p.tal=+b.dataset.i;}
+    else if(a==='sel')ACC.sel=id;
+    else return;
+    persist();showHeroRoom(id,null,was);
+  }));
+}
+/* ---------- the tower workshop ---------- */
+function showTowerRoom(k){armStop();
+  const open=TKEYS.filter(towerOpen);k=k&&TOWERS[k]?k:(open[0]||'watch');
+  const D=TOWERS[k],L=tLvl(k),op=towerOpen(k),rc=(UGROUPS.find(g=>g[0]===k)||[])[3]||'#8a97a8';
+  const tiles=TKEYS.map(t=>{const o=towerOpen(t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-t="${t}">${towerIconHTML(t,o?Math.max(1,maxTowerLvl()):1,52)}<span class="nm">${o?TSHORT[t]+' · '+tLvl(t):'After '+TOWER_UNLOCK[t]}</span>${o&&cardCan('t:'+t)?'<span class="upb">⬆</span>':''}</button>`;}).join('');
+  const chips=TMILE[k].map((m,i)=>{const got=L>=T_MILE[i];return `<button class="mchip ${got?'got':''}" data-mi="${i}"><i>${m[0]}</i><b>${got?'✔':'LV '+T_MILE[i]}</b></button>`;}).join('');
+  const mtxt=TMILE[k].map((m,i)=>`<p class="mtx" data-mt="${i}" hidden><b>${esc(m[1])}</b> — ${m[2]}</p>`).join('');
+  const body=op?`<div class="hlv"><b>Lv ${L}</b><em>/ ${T_MAX}</em><span class="bar"><i style="width:${Math.round(100*L/T_MAX)}%"></i></span></div>${armLvlBtn('t:'+k,'data-a="tl"',L,T_MAX)}
+    <div class="nownext"><div><small>NOW</small><span>${towerLine(k,L)}</span></div>${L<T_MAX?`<div class="nx"><small>LV ${L+1}</small><span>${towerLine(k,L+1)}</span></div>`:''}</div>
+    <div class="mrow">${chips}</div>${mtxt}`:`<p class="m" style="text-align:center;color:var(--gold)">🔒 Opens after stage ${TOWER_UNLOCK[k]}</p>`;
+  show(`<div class="topbar"><h1>🏰 Towers<small>tap a tower, level it up</small></h1><button class="back" id="bBack">✖</button></div>
+  <p class="m cur">🪙 <b style="color:var(--gold)">${fmtN(goldOf())}</b> · 🃏 ${cardHave('t:'+k)} ${TSHORT[k]} cards</p>
+  <div class="hgrid strip" id="armStrip">${tiles}</div>
+  <div id="clist"><div class="hdet2" style="--hc:${rc};--hc2:#1d2a3c"><div class="tstage">${towerIconHTML(k,Math.max(1,maxTowerLvl()),130)}</div><div class="hname"><b>${D.n}</b><small>${D.sub}</small></div><div class="hact">${body}</div></div></div>`);
+  CLOUD.screen='tower';armStrip('#armStrip');
+  $('#bBack').addEventListener('click',()=>showHub('coll','towers'));
+  card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showTowerRoom(t.dataset.t)));
+  card.querySelectorAll('.mchip').forEach(m=>m.addEventListener('click',()=>{const i=m.dataset.mi,t=card.querySelector('[data-mt="'+i+'"]'),was=t&&!t.hidden;card.querySelectorAll('.mtx').forEach(x=>x.hidden=true);if(t&&!was){t.hidden=false;SFX.play('tap',50);}}));
+  const b=card.querySelector('#clist button[data-a="tl"]');if(b)b.addEventListener('click',()=>{if(cardLevelUp('t:'+k)){SFX.play('upgrade');persist();}else SFX.play('deny');showTowerRoom(k);});
+}
+/* v1.1.6: Tasks made clear — one header with the count of ready gifts, ready first with a big CLAIM, a progress ring
+   for the rest, the done ones folded, the invitation block folded. Data hooks of tasks.js are kept. */
+function tkRing(pc,inner,cls){return `<span class="tkring ${cls||''}" style="--p:${Math.max(0,Math.min(100,pc))}"><i>${inner}</i></span>`;}
+function tkQRow(q,def,rush,period){const ready=q.cur>=q.need&&!q.claimed,pc=Math.round(100*q.cur/q.need);
+  return `<div class="qrow tk tk6 ${q.claimed?'done':''} ${ready?'ready':''}">${tkRing(q.claimed?100:pc,q.claimed?'✔':ready?'🎁':pc+'%',ready?'rd':q.claimed?'dn':'')}
+    <div class="qt"><b>${esc(def.t)}</b><span class="qrw">${rewardChips(rush&&!q.claimed?tkDouble(def.r):def.r,1)}${rush&&!q.claimed?'<b class="x2">×2</b>':''}</span>${ready||q.claimed?'':`<small class="tkc">${fmtN(q.cur)} / ${fmtN(q.need)}</small>`}</div>
+    ${ready?`<button class="go claim" data-q="${q.id}">CLAIM</button>`:q.claimed?'':''}</div>`;}
+function tkQuestRows(kind,P,rush){const list=QUESTS[kind]||[];
+  const rows=P.q.map(q=>({q,def:list.find(x=>x.id===q.id)||{t:q.id,r:{}}}));
+  const rdy=rows.filter(x=>x.q.cur>=x.q.need&&!x.q.claimed),wip=rows.filter(x=>x.q.cur<x.q.need),dn=rows.filter(x=>x.q.claimed);
+  const f=x=>tkQRow(x.q,x.def,rush,kind);
+  return rdy.map(f).join('')+wip.map(f).join('')+(dn.length?`<button class="tkdone" data-tog="tk-${kind}">✔ ${dn.length} done ›</button><div data-tgt="tk-${kind}" hidden>${dn.map(f).join('')}</div>`:'');}
+function tkQuests(){const s=DAILY.st&&DAILY.seat===seatNo()?DAILY.st:null;if(!s)return '<p class="m">⏳ asking the server…</p>';
+  const rush=tkRush(),names={daily:'Today',weekly:'This week',monthly:'This month'};
+  return ['daily','weekly','monthly'].map(k=>{const P=s.periods[k];if(!P)return '';
+    return `<div class="tksec"><h3>${names[k]}<small>resets in ${fmtLeft(P.left)}</small></h3><div class="qlist">${tkQuestRows(k,P,!!rush)}</div></div>`;}).join('')+
+    `<button class="tkmore" id="bTkCal">📅 Login calendar &amp; level gifts ›</button>`;}
+function tkBtn(i){if(i.st==='done')return '';
+  if(i.st==='ready')return `<button class="go claim" data-c="${i.id}">CLAIM</button>`;
+  if(i.st==='wait')return `<button class="tkw" disabled data-w="${i.id}" data-until="${Date.now()+i.left*1000}">⏳ ${i.left}s</button>`;
+  return i.kind==='link'?`<button class="go tkgo" data-o="${i.id}">${i.url==='share'?'SHARE':'GO'}</button>`:'';}
+function tkRow(i){const ref=i.kind==='ref',pc=ref?Math.round(100*i.cur/i.need):i.st==='done'?100:0,rd=i.st==='ready';
+  return `<div class="qrow tkr tk6 ${i.st==='done'?'done':''} ${rd?'ready':''}">${tkRing(pc,i.st==='done'?'✔':rd?'🎁':(i.e||'⭐'),rd?'rd':i.st==='done'?'dn':'')}<div class="qt"><b>${esc(i.n)}</b><span class="qrw">${rewardChips(i.r,1)}</span>${ref&&!rd&&i.st!=='done'?`<small class="tkc">${i.cur} / ${i.need}</small>`:''}</div>${tkBtn(i)}</div>`;}
+function tkSocial(){const s=tkState();if(!s)return '<p class="m">⏳ asking the server…</p>';
+  const L=s.items.filter(i=>i.kind==='link'),ord=x=>x.st==='ready'?0:x.st==='done'?2:1;
+  return `<div class="qlist">${L.slice().sort((a,b)=>ord(a)-ord(b)).map(tkRow).join('')}</div><p class="m dim">Open a link, stay a few seconds, come back and claim. Once per Telegram account.</p>`;}
+function tkFriends(){const s=tkState();const F=s?s.items.filter(i=>i.kind==='ref'):[];
+  return `${F.length?`<div class="qlist">${F.map(tkRow).join('')}</div>`:''}<button class="tkmore inv" data-tog="tk-inv">👥 Invite friends — a gift for you both ${TASKS.invOpen?'⌃':'›'}</button><div data-tgt="tk-inv" ${TASKS.invOpen?'':'hidden'}>${invBox().replace(/<div class="hh"[^>]*>.*?<\/div>/,'')}</div>`;}
+function hubTasks(sub){
+  if(!tasksOn())return `<p class="m">${ecoOn()?'Finish the tutorial battle first.':'Tasks are kept by the server — they need a seat signed in through Telegram.'}</p>`;
+  if(sub)TASKS.sub=sub;sub=TASKS.sub;
+  const rush=tkRush(),e=evAt(Date.now());
+  const strip=rush?`<div class="rushstrip on"><b>📜 Quest Rush</b><span>every quest ×2</span><em id="tkRushCd">${evLeft(rush.t1-Date.now())}</em></div>`
+    :e.kind==='rush'?`<div class="rushstrip"><b>📜 Quest Rush</b><span>quests ×2 Mon–Tue</span><em id="tkRushCd">in ${evLeft(e.t0-Date.now())}</em></div>`:'';
+  const fr=(DAILY.fr&&DAILY.seat===seatNo()&&DAILY.fr.invited||[]).filter(x=>x.done&&!x.claimed).length;
+  const n={quests:tkQuestsReady(),social:tkReady('social'),friends:tkReady('friends')+fr},tot=n.quests+n.social+n.friends;
+  const head=`<div class="tkhead ${tot?'on':''}"><span class="tkn">${tot?tot:'✔'}</span><b>${tot?(tot===1?'gift ready to claim':'gifts ready to claim'):'All caught up'}</b></div>`;
+  const tabs=[['quests','📜 Quests'],['social','📣 Social'],['friends','👥 Friends']];
+  const body=sub==='social'?tkSocial():sub==='friends'?tkFriends():tkQuests();
+  return head+strip+`<div class="subtabs tks">${tabs.map(([k,t])=>`<button class="${k===sub?'on':''}" data-tk="${k}">${t}${n[k]?`<i class="dot">${n[k]}</i>`:''}</button>`).join('')}</div><div class="tkbody">${sub==='quests'?tkDailyHTML():''}${body}</div>`;}
 window.HOLDOR_TROOPS={TROOPS,TROOP_ROLE,TROOP_ROLES,troopDef,troopUnits,troopStats,keepRole,troopDress,allyStrike,troopMend,drawTroopBody,troopPreview,showTrain,towerStats,HOUSE_ORDER,HOUSES,build,LEVELS};
 window.HOLDOR_CLASH={CLASH,CLASH_COST,CLASH_N,CLASH_TOP,genClash,clashStart,clashStop,clashSend,clashStepB,clashBot,clashSpawnTroops,clashFinish,clashDraw,showClash,clashCardHTML,gSnap,gSwap,toWorld,w2s};
 window.HOLDOR_CL2={CL2,clashServer,cl2Load,cl2Call,clashGhostInit,clashGhostStep,clashGhostDo,clashRunLog,clashRunWaves,clashAfter,cl2FromStart,cl2PendingOpen,cl2Go,showClash,showClashLocal,setRpc:f=>{cl2Rpc=f;}};
 window.HOLDOR_FILM={FILMS,FSC,FW,FH,FILM,filmPlay,filmEnd,filmStill,filmCard,fTok,get FIL(){return FIL;}};
 window.HOLDOR_STORY={STORY,stOn,stSeen,stMark,stPlay,storyNext,stBeat,stBeatChain,stClass,stGo,gameOver,showCampaign};
 window.HOLDOR_GUIDE={lessonStart,SKCAT,SKSETS,SKTAG,skCat,skillDemoFrame,skillDemoLoop,SDW,SDH,RV,rvDue,rvMark,revealChampion,rvGo,rvEnd,uiHud,uiHome,uiSeen,uiMark,GANIM,UIR};
+window.HOLDOR_ARMY={ARM,armStop,armLvlBtn,armPips,showHeroRoom,showTowerRoom};
 window.HOLDOR_CARDS={CARD_NEED,CARD_MUL,cardRar,cardLvl,cardMax,cardNeed,cardHave,cardGold,cardName,cardOpen,cardReady,cardCan,addCards,cardLevelUp,accLevel,accXp,addXp,xpNeed,lvlChestTier,lvlChestsReady,cardPool,rollChest,stageCards,spellLvl,spellMul,showSpellRoom,showTowerRoom,migrate48,TOURS,toursOf,hubTour,startTour};
 window.HOLDOR_SEATS={seatNo,lbIsMe,lbName,lbStale,lbMine,scoreSummary,fetchLeaderboard,cachedLb};
 window.HOLDOR_BOOK={showBook,bookNew,bookDisc,bookNewCount,bookMarkRead,BOOK,trophiesOf,trophiesRow,rankOf,myRank,rankSVG,showRankSheet,RANKS,RANK_AT};
