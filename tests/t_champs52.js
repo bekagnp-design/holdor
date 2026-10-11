@@ -95,7 +95,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   // hero room + book render the new kits without errors
   await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('targaryen', 0, 'squire'); a.intro = 1; a.tut = 1; a.tours = {}; for (let i = 1; i <= 46; i++) a.campaign[i] = 3; H.setAcc(a); H.persist(); H.showHeroRoom('dany'); });
   await page.waitForTimeout(400);
-  const hr = await page.evaluate(() => document.querySelector('#card').innerText);
+  const hr = await page.evaluate(() => document.querySelector('#card').textContent);
   ok('hero room dany', /Volley/.test(hr) && /Dracarys/.test(hr) && /Mother of Dragons/.test(hr), hr.slice(0, 80).replace(/\n/g, ' '));
   await page.screenshot({ path: SC + 'ch_dany.png' });
   await page.evaluate(() => window.HOLDOR_BOOK.showBook('champs', 'greyworm', false)); await page.waitForTimeout(400);

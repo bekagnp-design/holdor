@@ -52,7 +52,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   await page.evaluate(() => window.HOLDOR.showHub('coll')); await page.waitForTimeout(400);
   ok('Tavern button', await page.evaluate(() => !!document.querySelector('#bTavern')));
   await tap('#bTavern'); await page.waitForTimeout(300);
-  ok('it opens the tavern', /Tavern/.test(await page.evaluate(() => document.querySelector('#card').innerText.slice(0, 40))));
+  ok('it opens the tavern', /Champions/.test(await page.evaluate(() => document.querySelector('#card').innerText.slice(0, 40))));
   console.log(JSON.stringify(R, null, 1));
   console.log('ERR', errors);
   await browser.close();

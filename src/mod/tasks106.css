@@ -1,0 +1,24 @@
+/* v1.1.6: Tasks */
+.tkhead{display:flex;align-items:center;gap:10px;margin:2px 0 8px;padding:10px 14px;border-radius:16px;background:#12294a;border:2px solid #0b1a2e;color:#b9cfe6}
+.tkhead .tkn{min-width:34px;height:34px;border-radius:17px;background:#2a4a74;color:#fff;font:800 18px/34px var(--f-display);text-align:center}
+.tkhead b{font-family:var(--f-display);font-size:16px;letter-spacing:.3px}
+.tkhead.on{background:linear-gradient(90deg,#4a3410,#7a5412);border-color:#e39a3a;color:#fff3cf}.tkhead.on .tkn{background:#ffd54a;color:#3a2504;animation:tkPop 1.4s ease-in-out infinite}
+@keyframes tkPop{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+.tkbody .evcard.wide{margin:0 0 6px;padding:8px 12px}
+.qrow.tk6{display:flex;align-items:center;gap:12px;padding:10px 12px;margin:0 0 8px;border-radius:16px}
+.qrow.tk6 .qt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.qrow.tk6 .qt b{font-size:14px;line-height:1.2}
+.qrow.tk6 .tkc{font-size:11px;color:#8fa9c4}
+.tkring{flex:0 0 46px;height:46px;border-radius:50%;background:conic-gradient(#6fd36f calc(var(--p)*1%),#0c1f3a 0);display:flex;align-items:center;justify-content:center}
+.tkring i{width:36px;height:36px;border-radius:50%;background:#14284a;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;font-weight:800;color:#dbe9f6}
+.tkring.rd{background:conic-gradient(#ffd54a 100%,#ffd54a 0)}.tkring.rd i{font-size:20px}.tkring.dn i{color:#7fe08a;font-size:18px}
+.qrow.tk6.ready{background:linear-gradient(90deg,#3d2f10,#5a4313);border:2px solid #e3a93a}
+.qrow.tk6.done{opacity:.55}
+.qrow button.claim{flex:0 0 auto;min-width:104px;height:48px;border-radius:14px;font:800 16px var(--f-display);letter-spacing:.6px;background:linear-gradient(#ffe27a,#f0a92c);color:#2a1a05;border:2px solid #7a4a10;box-shadow:0 3px 0 #7a4a10,0 0 16px rgba(255,200,80,.5);animation:tkClaim 1.3s ease-in-out infinite}
+@keyframes tkClaim{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.qrow button.tkgo{flex:0 0 auto;min-width:76px;height:42px;border-radius:12px;font-weight:800}
+.qrow button.tkw{flex:0 0 auto;min-width:76px;height:42px;border-radius:12px;opacity:.8}
+.tkdone{display:block;width:100%;margin:2px 0 8px;padding:8px;border-radius:12px;border:0;background:transparent;color:#8fa9c4;font-size:12px;text-align:left}
+.tkmore.inv{margin-top:10px;border-style:solid;font-weight:700}
+.tksec h3{margin-top:12px}
+.tkbody .evcard.wide{padding:6px 12px;min-height:0;gap:10px}.tkbody .evcard.wide .ic{flex:0 0 40px;width:40px;height:40px}.tkbody .evcard.wide .ic svg,.tkbody .evcard.wide .ic img{width:26px;height:26px}
+.tkbody .evcard.wide .tx b{font-size:14px}.tkbody .evcard.wide .tx small{font-size:11px}

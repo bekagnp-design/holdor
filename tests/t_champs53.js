@@ -112,7 +112,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   // the hero room and the book show the new kits
   await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('lannister', 0, 'squire'); a.intro = 1; a.tut = 1; a.tours = {}; for (let i = 1; i <= 46; i++) a.campaign[i] = 3; H.setAcc(a); H.persist(); H.showHeroRoom('tyrion'); });
   await page.waitForTimeout(400);
-  const hr = await page.evaluate(() => document.querySelector('#card').innerText);
+  const hr = await page.evaluate(() => document.querySelector('#card').textContent);
   ok('hero room tyrion', /Hand of the King/.test(hr) && /Kindle/.test(hr) && /Wildfire/.test(hr) && /Master of Coin/.test(hr), hr.slice(0, 80).replace(/\n/g, ' '));
   await page.screenshot({ path: SC + 'ch53_tyrion.png' });
   await page.evaluate(() => window.HOLDOR_BOOK.showBook('champs', 'jaime', false)); await page.waitForTimeout(400);

@@ -69,11 +69,12 @@ with sync_playwright() as p:
     check('Tasks opens on Quests: daily, weekly and monthly sections', ev("document.querySelectorAll('.tksec').length") == 3 and ev("document.querySelector('.subtabs.tks button.on').dataset.tk") == 'quests')
     check('"Win a stage" is ready, the tab carries a red number', not ev("document.querySelector('.tkbody button[data-q=\"d_win1\"]').disabled") and ev("!!document.querySelector('.subtabs.tks button[data-tk=\"quests\"] .dot')"))
     pg.screenshot(path=SHOTS + '/tasks_quests.png')
+    check('v1.1.6: one header counts the ready gifts, the ready quest has a big CLAIM (>=44px), the others a progress ring', ev("(()=>{const h=document.querySelector('.tkhead');const b=document.querySelector('.tkbody button.claim[data-q]');return !!h&&/ready/.test(h.textContent)&&!!b&&b.getBoundingClientRect().height>=44&&document.querySelectorAll('.tkbody .tkring').length>=2&&!document.querySelector('.tkbody .hh')})()"))
     g0 = W()[0]
     tap('.tkbody button[data-q="d_win1"]', 900); settle(); pg.wait_for_timeout(500)
     check('claimed by tap: the gold is on the server%s' % (' (×2, Quest Rush)' if rush else ''), W()[0] - g0 == (600 if rush else 300), W()[0] - g0)
     check('the app balance equals the server', ev("HOLDOR.ACC.gold") == W()[0], (ev("HOLDOR.ACC.gold"), W()[0]))
-    check('the quest shows done', wait("(()=>{const b=document.querySelector('.tkbody button[data-q=\"d_win1\"]');return b&&b.disabled&&b.textContent.includes('✔')})()", 4000))
+    check('the quest shows done', wait("(()=>{const d=document.querySelector('.tkbody [data-tgt=\"tk-daily\"] .qrow.done');return d&&d.textContent.includes('Win a stage')&&!document.querySelector('.tkbody button[data-q=\"d_win1\"]')})()", 4000))
     # ---- social: no links yet → only the share task; the owner fills the channel link → it shows up
     tap('.subtabs.tks button[data-tk="social"]', 900); settle(); pg.wait_for_timeout(500)
     check('social: only the share task while the links are empty', ev("document.querySelectorAll('.tkbody button[data-o]').length") == 1 and ev("!!document.querySelector('.tkbody button[data-o=\"share\"]')"))
