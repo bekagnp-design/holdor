@@ -12,10 +12,11 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
     a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1, tasks: 1 }; a.learn = { chest: 1, hold: 1, champ: 1, glass: 1, keep: 1, tier2: 1, fire: 1 };
     for (let i = 1; i <= 5; i++) a.campaign[i] = 3; H.setAcc(a); H.showHub('battle'); });
   await page.waitForTimeout(700);
-  const home = await page.evaluate(() => ({ ic: [...document.querySelectorAll('.homerow .hbtn .ic')].map(e => !!e.querySelector('svg') && !/\p{Extended_Pictographic}/u.test(e.textContent)),
-    gift: !!document.querySelector('#dailyGift svg'), hold: !!document.querySelector('#hmHold svg') }));
-  ok('the five quick buttons carry drawn icons, no emoji', home.ic.length === 5 && home.ic.every(Boolean), JSON.stringify(home.ic));
-  ok('today\'s gift and the Hold pill carry drawn icons', home.gift && home.hold);
+  const home = await page.evaluate(() => ({ gift: !!document.querySelector('#dailyGift svg'), tasks: !!document.querySelector('#bTasks svg') }));
+  ok('today\'s gift and the Tasks pill carry drawn icons', home.gift && home.tasks, JSON.stringify(home));
+  await page.evaluate(() => window.HOLDOR.showHub('coll')); await page.waitForTimeout(500);
+  const army = await page.evaluate(() => [...document.querySelectorAll('.homerow.army .hbtn .ic')].map(e => !!e.querySelector('svg') && !/\p{Extended_Pictographic}/u.test(e.textContent)));
+  ok('the three Army buttons (Forge, Tavern, City) carry drawn icons, no emoji', army.length === 3 && army.every(Boolean), JSON.stringify(army));
   await page.screenshot({ path: SC + 'icons79_home.png' });
   await page.evaluate(() => window.HOLDOR.showHub('tasks')); await page.waitForTimeout(500);
   const tabs = await page.evaluate(() => document.querySelectorAll('.hubbody .tkbody, .hubbody p').length >= 0 && [...document.querySelectorAll('.subtabs.tks button')].map(b => !!b.querySelector('svg')));

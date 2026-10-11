@@ -13,7 +13,8 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   const txt = (sel) => page.evaluate((s) => { const e = document.querySelector(s); return e ? e.innerText : null; }, sel);
   await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1 }; a.learn = { chest: 1, hold: 1, champ: 1 }; for (let i = 1; i <= 8; i++) a.campaign[i] = 3; a.gold = 3000; H.setAcc(a); H.persist(); H.showHub('battle'); });
   await page.waitForTimeout(500);
-  ok('home: Train and Spell shop moved into the City (Barracks, Alchemist)', await page.evaluate(() => !document.querySelector('#bTrain') && !!document.querySelector('#bCity') && window.HOLDOR_CITY.CITY_BLD.some(b => b[0] === 'barracks') && window.HOLDOR_CITY.CITY_BLD.some(b => b[0] === 'alchemist')));
+  await page.evaluate(() => window.HOLDOR.showHub('coll')); await page.waitForTimeout(400);
+  ok('Army: Train and Spell shop moved into the City (Barracks, Alchemist)', await page.evaluate(() => !document.querySelector('#bTrain') && !!document.querySelector('#bCity') && window.HOLDOR_CITY.CITY_BLD.some(b => b[0] === 'barracks') && window.HOLDOR_CITY.CITY_BLD.some(b => b[0] === 'alchemist')));
   await page.screenshot({ path: SC + 'cs_hub.png' });
   // Train room
   await page.evaluate(() => window.HOLDOR_CITY.showCity()); await page.waitForTimeout(300); await tapEl('.cbd[data-b="barracks"]');

@@ -1450,6 +1450,37 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 @keyframes tgWave{0%{transform:scale(.2);opacity:.9}100%{transform:scale(1);opacity:0}}
 @keyframes tgBump{0%,100%{transform:translateX(4px)}50%{transform:translateX(-3px)}}@keyframes tgSpark{0%,40%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.6)}}
 @media (prefers-reduced-motion:reduce){.tgd *{animation:none!important}}
+/* v1.0.98: the simple home — four tabs, the Hold card, the pages with a back arrow, the Clan tab */
+.hubtabs.four button{font-size:10.5px}
+.hpill i.dot{display:inline-block;min-width:18px;height:18px;border-radius:9px;background:#e14b4b;color:#fff;font-style:normal;font-size:11px;font-weight:800;line-height:14px;text-align:center;padding:0 4px;border:2px solid #0b1a2e;margin-left:2px}
+.hback{display:flex;align-items:center;gap:10px;margin:0 0 8px}
+.hback button{background:linear-gradient(180deg,#2a6fb9,#1a4d8c);border:2px solid #0b1a2e;border-radius:12px;color:#fff;font-family:var(--f-display);font-weight:700;font-size:12px;padding:6px 12px;box-shadow:0 3px 0 #0b1a2e}
+.hback span{font-size:11px;color:#cfe6ff;letter-spacing:.1em;text-transform:uppercase;font-weight:700;text-shadow:0 1px 0 #0b1a2e}
+.hmslots.top{margin:0 0 8px}.hmslots.top .slot{aspect-ratio:1/.8}
+.hmhold{position:relative;margin:0 0 8px;border-radius:18px;border:3px solid var(--pb);background:linear-gradient(90deg,#1d4f8a,#123a6b);box-shadow:0 5px 0 var(--pb),0 8px 20px rgba(0,0,0,.4);overflow:hidden;color:#fff;text-align:left}
+.hmhold .hmrow{display:flex;align-items:center;gap:10px;padding:8px 8px 6px}
+.hmhold .hmmini{flex:0 0 84px;width:84px;height:60px;border-radius:10px;border:2px solid rgba(0,0,0,.55);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 2px 0 rgba(0,0,0,.4)}
+.hmhold .hmtx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;line-height:1.15}
+.hmhold .hmtx b{font-family:var(--f-display);font-size:14px;letter-spacing:.06em;color:#ffe08a;text-shadow:0 2px 0 #0b1a2e}
+.hmhold .hmtx small{font-size:11px;color:#dfe9f7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hmhold .hmtx em{font-style:normal;font-size:11px;color:#9fe0ff;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hmhold .hmcd{font-size:10.5px;color:#cfe6ff;font-variant-numeric:tabular-nums;white-space:nowrap}.hmhold .hmcd i{font-style:normal;color:#fff;font-weight:800}.hmhold .hmcd b{color:#ffe08a}
+.hmhold .hmgo{flex:0 0 auto;min-width:76px;padding:8px 8px;border-radius:14px;border:3px solid #0b1a2e;background:linear-gradient(180deg,#8a97a8,#59687b);color:#fff;font-family:var(--f-display);font-weight:900;font-size:15px;letter-spacing:.06em;box-shadow:0 4px 0 #0b1a2e;display:flex;flex-direction:column;align-items:center;line-height:1}
+.hmhold .hmgo small{font-size:8.5px;letter-spacing:.14em;margin-top:3px;opacity:.9}
+.hmhold .hmgo.go{background:linear-gradient(180deg,#ffe38e,#efb83b);color:#2a1a05;border-color:#7a4a10;box-shadow:0 4px 0 #7a4a10,0 0 18px rgba(255,214,100,.55);animation:hmPulse 1.8s ease-in-out infinite}
+.hmhold .hmgo:disabled{opacity:.85}
+@keyframes hmPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.hmhold .hmlink{display:block;width:100%;border:0;border-top:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.28);color:#cfe6ff;font-size:11px;font-weight:700;padding:6px 10px;text-align:left;font-family:var(--f-body)}
+.hmhold.lock{filter:saturate(.55)}.hmhold.lock .hmtx b{color:#dfe9f7}
+.clcard{display:flex;flex-direction:column;gap:8px;border-radius:16px;padding:10px;margin-bottom:9px;border:3px solid #0b1a2e;background:linear-gradient(90deg,#2467b0,#163f72);box-shadow:0 4px 0 #0b1a2e;color:#fff}
+.clcard .clhead{display:flex;align-items:center;gap:10px}.clcard .clhead svg,.clcard .clhead img{flex:0 0 auto}
+.clcard .cltx{flex:1;min-width:0;line-height:1.2}.clcard .cltx b{font-family:var(--f-display);font-size:15px;display:block;color:#fff;text-shadow:0 2px 0 #0b1a2e}.clcard .cltx small{font-size:11px;color:#cfe6ff}
+.clcard .clrow{display:flex;gap:6px}.clcard .clrow .btn{flex:1;margin:0;padding:9px 4px;font-size:11.5px;border-radius:10px}
+.clcard.soon{flex-direction:row;align-items:center;background:linear-gradient(90deg,#3a3f52,#262a38);border-color:#15171f}.clcard.soon .ic{font-size:28px;flex:0 0 auto}
+.evcard.wide{width:100%;text-align:left;color:#fff}.evcard.wide .st{font-family:var(--f-display);font-weight:900;color:#ffe08a;font-size:14px}
+.evcard.wide .tx small{display:block;font-size:11px;color:#dfe9f7}
+.homerow.army{margin:0 0 10px}
+@media (max-height:700px){.hmhold .hmrow{padding:6px 8px 4px}.hmhold .hmmini{flex-basis:70px;width:70px;height:50px}.hmhold .hmlink{padding:4px 10px}.hmslots.top .slot{aspect-ratio:1/.7}}
 </style>
 </head>
 <body>
@@ -2353,7 +2384,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.97';
+const VERSION='1.0.98';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -3925,10 +3956,10 @@ const TOURS={
   {sel:'#hubAva',text:'This is you: your champion\'s face and your <b>level</b>. Every upgrade you buy adds to it, and every level pays a chest. Tap it later for settings and the book.'},
   {sel:'.hmgoal',text:'Your road north: the next stage, its stars and how far you are of fifty. Tap it to open the map.'},
   {sel:'.hmslots',text:'Four chests: <b>stars</b> fill the first, <b>levels</b> the second, the third is <b>free</b> every day and the fourth is <b>today\'s gift</b>. Something is always on its way.'},
-  {sel:'.hubtabs button[data-tab="tasks"]',text:'<b>Tasks</b>: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'},
+  {sel:'.hback',text:'<b>Tasks</b>: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'},
   {sel:'#bBattle',tap:1,text:'<b>BATTLE!</b> opens the map at your next stage. Tap it.'}],
  coll:()=>[
-  {sel:'.subtabs',text:'<b>Collection</b>: your loadout, champions, towers and spells. Each one is a card — collect copies from chests, then pay gold to raise its level.'},
+  {sel:'.subtabs',text:'<b>Army</b>: your loadout, champions, towers and spells — the Forge, the Tavern and your city are above. Each one is a card — collect copies from chests, then pay gold to raise its level.'},
   {sel:'.deckrow .ccard[data-c]',text:'Your champion. The bar shows cards collected toward the next level; a green arrow means it is ready. Tap a champion later for skills and talents.'},
   {sel:()=>document.querySelector('.hubbody .cgrid .ccard[data-t="watch"]'),tap:1,text:'Towers keep a permanent level too. Tap the <b>Watchtower</b>.'},
   {sel:'#clist button[data-a="tl"]',tap:1,text:'When the bar is full, tap here: cards + gold = one level, +3% power. Levels 4, 8, 12 and 16 bring a bonus.',alt:'Not enough cards yet — chests fill the bar. Every level adds 3% power, and levels 4, 8, 12 and 16 bring a bonus.'},
@@ -3951,8 +3982,8 @@ function hubTour(tab){if(COACH.on||!ACC||!ACC.tut||CLOUD.screen!=='hub:'+tab)ret
 /* ---- small tours when something opens in the menus ---- */
 const HUB_LESSONS={
  chest:{need:()=>starChestsReady()>0,steps:()=>[{sel:'#starChest',tap:1,text:'Your first chest is ready! Tap it to open it.'}]},
- hold:{need:()=>onlineOpen(),steps:()=>[{sel:`.hubtabs button[data-tab="hold"]`,tap:1,text:'<b>Hold</b> is open — the daily siege for the whole world. Tap it.'}]},
- champ:{need:()=>CHAMPS.filter(c=>c.house===ACC.house&&unlocked(null,c)).length>1,steps:()=>[{sel:`.hubtabs button[data-tab="coll"]`,tap:1,text:'A new champion has joined your house! Tap <b>Collection</b>.'},
+ hold:{need:()=>onlineOpen(),steps:()=>[{sel:'#hmHold .hmtx',tap:1,text:'<b>Hold</b> is open — one map a day for the whole world. Tap the card.'}]},
+ champ:{need:()=>CHAMPS.filter(c=>c.house===ACC.house&&unlocked(null,c)).length>1,steps:()=>[{sel:`.hubtabs button[data-tab="coll"]`,tap:1,text:'A new champion has joined your house! Tap <b>Army</b>.'},
    {sel:'.subtabs button[data-sub="heroes"]',tap:1,text:'Tap <b>Champions</b> to meet them — and to choose who rides with you.'}]},
 };
 function hubLessons(){
@@ -5678,7 +5709,7 @@ function tkSocial(){const s=tkState();if(!s)return '<p class="m">⏳ asking the 
 function tkFriends(){const s=tkState();const F=s?s.items.filter(i=>i.kind==='ref'):[];
   return `${F.length?`<div class="qlist">${F.map(tkRow).join('')}</div>`:''}${invBox()}`;}
 function hubTasks(sub){
-  const head=`<div class="hh"><h2>Tasks</h2><small>gifts paid by the server</small></div>`;
+  const head=`<div class="hh"><h2>Tasks</h2><small>gifts paid by the server</small></div>${tkDailyHTML()}`;
   if(!tasksOn())return head+`<p class="m">${ecoOn()?'Finish the tutorial battle first.':'Tasks are kept by the server — they need a seat signed in through Telegram.'}</p>`;
   if(sub)TASKS.sub=sub;sub=TASKS.sub;
   const rush=tkRush(),e=evAt(Date.now());
@@ -5709,7 +5740,7 @@ function tkTick(){if(CLOUD.screen!=='hub:tasks')return;let any=false,done=false;
   const c=document.getElementById('tkRushCd');if(c){const e=evAt(Date.now());c.textContent=e.active&&e.kind==='rush'?evLeft(e.t1-Date.now()):'in '+evLeft(e.t0-Date.now());any=true;}
   if(done){tasksLoad(true).then(()=>{if(CLOUD.screen==='hub:tasks')showHub('tasks');});return;}
   if(any)setTimeout(tkTick,1000);}
-function hubTasksBind(){
+function hubTasksBind(){homeMovedBind();
   if(tasksOn()){const a=TASKS.st,b=DAILY.st,c=DAILY.fr;
     tasksLoad().then(r=>{if(r&&r!==a&&CLOUD.screen==='hub:tasks')showHub('tasks');});
     dailyLoad(Date.now()-DAILY.at>8000).then(r=>{if(r&&r!==b&&CLOUD.screen==='hub:tasks')showHub('tasks');});
@@ -7625,19 +7656,19 @@ function hubTop(){const c=CBY[ACC.sel],L=accLevel(),hh=HOUSES[ACC.house];const p
 function hubTabs(on){const t=[['shop','Shop'],['coll','Collection'],['battle','Battle'],['tasks','Tasks'],['hold','Hold']];
   const dot={tasks:tasksReady()>0,shop:freeChestReady()||starChestsReady()>0,battle:starChestsReady()>0,coll:bookNewCount()>0,hold:onlineOpen()&&ACC.online.attempts>0&&!(ACC.online.runs||[]).length};
   return `<div class="hubtabs">${t.map(([k,n])=>`<button class="${k===on?'on':''} ${k==='battle'?'mid':''} ${k==='hold'&&!onlineOpen()?'lock':''}" data-tab="${k}">${HUB_ICON[k]}${n}${dot[k]?'<span class="dot"></span>':''}</button>`).join('')}</div>`;}
-const HUB_ORDER=['shop','coll','battle','tasks','hold'];
+const HUB_ORDER=['shop','coll','battle','clan'];
 let hubDir=0; /* -1: slid in from the left, 1: from the right (swipe animation) */
 function showHub(tab,sub){
   if(!ACC){showTitle();return;}
   if(ecoWants()&&!ecoOn()&&!ECO.starting&&Date.now()-ECO.failAt>20000)ecoStart();else if(ecoOn()&&Date.now()-ECO.at>60000&&ecoCalm())ecoRefresh();
   rollDay();tab=tab||'battle';
-  const body=tab==='shop'?hubShop():tab==='coll'?hubCollection(sub):tab==='events'?hubEvents(sub):tab==='tasks'?hubTasks(sub):tab==='hold'?hubHold():hubHome();
+  const body=tab==='shop'?hubShop():tab==='coll'?hubCollection(sub):tab==='events'?hubEvents(sub):tab==='tasks'?hubTasks(sub):tab==='hold'?hubHold():tab==='clan'?hubClan():hubHome();
   show(`<div class="hub look-${skinOf()}" style="--sig:url(${SIGILS[ACC.house]||''})">${hubTop()}<div class="hubbody ${tab} ${hubDir>0?'slide-r':hubDir<0?'slide-l':''}" id="hubBody">${body}</div>${hubTabs(tab)}</div>`,'full');
-  hubDir=0;CLOUD.screen='hub:'+tab;
+  hubDir=0;CLOUD.screen='hub:'+tab;hubHiddenBack(tab);
   card.querySelectorAll('.hubtabs button').forEach(b=>b.addEventListener('click',()=>{SFX.play('tap',60);hubDir=Math.sign(HUB_ORDER.indexOf(b.dataset.tab)-HUB_ORDER.indexOf(tab));showHub(b.dataset.tab);}));
   $('#hubAva').addEventListener('click',()=>showSettings());const he=$('#hubEn');if(he)he.addEventListener('click',()=>{SFX.play('tap',60);ecoEnergySheet(0,null);});const hr=$('#hubRank');if(hr)hr.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});card.querySelectorAll('.plus').forEach(b=>b.addEventListener('click',()=>showHub(b.dataset.go)));
   hubSwipe(card.querySelector('.hub'),tab);juiceHub(tab);
-  if(tab==='battle'){hubBattleBind();homeBind();}else if(tab==='coll')hubCollectionBind(sub);else if(tab==='shop')hubShopBind();else if(tab==='events')hubEventsBind(sub);else if(tab==='tasks')hubTasksBind();else hubHoldBind();
+  if(tab==='battle'){hubBattleBind();homeBind();}else if(tab==='coll')hubCollectionBind(sub);else if(tab==='shop')hubShopBind();else if(tab==='events')hubEventsBind(sub);else if(tab==='tasks')hubTasksBind();else if(tab==='clan')hubClanBind();else hubHoldBind();
   setTimeout(()=>hubTour(tab),400);
   if(tab==='battle'){if(DUEL.pending)setTimeout(duelPendingOpen,500);else{setTimeout(dailyPopupCheck,1100);setTimeout(evPopupCheck,2600);}}
 }
@@ -7646,7 +7677,7 @@ function hubSwipe(el,tab){
   if(!el)return;let sx=0,sy=0,t0=0,on=false;
   const start=(x,y)=>{sx=x;sy=y;t0=Date.now();on=true;};
   const end=(x,y)=>{if(!on)return;on=false;const dx=x-sx,dy=y-sy,dt=Date.now()-t0;if(dt>900||Math.abs(dx)<56||Math.abs(dy)>Math.abs(dx)*0.7)return;
-    const i=HUB_ORDER.indexOf(tab),j=i+(dx<0?1:-1);if(j<0||j>=HUB_ORDER.length)return;SFX.play('swipe',50);hubDir=dx<0?1:-1;showHub(HUB_ORDER[j]);};
+    const i=HUB_ORDER.indexOf(tab),j=i+(dx<0?1:-1);if(i<0||j<0||j>=HUB_ORDER.length)return;SFX.play('swipe',50);hubDir=dx<0?1:-1;showHub(HUB_ORDER[j]);};
   el.addEventListener('touchstart',e=>{const t=e.touches[0];start(t.clientX,t.clientY);},{passive:true});
   el.addEventListener('touchend',e=>{const t=e.changedTouches[0];end(t.clientX,t.clientY);},{passive:true});
   el.addEventListener('mousedown',e=>start(e.clientX,e.clientY));
@@ -7751,7 +7782,7 @@ function spellCard(k){const S=SPELLS[k],key='s:'+k,open=cardOpen(key),l=spellLvl
   return `<button class="ccard ${open?'':'lock'}" style="--rc:${rc}" data-s="${k}">${open?cardUpBadge(key):''}<span class="im" style="padding:10px;box-sizing:border-box">${spellSVG(k)}${open?`<span class="lv">LVL ${l}</span>`:`<span class="lk">AFTER ${S.at}</span>`}</span>
    <span class="nm">${S.n}</span><span class="rar" style="--rc:${rc}">${open?RAR_N[cardRar(key)]+' · '+S.cd+'s':'locked'}</span>${open?cardBar(key):''}</button>`;}
 function hubCollection(sub){sub=sub||'deck';const mine=CHAMPS.filter(c=>c.house===ACC.house),others=CHAMPS.filter(c=>c.house!==ACC.house);
-  const tabs=`<div class="subtabs">${[['deck','Loadout'],['heroes','Champions'],['towers','Towers'],['spells','Spells'],['book','Book']].map(([k,n])=>`<button class="${k===sub?'on':''}" data-sub="${k}">${n}${k==='book'&&bookNewCount()?`<span class="n">${bookNewCount()}</span>`:''}</button>`).join('')}</div>`;
+  const tabs=`${armyRow()}<div class="subtabs">${[['deck','Loadout'],['heroes','Champions'],['towers','Towers'],['spells','Spells'],['book','Book']].map(([k,n])=>`<button class="${k===sub?'on':''}" data-sub="${k}">${n}${k==='book'&&bookNewCount()?`<span class="n">${bookNewCount()}</span>`:''}</button>`).join('')}</div>`;
   let body='';
   if(sub==='deck'){const c=CBY[ACC.sel];
     body=`<div class="hh"><h2>Battle loadout</h2><small>What rides with you</small></div>
@@ -7765,7 +7796,7 @@ function hubCollection(sub){sub=sub||'deck';const mine=CHAMPS.filter(c=>c.house=
   else{body=`<div class="hh"><h2>Spells of the house</h2><small>the spell buttons in battle · tap one to level it</small></div><div class="cgrid c3">${['arrows','fire','reinf'].map(spellCard).join('')}</div>
     <div class="cgrid c3" style="margin-top:10px">${UPG.filter(u=>u.g==='power').map(u=>`<button class="ccard ${ACC.upg[u.id]?'':'lock'}" style="--rc:#b47cff" data-u="1"><span class="im" style="font-size:26px">${u.e}</span><span class="nm">${u.n}</span><span class="rar">${ACC.upg[u.id]?'owned':fmtN(ECON.upgCost(u))+' gold'}</span></button>`).join('')}</div>`;}
   return tabs+body;}
-function hubCollectionBind(sub){
+function hubCollectionBind(sub){homeMovedBind();
   bind('.subtabs button',b=>{if(b.dataset.sub==='book'){SFX.play('tap',60);showBook('towers',null,false);}else showHub('coll',b.dataset.sub);});
   bind('.ccard[data-c]',b=>{const c=CBY[b.dataset.c];if(c.house!==ACC.house){SFX.play('tap',40);return;}showHeroRoom(c.id);});
   bind('.ccard[data-t]',b=>showTowerRoom(b.dataset.t));bind('.ccard[data-s]',b=>showSpellRoom(b.dataset.s));bind('.ccard[data-u]',()=>showUpgrades());
@@ -7781,7 +7812,7 @@ function hubShop(){const free=freeChestReady(),ft=fmtT(86400000-(Date.now()-(ACC
     return `<div class="sitem deal ${bought?'done':''}" style="--rc:${RC[d.r]}">${freeSlot&&!bought?'<span class="badge">FREE</span>':''}<span class="ch dic">${d.ic}</span><b>${esc(d.n)}</b><small>${esc(d.s)}</small><button data-deal="${i}" ${bought||!canPay(d.price)?'disabled':''} class="${freeSlot?'free':''}">${bought?'✔ TAKEN':priceHTML(d.price)}</button></div>`;};
   const chest=(t,extra)=>{const T=CHEST_TIERS[t];return `<div class="sitem" style="--rc:${T.trim}">${extra||''}<span class="ch">${chestSVG(t)}</span><b>${T.n}</b><small><i style="color:${T.trim};font-style:normal;font-weight:900">${T.sub}</i> · ${T.gold[0]}–${T.gold[1]} gold · ${T.gems[0]}–${T.gems[1]} dragonglass · ${T.cards} card stack${T.cards>1?'s':''}${T.rare?` (${T.rare} rare+)`:''}</small>
     ${t==='wood'?`<button class="free" data-buy="wood" ${free?'':'disabled'}>${free?'FREE':ft.str}</button>`:`<button data-buy="${t}" ${ACC.gems>=T.price?'':'disabled'}>${GEM_SVG}${T.price}</button>`}</div>`;};
-  return `${starsStarterHTML()}<div class="hh"><h2>Daily deals</h2><small>new deals in <b id="dealCd">${dt.h}:${dt.m}:${dt.s}</b></small></div>
+  return `${starsStarterHTML()}${shopSeasonHTML()}<div class="hh"><h2>Daily deals</h2><small>new deals in <b id="dealCd">${dt.h}:${dt.m}:${dt.s}</b></small></div>
   <p class="shopnote">Six deals every 6 hours. The first is always free · unlock the locked ones with dragonglass.</p>
   <div class="shopgrid deals">${deals.map(dealHTML).join('')}</div>
   <div class="hh" style="margin-top:14px"><h2>Chests</h2><small>${GEM_SVG} ${ACC.gems} dragonglass</small></div>
@@ -7789,7 +7820,7 @@ function hubShop(){const free=freeChestReady(),ft=fmtT(86400000-(Date.now()-(ACC
   <div class="hh" style="margin-top:14px"><h2>Gold for dragonglass</h2><small>${GOLD_SVG} ${fmtN(goldOf())} gold</small></div>
   <div class="shopgrid three">${ECON.exchange.map(([g,gd],i)=>`<div class="sitem" style="--rc:#e3b661"><span class="ch dic">${GOLD_SVG}</span><b>${['Purse','Chest','Hoard'][i]}</b><small>+${gd.toLocaleString()} gold${i===2?' · best value':i===1?' · +7%':''}</small><button data-xch="${i}" ${ACC.gems>=g?'':'disabled'}>${GEM_SVG}${g}</button></div>`).join('')}</div>
   ${starsShopHTML()}`;}
-function hubShopBind(){
+function hubShopBind(){homeMovedBind();
   const tick=()=>{if(CLOUD.screen!=='hub:shop')return;const el=$('#dealCd');if(!el)return;const t=fmtT(msToDeals());el.textContent=t.h+':'+t.m+':'+t.s;if(msToDeals()<1000){showHub('shop');return;}setTimeout(tick,1000);};tick();
   bind('[data-buy]',b=>{const t=b.dataset.buy,T=CHEST_TIERS[t];if(ecoWants()){if(t==='wood'?!freeChestReady():ACC.gems<T.price)return;ecoChest(t,'shop',()=>showHub('shop'));return;}if(t==='wood'){if(!freeChestReady())return;ACC.freeChestAt=Date.now();}else{if(ACC.gems<T.price)return;ACC.gems-=T.price;}persist();openChest(t,()=>showHub('shop'));});
   bind('[data-deal]',b=>{const i=+b.dataset.deal;const d=genDeals()[i];if(buyDeal(i)){SFX.play(d.k==='gold'||d.k==='gems'?'buy':'card');flyReward(b,d);showHub('shop');}else SFX.play('deny');});
@@ -7877,6 +7908,99 @@ function holdTutorial(done){const c=CBY[ACC.sel],pu=CHAMP_ART[c.id+'_portrait'],
 window.HOLDOR_GEN={denseRoute,pickSlots,waterFeat,seaEdge,riverY,inWater,posAt,BIOMES,mulberry32,hash32,dist,W,H,GX,GATE_Y,buildMap,renderBg,placeProps,chestSVG,showTowerRoom,showHeroRoom,showUpgrades,showCampaign,tLvl,campOf,nextStage,migrate45,sendBrothers,rankCap,towerStats,ECON,SK,TALENTS,UPG,UPG_OLD,DIFFS,hardOpen,maxTowerLvl,MAPPOS,levelOpen,cleared,starsEarned,CH_MAX,SK_MAX,T_MAX,makeHero,showDifficulty,openChest,POOLS,MINIS,TOWER_UNLOCK,UNLOCK_STAGE,SPELLS};
 window.HOLDOR_RING={openRing,closeRing,ringTap,ringFrame,state:()=>RING,upgradeTower,sellTower,sellValue,w2s,closeSheet,openSheet};
 window.HOLDOR_TUT={TS,tutEvent,tutNext,tutAdvance,skipTutorial,LESSONS,TUT_STEPS,lessonStart,lessonsInit,learnMap,coachStart,coachStep,coachNext,coachEnd,COACH,startTour,hubLessons,migrate47,startTutorial,tutWantBase,TUT_LEVEL,tutSlot};
+/* =========================== THE SIMPLE HOME (v1.0.98) ===========================
+   Four tabs instead of five: SHOP · ARMY · BATTLE · CLAN. The Hold is the heart of the game, so it sits in the middle of the home as a
+   card (today's map drawn small, the modifier, the countdown to the next map, today's best run, the big HOLD button); the campaign is
+   the row under it. The chests moved to the top. The five quick buttons are gone: Forge, Tavern and the City live in ARMY, Season in
+   the SHOP, Daily inside Tasks. Tasks is a 📜 pill in the strip and opens as a page with a back arrow, like the full Hold page and the
+   standings. One look (the living gate), no 🎨. Events come as popups; the ✉ pill reopens the current one. CLAN holds the realm (chat,
+   war, standings) and the friends until the clans themselves come. The ids the tutorial and the tests know stay: #bBattle, #starChest,
+   #lvlChest, #freeChest, #dailyGift, #hubTro, #evBadge, #hmGoal, #bChampH, #bMapH / #bDiffH, #bHold, #bForge, #bTavern, #bCity,
+   #bSeason, #bDaily. This module is injected after the hub, so its declarations replace the hub's and the skins' of the same name. */
+const HUB_HIDDEN={tasks:1,hold:1,events:1};   /* pages without a tab button: they open from the home and carry a back arrow */
+HUB_ICON.clan='<svg viewBox="0 0 24 24"><path d="M4 3h16v9c0 4.6-3.5 7.6-8 9.5C7.5 19.6 4 16.6 4 12z" fill="#2f8f5b" stroke="#0e3a22" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="9" r="2.3" fill="#ffe08a" stroke="#5a3a08" stroke-width=".8"/><circle cx="7.6" cy="11" r="1.7" fill="#ffe08a" stroke="#5a3a08" stroke-width=".8"/><circle cx="16.4" cy="11" r="1.7" fill="#ffe08a" stroke="#5a3a08" stroke-width=".8"/><path d="M6.5 16.6c1.2-2.2 3.2-3.3 5.5-3.3s4.3 1.1 5.5 3.3" fill="none" stroke="#ffe08a" stroke-width="1.7" stroke-linecap="round"/></svg>';
+function hubTabs(on){const t=[['shop','Shop'],['coll','Army'],['battle','Battle'],['clan','Clan']];
+  const fr=typeof tkReady==='function'&&typeof tasksOn==='function'&&tasksOn()?tkReady('friends'):0;
+  const dot={shop:freeChestReady()||starChestsReady()>0,battle:starChestsReady()>0||(onlineOpen()&&ACC.online.attempts>0&&!(ACC.online.runs||[]).length),clan:fr>0};
+  const sel=HUB_HIDDEN[on]?'battle':on;
+  return `<div class="hubtabs four">${t.map(([k,n])=>`<button class="${k===sel?'on':''} ${k==='battle'?'mid':''}" data-tab="${k}">${HUB_ICON[k]}${n}${dot[k]?'<span class="dot"></span>':''}</button>`).join('')}</div>`;}
+/* a page without a tab: a back arrow on top */
+function hubHiddenBack(tab){if(!HUB_HIDDEN[tab])return;const b=document.getElementById('hubBody');if(!b)return;
+  const d=document.createElement('div');d.className='hback';d.innerHTML=`<button id="hubBack">◀ Back</button><span>${tab==='tasks'?'Tasks':tab==='hold'?'The Hold':'Standings'}</span>`;
+  b.insertBefore(d,b.firstChild);d.querySelector('#hubBack').addEventListener('click',()=>{SFX.play('tap',60);showHub('battle');});}
+/* one look: the living gate */
+function skinOf(){return 'b';}
+function skinNext(){}
+/* ---------- the home ---------- */
+function homeStrip(){const R=myRank(),e=evAt(Date.now()),K=EVT_KIND[e.kind],left=e.active?e.t1-Date.now():e.t0-Date.now(),n=typeof tasksReady==='function'?tasksReady():0;
+  return `<div class="hmstrip"><button class="hpill" id="hubTro">${rankSVG(R.t,20,R.div)}<b>${trophiesOf()}</b></button>
+    <button class="hpill tk ${n?'hot':''}" id="bTasks">${icon('quests',18)}<b>Tasks</b>${n?`<i class="dot">${n}</i>`:''}</button>
+    <button class="hpill ev ${e.active?'on':''}" id="evBadge" data-t="${e.active?e.t1:e.t0}" data-a="${e.active?1:0}">${K.e}<b>${K.n}</b><em>${e.active?'ends in':'in'} ${evLeft(left)}</em></button></div>`;}
+/* today's map, small: the biome's ground and the road the dead will walk, the gate at the bottom */
+function hmMiniDraw(){const cv=document.getElementById('hmMini');if(!cv)return;const gm=genDaily(hash32(dayKeyUTC())),B=(typeof BIOMES!=='undefined'&&BIOMES[gm.biome])||{},x=cv.getContext('2d'),w=cv.width,h=cv.height,sx=w/W,sy=h/GATE_Y;
+  x.fillStyle=B.g1||'#2c3c50';x.fillRect(0,0,w,h);x.fillStyle=B.g2||B.dk||'#233245';for(let i=0;i<9;i++)x.fillRect((i*29+7)%w,(i*41+5)%h,8+(i%3)*3,4+(i%2)*2);
+  x.lineJoin='round';x.lineCap='round';const road=()=>{x.beginPath();gm.pts.forEach((p,i)=>{const px=p[0]*sx,py=p[1]*sy;if(i)x.lineTo(px,py);else x.moveTo(px,py);});x.lineTo(GX*sx,h);x.stroke();};
+  x.strokeStyle=B.edge||'#6c7c92';x.lineWidth=7;road();x.strokeStyle=B.path||'#3b4658';x.lineWidth=4.5;road();
+  x.fillStyle='#3a2a1a';x.fillRect(GX*sx-7,h-7,14,7);x.fillStyle='#8a5a33';x.fillRect(GX*sx-4,h-6,8,6);x.fillStyle='#e3b661';x.fillRect(GX*sx-1,h-9,2,3);}
+function homeHold(){rollDay();const open=onlineOpen(),gm=genDaily(hash32(dayKeyUTC())),runs=ACC.online.runs||[],best=runs.length?Math.max(...runs.map(r=>r.waves)):0,att=ACC.online.attempts,lb=cachedLb(),me=(lb&&lb.myday)||null,t=fmtT(msToMidnightUTC());
+  const bio=gm.biome.charAt(0).toUpperCase()+gm.biome.slice(1);
+  return `<div class="hmhold ${open?'':'lock'}" id="hmHold"><div class="hmrow"><canvas class="hmmini" id="hmMini" width="84" height="60"></canvas>
+    <div class="hmtx"><b>${open?'HOLD THE DOOR':'THE HOLD'}</b>
+      <small>${open?`${gm.mod.e} ${esc(gm.mod.n)} · ${bio}`:`🔒 opens after stage ${ONLINE_AT}`}</small>
+      <em>${open?(runs.length?`today ${best} 🌊${me&&me.rank?' · #'+me.rank+' in the world':''}`:'not played yet today'):`hold ${ONLINE_AT} gates in the campaign first`}</em>
+      <span class="hmcd">new map in <i id="hmCd">${t.h}:${t.m}:${t.s}</i>${open?` · <b>${att}</b> ${att===1?'run':'runs'} left`:''}</span></div>
+    <button class="hmgo ${open&&att>0?'go':''}" id="bHold" ${open&&att>0?'':'disabled'}>${open?(att>0?'HOLD':'DONE'):'🔒'}<small>${open?(att>0?'THE DOOR':'FOR TODAY'):'LOCKED'}</small></button></div>
+    <button class="hmlink" id="bHoldMore">🏆 Today's defenders · how the Hold works ›</button></div>`;}
+function hmHoldTick(){clearTimeout(HOME.holdT);if(CLOUD.screen!=='hub:battle')return;const c=document.getElementById('hmCd');if(!c)return;
+  const ms=msToMidnightUTC(),t=fmtT(ms);c.textContent=t.h+':'+t.m+':'+t.s;if(ms<1000){showHub('battle');return;}HOME.holdT=setTimeout(hmHoldTick,1000);}
+function hubHome(){const hh=HOUSES[ACC.house];
+  return `${homeStrip()}<div class="hmslots top">${homeSlots().replace(/^<div class="hmslots">/,'').replace(/<\/div>$/,'')}</div>
+    <div class="hmstage st-b" id="hmStage">${hmStageB()}<div class="hmtitle"><b>${hh.seat}</b></div>${homeGoal()}</div>
+    ${homeHold()}${homeBattleRow()}
+    ${ACC.tut?'':'<div class="hint">▲ TAP BEGIN — YOUR CHAMPION WILL TEACH YOU</div>'}${ACC.refund?`<div class="hint" id="refundNote">🪙 Tower upgrades are now tower levels — ${ACC.refund} gold refunded. Army → Towers.</div>`:''}`;}
+function homeBind(){
+  const on=(id,f)=>{const b=document.getElementById(id);if(b)b.addEventListener('click',f);};
+  on('hmGoal',()=>{SFX.play('tap',60);if(!ACC.tut)startTutorial();else showCampaign();});
+  on('bTasks',()=>{SFX.play('tap',60);showHub('tasks');});
+  on('bHoldMore',()=>{SFX.play('tap',60);showHub('hold');});
+  on('hmHold',e=>{if(e.target.closest('#bHold,#bHoldMore'))return;SFX.play('tap',60);if(!onlineOpen()){ecoToast(`🔒 The Hold opens after stage ${ONLINE_AT}`);return;}showHub('hold');});
+  on('bHold',()=>{SFX.play('tap',60);if(!onlineOpen()){ecoToast(`🔒 The Hold opens after stage ${ONLINE_AT}`);return;}if(ACC.online.attempts<=0){showHub('hold');return;}
+    const go=()=>{if(!onlineOpen()||ACC.online.attempts<=0)return;startGame({mode:'online'});};if(!ACC.holdTut)holdTutorial(go);else go();});
+  on('lvlNext',()=>{SFX.play('tap',40);const L=accLevel();ecoToast(`⭐ Level ${L.l+1}: ${fmtN(L.need-L.xp)} XP more — then this chest is yours`);});
+  on('freeChest',()=>{if(!freeChestReady()){SFX.play('deny');ecoToast('🕑 The free chest comes back in '+fmtT(ACC.freeChestAt+86400000-Date.now()).str);return;}
+    SFX.play('tap',60);if(ecoWants()){ecoChest('wood','shop',()=>showHub('battle'));return;}ACC.freeChestAt=Date.now();persist();openChest('wood',()=>showHub('battle'));});
+  on('dailyGift',()=>{SFX.play('tap',60);if(!dailyOn()){showDaily();return;}const d=DAILY.st&&DAILY.seat===seatNo()?DAILY.st.login:null;if(d&&d.can)dailyClaimLogin();else showDaily('cal');});
+  if(dailyOn()&&!(DAILY.st&&DAILY.seat===seatNo()))dailyLoad().then(()=>{if(CLOUD.screen==='hub:battle'){const s=document.querySelector('.hmslots');if(s){s.outerHTML=homeSlots().replace(/^<div class="hmslots">/,'<div class="hmslots top">');homeSlotsRebind();}}});
+  const gate=document.getElementById('hmGate');if(gate)gate.addEventListener('click',homeStrike);
+  hmMiniDraw();HOME.skin='b';homeStart();clearTimeout(HOME.tick);homeTickLoop();hmHoldTick();}
+/* ---------- the buttons that moved: ARMY (Forge, Tavern, City), SHOP (Season), Tasks (Daily) ---------- */
+function armyRow(){return `<div class="homerow army"><button class="hbtn" id="bForge"><span class="ic">${icon('forge',26)}</span><b>Forge</b></button><button class="hbtn" id="bTavern"><span class="ic">${icon('tavern',26)}</span><b>Tavern</b></button><button class="hbtn" id="bCity"><span class="ic">${icon('city',26)}</span><b>City</b></button></div>`;}
+function shopSeasonHTML(){return `<button class="evcard live wide" id="bSeason"><span class="ic">${icon('season',30)}</span><span class="tx"><b>Season Pass</b><small>a ladder of rewards for every day you hold · VIP</small></span><span class="st">OPEN</span></button>`;}
+function tkDailyHTML(){const n=dailyOn()?dailyReady():0;
+  return `<button class="evcard wide" id="bDaily"><span class="ic">${icon('daily',30)}</span><span class="tx"><b>Daily</b><small>the login calendar and today's gift</small></span><span class="st">${n?n:'›'}</span></button>`;}
+function homeMovedBind(){const on=(id,f)=>{const b=document.getElementById(id);if(b)b.addEventListener('click',f);};
+  on('bForge',()=>{SFX.play('tap',60);showForge();});on('bTavern',()=>{SFX.play('tap',60);showHeroRoom();});on('bCity',()=>{SFX.play('tap',60);showCity();});
+  on('bSeason',()=>{SFX.play('tap',60);showSeason();});on('bDaily',()=>{SFX.play('tap',60);showDaily();});
+  if(document.getElementById('bDaily')&&dailyOn()&&!(DAILY.st&&DAILY.seat===seatNo()))dailyLoad().then(()=>{const b=document.getElementById('bDaily');if(b){b.outerHTML=tkDailyHTML();on('bDaily',()=>{SFX.play('tap',60);showDaily();});}});}
+/* ---------- CLAN: the realm, the clans to come, the friends ---------- */
+function hubClan(){const rows=realmStats(),mine=rows.find(r=>r.mine)||null,L=lang(),lb=cachedLb(),w=typeof WAR!=='undefined'&&WAR.data?WAR.data:null,my=w&&w.mine?w.mine:null,onT=typeof tasksOn==='function'&&tasksOn();
+  const n=rows.filter(r=>r.players).length;
+  const realm=`<div class="clcard" id="clRealm"><div class="clhead">${flag(L.c,34)}<div class="cltx"><b>${esc(L.c)}</b><small>${mine&&mine.players?`${mine.players} defenders · #${mine.rank} of ${n} realms`:'your realm · your banner'}${my&&my.pos?` · war #${my.pos}`:''}</small></div></div>
+    <div class="clrow"><button class="btn" id="bClChat">💬 Realm chat</button><button class="btn sec" id="bClWar">⚔️ Realm war</button><button class="btn sec" id="bClRealms">🌍 Standings</button></div></div>`;
+  const clans=`<div class="clcard soon"><span class="ic">🛡️</span><div class="cltx"><b>Clans</b><small>Coming: found a clan, talk in its chat, fight a clan war every week. Until then your realm is your banner.</small></div></div>`;
+  const fr=`<div class="hh" style="margin-top:12px"><h2>Friends</h2><small>${onT?'a gift for you both':'sign in through Telegram'}</small></div><div class="tkbody">${onT?tkFriends():'<p class="m">Invitations are kept by the server — they need a seat signed in through Telegram.</p>'}</div>`;
+  return `<div class="hh"><h2>Clan</h2><small>${sbReady()?(lb?'live':'connecting…'):'offline'}</small></div>${realm}${clans}${fr}`;}
+function hubClanBind(){const on=(id,f)=>{const b=document.getElementById(id);if(b)b.addEventListener('click',f);};
+  on('bClChat',()=>{SFX.play('tap',60);showChat(()=>showHub('clan'));});
+  on('bClWar',()=>{SFX.play('tap',60);showRealmWar(()=>showHub('clan'));});
+  on('bClRealms',()=>{SFX.play('tap',60);showHub('events','realms');});
+  if(sbReady()&&(!CLOUD.lb||Date.now()-CLOUD.lbAt>60000))fetchLeaderboard(true).then(r=>{if(r&&CLOUD.screen==='hub:clan')showHub('clan');});
+  if(typeof tasksOn==='function'&&tasksOn()){const a=TASKS.st,c=DAILY.fr;
+    tasksLoad().then(r=>{if(r&&r!==a&&CLOUD.screen==='hub:clan')showHub('clan');});
+    frLoad().then(r=>{if(r&&r!==c&&CLOUD.screen==='hub:clan')showHub('clan');});
+    card.querySelectorAll('.tkbody button[data-o]').forEach(b=>b.addEventListener('click',()=>tkOpen(b.dataset.o,b)));
+    card.querySelectorAll('.tkbody button[data-c]').forEach(b=>b.addEventListener('click',()=>{const s=tkState(),i=s&&s.items.find(x=>x.id===b.dataset.c);tkCall('task_claim',{task:b.dataset.c},r=>{tkPaid(b,r,(i?i.e+' '+i.n:'Task done'));if(CLOUD.screen==='hub:clan')showHub('clan');});}));
+    invBind();}}
 window.HOLDOR_CARDS={CARD_NEED,CARD_MUL,cardRar,cardLvl,cardMax,cardNeed,cardHave,cardGold,cardName,cardOpen,cardReady,cardCan,addCards,cardLevelUp,accLevel,accXp,addXp,xpNeed,lvlChestTier,lvlChestsReady,cardPool,rollChest,stageCards,spellLvl,spellMul,showSpellRoom,showTowerRoom,migrate48,TOURS,toursOf,hubTour,startTour};
 window.HOLDOR_SEATS={seatNo,lbIsMe,lbName,lbStale,lbMine,scoreSummary,fetchLeaderboard,cachedLb};
 window.HOLDOR_BOOK={showBook,bookNew,bookDisc,bookNewCount,bookMarkRead,BOOK,trophiesOf,trophiesRow,rankOf,myRank,rankSVG,showRankSheet,RANKS,RANK_AT};
@@ -7914,6 +8038,7 @@ window.HOLDOR_FXB={FXB,fxbCounts,fxbTint,fxbGateKick,fxbDeath,fxbTick,fxbNum,dra
 window.HOLDOR_FXUI={FXUI,fxuiHub,fxuiOff,fxuiCalm,fxuiLive,fxuiParTo,ecoModal,homeRaf:()=>HOME.raf,
   drawTimer(){if(window.__fxDT)return window.__fxDT;const T={ms:0,n:0},d0=draw;draw=function(){const t=performance.now();const r=d0.apply(this,arguments);T.ms+=performance.now()-t;T.n++;return r;};window.__fxDT=T;return T;}};
 window.HOLDOR_FXT={FXT,TGUIDE,tgNums,towerGuideMini,towerGuideDemo,fxtUnder,openSheet,posE};
+window.HOLDOR_HOME98={HUB_HIDDEN,HUB_ORDER,hubClan,homeHold,hmMiniDraw,homeMovedBind,hubTabs,evPopup};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();
