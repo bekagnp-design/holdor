@@ -1496,6 +1496,35 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 .shopgrid.troops .tpv{display:block;width:64px;height:64px;margin:4px auto 2px}
 .shopgrid.troops .tgar{display:block;font-size:10px;color:#9fb6c9;margin-top:3px}
 .shopgrid.troops .sitem.troop.on .tgar{color:var(--rc)}
+/* v1.1.1: Houses Clash — the strip between the lanes, the result, the menu */
+#clashUi{position:absolute;pointer-events:none;z-index:5;font-family:var(--f-body)}
+#clashUi .ctop{position:absolute;left:6px;right:6px;top:4px;display:flex;align-items:center;gap:8px;padding:3px 8px;background:rgba(8,12,20,.62);border:1px solid rgba(255,255,255,.14);border-radius:10px;color:#e9eef5;font-size:12px}
+#clashUi .ctop .who{color:var(--hc);white-space:nowrap}
+#clashUi .ctop .door{flex:1;height:8px;border-radius:5px;background:rgba(0,0,0,.5);overflow:hidden;border:1px solid rgba(255,255,255,.18)}
+#clashUi .ctop .door i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#c9a24a,#e3b661)}
+#clashUi .ctop .wv{font-size:11px;color:#c9d2dd;white-space:nowrap}
+#clashUi .csend{position:absolute;left:6px;right:6px;top:calc(var(--mid) + 5px);display:flex;align-items:center;gap:6px;pointer-events:auto}
+#clashUi .csend .pts{background:rgba(8,12,20,.7);border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:5px 8px;color:#ffe08a;font-size:12px;white-space:nowrap}
+#clashUi .csend .pts b{font-size:16px}
+#clashUi button.cs{position:relative;width:46px;height:46px;padding:0;border-radius:11px;border:2px solid var(--hc);background:rgba(8,12,20,.72);box-shadow:0 2px 8px rgba(0,0,0,.4);touch-action:manipulation}
+#clashUi button.cs canvas{width:40px;height:40px;display:block;margin:0 auto}
+#clashUi button.cs em{position:absolute;right:-5px;bottom:-5px;font-style:normal;font-size:10px;font-weight:800;color:#0b1220;background:#ffe08a;border-radius:8px;padding:1px 5px}
+#clashUi button.cs i{position:absolute;left:2px;top:0;font-size:11px;font-style:normal}
+#clashUi button.cs.poor{opacity:.45}
+#clashUi button.cs.pop{animation:cspop .25s ease-out}
+@keyframes cspop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+.clres{display:flex;gap:10px;margin:8px 0}
+.clres .side{flex:1;background:rgba(0,0,0,.25);border:1px solid var(--hc);border-radius:10px;padding:8px}
+.clres .side b{display:block;color:var(--hc);margin-bottom:4px}
+.clres .side .bar{display:block;height:8px;border-radius:5px;background:rgba(0,0,0,.5);overflow:hidden}
+.clres .side .bar i{display:block;height:100%;background:var(--hc)}
+.clres .side em{display:block;font-style:normal;font-size:12px;margin-top:4px;color:#e9eef5}
+.clbots{display:flex;gap:6px;margin:8px 0}
+.clbots .clb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.25);color:#e9eef5;font-size:16px}
+.clbots .clb b{font-size:10.5px;font-family:var(--f-display)}
+.clbots .clb small{font-size:9.5px;color:#9fb6c9}
+.clbots .clb.on{border-color:#ffe08a;box-shadow:0 0 10px rgba(255,224,138,.35)}
+.clbots .clb.lock{opacity:.4}
 </style>
 </head>
 <body>
@@ -2399,7 +2428,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.1.0';
+const VERSION='1.1.1';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -3011,7 +3040,7 @@ function camStep(dt){
   CAM.x=clamp(CAM.x,hw,W-hw);CAM.y=clamp(CAM.y,hh,H-hh);
 }
 function camApply(){if(CAM.z===1&&CAM.x===W/2&&CAM.y===H/2)return;ctx.translate(W/2,H/2);ctx.scale(CAM.z,CAM.z);ctx.translate(-CAM.x,-CAM.y);}
-function toWorld(x,y){return{x:(x-W/2)/CAM.z+CAM.x,y:(y-H/2)/CAM.z+CAM.y};}
+function toWorld(x,y){if(CLASH.on)y-=CLASH.myDy;return{x:(x-W/2)/CAM.z+CAM.x,y:(y-H/2)/CAM.z+CAM.y};}
 const overlay=$('#overlay'),card=$('#card'),sheet=$('#sheet');
 function resetRun(map){
   G.boon=null;G.boons=[];G.boonDone={};G.boonAsk=null;clearTimeout(G.boonT);{const o=document.getElementById('boonOv');if(o)o.remove();}
@@ -3042,7 +3071,7 @@ function startGame0(o){
   const h=ACC;G.mode=o.mode;G.level=o.level||null;G.runs++;
   let map;
   if(o.mode==='campaign'){const L=o.level;map=buildMap({pts:L.pts,routes:L.routes,gates:L.gates,raw:L.raw,style:L.style,rg:L.rg,sea:L.sea,seaW:L.seaW,river:L.river,ponds:L.ponds,seed:hash32('L'+L.id+(L.stage?'s'+L.stage:'')),biome:L.biome});resetRun(map);G.rng=mulberry32(hash32('L'+L.id+'#'+G.runs));G.totalWaves=L.waves;G.wo={id:L.id,pool:levelPool(L.id,99),minis:MINIS[L.id]||['giant'],dragon:L.dragon||0,king:L.king||0,lord:!!L.lord};G.mult=L.mult*DIFF().hp;G.mod=L.mod?MODS[L.mod]:null;G.gold=L.gold+(UP('bank')?90:0);G.seed=hash32('L'+L.id);}
-  else{const seed=hash32(todayKey);const gm=genDaily(seed);map=buildMap({pts:gm.pts,seed,biome:gm.biome,raw:true,style:'bend'});resetRun(map);if(!o.bid)ACC.online.attempts--;G.attempt=(ACC.online.runs.length||0)+1;G.rng=mulberry32(hash32(todayKey+'#'+G.attempt));G.totalWaves=Infinity;G.wo={id:LEVELS.length,pool:levelPool(LEVELS.length,99),minis:MINIS[LEVELS.length],dragon:8,king:25,lord:true,online:true};G.mult=DIFF().hp;G.mod=gm.mod;G.gold=200+ACC.online.goldBonus+(UP('bank')?90:0);G.doorMax=Math.round((1000+G.gateBonus)*DIFF().gate)+ACC.online.doorBonus;G.doorHp=G.doorMax;G.seed=seed;persist();}
+  else if(o.mode==='clash'){map=clashSetup(o);}else{const seed=hash32(todayKey);const gm=genDaily(seed);map=buildMap({pts:gm.pts,seed,biome:gm.biome,raw:true,style:'bend'});resetRun(map);if(!o.bid)ACC.online.attempts--;G.attempt=(ACC.online.runs.length||0)+1;G.rng=mulberry32(hash32(todayKey+'#'+G.attempt));G.totalWaves=Infinity;G.wo={id:LEVELS.length,pool:levelPool(LEVELS.length,99),minis:MINIS[LEVELS.length],dragon:8,king:25,lord:true,online:true};G.mult=DIFF().hp;G.mod=gm.mod;G.gold=200+ACC.online.goldBonus+(UP('bank')?90:0);G.doorMax=Math.round((1000+G.gateBonus)*DIFF().gate)+ACC.online.doorBonus;G.doorHp=G.doorMax;G.seed=seed;persist();}
   G.hero=makeHero();G.speed=1;G.paused=false;$('#bSpeed').textContent='1×';$('#bPause').textContent='⏸';
   $('#hSub').textContent=G.mode==='campaign'?G.level.n:'Endless, '+todayKey;
   $('#hEmoji').textContent=CHAMP_ART[G.hero.c.id+'_portrait']?'':G.hero.c.e;$('#hEmoji').style.backgroundImage=CHAMP_ART[G.hero.c.id+'_portrait']?`url(${CHAMP_ART[G.hero.c.id+'_portrait']})`:'';$('#hName').textContent=shortName(G.hero.c);$('#uEmoji').textContent=SK[G.hero.c.sk[2]].e;$('#uName').textContent=SK[G.hero.c.sk[2]].n;
@@ -3093,7 +3122,7 @@ function buildWave(n,rng,o){
 function startWave(){
   if(boonCheck())return;   /* v1.0.80: a blessing first; the wave starts when one is chosen */
   if(G.tut&&G.tut.want==='call')tutEvent('call');
-  G.wave++;SFX.play('horn');G.spawnQueue=buildWave(G.wave,G.rng,G.wo);G.spawnT=0;G.waveDone=false;G.spawnInt=Math.max(0.42,0.95-G.wave*0.02);
+  G.wave++;SFX.play('horn');G.spawnQueue=buildWave(G.wave,G.wrng||G.rng,G.wo);G.spawnT=0;G.waveDone=false;G.spawnInt=Math.max(0.42,0.95-G.wave*0.02);
   const q=G.spawnQueue,has=t=>q.indexOf(t)>=0;const nw=q.filter(k=>!G.seen[k]);nw.forEach(k=>G.seen[k]=1);
   G.banner={a:'WAVE '+G.wave,b:has('king')?'👑 THE NIGHT KING':has('lord')?'🧊 A LIEUTENANT OF THE COLD':has('dragon')?'🐉 A DRAGON IN THE SKY':nw.length?nw.slice(0,2).map(k=>ENEMIES[k].e+' '+ENEMIES[k].n.toUpperCase()).join('  '):'',life:2.6};
   G.log.push({t:G.tick,a:'wave',n:G.wave});
@@ -3133,7 +3162,7 @@ function kill(e,src){
 function hitDoor(a,gi){if(G.state!=='play')return;gi=gi||0;if(G.vengUntil>G.time){G.vengStore=(G.vengStore||0)+a;return;}if(G.hod&&G.hod.at===gi)a*=0.5;else if(G.hod&&G.map.gates.length>1)a*=1.15;G.lastHitGate=gi;if(!G.hodor&&(!G.hodorT||G.time-G.hodorT>7)){G.hodorT=G.time;hodorSay(['HODOR!','HODOR!!','Hodor… HODOR!'][Math.floor(Math.random()*3)],1500);}if(G.safe){G.shake=Math.min(6,G.shake+a/40);G.doorHp=Math.max(G.doorMax*0.15,G.doorHp-a);G.hurt=Math.min(1,G.hurt+a/220);G.stressT=0.6;SFX.play('gate',120);return;}G.doorHp-=a;SFX.play('gate',120);G.shake=Math.min(9,G.shake+a/25);G.hurt=Math.min(1,G.hurt+a/220);G.stressT=0.6;if(G.doorHp<=0){G.doorHp=0;gameOver();}}
 function hurtHero(a){const h=G.hero;if(h.dead||G.time<h.invulnUntil)return;const is=skVal(h,'ironskin');if(is)a*=1-is/100;if(G.gearArmor)a*=1-G.gearArmor/100;if(h.shield>0){const s=Math.min(h.shield,a);h.shield-=s;a-=s;h.shieldHitT=G.time;if(h.shield<=0)addFx({t:'burst',x:h.x,y:h.y-14,r0:10,r1:28,life:0.3,col:'#8fd3ff'});}if(h.iserveUntil>G.time)a*=0.6;h.hp-=a;h.oocT=3;if(h.hp<=0&&G.drownedUntil>G.time&&!h.risenD){h.risenD=true;h.hp=h.max*0.5;addText(h.x,h.y-40,'Risen!','#4fb8c8',1);addFx({t:'ring',x:h.x,y:h.y,r0:6,r1:40,life:0.5,col:'#4fb8c8'});}if(h.hp<=0&&!h.wiUsed&&skVal(h,'whatisdead')){h.wiUsed=true;h.hp=1;h.invulnUntil=G.time+skVal(h,'whatisdead');addText(h.x,h.y-40,'What is dead may never die!','#e3b661',1);addFx({t:'ring',x:h.x,y:h.y,r0:6,r1:40,life:0.5,col:'#e3b661'});}if(h.hp<=0){h.hp=0;h.dead=true;h.respawnT=UP('secondlife')?10:15;h.tx=null;G.heroSel=false;addText(h.x,h.y-20,'Champion down','#e14b4b');addFx({t:'ring',x:h.x,y:h.y,r0:4,r1:30,life:0.5,col:'#e14b4b'});}}
 function gameOver(){
-  if(G.state!=='play')return;G.state='over';G.armed=null;G.sel=null;closeSheet();mergeStats();SFX.play('lose');
+  if(G.state!=='play')return;if(CLASH.on&&G.mode==='clash'){G.state='over';return;}G.state='over';G.armed=null;G.sel=null;closeSheet();mergeStats();SFX.play('lose');
   if(G.mode==='online'){const waves=Math.max(0,G.wave-1);ACC.online.runs.push({waves,kills:G.kills});ACC.stats.onlineBest=Math.max(ACC.stats.onlineBest,waves);const rw=ECON.hold(waves,G.kills);addGold(rw.gold);ACC.gems+=rw.gems;G.holdReward=rw;persist();if(G.bid)ecoFinish(false,0,{g:rw.gold,m:rw.gems},waves).then(()=>fetchLeaderboard(true)).catch(()=>{});else if(CLOUD.on&&sbReady())sbRpc('hold_result',{token:CLOUD.token,day:dayKeyUTC(),waves,kills:G.kills,seat:Math.max(0,seatNo()),house:ACC.house,realm:ACC.langI},{timeout:8000}).then(()=>fetchLeaderboard(true)).catch(()=>{});showOnlineOver(waves);}
   else{ecoFinish(false,0,null);persist();showCampaignResult(false);}
 }
@@ -3522,7 +3551,7 @@ const ringTip=document.createElement('div');ringTip.id='ringTip';ringTip.hidden=
 $('#stage').appendChild(ringEl);$('#stage').appendChild(ringTip);
 let RING=null;
 const RING_ANG={1:[-28],2:[-145,-35],3:[-90,30,150],4:[-135,-45,45,135],5:[-90,-18,54,126,198],6:[-90,-30,30,90,150,210]};
-function w2s(x,y){return{x:canvas.offsetLeft+((x-CAM.x)*CAM.z+W/2)*scale,y:canvas.offsetTop+((y-CAM.y)*CAM.z+H/2)*scale};}
+function w2s(x,y){return{x:canvas.offsetLeft+((x-CAM.x)*CAM.z+W/2)*scale,y:canvas.offsetTop+((y-CAM.y)*CAM.z+H/2+(CLASH.on?CLASH.myDy:0))*scale};}
 function sellValue(t){return Math.round(t.invested*(UP('salvage')?0.9:0.6));}
 function upgradeTower(s){
   const t=s&&s.tower;if(!t||t.lvl>=5||t.lvl>=maxTowerLvl())return false;
@@ -3633,6 +3662,7 @@ canvas.addEventListener('pointerdown',ev=>{
   if(G.tut&&G.tut.hold){tutNext();return;}
   if(G.state!=='play')return;
   const r=canvas.getBoundingClientRect();
+  if(CLASH.on&&(ev.clientY-r.top)/scale<H/2)return;
   const w0=toWorld((ev.clientX-r.left)/scale,(ev.clientY-r.top)/scale);
   const x=w0.x,y=w0.y;
   const h=G.hero;
@@ -7183,7 +7213,7 @@ function drawDragon(e,now){
 }
 function drawEnemy(e,now){
   const p=posE(e);const x=e.fly?p.x:p.x+((e.id%5)-2)*3.2+(e.lunge?e.lunge.x:0),y=e.fly?p.y:p.y+((e.id%3)-1)*3+(e.lunge?e.lunge.y:0);
-  if(e.dragon){if(enemyImg('dragon')){ctx.fillStyle='rgba(0,0,0,0.25)';ell(ctx,x+6,y+38,22,8);drawEnemySprite(e,x,y,now,1);}else drawDragon(e,now);}else drawWight(e,x,y,now);
+  if(e.dragon){if(enemyImg('dragon')){ctx.fillStyle='rgba(0,0,0,0.25)';ell(ctx,x+6,y+38,22,8);drawEnemySprite(e,x,y,now,1);}else drawDragon(e,now);}else if(e.troop)drawTroopBody(ctx,{x,y,face:e.face||1,role:e.role,troop:e.troop,moving:e.moving,walk:e.walk,strikeT:e.strikeT,hitT:e.hitT},now);else drawWight(e,x,y,now);
   const top=e.dragon?y-44:e.arch==='bird'?y-14:y-(28*(e.scale||1)*(e.big||1));
   if(e.burn){for(let i=0;i<3;i++){const fx=x-5+i*5+Math.sin(now/55+e.id+i)*1.5,fh=5+3*Math.abs(Math.sin(now/70+i*1.7+e.id));ctx.fillStyle=i===1?'rgba(255,220,120,0.9)':'rgba(255,140,50,0.85)';ctx.beginPath();ctx.moveTo(fx-2.2,top+8);ctx.quadraticCurveTo(fx-2.5,top+8-fh*0.6,fx,top+8-fh);ctx.quadraticCurveTo(fx+2.5,top+8-fh*0.6,fx+2.2,top+8);ctx.closePath();ctx.fill();}}
   if(e.poison){ctx.fillStyle='rgba(124,255,107,0.85)';for(let i=0;i<2;i++){const ph=((now/700)+i*0.5+e.id*0.13)%1,dx=x-4+i*8,dy=top+4+ph*14;ctx.globalAlpha=1-ph;ctx.beginPath();ctx.moveTo(dx,dy-3);ctx.quadraticCurveTo(dx+2.2,dy,dx,dy+1.8);ctx.quadraticCurveTo(dx-2.2,dy,dx,dy-3);ctx.fill();}ctx.globalAlpha=1;}
@@ -7394,7 +7424,7 @@ function drawFx(f,now){if(f.delay>0)return;if(f.t==='corpse'){drawCorpse(f,now);
   else if(f.t==='tint'){const a=Math.min(1,f.life/1.5)*0.22;const gr=ctx.createRadialGradient(W/2,H/2,H*0.3,W/2,H/2,H*0.75);gr.addColorStop(0,'rgba(143,211,255,0)');gr.addColorStop(1,'rgba(143,211,255,'+a+')');ctx.fillStyle=gr;ctx.fillRect(0,0,W,H);}
 }
 function draw(now){
-  ctx.setTransform(scale*dpr,0,0,scale*dpr,0,0);
+  ctx.setTransform(scale*dpr,0,0,scale*dpr,0,(CLASH.on?CLASH.dy:0)*scale*dpr);
   const map=G.map;
   let sx=0,sy=0;if(G.shake>0.15){sx=(Math.random()-0.5)*G.shake*2;sy=(Math.random()-0.5)*G.shake*1.4;}
   ctx.save();ctx.translate(sx,sy);camApply();
@@ -7485,14 +7515,14 @@ function draw(now){
 }
 
 /* =========================== LOOP =========================== */
-function resize(){const st=$('#stage');scale=Math.min(st.clientWidth/W,st.clientHeight/H);canvas.width=Math.round(W*scale*dpr);canvas.height=Math.round(H*scale*dpr);canvas.style.width=(W*scale)+'px';canvas.style.height=(H*scale)+'px';}
+function resize(){const st=$('#stage');scale=Math.min(st.clientWidth/W,st.clientHeight/H);canvas.width=Math.round(W*scale*dpr);canvas.height=Math.round(H*scale*dpr);canvas.style.width=(W*scale)+'px';canvas.style.height=(H*scale)+'px';if(CLASH.on)clashLayout();}
 window.addEventListener('resize',resize);
 let last=performance.now(),acc=0;
 function frame(now){
   const real=Math.min(0.1,(now-last)/1000);last=now;
-  if(G.state==='play'&&!G.paused){refreshSheet();juiceFrame();let spm=G.speed;if(G.slowmoT>0){G.slowmoT-=real;spm*=0.3;}if(G.hitStop>0){G.hitStop-=real;spm=0;}acc+=real*spm;let n=0;const cap=Math.max(6,G.speed*4);while(acc>=DT&&n<cap&&G.state==='play'){step();acc-=DT;n++;}if(n>=cap)acc=0;updateHUD();updateBar();}
+  if(G.state==='play'&&!G.paused){refreshSheet();juiceFrame();let spm=G.speed;if(G.slowmoT>0){G.slowmoT-=real;spm*=0.3;}if(G.hitStop>0){G.hitStop-=real;spm=0;}acc+=real*spm;let n=0;const cap=Math.max(6,G.speed*4);while(acc>=DT&&n<cap&&G.state==='play'){step();if(CLASH.on)clashStepB();acc-=DT;n++;}if(n>=cap)acc=0;updateHUD();updateBar();}
   G.shake*=0.86;G.hurt=Math.max(0,G.hurt-real*0.55);camStep(real);ringFrame();tutFrame(real);
-  draw(now);requestAnimationFrame(frame);
+  if(CLASH.on)clashDraw(now);else draw(now);requestAnimationFrame(frame);
 }
 async function init(){
   dpr=Math.min(2,window.devicePixelRatio||1);
@@ -7850,6 +7880,7 @@ function openChest(t,done){
 /* ---------- EVENTS ---------- */
 function hubEvents(sub){sub=sub||'realms';const lb=cachedLb();const t=fmtT(msToMidnightUTC());
   const ev=[
+    {k:'clash',live:true,n:'Houses Clash',s:'Your lane below, the rival\'s above, the same dead on both — send the soldiers of your house down his road. A bot now; leagues and friends next.',st:'NEW',ic:HUB_ICON.clan},
     {k:'duel',live:true,n:'Duel',s:'Same Hold map, two runs, one winner. Ranked leagues, friends, a bot to practise on.',st:onlineOpen()?'LIVE':'GATE '+ONLINE_AT,ic:'<svg viewBox="0 0 24 24"><path d="M4 3l8 8M20 3l-8 8M6 21l6-6 6 6" fill="none" stroke="#e3b661" stroke-width="2.2" stroke-linecap="round"/></svg>'},
     {k:'hold',live:true,n:'Daily Hold',s:`New map in ${t.h}h ${t.m}m · every realm and house counts`,st:onlineOpen()?'LIVE':'AFTER '+ONLINE_AT,ic:HUB_ICON.hold},
     {k:'houses',live:false,n:'War of the Houses',s:'Seven banners, one crown a week. Standings below.',st:'SOON',ic:'<svg viewBox="0 0 24 24"><path d="M5 2.5h14v12l-7 5-7-5z" fill="#b33fb0" stroke="#3a1146" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 6l1.6 3.2 3.5.5-2.5 2.4.6 3.5-3.2-1.7-3.2 1.7.6-3.5-2.5-2.4 3.5-.5z" fill="#ffd54a" stroke="#7a4a10" stroke-width=".9"/></svg>'},
@@ -7868,7 +7899,7 @@ function hubEvents(sub){sub=sub||'realms';const lb=cachedLb();const t=fmtT(msToM
 function hubEventsBind(sub){
   if(sbReady()&&lbStale())fetchLeaderboard(true).then(r=>{if(r&&CLOUD.screen==='hub:events')showHub('events',sub);});
   bind('.subtabs button',b=>showHub('events',b.dataset.sub));
-  bind('.evcard',b=>{if(b.dataset.ev==='hold')showHub('hold');else if(b.dataset.ev==='duel')showDuel();else SFX.play('tap',40);});
+  bind('.evcard',b=>{if(b.dataset.ev==='hold')showHub('hold');else if(b.dataset.ev==='clash')showClash();else if(b.dataset.ev==='duel')showDuel();else SFX.play('tap',40);});
   const ar=$('#bAllRealms');if(ar)ar.addEventListener('click',()=>showRealms(false));bind('.rlink',b=>{SFX.play('tap',50);showRealmCard(+b.dataset.j,()=>showHub('events','realms'));});
 }
 /* ---------- HOLD ---------- */
@@ -7987,10 +8018,10 @@ function hubClan(){const rows=realmStats(),mine=rows.find(r=>r.mine)||null,L=lan
     <div class="clrow"><button class="btn" id="bClChat">💬 Realm chat</button><button class="btn sec" id="bClWar">⚔️ Realm war</button><button class="btn sec" id="bClRealms">🌍 Standings</button></div></div>`;
   const clans=`<div class="clcard soon"><span class="ic">🛡️</span><div class="cltx"><b>Clans</b><small>Coming: found a clan, talk in its chat, fight a clan war every week. Until then your realm is your banner.</small></div></div>`;
   const fr=`<div class="hh" style="margin-top:12px"><h2>Friends</h2><small>${onT?'a gift for you both':'sign in through Telegram'}</small></div><div class="tkbody">${onT?tkFriends():'<p class="m">Invitations are kept by the server — they need a seat signed in through Telegram.</p>'}</div>`;
-  return `<div class="hh"><h2>Clan</h2><small>${sbReady()?(lb?'live':'connecting…'):'offline'}</small></div>${realm}${clans}${fr}`;}
+  return `<div class="hh"><h2>Clan</h2><small>${sbReady()?(lb?'live':'connecting…'):'offline'}</small></div>${realm}${clashCardHTML()}${clans}${fr}`;}
 function hubClanBind(){const on=(id,f)=>{const b=document.getElementById(id);if(b)b.addEventListener('click',f);};
   on('bClChat',()=>{SFX.play('tap',60);showChat(()=>showHub('clan'));});
-  on('bClWar',()=>{SFX.play('tap',60);showRealmWar(()=>showHub('clan'));});
+  on('bClWar',()=>{SFX.play('tap',60);showRealmWar(()=>showHub('clan'));});on('bClashCard',()=>{SFX.play('tap',60);showClash(()=>showHub('clan'));});
   on('bClRealms',()=>{SFX.play('tap',60);showHub('events','realms');});
   if(sbReady()&&(!CLOUD.lb||Date.now()-CLOUD.lbAt>60000))fetchLeaderboard(true).then(r=>{if(r&&CLOUD.screen==='hub:clan')showHub('clan');});
   if(typeof tasksOn==='function'&&tasksOn()){const a=TASKS.st,c=DAILY.fr;
@@ -8178,7 +8209,119 @@ function showTrain(){const l=armyLvl(),c=l<ARMY_MAX?armyCost(l):0,hh=HOUSES[ACC.
   card.querySelectorAll('canvas.tpv').forEach(cv=>{try{troopPreview(cv,ACC.house,cv.dataset.r);}catch(e){}});
   card.querySelectorAll('.sitem.troop').forEach(el=>el.addEventListener('click',()=>{if(el.classList.contains('lock')){SFX.play('deny');return;}if(!ACC.army)ACC.army={lvl:1};ACC.army.keep=el.dataset.r;persist();SFX.play('tap',80);showTrain();}));
 }
+/* =========================== HOUSES CLASH I (v1.1.1) ===========================
+   PvP on the KR Battles principle: the screen splits in two — the rival's lane on top, yours below. Both lanes get the same waves of
+   the dead (one seed); each side also has ARMY POINTS (+1 every 10 s) and spends them to send its house's soldiers (v1.1.0 troops)
+   down the rival's road, where they fight like wights. Whose door breaks first loses; if both hold ten waves, the fuller door wins.
+   Two full simulations run on one phone: the engine's state object `G` is swapped (`gSwap`) for the rival's steps and drawing, so
+   nothing in the engine knows there are two. The rival here is a bot (five levels, practice); a recorded rival (a ghost of a real
+   player's input log, leagues, a friend's link) is v1.1.2 with backend v32, a live friend v1.1.3. Entered from the Events page
+   and the Clan tab (`showClash`). */
+const CLASH={on:false,B:null,lane:'A',dy:0,myDy:0,pts:3,bpts:3,ptsT:0,bptsT:0,bot:null,opp:null,win:null,waves:10,t:0,log:[],ui:null,fin:false};
+const CLASH_TOP=GATE_Y-300;           /* the window each lane shows: map y from CLASH_TOP, H/2 tall */
+const CLASH_COST={foot:2,archer:2,rider:3,house:4},CLASH_N={foot:3,archer:2,rider:2,house:1},CLASH_MAXPTS=10;
+ENEMIES.troop={key:'troop',n:'House soldier',e:'⚔️',arch:'man',hp:120,spd:60,dps:12,gold:4,r:10};
+function clashOn(){return CLASH.on&&G.mode==='clash';}
+function clashRec(){if(!ACC.clash)ACC.clash={w:0,l:0,d:0,streak:0,best:0,bot:1};return ACC.clash;}
+/* ---------- the map: a short road that starts inside the window ---------- */
+function genClash(seed){const rng=mulberry32(seed);const cols=[55,125,195,265,335];const K=3;const top=CLASH_TOP+34,bottom=GATE_Y-92;
+  let x=cols[Math.floor(rng()*cols.length)];const pts=[[x,CLASH_TOP-20]];
+  for(let i=0;i<K;i++){const y=Math.round(top+(bottom-top)*i/(K-1)+(rng()*20-10));pts.push([x,y]);let nx;if(i===K-1)nx=195;else{do{nx=cols[Math.floor(rng()*cols.length)];}while(Math.abs(nx-x)<100);}if(nx!==x){pts.push([nx,y]);x=nx;}}
+  const biomes=['snow','forest','swamp','mountain','ash','desert','reach','storm'];
+  return{pts,biome:biomes[Math.floor(rng()*biomes.length)]};}
+/* the engine's state, swapped whole */
+function gSnap(){const o={};for(const k in G)o[k]=G[k];return o;}
+function gLoad(o){for(const k in G)delete G[k];Object.assign(G,o);}
+function gSwap(){const cur=gSnap();gLoad(CLASH.B);CLASH.B=cur;CLASH.lane=CLASH.lane==='A'?'B':'A';}
+/* called from startGame0 for mode 'clash' (instead of the Hold's daily map) */
+function clashSetup(o){const seed=o.seed;const gm=genClash(seed);const map=buildMap({pts:gm.pts,seed,biome:gm.biome,raw:true,style:'bend'});resetRun(map);
+  G.rng=mulberry32(seed+(o.lane==='B'?7:3));G.wrng=mulberry32(seed+11);G.totalWaves=Infinity;G.wo={id:12,pool:levelPool(12,99),minis:['giant'],dragon:999,king:999,lord:false,online:true,clash:true};
+  G.mult=DIFF().hp;G.mod=null;G.gold=260;G.doorMax=Math.round((1000+G.gateBonus)*DIFF().gate);G.doorHp=G.doorMax;G.seed=seed;G.lane=o.lane||'A';G.house=o.house||ACC.house;G.nextIn=4;return map;}
+/* ---------- start: two simulations, the rival a bot ---------- */
+function clashStart(o){o=o||{};const bot=Math.max(1,Math.min(5,o.bot||clashRec().bot||1));const seed=o.seed||hash32('clash'+Date.now()+Math.random());
+  const others=HOUSE_ORDER.filter(h=>h!==ACC.house);const oh=o.house||others[Math.floor(Math.random()*others.length)];
+  Object.assign(CLASH,{on:false,B:null,lane:'A',dy:0,myDy:H/2-CLASH_TOP,pts:3,bpts:3,ptsT:0,bptsT:0,win:null,t:0,log:[],fin:false,bot:{lvl:bot,nextBuild:60*2,nextSend:60*(26-bot*3),nextUp:60*20},opp:{name:'Bot '+['I','II','III','IV','V'][bot-1],house:oh,bot}});
+  G.state='menu';if(RING)closeRing();
+  startGame0({mode:'clash',seed,lane:'A',house:ACC.house});const A=gSnap();
+  startGame0({mode:'clash',seed,lane:'B',house:oh});   /* its own map object: towers live on the slots */G.heroOn=false;G.hero.dead=true;G.hero.hp=0;const B=gSnap();
+  gLoad(A);CLASH.B=B;CLASH.on=true;CLASH.lane='A';
+  $('#hSub').textContent='Houses Clash · vs '+HOUSES[oh].n;updateBar();updateHUD();clashUi();clashLayout();
+  CLOUD.screen='clash';}
+/* ---------- each engine step of mine, one of the rival's (silent) ---------- */
+function clashStepB(){if(!CLASH.on||CLASH.fin)return;
+  CLASH.ptsT+=DT;if(CLASH.ptsT>=10){CLASH.ptsT=0;CLASH.pts=Math.min(CLASH_MAXPTS,CLASH.pts+1);clashUiSync();}
+  CLASH.bptsT+=DT;if(CLASH.bptsT>=10){CLASH.bptsT=0;CLASH.bpts=Math.min(CLASH_MAXPTS,CLASH.bpts+1);}
+  gSwap();try{if(G.state==='play'){clashBot();step();}}catch(e){console.error(e);}gSwap();
+  if(CLASH.bsend){const r=CLASH.bsend;CLASH.bsend=null;clashSpawnTroops(CLASH.opp.house,r);}
+  /* the end: a door broke, or ten waves held on both sides */
+  if(G.doorHp<=0&&!CLASH.win)CLASH.win='B';
+  if(!CLASH.win&&CLASH.B.doorHp<=0)CLASH.win='A';
+  if(!CLASH.win&&G.wave>CLASH.waves&&G.waveDone&&!G.enemies.some(e=>e.hp>0)&&CLASH.B.wave>CLASH.waves){const a=G.doorHp/G.doorMax,b=CLASH.B.doorHp/CLASH.B.doorMax;CLASH.win=a>b+0.01?'A':b>a+0.01?'B':'draw';}
+  if(CLASH.win)clashFinish();}
+/* the bot: builds by the gate, upgrades when rich, sends soldiers on a clock (faster and bolder with its level) */
+function clashBot(){const b=CLASH.bot;if(!b||G.tick%30)return;const lvl=b.lvl;
+  if(G.tick>=b.nextBuild){const open=['watch','glass','scorp','keep','wild'].filter(t=>typeof towerOpen==='function'?towerOpen(t):t==='watch');
+    const n=G.map.slots.filter(s=>s.tower).length;const t=open[Math.min(open.length-1,n%Math.max(1,Math.min(open.length,1+lvl)))]||'watch';
+    const gt=G.map.gates[0];const s=G.map.slots.filter(x=>!x.tower).sort((p,q)=>dist(p.x,p.y,gt.x,GATE_Y-40)-dist(q.x,q.y,gt.x,GATE_Y-40))[0];
+    if(s&&G.gold>=costOf(t)){build(s,t);b.nextBuild=G.tick+60*(7-lvl);}}
+  if(G.tick>=b.nextUp&&G.gold>=180){const s=G.map.slots.find(x=>x.tower&&x.tower.lvl<Math.min(5,1+lvl));if(s&&upgradeTower(s))b.nextUp=G.tick+60*(16-lvl*2);}
+  if(lvl>=3&&canCall()&&G.nextIn>1.5&&G.tick%120===0)callWave();
+  if(G.tick>=b.nextSend){const roles=['foot','archer','rider','house'];const role=roles[Math.floor(G.rng()*Math.min(4,1+lvl))];const c=CLASH_COST[role];
+    if(CLASH.bpts>=c){CLASH.bpts-=c;CLASH.bsend=role;b.nextSend=G.tick+60*Math.max(8,26-lvl*3);}}}
+/* a send: the house's soldiers walk the rival's road as enemies */
+function clashSpawnTroops(house,role){const d=troopDef(house,role),n=CLASH_N[role],m=hpMul(Math.max(1,G.wave));
+  for(let i=0;i<n;i++){const hp=Math.round(TROOP_BASE.hp*d.hp*2.4*m);
+    G.enemies.push({type:'troop',key:'troop',n:HOUSES[house].n+' '+d.n,e:'⚔️',arch:'man',troop:house,role,hp,max:hp,r:10,gold:4,scale:1,spdBase:Math.round(TROOP_BASE.spd*d.spd*0.72),vel:0,prog:-6-i*16,slow:1,mark:1,burn:null,poison:null,stunT:0,atkT:0,id:G.eid++,blockedBy:null,bob:0,route:0,dps:Math.round(TROOP_BASE.dmg*d.dmg*1.3),ranged:d.range?88:0,weak:1,face:1});}
+  const q=posAt(G.map,14,0);addText(q.x,q.y-8,HOUSES[house].n+' '+d.n+(n>1?' ×'+n:''),HOUSES[house].col,1);addFx({t:'ring',x:q.x,y:q.y,r0:6,r1:40,life:0.5,col:HOUSES[house].col});}
+function clashSend(role){if(!clashOn()||CLASH.fin||G.state!=='play')return false;const c=CLASH_COST[role];if(role==='house'&&armyLvl()<ARMY_HOUSE_AT){SFX.play('deny');ecoToast('🔒 The '+TROOPS[ACC.house].house.n+' marches from army level '+ARMY_HOUSE_AT);return false;}
+  if(CLASH.pts<c){SFX.play('deny');return false;}CLASH.pts-=c;CLASH.log.push({t:G.tick,a:'send',role});SFX.play('horn',200);
+  gSwap();clashSpawnTroops(ACC.house,role);gSwap();clashUiSync();return true;}
+/* ---------- the end ---------- */
+function clashFinish(){if(CLASH.fin)return;CLASH.fin=true;const w=CLASH.win,R=clashRec();G.state='over';G.armed=null;G.sel=null;closeSheet();
+  if(w==='A'){R.w++;R.streak++;R.best=Math.max(R.best,R.streak);if(R.streak>=2&&R.bot<5){R.bot++;R.streak=0;}SFX.play('win');}else if(w==='B'){R.l++;R.streak=0;SFX.play('lose');}else{R.d++;}
+  persist();   /* gold for clashes comes with the server record (v1.1.2, backend v32): the server pays, nothing is invented here */
+  const a=Math.round(100*G.doorHp/G.doorMax),b=Math.round(100*CLASH.B.doorHp/CLASH.B.doorMax),oh=HOUSES[CLASH.opp.house];
+  setTimeout(()=>{show(`<h1>${w==='A'?'🏆 Clash won':w==='B'?'💀 Clash lost':'🤝 A draw'}<small>vs ${CLASH.opp.name} of House ${oh.n} · wave ${Math.max(1,G.wave)}</small></h1>
+    <div class="clres"><div class="side me" style="--hc:${HOUSES[ACC.house].col}"><b>You</b><span class="bar"><i style="width:${a}%"></i></span><em>🧱 ${a}%</em></div><div class="side" style="--hc:${oh.col}"><b>${oh.n}</b><span class="bar"><i style="width:${b}%"></i></span><em>🧱 ${b}%</em></div></div>
+    <p class="m">${w==='A'&&R.streak===0&&R.bot>CLASH.opp.bot?'The bot grows: level '+R.bot+'. ':''}Practice pays nothing yet — gold, leagues and friends come with the server record.</p>
+    <p class="m">Record: ${R.w}W · ${R.l}L · ${R.d}D</p>
+    <button class="btn" id="bClAgain">⚔️ Again</button><button class="btn sec" id="bClHome">To the castle</button>`);
+    $('#bClAgain').addEventListener('click',()=>{overlay.classList.add('hidden');clashStart({bot:clashRec().bot});});
+    $('#bClHome').addEventListener('click',()=>{clashStop();showHub('battle');});CLASH.back=()=>showHub('events');},w==='A'?600:900);}
+function clashStop(){CLASH.on=false;CLASH.B=null;CLASH.fin=true;if(CLASH.ui){CLASH.ui.remove();CLASH.ui=null;}}
+/* ---------- drawing: the rival's lane on top, mine below ---------- */
+function clashDraw(now){const z=CAM.z,x=CAM.x,y=CAM.y;CAM.z=1;CAM.x=W/2;CAM.y=H/2;
+  ctx.setTransform(scale*dpr,0,0,scale*dpr,0,0);
+  gSwap();CLASH.dy=-CLASH_TOP;ctx.save();ctx.beginPath();ctx.rect(0,0,W,H/2);ctx.clip();try{draw(now);}catch(e){}ctx.restore();gSwap();
+  CLASH.dy=H/2-CLASH_TOP;ctx.save();ctx.beginPath();ctx.rect(0,H/2,W,H/2);ctx.clip();draw(now);ctx.restore();CLASH.dy=0;
+  ctx.setTransform(scale*dpr,0,0,scale*dpr,0,0);ctx.fillStyle='#0b1220';ctx.fillRect(0,H/2-2,W,4);ctx.fillStyle='rgba(227,182,97,0.55)';ctx.fillRect(0,H/2-0.5,W,1);
+  CAM.z=z;CAM.x=x;CAM.y=y;}
+/* ---------- the strip between the lanes: the rival's door, my points and the four sends ---------- */
+function clashUi(){if(CLASH.ui)CLASH.ui.remove();const el=document.createElement('div');el.id='clashUi';const hh=HOUSES[ACC.house],oh=HOUSES[CLASH.opp.house];
+  el.innerHTML=`<div class="ctop"><span class="who" style="--hc:${oh.col}">${oh.e} <b>${CLASH.opp.name}</b> · ${oh.n}</span><span class="door"><i id="clDoorB"></i></span><span class="wv" id="clWaveB">wave 1</span></div>
+    <div class="csend"><span class="pts" id="clPts"><b>${CLASH.pts}</b>/${CLASH_MAXPTS} ⚔</span>${TROOP_ROLES.map(r=>{const d=troopDef(ACC.house,r);return `<button class="cs" data-r="${r}" style="--hc:${hh.col}" title="${d.n}"><canvas width="56" height="56"></canvas><em>${CLASH_COST[r]}</em>${r==='house'&&armyLvl()<ARMY_HOUSE_AT?'<i>🔒</i>':''}</button>`;}).join('')}</div>`;
+  $('#stage').appendChild(el);CLASH.ui=el;
+  el.querySelectorAll('button.cs').forEach(b=>{try{troopPreview(b.querySelector('canvas'),ACC.house,b.dataset.r);}catch(e){}b.addEventListener('pointerdown',ev=>{ev.stopPropagation();ev.preventDefault();if(clashSend(b.dataset.r)){b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');}});});
+  clashUiSync();}
+function clashUiSync(){const el=CLASH.ui;if(!el)return;const p=el.querySelector('#clPts b');if(p)p.textContent=CLASH.pts;
+  el.querySelectorAll('button.cs').forEach(b=>b.classList.toggle('poor',CLASH.pts<CLASH_COST[b.dataset.r]));
+  const B=CLASH.lane==='A'?CLASH.B:G;if(B){const d=el.querySelector('#clDoorB');if(d)d.style.width=Math.round(100*Math.max(0,B.doorHp)/B.doorMax)+'%';const w=el.querySelector('#clWaveB');if(w)w.textContent='wave '+Math.max(1,B.wave)+' · 🧱 '+Math.round(100*Math.max(0,B.doorHp)/B.doorMax)+'%';}}
+function clashLayout(){const el=CLASH.ui;if(!el)return;el.style.left=canvas.offsetLeft+'px';el.style.top=canvas.offsetTop+'px';el.style.width=(W*scale)+'px';el.style.height=(H*scale)+'px';el.style.setProperty('--mid',(H/2*scale)+'px');}
+/* ---------- the screen: record, the bot's level, start ---------- */
+function clashCardHTML(){const R=ACC&&ACC.tut?clashRec():null;return `<button class="evcard live wide" id="bClashCard"><span class="ic">${HUB_ICON.clan||'⚔️'}</span><span class="tx"><b>Houses Clash</b><small>${R?`your lane below, the rival's above — send your house's soldiers at him · ${R.w}W ${R.l}L · bot level ${R.bot}`:'win your first battle first'}</small></span><span class="st">NEW</span></button>`;}
+function showClash(back){const R=clashRec(),hh=HOUSES[ACC.house],lv=['Bronze','Silver','Gold','Crystal','Dragon'];if(typeof back==='function')CLASH.back=back;else if(!CLASH.back)CLASH.back=()=>showHub('events');
+  show(`<div class="topbar"><h1>⚔️ Houses Clash<small>Two lanes, the same dead. Send the soldiers of House ${hh.n} down the rival's road; whose door breaks first loses.</small></h1><button class="back" id="bBack">✖</button></div>
+    <div class="lg"><span class="le">🤖</span><b>Practice</b><span class="rt">${R.w}</span><small>wins · ${R.l} lost · ${R.d} drawn · best streak ${R.best}</small></div>
+    <div class="clbots">${lv.map((n,i)=>`<button class="clb ${i+1===R.bot?'on':''} ${i+1>R.bot?'lock':''}" data-b="${i+1}">${['🥉','🥈','🥇','💎','🐉'][i]}<b>${n}</b><small>bot ${i+1}</small></button>`).join('')}</div>
+    <p class="m">Two wins in a row at a level open the next. <b>Army points</b> come one every 10 s; a send costs 2–4. The ${TROOPS[ACC.house].house.n} needs army level ${ARMY_HOUSE_AT} (Army → City → Barracks).</p>
+    <button class="btn" id="bClashGo">⚔️ Fight bot ${R.bot}</button>
+    <p class="m" style="font-size:11.5px">Ranked leagues, friend links and a live friend come next (v1.1.2–3). Nothing here touches your rating.</p>`);
+  CLOUD.screen='clash-menu';$('#bBack').addEventListener('click',()=>CLASH.back());
+  card.querySelectorAll('.clb').forEach(b=>b.addEventListener('click',()=>{const n=+b.dataset.b;if(n>R.bot){SFX.play('deny');return;}card.querySelectorAll('.clb').forEach(x=>x.classList.toggle('on',x===b));$('#bClashGo').textContent='⚔️ Fight bot '+n;$('#bClashGo').dataset.b=n;SFX.play('tap',60);}));
+  $('#bClashGo').addEventListener('click',()=>{if(!ACC.tut){ecoToast('Finish the tutorial battle first');return;}overlay.classList.add('hidden');clashStart({bot:+($('#bClashGo').dataset.b||R.bot)});});}
+{const p0=SFX.play.bind(SFX);SFX.play=function(a,b,c){if(CLASH.on&&CLASH.lane==='B')return;return p0(a,b,c);};}
 window.HOLDOR_TROOPS={TROOPS,TROOP_ROLE,TROOP_ROLES,troopDef,troopUnits,troopStats,keepRole,troopDress,allyStrike,troopMend,drawTroopBody,troopPreview,showTrain,towerStats,HOUSE_ORDER,HOUSES,build,LEVELS};
+window.HOLDOR_CLASH={CLASH,CLASH_COST,CLASH_N,CLASH_TOP,genClash,clashStart,clashStop,clashSend,clashStepB,clashBot,clashSpawnTroops,clashFinish,clashDraw,showClash,clashCardHTML,gSnap,gSwap,toWorld,w2s};
 window.HOLDOR_CARDS={CARD_NEED,CARD_MUL,cardRar,cardLvl,cardMax,cardNeed,cardHave,cardGold,cardName,cardOpen,cardReady,cardCan,addCards,cardLevelUp,accLevel,accXp,addXp,xpNeed,lvlChestTier,lvlChestsReady,cardPool,rollChest,stageCards,spellLvl,spellMul,showSpellRoom,showTowerRoom,migrate48,TOURS,toursOf,hubTour,startTour};
 window.HOLDOR_SEATS={seatNo,lbIsMe,lbName,lbStale,lbMine,scoreSummary,fetchLeaderboard,cachedLb};
 window.HOLDOR_BOOK={showBook,bookNew,bookDisc,bookNewCount,bookMarkRead,BOOK,trophiesOf,trophiesRow,rankOf,myRank,rankSVG,showRankSheet,RANKS,RANK_AT};
