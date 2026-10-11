@@ -97,8 +97,8 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
   await tap('#hmHold .hmtx', 500); ok('a tap on the locked card stays home (a toast, no page)', await scr() === 'hub:battle');
   // ---- a brand-new player: BEGIN, the first lesson
   await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; H.setAcc(a); H.showHub('battle'); }); await page.waitForTimeout(600);
-  const nw = await page.evaluate(() => ({ battle: document.getElementById('bBattle').textContent, hint: !!document.querySelector('.hint'), lock: /lock/.test(document.getElementById('hmHold').className) }));
-  ok('a new player sees BEGIN · YOUR FIRST LESSON, the hint, and a locked Hold', /BEGIN/.test(nw.battle) && nw.hint && nw.lock, JSON.stringify(nw));
+  const nw = await page.evaluate(() => ({ battle: document.getElementById('bBattle').textContent, hint: !!document.querySelector('.hint'), hold: !!document.getElementById('hmHold'), locks: document.querySelectorAll('.hubtabs button.lock').length, strip: !!document.querySelector('.hmstrip') }));
+  ok('a new player sees BEGIN · YOUR FIRST LESSON and the hint; no strip, no Hold card, the three other tabs locked (v1.0.99)', /BEGIN/.test(nw.battle) && nw.hint && !nw.hold && nw.locks === 3 && !nw.strip, JSON.stringify(nw));
   ok('no page errors', errors.length === 0, errors.join(' | '));
   console.log(JSON.stringify(R, null, 1)); console.log('ERR', JSON.stringify(errors));
   await browser.close(); process.exit(Object.values(R).some(v => v.startsWith('FAIL')) || errors.length ? 1 : 0);

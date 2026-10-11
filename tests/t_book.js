@@ -11,8 +11,8 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   const R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
   const tapEl = async (sel) => { await page.locator(sel).first().tap(); await page.waitForTimeout(350); };
   const txt = (sel) => page.evaluate((s) => { const e = document.querySelector(s); return e ? e.innerText : null; }, sel);
-  // fresh account: 7 first champions + Arrow rain are "new" in the book
-  await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1 }; H.setAcc(a); H.persist(); H.showHub('coll'); });
+  // fresh account (one stage held, so Army is open — v1.0.99): 7 first champions + Arrow rain are "new" in the book
+  await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.campaign[1] = 3; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1 }; H.setAcc(a); H.persist(); H.showHub('coll'); });
   await page.waitForTimeout(500);
   const n0 = await page.evaluate(() => window.HOLDOR_BOOK.bookNewCount());
   ok('fresh new count', n0 === 8, n0);

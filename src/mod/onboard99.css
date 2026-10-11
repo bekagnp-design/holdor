@@ -1,0 +1,9 @@
+/* v1.0.99: the first minutes — locked tabs, the champion's frame in battle */
+.hubtabs button.lock{filter:saturate(.35) brightness(.72)}
+.hubtabs button .lk{position:absolute;top:4px;right:4px;font-style:normal;font-size:9px;font-weight:800;color:#ffe08a;background:rgba(0,0,0,.55);border-radius:8px;padding:1px 5px;letter-spacing:.04em}
+#bar{padding:11px 6px 5px;gap:8px}
+#rowHero{position:relative;border:2px solid var(--house);border-radius:12px;padding:2px;background:rgba(0,0,0,.22);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 0 10px rgba(0,0,0,.35)}
+#rowHero::before{content:'YOUR CHAMPION';position:absolute;left:7px;top:-8px;padding:1px 5px;font:800 7.5px/1.2 var(--f-display);letter-spacing:.14em;color:var(--house);background:#0b1220;border:1px solid var(--house);border-radius:5px;pointer-events:none;z-index:2}
+.brow.spells{position:relative;border:2px solid rgba(255,255,255,.16);border-radius:12px;padding:2px}
+.brow.spells::before{content:'SPELLS';position:absolute;left:7px;top:-8px;padding:1px 5px;font:800 7.5px/1.2 var(--f-display);letter-spacing:.14em;color:#9fb6c9;background:#0b1220;border:1px solid rgba(255,255,255,.2);border-radius:5px;pointer-events:none;z-index:2}
+#rowHero.tutpulse{box-shadow:0 0 0 3px #ffe08a,0 0 18px #ffd060}

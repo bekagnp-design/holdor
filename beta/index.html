@@ -1481,6 +1481,15 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 .evcard.wide .tx small{display:block;font-size:11px;color:#dfe9f7}
 .homerow.army{margin:0 0 10px}
 @media (max-height:700px){.hmhold .hmrow{padding:6px 8px 4px}.hmhold .hmmini{flex-basis:70px;width:70px;height:50px}.hmhold .hmlink{padding:4px 10px}.hmslots.top .slot{aspect-ratio:1/.7}}
+/* v1.0.99: the first minutes — locked tabs, the champion's frame in battle */
+.hubtabs button.lock{filter:saturate(.35) brightness(.72)}
+.hubtabs button .lk{position:absolute;top:4px;right:4px;font-style:normal;font-size:9px;font-weight:800;color:#ffe08a;background:rgba(0,0,0,.55);border-radius:8px;padding:1px 5px;letter-spacing:.04em}
+#bar{padding:11px 6px 5px;gap:8px}
+#rowHero{position:relative;border:2px solid var(--house);border-radius:12px;padding:2px;background:rgba(0,0,0,.22);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 0 10px rgba(0,0,0,.35)}
+#rowHero::before{content:'YOUR CHAMPION';position:absolute;left:7px;top:-8px;padding:1px 5px;font:800 7.5px/1.2 var(--f-display);letter-spacing:.14em;color:var(--house);background:#0b1220;border:1px solid var(--house);border-radius:5px;pointer-events:none;z-index:2}
+.brow.spells{position:relative;border:2px solid rgba(255,255,255,.16);border-radius:12px;padding:2px}
+.brow.spells::before{content:'SPELLS';position:absolute;left:7px;top:-8px;padding:1px 5px;font:800 7.5px/1.2 var(--f-display);letter-spacing:.14em;color:#9fb6c9;background:#0b1220;border:1px solid rgba(255,255,255,.2);border-radius:5px;pointer-events:none;z-index:2}
+#rowHero.tutpulse{box-shadow:0 0 0 3px #ffe08a,0 0 18px #ffd060}
 </style>
 </head>
 <body>
@@ -1500,7 +1509,7 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
       <button id="bUlt" class="pw"><span class="e" id="uEmoji">📯</span><span class="l" id="uName">Ultimate</span><span class="cd"></span></button>
       <button id="bPack" class="pw" style="display:none"><span class="e">🎒</span><span class="l">Pack</span></button>
     </div>
-    <div class="brow">
+    <div class="brow spells">
       <button id="bP0" class="pw"><span class="e">🏹</span><span class="l">Arrow rain</span><span class="cd"></span></button>
       <button id="bP1" class="pw"><span class="e">🔥</span><span class="l">Dracarys</span><span class="cd"></span></button>
       <button id="bP2" class="pw"><span class="e">🛡️</span><span class="l">Brothers</span><span class="cd"></span></button>
@@ -2384,7 +2393,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.98';
+const VERSION='1.0.99';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -3727,41 +3736,24 @@ function tutSlot(){if(!G.map)return null;const f=G.map.slots.filter(s=>!s.tower)
 function tutTower(){const ts=G.map?G.map.slots.filter(s=>s.tower):[];return ts.sort((a,b)=>b.tower.lvl-a.tower.lvl||b.y-a.y)[0]||null;}
 function upgradeGold(){const s=tutTower();return s?upCost(s.tower):0;}
 const TUT_STEPS=[
- {t:'Welcome to HOLDOR! The dead are marching on the realm, and every stage is a gate we must hold. I will show you everything, one step at a time.',pose:'open',hold:1,cam:[1],hodor:'HODOR!'},
- {t:'This is Hodor, holding the door. The dead walk down the road to him, and every one that reaches him breaks a piece of the door.',pose:'point',hold:1,cam:[1.75,GX,GATE_Y-6],hodor:'Hodor… hodor.'},
- {t:'Up top, this bar is the door. If it breaks, the stage is lost. The more of it you keep, the more stars you win.',pose:'point',hold:1,cam:[1],focus:'#hud .gate'},
- {t:'This shows the wave you are on and how many are coming. This stage has three. Hold them all and the stage is yours.',pose:'point',hold:1,focus:'#hud .stat:first-child'},
- {t:'This is your gold. Towers cost gold; every kill pays more, and so does calling a wave early. The crossed swords count your kills.',pose:'point',hold:1,focus:'#hud .stat:nth-child(2)'},
- {t:'Towers stop the dead. Let us build a Watchtower on the glowing stone ring.',pose:'point',want:'build',ring:['build'],cam:'slot',pause:1,hodor:'Hodor?',
+ {t:'The dead are marching on the door. Hodor holds it — you build the towers that stop them.',pose:'open',hold:1,cam:[1.4,GX,GATE_Y-40],hodor:'HODOR!'},
+ {t:'A Watchtower already stands by the door. Call the first wave and watch it shoot: tap the ⚔ banner at the top of the road.',pose:'point',want:'call',cam:'tower',hodor:'Hodor?',hint:'Tap the ⚔ banner at the top of the road'},
+ {t:'',want:'kill',hint:'The tower shoots by itself. Every kill drops gold.',cond:()=>G.kills>0,cam:[1]},
+ {t:'Gold builds towers. Tap the glowing stone ring and build a second Watchtower.',pose:'point',want:'build',ring:['build'],cam:'slot',pause:1,gold:()=>costOf('watch'),hodor:'HODOR HODOR!',
   hint:()=>ringHint('Tap the glowing stone ring','Tap the Watchtower','Tap ✓ to build it')},
- {t:'The first wave waits at the top of the road. Tap the ⚔ banner to call it now: calling early pays bonus gold.',pose:'point',want:'call',hint:'Tap the ⚔ banner at the top of the road',cam:[1],hodor:'HODOR HODOR!'},
- {t:'',want:'shot',silent:1,cam:'tower'},
- {t:'',want:'kill',hint:'Your tower shoots by itself. Every kill drops gold for you.',cond:()=>G.kills>0,cam:[1]},
- {t:'Your champion has ridden up from the keep. Tap the ground where they should stand and they will walk there.',pose:'point',want:'move',hero:1,heroFx:1,cam:[1.5,GX,GATE_Y-52],camBack:1500,hodor:'HODOR! HODOR!',
+ {t:'Your champion rides up from the keep. Tap the ground where they should stand.',pose:'point',want:'move',hero:1,heroFx:1,cam:[1.5,GX,GATE_Y-52],camBack:1500,hodor:'HODOR!',
   hint:()=>'Tap the ground where your champion should stand'},
- {t:'This card is your champion. The bar is health. The thin gold line is battle experience: fill it with kills and your champion grows stronger for the rest of the battle. A fallen champion rides back after a short while.',pose:'point',hold:1,focus:'#hCard'},
- {t:()=>{const u=SK[G.hero.c.sk[2]];return 'Every champion has one skill of their own. Yours is '+u.n+': '+u.d(skVal(G.hero,G.hero.c.sk[2]))+'. Tap it now.';},pose:'point',want:'ult',hodor:'Hodor!',
+ {t:()=>{const u=SK[G.hero.c.sk[2]];return 'The framed card at the bottom is your champion, and the skill beside it is theirs alone: '+u.n+'. Tap it.';},pose:'point',want:'ult',focus:'#rowHero',hodor:'Hodor!',
   hint:()=>'Tap '+SK[G.hero.c.sk[2]].e+' '+SK[G.hero.c.sk[2]].n+' at the bottom'},
  {t:'',want:'wait',hint:'Hold on until the road is clear…',cond:()=>G.waveDone&&!G.enemies.some(e=>e.hp>0)},
- {t:'Well held! Between waves the timer waits for you. Towers grow stronger with gold: tap your Watchtower, then ⬆ and ✓.',pose:'point',want:'upgrade',ring:['up'],gold:upgradeGold,cam:'tower',hodor:'Hodor!',
+ {t:'Towers grow with gold. Tap your Watchtower, then ⬆ and ✓.',pose:'point',want:'upgrade',ring:['up'],gold:upgradeGold,cam:'tower',hodor:'Hodor!',
   hint:()=>ringHint('Tap your Watchtower','Tap ⬆ to upgrade it','Tap ✓ to pay')},
- {t:'Want the numbers? Tap a tower, then ⓘ. Close the card with ✖ when you have read it.',pose:'point',want:'info',ring:['info'],cam:[1],
-  hint:()=>sheet.classList.contains('open')?'These are its numbers. Tap ✖ to close the card':ringHint('Tap your Watchtower','Tap ⓘ Info',''),cond:()=>G.tutInfo&&!sheet.classList.contains('open')},
- {t:'One tower is not enough for long. Build a second Watchtower on any stone ring.',pose:'point',want:'build',ring:['build'],gold:()=>costOf('watch'),
-  hint:()=>ringHint('Tap any stone ring','Tap the Watchtower','Tap ✓ to build it')},
- {t:'Built in the wrong spot? Sell the tower and you get 60% of its gold back. Try it: tap the new tower, then 💰 and ✓.',pose:'point',want:'sell',ring:['sell'],
-  hint:()=>ringHint('Tap the new tower','Tap 💰 to sell it','Tap ✓ to sell')},
- {t:'Now build it again, wherever you think it is best.',want:'build',ring:['build'],gold:()=>costOf('watch'),
-  hint:()=>ringHint('Tap any stone ring','Tap the Watchtower','Tap ✓ to build it')},
- {t:'Call the second wave when you are ready.',want:'call',hint:'Tap the ⚔ banner for wave 2'},
- {t:'Next to your champion wait the spells of your house. The first is Arrow rain: a volley from the wall. Tap it, then tap the dead on the road.',pose:'point',want:'power',focus:'#bP0',hodor:'HODOR!',
+ {t:'Call the second wave.',want:'call',hint:'Tap the ⚔ banner for wave 2'},
+ {t:'The spells of your house wait on the right. Arrow rain is a volley from the wall: tap it, then tap the dead on the road.',pose:'point',want:'power',focus:'#bP0',hodor:'HODOR!',
   hint:()=>G.armed==='arrows'?'Now tap the dead on the road':'Tap 🏹 Arrow rain at the bottom'},
- {t:'A spell needs time to come back: the dark cover drains away while it recharges. Your champion\'s skill works the same way. More spells open as you hold stages.',pose:'point',hold:1,focus:'#bP0'},
- {t:'Too slow for you? This button hurries the battle: 2×, then 4×, then back to 1×. Tap it.',pose:'point',want:'speed',focus:'#bSpeed',hint:'Tap 1× at the top right',hodor:'Ho-dor!'},
- {t:'Pause stops everything. From there you can resume, start the stage again or leave. Tap pause, then Resume.',pose:'point',want:'pause',focus:'#bPause',hint:'Tap ⏸ at the top right, then Resume'},
- {t:'The ! opens the book: every enemy you have met, your towers, and field notes. Open it, look, then close it.',pose:'point',want:'book',focus:'#bInfo',hint:'Tap ! at the top, then close the book',cond:()=>G.tutBook&&overlay.classList.contains('hidden')},
- {t:'Call the last wave.',want:'call',hint:'When the road is clear, tap the ⚔ banner'},
- {t:'That is everything. Hold the gate!',hint:'That is everything. Hold the gate!',auto:4200,end:1,cam:[1],hodor:'HODOR HODOR HODOR!'},
+ {t:'A spell needs time to come back: the dark cover drains away while it recharges. Your champion\'s skill works the same way.',pose:'point',hold:1,focus:'#bP0'},
+ {t:'Call the last wave and hold the door!',want:'call',hint:'When the road is clear, tap the ⚔ banner',hodor:'HODOR HODOR HODOR!'},
+ {t:'That is all for now. More opens as you hold stages. Hold the gate!',hint:'Hold the gate!',auto:3200,end:1,cam:[1]},
 ];
 /* ---- lessons: the first time something new appears ---- */
 function towerLesson(k,txt){return [{t:txt,pose:'point',hold:1},
@@ -3800,7 +3792,7 @@ function lessonTick(dt){
 function lessonStart(k){G.lq=(G.lq||[]).filter(x=>x!==k);if(RING)closeRing();G.tut={i:0,hold:true,steps:LESSONS[k].steps,key:k};G.paused=true;applyTut();}
 /* ---- the engine ---- */
 function tutPulse(){document.querySelectorAll('.tutpulse').forEach(e=>e.classList.remove('tutpulse'));const st=TS();if(!st)return;const sel=st.focus||TUT_BTN[tutWantBase()];if(sel){const b=document.querySelector(sel);if(b)b.classList.add('tutpulse');}}
-function tutFinish(){const k=G.tut&&G.tut.key;G.tut=null;G.paused=false;camReset();tutPulse();if(!k||k==='tut')ACC.tut=1;else learnMap()[k]=1;persist();}
+function tutFinish(){const k=G.tut&&G.tut.key;G.tut=null;G.paused=false;camReset();tutPulse();if(!k||k==='tut'){ACC.tut=1;ACC.tutv=99;}else learnMap()[k]=1;persist();}
 function skipTutorial(){if(!G.tut)return;const k=G.tut.key;if(RING)closeRing();G.tut=null;G.paused=false;G.heroOn=true;camReset();tutPulse();if(!k||k==='tut')ACC.tut=1;else learnMap()[k]=1;persist();hodorSay('Hodor.',1600);}
 function tutStart(){G.tut={i:0,hold:true,steps:TUT_STEPS,key:'tut'};G.paused=true;applyTut();}
 function applyTut(){
@@ -4356,11 +4348,11 @@ function confirmWipe(i){
 }
 function afterLoad(){
   ecoStart();
-  if(!ACC.intro){showCinematic(()=>{ACC.intro=1;persist();showHub('battle');});return;}
+  if(!ACC.intro){showCinematic(()=>{ACC.intro=1;persist();if(!ACC.tut)startTutorial();else showHub('battle');});return;}
   showHub('battle');
 }
-function startTutorial(){startGame({mode:'campaign',level:TUT_LEVEL,tutorial:1});}
-function newLang(i,q,selJ){
+function startTutorial(){startGame({mode:'campaign',level:TUT_LEVEL,tutorial:1});tutPrebuild();}
+function newLang(i,q,selJ){if(selJ==null&&q==null)selJ=obGuessRealm();
   if(sbReady()&&!CLOUD.lb)fetchLeaderboard(true).then(r=>{if(r&&CLOUD.screen==='newlang'&&$('#q'))newLang(i,$('#q').value,selJ);});
   const rows=realmStats(),top=rows.length?Math.max(1,rows[0].waves):1;
   const list=rows.filter(r=>!q||(r.c+' '+r.l).toLowerCase().indexOf(q.toLowerCase())>=0);
@@ -7665,7 +7657,7 @@ function showHub(tab,sub){
   const body=tab==='shop'?hubShop():tab==='coll'?hubCollection(sub):tab==='events'?hubEvents(sub):tab==='tasks'?hubTasks(sub):tab==='hold'?hubHold():tab==='clan'?hubClan():hubHome();
   show(`<div class="hub look-${skinOf()}" style="--sig:url(${SIGILS[ACC.house]||''})">${hubTop()}<div class="hubbody ${tab} ${hubDir>0?'slide-r':hubDir<0?'slide-l':''}" id="hubBody">${body}</div>${hubTabs(tab)}</div>`,'full');
   hubDir=0;CLOUD.screen='hub:'+tab;hubHiddenBack(tab);
-  card.querySelectorAll('.hubtabs button').forEach(b=>b.addEventListener('click',()=>{SFX.play('tap',60);hubDir=Math.sign(HUB_ORDER.indexOf(b.dataset.tab)-HUB_ORDER.indexOf(tab));showHub(b.dataset.tab);}));
+  card.querySelectorAll('.hubtabs button').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.lock){hubLockSay(b.dataset.tab);return;}SFX.play('tap',60);hubDir=Math.sign(HUB_ORDER.indexOf(b.dataset.tab)-HUB_ORDER.indexOf(tab));showHub(b.dataset.tab);}));
   $('#hubAva').addEventListener('click',()=>showSettings());const he=$('#hubEn');if(he)he.addEventListener('click',()=>{SFX.play('tap',60);ecoEnergySheet(0,null);});const hr=$('#hubRank');if(hr)hr.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});card.querySelectorAll('.plus').forEach(b=>b.addEventListener('click',()=>showHub(b.dataset.go)));
   hubSwipe(card.querySelector('.hub'),tab);juiceHub(tab);
   if(tab==='battle'){hubBattleBind();homeBind();}else if(tab==='coll')hubCollectionBind(sub);else if(tab==='shop')hubShopBind();else if(tab==='events')hubEventsBind(sub);else if(tab==='tasks')hubTasksBind();else if(tab==='clan')hubClanBind();else hubHoldBind();
@@ -7677,7 +7669,7 @@ function hubSwipe(el,tab){
   if(!el)return;let sx=0,sy=0,t0=0,on=false;
   const start=(x,y)=>{sx=x;sy=y;t0=Date.now();on=true;};
   const end=(x,y)=>{if(!on)return;on=false;const dx=x-sx,dy=y-sy,dt=Date.now()-t0;if(dt>900||Math.abs(dx)<56||Math.abs(dy)>Math.abs(dx)*0.7)return;
-    const i=HUB_ORDER.indexOf(tab),j=i+(dx<0?1:-1);if(i<0||j<0||j>=HUB_ORDER.length)return;SFX.play('swipe',50);hubDir=dx<0?1:-1;showHub(HUB_ORDER[j]);};
+    const i=HUB_ORDER.indexOf(tab),j=i+(dx<0?1:-1);if(i<0||j<0||j>=HUB_ORDER.length||hubLocked(HUB_ORDER[j]))return;SFX.play('swipe',50);hubDir=dx<0?1:-1;showHub(HUB_ORDER[j]);};
   el.addEventListener('touchstart',e=>{const t=e.touches[0];start(t.clientX,t.clientY);},{passive:true});
   el.addEventListener('touchend',e=>{const t=e.changedTouches[0];end(t.clientX,t.clientY);},{passive:true});
   el.addEventListener('mousedown',e=>start(e.clientX,e.clientY));
@@ -7702,7 +7694,7 @@ function hubBattleBind(){if(ACC.refund){ACC.refund=0;persist();}
   $('#bBattle').addEventListener('click',()=>{SFX.play('tap',80);if(!ACC.tut)startTutorial();else showCampaign();});
   const bdh=$('#bDiffH');if(bdh)bdh.addEventListener('click',()=>showDifficulty(false));const bmh=$('#bMapH');if(bmh)bmh.addEventListener('click',()=>{SFX.play('tap',60);showCampaign();});
   $('#bChampH').addEventListener('click',()=>showHeroRoom(ACC.sel));
-  $('#starChest').addEventListener('click',()=>{if(starChestsReady()>0){if(ecoWants()){ecoChest('iron','star',()=>showHub('battle'));return;}ACC.starChests=(ACC.starChests||0)+1;persist();openChest('iron',()=>showHub('battle'));}});
+  const sc0=$('#starChest');if(sc0)sc0.addEventListener('click',()=>{if(starChestsReady()>0){if(ecoWants()){ecoChest('iron','star',()=>showHub('battle'));return;}ACC.starChests=(ACC.starChests||0)+1;persist();openChest('iron',()=>showHub('battle'));}});
   const lc=$('#lvlChest');if(lc)lc.addEventListener('click',()=>{if(lvlChestsReady()>0){const t=lvlChestTier((ACC.lvlChests||0)+2);if(ecoWants()){ecoChest(t,'level',()=>showHub('battle'));return;}ACC.lvlChests=(ACC.lvlChests||0)+1;persist();openChest(t,()=>showHub('battle'));}});
 }
 const ISLE_IMG={};
@@ -8001,6 +7993,73 @@ function hubClanBind(){const on=(id,f)=>{const b=document.getElementById(id);if(
     card.querySelectorAll('.tkbody button[data-o]').forEach(b=>b.addEventListener('click',()=>tkOpen(b.dataset.o,b)));
     card.querySelectorAll('.tkbody button[data-c]').forEach(b=>b.addEventListener('click',()=>{const s=tkState(),i=s&&s.items.find(x=>x.id===b.dataset.c);tkCall('task_claim',{task:b.dataset.c},r=>{tkPaid(b,r,(i?i.e+' '+i.n:'Task done'));if(CLOUD.screen==='hub:clan')showHub('clan');});}));
     invBind();}}
+/* =========================== THE FIRST MINUTES (v1.0.99) ===========================
+   A tester: "too much happens at the start". So: the house is chosen and the first battle begins by itself (the home comes after the
+   first win); in that battle a Watchtower already stands by the door and the player learns eight things, one at a time (call, watch,
+   build, move, the champion's skill, upgrade, a spell, hold) — selling, the ⓘ card, speed, pause and the book became short lessons on
+   stages 2–6; the champion's card and skill sit in their own frame at the bottom ("YOUR CHAMPION"), the spells in theirs; and the
+   home opens gradually: the chests after stage 1, Army after 1, the Shop and the Tasks pill after 2, the Hold card after 2 (locked
+   until 3), Clan and the event pill after 3. Locked tabs show a 🔒 and the stage; a tap on one only says so. The home tour shows only what is
+   on the screen now; the chests, Tasks and Clan get a short lesson when they appear. The realm screen
+   preselects the realm from the Telegram language, so it is one tap. Injected after the home, so hubTabs / hubHome / homeStrip here
+   replace v1.0.98's. */
+const OB_NEED={coll:1,shop:2,clan:3};
+const OB_LANG={ka:'Georgia',en:'United States',de:'Germany',fr:'France',it:'Italy',ru:'Russia',es:'Spain',pt:'Brazil',tr:'Turkey',uk:'Ukraine',ja:'Japan',zh:'China',hi:'India',ar:'Saudi Arabia',pl:'Poland',nl:'Netherlands',ko:'South Korea',id:'Indonesia',vi:'Vietnam',th:'Thailand',fa:'Iran',he:'Israel',kk:'Kazakhstan',az:'Azerbaijan',hy:'Armenia',uz:'Uzbekistan',el:'Greece',cs:'Czechia',ro:'Romania',hu:'Hungary',sv:'Sweden',no:'Norway',da:'Denmark',fi:'Finland',bg:'Bulgaria',sr:'Serbia',hr:'Croatia',sk:'Slovakia',lt:'Lithuania',lv:'Latvia',et:'Estonia',ms:'Malaysia',tl:'Philippines',bn:'Bangladesh',ur:'Pakistan',sw:'Kenya'};
+function obStage(){return ACC?cleared():0;}
+function hubLocked(k){return !!(OB_NEED[k]&&ACC&&!(ACC.tut&&obStage()>=OB_NEED[k]));}
+function obGuessRealm(){try{const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user,lc=String((u&&u.language_code)||navigator.language||'').slice(0,2).toLowerCase(),c=OB_LANG[lc];if(!c)return null;const j=LANGS.findIndex(L=>L.c===c);return j>=0?j:null;}catch(e){return null;}}
+/* ---------- the tabs, with locks ---------- */
+function hubTabs(on){const t=[['shop','Shop'],['coll','Army'],['battle','Battle'],['clan','Clan']];
+  const fr=typeof tkReady==='function'&&typeof tasksOn==='function'&&tasksOn()?tkReady('friends'):0;
+  const dot={shop:freeChestReady()||starChestsReady()>0,coll:typeof bookNewCount==='function'&&bookNewCount()>0,battle:starChestsReady()>0||(onlineOpen()&&ACC.online.attempts>0&&!(ACC.online.runs||[]).length),clan:fr>0};
+  const sel=HUB_HIDDEN[on]?'battle':on;
+  return `<div class="hubtabs four">${t.map(([k,n])=>{const lk=hubLocked(k);return `<button class="${k===sel?'on':''} ${k==='battle'?'mid':''} ${lk?'lock':''}" data-tab="${k}"${lk?` data-lock="${OB_NEED[k]}"`:''}>${HUB_ICON[k]}${n}${lk?`<i class="lk">🔒 ${OB_NEED[k]}</i>`:dot[k]?'<span class="dot"></span>':''}</button>`;}).join('')}</div>`;}
+function hubLockSay(k){SFX.play('deny');ecoToast(`🔒 ${k==='coll'?'Army':k==='shop'?'The Shop':'Clan'} opens after stage ${OB_NEED[k]}${ACC&&!ACC.tut?' — win your first battle first':''}`);}
+/* ---------- the home, piece by piece ---------- */
+function homeStrip(){const n=obStage(),R=myRank(),e=evAt(Date.now()),K=EVT_KIND[e.kind],left=e.active?e.t1-Date.now():e.t0-Date.now(),tk=typeof tasksReady==='function'?tasksReady():0;
+  return `<div class="hmstrip"><button class="hpill" id="hubTro">${rankSVG(R.t,20,R.div)}<b>${trophiesOf()}</b></button>
+    ${n>=2?`<button class="hpill tk ${tk?'hot':''}" id="bTasks">${icon('quests',18)}<b>Tasks</b>${tk?`<i class="dot">${tk}</i>`:''}</button>`:''}
+    ${n>=3?`<button class="hpill ev ${e.active?'on':''}" id="evBadge" data-t="${e.active?e.t1:e.t0}" data-a="${e.active?1:0}">${K.e}<b>${K.n}</b><em>${e.active?'ends in':'in'} ${evLeft(left)}</em></button>`:''}</div>`;}
+function hubHome(){const hh=HOUSES[ACC.house],n=obStage(),tut=!!ACC.tut;
+  return `${tut?homeStrip():''}${tut&&n>=1?`<div class="hmslots top">${homeSlots().replace(/^<div class="hmslots">/,'').replace(/<\/div>$/,'')}</div>`:''}
+    <div class="hmstage st-b" id="hmStage">${hmStageB()}<div class="hmtitle"><b>${hh.seat}</b></div>${homeGoal()}</div>
+    ${tut&&n>=2?homeHold():''}${homeBattleRow()}
+    ${tut?'':'<div class="hint">▲ TAP BEGIN — YOUR CHAMPION WILL TEACH YOU</div>'}${ACC.refund?`<div class="hint" id="refundNote">🪙 Tower upgrades are now tower levels — ${ACC.refund} gold refunded. Army → Towers.</div>`:''}`;}
+/* ---------- the first battle: a Watchtower already stands by the door ---------- */
+function tutPrebuild(){if(!G.map||!G.tutorial)return;const R=G.map.routes[0],q=posAt(G.map,R.total*0.82,0);
+  const s=G.map.slots.filter(x=>!x.tower).sort((a,b)=>dist(a.x,a.y,q.x,q.y)-dist(b.x,b.y,q.x,q.y))[0];if(!s)return;
+  const g0=G.gold;G.gold+=costOf('watch');build(s,'watch');G.gold=g0;if(s.tower){s.tower.cd=0;s.tower.face=-Math.PI/2;}G.tutPre=s.id;}
+/* ---------- the home tour, staged: only what is on the screen now; what appears later comes as a short lesson when it does ---------- */
+TOURS.battle=()=>{const n=obStage(),L=learnMap();if(n>=1)L.chests=1;if(n>=2)L.tasks=1;return [
+  {sel:'.hubtop .cur',wait:()=>!!$('#bBattle'),text:'<b>Gold</b> 🪙 and <b>cards</b> level up your champions, towers and spells. <b>Dragonglass</b> 💎 opens chests and buys deals. Battles pay both.'},
+  {sel:'#hubAva',text:'This is you: your champion\'s face and your <b>level</b>. Every upgrade you buy adds to it, and every level pays a chest. Tap it later for settings and the book.'},
+  {sel:'.hmgoal',text:'Your road north: the next stage, its stars and how far you are of fifty. Tap it to open the map.'},
+  n>=1?{sel:'.hmslots',text:'Four chests: <b>stars</b> fill the first, <b>levels</b> the second, the third is <b>free</b> every day and the fourth is <b>today\'s gift</b>. Something is always on its way.'}:null,
+  n>=2?{sel:'#bTasks',text:'<b>Tasks</b>: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'}:null,
+  {sel:'#bBattle',tap:1,text:'<b>BATTLE!</b> opens the map at your next stage. Tap it.'}];};
+/* only for accounts that began with the staged home (tutv 99): older ones had the full tour */
+function obNew(){return !!(ACC&&ACC.tutv>=99);}
+Object.assign(HUB_LESSONS,{
+ chests:{need:()=>obNew()&&obStage()>=1,steps:()=>[{sel:'.hmslots',text:'Your chests: <b>stars</b> fill the first, <b>levels</b> the second, the third is <b>free</b> every day and the fourth is <b>today\'s gift</b>. Something is always on its way.'}]},
+ tasks:{need:()=>obNew()&&obStage()>=2,steps:()=>[{sel:'#bTasks',text:'<b>Tasks</b> are open: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'}]},
+ clan:{need:()=>obNew()&&obStage()>=3,steps:()=>[{sel:'.hubtabs button[data-tab="clan"]',text:'<b>Clan</b> is open: your realm\'s chat, the realm war and your friends.'}]},
+});
+{const n0=HUB_LESSONS.champ.need;HUB_LESSONS.champ.need=()=>!hubLocked('coll')&&n0();}
+/* ---------- what left the first battle: short lessons on the next stages (for those who finished the new tutorial) ---------- */
+function obLessonOn(n){return !!(ACC&&ACC.tutv>=99&&cleared()>=n);}
+Object.assign(LESSONS,{
+ sell:{need:()=>obLessonOn(1),ready:()=>G.map.slots.filter(s=>s.tower).length>=2&&!G.enemies.some(e=>e.hp>0),steps:[
+  {t:'Built in the wrong spot? Sell a tower and 60% of its gold comes back. Tap a tower, then 💰 and ✓.',pose:'point',want:'sell',ring:['sell'],pause:1,hint:()=>ringHint('Tap a tower','Tap 💰 to sell it','Tap ✓ to sell')}]},
+ info:{need:()=>obLessonOn(2),ready:()=>G.map.slots.some(s=>s.tower),steps:[
+  {t:'Want the numbers? Tap a tower, then ⓘ. Close the card with ✖ when you have read it.',pose:'point',want:'info',ring:['info'],pause:1,
+   hint:()=>sheet.classList.contains('open')?'These are its numbers. Tap ✖ to close the card':ringHint('Tap a tower','Tap ⓘ Info',''),cond:()=>G.tutInfo&&!sheet.classList.contains('open')}]},
+ speed:{need:()=>obLessonOn(3),ready:()=>G.enemies.some(e=>e.hp>0),steps:[
+  {t:'Too slow? This button hurries the battle: 2×, then 4×, then back to 1×. Tap it.',pose:'point',want:'speed',focus:'#bSpeed',hint:'Tap 1× at the top right'}]},
+ pause:{need:()=>obLessonOn(4),ready:()=>true,steps:[
+  {t:'Pause stops everything: resume, start the stage again or leave. Tap ⏸, then Resume.',pose:'point',want:'pause',focus:'#bPause',hint:'Tap ⏸ at the top right, then Resume'}]},
+ book:{need:()=>obLessonOn(5),ready:()=>true,steps:[
+  {t:'The ! opens the book: every enemy you have met, your towers, field notes. Open it, look, then close it.',pose:'point',want:'book',focus:'#bInfo',hint:'Tap ! at the top, then close the book',cond:()=>G.tutBook&&overlay.classList.contains('hidden')}]},
+});
 window.HOLDOR_CARDS={CARD_NEED,CARD_MUL,cardRar,cardLvl,cardMax,cardNeed,cardHave,cardGold,cardName,cardOpen,cardReady,cardCan,addCards,cardLevelUp,accLevel,accXp,addXp,xpNeed,lvlChestTier,lvlChestsReady,cardPool,rollChest,stageCards,spellLvl,spellMul,showSpellRoom,showTowerRoom,migrate48,TOURS,toursOf,hubTour,startTour};
 window.HOLDOR_SEATS={seatNo,lbIsMe,lbName,lbStale,lbMine,scoreSummary,fetchLeaderboard,cachedLb};
 window.HOLDOR_BOOK={showBook,bookNew,bookDisc,bookNewCount,bookMarkRead,BOOK,trophiesOf,trophiesRow,rankOf,myRank,rankSVG,showRankSheet,RANKS,RANK_AT};
@@ -8039,6 +8098,7 @@ window.HOLDOR_FXUI={FXUI,fxuiHub,fxuiOff,fxuiCalm,fxuiLive,fxuiParTo,ecoModal,ho
   drawTimer(){if(window.__fxDT)return window.__fxDT;const T={ms:0,n:0},d0=draw;draw=function(){const t=performance.now();const r=d0.apply(this,arguments);T.ms+=performance.now()-t;T.n++;return r;};window.__fxDT=T;return T;}};
 window.HOLDOR_FXT={FXT,TGUIDE,tgNums,towerGuideMini,towerGuideDemo,fxtUnder,openSheet,posE};
 window.HOLDOR_HOME98={HUB_HIDDEN,HUB_ORDER,hubClan,homeHold,hmMiniDraw,homeMovedBind,hubTabs,evPopup};
+window.HOLDOR_OB={LANGS,OB_NEED,hubLocked,obStage,obGuessRealm,tutPrebuild,obLessonOn,afterLoad,newLang,tutFrame,TOURS,HUB_LESSONS};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();
