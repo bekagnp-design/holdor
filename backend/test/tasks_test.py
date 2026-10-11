@@ -42,13 +42,14 @@ with sync_playwright() as p:
     def tap(sel, ms=400): pg.locator(sel).first.tap(force=True); pg.wait_for_timeout(ms)
     def W(): return q("select gold, gems, cards from wallets where tg_id = %s and seat = 0", TG)[0]
     check('login', wait("HOLDOR.CLOUD.on", 12000))
-    ev("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;a.tour=1;a.tours={win:1,battle:1,coll:1,shop:1,hold:1,events:1,earn:1,tasks:1};a.learn={chest:1,hold:1,champ:1,glass:1,keep:1,tier2:1,fire:1};a.holdTut=1;a.holdIntro=1;
+    ev("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;for(let i=1;i<=5;i++)a.campaign[i]=3;a.tour=1;a.tours={win:1,battle:1,coll:1,shop:1,hold:1,events:1,earn:1,tasks:1};a.learn={chest:1,hold:1,champ:1,glass:1,keep:1,tier2:1,fire:1};a.holdTut=1;a.holdIntro=1;
       H.SAVE.slots[0]=a;H.SAVE.cur=0;H.setAcc(a);H.persist();H.afterLoad();})()""")
     check('seat managed', wait("HOLDOR_ECON.ecoOn()", 12000)); settle()
     q("update wallets set gold = 5000, gems = 100 where tg_id = %s and seat = 0", TG)
+    for st in range(1, 6): q("insert into progress (tg_id, seat, mode, stage, stars) values (%s, 0, 'c', %s, 3) on conflict do nothing", TG, st)   # the home opens by stage (v1.0.99); stages live on the server
     ev("HOLDOR_ECON.ecoRefresh&&HOLDOR_ECON.ecoRefresh()"); pg.wait_for_timeout(1000); settle()
     ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(1200); settle()
-    check('the bottom bar has Tasks, and no Earn or Events tab', ev("!!document.querySelector('.hubtabs button[data-tab=\"tasks\"]')") and ev("!document.querySelector('.hubtabs button[data-tab=\"earn\"]')") and ev("!document.querySelector('.hubtabs button[data-tab=\"events\"]')") and ev("document.querySelectorAll('.hubtabs button').length") == 5)
+    check('four tabs, the Tasks pill on the home, no Earn or Events tab (v1.0.98)', ev("!!document.querySelector('#bTasks')") and ev("!document.querySelector('.hubtabs button[data-tab=\"earn\"]')") and ev("!document.querySelector('.hubtabs button[data-tab=\"events\"]')") and ev("document.querySelectorAll('.hubtabs button').length") == 4)
     check('a badge for the event on the home screen, with a countdown', wait("!!document.querySelector('#evBadge')", 3000) and ':' in ev("document.querySelector('#evBadge em').textContent"))
     ev("localStorage.removeItem('holdor_ev')"); ev("HOLDOR_EARN.evPopup(true)"); pg.wait_for_timeout(500)
     check('the popup: name of the event, live countdown', ev("!!document.querySelector('#evCd')") and len(ev("document.querySelector('#evCd').textContent")) > 8)
@@ -64,7 +65,7 @@ with sync_playwright() as p:
     q("insert into battles (tg_id, seat, kind, stage, status, stars, kills, waves, started_at, finished_at) values (%s, 0, 'camp', 1, 'won', 3, 40, 8, now() - interval '6 minutes', now())", TG)
     rush = bool(q1("select active from ev_at(now()) where kind = 'rush'"))
     ev("HOLDOR_DAILY.DAILY.at=0")   # the home screen asked the server a moment before the battle row was written
-    tap('.hubtabs button[data-tab="tasks"]', 900); settle(); wait("(()=>{const b=document.querySelector('.tkbody button[data-q=\"d_win1\"]');return b&&!b.disabled})()", 8000); pg.wait_for_timeout(600)
+    ev("HOLDOR.showHub('battle')"); pg.wait_for_timeout(500); tap('#bTasks', 900); settle(); wait("(()=>{const b=document.querySelector('.tkbody button[data-q=\"d_win1\"]');return b&&!b.disabled})()", 8000); pg.wait_for_timeout(600)
     check('Tasks opens on Quests: daily, weekly and monthly sections', ev("document.querySelectorAll('.tksec').length") == 3 and ev("document.querySelector('.subtabs.tks button.on').dataset.tk") == 'quests')
     check('"Win a stage" is ready, the tab carries a red number', not ev("document.querySelector('.tkbody button[data-q=\"d_win1\"]').disabled") and ev("!!document.querySelector('.subtabs.tks button[data-tk=\"quests\"] .dot')"))
     pg.screenshot(path=SHOTS + '/tasks_quests.png')
