@@ -45,9 +45,9 @@ TOURS.battle=()=>{const n=obStage(),L=learnMap();if(n>=1)L.chests=1;if(n>=2)L.ta
 /* only for accounts that began with the staged home (tutv 99): older ones had the full tour */
 function obNew(){return !!(ACC&&ACC.tutv>=99);}
 Object.assign(HUB_LESSONS,{
- chests:{need:()=>obNew()&&obStage()>=1,steps:()=>[{sel:'.hmslots',text:'Your chests: <b>stars</b> fill the first, <b>levels</b> the second, the third is <b>free</b> every day and the fourth is <b>today\'s gift</b>. Something is always on its way.'}]},
- tasks:{need:()=>obNew()&&obStage()>=2,steps:()=>[{sel:'#bTasks',text:'<b>Tasks</b> are open: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'}]},
- clan:{need:()=>obNew()&&obStage()>=3,steps:()=>[{sel:'.hubtabs button[data-tab="clan"]',text:'<b>Clan</b> is open: your realm\'s chat, the realm war and your friends.'}]},
+ chests:{need:()=>obNew()&&obStage()>=1,steps:()=>[{sel:'.hmslots',anim:'chest',text:'Your chests: <b>stars</b> fill the first, <b>levels</b> the second, the third is <b>free</b> every day and the fourth is <b>today\'s gift</b>. Something is always on its way.'}]},
+ tasks:{need:()=>obNew()&&obStage()>=2,steps:()=>[{sel:'#bTasks',anim:'tap',text:'<b>Tasks</b> are open: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'}]},
+ clan:{need:()=>obNew()&&obStage()>=3,steps:()=>[{sel:'.hubtabs button[data-tab="clan"]',anim:'lock',text:'<b>Clan</b> is open: your realm\'s chat, the realm war and your friends.'}]},
 });
 {const n0=HUB_LESSONS.champ.need;HUB_LESSONS.champ.need=()=>!hubLocked('coll')&&n0();}
 /* ---------- what left the first battle: short lessons on the next stages (for those who finished the new tutorial) ---------- */

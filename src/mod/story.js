@@ -29,7 +29,7 @@ function stBeat(){if(!ACC||!ACC.sv||!ACC.castle)return null;const n=cleared();re
 function stBeatChain(then){const b=stBeat();if(!b){then();return;}stPlay(b,()=>stBeatChain(then));}   /* every film that is due, one after the other */
 {const sh0=showHub;showHub=function(tab,sub){
   if(ACC&&ACC.sv&&!ACC.castle&&storyNext())return;
-  if(!FILM.on&&(!tab||tab==='battle')&&stBeat()){stBeatChain(()=>sh0(tab,sub));return;}
+  if(!FILM.on&&(!tab||tab==='battle')&&stBeat()){stBeatChain(()=>showHub(tab,sub));return;}
   return sh0(tab,sub);};
  const sc0=showCampaign;showCampaign=function(){if(stOn()&&storyNext())return;return sc0.apply(this,arguments);};
  /* a duel link waits until the castle has been seen */
