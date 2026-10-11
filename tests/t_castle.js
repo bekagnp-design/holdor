@@ -19,7 +19,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   // Train room
   await page.evaluate(() => window.HOLDOR_CITY.showCity()); await page.waitForTimeout(300); await tapEl('.cbd[data-b="barracks"]');
   const tr = await txt('#card');
-  ok('train room', /Army level 1/.test(tr) && /Sworn sword/.test(tr) && /Longbowman/.test(tr) && /Outrider/.test(tr) && /Direwolf/.test(tr) && /Train to level 5/.test(tr), tr.slice(0, 100).replace(/\n/g, ' '));
+  ok('train room (v1.1.0: the house\'s own troops)', /Army level 1/.test(tr) && /Winterfell guard/.test(tr) && /Northern bowman/.test(tr) && /Northern rider/.test(tr) && /Direwolf/.test(tr) && /Train to level 5/.test(tr), tr.slice(0, 100).replace(/\n/g, ' '));
   ok('unit stats lvl1', /❤️ 150 · ⚔️ 15 · 🏃 86/.test(tr));
   await page.screenshot({ path: SC + 'cs_train.png' });
   const g0 = await page.evaluate(() => window.HOLDOR.ACC.gold);

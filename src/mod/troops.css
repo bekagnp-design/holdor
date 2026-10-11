@@ -1,0 +1,6 @@
+/* v1.1.0: the troops in the Train room */
+.shopgrid.troops .sitem.troop{position:relative;cursor:pointer}
+.shopgrid.troops .sitem.troop.on{outline:2px solid var(--rc);box-shadow:0 0 12px rgba(255,255,255,.12)}
+.shopgrid.troops .tpv{display:block;width:64px;height:64px;margin:4px auto 2px}
+.shopgrid.troops .tgar{display:block;font-size:10px;color:#9fb6c9;margin-top:3px}
+.shopgrid.troops .sitem.troop.on .tgar{color:var(--rc)}
