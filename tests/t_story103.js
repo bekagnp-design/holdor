@@ -38,7 +38,7 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
   const s0 = await st();
   const acc0 = await page.evaluate(() => { const A = window.HOLDOR.ACC; return { sv: A.sv, castle: !!A.castle, f0: !!(A.film && A.film.f0), tutWon: !!A.tutWon, text: window.HOLDOR_TUT.TS().t, tours: JSON.stringify(A.tours) }; });
   ok('house chosen → straight into the tutorial battle (the first film is done, no menu, no cinematic screen)', s0.state === 'play' && s0.tut && !s0.hub && acc0.sv === 1 && !acc0.castle && acc0.f0 && !acc0.tutWon, JSON.stringify([s0, acc0]));
-  const tx = await page.evaluate(() => { const X = window.HOLDOR_TUT; const T = i => { const s = X.TUT_STEPS[i]; return typeof s.t === 'function' ? s.t() : s.t; }; return { s0: T(0), s1: T(1), s5: T(5), s12: T(12) }; });
+  const tx = await page.evaluate(() => { const X = window.HOLDOR_TUT; const T = i => { const s = X.TUT_STEPS[i]; return typeof s.t === 'function' ? s.t() : s.t; }; return { s0: T(0), s1: T(1), s5: T(5), s12: T(6) }; });
   ok('the tutorial speaks in the story\'s voice: seven hours, the knocks, the champion\'s skill by name, the last line tees up the next film', /Seven hours/.test(tx.s0) && /knock/.test(tx.s1) && /Tap it/.test(tx.s5) && !/\{SKILL\}/.test(tx.s5) && /listen for the knock/.test(tx.s12) && !/castle|menu/i.test(tx.s12), JSON.stringify(tx));
   await page.screenshot({ path: SC + 'story103_tut.png' });
   const cls = await page.evaluate(() => ({ app: document.getElementById('app').classList.contains('prestory'), book: getComputedStyle(document.getElementById('bInfo')).display }));

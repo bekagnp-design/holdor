@@ -74,7 +74,7 @@ assert 0 < i < j and j - i < 3000, 'notes'
 NOTES = [
  ('🚪', "The door is your life. Every enemy that reaches Hodor breaks a piece of it, and only the champion skills Mend and Fortify repair it. More than 70% left at the end gives 3 stars, more than 35% gives 2."),
  ('🏗️', "Tap a stone ring to build: pick a tower, then tap ✓. Tap a built tower to upgrade it (⬆), sell it for 60% of its gold (💰, 90% with Salvage), read its numbers (i) or move a keep's banner (🚩)."),
- ('⚔️', "Tap the ⚔ banner at the top of the road to call the next wave early: every second left on the timer pays 1 gold."),
+ ('⚔️', "Tap ⚔ CALL WAVE (or the banner at the top of the road) to call the next wave early: every second left on the timer pays 1 gold."),
  ('👆', "Tap your champion or their card, then tap the ground to send them there. Melee champions block the road; ranged ones shoot from where they stand. The gold line on the card fills with kills and levels them up once per battle."),
  ('✨', "Spells and your champion's skill recharge after use — the dark cover shows how long. Arrow rain hits a wide circle, Dracarys burns and is the one spell that fully hurts a dragon, Brothers send sworn men onto the road."),
  ('💸', "Each tower of the same kind costs 17% more than the last. Mixing kinds is cheaper than building one kind everywhere."),
