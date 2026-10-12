@@ -1349,7 +1349,69 @@ button,.btn,.hbtn,.ebld,.cday{transition:scale .22s cubic-bezier(.3,1.7,.5,1),fi
 .chm.drop .ic{flex:none;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:radial-gradient(circle at 50% 38%,#4c4034,#1e1813);border:2px solid #e3b661;box-shadow:0 0 10px rgba(230,180,90,.45)}
 .chm.drop .ic svg{width:34px;height:34px}
 .chm.drop .cb{flex:1;background:linear-gradient(90deg,#4a3410,#2a2010);border:1px solid #e3b661;border-radius:12px}
-.chm.drop .cb span{font-size:13px;color:#f3e2b8}.chm.drop .cb em{font-style:normal;font-weight:900;color:#ffd54a}/* v1.0.93: the realm war */
+.chm.drop .cb span{font-size:13px;color:#f3e2b8}.chm.drop .cb em{font-style:normal;font-weight:900;color:#ffd54a}
+/* v1.0.96: the menus move (src/mod/fxui.js). Everything sits under html.fxui: the class is there only in menus, on a visible page,
+   for players who did not ask for less motion. Compositor properties only (opacity, translate, scale, rotate). */
+/* home: motes over the stage art, a light sweep, parallax */
+.fxamb{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;display:none}
+html.fxui .fxamb{display:block;translate:calc(var(--fxpx,0)*9px) calc(var(--fxpy,0)*6px);transition:translate .45s ease-out}
+.fxamb i{position:absolute;top:0;width:var(--s);height:var(--s);margin-left:calc(var(--s)/-2);border-radius:50%;background:radial-gradient(circle,var(--c) 0,var(--c) 20%,rgba(255,255,255,0) 68%);opacity:0;will-change:translate,opacity}
+html.fxui .fxamb.fall i{animation:fxFall var(--d) linear infinite}
+html.fxui .fxamb.rise i{top:auto;bottom:0;animation:fxRise var(--d) linear infinite}
+.fxamb.rain i{width:2px;height:18px;margin-left:-1px;border-radius:1px;background:linear-gradient(180deg,rgba(255,255,255,0),var(--c))}
+html.fxui .fxamb.rain i{animation:fxFall calc(var(--d)*.22) linear infinite}
+@keyframes fxFall{0%{translate:0 -24px;opacity:0}12%{opacity:var(--o)}50%{translate:var(--dx) calc(var(--h)*.5)}88%{opacity:var(--o)}100%{translate:0 var(--h);opacity:0}}
+@keyframes fxRise{0%{translate:0 24px;opacity:0}12%{opacity:var(--o)}50%{translate:var(--dx) calc(var(--h)*-.5)}88%{opacity:var(--o)}100%{translate:0 calc(var(--h)*-1);opacity:0}}
+.fxamb .fxsw{position:absolute;top:-30%;bottom:-30%;left:0;width:42%;rotate:10deg;translate:-130% 0;background:linear-gradient(90deg,rgba(255,240,200,0),rgba(255,240,200,.1) 38%,rgba(255,250,232,.2) 50%,rgba(255,240,200,.1) 62%,rgba(255,240,200,0))}
+html.fxui .fxamb .fxsw{animation:fxSweep 9s ease-in-out infinite}
+@keyframes fxSweep{0%,52%{translate:-130% 0}100%{translate:270% 0}}
+html.fxui .stA .rays,html.fxui .stA .sig,html.fxui .stA .plat,html.fxui .stA .hero,html.fxui .stB,html.fxui .stC .mapin{transition:translate .45s ease-out}
+html.fxui .stA .rays{translate:calc(var(--fxpx,0)*-3px) calc(var(--fxpy,0)*-2px)}
+html.fxui .stA .sig{translate:calc(-50% + var(--fxpx,0)*-6px) calc(-50% + var(--fxpy,0)*-4px)}
+html.fxui .stA .plat{translate:calc(-50% + var(--fxpx,0)*3px) 0}
+html.fxui .stA .hero{translate:calc(-50% + var(--fxpx,0)*4px) calc(var(--fxpy,0)*2px)}
+html.fxui .stB{left:-8px;width:calc(100% + 16px);translate:calc(var(--fxpx,0)*-6px) 0}
+html.fxui .stC .mapin{translate:calc(var(--fxpx,0)*-10px) calc(var(--fxpy,0)*-7px)}
+/* BATTLE breathes: a glow behind the button (the juice shine still sweeps over it) */
+html.fxui .battlerow{position:relative}
+html.fxui .battlerow>button{position:relative;z-index:1}
+.fxglow{display:none}
+html.fxui .fxglow{display:block;position:absolute;z-index:0;border-radius:20px;pointer-events:none;box-shadow:0 0 16px 5px rgba(255,214,100,.85),0 0 34px 10px rgba(255,170,60,.4);opacity:.2;animation:fxBreathe 2.8s ease-in-out infinite}
+@keyframes fxBreathe{0%,100%{opacity:.15;scale:.97}50%{opacity:.95;scale:1.03}}
+/* tabs: the new tab grows out of the tapped tab's side; the tapped tab flashes */
+.hubbody{--fxd:1}.hubbody.slide-l{--fxd:-1}
+html.fxui .hubbody.fxin{animation:fxTabIn .22s cubic-bezier(.2,.9,.3,1) backwards;transform-origin:var(--fxox,50%) 100%}
+@keyframes fxTabIn{0%{opacity:0;translate:calc(var(--fxd)*30px) 8px;scale:.965}100%{opacity:1;translate:0 0;scale:1}}
+.fxtapf{display:none}
+html.fxui .fxtapf{display:block;position:absolute;left:50%;top:38%;width:60px;height:60px;margin:-30px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(255,236,160,.8),rgba(255,200,90,0) 70%);animation:fxTap .5s ease-out forwards}
+@keyframes fxTap{0%{opacity:1;scale:.3}100%{opacity:0;scale:1.7}}
+/* attention: ready slots glow, today's calendar day pulses, the currencies glint, the modal pops on a spring */
+html.fxui .slot.ready::after{content:'';position:absolute;inset:-3px;border-radius:17px;pointer-events:none;box-shadow:0 0 12px 3px var(--glow,rgba(255,210,120,.5)),inset 0 0 10px 2px rgba(255,230,150,.35);opacity:0;animation:fxHalo 2.6s ease-in-out infinite}
+html.fxui .slot.ready:nth-child(2)::after{animation-delay:-.7s}html.fxui .slot.ready:nth-child(3)::after{animation-delay:-1.4s}html.fxui .slot.ready:nth-child(4)::after{animation-delay:-2.1s}
+@keyframes fxHalo{0%,100%{opacity:.12}50%{opacity:1}}
+html.fxui .cday.today:not(.done)::after{content:'';position:absolute;inset:-3px;border-radius:12px;pointer-events:none;box-shadow:0 0 14px 4px rgba(255,213,74,.7);opacity:0;animation:fxHalo 1.8s ease-in-out infinite}
+html.fxui .hubtop .cur>span{position:relative}
+html.fxui .hubtop .cur>span::after{content:'';position:absolute;left:10px;top:1px;width:14px;height:14px;margin:-3px 0 0 -3px;pointer-events:none;opacity:0;scale:0;
+  background:radial-gradient(circle,#fff 0 1.6px,rgba(255,255,255,0) 3px),linear-gradient(0deg,rgba(255,255,255,0) 44%,rgba(255,255,255,.95) 50%,rgba(255,255,255,0) 56%),linear-gradient(90deg,rgba(255,255,255,0) 44%,rgba(255,255,255,.95) 50%,rgba(255,255,255,0) 56%);
+  animation:fxGlint 7s ease-in-out infinite}
+html.fxui .hubtop .cur>span:nth-child(2)::after{animation-delay:-3.3s}html.fxui .hubtop .cur>span:nth-child(3)::after{animation-delay:-5.1s}
+@keyframes fxGlint{0%,84%,100%{opacity:0;scale:0;rotate:0deg}89%{opacity:1;scale:1;rotate:45deg}95%{opacity:0;scale:.2;rotate:90deg}}
+html.fxui #ecoModal.on{animation:fxFade .18s ease-out}
+html.fxui #ecoModal.on .em{animation:fxPop .46s cubic-bezier(.25,.9,.35,1) backwards}
+@keyframes fxFade{from{opacity:0}to{opacity:1}}
+@keyframes fxPop{0%{opacity:0;scale:.72;translate:0 22px}55%{opacity:1;scale:1.045;translate:0 -3px}78%{scale:.988;translate:0 0}100%{scale:1;translate:0 0}}
+/* collection: portraits breathe, Epic and Legendary shimmer (only the cards on screen) */
+html.fxui .ccard.fxbr.fxvis .im img,html.fxui .ccard.fxbr.fxvis .im .pe{animation:fxBreath 3.8s ease-in-out infinite;animation-delay:var(--fxph,0s)}
+@keyframes fxBreath{0%,100%{scale:1}50%{scale:1.015}}
+.ccard.fxrE{--fxsh:222,192,255}.ccard.fxrL{--fxsh:255,228,150}
+html.fxui .ccard.fxrE.fxvis::after,html.fxui .ccard.fxrL.fxvis::after{content:'';position:absolute;top:-12%;bottom:-12%;left:0;width:34%;z-index:3;pointer-events:none;rotate:12deg;translate:-160% 0;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(var(--fxsh),.45) 50%,rgba(255,255,255,0));animation:fxSheen 5.2s ease-in-out infinite;animation-delay:var(--fxph,0s)}
+html.fxui .ccard.fxrL.fxvis::after{animation-duration:3.9s}
+@keyframes fxSheen{0%,58%{translate:-160% 0}92%,100%{translate:330% 0}}
+/* a slow phone: half the motes, still portraits */
+html.fxlite .fxamb i:nth-of-type(2n){display:none}
+html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
+@media (prefers-reduced-motion: reduce){.fxamb,.fxglow,.fxtapf{display:none!important}
+ html.fxui .hubbody.fxin,html.fxui .slot.ready::after,html.fxui .cday.today::after,html.fxui .hubtop .cur>span::after,html.fxui #ecoModal.on,html.fxui #ecoModal.on .em,html.fxui .ccard .im img,html.fxui .ccard::after{animation:none!important}}/* v1.0.93: the realm war */
 .wst{font-size:12px;color:#9fb6c9}
 .wleft{margin:2px 0 8px}.wleft b{color:#ffd54a}
 .wlist{display:flex;flex-direction:column;gap:6px;margin:8px 0}
@@ -1364,6 +1426,105 @@ button,.btn,.hbtn,.ebld,.cday{transition:scale .22s cubic-bezier(.3,1.7,.5,1),fi
 .wlast .wlp{margin:4px 0 8px;font-size:13px}.wlast .wlp b{color:#ffd54a}
 .wlast .wcl{margin:2px 0 4px;font-size:12px;color:#9fb6c9}.wlast .wcl.done{color:#9be28a;font-weight:700}
 .wlast .btn{width:100%}
+/* v1.0.97: the tower guide */
+.tg{margin:6px 0 4px;font-size:12px;line-height:1.35;color:#c9d6e8}
+.tg .tgh{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.tg .tgh span{font-weight:700;color:#e3b661;font-size:11px;letter-spacing:.04em}.tg .tgh em{font-style:normal;color:#dfe8f5}
+.tg .tgn{display:flex;flex-wrap:wrap;gap:4px 10px;margin:5px 0}.tg .tgn span{white-space:nowrap}.tg .tgn b{color:#fff;font-weight:700}
+.tg .tgs{display:flex;flex-direction:column;gap:2px}.tg .tgs i{font-style:normal}.tg .tgs .ok{color:#9fe3a4}.tg .tgs .no{color:#f1a79c}
+.tgd{position:relative;height:58px;margin:8px 0 2px;border-radius:10px;background:linear-gradient(#1b2b44,#0f1a2c);overflow:hidden}
+.tgd .tw{position:absolute;left:10px;bottom:6px;text-decoration:none}.tgd .en{position:absolute;bottom:10px;width:12px;height:22px;border-radius:6px 6px 3px 3px;background:#6f7d90;box-shadow:0 0 0 1px #2a3446;text-decoration:none}
+.tgd .fx,.tgd .fx2{position:absolute;text-decoration:none;pointer-events:none}
+.tgd.arrow .en{left:78%;animation:tgHit 1.4s ease-out infinite}.tgd.arrow .fx{left:22%;bottom:30px;width:14px;height:2px;background:#e8eef7;box-shadow:-6px 0 0 -0 #8a96a6;animation:tgArrow 1.4s linear infinite}
+.tgd.bolt .en{left:80%;width:18px;height:28px;background:#59687b;animation:tgHit 2.4s ease-out infinite}.tgd.bolt .fx{left:22%;bottom:28px;width:26px;height:4px;background:#e3b661;box-shadow:0 0 8px #e3b661;animation:tgBolt 2.4s linear infinite}
+.tgd.lob .en{left:76%;animation:tgHit 2.2s ease-out infinite}.tgd.lob .fx{left:22%;bottom:30px;width:9px;height:9px;border-radius:50%;background:#8dff6d;box-shadow:0 0 8px #6cf05a;animation:tgLob 2.2s linear infinite}.tgd.lob .fx2{left:68%;bottom:6px;width:46px;height:30px;border-radius:50%;background:radial-gradient(#9dff7d,rgba(110,240,90,0));opacity:0;animation:tgBloom 2.2s linear infinite}
+.tgd.spears .en{left:50%;animation:tgSlow 3.2s linear infinite}.tgd.spears .fx{left:calc(50% + 2px);bottom:6px;width:0;height:0;border:4px solid transparent;border-bottom:26px solid #9fe0ff;border-top:0;transform-origin:50% 100%;animation:tgSpear 3.2s ease-out infinite}.tgd.spears .fx2{left:calc(50% - 14px);bottom:8px;width:30px;height:10px;border-radius:50%;border:1px solid rgba(143,211,255,.5)}
+.tgd.roots .en{left:34%;animation:tgSlow2 4s ease-in-out infinite}.tgd.roots .fx{left:6%;bottom:2px;width:70%;height:34px;border-radius:50%;border:2px solid rgba(155,230,110,.65);animation:tgWave 2.2s ease-out infinite}.tgd.roots .fx2{left:calc(34% - 4px);bottom:7px;width:22px;height:6px;border-bottom:2px solid #7a5230;border-radius:0 0 50% 50%}
+.tgd.clash .en{left:62%;animation:tgBump 1.2s ease-in-out infinite}.tgd.clash .fx{left:calc(62% - 12px);bottom:24px;width:10px;height:10px;border-radius:50%;background:#fff1c0;box-shadow:0 0 10px 3px #ffd479;animation:tgSpark 1.2s ease-out infinite}
+@keyframes tgArrow{0%{transform:translateX(0)}60%,100%{transform:translateX(150px);opacity:1}100%{opacity:0}}
+@keyframes tgBolt{0%{transform:translateX(0);opacity:0}15%{opacity:1}60%{transform:translateX(170px)}100%{transform:translateX(170px);opacity:0}}
+@keyframes tgLob{0%{transform:translate(0,0)}50%{transform:translate(85px,-26px)}100%{transform:translate(170px,0);opacity:0}}
+@keyframes tgBloom{0%,70%{opacity:0;transform:scale(.5)}80%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(1.2)}}
+@keyframes tgHit{0%,55%{filter:none}60%{filter:brightness(2.4)}100%{filter:none}}
+@keyframes tgSlow{0%{left:30%}100%{left:80%}}@keyframes tgSlow2{0%{left:30%}100%{left:56%}}
+@keyframes tgSpear{0%,10%{transform:scaleY(0)}25%{transform:scaleY(1)}60%{opacity:1}100%{opacity:0;transform:scaleY(1)}}
+@keyframes tgWave{0%{transform:scale(.2);opacity:.9}100%{transform:scale(1);opacity:0}}
+@keyframes tgBump{0%,100%{transform:translateX(4px)}50%{transform:translateX(-3px)}}@keyframes tgSpark{0%,40%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.6)}}
+@media (prefers-reduced-motion:reduce){.tgd *{animation:none!important}}
+/* v1.0.98: the simple home — four tabs, the Hold card, the pages with a back arrow, the Clan tab */
+.hubtabs.four button{font-size:10.5px}
+.hpill i.dot{display:inline-block;min-width:18px;height:18px;border-radius:9px;background:#e14b4b;color:#fff;font-style:normal;font-size:11px;font-weight:800;line-height:14px;text-align:center;padding:0 4px;border:2px solid #0b1a2e;margin-left:2px}
+.hback{display:flex;align-items:center;gap:10px;margin:0 0 8px}
+.hback button{background:linear-gradient(180deg,#2a6fb9,#1a4d8c);border:2px solid #0b1a2e;border-radius:12px;color:#fff;font-family:var(--f-display);font-weight:700;font-size:12px;padding:6px 12px;box-shadow:0 3px 0 #0b1a2e}
+.hback span{font-size:11px;color:#cfe6ff;letter-spacing:.1em;text-transform:uppercase;font-weight:700;text-shadow:0 1px 0 #0b1a2e}
+.hmslots.top{margin:0 0 8px}.hmslots.top .slot{aspect-ratio:1/.8}
+.hmhold{position:relative;margin:0 0 8px;border-radius:18px;border:3px solid var(--pb);background:linear-gradient(90deg,#1d4f8a,#123a6b);box-shadow:0 5px 0 var(--pb),0 8px 20px rgba(0,0,0,.4);overflow:hidden;color:#fff;text-align:left}
+.hmhold .hmrow{display:flex;align-items:center;gap:10px;padding:8px 8px 6px}
+.hmhold .hmmini{flex:0 0 84px;width:84px;height:60px;border-radius:10px;border:2px solid rgba(0,0,0,.55);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 2px 0 rgba(0,0,0,.4)}
+.hmhold .hmtx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;line-height:1.15}
+.hmhold .hmtx b{font-family:var(--f-display);font-size:14px;letter-spacing:.06em;color:#ffe08a;text-shadow:0 2px 0 #0b1a2e}
+.hmhold .hmtx small{font-size:11px;color:#dfe9f7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hmhold .hmtx em{font-style:normal;font-size:11px;color:#9fe0ff;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hmhold .hmcd{font-size:10.5px;color:#cfe6ff;font-variant-numeric:tabular-nums;white-space:nowrap}.hmhold .hmcd i{font-style:normal;color:#fff;font-weight:800}.hmhold .hmcd b{color:#ffe08a}
+.hmhold .hmgo{flex:0 0 auto;min-width:76px;padding:8px 8px;border-radius:14px;border:3px solid #0b1a2e;background:linear-gradient(180deg,#8a97a8,#59687b);color:#fff;font-family:var(--f-display);font-weight:900;font-size:15px;letter-spacing:.06em;box-shadow:0 4px 0 #0b1a2e;display:flex;flex-direction:column;align-items:center;line-height:1}
+.hmhold .hmgo small{font-size:8.5px;letter-spacing:.14em;margin-top:3px;opacity:.9}
+.hmhold .hmgo.go{background:linear-gradient(180deg,#ffe38e,#efb83b);color:#2a1a05;border-color:#7a4a10;box-shadow:0 4px 0 #7a4a10,0 0 18px rgba(255,214,100,.55);animation:hmPulse 1.8s ease-in-out infinite}
+.hmhold .hmgo:disabled{opacity:.85}
+@keyframes hmPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.hmhold .hmlink{display:block;width:100%;border:0;border-top:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.28);color:#cfe6ff;font-size:11px;font-weight:700;padding:6px 10px;text-align:left;font-family:var(--f-body)}
+.hmhold.lock{filter:saturate(.55)}.hmhold.lock .hmtx b{color:#dfe9f7}
+.clcard{display:flex;flex-direction:column;gap:8px;border-radius:16px;padding:10px;margin-bottom:9px;border:3px solid #0b1a2e;background:linear-gradient(90deg,#2467b0,#163f72);box-shadow:0 4px 0 #0b1a2e;color:#fff}
+.clcard .clhead{display:flex;align-items:center;gap:10px}.clcard .clhead svg,.clcard .clhead img{flex:0 0 auto}
+.clcard .cltx{flex:1;min-width:0;line-height:1.2}.clcard .cltx b{font-family:var(--f-display);font-size:15px;display:block;color:#fff;text-shadow:0 2px 0 #0b1a2e}.clcard .cltx small{font-size:11px;color:#cfe6ff}
+.clcard .clrow{display:flex;gap:6px}.clcard .clrow .btn{flex:1;margin:0;padding:9px 4px;font-size:11.5px;border-radius:10px}
+.clcard.soon{flex-direction:row;align-items:center;background:linear-gradient(90deg,#3a3f52,#262a38);border-color:#15171f}.clcard.soon .ic{font-size:28px;flex:0 0 auto}
+.evcard.wide{width:100%;text-align:left;color:#fff}.evcard.wide .st{font-family:var(--f-display);font-weight:900;color:#ffe08a;font-size:14px}
+.evcard.wide .tx small{display:block;font-size:11px;color:#dfe9f7}
+.homerow.army{margin:0 0 10px}
+@media (max-height:700px){.hmhold .hmrow{padding:6px 8px 4px}.hmhold .hmmini{flex-basis:70px;width:70px;height:50px}.hmhold .hmlink{padding:4px 10px}.hmslots.top .slot{aspect-ratio:1/.7}}
+/* v1.0.99: the first minutes — locked tabs, the champion's frame in battle */
+.hubtabs button.lock{filter:saturate(.35) brightness(.72)}
+.hubtabs button .lk{position:absolute;top:4px;right:4px;font-style:normal;font-size:9px;font-weight:800;color:#ffe08a;background:rgba(0,0,0,.55);border-radius:8px;padding:1px 5px;letter-spacing:.04em}
+#bar{padding:11px 6px 5px;gap:8px}
+#rowHero{position:relative;border:2px solid var(--house);border-radius:12px;padding:2px;background:rgba(0,0,0,.22);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 0 10px rgba(0,0,0,.35)}
+#rowHero::before{content:'YOUR CHAMPION';position:absolute;left:7px;top:-8px;padding:1px 5px;font:800 7.5px/1.2 var(--f-display);letter-spacing:.14em;color:var(--house);background:#0b1220;border:1px solid var(--house);border-radius:5px;pointer-events:none;z-index:2}
+.brow.spells{position:relative;border:2px solid rgba(255,255,255,.16);border-radius:12px;padding:2px}
+.brow.spells::before{content:'SPELLS';position:absolute;left:7px;top:-8px;padding:1px 5px;font:800 7.5px/1.2 var(--f-display);letter-spacing:.14em;color:#9fb6c9;background:#0b1220;border:1px solid rgba(255,255,255,.2);border-radius:5px;pointer-events:none;z-index:2}
+#rowHero.tutpulse{box-shadow:0 0 0 3px #ffe08a,0 0 18px #ffd060}
+/* v1.1.0: the troops in the Train room */
+.shopgrid.troops .sitem.troop{position:relative;cursor:pointer}
+.shopgrid.troops .sitem.troop.on{outline:2px solid var(--rc);box-shadow:0 0 12px rgba(255,255,255,.12)}
+.shopgrid.troops .tpv{display:block;width:64px;height:64px;margin:4px auto 2px}
+.shopgrid.troops .tgar{display:block;font-size:10px;color:#9fb6c9;margin-top:3px}
+.shopgrid.troops .sitem.troop.on .tgar{color:var(--rc)}
+/* v1.1.1: Houses Clash — the strip between the lanes, the result, the menu */
+#clashUi{position:absolute;pointer-events:none;z-index:5;font-family:var(--f-body)}
+#clashUi .ctop{position:absolute;left:6px;right:6px;top:4px;display:flex;align-items:center;gap:8px;padding:3px 8px;background:rgba(8,12,20,.62);border:1px solid rgba(255,255,255,.14);border-radius:10px;color:#e9eef5;font-size:12px}
+#clashUi .ctop .who{color:var(--hc);white-space:nowrap}
+#clashUi .ctop .door{flex:1;height:8px;border-radius:5px;background:rgba(0,0,0,.5);overflow:hidden;border:1px solid rgba(255,255,255,.18)}
+#clashUi .ctop .door i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#c9a24a,#e3b661)}
+#clashUi .ctop .wv{font-size:11px;color:#c9d2dd;white-space:nowrap}
+#clashUi .csend{position:absolute;left:6px;right:6px;top:calc(var(--mid) + 5px);display:flex;align-items:center;gap:6px;pointer-events:auto}
+#clashUi .csend .pts{background:rgba(8,12,20,.7);border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:5px 8px;color:#ffe08a;font-size:12px;white-space:nowrap}
+#clashUi .csend .pts b{font-size:16px}
+#clashUi button.cs{position:relative;width:46px;height:46px;padding:0;border-radius:11px;border:2px solid var(--hc);background:rgba(8,12,20,.72);box-shadow:0 2px 8px rgba(0,0,0,.4);touch-action:manipulation}
+#clashUi button.cs canvas{width:40px;height:40px;display:block;margin:0 auto}
+#clashUi button.cs em{position:absolute;right:-5px;bottom:-5px;font-style:normal;font-size:10px;font-weight:800;color:#0b1220;background:#ffe08a;border-radius:8px;padding:1px 5px}
+#clashUi button.cs i{position:absolute;left:2px;top:0;font-size:11px;font-style:normal}
+#clashUi button.cs.poor{opacity:.45}
+#clashUi button.cs.pop{animation:cspop .25s ease-out}
+@keyframes cspop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+.clres{display:flex;gap:10px;margin:8px 0}
+.clres .side{flex:1;background:rgba(0,0,0,.25);border:1px solid var(--hc);border-radius:10px;padding:8px}
+.clres .side b{display:block;color:var(--hc);margin-bottom:4px}
+.clres .side .bar{display:block;height:8px;border-radius:5px;background:rgba(0,0,0,.5);overflow:hidden}
+.clres .side .bar i{display:block;height:100%;background:var(--hc)}
+.clres .side em{display:block;font-style:normal;font-size:12px;margin-top:4px;color:#e9eef5}
+.clbots{display:flex;gap:6px;margin:8px 0}
+.clbots .clb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.25);color:#e9eef5;font-size:16px}
+.clbots .clb b{font-size:10.5px;font-family:var(--f-display)}
+.clbots .clb small{font-size:9.5px;color:#9fb6c9}
+.clbots .clb.on{border-color:#ffe08a;box-shadow:0 0 10px rgba(255,224,138,.35)}
+.clbots .clb.lock{opacity:.4}
 </style>
 </head>
 <body>
@@ -1383,7 +1544,7 @@ button,.btn,.hbtn,.ebld,.cday{transition:scale .22s cubic-bezier(.3,1.7,.5,1),fi
       <button id="bUlt" class="pw"><span class="e" id="uEmoji">📯</span><span class="l" id="uName">Ultimate</span><span class="cd"></span></button>
       <button id="bPack" class="pw" style="display:none"><span class="e">🎒</span><span class="l">Pack</span></button>
     </div>
-    <div class="brow">
+    <div class="brow spells">
       <button id="bP0" class="pw"><span class="e">🏹</span><span class="l">Arrow rain</span><span class="cd"></span></button>
       <button id="bP1" class="pw"><span class="e">🔥</span><span class="l">Dracarys</span><span class="cd"></span></button>
       <button id="bP2" class="pw"><span class="e">🛡️</span><span class="l">Brothers</span><span class="cd"></span></button>
@@ -2267,7 +2428,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.0.95';
+const VERSION='1.1.2';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -2879,7 +3040,7 @@ function camStep(dt){
   CAM.x=clamp(CAM.x,hw,W-hw);CAM.y=clamp(CAM.y,hh,H-hh);
 }
 function camApply(){if(CAM.z===1&&CAM.x===W/2&&CAM.y===H/2)return;ctx.translate(W/2,H/2);ctx.scale(CAM.z,CAM.z);ctx.translate(-CAM.x,-CAM.y);}
-function toWorld(x,y){return{x:(x-W/2)/CAM.z+CAM.x,y:(y-H/2)/CAM.z+CAM.y};}
+function toWorld(x,y){if(CLASH.on)y-=CLASH.myDy;return{x:(x-W/2)/CAM.z+CAM.x,y:(y-H/2)/CAM.z+CAM.y};}
 const overlay=$('#overlay'),card=$('#card'),sheet=$('#sheet');
 function resetRun(map){
   G.boon=null;G.boons=[];G.boonDone={};G.boonAsk=null;clearTimeout(G.boonT);{const o=document.getElementById('boonOv');if(o)o.remove();}
@@ -2910,7 +3071,7 @@ function startGame0(o){
   const h=ACC;G.mode=o.mode;G.level=o.level||null;G.runs++;
   let map;
   if(o.mode==='campaign'){const L=o.level;map=buildMap({pts:L.pts,routes:L.routes,gates:L.gates,raw:L.raw,style:L.style,rg:L.rg,sea:L.sea,seaW:L.seaW,river:L.river,ponds:L.ponds,seed:hash32('L'+L.id+(L.stage?'s'+L.stage:'')),biome:L.biome});resetRun(map);G.rng=mulberry32(hash32('L'+L.id+'#'+G.runs));G.totalWaves=L.waves;G.wo={id:L.id,pool:levelPool(L.id,99),minis:MINIS[L.id]||['giant'],dragon:L.dragon||0,king:L.king||0,lord:!!L.lord};G.mult=L.mult*DIFF().hp;G.mod=L.mod?MODS[L.mod]:null;G.gold=L.gold+(UP('bank')?90:0);G.seed=hash32('L'+L.id);}
-  else{const seed=hash32(todayKey);const gm=genDaily(seed);map=buildMap({pts:gm.pts,seed,biome:gm.biome,raw:true,style:'bend'});resetRun(map);if(!o.bid)ACC.online.attempts--;G.attempt=(ACC.online.runs.length||0)+1;G.rng=mulberry32(hash32(todayKey+'#'+G.attempt));G.totalWaves=Infinity;G.wo={id:LEVELS.length,pool:levelPool(LEVELS.length,99),minis:MINIS[LEVELS.length],dragon:8,king:25,lord:true,online:true};G.mult=DIFF().hp;G.mod=gm.mod;G.gold=200+ACC.online.goldBonus+(UP('bank')?90:0);G.doorMax=Math.round((1000+G.gateBonus)*DIFF().gate)+ACC.online.doorBonus;G.doorHp=G.doorMax;G.seed=seed;persist();}
+  else if(o.mode==='clash'){map=clashSetup(o);}else{const seed=hash32(todayKey);const gm=genDaily(seed);map=buildMap({pts:gm.pts,seed,biome:gm.biome,raw:true,style:'bend'});resetRun(map);if(!o.bid)ACC.online.attempts--;G.attempt=(ACC.online.runs.length||0)+1;G.rng=mulberry32(hash32(todayKey+'#'+G.attempt));G.totalWaves=Infinity;G.wo={id:LEVELS.length,pool:levelPool(LEVELS.length,99),minis:MINIS[LEVELS.length],dragon:8,king:25,lord:true,online:true};G.mult=DIFF().hp;G.mod=gm.mod;G.gold=200+ACC.online.goldBonus+(UP('bank')?90:0);G.doorMax=Math.round((1000+G.gateBonus)*DIFF().gate)+ACC.online.doorBonus;G.doorHp=G.doorMax;G.seed=seed;persist();}
   G.hero=makeHero();G.speed=1;G.paused=false;$('#bSpeed').textContent='1×';$('#bPause').textContent='⏸';
   $('#hSub').textContent=G.mode==='campaign'?G.level.n:'Endless, '+todayKey;
   $('#hEmoji').textContent=CHAMP_ART[G.hero.c.id+'_portrait']?'':G.hero.c.e;$('#hEmoji').style.backgroundImage=CHAMP_ART[G.hero.c.id+'_portrait']?`url(${CHAMP_ART[G.hero.c.id+'_portrait']})`:'';$('#hName').textContent=shortName(G.hero.c);$('#uEmoji').textContent=SK[G.hero.c.sk[2]].e;$('#uName').textContent=SK[G.hero.c.sk[2]].n;
@@ -2961,7 +3122,7 @@ function buildWave(n,rng,o){
 function startWave(){
   if(boonCheck())return;   /* v1.0.80: a blessing first; the wave starts when one is chosen */
   if(G.tut&&G.tut.want==='call')tutEvent('call');
-  G.wave++;SFX.play('horn');G.spawnQueue=buildWave(G.wave,G.rng,G.wo);G.spawnT=0;G.waveDone=false;G.spawnInt=Math.max(0.42,0.95-G.wave*0.02);
+  G.wave++;SFX.play('horn');G.spawnQueue=buildWave(G.wave,G.wrng||G.rng,G.wo);G.spawnT=0;G.waveDone=false;G.spawnInt=Math.max(0.42,0.95-G.wave*0.02);
   const q=G.spawnQueue,has=t=>q.indexOf(t)>=0;const nw=q.filter(k=>!G.seen[k]);nw.forEach(k=>G.seen[k]=1);
   G.banner={a:'WAVE '+G.wave,b:has('king')?'👑 THE NIGHT KING':has('lord')?'🧊 A LIEUTENANT OF THE COLD':has('dragon')?'🐉 A DRAGON IN THE SKY':nw.length?nw.slice(0,2).map(k=>ENEMIES[k].e+' '+ENEMIES[k].n.toUpperCase()).join('  '):'',life:2.6};
   G.log.push({t:G.tick,a:'wave',n:G.wave});
@@ -3001,7 +3162,7 @@ function kill(e,src){
 function hitDoor(a,gi){if(G.state!=='play')return;gi=gi||0;if(G.vengUntil>G.time){G.vengStore=(G.vengStore||0)+a;return;}if(G.hod&&G.hod.at===gi)a*=0.5;else if(G.hod&&G.map.gates.length>1)a*=1.15;G.lastHitGate=gi;if(!G.hodor&&(!G.hodorT||G.time-G.hodorT>7)){G.hodorT=G.time;hodorSay(['HODOR!','HODOR!!','Hodor… HODOR!'][Math.floor(Math.random()*3)],1500);}if(G.safe){G.shake=Math.min(6,G.shake+a/40);G.doorHp=Math.max(G.doorMax*0.15,G.doorHp-a);G.hurt=Math.min(1,G.hurt+a/220);G.stressT=0.6;SFX.play('gate',120);return;}G.doorHp-=a;SFX.play('gate',120);G.shake=Math.min(9,G.shake+a/25);G.hurt=Math.min(1,G.hurt+a/220);G.stressT=0.6;if(G.doorHp<=0){G.doorHp=0;gameOver();}}
 function hurtHero(a){const h=G.hero;if(h.dead||G.time<h.invulnUntil)return;const is=skVal(h,'ironskin');if(is)a*=1-is/100;if(G.gearArmor)a*=1-G.gearArmor/100;if(h.shield>0){const s=Math.min(h.shield,a);h.shield-=s;a-=s;h.shieldHitT=G.time;if(h.shield<=0)addFx({t:'burst',x:h.x,y:h.y-14,r0:10,r1:28,life:0.3,col:'#8fd3ff'});}if(h.iserveUntil>G.time)a*=0.6;h.hp-=a;h.oocT=3;if(h.hp<=0&&G.drownedUntil>G.time&&!h.risenD){h.risenD=true;h.hp=h.max*0.5;addText(h.x,h.y-40,'Risen!','#4fb8c8',1);addFx({t:'ring',x:h.x,y:h.y,r0:6,r1:40,life:0.5,col:'#4fb8c8'});}if(h.hp<=0&&!h.wiUsed&&skVal(h,'whatisdead')){h.wiUsed=true;h.hp=1;h.invulnUntil=G.time+skVal(h,'whatisdead');addText(h.x,h.y-40,'What is dead may never die!','#e3b661',1);addFx({t:'ring',x:h.x,y:h.y,r0:6,r1:40,life:0.5,col:'#e3b661'});}if(h.hp<=0){h.hp=0;h.dead=true;h.respawnT=UP('secondlife')?10:15;h.tx=null;G.heroSel=false;addText(h.x,h.y-20,'Champion down','#e14b4b');addFx({t:'ring',x:h.x,y:h.y,r0:4,r1:30,life:0.5,col:'#e14b4b'});}}
 function gameOver(){
-  if(G.state!=='play')return;G.state='over';G.armed=null;G.sel=null;closeSheet();mergeStats();SFX.play('lose');
+  if(G.state!=='play')return;if(CLASH.on&&G.mode==='clash'){G.state='over';return;}G.state='over';G.armed=null;G.sel=null;closeSheet();mergeStats();SFX.play('lose');
   if(G.mode==='online'){const waves=Math.max(0,G.wave-1);ACC.online.runs.push({waves,kills:G.kills});ACC.stats.onlineBest=Math.max(ACC.stats.onlineBest,waves);const rw=ECON.hold(waves,G.kills);addGold(rw.gold);ACC.gems+=rw.gems;G.holdReward=rw;persist();if(G.bid)ecoFinish(false,0,{g:rw.gold,m:rw.gems},waves).then(()=>fetchLeaderboard(true)).catch(()=>{});else if(CLOUD.on&&sbReady())sbRpc('hold_result',{token:CLOUD.token,day:dayKeyUTC(),waves,kills:G.kills,seat:Math.max(0,seatNo()),house:ACC.house,realm:ACC.langI},{timeout:8000}).then(()=>fetchLeaderboard(true)).catch(()=>{});showOnlineOver(waves);}
   else{ecoFinish(false,0,null);persist();showCampaignResult(false);}
 }
@@ -3058,7 +3219,7 @@ function rallyFor(s){let best=null,bd=1e9;for(const R of G.map.routes){for(let d
 function spawnSoldier(s,t,st){
   if(t.rx==null){const r=rallyFor(s);t.rx=r.x;t.ry=r.y;}
   const k=G.allies.filter(a=>a.home===s.id).length,a=k*2.2;
-  G.allies.push({kind:'keep',x:s.x+Math.cos(a)*10,y:s.y+Math.sin(a)*6,rx:t.rx+Math.cos(a)*11,ry:t.ry+Math.sin(a)*7,hp:st.shp,max:st.shp,dmg:st.sdmg,rate:0.75,atkT:0,t:Infinity,eng:0,home:s.id,house:true,face:1,id:G.eid++,spd:64,leash:54,bornT:G.time});
+  G.allies.push({kind:'keep',x:s.x+Math.cos(a)*10,y:s.y+Math.sin(a)*6,rx:t.rx+Math.cos(a)*11,ry:t.ry+Math.sin(a)*7,hp:st.shp,max:st.shp,dmg:st.sdmg,rate:0.75,atkT:0,t:Infinity,eng:0,home:s.id,house:true,face:1,id:G.eid++,spd:64,leash:54,bornT:G.time});troopDress(G.allies[G.allies.length-1]);
 }
 /* The road in front of a gate: the route whose dead are closest to their gate (Hodor's gate breaks a tie). */
 function frontRoute(){const R=G.map.routes;let best=R[0],bv=-1;for(const r of R){let v=(G.hod&&G.hod.at===r.gate)?1:0;for(const e of G.enemies){if(e.hp<=0||e.fly||(e.route||0)!==r.i)continue;const rem=r.total-e.prog;if(rem<440)v+=440-rem;}if(v>bv){bv=v;best=r;}}return best;}
@@ -3218,11 +3379,11 @@ function step(){
     }
   }else if(G.heroOn){h.respawnT-=dt;if(h.respawnT<=0){h.dead=false;h.hp=h.max*0.6;h.wiUsed=false;const g=heldGate();h.x=g.x;h.y=GATE_Y-36;h.tx=null;addFx({t:'ring',x:h.x,y:h.y,r0:4,r1:30,life:0.5,col:'#e9eef5'});addFx({t:'burst',x:h.x,y:h.y-14,r0:6,r1:30,life:0.4,col:HOUSES[ACC.house].col});G.heroSayAt=G.time+0.4;SFX.play('respawn');}}
   for(const a of G.allies){
-    a.t-=dt;a.atkT-=dt;if(a.bornT!=null&&G.time<a.bornT)continue;if(a.stunT>0){a.stunT-=dt;continue;}
+    a.t-=dt;a.atkT-=dt;if(a.bornT!=null&&G.time<a.bornT)continue;if(a.stunT>0){a.stunT-=dt;continue;}if(a.mend)troopMend(a,dt);
     if(a.follow==='hero'){if(G.heroOn&&!h.dead){a.rx=h.x+a.fo.x;a.ry=h.y+a.fo.y;}}
     let tgt=null,td=1e9;
-    for(const e of G.enemies){if(e.hp<=0||e.fly)continue;const q=posE(e);const d=dist(q.x,q.y,a.x,a.y);if(d<=26+e.r&&d<td){td=d;tgt=e;}}
-    if(tgt){const q=posE(tgt);a.face=q.x<a.x?-1:1;a.moving=false;if(a.atkT<=0){const nh=alive&&dist(a.x,a.y,h.x,h.y)<=90;const fv=nh?skVal(h,'favour'):0,dv=nh?skVal(h,'drill'):0;a.atkT=a.rate/(1+fv/100);a.strikeT=G.time;dmg(tgt,a.dmg*(1+dv/100)*(G.musterUntil>G.time?1.5:1),'ally');}continue;}
+    for(const e of G.enemies){if(e.hp<=0||e.fly)continue;const q=posE(e);const d=dist(q.x,q.y,a.x,a.y);if(d<=(a.range||26)+e.r&&d<td){td=d;tgt=e;}}
+    if(tgt){const q=posE(tgt);a.face=q.x<a.x?-1:1;a.moving=false;if(a.atkT<=0){const nh=alive&&dist(a.x,a.y,h.x,h.y)<=90;const fv=nh?skVal(h,'favour'):0,dv=nh?skVal(h,'drill'):0;a.atkT=a.rate/(1+fv/100);a.strikeT=G.time;allyStrike(a,tgt,a.dmg*(1+dv/100)*(G.musterUntil>G.time?1.5:1));}continue;}
     /* nobody in reach: go for the nearest ground enemy near the post that nobody else is already walking to */
     const ax=a.rx!=null?a.rx:a.x,ay=a.ry!=null?a.ry:a.y,L=a.leash||56;let seek=null,sd=1e9;
     for(const e of G.enemies){if(e.hp<=0||e.fly||e.air||e.charge)continue;const q=posE(e);if(q.y<26)continue;if(dist(q.x,q.y,ax,ay)>L+e.r)continue;let d=dist(q.x,q.y,a.x,a.y);if(e.claim===G.tick)d+=70;if(e.pblk==='hero')d+=45;if(d<sd){sd=d;seek=e;}}
@@ -3274,7 +3435,7 @@ function step(){
     if(blocker||(e.ranged&&remain<=e.ranged)||remain<=18){const v0=e.vel||0;e.vel=v0*Math.max(0,1-dt*14);e.accS=(e.accS||0)*0.85+((e.vel-v0)/Math.max(dt,1e-3))*0.15;e.moving=false;}
     if(blocker){e.atkT-=dt;if(e.atkT<=0){e.atkT=0.7;e.strikeT=G.time;
       if(blocker===h){if(!heroParry(e))hurtHero(e.dps*0.7*(e.weak||1));const thv=skVal(h,'thorns');if(thv&&e.hp>0)dmg(e,thv,'hero',true);if(e.knock)h.invulnUntil=Math.max(h.invulnUntil,0);}
-      else{let bd=e.dps*0.7*(e.weak||1);if(alive){const dc=skVal(h,'discipline');if(dc&&dist(blocker.x,blocker.y,h.x,h.y)<=90)bd*=1-dc/100;}blocker.hp-=bd;blocker.hitT=G.time;if(e.knock)blocker.stunT=1.5;}}}
+      else{let bd=e.dps*0.7*(e.weak||1);if(alive){const dc=skVal(h,'discipline');if(dc&&dist(blocker.x,blocker.y,h.x,h.y)<=90)bd*=1-dc/100;}if(blocker.armor)bd*=blocker.armor;blocker.hp-=bd;blocker.hitT=G.time;if(e.knock&&!blocker.steady)blocker.stunT=1.5;}}}
     else if(e.ranged&&remain<=e.ranged){e.atkT-=dt;if(e.atkT<=0){e.atkT=0.8;e.strikeT=G.time;hitDoor(e.dps*0.8*(e.weak||1),R.gate);addFx({t:'arrow',x:p.x,y:p.y,tx:gt.x+(e.id%5-2)*8,ty:gt.y-4,life:0.3});}}
     else if(remain<=18){if(G.safe){e.gateT=(e.gateT||0)+dt;if(e.gateT>10){kill(e,'hodor');hodorSay('HODOR!!',1200);addFx({t:'ring',x:gt.x,y:gt.y-10,r0:6,r1:40,life:0.4,col:'#e3b661'});continue;}}e.atkT-=dt;if(e.atkT<=0){e.atkT=0.7;e.strikeT=G.time;hitDoor(e.dps*0.7*(e.weak||1),R.gate);addFx({t:'hit',x:gt.x+(e.id%5-2)*9,y:gt.y-2,life:0.15});}}
     else{const v0=e.vel||0;e.vel=v0+(spd-v0)*Math.min(1,dt*(spd>v0?5:14));e.accS=(e.accS||0)*0.85+((e.vel-v0)/Math.max(dt,1e-3))*0.15;e.prog=Math.min(R.total-16,e.prog+e.vel*dt);e.walk=(e.walk||0)+e.vel*dt;e.moving=true;}
@@ -3357,7 +3518,7 @@ function openConfirm(s,type){
   const d=TOWERS[type],c=costOf(type),st={range:d.range,dmg:d.dmg,rate:d.rate,dps:d.dps,count:d.count?d.count[0]:0};
   G.pending={slot:s,type};
   const line=d.kind==='barracks'?`${st.count} men hold the road`:d.kind==='aura'?`slows everything nearby`:d.kind==='zone'?`${d.dps} damage per second in melee`:`${d.dmg} damage, ${d.rate.toFixed(2)}/s`;
-  sheet.innerHTML=`<h3>${towerIconHTML(type,1,26)} ${d.n}</h3><p class="sub">${d.sub}. ${line}${d.kind==='barracks'?'':' · range '+d.range}</p>
+  sheet.innerHTML=`<h3>${towerIconHTML(type,1,26)} ${d.n}</h3><p class="sub">${d.sub}</p>${towerGuideMini(type,1)}
   <div class="row"><button id="cOk" style="flex:1.6;background:var(--gold);color:#1a1405;font-family:var(--f-display);font-weight:700" ${G.gold<c?'disabled':''}>✔ Build · ${c}g</button><button id="cNo">✖ Cancel</button></div>`;
   sheet.classList.add('open');
   $('#cOk').addEventListener('click',()=>build(s,type));
@@ -3366,7 +3527,7 @@ function openConfirm(s,type){
 function openSheet(s){
   if(s.tower){const t=s.tower,def=TOWERS[t.type];const up=t.lvl<5?upCost(t):0;const sell=Math.round(t.invested*(UP('salvage')?0.9:0.6));const st=towerStats(t);
     const line=def.kind==='aura'?`Slow ${Math.round((1-st.slow)*100)}%, +${Math.round((st.mark-1)*100)}% damage taken`:def.kind==='zone'?`${Math.round(st.dps)} dmg/s, slow ${Math.round((1-st.slow)*100)}%`:def.kind==='barracks'?`${st.count} men · ${st.shp} hp · ${st.sdmg} dmg · back in ${st.resp}s`:`${Math.round(st.dmg)} dmg, ${st.rate.toFixed(2)}/s`;
-    sheet.innerHTML=`<h3>${towerIconHTML(t.type,t.lvl,26)} ${def.n} ${ROMAN[t.lvl-1]} <small style="font-size:11px;color:var(--muted)">· Lv ${tLvl(t.type)}</small></h3><p class="sub">${def.sub}. ${line}${def.kind==='barracks'?'':', range '+Math.round(st.range)}</p><div class="row">${def.kind==='barracks'?'<button id="sRally">🚩 Move banner</button>':''}${t.lvl>=5?`<button disabled>⭐ Max</button>`:t.lvl>=maxTowerLvl()?`<button disabled>🔒 ${ROMAN[t.lvl]} after stage ${LVL_GATES[t.lvl]}</button>`:`<button id="sUp" ${G.gold<up?'disabled':''}>⬆️ ${ROMAN[t.lvl]} · ${up}g</button>`}<button id="sSell">💸 +${sell}g</button><button id="sClose">✖</button></div>`;
+    sheet.innerHTML=`<h3>${towerIconHTML(t.type,t.lvl,26)} ${def.n} ${ROMAN[t.lvl-1]} <small style="font-size:11px;color:var(--muted)">· Lv ${tLvl(t.type)}</small></h3><p class="sub">${def.sub}</p>${towerGuideMini(t.type,t.lvl)}<div class="row">${def.kind==='barracks'?'<button id="sRally">🚩 Move banner</button>':''}${t.lvl>=5?`<button disabled>⭐ Max</button>`:t.lvl>=maxTowerLvl()?`<button disabled>🔒 ${ROMAN[t.lvl]} after stage ${LVL_GATES[t.lvl]}</button>`:`<button id="sUp" ${G.gold<up?'disabled':''}>⬆️ ${ROMAN[t.lvl]} · ${up}g</button>`}<button id="sSell">💸 +${sell}g</button><button id="sClose">✖</button></div>`;
     const rb=$('#sRally');if(rb)rb.addEventListener('click',()=>{G.armed='rally';G.rallySlot=s;G.heroSel=false;closeSheet();updateBar();});
     const u=$('#sUp');if(u)u.addEventListener('click',()=>{if(upgradeTower(s))openSheet(s);});
     $('#sSell').addEventListener('click',()=>{sellTower(s);G.sel=null;closeSheet();});
@@ -3390,7 +3551,7 @@ const ringTip=document.createElement('div');ringTip.id='ringTip';ringTip.hidden=
 $('#stage').appendChild(ringEl);$('#stage').appendChild(ringTip);
 let RING=null;
 const RING_ANG={1:[-28],2:[-145,-35],3:[-90,30,150],4:[-135,-45,45,135],5:[-90,-18,54,126,198],6:[-90,-30,30,90,150,210]};
-function w2s(x,y){return{x:canvas.offsetLeft+((x-CAM.x)*CAM.z+W/2)*scale,y:canvas.offsetTop+((y-CAM.y)*CAM.z+H/2)*scale};}
+function w2s(x,y){return{x:canvas.offsetLeft+((x-CAM.x)*CAM.z+W/2)*scale,y:canvas.offsetTop+((y-CAM.y)*CAM.z+H/2+(CLASH.on?CLASH.myDy:0))*scale};}
 function sellValue(t){return Math.round(t.invested*(UP('salvage')?0.9:0.6));}
 function upgradeTower(s){
   const t=s&&s.tower;if(!t||t.lvl>=5||t.lvl>=maxTowerLvl())return false;
@@ -3501,6 +3662,7 @@ canvas.addEventListener('pointerdown',ev=>{
   if(G.tut&&G.tut.hold){tutNext();return;}
   if(G.state!=='play')return;
   const r=canvas.getBoundingClientRect();
+  if(CLASH.on&&(ev.clientY-r.top)/scale<H/2)return;
   const w0=toWorld((ev.clientX-r.left)/scale,(ev.clientY-r.top)/scale);
   const x=w0.x,y=w0.y;
   const h=G.hero;
@@ -3610,41 +3772,24 @@ function tutSlot(){if(!G.map)return null;const f=G.map.slots.filter(s=>!s.tower)
 function tutTower(){const ts=G.map?G.map.slots.filter(s=>s.tower):[];return ts.sort((a,b)=>b.tower.lvl-a.tower.lvl||b.y-a.y)[0]||null;}
 function upgradeGold(){const s=tutTower();return s?upCost(s.tower):0;}
 const TUT_STEPS=[
- {t:'Welcome to HOLDOR! The dead are marching on the realm, and every stage is a gate we must hold. I will show you everything, one step at a time.',pose:'open',hold:1,cam:[1],hodor:'HODOR!'},
- {t:'This is Hodor, holding the door. The dead walk down the road to him, and every one that reaches him breaks a piece of the door.',pose:'point',hold:1,cam:[1.75,GX,GATE_Y-6],hodor:'Hodor… hodor.'},
- {t:'Up top, this bar is the door. If it breaks, the stage is lost. The more of it you keep, the more stars you win.',pose:'point',hold:1,cam:[1],focus:'#hud .gate'},
- {t:'This shows the wave you are on and how many are coming. This stage has three. Hold them all and the stage is yours.',pose:'point',hold:1,focus:'#hud .stat:first-child'},
- {t:'This is your gold. Towers cost gold; every kill pays more, and so does calling a wave early. The crossed swords count your kills.',pose:'point',hold:1,focus:'#hud .stat:nth-child(2)'},
- {t:'Towers stop the dead. Let us build a Watchtower on the glowing stone ring.',pose:'point',want:'build',ring:['build'],cam:'slot',pause:1,hodor:'Hodor?',
+ {t:'The dead are marching on the door. Hodor holds it — you build the towers that stop them.',pose:'open',hold:1,cam:[1.4,GX,GATE_Y-40],hodor:'HODOR!'},
+ {t:'A Watchtower already stands by the door. Call the first wave and watch it shoot: tap the ⚔ banner at the top of the road.',pose:'point',want:'call',cam:'tower',hodor:'Hodor?',hint:'Tap the ⚔ banner at the top of the road'},
+ {t:'',want:'kill',hint:'The tower shoots by itself. Every kill drops gold.',cond:()=>G.kills>0,cam:[1]},
+ {t:'Gold builds towers. Tap the glowing stone ring and build a second Watchtower.',pose:'point',want:'build',ring:['build'],cam:'slot',pause:1,gold:()=>costOf('watch'),hodor:'HODOR HODOR!',
   hint:()=>ringHint('Tap the glowing stone ring','Tap the Watchtower','Tap ✓ to build it')},
- {t:'The first wave waits at the top of the road. Tap the ⚔ banner to call it now: calling early pays bonus gold.',pose:'point',want:'call',hint:'Tap the ⚔ banner at the top of the road',cam:[1],hodor:'HODOR HODOR!'},
- {t:'',want:'shot',silent:1,cam:'tower'},
- {t:'',want:'kill',hint:'Your tower shoots by itself. Every kill drops gold for you.',cond:()=>G.kills>0,cam:[1]},
- {t:'Your champion has ridden up from the keep. Tap the ground where they should stand and they will walk there.',pose:'point',want:'move',hero:1,heroFx:1,cam:[1.5,GX,GATE_Y-52],camBack:1500,hodor:'HODOR! HODOR!',
+ {t:'Your champion rides up from the keep. Tap the ground where they should stand.',pose:'point',want:'move',hero:1,heroFx:1,cam:[1.5,GX,GATE_Y-52],camBack:1500,hodor:'HODOR!',
   hint:()=>'Tap the ground where your champion should stand'},
- {t:'This card is your champion. The bar is health. The thin gold line is battle experience: fill it with kills and your champion grows stronger for the rest of the battle. A fallen champion rides back after a short while.',pose:'point',hold:1,focus:'#hCard'},
- {t:()=>{const u=SK[G.hero.c.sk[2]];return 'Every champion has one skill of their own. Yours is '+u.n+': '+u.d(skVal(G.hero,G.hero.c.sk[2]))+'. Tap it now.';},pose:'point',want:'ult',hodor:'Hodor!',
+ {t:()=>{const u=SK[G.hero.c.sk[2]];return 'The framed card at the bottom is your champion, and the skill beside it is theirs alone: '+u.n+'. Tap it.';},pose:'point',want:'ult',focus:'#rowHero',hodor:'Hodor!',
   hint:()=>'Tap '+SK[G.hero.c.sk[2]].e+' '+SK[G.hero.c.sk[2]].n+' at the bottom'},
  {t:'',want:'wait',hint:'Hold on until the road is clear…',cond:()=>G.waveDone&&!G.enemies.some(e=>e.hp>0)},
- {t:'Well held! Between waves the timer waits for you. Towers grow stronger with gold: tap your Watchtower, then ⬆ and ✓.',pose:'point',want:'upgrade',ring:['up'],gold:upgradeGold,cam:'tower',hodor:'Hodor!',
+ {t:'Towers grow with gold. Tap your Watchtower, then ⬆ and ✓.',pose:'point',want:'upgrade',ring:['up'],gold:upgradeGold,cam:'tower',hodor:'Hodor!',
   hint:()=>ringHint('Tap your Watchtower','Tap ⬆ to upgrade it','Tap ✓ to pay')},
- {t:'Want the numbers? Tap a tower, then ⓘ. Close the card with ✖ when you have read it.',pose:'point',want:'info',ring:['info'],cam:[1],
-  hint:()=>sheet.classList.contains('open')?'These are its numbers. Tap ✖ to close the card':ringHint('Tap your Watchtower','Tap ⓘ Info',''),cond:()=>G.tutInfo&&!sheet.classList.contains('open')},
- {t:'One tower is not enough for long. Build a second Watchtower on any stone ring.',pose:'point',want:'build',ring:['build'],gold:()=>costOf('watch'),
-  hint:()=>ringHint('Tap any stone ring','Tap the Watchtower','Tap ✓ to build it')},
- {t:'Built in the wrong spot? Sell the tower and you get 60% of its gold back. Try it: tap the new tower, then 💰 and ✓.',pose:'point',want:'sell',ring:['sell'],
-  hint:()=>ringHint('Tap the new tower','Tap 💰 to sell it','Tap ✓ to sell')},
- {t:'Now build it again, wherever you think it is best.',want:'build',ring:['build'],gold:()=>costOf('watch'),
-  hint:()=>ringHint('Tap any stone ring','Tap the Watchtower','Tap ✓ to build it')},
- {t:'Call the second wave when you are ready.',want:'call',hint:'Tap the ⚔ banner for wave 2'},
- {t:'Next to your champion wait the spells of your house. The first is Arrow rain: a volley from the wall. Tap it, then tap the dead on the road.',pose:'point',want:'power',focus:'#bP0',hodor:'HODOR!',
+ {t:'Call the second wave.',want:'call',hint:'Tap the ⚔ banner for wave 2'},
+ {t:'The spells of your house wait on the right. Arrow rain is a volley from the wall: tap it, then tap the dead on the road.',pose:'point',want:'power',focus:'#bP0',hodor:'HODOR!',
   hint:()=>G.armed==='arrows'?'Now tap the dead on the road':'Tap 🏹 Arrow rain at the bottom'},
- {t:'A spell needs time to come back: the dark cover drains away while it recharges. Your champion\'s skill works the same way. More spells open as you hold stages.',pose:'point',hold:1,focus:'#bP0'},
- {t:'Too slow for you? This button hurries the battle: 2×, then 4×, then back to 1×. Tap it.',pose:'point',want:'speed',focus:'#bSpeed',hint:'Tap 1× at the top right',hodor:'Ho-dor!'},
- {t:'Pause stops everything. From there you can resume, start the stage again or leave. Tap pause, then Resume.',pose:'point',want:'pause',focus:'#bPause',hint:'Tap ⏸ at the top right, then Resume'},
- {t:'The ! opens the book: every enemy you have met, your towers, and field notes. Open it, look, then close it.',pose:'point',want:'book',focus:'#bInfo',hint:'Tap ! at the top, then close the book',cond:()=>G.tutBook&&overlay.classList.contains('hidden')},
- {t:'Call the last wave.',want:'call',hint:'When the road is clear, tap the ⚔ banner'},
- {t:'That is everything. Hold the gate!',hint:'That is everything. Hold the gate!',auto:4200,end:1,cam:[1],hodor:'HODOR HODOR HODOR!'},
+ {t:'A spell needs time to come back: the dark cover drains away while it recharges. Your champion\'s skill works the same way.',pose:'point',hold:1,focus:'#bP0'},
+ {t:'Call the last wave and hold the door!',want:'call',hint:'When the road is clear, tap the ⚔ banner',hodor:'HODOR HODOR HODOR!'},
+ {t:'That is all for now. More opens as you hold stages. Hold the gate!',hint:'Hold the gate!',auto:3200,end:1,cam:[1]},
 ];
 /* ---- lessons: the first time something new appears ---- */
 function towerLesson(k,txt){return [{t:txt,pose:'point',hold:1},
@@ -3683,7 +3828,7 @@ function lessonTick(dt){
 function lessonStart(k){G.lq=(G.lq||[]).filter(x=>x!==k);if(RING)closeRing();G.tut={i:0,hold:true,steps:LESSONS[k].steps,key:k};G.paused=true;applyTut();}
 /* ---- the engine ---- */
 function tutPulse(){document.querySelectorAll('.tutpulse').forEach(e=>e.classList.remove('tutpulse'));const st=TS();if(!st)return;const sel=st.focus||TUT_BTN[tutWantBase()];if(sel){const b=document.querySelector(sel);if(b)b.classList.add('tutpulse');}}
-function tutFinish(){const k=G.tut&&G.tut.key;G.tut=null;G.paused=false;camReset();tutPulse();if(!k||k==='tut')ACC.tut=1;else learnMap()[k]=1;persist();}
+function tutFinish(){const k=G.tut&&G.tut.key;G.tut=null;G.paused=false;camReset();tutPulse();if(!k||k==='tut'){ACC.tut=1;ACC.tutv=99;}else learnMap()[k]=1;persist();}
 function skipTutorial(){if(!G.tut)return;const k=G.tut.key;if(RING)closeRing();G.tut=null;G.paused=false;G.heroOn=true;camReset();tutPulse();if(!k||k==='tut')ACC.tut=1;else learnMap()[k]=1;persist();hodorSay('Hodor.',1600);}
 function tutStart(){G.tut={i:0,hold:true,steps:TUT_STEPS,key:'tut'};G.paused=true;applyTut();}
 function applyTut(){
@@ -3839,10 +3984,10 @@ const TOURS={
   {sel:'#hubAva',text:'This is you: your champion\'s face and your <b>level</b>. Every upgrade you buy adds to it, and every level pays a chest. Tap it later for settings and the book.'},
   {sel:'.hmgoal',text:'Your road north: the next stage, its stars and how far you are of fifty. Tap it to open the map.'},
   {sel:'.hmslots',text:'Four chests: <b>stars</b> fill the first, <b>levels</b> the second, the third is <b>free</b> every day and the fourth is <b>today\'s gift</b>. Something is always on its way.'},
-  {sel:'.hubtabs button[data-tab="tasks"]',text:'<b>Tasks</b>: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'},
+  {sel:'.hback',text:'<b>Tasks</b>: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'},
   {sel:'#bBattle',tap:1,text:'<b>BATTLE!</b> opens the map at your next stage. Tap it.'}],
  coll:()=>[
-  {sel:'.subtabs',text:'<b>Collection</b>: your loadout, champions, towers and spells. Each one is a card — collect copies from chests, then pay gold to raise its level.'},
+  {sel:'.subtabs',text:'<b>Army</b>: your loadout, champions, towers and spells — the Forge, the Tavern and your city are above. Each one is a card — collect copies from chests, then pay gold to raise its level.'},
   {sel:'.deckrow .ccard[data-c]',text:'Your champion. The bar shows cards collected toward the next level; a green arrow means it is ready. Tap a champion later for skills and talents.'},
   {sel:()=>document.querySelector('.hubbody .cgrid .ccard[data-t="watch"]'),tap:1,text:'Towers keep a permanent level too. Tap the <b>Watchtower</b>.'},
   {sel:'#clist button[data-a="tl"]',tap:1,text:'When the bar is full, tap here: cards + gold = one level, +3% power. Levels 4, 8, 12 and 16 bring a bonus.',alt:'Not enough cards yet — chests fill the bar. Every level adds 3% power, and levels 4, 8, 12 and 16 bring a bonus.'},
@@ -3865,8 +4010,8 @@ function hubTour(tab){if(COACH.on||!ACC||!ACC.tut||CLOUD.screen!=='hub:'+tab)ret
 /* ---- small tours when something opens in the menus ---- */
 const HUB_LESSONS={
  chest:{need:()=>starChestsReady()>0,steps:()=>[{sel:'#starChest',tap:1,text:'Your first chest is ready! Tap it to open it.'}]},
- hold:{need:()=>onlineOpen(),steps:()=>[{sel:`.hubtabs button[data-tab="hold"]`,tap:1,text:'<b>Hold</b> is open — the daily siege for the whole world. Tap it.'}]},
- champ:{need:()=>CHAMPS.filter(c=>c.house===ACC.house&&unlocked(null,c)).length>1,steps:()=>[{sel:`.hubtabs button[data-tab="coll"]`,tap:1,text:'A new champion has joined your house! Tap <b>Collection</b>.'},
+ hold:{need:()=>onlineOpen(),steps:()=>[{sel:'#hmHold .hmtx',tap:1,text:'<b>Hold</b> is open — one map a day for the whole world. Tap the card.'}]},
+ champ:{need:()=>CHAMPS.filter(c=>c.house===ACC.house&&unlocked(null,c)).length>1,steps:()=>[{sel:`.hubtabs button[data-tab="coll"]`,tap:1,text:'A new champion has joined your house! Tap <b>Army</b>.'},
    {sel:'.subtabs button[data-sub="heroes"]',tap:1,text:'Tap <b>Champions</b> to meet them — and to choose who rides with you.'}]},
 };
 function hubLessons(){
@@ -4035,7 +4180,7 @@ function drawEnemySprite(e,x,y,now,s){
     ctx.translate(x,y+hover);ctx.rotate(ang);if(left)ctx.scale(1,-1);
     ctx.translate(0,H/2);                                   /* local space: feet line at 0 → centre the body on the point */
     drawWalking(im,m,sc,D,cfg.an,0,t,s,e,true);
-    if(hit&&wh){ctx.globalAlpha=0.7;ctx.drawImage(wh,-m.cx*sc,-m.by*sc,D,D);}
+    if(hit&&wh){ctx.globalAlpha=0.7;ctx.drawImage(fxbTint(e,wh),-m.cx*sc,-m.by*sc,D,D);}
   }else{
     const f=enemyFace(e);
     /* turn animation: squeeze through zero instead of an instant flip */
@@ -4048,7 +4193,7 @@ function drawEnemySprite(e,x,y,now,s){
     ctx.globalAlpha*=alpha;
     const lift=drawWalking(im,m,sc,D,cfg.an,e.walk||0,t,s,e,moving);
     e.lift=lift;
-    if(hit&&wh){ctx.globalAlpha=0.7;ctx.drawImage(wh,-m.cx*sc,-m.by*sc,D,D);}
+    if(hit&&wh){ctx.globalAlpha=0.7;ctx.drawImage(fxbTint(e,wh),-m.cx*sc,-m.by*sc,D,D);}
   }
   ctx.restore();
   /* footstep puffs for heavy walkers */
@@ -4239,11 +4384,11 @@ function confirmWipe(i){
 }
 function afterLoad(){
   ecoStart();
-  if(!ACC.intro){showCinematic(()=>{ACC.intro=1;persist();showHub('battle');});return;}
+  if(!ACC.intro){showCinematic(()=>{ACC.intro=1;persist();if(!ACC.tut)startTutorial();else showHub('battle');});return;}
   showHub('battle');
 }
-function startTutorial(){startGame({mode:'campaign',level:TUT_LEVEL,tutorial:1});}
-function newLang(i,q,selJ){
+function startTutorial(){startGame({mode:'campaign',level:TUT_LEVEL,tutorial:1});tutPrebuild();}
+function newLang(i,q,selJ){if(selJ==null&&q==null)selJ=obGuessRealm();
   if(sbReady()&&!CLOUD.lb)fetchLeaderboard(true).then(r=>{if(r&&CLOUD.screen==='newlang'&&$('#q'))newLang(i,$('#q').value,selJ);});
   const rows=realmStats(),top=rows.length?Math.max(1,rows[0].waves):1;
   const list=rows.filter(r=>!q||(r.c+' '+r.l).toLowerCase().indexOf(q.toLowerCase())>=0);
@@ -5294,7 +5439,7 @@ async function dailyClaimFr(other){if(DAILY.busy||!ecoOn())return;DAILY.busy=tru
     DAILY.fr=r.friends;DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);dailyClaimModal(r,'👥 A friend’s gift');}
   catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await frLoad();ecoModal('👥 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily('friends')}]);}}
 /* a new player who opened the game from an invite link joins his friend (once per device; the server checks he is really new) */
-function refJoinFromStart(){try{const sp=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.start_param;if(sp&&/^d_[0-9a-f]{8}$/i.test(sp)){DUEL.pending=sp.slice(2);return;}if(sp&&/^s_[a-z0-9_]{2,16}$/i.test(sp)&&CLOUD.token){const k0='holdor_src';if(localStorage.getItem(k0)===sp)return;localStorage.setItem(k0,sp);sbRpc('src_set',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).catch(()=>{});return;}if(!sp||!/^r_[0-9a-f]{8}$/i.test(sp)||!CLOUD.token)return;
+function refJoinFromStart(){try{const sp=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.start_param;if(sp&&/^d_[0-9a-f]{8}$/i.test(sp)){DUEL.pending=sp.slice(2);return;}if(cl2FromStart(sp))return;if(sp&&/^s_[a-z0-9_]{2,16}$/i.test(sp)&&CLOUD.token){const k0='holdor_src';if(localStorage.getItem(k0)===sp)return;localStorage.setItem(k0,sp);sbRpc('src_set',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).catch(()=>{});return;}if(!sp||!/^r_[0-9a-f]{8}$/i.test(sp)||!CLOUD.token)return;
   const k='holdor_refjoin';if(localStorage.getItem(k)===sp)return;localStorage.setItem(k,sp);
   sbRpc('ref_join',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).then(r=>{if(r&&r.by)ecoToast('👥 You joined '+r.by+'’s house of friends — clear 5 stages for a gift');}).catch(e=>{const m=String(e&&e.message||e);if(/only a new player|already invited/.test(m))setTimeout(()=>ecoToast('👥 You already play HOLDOR — friend gifts are for new players. You can still duel your friend: ask for a duel link.'),2500);});}catch(e){}}
 /* the popup when the castle opens and today's reward waits (once a session; never over a tutorial or a tour) */
@@ -5592,7 +5737,7 @@ function tkSocial(){const s=tkState();if(!s)return '<p class="m">⏳ asking the 
 function tkFriends(){const s=tkState();const F=s?s.items.filter(i=>i.kind==='ref'):[];
   return `${F.length?`<div class="qlist">${F.map(tkRow).join('')}</div>`:''}${invBox()}`;}
 function hubTasks(sub){
-  const head=`<div class="hh"><h2>Tasks</h2><small>gifts paid by the server</small></div>`;
+  const head=`<div class="hh"><h2>Tasks</h2><small>gifts paid by the server</small></div>${tkDailyHTML()}`;
   if(!tasksOn())return head+`<p class="m">${ecoOn()?'Finish the tutorial battle first.':'Tasks are kept by the server — they need a seat signed in through Telegram.'}</p>`;
   if(sub)TASKS.sub=sub;sub=TASKS.sub;
   const rush=tkRush(),e=evAt(Date.now());
@@ -5623,7 +5768,7 @@ function tkTick(){if(CLOUD.screen!=='hub:tasks')return;let any=false,done=false;
   const c=document.getElementById('tkRushCd');if(c){const e=evAt(Date.now());c.textContent=e.active&&e.kind==='rush'?evLeft(e.t1-Date.now()):'in '+evLeft(e.t0-Date.now());any=true;}
   if(done){tasksLoad(true).then(()=>{if(CLOUD.screen==='hub:tasks')showHub('tasks');});return;}
   if(any)setTimeout(tkTick,1000);}
-function hubTasksBind(){
+function hubTasksBind(){homeMovedBind();
   if(tasksOn()){const a=TASKS.st,b=DAILY.st,c=DAILY.fr;
     tasksLoad().then(r=>{if(r&&r!==a&&CLOUD.screen==='hub:tasks')showHub('tasks');});
     dailyLoad(Date.now()-DAILY.at>8000).then(r=>{if(r&&r!==b&&CLOUD.screen==='hub:tasks')showHub('tasks');});
@@ -6239,6 +6384,291 @@ function showChat(back){CHAT.back=back||(()=>showRealms(false));CHAT.msgs=[];CHA
   $('#chList').addEventListener('click',e=>{const m=e.target.closest&&e.target.closest('.chm');if(m)chatActions(+m.dataset.id);});
   clearInterval(CHAT.timer);CHAT.timer=setInterval(()=>{if(CLOUD.screen!=='chat'){clearInterval(CHAT.timer);return;}chatPoll();},4000);
   chatPoll();}
+/* =========================== FX UI (v1.0.96) — the menus move ===========================
+   Display only and menus only: nothing here exists during a battle (it is taken down when a battle starts) and nothing reads or
+   writes the simulation. It builds on the v1.0.77 juice (press springs, count-up, coin flight, rise-in, chest wiggle, Battle shine,
+   tab hop, dot pulse) and adds:
+   · home, all three looks: house-coloured motes drifting over the stage art (snow falls, embers and dust rise, rain streaks),
+     a soft light sweep, a slight parallax on drag or on tilt (DeviceOrientation when the phone sends it), a breathing glow behind BATTLE
+   · tabs: the new tab's content grows out of the tapped tab's side (220 ms); the tapped tab flashes
+   · attention: ready chest slots glow, today's calendar day pulses, the currency icons glint now and then, the modal pops on a spring
+   · collection: unlocked portraits breathe (1 → 1.015), Epic and Legendary cards shimmer (only the cards on screen)
+   CSS animations do the moving (opacity, translate, scale: the compositor); JS only places and tags. Off when the phone asks for less
+   motion, paused when the page is hidden (the root class goes), a slow phone gets half the motes and still portraits. */
+const FXUI={off:false,lite:false,tapX:null,tapAt:0,tapTab:null,bound:false,io:null,probed:0,err:null,par:{x:0,y:0,tx:0,ty:0,raf:0,g0:null,b0:null,drag:null}};
+const FXUI_COL={stark:'#eef6ff',targaryen:'#ff8a3c',lannister:'#ffd46b',baratheon:'#ffc861',greyjoy:'#bfe3ff',tyrell:'#ffc0d8',martell:'#ffb45a'};
+function fxuiCalm(){if(FXUI.off)return true;try{return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){return false;}}
+function fxuiLive(){return !fxuiCalm()&&!document.hidden&&!(typeof G!=='undefined'&&G&&G.state==='play');}
+function fxuiRoot(on){document.documentElement.classList.toggle('fxui',!!on);}
+function fxuiBind(){if(FXUI.bound)return;FXUI.bound=true;
+  const tap=e=>{const b=e.target&&e.target.closest&&e.target.closest('.hubtabs button');if(!b)return;const r=b.getBoundingClientRect();FXUI.tapX=r.left+r.width/2;FXUI.tapAt=performance.now();FXUI.tapTab=b.dataset.tab;};
+  document.addEventListener('pointerdown',tap,{passive:true,capture:true});document.addEventListener('click',tap,{passive:true,capture:true});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)fxuiRoot(false);else if(fxuiLive())fxuiRoot(true);});
+  window.addEventListener('deviceorientation',fxuiTilt,{passive:true});
+  window.addEventListener('resize',()=>{if(fxuiLive())fxuiGlowPlace();},{passive:true});}
+/* called after every hub render (wrapped around juiceHub below) */
+function fxuiHub(tab){try{fxuiBind();if(fxuiCalm()||(typeof G!=='undefined'&&G&&G.state==='play')){fxuiOff();return;}fxuiRoot(fxuiLive());
+    const fresh=FXUI.tapAt&&performance.now()-FXUI.tapAt<900;
+    const body=document.getElementById('hubBody');
+    if(body&&(body.classList.contains('slide-r')||body.classList.contains('slide-l'))){
+      body.style.setProperty('--fxox',fresh&&FXUI.tapX!=null?Math.round(100*FXUI.tapX/Math.max(1,window.innerWidth))+'%':'50%');body.classList.add('fxin');
+      let done=false;const end=e=>{if(done||(e&&(e.target!==body||e.animationName!=='fxTabIn')))return;done=true;body.classList.remove('fxin','slide-r','slide-l');body.removeEventListener('animationend',end);};
+      body.addEventListener('animationend',end);setTimeout(()=>end(),450);}
+    if(fresh){const on=document.querySelector('.hubtabs button.on');if(on&&on.dataset.tab===FXUI.tapTab){const f=document.createElement('i');f.className='fxtapf';on.appendChild(f);setTimeout(()=>f.remove(),600);}FXUI.tapAt=0;}
+    if(tab==='battle')fxuiHome();
+    if(tab==='coll')fxuiColl();else if(FXUI.io){FXUI.io.disconnect();FXUI.io=null;}
+  }catch(e){FXUI.err=e.message;}}
+/* ---- home: motes, light sweep, parallax, the breathing BATTLE ---- */
+function fxuiHome(){const st=document.getElementById('hmStage');if(!st)return;
+  if(!st.querySelector('.fxamb')){
+    const k=typeof hmFxKind==='function'?hmFxKind():'snow',mode=k==='ember'||k==='sand'?'rise':k==='rain'?'rain':'fall',look=typeof skinOf==='function'?skinOf():'b';
+    const n=look==='c'?14:10,H=Math.max(160,st.clientHeight||300);let h='';
+    for(let i=0;i<n;i++){const s=mode==='rain'?2:Math.round(5+Math.random()*(look==='c'?9:12)),d=(mode==='rise'?9:12)+Math.random()*9;
+      h+=`<i style="left:${(4+92*(i+Math.random())/n).toFixed(1)}%;--s:${s}px;--d:${d.toFixed(1)}s;--dx:${Math.round((Math.random()-0.5)*50)}px;--o:${(0.35+Math.random()*0.45).toFixed(2)};animation-delay:${(-Math.random()*d).toFixed(1)}s"></i>`;}
+    const L=document.createElement('div');L.className='fxamb '+mode;L.style.setProperty('--h',(H+40)+'px');L.style.setProperty('--c',FXUI_COL[ACC&&ACC.house]||'#fff');
+    L.innerHTML=h+'<b class="fxsw"></b>';st.insertBefore(L,st.querySelector('.hmtitle'));}
+  const P=FXUI.par;P.x=P.y=P.tx=P.ty=0;P.drag=null;
+  if(!st.dataset.fxp){st.dataset.fxp='1';
+    st.addEventListener('pointerdown',e=>{FXUI.par.drag={x:e.clientX,y:e.clientY};},{passive:true});
+    st.addEventListener('pointermove',e=>{const d=FXUI.par.drag;if(d)fxuiParTo((e.clientX-d.x)/90,(e.clientY-d.y)/90);},{passive:true});
+    const up=()=>{if(FXUI.par.drag){FXUI.par.drag=null;fxuiParTo(0,0);}};
+    for(const ev of ['pointerup','pointercancel','pointerleave'])st.addEventListener(ev,up,{passive:true});}
+  fxuiGlowPlace();fxuiProbe();}
+function fxuiParTo(x,y){const P=FXUI.par;P.tx=Math.max(-1,Math.min(1,x));P.ty=Math.max(-1,Math.min(1,y));if(P.raf)return;
+  P.raf=requestAnimationFrame(()=>{P.raf=0;const st=document.getElementById('hmStage');if(!st||!fxuiLive())return;
+    if(Math.abs(P.tx-P.x)<0.02&&Math.abs(P.ty-P.y)<0.02)return;P.x=P.tx;P.y=P.ty;st.style.setProperty('--fxpx',P.x.toFixed(2));st.style.setProperty('--fxpy',P.y.toFixed(2));});}
+function fxuiTilt(e){if(e.gamma==null||FXUI.par.drag||typeof CLOUD==='undefined'||CLOUD.screen!=='hub:battle')return;const P=FXUI.par;
+  if(P.g0==null){P.g0=e.gamma;P.b0=e.beta;}P.g0+=(e.gamma-P.g0)*0.02;P.b0+=(e.beta-P.b0)*0.02;   /* the rest position follows slowly */
+  fxuiParTo((e.gamma-P.g0)/16,(e.beta-P.b0)/16);}
+function fxuiGlowPlace(){const bb=document.getElementById('bBattle');if(!bb||!document.getElementById('hmStage'))return;const row=bb.parentElement;let g=row.querySelector('.fxglow');
+  if(bb.classList.contains('pulse')){if(g)g.remove();return;}   /* before the first lesson the old pulse already calls */
+  if(!g){g=document.createElement('i');g.className='fxglow';row.insertBefore(g,bb);}
+  g.style.cssText=`left:${bb.offsetLeft}px;top:${bb.offsetTop}px;width:${bb.offsetWidth}px;height:${bb.offsetHeight}px`;}
+/* a slow phone (40 % of 90 frames over 30 ms) gets half the motes and still portraits, for the rest of the session */
+function fxuiProbe(){if(FXUI.probed||FXUI.lite)return;FXUI.probed=1;let n=0,slow=0,last=0;
+  const f=now=>{if(document.hidden||CLOUD.screen!=='hub:battle'){FXUI.probed=0;return;}if(last){n++;if(now-last>30)slow++;}last=now;
+    if(n<90){requestAnimationFrame(f);return;}if(slow>n*0.4){FXUI.lite=true;document.documentElement.classList.add('fxlite');}};
+  requestAnimationFrame(f);}
+/* ---- collection: rarity tags, breathing portraits, only for the cards on screen ---- */
+function fxuiColl(){const body=document.getElementById('hubBody');if(FXUI.io){FXUI.io.disconnect();FXUI.io=null;}if(!body)return;
+  const cards=body.querySelectorAll('.ccard[data-c]');if(!cards.length)return;
+  if('IntersectionObserver' in window)FXUI.io=new IntersectionObserver(es=>{for(const e of es)e.target.classList.toggle('fxvis',e.isIntersecting);},{root:body,rootMargin:'40px'});
+  cards.forEach((el,i)=>{const c=CBY[el.dataset.c];if(!c)return;const r=rarOf(c)[0];if(el.classList.contains('lock'))return;if(r==='Epic')el.classList.add('fxrE');else if(r==='Legendary')el.classList.add('fxrL');
+    if(!el.classList.contains('lock'))el.classList.add('fxbr');el.style.setProperty('--fxph',(-((i*0.61)%3.8)).toFixed(2)+'s');
+    if(FXUI.io)FXUI.io.observe(el);else el.classList.add('fxvis');});}
+/* ---- off: a battle starts, or the phone asks for less motion ---- */
+function fxuiOff(){fxuiRoot(false);document.querySelectorAll('.fxamb,.fxglow,.fxtapf').forEach(e=>e.remove());
+  if(FXUI.io){FXUI.io.disconnect();FXUI.io=null;}const P=FXUI.par;if(P.raf){cancelAnimationFrame(P.raf);P.raf=0;}P.drag=null;}
+if(typeof juiceHub==='function'){const jh0=juiceHub;juiceHub=function(tab){jh0(tab);fxuiHub(tab);};}
+if(typeof startGame==='function'){const sg0=startGame;startGame=function(){try{fxuiOff();cancelAnimationFrame(HOME.raf);HOME.raf=0;clearTimeout(HOME.tick);}catch(e){}return sg0.apply(this,arguments);};   /* the home canvas loop stops too: it only checked the screen name, which a battle does not change */}
+/* =========================== BATTLE FX (v1.0.96) ===========================
+   The battlefield answers every blow. Display only: it reads G and never writes the simulation (no G.rng, no sim fields; the one
+   write is the display-only G.shake, a small capped nudge when a giant falls). Everything is pooled and capped (combat ≤ 160
+   particles, ambient ≤ 90, numbers ≤ 8); a self-throttle halves the effects when frames get slow; nothing moves while the battle
+   is paused or the tab is hidden; prefers-reduced-motion turns it all off. When the battle ends the jolt stops at once and the last
+   sparks fall and fade; a new run starts clean (pools, numbers, trails and the jolt reset).
+   · a hit: the white flash takes the colour of the blow (wildfire green, fire orange, ice blue, steel stays white) + sparks
+   · merged damage numbers: one per enemy per half second, small, at most 8 on the field
+   · a death bursts by kind: ice shards + frost for walkers and wraiths, dust + bone for wights, dust + fur for beasts, feathers
+     for birds, chitin for spiders; giants and bosses burst bigger
+   · projectile trails and glow; a tower recoils with a muzzle flash and a puff of smoke when it fires
+   · the gate jolts and sheds splinters (and frost in the cold) when it is hit
+   · ambient life by biome, on top of drawAmbient: gusts, embers + heat haze, tumbling leaves, sand drift, rain splashes + soft
+     lightning, low mist, sea spray + gull shadows, dust motes, glints on water, flickering fire light */
+const FXB={on:true,calm:false,q:1,qLock:0,t:0,dt:0,last:0,ema:16.7,slowT:0,fastT:0,frame:0,CAP:160,ACAP:90,NCAP:8,
+  runs:-1,cost:0,cema:0,P:[],np:0,A:[],na:0,N:[],nn:0,ER:new WeakMap(),TR:new WeakMap(),TW:new WeakMap(),trA:[],trF:[],pp:{x:0,y:0,h:0},
+  kick:0,gateT:-9,flash:0,boltIn:9,gust:0,gustIn:5,wind:0,map:null,prof:null,glint:[],fires:[],dust:'200,185,160',soft:{},tint:new Map(),rgb:new Map(),
+  st:{hits:0,deaths:0,shots:0,gate:0,nums:0}};
+try{FXB.calm=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){}
+/* the layer's own CPU time per frame (summed by the hooks), for the self-throttle */
+const fxbClock=()=>performance.now();
+function fxbMk(){return{x:0,y:0,vx:0,vy:0,g:0,dr:0,life:0,max:1,sz:1,gr:0,k:0,c:'#fff',im:null,r:0,vr:0,a:1,add:0,fl:0,ph:0};}
+for(let i=0;i<FXB.CAP;i++)FXB.P.push(fxbMk());for(let i=0;i<FXB.ACAP;i++)FXB.A.push(fxbMk());for(let i=0;i<FXB.NCAP;i++)FXB.N.push({x:0,y:0,v:0,life:0,c:'#fff'});
+const FXB_R=Math.random;
+/* cached sprites: a soft disc per colour, a heat-haze strip */
+function fxbSoft(rgb){let c=FXB.soft[rgb];if(c)return c;c=document.createElement('canvas');c.width=c.height=48;const x=c.getContext('2d'),g=x.createRadialGradient(24,24,0,24,24,24);
+  g.addColorStop(0,'rgba('+rgb+',1)');g.addColorStop(0.42,'rgba('+rgb+',0.55)');g.addColorStop(1,'rgba('+rgb+',0)');x.fillStyle=g;x.fillRect(0,0,48,48);FXB.soft[rgb]=c;return c;}
+function fxbRgb(hex){let v=FXB.rgb.get(hex);if(v)return v;if(!hex||hex[0]!=='#'){v='255,255,255';}else{const n=parseInt(hex.slice(1),16);v=(n>>16)+','+((n>>8)&255)+','+(n&255);}FXB.rgb.set(hex,v);return v;}
+/* a particle from the combat pool (null when the pool is full at this quality) */
+function fxbP(k,x,y,vx,vy,life,sz,c,g){if(FXB.np>=Math.floor(FXB.CAP*FXB.q))return null;const p=FXB.P[FXB.np++];
+  p.k=k;p.x=x;p.y=y;p.vx=vx;p.vy=vy;p.life=p.max=life;p.sz=sz;p.c=c;p.g=g||0;p.dr=0;p.gr=0;p.im=null;p.r=FXB_R()*6.28;p.vr=0;p.a=1;p.add=0;p.fl=0;return p;}
+function fxbSoftP(x,y,vx,vy,life,sz,rgb,gr,a,add){const p=fxbP(2,x,y,vx,vy,life,sz,'');if(!p)return null;p.im=fxbSoft(rgb);p.gr=gr||0;p.a=a==null?1:a;p.add=add?1:0;return p;}
+/* the blow is the source that set e.hitT: damage over time (burn, poison, glass) never sets hitT, it only overwrites e.lastSrc */
+const FXB_DOT={burn:1,poison:1,glass:1};
+const FXB_TINT={wild:'#b4ff86',dany:'#ffb15c',power:'#ffb15c',dragon:'#ffb15c'};
+const FXB_SPARK={wild:'#b4ff86',poison:'#b4ff86',burn:'#ffb15c',dany:'#ffb15c',power:'#ffb15c',glass:'#c9ecff',scorp:'#ffe2a0'};
+/* the hit flash: the white silhouette, tinted by the kind of blow (cached per enemy type and colour) */
+function fxbTint(e,wh){if(!FXB.on||FXB.calm||!wh)return wh;const r=FXB.ER.get(e),c=r&&FXB_TINT[r.src];if(!c)return wh;const key=e.type+c;let cv=FXB.tint.get(key);
+  if(!cv){const w=wh.naturalWidth||wh.width,h=wh.naturalHeight||wh.height;if(!w||!h)return wh;cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');
+    x.drawImage(wh,0,0,w,h);x.globalCompositeOperation='source-in';x.fillStyle=c;x.fillRect(0,0,w,h);FXB.tint.set(key,cv);}return cv;}
+/* where an enemy is drawn (same jitter as drawEnemy), into one shared object */
+function fxbPos(e){const p=posE(e),o=FXB.pp;o.x=e.fly?p.x:p.x+((e.id%5)-2)*3.2;o.y=e.fly?p.y:p.y+((e.id%3)-1)*3;o.h=e.dragon?44:e.arch==='bird'?14:28*(e.scale||1)*(e.big||1);return o;}
+/* ---- events ---- */
+function fxbHit(e,q,src){const c=FXB_SPARK[src]||'#fff4dc',n=src==='scorp'?5:3,hy=q.y-q.h*0.55;FXB.st.hits++;
+  for(let i=0;i<n;i++){const a=-Math.PI/2+(FXB_R()-0.5)*2.6,v=70+FXB_R()*90;const p=fxbP(3,q.x+(FXB_R()-0.5)*5,hy+(FXB_R()-0.5)*5,Math.cos(a)*v,Math.sin(a)*v,0.16+FXB_R()*0.12,src==='scorp'?1.6:1.1,c,260);if(p)p.add=1;}
+  if(c!=='#fff4dc'&&src!=='scorp'){const p=fxbSoftP(q.x,hy,0,-10,0.22,6,fxbRgb(c),0.6,0.7,1);}}
+function fxbNum(x,y,v,src){if(FXB.nn>=FXB.NCAP)return;x+=(FXB_R()-0.5)*8;
+  /* a number never lands on a tower: slide it to the free side */
+  for(const s of G.map.slots){if(!s.tower)continue;const dx=x-s.x;if(dx>-24&&dx<24&&y>s.y-54&&y<s.y+14){x=s.x+(dx<0?-30:30);if(x<10||x>W-10){x=s.x+(dx<0?30:-30);}break;}}
+  const o=FXB.N[FXB.nn++];o.x=x;o.y=y;o.v=v;o.life=0.8;o.c=src==='wild'||src==='poison'?'#c8ff9e':src==='burn'||src==='dany'||src==='power'?'#ffc27a':src==='glass'?'#bfe8ff':'#f2ead8';FXB.st.nums++;}
+function fxbDeath(e){if(!FXB.on||FXB.calm||!G.map)return;FXB.st.deaths++;const q=fxbPos(e),x=q.x,y=q.y,h=q.h;
+  const big=!!(e.boss||e.mini||e.lord||e.king||e.dragon||(e.big||1)>=1.4),m=big?1.8:1,zs=big?1.4:1,ice=!!(e.walker||e.king||e.lord||e.arch==='wraith'||e.ice),cy=y-h*0.45,fl=y+3;
+  const R=FXB_R,dust=FXB.dust;
+  const shards=(n,c1,c2)=>{for(let i=0;i<n;i++){const a=-Math.PI*(0.1+0.8*R()),v=(60+R()*110)*zs;const p=fxbP(1,x+(R()-0.5)*8,cy+(R()-0.5)*h*0.4,Math.cos(a)*v*(R()<0.5?-1:1),Math.sin(a)*v,0.55+R()*0.35,(2.2+R()*2.2)*zs,i%2?c1:c2,340);if(p){p.vr=(R()-0.5)*18;p.fl=fl+R()*6;}}};
+  const puffs=(n,rgb,a)=>{for(let i=0;i<n;i++)fxbSoftP(x+(R()-0.5)*14*zs,y-2-R()*h*0.3,(R()-0.5)*26,-8-R()*14,0.55+R()*0.3,(7+R()*5)*zs,rgb,1.3,a,0);};
+  const bits=(k,n,c,sz,g)=>{for(let i=0;i<n;i++){const a=-Math.PI*(0.15+0.7*R()),v=(40+R()*80)*zs;const p=fxbP(k,x+(R()-0.5)*8,cy,Math.cos(a)*v*(R()<0.5?-1:1),Math.sin(a)*v,0.6+R()*0.4,sz*zs,c,g);if(p){p.vr=(R()-0.5)*12;p.fl=fl+R()*5;p.dr=g<200?2.2:0;}}};
+  if(e.dragon){shards(Math.round(10*m),'#dff4ff','#8ed2ee');puffs(4,'255,170,90',0.55);puffs(3,'215,235,250',0.5);}
+  else if(ice){shards(Math.round(7*m),'#eaf8ff','#9fd6f5');puffs(Math.round(2*m),'215,238,252',0.55);const p=fxbSoftP(x,cy,0,0,0.25,12*zs,'225,245,255',1.4,0.8,1);}
+  else if(e.arch==='bird'){bits(5,Math.round(5*m),'#2a2a33',3,60);puffs(1,dust,0.35);}
+  else if(e.arch==='spider'){bits(4,Math.round(5*m),'#2b3d4d',2.4,320);puffs(1,'215,238,252',0.45);}
+  else if(e.arch==='beast'||e.arch==='mount'){puffs(Math.round(2*m),dust,0.5);bits(5,Math.round(5*m),e.pal?mixHex(e.pal,'#cfc6b4',0.45):'#8a8070',3.2,140);}
+  else{puffs(Math.round(2*m),dust,0.45);bits(4,Math.round(4*m),'#e6dcc4',2.2,380);}
+  if(big){const p=fxbP(6,x,y+2,0,0,0.5,10*zs,'rgba('+dust+',0.7)');if(p)p.gr=2.4;if(!(e.boss||e.lord||e.giant||e.mini||e.king))G.shake=Math.min(4,(G.shake||0)+1.2);}}
+function fxbGate(gi,a){if(!FXB.on||FXB.calm||!G.map)return;FXB.st.gate++;if(G.state==='play')FXB.kick=Math.min(1,FXB.kick+0.4+a/90);
+  if(FXB.t-FXB.gateT<0.1)return;FXB.gateT=FXB.t;const gs=G.map.gates||[],g=gs[gi]||gs[0]||{x:GX},x=g.x,y=GATE_Y+18,R=FXB_R,cold=!!(G.map.B&&G.map.B.cold);
+  const n=1+Math.round(5*FXB.q);for(let i=0;i<n;i++){const p=fxbP(4,x+(R()-0.5)*44,y+R()*22,(R()-0.5)*170,-70-R()*120,0.6+R()*0.35,2+R()*2.4,R()<0.5?'#8a5a30':'#5c3a1c',430);if(p){p.vr=(R()-0.5)*16;p.fl=GATE_Y+56+R()*8;}}
+  fxbSoftP(x+(R()-0.5)*20,y+26,(R()-0.5)*20,-10,0.6,10,FXB.dust,1.4,0.4,0);
+  if(cold){for(let i=0;i<3;i++){const p=fxbP(1,x+(R()-0.5)*40,y+R()*14,(R()-0.5)*120,-50-R()*80,0.55,2.4,'#e6f6ff',360);if(p){p.vr=(R()-0.5)*14;p.fl=GATE_Y+58;}}fxbSoftP(x,y+10,0,-6,0.5,12,'225,242,255',1.2,0.45,0);}}
+function fxbGateKick(now){if(!FXB.on||FXB.calm||G.state!=='play'||FXB.kick<0.02||G.paused)return 0;return Math.sin(now/22)*FXB.kick*3.2;}
+function fxbMuzzle(s,t,def){const f=t.face||-Math.PI/2,x=s.x+Math.cos(f)*7,y=s.y-14+Math.sin(f)*5,R=FXB_R;FXB.st.shots++;
+  const wild=t.type==='wild';fxbSoftP(x,y,0,0,0.1,t.type==='scorp'?10:wild?9:7,wild?'170,255,140':'255,214,140',0.5,0.9,1);
+  fxbSoftP(x,y-2,Math.cos(f)*10+(R()-0.5)*6,-14-R()*8,0.55+R()*0.2,wild?6:5,wild?'150,190,140':'175,170,160',1.6,0.4,0);}
+/* ---- ambient set-up per map ---- */
+const FXB_AMB={snow:{big:10,gust:1},northcity:{big:8,gust:1},vale:{big:8,gust:1},wall:{big:8,gust:1.6},mountain:{flake:34,big:6,gust:1},
+  ash:{ember:16,haze:1},forest:{leaf:10,gust:0.6},river:{leaf:8},reach:{leaf:8},desert:{sand:14,gust:1},storm:{splash:16,bolt:1},
+  sea:{spray:12,gull:3},coast:{spray:10,gull:3},swamp:{mist:6},city:{mote:16}};
+const FXB_LEAF={forest:['#c98a2e','#a8b04a','#8a5a2a','#d6a33c'],river:['#a8b04a','#c9a640','#7f9a3a'],reach:['#c9d27a','#e6b8c8','#d9a640']};
+function fxbTrFree(){const A=FXB.trA;for(let i=0;i<A.length;i++){A[i].n=0;A[i].p=null;FXB.trF.push(A[i]);}A.length=0;}
+function fxbClear(){FXB.np=0;FXB.nn=0;FXB.kick=0;fxbTrFree();}
+function fxbAmbInit(map){fxbClear();FXB.map=map;FXB.runs=G.runs;FXB.na=0;FXB.glint.length=0;FXB.fires.length=0;const bi=map.biome,pr=FXB_AMB[bi]||{},B=map.B||{},R=FXB_R;FXB.prof=pr;
+  FXB.dust=B.cold?'228,236,244':B.path?fxbRgb(B.path):'200,185,160';FXB.boltIn=6+R()*8;FXB.gustIn=3+R()*5;FXB.gust=0;FXB.flash=0;
+  const add=(k,n)=>{for(let i=0;i<n&&FXB.na<FXB.ACAP;i++){const p=FXB.A[FXB.na++];p.k=k;p.x=R()*W;p.y=R()*H;p.ph=R()*6.28;p.sz=R();p.vx=0;p.vy=0;p.r=R()*6.28;p.life=R();p.max=1;
+    p.c=k===13?(FXB_LEAF[bi]||FXB_LEAF.forest)[i%(FXB_LEAF[bi]||FXB_LEAF.forest).length]:'';}};
+  add(10,pr.flake||0);add(11,pr.big||0);add(12,pr.ember||0);add(13,pr.leaf||0);add(14,pr.sand||0);add(15,pr.splash||0);add(18,pr.mist||0);add(19,pr.mote||0);add(17,pr.gull||0);
+  const f=map.feat;if(f&&f.sea)add(16,pr.spray||6);
+  if(f){for(let i=0;i<14;i++){let x,y;if(f.sea&&(i%2||!f.river)){y=20+R()*(H-60);const e=seaEdge(f,y);x=f.sea.side==='L'?R()*(e-12):W-R()*(e-12);}
+      else if(f.river){x=R()*W;y=riverY(f,x)+(R()-0.5)*f.river.w*0.55;}
+      else if(f.ponds&&f.ponds.length){const pd=f.ponds[i%f.ponds.length],a=R()*6.28,rr=R()*0.7;x=pd.x+Math.cos(a)*pd.rx*rr;y=pd.y+Math.sin(a)*pd.ry*rr;}else break;
+      FXB.glint.push({x,y,ph:R()*6.28,s:0.8+R()*0.7});}}
+  for(const d of map.deco||[]){if(FXB.fires.length>=12)break;if(d.t==='fire'||d.t==='lavarock')FXB.fires.push({x:d.x,y:d.y-(d.t==='fire'?d.r*0.6:d.r*0.3),r:d.t==='fire'?22+d.r:14+d.r*0.8,lava:d.t==='lavarock',ph:R()*6.28});}}
+function fxbAmbStep(dt){const pr=FXB.prof||{},R=FXB_R;
+  if(pr.gust){FXB.gustIn-=dt;if(FXB.gustIn<=0&&FXB.gust<=0){FXB.gust=2.4;FXB.gustIn=7+R()*8;}}
+  if(FXB.gust>0){FXB.gust=Math.max(0,FXB.gust-dt);}const env=FXB.gust>0?Math.sin(Math.PI*(1-FXB.gust/2.4)):0;FXB.wind=env*120*(pr.gust||0);
+  if(pr.bolt){FXB.boltIn-=dt;if(FXB.boltIn<=0){FXB.flash=0.5;FXB.boltIn=10+R()*12;}}if(FXB.flash>0)FXB.flash=Math.max(0,FXB.flash-dt);
+  const A=FXB.A,f=FXB.map&&FXB.map.feat,lim=Math.ceil(FXB.na*Math.max(0.5,FXB.q)),t=FXB.t;
+  for(let i=0;i<lim;i++){const p=A[i];switch(p.k){
+    case 10:p.y+=(20+p.sz*24)*dt;p.x+=(Math.sin(t*0.8+p.ph)*9+FXB.wind*0.8)*dt;break;
+    case 11:p.y+=(48+p.sz*34)*dt;p.x+=(Math.sin(t*0.6+p.ph)*14+FXB.wind)*dt;break;
+    case 12:p.y-=(20+p.sz*26)*dt;p.x+=Math.sin(t*1.4+p.ph)*16*dt;if(p.y<-10){p.y=H+10;p.x=R()*W;}break;
+    case 13:p.x+=(14+p.sz*12+FXB.wind*0.9)*dt;p.y+=(16+p.sz*14)*dt+Math.sin(t*1.7+p.ph)*0.4;p.r+=(1.4+p.sz*2)*dt;break;
+    case 14:p.x+=(46+p.sz*50+FXB.wind)*dt;break;
+    case 15:p.life-=dt*2.6;if(p.life<=0){p.life=1;p.x=R()*W;p.y=40+R()*(GATE_Y-40);}break;
+    case 16:p.life-=dt*1.4;if(p.life<=0&&f&&f.sea){p.life=1;p.y=30+R()*(H-90);const e=seaEdge(f,p.y);p.x=f.sea.side==='L'?e:W-e;p.vx=(f.sea.side==='L'?1:-1)*(10+R()*26);p.vy=-40-R()*40;}p.vy+=110*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;break;
+    case 17:p.x+=(34+p.sz*16)*dt;p.y+=(10+p.sz*8)*dt;if(p.x>W+40){p.x=-40;p.y=R()*H*0.8;}if(p.y>H+20)p.y=-20;break;
+    case 18:p.x+=(6+p.sz*8)*dt;if(p.x>W+120)p.x=-120;break;
+    case 19:p.x+=Math.sin(t*0.3+p.ph)*6*dt;p.y-=(3+p.sz*4)*dt;if(p.y<-6){p.y=H+6;p.x=R()*W;}break;}
+    if(p.k!==12&&p.k!==17&&p.k!==18&&p.k!==19&&p.k!==15&&p.k!==16){if(p.y>H+8){p.y=-8;p.x=R()*W;}if(p.x>W+10)p.x-=W+20;else if(p.x<-10)p.x+=W+20;}}}
+/* ---- the frame tick: called once per draw, right after the ground is painted ---- */
+/* combat particles and numbers move on, the jolt settles */
+function fxbAdvance(dt){const P=FXB.P;for(let i=0;i<FXB.np;i++){const p=P[i];p.life-=dt;if(p.life<=0){FXB.np--;P[i]=P[FXB.np];P[FXB.np]=p;i--;continue;}
+    p.vy+=p.g*dt;if(p.dr){const d=Math.max(0,1-p.dr*dt);p.vx*=d;p.vy*=d;}p.x+=p.vx*dt;p.y+=p.vy*dt;p.r+=p.vr*dt;
+    if(p.fl&&p.y>p.fl){p.y=p.fl;p.vy*=-0.25;p.vx*=0.55;p.vr*=0.4;}}
+  const N=FXB.N;for(let i=0;i<FXB.nn;i++){const o=N[i];o.life-=dt;o.y-=20*dt;if(o.life<=0){FXB.nn--;N[i]=N[FXB.nn];N[FXB.nn]=o;i--;}}
+  FXB.kick=Math.max(0,FXB.kick-dt*3);}
+function fxbTick(now){const ms=now-FXB.last;FXB.last=now;FXB.dt=0;FXB.cema+=(FXB.cost-FXB.cema)*0.08;FXB.cost=0;if(!FXB.on||FXB.calm||!G.map)return;
+  if(G.map!==FXB.map||G.runs!==FXB.runs)fxbAmbInit(G.map);
+  if(document.hidden)return;
+  const dt=Math.min(0.05,Math.max(0,ms/1000));
+  /* the battle is over: no jolt, no trails; the last sparks fall and fade (on the result screen), elsewhere everything is cleared */
+  if(G.state!=='play'){FXB.kick=0;if(G.state!=='over'){if(FXB.np||FXB.nn||FXB.trA.length)fxbClear();return;}
+    if(FXB.trA.length)fxbTrFree();FXB.dt=dt;fxbAdvance(dt);return;}
+  if(G.paused)return;
+  FXB.dt=dt;FXB.t+=dt;FXB.frame++;
+  /* self-throttle: halve when frames are slow AND this layer is a real part of the cost (a 30 fps cap alone is not a reason);
+     come back when frames are quick again or the layer costs next to nothing */
+  if(ms>0&&ms<250&&!FXB.qLock){FXB.ema+=(ms-FXB.ema)*0.08;
+    if(FXB.ema>30&&FXB.cema>1.2){FXB.slowT+=ms/1000;FXB.fastT=0;if(FXB.slowT>1.5){FXB.q=Math.max(0.25,FXB.q*0.5);FXB.slowT=0;}}
+    else if(FXB.q<1&&(FXB.ema<24||FXB.cema<0.45)){FXB.fastT+=ms/1000;FXB.slowT=0;if(FXB.fastT>4){FXB.q=Math.min(1,FXB.q*2);FXB.fastT=0;}}
+    else{FXB.slowT=0;FXB.fastT=0;}}
+  fxbAdvance(dt);
+  /* hits and merged numbers: what changed on each enemy since the last frame */
+  let budget=Math.ceil(10*FXB.q);
+  for(const e of G.enemies){if(e.hp<=0)continue;let r=FXB.ER.get(e);if(!r){FXB.ER.set(e,{hp:e.hp,ht:e.hitT,acc:0,nt:FXB.t,hit:0,src:null});continue;}
+    if(e.hp<r.hp)r.acc+=r.hp-e.hp;r.hp=e.hp;const fresh=e.hitT!=null&&e.hitT!==r.ht;r.ht=e.hitT;
+    if(fresh){r.hit=1;r.src=FXB_DOT[e.lastSrc]?null:e.lastSrc;}
+    if(fresh&&budget>0){budget--;fxbHit(e,fxbPos(e),r.src);}
+    if(r.hit&&r.acc>=1&&FXB.t-r.nt>=0.5){const q=fxbPos(e);fxbNum(q.x,q.y-q.h-4,Math.round(r.acc),r.src);r.acc=0;r.hit=0;r.nt=FXB.t;}}
+  /* towers that just fired: their cooldown jumped back up */
+  for(const s of G.map.slots){const t=s.tower;if(!t)continue;const def=TOWERS[t.type];if(!def||(def.kind!=='single'&&def.kind!=='splash'))continue;
+    let r=FXB.TW.get(t);if(!r){FXB.TW.set(t,{cd:t.cd,ft:-9});continue;}if(t.cd>r.cd+0.02){r.ft=FXB.t;fxbMuzzle(s,t,def);}r.cd=t.cd;}
+  /* projectile trails: a few recent points per projectile, records recycled */
+  const fr=FXB.frame;for(const p of G.projs){let r=FXB.TR.get(p);if(!r||r.p!==p){r=FXB.trF.pop()||{xs:new Float32Array(7),ys:new Float32Array(7),n:0,f:0,p:null};r.n=0;r.p=p;FXB.TR.set(p,r);FXB.trA.push(r);}
+    r.f=fr;if(!r.n||Math.abs(r.xs[0]-p.x)+Math.abs(r.ys[0]-p.y)>0.5){r.xs.copyWithin(1,0,6);r.ys.copyWithin(1,0,6);r.xs[0]=p.x;r.ys[0]=p.y;if(r.n<7)r.n++;}r.src=p.src;r.col=p.col;r.orb=p.orb;
+    if(p.src==='wild'&&FXB_R()<0.35*FXB.q){const e=fxbP(0,p.x+(FXB_R()-0.5)*4,p.y,(FXB_R()-0.5)*20,-10-FXB_R()*20,0.35,1.8,'#c8ff9e',0);if(e)e.add=1;}}
+  const A=FXB.trA;let j=0;for(let i=0;i<A.length;i++){const r=A[i];if(r.f===fr)A[j++]=r;else{r.n=0;r.p=null;FXB.trF.push(r);}}A.length=j;
+  fxbAmbStep(dt);}
+/* ---- drawing ---- */
+const FXB_TRAIL={watch:['#eef3fa',1.3,4,0.55],scorp:['#ffe2a0',2.4,5,0.6],wild:['#9dff6b',3.2,7,0.5],hero:['#ffffff',1.7,5,0.5]};
+function fxbSafe(){ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.lineCap='butt';}
+function fxbUnder(now){const t0=fxbClock();try{fxbUnderB(now);}catch(_){fxbSafe();}FXB.cost+=fxbClock()-t0;}
+function fxbOver(now){const t0=fxbClock();try{fxbOverB(now);}catch(_){fxbSafe();}FXB.cost+=fxbClock()-t0;}
+function fxbUnderB(now){if(!FXB.on||FXB.calm)return;const A=FXB.trA;if(!A.length)return;ctx.lineCap='round';
+  for(let i=0;i<A.length;i++){const r=A[i];if(r.n<2)continue;const st=FXB_TRAIL[r.src]||FXB_TRAIL.watch,col=r.src==='hero'&&r.col?r.col:st[0],L=Math.min(r.n,st[2]);
+    if(r.src==='wild'||r.orb){ctx.globalCompositeOperation='lighter';const g=fxbSoft(r.src==='wild'?'130,255,110':fxbRgb(r.col));ctx.globalAlpha=0.55;ctx.drawImage(g,r.xs[0]-10,r.ys[0]-10,20,20);}
+    ctx.strokeStyle=col;for(let k=1;k<L;k++){const f=1-k/L;ctx.globalAlpha=st[3]*f;ctx.lineWidth=st[1]*(0.4+0.6*f);ctx.beginPath();ctx.moveTo(r.xs[k-1],r.ys[k-1]);ctx.lineTo(r.xs[k],r.ys[k]);ctx.stroke();}
+    ctx.globalCompositeOperation='source-over';}
+  ctx.globalAlpha=1;ctx.lineCap='butt';}
+function fxbOverB(now){if(!FXB.on||FXB.calm)return;const P=FXB.P;let add=0;
+  for(let i=0;i<FXB.np;i++){const p=P[i],k=p.life/p.max;if(p.add!==add){add=p.add;ctx.globalCompositeOperation=add?'lighter':'source-over';}
+    ctx.globalAlpha=p.a*(k<0.4?k/0.4:1);
+    switch(p.k){
+      case 0:ctx.fillStyle=p.c;ctx.fillRect(p.x-p.sz/2,p.y-p.sz/2,p.sz,p.sz);break;
+      case 1:{const c=Math.cos(p.r),s=Math.sin(p.r),L=p.sz;ctx.fillStyle=p.c;ctx.beginPath();ctx.moveTo(p.x+c*L,p.y+s*L);ctx.lineTo(p.x-s*L*0.4,p.y+c*L*0.4);ctx.lineTo(p.x-c*L*0.7,p.y-s*L*0.7);ctx.closePath();ctx.fill();break;}
+      case 2:{const rr=p.sz*(1+p.gr*(1-k));ctx.drawImage(p.im,p.x-rr,p.y-rr,rr*2,rr*2);break;}
+      case 3:ctx.strokeStyle=p.c;ctx.lineWidth=p.sz;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x-p.vx*0.04,p.y-p.vy*0.04);ctx.stroke();break;
+      case 4:{const c=Math.cos(p.r)*p.sz,s=Math.sin(p.r)*p.sz,c2=-s*0.35,s2=c*0.35;ctx.fillStyle=p.c;ctx.beginPath();ctx.moveTo(p.x+c+c2,p.y+s+s2);ctx.lineTo(p.x+c-c2,p.y+s-s2);ctx.lineTo(p.x-c-c2,p.y-s-s2);ctx.lineTo(p.x-c+c2,p.y-s+s2);ctx.closePath();ctx.fill();break;}
+      case 5:{const c=Math.cos(p.r)*p.sz,s=Math.sin(p.r)*p.sz;ctx.strokeStyle=p.c;ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(p.x-c,p.y-s);ctx.quadraticCurveTo(p.x+s*0.6,p.y-c*0.6,p.x+c,p.y+s);ctx.stroke();break;}
+      case 6:{const rr=p.sz*(1+p.gr*(1-k));ctx.strokeStyle=p.c;ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(p.x,p.y,rr,rr*0.42,0,0,6.283);ctx.stroke();break;}}}
+  if(add)ctx.globalCompositeOperation='source-over';
+  if(FXB.nn){ctx.font='700 9px Cinzel,serif';ctx.textAlign='center';ctx.lineWidth=2.4;ctx.strokeStyle='rgba(6,11,20,0.85)';
+    for(let i=0;i<FXB.nn;i++){const o=FXB.N[i];ctx.globalAlpha=Math.min(1,o.life/0.35);ctx.strokeText(o.v,o.x,o.y);ctx.fillStyle=o.c;ctx.fillText(o.v,o.x,o.y);}}
+  ctx.globalAlpha=1;}
+/* ground layer (world space, under the units): water glints, fire light, mist, sand, splashes, spray, gull shadows */
+function fxbGround(now){if(!FXB.on||FXB.calm||!FXB.map||!(G.state==='play'||G.state==='over'))return;const t=FXB.t,A=FXB.A,lim=Math.ceil(FXB.na*Math.max(0.5,FXB.q));
+  if(FXB.glint.length){const im=fxbSoft('255,255,255');for(const g of FXB.glint){const a=Math.pow(Math.max(0,Math.sin(t*1.3+g.ph)),6)*0.85;if(a<0.03)continue;ctx.globalAlpha=a;ctx.fillStyle='#ffffff';ctx.fillRect(g.x-3*g.s,g.y-0.5,6*g.s,1);ctx.drawImage(im,g.x-3,g.y-3,6,6);}}
+  if(FXB.fires.length){ctx.globalCompositeOperation='lighter';for(const f of FXB.fires){const fl=f.lava?0.55+0.25*Math.sin(t*1.6+f.ph):0.75+0.15*Math.sin(t*9+f.ph)+0.1*Math.sin(t*23+f.ph*2);
+      ctx.globalAlpha=(f.lava?0.28:0.34)*fl;const r=f.r*(0.9+0.12*fl);ctx.drawImage(fxbSoft(f.lava?'255,110,40':'255,170,70'),f.x-r,f.y-r*0.8,r*2,r*1.6);}ctx.globalCompositeOperation='source-over';}
+  for(let i=0;i<lim;i++){const p=A[i];switch(p.k){
+    case 14:{const L=40+p.sz*50;ctx.globalAlpha=0.24+0.1*Math.sin(t+p.ph);ctx.drawImage(fxbSoft('255,242,212'),p.x-L/2,p.y-2,L,4+p.sz*3);
+      ctx.globalAlpha=0.6;ctx.fillStyle='#93693a';for(let k=0;k<3;k++){const gx=p.x-L/2+((k*37+t*70*(1+p.sz))%L),gy=p.y+Math.sin(t*3+p.ph+k*2)*2.5;ctx.fillRect(gx,gy,1.5,1.5);}
+      if(p.x-L/2>W)p.x=-L;break;}
+    case 15:{const k=1-p.life;ctx.globalAlpha=0.5*(1-k);ctx.strokeStyle='#d6e4f0';ctx.lineWidth=0.8;ctx.beginPath();ctx.ellipse(p.x,p.y,1+k*5,0.5+k*2,0,0,6.283);ctx.stroke();break;}
+    case 16:if(p.life>0&&p.life<1){ctx.globalAlpha=0.75*p.life;ctx.fillStyle='#f4faff';ctx.fillRect(p.x-1,p.y-1,2,2);}break;
+    case 17:{const w=Math.sin(t*6+p.ph)*2.5;ctx.globalAlpha=0.14;ctx.fillStyle='#000';ctx.beginPath();ctx.moveTo(p.x-9,p.y-w);ctx.quadraticCurveTo(p.x-3,p.y-3,p.x,p.y+1);ctx.quadraticCurveTo(p.x+3,p.y-3,p.x+9,p.y-w);ctx.quadraticCurveTo(p.x+3,p.y,p.x,p.y+3);ctx.quadraticCurveTo(p.x-3,p.y,p.x-9,p.y-w);ctx.fill();break;}
+    case 18:{const r=70+p.sz*50;ctx.globalAlpha=0.13+0.04*Math.sin(t*0.4+p.ph);ctx.drawImage(fxbSoft('205,220,205'),p.x-r,p.y-r*0.4+Math.sin(t*0.2+p.ph)*8,r*2,r*0.8);break;}}}
+  ctx.globalAlpha=1;}
+/* screen layer (over the field, like drawAmbient): flakes, gusts, embers + haze, leaves, motes, lightning */
+function fxbSky(now){if(!FXB.on||FXB.calm||!FXB.map||G.state!=='play')return;const t=FXB.t,A=FXB.A,pr=FXB.prof||{},lim=Math.ceil(FXB.na*Math.max(0.5,FXB.q));
+  if(pr.haze){ctx.globalAlpha=0.07;const im=fxbSoft('255,190,120');for(let i=0;i<3;i++){const y=H-((t*14+i*240)%(H+120))+40,x=Math.sin(t*0.7+i*2)*30;ctx.drawImage(im,x-60,y-24,W+120,48);}}
+  for(let i=0;i<lim;i++){const p=A[i];switch(p.k){
+    case 10:ctx.globalAlpha=0.8;ctx.drawImage(fxbSoft('245,250,255'),p.x-1.6-p.sz,p.y-1.6-p.sz,3.2+p.sz*2,3.2+p.sz*2);break;
+    case 11:ctx.globalAlpha=0.32;ctx.drawImage(fxbSoft('245,250,255'),p.x-4-p.sz*3,p.y-4-p.sz*3,8+p.sz*6,8+p.sz*6);break;
+    case 12:{ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.45+0.35*Math.sin(t*5+p.ph);const r=2.4+p.sz*2.6;ctx.drawImage(fxbSoft('255,140,50'),p.x-r,p.y-r,r*2,r*2);ctx.globalCompositeOperation='source-over';break;}
+    case 13:{ctx.globalAlpha=0.85;ctx.fillStyle=p.c;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.scale(Math.cos(t*2.3+p.ph),1);ctx.beginPath();ctx.ellipse(0,0,3.4,1.6,0,0,6.283);ctx.fill();ctx.restore();break;}
+    case 19:{ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.25+0.2*Math.sin(t*1.8+p.ph);const r=1.6+p.sz*1.6;ctx.drawImage(fxbSoft('255,232,180'),p.x-r,p.y-r,r*2,r*2);ctx.globalCompositeOperation='source-over';break;}}}
+  if(FXB.gust>0&&pr.gust&&FXB.map.biome!=='forest'){const env=Math.sin(Math.PI*(1-FXB.gust/2.4)),k=1-FXB.gust/2.4;const ds=FXB.map.biome==='desert';ctx.strokeStyle=ds?'#fff6e2':'#f4f8ff';ctx.lineWidth=ds?1.4:1;ctx.lineCap='round';
+    for(let i=0;i<7;i++){const y=(i*97+31)%(H-80)+30,x=k*(W+260)-130+((i*53)%90)-45,L=26+(i%3)*12;ctx.globalAlpha=(ds?0.36:0.22)*env;ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+L*0.5,y-3,x+L,y+1);ctx.stroke();}ctx.lineCap='butt';}
+  if(FXB.flash>0){const k=1-FXB.flash/0.5,a=k<0.08?k/0.08:k<0.16?0.35:k<0.24?1:Math.max(0,(1-k)/0.76);ctx.globalAlpha=0.17*a;ctx.fillStyle='#dce9ff';ctx.fillRect(0,0,W,H);}
+  ctx.globalAlpha=1;}
+function fxbCounts(){return{cema:FXB.cema,np:FXB.np,na:FXB.na,nn:FXB.nn,trails:FXB.trA.length,kick:FXB.kick,q:FXB.q,glint:FXB.glint.length,fires:FXB.fires.length,biome:FXB.map&&FXB.map.biome,st:Object.assign({},FXB.st)};}
+/* ---- hooks: wrap the base functions (all plain declarations in this script) ---- */
+{const kill0=kill;kill=function(e,src){const was=e.dead;kill0(e,src);if(!was&&e.dead&&!e.left&&FXB.on&&!FXB.calm){try{fxbDeath(e);}catch(_){}}};}
+{const door0=hitDoor;hitDoor=function(a,gi){const play=G.state==='play'&&!(G.vengUntil>G.time);door0(a,gi);if(play&&FXB.on&&!FXB.calm){try{fxbGate(gi||0,a);}catch(_){}}};}
+{const tower0=drawTower;drawTower=function(s,now){const t=s.tower,r=t&&FXB.on&&!FXB.calm?FXB.TW.get(t):null,age=r?FXB.t-r.ft:9;
+  if(age<0.16){const k=1-age/0.16,kk=k*k,f=t.face||0;ctx.save();ctx.translate(s.x-Math.cos(f)*1.6*kk,s.y+9-Math.sin(f)*0.8*kk);ctx.scale(1+0.035*kk,1-0.07*kk);ctx.translate(-s.x,-(s.y+9));tower0(s,now);ctx.restore();}
+  else tower0(s,now);};}
+{const ground0=drawCloudShadows;drawCloudShadows=function(now){ground0(now);const t0=fxbClock();try{fxbTick(now);fxbGround(now);}catch(_){fxbSafe();}FXB.cost+=fxbClock()-t0;};}
+{const amb0=drawAmbient;drawAmbient=function(now){amb0(now);const t0=fxbClock();try{fxbSky(now);}catch(_){fxbSafe();}FXB.cost+=fxbClock()-t0;};}
 /* =========================== THE REALM WAR (v1.0.93, backend v25) ===========================
    The weekly standings between the realms (countries), Monday 00:00 → Sunday 24:00 UTC, from the players' Hold runs. A realm's score is the
    average weekly waves of its top 50 players + 0.5 for every player who played on 3+ days of the week (at most 40 players count), so a small
@@ -6280,6 +6710,73 @@ function showRealmWar(back){WAR.back=back||(()=>showRealms(false));
   CLOUD.screen='war';$('#bBack').addEventListener('click',()=>{CLOUD.screen='';clearInterval(WAR.timer);WAR.back();});$('#bWarBack').addEventListener('click',()=>{CLOUD.screen='';clearInterval(WAR.timer);WAR.back();});
   if(WAR.data)warDraw();warFetch();warLastLoad();clearInterval(WAR.timer);WAR.timer=setInterval(()=>{if(CLOUD.screen!=='war'){clearInterval(WAR.timer);return;}warFetch();},30000);}
 document.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('#bWarClaim')){warClaim();return;}const b=e.target&&e.target.closest&&e.target.closest('#bWar');if(b){try{SFX.play('tap',50);}catch(x){}showRealmWar(()=>showRealms(false));}});
+/* =========================== TOWER GUIDE + TOWER FX (v1.0.97) ===========================
+   Every tower says what it does, in plain numbers taken from the game's own data (towerStats), and shows it working.
+   · towerGuideMini(type, lvl): who it hits, how much (damage, rate, damage per second, splash, burn, slow), strong / weak against.
+     Shown in the build sheet and in the tower's sheet (ℹ on the ring); the Collection → Towers page gets a looping demo (towerGuideDemo).
+   · battle fx (display only: reads G, writes nothing of the simulation, no G.rng): Dragonglass spears burst from the ground under
+     what the zone cuts (bigger on a White Walker), Weirwood sends a wave over its ground and roots tangle the slowed, a Wildfire
+     shell blooms in green fire where it lands, a Scorpion glows as its bolt loads, the Keep's men throw sparks when they strike.
+     Capped, off under prefers-reduced-motion, frozen while paused or hidden. */
+const FXT={on:true,calm:false,last:0,S:new WeakMap(),sp:[],bl:[],pp:new Map(),map:null,runs:-1,AS:new WeakMap()};
+try{FXT.calm=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){}
+const FXT_R=Math.random;
+/* ---- the guide: facts that are true in the code (dmg(), the target loop, the zone / aura loop, the keep's men) ---- */
+const TGUIDE={
+  watch:{hits:'Ground + air (fliers only when nothing else is in range)',role:'Fast arrows, one target at a time',strong:'Light, quick enemies and birds',weak:'Armoured and arrow-proof enemies take much less. Pair it with Wildfire or Dragonglass',demo:'arrow'},
+  scorp:{hits:'Ground + air (aims at flyers first)',role:'Slow, heavy bolt',strong:'Armoured enemies ×2.5. The only tower that hurts a dragon fully; everything else deals only 30% to it',weak:'Slow reload: wasted on swarms',demo:'bolt'},
+  wild:{hits:'Ground + air (fliers only when nothing else is in range)',role:'A shell that bursts and sets enemies on fire',strong:'Packs: everyone in the blast takes the damage, then burns',weak:'Cannot hit what is closer than 45 to it; a flier is the last target it picks',demo:'lob'},
+  glass:{hits:'Ground only',role:'A zone: hurts and slows everything inside, no shots',strong:'White Walkers take ×3. All enemies inside are slowed',weak:'Short range, and it cannot touch flyers',demo:'spears'},
+  weir:{hits:'Ground + air (no damage of its own)',role:'An aura: slows and makes enemies take more damage',strong:'Everything inside takes more damage from every tower and hero',weak:'Deals no damage itself. Build it beside damage towers',demo:'roots'},
+  keep:{hits:'Ground only',role:'Your men block the road and fight',strong:'Holds the road so other towers keep firing; fallen men return',weak:'Flyers pass over them',demo:'clash'}};
+function tgNums(type,lvl){const d=TOWERS[type],st=towerStats({type,lvl:lvl||1}),r=Math.round(st.range),f=x=>Math.round(x*10)/10,o=[];
+  if(d.kind==='single'||d.kind==='splash'){o.push(['⚔','Damage',Math.round(st.dmg)+' per hit']);o.push(['⏱','Rate',st.rate.toFixed(2)+' / s']);o.push(['🔥','Damage per second',f(st.dmg*st.rate)]);
+    if(d.kind==='splash'){o.push(['💥','Blast radius',Math.round(st.splash)]);o.push(['🔥','Burn',f(st.burn)+' / s for 3 s']);}o.push(['🎯','Range',r]);}
+  else if(d.kind==='zone'){o.push(['🔷','Damage per second',Math.round(st.dps)+' (×3 vs White Walkers)']);o.push(['🐌','Slow',Math.round((1-st.slow)*100)+'%']);o.push(['🎯','Range',r]);}
+  else if(d.kind==='aura'){o.push(['🐌','Slow',Math.round((1-st.slow)*100)+'%']);o.push(['⬆','Damage taken','+'+Math.round((st.mark-1)*100)+'%']);o.push(['🎯','Range',r]);}
+  else{o.push(['🛡','Men',st.count+' × '+st.shp+' hp']);o.push(['⚔','Their damage',st.sdmg+' per hit']);o.push(['⏳','Back in',st.resp+' s']);o.push(['🎯','Range',r]);}
+  return o;}
+function towerGuideMini(type,lvl){const g=TGUIDE[type];if(!g)return '';const n=tgNums(type,lvl);
+  return `<div class="tg"><div class="tgh"><span>${g.hits}</span><em>${g.role}</em></div><div class="tgn">${n.map(x=>`<span title="${x[1]}">${x[0]} <b>${x[2]}</b></span>`).join('')}</div>
+  <div class="tgs"><i class="ok">✔ ${g.strong}</i><i class="no">✖ ${g.weak}</i></div></div>`;}
+function towerGuideDemo(type,lvl){const g=TGUIDE[type];if(!g)return '';return `<div class="tgd ${g.demo}"><u class="tw">${towerIconHTML(type,lvl||1,30)}</u><u class="en"></u><u class="fx"></u><u class="fx2"></u></div>`;}
+/* ---- battle fx ---- */
+function fxtOk(){return FXT.on&&!FXT.calm&&G.map&&G.state==='play'&&!G.paused&&!document.hidden;}
+function fxtUnder(now){try{fxtUnderB(now);}catch(_){FXT.on=false;}}
+function fxtUnderB(now){const ms=now-FXT.last;FXT.last=now;if(!fxtOk()){if(G.state!=='play'&&(FXT.sp.length||FXT.bl.length)){FXT.sp.length=0;FXT.bl.length=0;FXT.pp.clear();}return;}
+  if(G.map!==FXT.map||G.runs!==FXT.runs){FXT.map=G.map;FXT.runs=G.runs;FXT.sp.length=0;FXT.bl.length=0;FXT.pp.clear();}
+  const dt=Math.min(0.05,Math.max(0,ms/1000)),R=FXT_R,slots=G.map.slots;
+  /* wildfire shells: remember where each one is going; when it is gone, a green bloom there */
+  if(G.projs.length||FXT.pp.size){const live=new Set();for(const p of G.projs){if(p.src==='wild'){live.add(p);FXT.pp.set(p,{x:p.lx,y:p.ly,r:p.splash||48});}}
+    for(const [p,v] of FXT.pp){if(!live.has(p)){FXT.pp.delete(p);if(FXT.bl.length<8)FXT.bl.push({x:v.x,y:v.y,r:v.r,life:0.7,max:0.7});}}}
+  for(let si=0;si<slots.length;si++){const s=slots[si],t=s.tower;if(!t)continue;const def=TOWERS[t.type];
+    let S=FXT.S.get(t);if(!S){S={a:0,b:0,rg:0,rng:0,n:0};FXT.S.set(t,S);}
+    if((S.n++&31)===0)S.rng=towerStats(t).range;const range=S.rng;
+    if(def.kind==='zone'){let tg=null,k=0;for(const e of G.enemies){if(e.hp<=0||e.fly)continue;const p=posE(e);if(dist(p.x,p.y,s.x,s.y)>range+e.r)continue;k++;if(R()*k<1)tg=e;}
+      if(k){const pulse=0.1+0.05*Math.sin(now/180);ctx.globalAlpha=pulse;ctx.strokeStyle='#8fd3ff';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(s.x,s.y+8,range,range*0.5,0,0,6.283);ctx.stroke();ctx.globalAlpha=1;
+        S.a-=dt;if(S.a<=0&&FXT.sp.length<24){S.a=0.26;const p=posE(tg);FXT.sp.push({x:p.x+(R()-0.5)*14,y:p.y+3,life:0.5,max:0.5,big:!!tg.walker,sd:R()});}}}
+    else if(def.kind==='aura'){let any=false;S.b-=dt;
+      for(const e of G.enemies){if(e.hp<=0)continue;const p=posE(e);if(dist(p.x,p.y,s.x,s.y)>range+e.r)continue;any=true;
+        const q=e.fly?p.y+18:p.y+4;ctx.strokeStyle='rgba(120,80,48,0.75)';ctx.lineWidth=1.4;const w=9+Math.sin(now/260+e.id)*1.5;ctx.beginPath();ctx.moveTo(p.x-w,q+2);ctx.quadraticCurveTo(p.x-w*0.3,q-4,p.x,q+1);ctx.quadraticCurveTo(p.x+w*0.4,q+5,p.x+w,q-1);ctx.stroke();
+        ctx.strokeStyle='rgba(150,235,110,0.55)';ctx.beginPath();ctx.moveTo(p.x-w*0.7,q);ctx.quadraticCurveTo(p.x,q+4,p.x+w*0.7,q+1);ctx.stroke();}
+      if(any){S.rg+=dt;if(S.rg>1.5)S.rg=0;const k=S.rg/1.5;ctx.globalAlpha=0.28*(1-k);ctx.strokeStyle='#9be66e';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(s.x,s.y+8,range*k,range*k*0.5,0,0,6.283);ctx.stroke();ctx.globalAlpha=1;}}
+    else if(t.type==='scorp'){const c=t.cd;if(c<0.32){const k=Math.max(0,1-c/0.32),g=fxbSoft('255,214,120');ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.35+0.5*k*(0.7+0.3*Math.sin(now/45));ctx.drawImage(g,s.x-10-8*k,s.y-34-8*k,20+16*k,20+16*k);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;}}
+    else if(def.kind==='barracks'){for(const a of G.allies){if(a.home!==s.id||a.strikeT==null)continue;if(G.time-a.strikeT>0.07)continue;if(FXT.AS.get(a)===a.strikeT)continue;FXT.AS.set(a,a.strikeT);
+      const x=a.x+(a.face||1)*11,y=a.y-8;for(let i=0;i<5;i++){const an=-Math.PI/2+(R()-0.5)*2.4,v=60+R()*80,p=fxbP(3,x,y,Math.cos(an)*v,Math.sin(an)*v,0.14+R()*0.1,1.3,i%2?'#fff1c0':'#ffd479',240);if(p)p.add=1;}}}}
+  /* dragonglass spears */
+  for(let i=FXT.sp.length-1;i>=0;i--){const o=FXT.sp[i];o.life-=dt;if(o.life<=0){FXT.sp.splice(i,1);continue;}const k=1-o.life/o.max,rise=k<0.3?k/0.3:1,fade=k<0.6?1:(1-k)/0.4,L=(o.big?30:20)*rise,w=o.big?4.2:3;
+    ctx.globalAlpha=fade;ctx.fillStyle='#16303f';ctx.beginPath();ctx.moveTo(o.x-w,o.y);ctx.lineTo(o.x,o.y-L);ctx.lineTo(o.x+w,o.y);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#9fe0ff';ctx.beginPath();ctx.moveTo(o.x-w*0.2,o.y);ctx.lineTo(o.x,o.y-L);ctx.lineTo(o.x+w*0.5,o.y);ctx.closePath();ctx.fill();
+    if(k<0.35){const g=fxbSoft('140,215,255');ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.7*(1-k/0.35);ctx.drawImage(g,o.x-14,o.y-10,28,18);ctx.globalCompositeOperation='source-over';}
+    if(o.big&&k>0.15&&!o.sh){o.sh=1;for(let j=0;j<4;j++){const an=-Math.PI*(0.15+0.7*R()),v=50+R()*60,p=fxbP(1,o.x,o.y-12,Math.cos(an)*v*(R()<0.5?-1:1),Math.sin(an)*v,0.5,2.4,'#dff4ff',300);}}}
+  ctx.globalAlpha=1;
+  /* wildfire blooms */
+  for(let i=FXT.bl.length-1;i>=0;i--){const o=FXT.bl[i];o.life-=dt;if(o.life<=0){FXT.bl.splice(i,1);continue;}const k=1-o.life/o.max,r=o.r*(0.55+0.45*Math.min(1,k*3)),g=fxbSoft('140,255,100');
+    ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.6*(1-k);ctx.drawImage(g,o.x-r,o.y-r*0.7,r*2,r*1.4);
+    ctx.globalCompositeOperation='source-over';
+    for(let j=0;j<5;j++){const a=j*1.26+o.x,fx=o.x+Math.cos(a)*r*0.6,fy=o.y+Math.sin(a)*r*0.3,fh=7+5*Math.abs(Math.sin(now/60+j*2));ctx.globalAlpha=0.7*(1-k);ctx.fillStyle=j%2?'#b8f27a':'#4fd94a';ctx.beginPath();ctx.moveTo(fx-3,fy);ctx.quadraticCurveTo(fx,fy-fh,fx+3,fy);ctx.closePath();ctx.fill();}
+    ctx.globalCompositeOperation='source-over';}
+  ctx.globalAlpha=1;}
 /* =========================== THE BOOK (v1.0.50) ===========================
    A Kingdom-Rush-style encyclopedia: tabs as ribbons, a page with the picture, the story and the numbers,
    and a page with the grid. It fills in as you play: enemies you have met, tower tiers you have built,
@@ -6352,7 +6849,7 @@ function bookTower(k){const D=TOWERS[k],TS=tseenMap(),lv=TS[k]||0,open=towerOpen
   const miles=TMILE[k].map((m,i)=>`<span class="${L>=T_MILE[i]?'':'lk'}">${m[0]} ${m[1]} <em>${L>=T_MILE[i]?'✓ '+m[2]:m[2]+' · Lv '+T_MILE[i]}</em></span>`).join('');
   const vs=TOWER_VS[k];
   return `<div class="bkdet"><div class="bkpic">${towerIconHTML(k,tier,86)}</div><div class="tx"><h3>${D.n}${bookIsNew('towers',k)?'<span class="bknew">NEW</span>':''}</h3><span class="sub">${BOOK_ROLE[D.kind]||''} · opens after stage ${TOWER_UNLOCK[k]} · ${D.cost[0]} gold</span><p>${TOWER_C[k]}</p></div></div>
-  <div class="bktiers">${tiers}</div>
+  ${towerGuideDemo(k,tier)}<div class="bktiers">${tiers}</div>
   <div class="bkst">${stats.join('')}</div>
   <div class="bkdisc">${reached?reached+' · ':''}${nextT}<br>${cost}</div>
   <div class="bkh">Good against</div><div class="bkchips">${vs.good.map(x=>`<span class="good">${x}</span>`).join('')}</div>
@@ -6716,7 +7213,7 @@ function drawDragon(e,now){
 }
 function drawEnemy(e,now){
   const p=posE(e);const x=e.fly?p.x:p.x+((e.id%5)-2)*3.2+(e.lunge?e.lunge.x:0),y=e.fly?p.y:p.y+((e.id%3)-1)*3+(e.lunge?e.lunge.y:0);
-  if(e.dragon){if(enemyImg('dragon')){ctx.fillStyle='rgba(0,0,0,0.25)';ell(ctx,x+6,y+38,22,8);drawEnemySprite(e,x,y,now,1);}else drawDragon(e,now);}else drawWight(e,x,y,now);
+  if(e.dragon){if(enemyImg('dragon')){ctx.fillStyle='rgba(0,0,0,0.25)';ell(ctx,x+6,y+38,22,8);drawEnemySprite(e,x,y,now,1);}else drawDragon(e,now);}else if(e.troop)drawTroopBody(ctx,{x,y,face:e.face||1,role:e.role,troop:e.troop,moving:e.moving,walk:e.walk,strikeT:e.strikeT,hitT:e.hitT},now);else drawWight(e,x,y,now);
   const top=e.dragon?y-44:e.arch==='bird'?y-14:y-(28*(e.scale||1)*(e.big||1));
   if(e.burn){for(let i=0;i<3;i++){const fx=x-5+i*5+Math.sin(now/55+e.id+i)*1.5,fh=5+3*Math.abs(Math.sin(now/70+i*1.7+e.id));ctx.fillStyle=i===1?'rgba(255,220,120,0.9)':'rgba(255,140,50,0.85)';ctx.beginPath();ctx.moveTo(fx-2.2,top+8);ctx.quadraticCurveTo(fx-2.5,top+8-fh*0.6,fx,top+8-fh);ctx.quadraticCurveTo(fx+2.5,top+8-fh*0.6,fx+2.2,top+8);ctx.closePath();ctx.fill();}}
   if(e.poison){ctx.fillStyle='rgba(124,255,107,0.85)';for(let i=0;i<2;i++){const ph=((now/700)+i*0.5+e.id*0.13)%1,dx=x-4+i*8,dy=top+4+ph*14;ctx.globalAlpha=1-ph;ctx.beginPath();ctx.moveTo(dx,dy-3);ctx.quadraticCurveTo(dx+2.2,dy,dx,dy+1.8);ctx.quadraticCurveTo(dx-2.2,dy,dx,dy-3);ctx.fill();}ctx.globalAlpha=1;}
@@ -6767,7 +7264,7 @@ function drawHero(now){
 function drawAlly(a,now){const b=a.bornT!=null?Math.min(1,Math.max(0,(G.time-a.bornT)/0.3)):1;if(b<=0)return;
   const fade=a.t!==Infinity&&a.t<0.9?Math.max(0,a.t/0.9):1;ctx.save();if(fade<1)ctx.globalAlpha=fade;
   if(b<1){ctx.translate(a.x,a.y+2);ctx.scale(0.55+0.45*b,0.55+0.45*b);ctx.translate(-a.x,-a.y-2);}
-  drawAllyBody(a,now);ctx.restore();
+  if(a.role)drawTroopBody(ctx,a,now);else drawAllyBody(a,now);ctx.restore();
   if(a.hp<a.max&&fade>0.3){const w=20,x=a.x-w/2,y=a.y-44;ctx.fillStyle='rgba(8,12,20,0.85)';ctx.fillRect(x-1,y-1,w+2,4);ctx.fillStyle=a.kind==='brother'?'#e9eef5':HOUSES[ACC.house].col;ctx.fillRect(x,y,w*Math.max(0,a.hp/a.max),2);}}
 /* a sworn brother / house soldier: cloak, round shield, helm (hood for the Watch) and a sword that swings on every hit */
 function drawAllyBody(a,now){
@@ -6881,7 +7378,7 @@ function drawGate(now){
   /* torches: between and beside the gates */
   const tx=[];const xs=gates.map(g=>g.x);tx.push(Math.max(20,xs[0]-67));for(let i=0;i<xs.length-1;i++)tx.push((xs[i]+xs[i+1])/2);tx.push(Math.min(W-20,xs[xs.length-1]+67));
   for(const t of tx){const fl=0.8+0.2*Math.sin(now/90+t);ctx.fillStyle='#5a3a20';ctx.fillRect(t-2,y+14,4,14);const gr=ctx.createRadialGradient(t,y+10,1,t,y+10,16*fl);gr.addColorStop(0,'rgba(255,200,90,0.85)');gr.addColorStop(0.4,'rgba(255,130,40,0.5)');gr.addColorStop(1,'rgba(255,100,20,0)');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(t,y+10,16*fl,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffd27a';ell(ctx,t,y+9,2.5,4*fl);}
-  const shakeX=stress?Math.sin(now/35)*Math.min(3,stress):0;
+  const shakeX=(stress?Math.sin(now/35)*Math.min(3,stress):0)+fxbGateKick(now);
   const held=G.hod?G.hod.at:0;
   for(const g of gates){
     const sx=(G.lastHitGate===g.i||gates.length===1)?shakeX:0;
@@ -6927,7 +7424,7 @@ function drawFx(f,now){if(f.delay>0)return;if(f.t==='corpse'){drawCorpse(f,now);
   else if(f.t==='tint'){const a=Math.min(1,f.life/1.5)*0.22;const gr=ctx.createRadialGradient(W/2,H/2,H*0.3,W/2,H/2,H*0.75);gr.addColorStop(0,'rgba(143,211,255,0)');gr.addColorStop(1,'rgba(143,211,255,'+a+')');ctx.fillStyle=gr;ctx.fillRect(0,0,W,H);}
 }
 function draw(now){
-  ctx.setTransform(scale*dpr,0,0,scale*dpr,0,0);
+  ctx.setTransform(scale*dpr,0,0,scale*dpr,0,(CLASH.on?CLASH.dy:0)*scale*dpr);
   const map=G.map;
   let sx=0,sy=0;if(G.shake>0.15){sx=(Math.random()-0.5)*G.shake*2;sy=(Math.random()-0.5)*G.shake*1.4;}
   ctx.save();ctx.translate(sx,sy);camApply();
@@ -6955,9 +7452,9 @@ function draw(now){
     if(G.hero&&G.heroOn)items.push({y:G.hero.y,f:()=>drawHero(now)});
     for(const e of G.enemies){if(!e.fly){items.push({y:posE(e).y,f:()=>drawEnemy(e,now)});}}
     items.sort((a,b)=>a.y-b.y);for(const it of items)it.f();
-    for(const p of G.projs)drawProj(p);
+    fxbUnder(now);fxtUnder(now);for(const p of G.projs)drawProj(p);
     for(const e of G.enemies)if(e.fly)drawEnemy(e,now);
-    for(const f of G.fx)drawFx(f,now);
+    for(const f of G.fx)drawFx(f,now);fxbOver(now);
     if(G.dragonFx>0)drawDrogon(now);
     for(const t of G.texts){ctx.globalAlpha=Math.min(1,t.life);ctx.textAlign='center';if(t.big){ctx.font='900 15px Cinzel,serif';ctx.lineWidth=3;ctx.strokeStyle='rgba(6,11,20,0.85)';ctx.strokeText(t.txt,t.x,t.y);}else ctx.font='700 11px Cinzel,serif';ctx.fillStyle=t.col;ctx.fillText(t.txt,t.x,t.y);ctx.globalAlpha=1;}
     if(G.pending){const s0=G.pending.slot,d=TOWERS[G.pending.type];
@@ -7018,14 +7515,14 @@ function draw(now){
 }
 
 /* =========================== LOOP =========================== */
-function resize(){const st=$('#stage');scale=Math.min(st.clientWidth/W,st.clientHeight/H);canvas.width=Math.round(W*scale*dpr);canvas.height=Math.round(H*scale*dpr);canvas.style.width=(W*scale)+'px';canvas.style.height=(H*scale)+'px';}
+function resize(){const st=$('#stage');scale=Math.min(st.clientWidth/W,st.clientHeight/H);canvas.width=Math.round(W*scale*dpr);canvas.height=Math.round(H*scale*dpr);canvas.style.width=(W*scale)+'px';canvas.style.height=(H*scale)+'px';if(CLASH.on)clashLayout();}
 window.addEventListener('resize',resize);
 let last=performance.now(),acc=0;
 function frame(now){
   const real=Math.min(0.1,(now-last)/1000);last=now;
-  if(G.state==='play'&&!G.paused){refreshSheet();juiceFrame();let spm=G.speed;if(G.slowmoT>0){G.slowmoT-=real;spm*=0.3;}if(G.hitStop>0){G.hitStop-=real;spm=0;}acc+=real*spm;let n=0;const cap=Math.max(6,G.speed*4);while(acc>=DT&&n<cap&&G.state==='play'){step();acc-=DT;n++;}if(n>=cap)acc=0;updateHUD();updateBar();}
+  if(G.state==='play'&&!G.paused){refreshSheet();juiceFrame();let spm=G.speed;if(G.slowmoT>0){G.slowmoT-=real;spm*=0.3;}if(G.hitStop>0){G.hitStop-=real;spm=0;}acc+=real*spm;let n=0;const cap=Math.max(6,G.speed*4);while(acc>=DT&&n<cap&&G.state==='play'){step();if(CLASH.on)clashStepB();acc-=DT;n++;}if(n>=cap)acc=0;updateHUD();updateBar();}
   G.shake*=0.86;G.hurt=Math.max(0,G.hurt-real*0.55);camStep(real);ringFrame();tutFrame(real);
-  draw(now);requestAnimationFrame(frame);
+  if(CLASH.on)clashDraw(now);else draw(now);requestAnimationFrame(frame);
 }
 async function init(){
   dpr=Math.min(2,window.devicePixelRatio||1);
@@ -7187,19 +7684,19 @@ function hubTop(){const c=CBY[ACC.sel],L=accLevel(),hh=HOUSES[ACC.house];const p
 function hubTabs(on){const t=[['shop','Shop'],['coll','Collection'],['battle','Battle'],['tasks','Tasks'],['hold','Hold']];
   const dot={tasks:tasksReady()>0,shop:freeChestReady()||starChestsReady()>0,battle:starChestsReady()>0,coll:bookNewCount()>0,hold:onlineOpen()&&ACC.online.attempts>0&&!(ACC.online.runs||[]).length};
   return `<div class="hubtabs">${t.map(([k,n])=>`<button class="${k===on?'on':''} ${k==='battle'?'mid':''} ${k==='hold'&&!onlineOpen()?'lock':''}" data-tab="${k}">${HUB_ICON[k]}${n}${dot[k]?'<span class="dot"></span>':''}</button>`).join('')}</div>`;}
-const HUB_ORDER=['shop','coll','battle','tasks','hold'];
+const HUB_ORDER=['shop','coll','battle','clan'];
 let hubDir=0; /* -1: slid in from the left, 1: from the right (swipe animation) */
 function showHub(tab,sub){
   if(!ACC){showTitle();return;}
   if(ecoWants()&&!ecoOn()&&!ECO.starting&&Date.now()-ECO.failAt>20000)ecoStart();else if(ecoOn()&&Date.now()-ECO.at>60000&&ecoCalm())ecoRefresh();
   rollDay();tab=tab||'battle';
-  const body=tab==='shop'?hubShop():tab==='coll'?hubCollection(sub):tab==='events'?hubEvents(sub):tab==='tasks'?hubTasks(sub):tab==='hold'?hubHold():hubHome();
+  const body=tab==='shop'?hubShop():tab==='coll'?hubCollection(sub):tab==='events'?hubEvents(sub):tab==='tasks'?hubTasks(sub):tab==='hold'?hubHold():tab==='clan'?hubClan():hubHome();
   show(`<div class="hub look-${skinOf()}" style="--sig:url(${SIGILS[ACC.house]||''})">${hubTop()}<div class="hubbody ${tab} ${hubDir>0?'slide-r':hubDir<0?'slide-l':''}" id="hubBody">${body}</div>${hubTabs(tab)}</div>`,'full');
-  hubDir=0;CLOUD.screen='hub:'+tab;
-  card.querySelectorAll('.hubtabs button').forEach(b=>b.addEventListener('click',()=>{SFX.play('tap',60);hubDir=Math.sign(HUB_ORDER.indexOf(b.dataset.tab)-HUB_ORDER.indexOf(tab));showHub(b.dataset.tab);}));
+  hubDir=0;CLOUD.screen='hub:'+tab;hubHiddenBack(tab);
+  card.querySelectorAll('.hubtabs button').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.lock){hubLockSay(b.dataset.tab);return;}SFX.play('tap',60);hubDir=Math.sign(HUB_ORDER.indexOf(b.dataset.tab)-HUB_ORDER.indexOf(tab));showHub(b.dataset.tab);}));
   $('#hubAva').addEventListener('click',()=>showSettings());const he=$('#hubEn');if(he)he.addEventListener('click',()=>{SFX.play('tap',60);ecoEnergySheet(0,null);});const hr=$('#hubRank');if(hr)hr.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});card.querySelectorAll('.plus').forEach(b=>b.addEventListener('click',()=>showHub(b.dataset.go)));
   hubSwipe(card.querySelector('.hub'),tab);juiceHub(tab);
-  if(tab==='battle'){hubBattleBind();homeBind();}else if(tab==='coll')hubCollectionBind(sub);else if(tab==='shop')hubShopBind();else if(tab==='events')hubEventsBind(sub);else if(tab==='tasks')hubTasksBind();else hubHoldBind();
+  if(tab==='battle'){hubBattleBind();homeBind();}else if(tab==='coll')hubCollectionBind(sub);else if(tab==='shop')hubShopBind();else if(tab==='events')hubEventsBind(sub);else if(tab==='tasks')hubTasksBind();else if(tab==='clan')hubClanBind();else hubHoldBind();
   setTimeout(()=>hubTour(tab),400);
   if(tab==='battle'){if(DUEL.pending)setTimeout(duelPendingOpen,500);else{setTimeout(dailyPopupCheck,1100);setTimeout(evPopupCheck,2600);}}
 }
@@ -7208,7 +7705,7 @@ function hubSwipe(el,tab){
   if(!el)return;let sx=0,sy=0,t0=0,on=false;
   const start=(x,y)=>{sx=x;sy=y;t0=Date.now();on=true;};
   const end=(x,y)=>{if(!on)return;on=false;const dx=x-sx,dy=y-sy,dt=Date.now()-t0;if(dt>900||Math.abs(dx)<56||Math.abs(dy)>Math.abs(dx)*0.7)return;
-    const i=HUB_ORDER.indexOf(tab),j=i+(dx<0?1:-1);if(j<0||j>=HUB_ORDER.length)return;SFX.play('swipe',50);hubDir=dx<0?1:-1;showHub(HUB_ORDER[j]);};
+    const i=HUB_ORDER.indexOf(tab),j=i+(dx<0?1:-1);if(i<0||j<0||j>=HUB_ORDER.length||hubLocked(HUB_ORDER[j]))return;SFX.play('swipe',50);hubDir=dx<0?1:-1;showHub(HUB_ORDER[j]);};
   el.addEventListener('touchstart',e=>{const t=e.touches[0];start(t.clientX,t.clientY);},{passive:true});
   el.addEventListener('touchend',e=>{const t=e.changedTouches[0];end(t.clientX,t.clientY);},{passive:true});
   el.addEventListener('mousedown',e=>start(e.clientX,e.clientY));
@@ -7233,7 +7730,7 @@ function hubBattleBind(){if(ACC.refund){ACC.refund=0;persist();}
   $('#bBattle').addEventListener('click',()=>{SFX.play('tap',80);if(!ACC.tut)startTutorial();else showCampaign();});
   const bdh=$('#bDiffH');if(bdh)bdh.addEventListener('click',()=>showDifficulty(false));const bmh=$('#bMapH');if(bmh)bmh.addEventListener('click',()=>{SFX.play('tap',60);showCampaign();});
   $('#bChampH').addEventListener('click',()=>showHeroRoom(ACC.sel));
-  $('#starChest').addEventListener('click',()=>{if(starChestsReady()>0){if(ecoWants()){ecoChest('iron','star',()=>showHub('battle'));return;}ACC.starChests=(ACC.starChests||0)+1;persist();openChest('iron',()=>showHub('battle'));}});
+  const sc0=$('#starChest');if(sc0)sc0.addEventListener('click',()=>{if(starChestsReady()>0){if(ecoWants()){ecoChest('iron','star',()=>showHub('battle'));return;}ACC.starChests=(ACC.starChests||0)+1;persist();openChest('iron',()=>showHub('battle'));}});
   const lc=$('#lvlChest');if(lc)lc.addEventListener('click',()=>{if(lvlChestsReady()>0){const t=lvlChestTier((ACC.lvlChests||0)+2);if(ecoWants()){ecoChest(t,'level',()=>showHub('battle'));return;}ACC.lvlChests=(ACC.lvlChests||0)+1;persist();openChest(t,()=>showHub('battle'));}});
 }
 const ISLE_IMG={};
@@ -7313,7 +7810,7 @@ function spellCard(k){const S=SPELLS[k],key='s:'+k,open=cardOpen(key),l=spellLvl
   return `<button class="ccard ${open?'':'lock'}" style="--rc:${rc}" data-s="${k}">${open?cardUpBadge(key):''}<span class="im" style="padding:10px;box-sizing:border-box">${spellSVG(k)}${open?`<span class="lv">LVL ${l}</span>`:`<span class="lk">AFTER ${S.at}</span>`}</span>
    <span class="nm">${S.n}</span><span class="rar" style="--rc:${rc}">${open?RAR_N[cardRar(key)]+' · '+S.cd+'s':'locked'}</span>${open?cardBar(key):''}</button>`;}
 function hubCollection(sub){sub=sub||'deck';const mine=CHAMPS.filter(c=>c.house===ACC.house),others=CHAMPS.filter(c=>c.house!==ACC.house);
-  const tabs=`<div class="subtabs">${[['deck','Loadout'],['heroes','Champions'],['towers','Towers'],['spells','Spells'],['book','Book']].map(([k,n])=>`<button class="${k===sub?'on':''}" data-sub="${k}">${n}${k==='book'&&bookNewCount()?`<span class="n">${bookNewCount()}</span>`:''}</button>`).join('')}</div>`;
+  const tabs=`${armyRow()}<div class="subtabs">${[['deck','Loadout'],['heroes','Champions'],['towers','Towers'],['spells','Spells'],['book','Book']].map(([k,n])=>`<button class="${k===sub?'on':''}" data-sub="${k}">${n}${k==='book'&&bookNewCount()?`<span class="n">${bookNewCount()}</span>`:''}</button>`).join('')}</div>`;
   let body='';
   if(sub==='deck'){const c=CBY[ACC.sel];
     body=`<div class="hh"><h2>Battle loadout</h2><small>What rides with you</small></div>
@@ -7327,7 +7824,7 @@ function hubCollection(sub){sub=sub||'deck';const mine=CHAMPS.filter(c=>c.house=
   else{body=`<div class="hh"><h2>Spells of the house</h2><small>the spell buttons in battle · tap one to level it</small></div><div class="cgrid c3">${['arrows','fire','reinf'].map(spellCard).join('')}</div>
     <div class="cgrid c3" style="margin-top:10px">${UPG.filter(u=>u.g==='power').map(u=>`<button class="ccard ${ACC.upg[u.id]?'':'lock'}" style="--rc:#b47cff" data-u="1"><span class="im" style="font-size:26px">${u.e}</span><span class="nm">${u.n}</span><span class="rar">${ACC.upg[u.id]?'owned':fmtN(ECON.upgCost(u))+' gold'}</span></button>`).join('')}</div>`;}
   return tabs+body;}
-function hubCollectionBind(sub){
+function hubCollectionBind(sub){homeMovedBind();
   bind('.subtabs button',b=>{if(b.dataset.sub==='book'){SFX.play('tap',60);showBook('towers',null,false);}else showHub('coll',b.dataset.sub);});
   bind('.ccard[data-c]',b=>{const c=CBY[b.dataset.c];if(c.house!==ACC.house){SFX.play('tap',40);return;}showHeroRoom(c.id);});
   bind('.ccard[data-t]',b=>showTowerRoom(b.dataset.t));bind('.ccard[data-s]',b=>showSpellRoom(b.dataset.s));bind('.ccard[data-u]',()=>showUpgrades());
@@ -7343,7 +7840,7 @@ function hubShop(){const free=freeChestReady(),ft=fmtT(86400000-(Date.now()-(ACC
     return `<div class="sitem deal ${bought?'done':''}" style="--rc:${RC[d.r]}">${freeSlot&&!bought?'<span class="badge">FREE</span>':''}<span class="ch dic">${d.ic}</span><b>${esc(d.n)}</b><small>${esc(d.s)}</small><button data-deal="${i}" ${bought||!canPay(d.price)?'disabled':''} class="${freeSlot?'free':''}">${bought?'✔ TAKEN':priceHTML(d.price)}</button></div>`;};
   const chest=(t,extra)=>{const T=CHEST_TIERS[t];return `<div class="sitem" style="--rc:${T.trim}">${extra||''}<span class="ch">${chestSVG(t)}</span><b>${T.n}</b><small><i style="color:${T.trim};font-style:normal;font-weight:900">${T.sub}</i> · ${T.gold[0]}–${T.gold[1]} gold · ${T.gems[0]}–${T.gems[1]} dragonglass · ${T.cards} card stack${T.cards>1?'s':''}${T.rare?` (${T.rare} rare+)`:''}</small>
     ${t==='wood'?`<button class="free" data-buy="wood" ${free?'':'disabled'}>${free?'FREE':ft.str}</button>`:`<button data-buy="${t}" ${ACC.gems>=T.price?'':'disabled'}>${GEM_SVG}${T.price}</button>`}</div>`;};
-  return `${starsStarterHTML()}<div class="hh"><h2>Daily deals</h2><small>new deals in <b id="dealCd">${dt.h}:${dt.m}:${dt.s}</b></small></div>
+  return `${starsStarterHTML()}${shopSeasonHTML()}<div class="hh"><h2>Daily deals</h2><small>new deals in <b id="dealCd">${dt.h}:${dt.m}:${dt.s}</b></small></div>
   <p class="shopnote">Six deals every 6 hours. The first is always free · unlock the locked ones with dragonglass.</p>
   <div class="shopgrid deals">${deals.map(dealHTML).join('')}</div>
   <div class="hh" style="margin-top:14px"><h2>Chests</h2><small>${GEM_SVG} ${ACC.gems} dragonglass</small></div>
@@ -7351,7 +7848,7 @@ function hubShop(){const free=freeChestReady(),ft=fmtT(86400000-(Date.now()-(ACC
   <div class="hh" style="margin-top:14px"><h2>Gold for dragonglass</h2><small>${GOLD_SVG} ${fmtN(goldOf())} gold</small></div>
   <div class="shopgrid three">${ECON.exchange.map(([g,gd],i)=>`<div class="sitem" style="--rc:#e3b661"><span class="ch dic">${GOLD_SVG}</span><b>${['Purse','Chest','Hoard'][i]}</b><small>+${gd.toLocaleString()} gold${i===2?' · best value':i===1?' · +7%':''}</small><button data-xch="${i}" ${ACC.gems>=g?'':'disabled'}>${GEM_SVG}${g}</button></div>`).join('')}</div>
   ${starsShopHTML()}`;}
-function hubShopBind(){
+function hubShopBind(){homeMovedBind();
   const tick=()=>{if(CLOUD.screen!=='hub:shop')return;const el=$('#dealCd');if(!el)return;const t=fmtT(msToDeals());el.textContent=t.h+':'+t.m+':'+t.s;if(msToDeals()<1000){showHub('shop');return;}setTimeout(tick,1000);};tick();
   bind('[data-buy]',b=>{const t=b.dataset.buy,T=CHEST_TIERS[t];if(ecoWants()){if(t==='wood'?!freeChestReady():ACC.gems<T.price)return;ecoChest(t,'shop',()=>showHub('shop'));return;}if(t==='wood'){if(!freeChestReady())return;ACC.freeChestAt=Date.now();}else{if(ACC.gems<T.price)return;ACC.gems-=T.price;}persist();openChest(t,()=>showHub('shop'));});
   bind('[data-deal]',b=>{const i=+b.dataset.deal;const d=genDeals()[i];if(buyDeal(i)){SFX.play(d.k==='gold'||d.k==='gems'?'buy':'card');flyReward(b,d);showHub('shop');}else SFX.play('deny');});
@@ -7383,6 +7880,7 @@ function openChest(t,done){
 /* ---------- EVENTS ---------- */
 function hubEvents(sub){sub=sub||'realms';const lb=cachedLb();const t=fmtT(msToMidnightUTC());
   const ev=[
+    {k:'clash',live:true,n:'Houses Clash',s:'Your lane below, the rival\'s above, the same dead on both — send the soldiers of your house down his road. A bot now; leagues and friends next.',st:'NEW',ic:HUB_ICON.clan},
     {k:'duel',live:true,n:'Duel',s:'Same Hold map, two runs, one winner. Ranked leagues, friends, a bot to practise on.',st:onlineOpen()?'LIVE':'GATE '+ONLINE_AT,ic:'<svg viewBox="0 0 24 24"><path d="M4 3l8 8M20 3l-8 8M6 21l6-6 6 6" fill="none" stroke="#e3b661" stroke-width="2.2" stroke-linecap="round"/></svg>'},
     {k:'hold',live:true,n:'Daily Hold',s:`New map in ${t.h}h ${t.m}m · every realm and house counts`,st:onlineOpen()?'LIVE':'AFTER '+ONLINE_AT,ic:HUB_ICON.hold},
     {k:'houses',live:false,n:'War of the Houses',s:'Seven banners, one crown a week. Standings below.',st:'SOON',ic:'<svg viewBox="0 0 24 24"><path d="M5 2.5h14v12l-7 5-7-5z" fill="#b33fb0" stroke="#3a1146" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 6l1.6 3.2 3.5.5-2.5 2.4.6 3.5-3.2-1.7-3.2 1.7.6-3.5-2.5-2.4 3.5-.5z" fill="#ffd54a" stroke="#7a4a10" stroke-width=".9"/></svg>'},
@@ -7401,7 +7899,7 @@ function hubEvents(sub){sub=sub||'realms';const lb=cachedLb();const t=fmtT(msToM
 function hubEventsBind(sub){
   if(sbReady()&&lbStale())fetchLeaderboard(true).then(r=>{if(r&&CLOUD.screen==='hub:events')showHub('events',sub);});
   bind('.subtabs button',b=>showHub('events',b.dataset.sub));
-  bind('.evcard',b=>{if(b.dataset.ev==='hold')showHub('hold');else if(b.dataset.ev==='duel')showDuel();else SFX.play('tap',40);});
+  bind('.evcard',b=>{if(b.dataset.ev==='hold')showHub('hold');else if(b.dataset.ev==='clash')showClash();else if(b.dataset.ev==='duel')showDuel();else SFX.play('tap',40);});
   const ar=$('#bAllRealms');if(ar)ar.addEventListener('click',()=>showRealms(false));bind('.rlink',b=>{SFX.play('tap',50);showRealmCard(+b.dataset.j,()=>showHub('events','realms'));});
 }
 /* ---------- HOLD ---------- */
@@ -7439,6 +7937,484 @@ function holdTutorial(done){const c=CBY[ACC.sel],pu=CHAMP_ART[c.id+'_portrait'],
 window.HOLDOR_GEN={denseRoute,pickSlots,waterFeat,seaEdge,riverY,inWater,posAt,BIOMES,mulberry32,hash32,dist,W,H,GX,GATE_Y,buildMap,renderBg,placeProps,chestSVG,showTowerRoom,showHeroRoom,showUpgrades,showCampaign,tLvl,campOf,nextStage,migrate45,sendBrothers,rankCap,towerStats,ECON,SK,TALENTS,UPG,UPG_OLD,DIFFS,hardOpen,maxTowerLvl,MAPPOS,levelOpen,cleared,starsEarned,CH_MAX,SK_MAX,T_MAX,makeHero,showDifficulty,openChest,POOLS,MINIS,TOWER_UNLOCK,UNLOCK_STAGE,SPELLS};
 window.HOLDOR_RING={openRing,closeRing,ringTap,ringFrame,state:()=>RING,upgradeTower,sellTower,sellValue,w2s,closeSheet,openSheet};
 window.HOLDOR_TUT={TS,tutEvent,tutNext,tutAdvance,skipTutorial,LESSONS,TUT_STEPS,lessonStart,lessonsInit,learnMap,coachStart,coachStep,coachNext,coachEnd,COACH,startTour,hubLessons,migrate47,startTutorial,tutWantBase,TUT_LEVEL,tutSlot};
+/* =========================== THE SIMPLE HOME (v1.0.98) ===========================
+   Four tabs instead of five: SHOP · ARMY · BATTLE · CLAN. The Hold is the heart of the game, so it sits in the middle of the home as a
+   card (today's map drawn small, the modifier, the countdown to the next map, today's best run, the big HOLD button); the campaign is
+   the row under it. The chests moved to the top. The five quick buttons are gone: Forge, Tavern and the City live in ARMY, Season in
+   the SHOP, Daily inside Tasks. Tasks is a 📜 pill in the strip and opens as a page with a back arrow, like the full Hold page and the
+   standings. One look (the living gate), no 🎨. Events come as popups; the ✉ pill reopens the current one. CLAN holds the realm (chat,
+   war, standings) and the friends until the clans themselves come. The ids the tutorial and the tests know stay: #bBattle, #starChest,
+   #lvlChest, #freeChest, #dailyGift, #hubTro, #evBadge, #hmGoal, #bChampH, #bMapH / #bDiffH, #bHold, #bForge, #bTavern, #bCity,
+   #bSeason, #bDaily. This module is injected after the hub, so its declarations replace the hub's and the skins' of the same name. */
+const HUB_HIDDEN={tasks:1,hold:1,events:1};   /* pages without a tab button: they open from the home and carry a back arrow */
+HUB_ICON.clan='<svg viewBox="0 0 24 24"><path d="M4 3h16v9c0 4.6-3.5 7.6-8 9.5C7.5 19.6 4 16.6 4 12z" fill="#2f8f5b" stroke="#0e3a22" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="9" r="2.3" fill="#ffe08a" stroke="#5a3a08" stroke-width=".8"/><circle cx="7.6" cy="11" r="1.7" fill="#ffe08a" stroke="#5a3a08" stroke-width=".8"/><circle cx="16.4" cy="11" r="1.7" fill="#ffe08a" stroke="#5a3a08" stroke-width=".8"/><path d="M6.5 16.6c1.2-2.2 3.2-3.3 5.5-3.3s4.3 1.1 5.5 3.3" fill="none" stroke="#ffe08a" stroke-width="1.7" stroke-linecap="round"/></svg>';
+function hubTabs(on){const t=[['shop','Shop'],['coll','Army'],['battle','Battle'],['clan','Clan']];
+  const fr=typeof tkReady==='function'&&typeof tasksOn==='function'&&tasksOn()?tkReady('friends'):0;
+  const dot={shop:freeChestReady()||starChestsReady()>0,battle:starChestsReady()>0||(onlineOpen()&&ACC.online.attempts>0&&!(ACC.online.runs||[]).length),clan:fr>0};
+  const sel=HUB_HIDDEN[on]?'battle':on;
+  return `<div class="hubtabs four">${t.map(([k,n])=>`<button class="${k===sel?'on':''} ${k==='battle'?'mid':''}" data-tab="${k}">${HUB_ICON[k]}${n}${dot[k]?'<span class="dot"></span>':''}</button>`).join('')}</div>`;}
+/* a page without a tab: a back arrow on top */
+function hubHiddenBack(tab){if(!HUB_HIDDEN[tab])return;const b=document.getElementById('hubBody');if(!b)return;
+  const d=document.createElement('div');d.className='hback';d.innerHTML=`<button id="hubBack">◀ Back</button><span>${tab==='tasks'?'Tasks':tab==='hold'?'The Hold':'Standings'}</span>`;
+  b.insertBefore(d,b.firstChild);d.querySelector('#hubBack').addEventListener('click',()=>{SFX.play('tap',60);showHub('battle');});}
+/* one look: the living gate */
+function skinOf(){return 'b';}
+function skinNext(){}
+/* ---------- the home ---------- */
+function homeStrip(){const R=myRank(),e=evAt(Date.now()),K=EVT_KIND[e.kind],left=e.active?e.t1-Date.now():e.t0-Date.now(),n=typeof tasksReady==='function'?tasksReady():0;
+  return `<div class="hmstrip"><button class="hpill" id="hubTro">${rankSVG(R.t,20,R.div)}<b>${trophiesOf()}</b></button>
+    <button class="hpill tk ${n?'hot':''}" id="bTasks">${icon('quests',18)}<b>Tasks</b>${n?`<i class="dot">${n}</i>`:''}</button>
+    <button class="hpill ev ${e.active?'on':''}" id="evBadge" data-t="${e.active?e.t1:e.t0}" data-a="${e.active?1:0}">${K.e}<b>${K.n}</b><em>${e.active?'ends in':'in'} ${evLeft(left)}</em></button></div>`;}
+/* today's map, small: the biome's ground and the road the dead will walk, the gate at the bottom */
+function hmMiniDraw(){const cv=document.getElementById('hmMini');if(!cv)return;const gm=genDaily(hash32(dayKeyUTC())),B=(typeof BIOMES!=='undefined'&&BIOMES[gm.biome])||{},x=cv.getContext('2d'),w=cv.width,h=cv.height,sx=w/W,sy=h/GATE_Y;
+  x.fillStyle=B.g1||'#2c3c50';x.fillRect(0,0,w,h);x.fillStyle=B.g2||B.dk||'#233245';for(let i=0;i<9;i++)x.fillRect((i*29+7)%w,(i*41+5)%h,8+(i%3)*3,4+(i%2)*2);
+  x.lineJoin='round';x.lineCap='round';const road=()=>{x.beginPath();gm.pts.forEach((p,i)=>{const px=p[0]*sx,py=p[1]*sy;if(i)x.lineTo(px,py);else x.moveTo(px,py);});x.lineTo(GX*sx,h);x.stroke();};
+  x.strokeStyle=B.edge||'#6c7c92';x.lineWidth=7;road();x.strokeStyle=B.path||'#3b4658';x.lineWidth=4.5;road();
+  x.fillStyle='#3a2a1a';x.fillRect(GX*sx-7,h-7,14,7);x.fillStyle='#8a5a33';x.fillRect(GX*sx-4,h-6,8,6);x.fillStyle='#e3b661';x.fillRect(GX*sx-1,h-9,2,3);}
+function homeHold(){rollDay();const open=onlineOpen(),gm=genDaily(hash32(dayKeyUTC())),runs=ACC.online.runs||[],best=runs.length?Math.max(...runs.map(r=>r.waves)):0,att=ACC.online.attempts,lb=cachedLb(),me=(lb&&lb.myday)||null,t=fmtT(msToMidnightUTC());
+  const bio=gm.biome.charAt(0).toUpperCase()+gm.biome.slice(1);
+  return `<div class="hmhold ${open?'':'lock'}" id="hmHold"><div class="hmrow"><canvas class="hmmini" id="hmMini" width="84" height="60"></canvas>
+    <div class="hmtx"><b>${open?'HOLD THE DOOR':'THE HOLD'}</b>
+      <small>${open?`${gm.mod.e} ${esc(gm.mod.n)} · ${bio}`:`🔒 opens after stage ${ONLINE_AT}`}</small>
+      <em>${open?(runs.length?`today ${best} 🌊${me&&me.rank?' · #'+me.rank+' in the world':''}`:'not played yet today'):`hold ${ONLINE_AT} gates in the campaign first`}</em>
+      <span class="hmcd">new map in <i id="hmCd">${t.h}:${t.m}:${t.s}</i>${open?` · <b>${att}</b> ${att===1?'run':'runs'} left`:''}</span></div>
+    <button class="hmgo ${open&&att>0?'go':''}" id="bHold" ${open&&att>0?'':'disabled'}>${open?(att>0?'HOLD':'DONE'):'🔒'}<small>${open?(att>0?'THE DOOR':'FOR TODAY'):'LOCKED'}</small></button></div>
+    <button class="hmlink" id="bHoldMore">🏆 Today's defenders · how the Hold works ›</button></div>`;}
+function hmHoldTick(){clearTimeout(HOME.holdT);if(CLOUD.screen!=='hub:battle')return;const c=document.getElementById('hmCd');if(!c)return;
+  const ms=msToMidnightUTC(),t=fmtT(ms);c.textContent=t.h+':'+t.m+':'+t.s;if(ms<1000){showHub('battle');return;}HOME.holdT=setTimeout(hmHoldTick,1000);}
+function hubHome(){const hh=HOUSES[ACC.house];
+  return `${homeStrip()}<div class="hmslots top">${homeSlots().replace(/^<div class="hmslots">/,'').replace(/<\/div>$/,'')}</div>
+    <div class="hmstage st-b" id="hmStage">${hmStageB()}<div class="hmtitle"><b>${hh.seat}</b></div>${homeGoal()}</div>
+    ${homeHold()}${homeBattleRow()}
+    ${ACC.tut?'':'<div class="hint">▲ TAP BEGIN — YOUR CHAMPION WILL TEACH YOU</div>'}${ACC.refund?`<div class="hint" id="refundNote">🪙 Tower upgrades are now tower levels — ${ACC.refund} gold refunded. Army → Towers.</div>`:''}`;}
+function homeBind(){
+  const on=(id,f)=>{const b=document.getElementById(id);if(b)b.addEventListener('click',f);};
+  on('hmGoal',()=>{SFX.play('tap',60);if(!ACC.tut)startTutorial();else showCampaign();});
+  on('bTasks',()=>{SFX.play('tap',60);showHub('tasks');});
+  on('bHoldMore',()=>{SFX.play('tap',60);showHub('hold');});
+  on('hmHold',e=>{if(e.target.closest('#bHold,#bHoldMore'))return;SFX.play('tap',60);if(!onlineOpen()){ecoToast(`🔒 The Hold opens after stage ${ONLINE_AT}`);return;}showHub('hold');});
+  on('bHold',()=>{SFX.play('tap',60);if(!onlineOpen()){ecoToast(`🔒 The Hold opens after stage ${ONLINE_AT}`);return;}if(ACC.online.attempts<=0){showHub('hold');return;}
+    const go=()=>{if(!onlineOpen()||ACC.online.attempts<=0)return;startGame({mode:'online'});};if(!ACC.holdTut)holdTutorial(go);else go();});
+  on('lvlNext',()=>{SFX.play('tap',40);const L=accLevel();ecoToast(`⭐ Level ${L.l+1}: ${fmtN(L.need-L.xp)} XP more — then this chest is yours`);});
+  on('freeChest',()=>{if(!freeChestReady()){SFX.play('deny');ecoToast('🕑 The free chest comes back in '+fmtT(ACC.freeChestAt+86400000-Date.now()).str);return;}
+    SFX.play('tap',60);if(ecoWants()){ecoChest('wood','shop',()=>showHub('battle'));return;}ACC.freeChestAt=Date.now();persist();openChest('wood',()=>showHub('battle'));});
+  on('dailyGift',()=>{SFX.play('tap',60);if(!dailyOn()){showDaily();return;}const d=DAILY.st&&DAILY.seat===seatNo()?DAILY.st.login:null;if(d&&d.can)dailyClaimLogin();else showDaily('cal');});
+  if(dailyOn()&&!(DAILY.st&&DAILY.seat===seatNo()))dailyLoad().then(()=>{if(CLOUD.screen==='hub:battle'){const s=document.querySelector('.hmslots');if(s){s.outerHTML=homeSlots().replace(/^<div class="hmslots">/,'<div class="hmslots top">');homeSlotsRebind();}}});
+  const gate=document.getElementById('hmGate');if(gate)gate.addEventListener('click',homeStrike);
+  hmMiniDraw();HOME.skin='b';homeStart();clearTimeout(HOME.tick);homeTickLoop();hmHoldTick();}
+/* ---------- the buttons that moved: ARMY (Forge, Tavern, City), SHOP (Season), Tasks (Daily) ---------- */
+function armyRow(){return `<div class="homerow army"><button class="hbtn" id="bForge"><span class="ic">${icon('forge',26)}</span><b>Forge</b></button><button class="hbtn" id="bTavern"><span class="ic">${icon('tavern',26)}</span><b>Tavern</b></button><button class="hbtn" id="bCity"><span class="ic">${icon('city',26)}</span><b>City</b></button></div>`;}
+function shopSeasonHTML(){return `<button class="evcard live wide" id="bSeason"><span class="ic">${icon('season',30)}</span><span class="tx"><b>Season Pass</b><small>a ladder of rewards for every day you hold · VIP</small></span><span class="st">OPEN</span></button>`;}
+function tkDailyHTML(){const n=dailyOn()?dailyReady():0;
+  return `<button class="evcard wide" id="bDaily"><span class="ic">${icon('daily',30)}</span><span class="tx"><b>Daily</b><small>the login calendar and today's gift</small></span><span class="st">${n?n:'›'}</span></button>`;}
+function homeMovedBind(){const on=(id,f)=>{const b=document.getElementById(id);if(b)b.addEventListener('click',f);};
+  on('bForge',()=>{SFX.play('tap',60);showForge();});on('bTavern',()=>{SFX.play('tap',60);showHeroRoom();});on('bCity',()=>{SFX.play('tap',60);showCity();});
+  on('bSeason',()=>{SFX.play('tap',60);showSeason();});on('bDaily',()=>{SFX.play('tap',60);showDaily();});
+  if(document.getElementById('bDaily')&&dailyOn()&&!(DAILY.st&&DAILY.seat===seatNo()))dailyLoad().then(()=>{const b=document.getElementById('bDaily');if(b){b.outerHTML=tkDailyHTML();on('bDaily',()=>{SFX.play('tap',60);showDaily();});}});}
+/* ---------- CLAN: the realm, the clans to come, the friends ---------- */
+function hubClan(){const rows=realmStats(),mine=rows.find(r=>r.mine)||null,L=lang(),lb=cachedLb(),w=typeof WAR!=='undefined'&&WAR.data?WAR.data:null,my=w&&w.mine?w.mine:null,onT=typeof tasksOn==='function'&&tasksOn();
+  const n=rows.filter(r=>r.players).length;
+  const realm=`<div class="clcard" id="clRealm"><div class="clhead">${flag(L.c,34)}<div class="cltx"><b>${esc(L.c)}</b><small>${mine&&mine.players?`${mine.players} defenders · #${mine.rank} of ${n} realms`:'your realm · your banner'}${my&&my.pos?` · war #${my.pos}`:''}</small></div></div>
+    <div class="clrow"><button class="btn" id="bClChat">💬 Realm chat</button><button class="btn sec" id="bClWar">⚔️ Realm war</button><button class="btn sec" id="bClRealms">🌍 Standings</button></div></div>`;
+  const clans=`<div class="clcard soon"><span class="ic">🛡️</span><div class="cltx"><b>Clans</b><small>Coming: found a clan, talk in its chat, fight a clan war every week. Until then your realm is your banner.</small></div></div>`;
+  const fr=`<div class="hh" style="margin-top:12px"><h2>Friends</h2><small>${onT?'a gift for you both':'sign in through Telegram'}</small></div><div class="tkbody">${onT?tkFriends():'<p class="m">Invitations are kept by the server — they need a seat signed in through Telegram.</p>'}</div>`;
+  return `<div class="hh"><h2>Clan</h2><small>${sbReady()?(lb?'live':'connecting…'):'offline'}</small></div>${realm}${clashCardHTML()}${clans}${fr}`;}
+function hubClanBind(){const on=(id,f)=>{const b=document.getElementById(id);if(b)b.addEventListener('click',f);};
+  on('bClChat',()=>{SFX.play('tap',60);showChat(()=>showHub('clan'));});
+  on('bClWar',()=>{SFX.play('tap',60);showRealmWar(()=>showHub('clan'));});on('bClashCard',()=>{SFX.play('tap',60);showClash(()=>showHub('clan'));});
+  on('bClRealms',()=>{SFX.play('tap',60);showHub('events','realms');});
+  if(sbReady()&&(!CLOUD.lb||Date.now()-CLOUD.lbAt>60000))fetchLeaderboard(true).then(r=>{if(r&&CLOUD.screen==='hub:clan')showHub('clan');});
+  if(typeof tasksOn==='function'&&tasksOn()){const a=TASKS.st,c=DAILY.fr;
+    tasksLoad().then(r=>{if(r&&r!==a&&CLOUD.screen==='hub:clan')showHub('clan');});
+    frLoad().then(r=>{if(r&&r!==c&&CLOUD.screen==='hub:clan')showHub('clan');});
+    card.querySelectorAll('.tkbody button[data-o]').forEach(b=>b.addEventListener('click',()=>tkOpen(b.dataset.o,b)));
+    card.querySelectorAll('.tkbody button[data-c]').forEach(b=>b.addEventListener('click',()=>{const s=tkState(),i=s&&s.items.find(x=>x.id===b.dataset.c);tkCall('task_claim',{task:b.dataset.c},r=>{tkPaid(b,r,(i?i.e+' '+i.n:'Task done'));if(CLOUD.screen==='hub:clan')showHub('clan');});}));
+    invBind();}}
+/* =========================== THE FIRST MINUTES (v1.0.99) ===========================
+   A tester: "too much happens at the start". So: the house is chosen and the first battle begins by itself (the home comes after the
+   first win); in that battle a Watchtower already stands by the door and the player learns eight things, one at a time (call, watch,
+   build, move, the champion's skill, upgrade, a spell, hold) — selling, the ⓘ card, speed, pause and the book became short lessons on
+   stages 2–6; the champion's card and skill sit in their own frame at the bottom ("YOUR CHAMPION"), the spells in theirs; and the
+   home opens gradually: the chests after stage 1, Army after 1, the Shop and the Tasks pill after 2, the Hold card after 2 (locked
+   until 3), Clan and the event pill after 3. Locked tabs show a 🔒 and the stage; a tap on one only says so. The home tour shows only what is
+   on the screen now; the chests, Tasks and Clan get a short lesson when they appear. The realm screen
+   preselects the realm from the Telegram language, so it is one tap. Injected after the home, so hubTabs / hubHome / homeStrip here
+   replace v1.0.98's. */
+const OB_NEED={coll:1,shop:2,clan:3};
+const OB_LANG={ka:'Georgia',en:'United States',de:'Germany',fr:'France',it:'Italy',ru:'Russia',es:'Spain',pt:'Brazil',tr:'Turkey',uk:'Ukraine',ja:'Japan',zh:'China',hi:'India',ar:'Saudi Arabia',pl:'Poland',nl:'Netherlands',ko:'South Korea',id:'Indonesia',vi:'Vietnam',th:'Thailand',fa:'Iran',he:'Israel',kk:'Kazakhstan',az:'Azerbaijan',hy:'Armenia',uz:'Uzbekistan',el:'Greece',cs:'Czechia',ro:'Romania',hu:'Hungary',sv:'Sweden',no:'Norway',da:'Denmark',fi:'Finland',bg:'Bulgaria',sr:'Serbia',hr:'Croatia',sk:'Slovakia',lt:'Lithuania',lv:'Latvia',et:'Estonia',ms:'Malaysia',tl:'Philippines',bn:'Bangladesh',ur:'Pakistan',sw:'Kenya'};
+function obStage(){return ACC?cleared():0;}
+function hubLocked(k){return !!(OB_NEED[k]&&ACC&&!(ACC.tut&&obStage()>=OB_NEED[k]));}
+function obGuessRealm(){try{const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user,lc=String((u&&u.language_code)||navigator.language||'').slice(0,2).toLowerCase(),c=OB_LANG[lc];if(!c)return null;const j=LANGS.findIndex(L=>L.c===c);return j>=0?j:null;}catch(e){return null;}}
+/* ---------- the tabs, with locks ---------- */
+function hubTabs(on){const t=[['shop','Shop'],['coll','Army'],['battle','Battle'],['clan','Clan']];
+  const fr=typeof tkReady==='function'&&typeof tasksOn==='function'&&tasksOn()?tkReady('friends'):0;
+  const dot={shop:freeChestReady()||starChestsReady()>0,coll:typeof bookNewCount==='function'&&bookNewCount()>0,battle:starChestsReady()>0||(onlineOpen()&&ACC.online.attempts>0&&!(ACC.online.runs||[]).length),clan:fr>0};
+  const sel=HUB_HIDDEN[on]?'battle':on;
+  return `<div class="hubtabs four">${t.map(([k,n])=>{const lk=hubLocked(k);return `<button class="${k===sel?'on':''} ${k==='battle'?'mid':''} ${lk?'lock':''}" data-tab="${k}"${lk?` data-lock="${OB_NEED[k]}"`:''}>${HUB_ICON[k]}${n}${lk?`<i class="lk">🔒 ${OB_NEED[k]}</i>`:dot[k]?'<span class="dot"></span>':''}</button>`;}).join('')}</div>`;}
+function hubLockSay(k){SFX.play('deny');ecoToast(`🔒 ${k==='coll'?'Army':k==='shop'?'The Shop':'Clan'} opens after stage ${OB_NEED[k]}${ACC&&!ACC.tut?' — win your first battle first':''}`);}
+/* ---------- the home, piece by piece ---------- */
+function homeStrip(){const n=obStage(),R=myRank(),e=evAt(Date.now()),K=EVT_KIND[e.kind],left=e.active?e.t1-Date.now():e.t0-Date.now(),tk=typeof tasksReady==='function'?tasksReady():0;
+  return `<div class="hmstrip"><button class="hpill" id="hubTro">${rankSVG(R.t,20,R.div)}<b>${trophiesOf()}</b></button>
+    ${n>=2?`<button class="hpill tk ${tk?'hot':''}" id="bTasks">${icon('quests',18)}<b>Tasks</b>${tk?`<i class="dot">${tk}</i>`:''}</button>`:''}
+    ${n>=3?`<button class="hpill ev ${e.active?'on':''}" id="evBadge" data-t="${e.active?e.t1:e.t0}" data-a="${e.active?1:0}">${K.e}<b>${K.n}</b><em>${e.active?'ends in':'in'} ${evLeft(left)}</em></button>`:''}</div>`;}
+function hubHome(){const hh=HOUSES[ACC.house],n=obStage(),tut=!!ACC.tut;
+  return `${tut?homeStrip():''}${tut&&n>=1?`<div class="hmslots top">${homeSlots().replace(/^<div class="hmslots">/,'').replace(/<\/div>$/,'')}</div>`:''}
+    <div class="hmstage st-b" id="hmStage">${hmStageB()}<div class="hmtitle"><b>${hh.seat}</b></div>${homeGoal()}</div>
+    ${tut&&n>=2?homeHold():''}${homeBattleRow()}
+    ${tut?'':'<div class="hint">▲ TAP BEGIN — YOUR CHAMPION WILL TEACH YOU</div>'}${ACC.refund?`<div class="hint" id="refundNote">🪙 Tower upgrades are now tower levels — ${ACC.refund} gold refunded. Army → Towers.</div>`:''}`;}
+/* ---------- the first battle: a Watchtower already stands by the door ---------- */
+function tutPrebuild(){if(!G.map||!G.tutorial)return;const R=G.map.routes[0],q=posAt(G.map,R.total*0.82,0);
+  const s=G.map.slots.filter(x=>!x.tower).sort((a,b)=>dist(a.x,a.y,q.x,q.y)-dist(b.x,b.y,q.x,q.y))[0];if(!s)return;
+  const g0=G.gold;G.gold+=costOf('watch');build(s,'watch');G.gold=g0;if(s.tower){s.tower.cd=0;s.tower.face=-Math.PI/2;}G.tutPre=s.id;}
+/* ---------- the home tour, staged: only what is on the screen now; what appears later comes as a short lesson when it does ---------- */
+TOURS.battle=()=>{const n=obStage(),L=learnMap();if(n>=1)L.chests=1;if(n>=2)L.tasks=1;return [
+  {sel:'.hubtop .cur',wait:()=>!!$('#bBattle'),text:'<b>Gold</b> 🪙 and <b>cards</b> level up your champions, towers and spells. <b>Dragonglass</b> 💎 opens chests and buys deals. Battles pay both.'},
+  {sel:'#hubAva',text:'This is you: your champion\'s face and your <b>level</b>. Every upgrade you buy adds to it, and every level pays a chest. Tap it later for settings and the book.'},
+  {sel:'.hmgoal',text:'Your road north: the next stage, its stars and how far you are of fifty. Tap it to open the map.'},
+  n>=1?{sel:'.hmslots',text:'Four chests: <b>stars</b> fill the first, <b>levels</b> the second, the third is <b>free</b> every day and the fourth is <b>today\'s gift</b>. Something is always on its way.'}:null,
+  n>=2?{sel:'#bTasks',text:'<b>Tasks</b>: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'}:null,
+  {sel:'#bBattle',tap:1,text:'<b>BATTLE!</b> opens the map at your next stage. Tap it.'}];};
+/* only for accounts that began with the staged home (tutv 99): older ones had the full tour */
+function obNew(){return !!(ACC&&ACC.tutv>=99);}
+Object.assign(HUB_LESSONS,{
+ chests:{need:()=>obNew()&&obStage()>=1,steps:()=>[{sel:'.hmslots',text:'Your chests: <b>stars</b> fill the first, <b>levels</b> the second, the third is <b>free</b> every day and the fourth is <b>today\'s gift</b>. Something is always on its way.'}]},
+ tasks:{need:()=>obNew()&&obStage()>=2,steps:()=>[{sel:'#bTasks',text:'<b>Tasks</b> are open: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'}]},
+ clan:{need:()=>obNew()&&obStage()>=3,steps:()=>[{sel:'.hubtabs button[data-tab="clan"]',text:'<b>Clan</b> is open: your realm\'s chat, the realm war and your friends.'}]},
+});
+{const n0=HUB_LESSONS.champ.need;HUB_LESSONS.champ.need=()=>!hubLocked('coll')&&n0();}
+/* ---------- what left the first battle: short lessons on the next stages (for those who finished the new tutorial) ---------- */
+function obLessonOn(n){return !!(ACC&&ACC.tutv>=99&&cleared()>=n);}
+Object.assign(LESSONS,{
+ sell:{need:()=>obLessonOn(1),ready:()=>G.map.slots.filter(s=>s.tower).length>=2&&!G.enemies.some(e=>e.hp>0),steps:[
+  {t:'Built in the wrong spot? Sell a tower and 60% of its gold comes back. Tap a tower, then 💰 and ✓.',pose:'point',want:'sell',ring:['sell'],pause:1,hint:()=>ringHint('Tap a tower','Tap 💰 to sell it','Tap ✓ to sell')}]},
+ info:{need:()=>obLessonOn(2),ready:()=>G.map.slots.some(s=>s.tower),steps:[
+  {t:'Want the numbers? Tap a tower, then ⓘ. Close the card with ✖ when you have read it.',pose:'point',want:'info',ring:['info'],pause:1,
+   hint:()=>sheet.classList.contains('open')?'These are its numbers. Tap ✖ to close the card':ringHint('Tap a tower','Tap ⓘ Info',''),cond:()=>G.tutInfo&&!sheet.classList.contains('open')}]},
+ speed:{need:()=>obLessonOn(3),ready:()=>G.enemies.some(e=>e.hp>0),steps:[
+  {t:'Too slow? This button hurries the battle: 2×, then 4×, then back to 1×. Tap it.',pose:'point',want:'speed',focus:'#bSpeed',hint:'Tap 1× at the top right'}]},
+ pause:{need:()=>obLessonOn(4),ready:()=>true,steps:[
+  {t:'Pause stops everything: resume, start the stage again or leave. Tap ⏸, then Resume.',pose:'point',want:'pause',focus:'#bPause',hint:'Tap ⏸ at the top right, then Resume'}]},
+ book:{need:()=>obLessonOn(5),ready:()=>true,steps:[
+  {t:'The ! opens the book: every enemy you have met, your towers, field notes. Open it, look, then close it.',pose:'point',want:'book',focus:'#bInfo',hint:'Tap ! at the top, then close the book',cond:()=>G.tutBook&&overlay.classList.contains('hidden')}]},
+});
+/* =========================== HOUSE TROOPS (v1.1.0) ===========================
+   Every house has its own soldiers: four roles — foot, archer, rider and the house's own unit — with the house's names, colours and
+   silhouettes (`TROOPS`, drawn by `drawTroopBody`). They garrison the Watch keeps: the Train room chooses which role holds the keeps
+   (`ACC.army.keep`; the house unit after army level 5), and every keep soldier is dressed by `troopDress` — the keep's numbers stay
+   `towerStats`', the role scales them. Archers shoot from 95 px; riders are fast; the house units keep their old tricks (bites twice,
+   half damage, stun, never flinches, loot, mends, poison), now in the keeps too. From v1.1.1 the same troops march at a rival in
+   Houses Clash. The sworn brothers (the spell) stay the Watch. */
+const TROOP_ROLES=['foot','archer','rider','house'];
+const TROOP_ROLE={foot:{n:'Foot',hp:1,dmg:1,spd:1,role:'Holds the road, shield up',weapon:'sword',shield:'round'},
+ archer:{n:'Archer',hp:0.7,dmg:0.85,spd:0.95,range:95,role:'Shoots from 95 px, behind the line',weapon:'bow'},
+ rider:{n:'Rider',hp:0.85,dmg:1.3,spd:1.6,leash:90,role:'Fast — first to the fight',weapon:'spear',horse:1}};
+const TROOPS={
+ stark:{foot:'Winterfell guard',archer:'Northern bowman',rider:'Northern rider',house:{n:'Direwolf',role:'Fast, bites twice',hp:1.15,dmg:1.4,spd:1.7,rate:0.4,beast:1}},
+ lannister:{foot:'Red cloak',archer:'Westerland crossbowman',rider:'Lannister knight',house:{n:'Lion Guard',role:'Full plate — takes half damage',hp:1.7,dmg:1.05,spd:0.85,armor:0.5,weapon:'sword',shield:'big',plate:'#c9a24a'}},
+ baratheon:{foot:'Stormlander',archer:'Stormlands bowman',rider:'Stag rider',house:{n:'Stormhammer',role:'Stuns whatever it hits',hp:1.3,dmg:1.6,spd:0.9,stun:1,weapon:'hammer',plate:'#3b3a30'}},
+ targaryen:{foot:'Dragonstone guard',archer:'Dothraki archer',rider:'Dothraki screamer',house:{n:'Unsullied',role:'Spear wall — never flinches',hp:1.25,dmg:1.2,spd:1,steady:1,weapon:'spear',shield:'round',helm:'spike',plate:'#2a2a2e'}},
+ greyjoy:{foot:'Ironborn',archer:'Ironborn slinger',rider:'Salt rider',house:{n:'Reaver',role:'Steals gold from its kills',hp:1,dmg:1.25,spd:1.1,loot:3,weapon:'axe',helm:'none',plate:'#2b3a40'}},
+ tyrell:{foot:'Highgarden footman',archer:'Reach bowman',rider:'Reach knight',house:{n:'Rose Knight',role:'Mends the men beside it',hp:1.3,dmg:1,spd:0.95,mend:6,weapon:'sword',shield:'rose',plate:'#2f5a2a'}},
+ martell:{foot:'Dornish spearman',archer:'Dornish archer',rider:'Sand rider',house:{n:'Sand Snake',role:'Poisoned spear',hp:0.95,dmg:1.15,spd:1.2,poison:4,weapon:'spear',helm:'scarf',plate:'#8a4a22'}},
+};
+const TROOP_BASE={hp:150,dmg:15,spd:86};
+function troopDef(house,role){const T=TROOPS[house]||TROOPS.stark;if(role==='house')return Object.assign({k:'house',hp:1,dmg:1,spd:1},T.house);if(!TROOP_ROLE[role])role='foot';return Object.assign({},TROOP_ROLE[role],{k:role,n:T[role]});}
+function troopUnits(a){a=a||ACC;return TROOP_ROLES.map(k=>troopDef(a.house,k));}
+function troopStats(d,a){const m=armyMul(a);return{hp:Math.round(TROOP_BASE.hp*d.hp*m),dmg:Math.round(TROOP_BASE.dmg*d.dmg*m*10)/10,spd:Math.round(TROOP_BASE.spd*d.spd)};}
+function keepRole(a){a=a||ACC;const k=a&&a.army&&a.army.keep;if(!k||!TROOPS.stark[k]&&k!=='house')return 'foot';if(k==='house'&&armyLvl(a)<ARMY_HOUSE_AT)return 'foot';return k;}
+/* dress a keep's soldier (hp/dmg from towerStats) in a role of the house */
+function troopDress(a,role,house){house=house||(ACC&&ACC.house)||'stark';role=role||keepRole();const d=troopDef(house,role);
+  a.role=role;a.troop=house;a.hp=Math.round(a.hp*d.hp);a.max=Math.round(a.max*d.hp);a.dmg=a.dmg*d.dmg;a.spd=Math.round((a.spd||64)*d.spd);
+  if(d.leash)a.leash=d.leash;if(d.range)a.range=d.range;if(d.rate)a.rate=d.rate;if(d.armor)a.armor=d.armor;if(d.stun)a.stun=d.stun;if(d.steady)a.steady=1;if(d.loot)a.loot=d.loot;if(d.mend)a.mend=d.mend;if(d.poison)a.poison=d.poison;if(d.beast)a.beast=1;return a;}
+/* a soldier's blow: an arrow from an archer, then the house tricks */
+function allyStrike(a,e,amt){const was=e.hp>0;if(a.range){const q=posE(e);addFx({t:'arrow',x:a.x,y:a.y-16,tx:q.x,ty:q.y-6,life:0.16});}
+  dmg(e,amt,'ally');
+  if(e.hp>0){if(a.stun)e.stunT=Math.max(e.stunT||0,a.stun);if(a.poison&&!(e.poison&&e.poison.dps>=a.poison))e.poison={dps:a.poison,t:3};}
+  else if(was&&a.loot){G.gold+=a.loot;addText(a.x,a.y-30,'+'+a.loot,'#e3b661');}}
+function troopMend(a,dt){a.mendT=(a.mendT||0)-dt;if(a.mendT>0)return;a.mendT=0.5;let did=0;
+  for(const o of G.allies){if(o===a||o.hp<=0||o.hp>=o.max||dist(o.x,o.y,a.x,a.y)>40)continue;o.hp=Math.min(o.max,o.hp+a.mend*0.5);did=1;}
+  if(did)addFx({t:'ring',x:a.x,y:a.y-8,r0:6,r1:28,life:0.3,col:'#7fd06a'});}
+/* ---------- the silhouettes: one body, the house's colours, the role's gear ---------- */
+function drawTroopBody(c,a,now){const house=a.troop||(ACC&&ACC.house)||'stark',hh=HOUSES[house],f=a.face||1,d=troopDef(house,a.role||'foot');
+  const ph=a.moving?Math.sin((a.walk||0)*9):0,bob=a.moving?Math.abs(ph)*0.8:0,sw=a.strikeT!=null?Math.max(0,1-(G.time-a.strikeT)/0.26):0,hurt=a.hitT!=null&&G.time-a.hitT<0.12;
+  c.save();c.translate(a.x,a.y);c.fillStyle='rgba(0,0,0,0.34)';ell(c,0,1.5,d.horse?15:d.beast?13:11,d.horse?4.6:3.8);
+  c.scale(1.62*f,1.62);c.translate(0,-bob);
+  if(d.beast)troopBeast(c,hh,ph,sw,hurt);
+  else{if(d.horse){troopHorse(c,hh,ph);c.translate(1,-7.5);c.scale(0.82,0.82);}troopMan(c,hh,d,ph,sw,hurt);}
+  c.restore();}
+function troopMan(c,hh,d,ph,sw,hurt){const cloak=hh.col2,cloak2=hexA(hh.col,1),tunic=d.plate||(d.weapon==='bow'?'#5a4632':hh.col2),steel='#b9c3cf',steel2='#6d7886';
+  /* cloak */
+  c.fillStyle=cloak;c.beginPath();c.moveTo(-2.5,-15.5);c.quadraticCurveTo(-9.5-1.6*ph,-7,-7.5-ph,0.6);c.lineTo(1.5,0.4);c.lineTo(2,-14);c.closePath();c.fill();c.strokeStyle='rgba(0,0,0,0.45)';c.lineWidth=0.7;c.stroke();
+  /* legs */
+  c.strokeStyle='#15171d';c.lineWidth=2.3;c.lineCap='round';c.beginPath();c.moveTo(-1.4,-5.5);c.lineTo(-2.2+2.4*ph,0);c.moveTo(1.6,-5.5);c.lineTo(2.4-2.4*ph,0);c.stroke();
+  /* torso, belt, shoulders */
+  c.fillStyle=tunic;rr(c,-4.3,-15,8.6,10.5,2.6);c.fill();c.strokeStyle='rgba(0,0,0,0.5)';c.lineWidth=0.7;rr(c,-4.3,-15,8.6,10.5,2.6);c.stroke();
+  c.fillStyle=hh.col;c.fillRect(-4.3,-8.4,8.6,1.7);c.fillStyle=cloak2;c.fillRect(-4.3,-15,8.6,2.2);
+  if(d.plate){c.fillStyle='rgba(255,255,255,0.18)';c.fillRect(-3.4,-13.6,2.2,6);}
+  if(d.weapon==='bow'){c.fillStyle='#4a3826';c.fillRect(-5.2,-16,1.8,9);c.fillStyle='#e3b661';c.fillRect(-5.4,-17,2.2,1.4);}
+  /* the weapon arm: rests forward, swings on a hit */
+  const ang=d.weapon==='bow'?-0.2+0.05*ph:sw>0?(-2.3+2.9*(1-sw)):-0.55+0.1*ph;
+  c.save();c.translate(2.2,-12.2);c.rotate(ang);c.strokeStyle=hurt?'#fff':'#e0c49a';c.lineWidth=2;c.beginPath();c.moveTo(0,0);c.lineTo(4.5,0);c.stroke();
+  if(d.weapon==='sword'){c.fillStyle='#3a2a18';c.fillRect(4,-1.3,1.6,2.6);c.fillStyle=steel;c.beginPath();c.moveTo(5.6,-0.9);c.lineTo(15.5,-0.3);c.lineTo(16.8,0.2);c.lineTo(15.5,0.7);c.lineTo(5.6,0.9);c.closePath();c.fill();c.fillStyle='#fff';c.globalAlpha*=0.55;c.fillRect(6,-0.6,9,0.5);}
+  else if(d.weapon==='spear'){c.strokeStyle='#5a3f22';c.lineWidth=1.3;c.beginPath();c.moveTo(3,0);c.lineTo(19,0);c.stroke();c.fillStyle=steel;c.beginPath();c.moveTo(18.5,-1.3);c.lineTo(23,0);c.lineTo(18.5,1.3);c.closePath();c.fill();c.fillStyle=hh.col;c.fillRect(16.5,-1.6,1.2,3.2);}
+  else if(d.weapon==='hammer'){c.strokeStyle='#5a3f22';c.lineWidth=1.5;c.beginPath();c.moveTo(3,0);c.lineTo(13,0);c.stroke();c.fillStyle=steel2;c.fillRect(11,-3,4.6,6);c.fillStyle=steel;c.fillRect(11,-3,4.6,1.4);}
+  else if(d.weapon==='axe'){c.strokeStyle='#5a3f22';c.lineWidth=1.4;c.beginPath();c.moveTo(3,0);c.lineTo(14,0);c.stroke();c.fillStyle=steel;c.beginPath();c.moveTo(11,-0.5);c.quadraticCurveTo(13.5,-5,16.5,-3.4);c.quadraticCurveTo(16.5,0.5,13.5,2.8);c.lineTo(11,0.5);c.closePath();c.fill();}
+  else if(d.weapon==='bow'){c.strokeStyle='#6b4a2a';c.lineWidth=1.5;c.beginPath();c.moveTo(4.5,-8);c.quadraticCurveTo(10.5,0,4.5,8);c.stroke();c.strokeStyle='#e9e3d0';c.lineWidth=0.6;c.beginPath();c.moveTo(4.5,-8);c.lineTo(4.5+(sw>0?0:-2),0);c.lineTo(4.5,8);c.stroke();
+    if(sw>0){c.strokeStyle='#e0c49a';c.lineWidth=0.9;c.beginPath();c.moveTo(2,0);c.lineTo(11,0);c.stroke();}}
+  c.restore();
+  if(sw>0.35&&d.weapon!=='bow'){c.strokeStyle='rgba(255,255,255,'+(0.5*sw)+')';c.lineWidth=1.6;c.beginPath();c.arc(2.2,-12.2,15,-2.1,-2.1+2.6*(1-sw));c.stroke();}
+  /* head and helm */
+  c.fillStyle=hurt?'#fff':'#d8b28c';c.beginPath();c.arc(0.6,-18.6,3.4,0,Math.PI*2);c.fill();
+  const helm=d.helm||'steel';
+  if(helm==='steel'||helm==='spike'){c.fillStyle=steel2;c.beginPath();c.arc(0.6,-19.4,3.9,Math.PI,0);c.fill();c.fillStyle=steel;c.beginPath();c.arc(0.2,-20,2.9,Math.PI*1.05,Math.PI*1.6);c.lineTo(0.6,-19.4);c.fill();c.fillStyle=steel2;c.fillRect(2.6,-19.6,1,3.4);
+    if(helm==='spike'){c.fillStyle=steel;c.beginPath();c.moveTo(-0.6,-22.8);c.lineTo(0.6,-27.5);c.lineTo(1.8,-22.8);c.closePath();c.fill();}else{c.fillStyle=hh.col;c.fillRect(-0.3,-24.2,1.6,1.8);}}
+  else if(helm==='scarf'){c.fillStyle=hh.col;c.beginPath();c.arc(0.6,-19.6,3.9,Math.PI*0.95,Math.PI*2.05);c.fill();c.fillStyle=hh.col2;c.fillRect(-3.2,-20.2,7.6,1.3);c.fillStyle=hh.col;c.beginPath();c.moveTo(-3,-19.4);c.quadraticCurveTo(-6.5,-16,-5.5,-12.5);c.lineTo(-3.4,-15.5);c.closePath();c.fill();}
+  else{c.fillStyle='#3b2a1c';c.beginPath();c.arc(0.6,-19.6,3.6,Math.PI*0.95,Math.PI*2.02);c.fill();}
+  /* the shield on the leading arm */
+  if(d.shield){const sx=3.2,sy=-9.8;c.fillStyle=d.shield==='rose'?'#2f5a2a':hh.col;c.beginPath();
+    if(d.shield==='big')c.ellipse(sx+0.4,sy+0.8,4.4,6.2,0,0,Math.PI*2);else if(d.shield==='round')c.arc(sx,sy,4,0,Math.PI*2);else c.ellipse(sx,sy,3.4,4.6,0,0,Math.PI*2);c.fill();
+    c.strokeStyle='#e9d8a6';c.lineWidth=1.1;c.stroke();c.fillStyle=d.shield==='rose'?'#ff7ab8':'#f3e7c4';c.beginPath();c.arc(sx,sy,d.shield==='rose'?1.5:1.1,0,Math.PI*2);c.fill();}
+}
+function troopHorse(c,hh,ph){const k=ph*1.6;c.fillStyle='#5a4030';
+  c.strokeStyle='#3d2a1e';c.lineWidth=2;c.lineCap='round';c.beginPath();c.moveTo(-7,-5);c.lineTo(-8-k,0);c.moveTo(-4,-5);c.lineTo(-3+k,0);c.moveTo(4,-5);c.lineTo(3-k,0);c.moveTo(7,-5);c.lineTo(8+k,0);c.stroke();
+  ell(c,-1,-7.5,10.5,4.3);c.beginPath();c.moveTo(7,-9);c.quadraticCurveTo(11,-13,12,-17);c.lineTo(14.5,-16.5);c.quadraticCurveTo(13,-11,9,-7);c.closePath();c.fill();
+  ell(c,13.6,-17.2,3.2,2.1);c.fillStyle=hh.col2;c.beginPath();c.moveTo(9.5,-12);c.quadraticCurveTo(11.5,-16.5,13.5,-18.5);c.lineTo(12,-19.4);c.quadraticCurveTo(10,-16.5,8.3,-12.6);c.closePath();c.fill();
+  c.strokeStyle='#3d2a1e';c.lineWidth=1.6;c.beginPath();c.moveTo(-11,-8);c.quadraticCurveTo(-15,-6+k,-14,-1);c.stroke();
+  c.fillStyle=hh.col;rr(c,-4.5,-11,8,3.4,1.2);c.fill();c.fillStyle='#0b0d12';c.beginPath();c.arc(14.6,-17.8,0.6,0,Math.PI*2);c.fill();}
+function troopBeast(c,hh,ph,sw,hurt){const k=ph*1.8,lunge=sw*2.5;c.translate(lunge,0);const fur=hurt?'#fff':'#8d99a6',fur2='#5f6b78';
+  c.strokeStyle=fur2;c.lineWidth=2;c.lineCap='round';c.beginPath();c.moveTo(-6,-4);c.lineTo(-7-k,0);c.moveTo(-3,-4);c.lineTo(-2+k,0);c.moveTo(4,-4);c.lineTo(3-k,0);c.moveTo(6.5,-4);c.lineTo(7.5+k,0);c.stroke();
+  c.fillStyle=fur;ell(c,0,-6.5,9,3.8);c.fillStyle=fur2;ell(c,-1,-5,7,2);c.fillStyle=fur;
+  c.beginPath();c.moveTo(6,-8.5);c.lineTo(13.5,-9.5+sw);c.lineTo(13,-6.5);c.lineTo(6.5,-5);c.closePath();c.fill();
+  c.beginPath();c.moveTo(7,-9);c.lineTo(8,-12.5);c.lineTo(9.6,-9.4);c.moveTo(9.5,-9.2);c.lineTo(10.8,-12.2);c.lineTo(11.8,-9);c.fill();
+  c.strokeStyle=fur2;c.lineWidth=1.8;c.beginPath();c.moveTo(-9,-7);c.quadraticCurveTo(-13,-9-k,-12.5,-13);c.stroke();
+  c.fillStyle='#ffe66d';c.beginPath();c.arc(10.4,-8.6,0.6,0,Math.PI*2);c.fill();c.fillStyle='#0b0d12';c.beginPath();c.arc(13.4,-8.3,0.7,0,Math.PI*2);c.fill();
+  c.fillStyle=hh.col;c.fillRect(-2.5,-9.2,1.6,2.6);}
+/* a small picture of a troop for the Train room */
+function troopPreview(cv,house,role){const c=cv.getContext('2d');c.clearRect(0,0,cv.width,cv.height);c.save();const s=cv.width/48;c.scale(s,s);
+  drawTroopBody(c,{x:22,y:40,face:1,role,troop:house,moving:false},performance.now());c.restore();}
+/* ---------- the Train room: the four troops of the house, and who holds the keeps ---------- */
+function showTrain(){const l=armyLvl(),c=l<ARMY_MAX?armyCost(l):0,hh=HOUSES[ACC.house],units=troopUnits(),kr=keepRole();
+  const cards=units.map(u=>{const st=troopStats(u),locked=u.k==='house'&&l<ARMY_HOUSE_AT,on=u.k===kr;
+    return `<div class="sitem unit troop ${locked?'lock':''} ${on?'on':''}" data-r="${u.k}" style="--rc:${hh.col}">${u.k==='house'?`<span class="badge" style="background:${hh.col2};color:#fff;border-color:${hh.col}">HOUSE ${hh.n.toUpperCase()}</span>`:''}<canvas class="tpv" width="96" height="96" data-r="${u.k}"></canvas><b>${u.n}</b><small>${u.role}</small>
+      ${locked?`<em class="ust lk">🔒 Train to level ${ARMY_HOUSE_AT}</em>`:`<em class="ust">❤️ ${st.hp} · ⚔️ ${st.dmg} · 🏃 ${st.spd}</em>`}<em class="tgar">${on?'✔ holds the keeps':locked?'':'tap — holds the keeps'}</em></div>`;}).join('');
+  show(`<div class="topbar"><h1>⚔️ Train<small>The yard of ${hh.seat}: the soldiers of House ${hh.n}. Every level is +8% health and damage for the whole army; the one you pick holds every Watch keep you build.</small></h1><button class="back" id="bBack">✖</button></div>
+  <div class="lvbox armybox" style="--hc:${hh.col}"><div class="lvline"><b>Army level ${l}</b><span class="bar"><i style="width:${Math.round(100*l/ARMY_MAX)}%"></i></span>${l<ARMY_MAX?`<button id="bTrainUp" ${goldOf()<c?'disabled':''}>TRAIN · ${GOLD_SVG.replace('<svg','<svg style="width:12px;height:12px;vertical-align:-2px"')} ${fmtN(c)}</button>`:'<b style="color:var(--gold)">VETERANS</b>'}</div>
+   <small>${l<ARMY_HOUSE_AT?`Level ${ARMY_HOUSE_AT} opens the ${TROOPS[ACC.house].house.n} — for the keeps and every Brothers call.`:`The ${TROOPS[ACC.house].house.n} rides with every Brothers call.`} Sworn brothers: ×${armyMul().toFixed(2)} health and damage.</small></div>
+  <div class="shopgrid troops">${cards}</div>
+  <p class="m" style="font-size:11.5px;margin-top:8px">Training counts as an upgrade — it feeds your account level like any other. The keep's numbers come from its tier; the role scales them (archers shoot from 95 px, riders hit harder, the house unit keeps its trick).</p>
+  <button class="btn" id="bOk">✔ Back</button>`);
+  CLOUD.screen='train';
+  const back=()=>showHub('battle');$('#bBack').addEventListener('click',back);$('#bOk').addEventListener('click',back);
+  const up=$('#bTrainUp');if(up)up.addEventListener('click',()=>{if(trainArmy()){SFX.play('upgrade');showTrain();}else SFX.play('deny');});
+  card.querySelectorAll('canvas.tpv').forEach(cv=>{try{troopPreview(cv,ACC.house,cv.dataset.r);}catch(e){}});
+  card.querySelectorAll('.sitem.troop').forEach(el=>el.addEventListener('click',()=>{if(el.classList.contains('lock')){SFX.play('deny');return;}if(!ACC.army)ACC.army={lvl:1};ACC.army.keep=el.dataset.r;persist();SFX.play('tap',80);showTrain();}));
+}
+/* =========================== HOUSES CLASH I (v1.1.1) ===========================
+   PvP on the KR Battles principle: the screen splits in two — the rival's lane on top, yours below. Both lanes get the same waves of
+   the dead (one seed); each side also has ARMY POINTS (+1 every 10 s) and spends them to send its house's soldiers (v1.1.0 troops)
+   down the rival's road, where they fight like wights. Whose door breaks first loses; if both hold ten waves, the fuller door wins.
+   Two full simulations run on one phone: the engine's state object `G` is swapped (`gSwap`) for the rival's steps and drawing, so
+   nothing in the engine knows there are two. The rival here is a bot (five levels, practice); a recorded rival (a ghost of a real
+   player's input log, leagues, a friend's link) is v1.1.2 with backend v32, a live friend v1.1.3. Entered from the Events page
+   and the Clan tab (`showClash`). */
+const CLASH={on:false,B:null,lane:'A',dy:0,myDy:0,pts:3,bpts:3,ptsT:0,bptsT:0,bot:null,opp:null,win:null,waves:10,t:0,log:[],ui:null,fin:false};
+const CLASH_TOP=GATE_Y-300;           /* the window each lane shows: map y from CLASH_TOP, H/2 tall */
+const CLASH_COST={foot:2,archer:2,rider:3,house:4},CLASH_N={foot:3,archer:2,rider:2,house:1},CLASH_MAXPTS=10;
+ENEMIES.troop={key:'troop',n:'House soldier',e:'⚔️',arch:'man',hp:120,spd:60,dps:12,gold:4,r:10};
+function clashOn(){return CLASH.on&&G.mode==='clash';}
+function clashRec(){if(!ACC.clash)ACC.clash={w:0,l:0,d:0,streak:0,best:0,bot:1};return ACC.clash;}
+/* ---------- the map: a short road that starts inside the window ---------- */
+function genClash(seed){const rng=mulberry32(seed);const cols=[55,125,195,265,335];const K=3;const top=CLASH_TOP+34,bottom=GATE_Y-92;
+  let x=cols[Math.floor(rng()*cols.length)];const pts=[[x,CLASH_TOP-20]];
+  for(let i=0;i<K;i++){const y=Math.round(top+(bottom-top)*i/(K-1)+(rng()*20-10));pts.push([x,y]);let nx;if(i===K-1)nx=195;else{do{nx=cols[Math.floor(rng()*cols.length)];}while(Math.abs(nx-x)<100);}if(nx!==x){pts.push([nx,y]);x=nx;}}
+  const biomes=['snow','forest','swamp','mountain','ash','desert','reach','storm'];
+  return{pts,biome:biomes[Math.floor(rng()*biomes.length)]};}
+/* the engine's state, swapped whole */
+function gSnap(){const o={};for(const k in G)o[k]=G[k];return o;}
+function gLoad(o){for(const k in G)delete G[k];Object.assign(G,o);}
+function gSwap(){const cur=gSnap();gLoad(CLASH.B);CLASH.B=cur;CLASH.lane=CLASH.lane==='A'?'B':'A';}
+/* called from startGame0 for mode 'clash' (instead of the Hold's daily map) */
+function clashSetup(o){const seed=o.seed;const gm=genClash(seed);const map=buildMap({pts:gm.pts,seed,biome:gm.biome,raw:true,style:'bend'});resetRun(map);
+  G.rng=mulberry32(seed+(o.lane==='B'?7:3));G.wrng=mulberry32(seed+11);G.totalWaves=Infinity;G.wo={id:12,pool:levelPool(12,99),minis:['giant'],dragon:999,king:999,lord:false,online:true,clash:true};
+  G.mult=DIFF().hp;G.mod=null;G.gold=260;G.doorMax=Math.round((1000+G.gateBonus)*DIFF().gate);G.doorHp=G.doorMax;G.seed=seed;G.lane=o.lane||'A';G.house=o.house||ACC.house;G.nextIn=4;return map;}
+/* ---------- start: two simulations, the rival a bot ---------- */
+function clashStart(o){o=o||{};const bot=Math.max(1,Math.min(5,o.bot||clashRec().bot||1));const seed=o.seed||hash32('clash'+Date.now()+Math.random());
+  const others=HOUSE_ORDER.filter(h=>h!==ACC.house);const oh=o.house||others[Math.floor(Math.random()*others.length)];
+  Object.assign(CLASH,{on:false,B:null,lane:'A',dy:0,myDy:H/2-CLASH_TOP,pts:3,bpts:3,ptsT:0,bptsT:0,win:null,t:0,log:[],fin:false,ghost:null,kind:o.kind||'practice',code:o.code||null,bot:{lvl:bot,nextBuild:60*2,nextSend:60*(26-bot*3),nextUp:60*20},opp:o.ghost?{name:o.ghost.name||'Ghost',house:oh,bot:0,ghost:o.ghost}:{name:'Bot '+['I','II','III','IV','V'][bot-1],house:oh,bot}});if(o.ghost)clashGhostInit(o.ghost);
+  G.state='menu';if(RING)closeRing();
+  startGame0({mode:'clash',seed,lane:'A',house:ACC.house});const A=gSnap();
+  const sel0=ACC.sel;if(o.ghost&&o.ghost.champ&&CBY[o.ghost.champ])ACC.sel=o.ghost.champ;startGame0({mode:'clash',seed,lane:'B',house:oh});ACC.sel=sel0;   /* its own map object: towers live on the slots */if(!o.ghost){G.heroOn=false;G.hero.dead=true;G.hero.hp=0;}const B=gSnap();
+  gLoad(A);CLASH.B=B;CLASH.on=true;CLASH.lane='A';if(o.ghost)clashHeroBar();
+  $('#hSub').textContent='Houses Clash · vs '+HOUSES[oh].n;updateBar();updateHUD();clashUi();clashLayout();
+  CLOUD.screen='clash';}
+/* ---------- each engine step of mine, one of the rival's (silent) ---------- */
+function clashStepB(){if(!CLASH.on||CLASH.fin)return;
+  CLASH.ptsT+=DT;if(CLASH.ptsT>=10){CLASH.ptsT=0;CLASH.pts=Math.min(CLASH_MAXPTS,CLASH.pts+1);clashUiSync();}
+  CLASH.bptsT+=DT;if(CLASH.bptsT>=10){CLASH.bptsT=0;CLASH.bpts=Math.min(CLASH_MAXPTS,CLASH.bpts+1);}
+  gSwap();try{if(G.state==='play'){if(CLASH.ghost)clashGhostStep();else clashBot();step();}}catch(e){console.error(e);}gSwap();
+  if(CLASH.bsend){const r=CLASH.bsend;CLASH.bsend=null;clashSpawnTroops(CLASH.opp.house,r);}
+  /* the end: a door broke, or ten waves held on both sides */
+  if(G.doorHp<=0&&!CLASH.win)CLASH.win='B';
+  if(!CLASH.win&&CLASH.B.doorHp<=0)CLASH.win='A';
+  if(!CLASH.win&&G.wave>CLASH.waves&&G.waveDone&&!G.enemies.some(e=>e.hp>0)&&CLASH.B.wave>CLASH.waves){const a=G.doorHp/G.doorMax,b=CLASH.B.doorHp/CLASH.B.doorMax;CLASH.win=a>b+0.01?'A':b>a+0.01?'B':'draw';}
+  if(CLASH.win)clashFinish();}
+/* the bot: builds by the gate, upgrades when rich, sends soldiers on a clock (faster and bolder with its level) */
+function clashBot(){const b=CLASH.bot;if(!b||G.tick%30)return;const lvl=b.lvl;
+  if(G.tick>=b.nextBuild){const open=['watch','glass','scorp','keep','wild'].filter(t=>typeof towerOpen==='function'?towerOpen(t):t==='watch');
+    const n=G.map.slots.filter(s=>s.tower).length;const t=open[Math.min(open.length-1,n%Math.max(1,Math.min(open.length,1+lvl)))]||'watch';
+    const gt=G.map.gates[0];const s=G.map.slots.filter(x=>!x.tower).sort((p,q)=>dist(p.x,p.y,gt.x,GATE_Y-40)-dist(q.x,q.y,gt.x,GATE_Y-40))[0];
+    if(s&&G.gold>=costOf(t)){build(s,t);b.nextBuild=G.tick+60*(7-lvl);}}
+  if(G.tick>=b.nextUp&&G.gold>=180){const s=G.map.slots.find(x=>x.tower&&x.tower.lvl<Math.min(5,1+lvl));if(s&&upgradeTower(s))b.nextUp=G.tick+60*(16-lvl*2);}
+  if(lvl>=3&&canCall()&&G.nextIn>1.5&&G.tick%120===0)callWave();
+  if(G.tick>=b.nextSend){const roles=['foot','archer','rider','house'];const role=roles[Math.floor(G.rng()*Math.min(4,1+lvl))];const c=CLASH_COST[role];
+    if(CLASH.bpts>=c){CLASH.bpts-=c;CLASH.bsend=role;b.nextSend=G.tick+60*Math.max(8,26-lvl*3);}}}
+/* a send: the house's soldiers walk the rival's road as enemies */
+function clashSpawnTroops(house,role){const d=troopDef(house,role),n=CLASH_N[role],m=hpMul(Math.max(1,G.wave));
+  for(let i=0;i<n;i++){const hp=Math.round(TROOP_BASE.hp*d.hp*2.4*m);
+    G.enemies.push({type:'troop',key:'troop',n:HOUSES[house].n+' '+d.n,e:'⚔️',arch:'man',troop:house,role,hp,max:hp,r:10,gold:4,scale:1,spdBase:Math.round(TROOP_BASE.spd*d.spd*0.72),vel:0,prog:-6-i*16,slow:1,mark:1,burn:null,poison:null,stunT:0,atkT:0,id:G.eid++,blockedBy:null,bob:0,route:0,dps:Math.round(TROOP_BASE.dmg*d.dmg*1.3),ranged:d.range?88:0,weak:1,face:1});}
+  const q=posAt(G.map,14,0);addText(q.x,q.y-8,HOUSES[house].n+' '+d.n+(n>1?' ×'+n:''),HOUSES[house].col,1);addFx({t:'ring',x:q.x,y:q.y,r0:6,r1:40,life:0.5,col:HOUSES[house].col});}
+function clashSend(role){if(!clashOn()||CLASH.fin||G.state!=='play')return false;const c=CLASH_COST[role];if(role==='house'&&armyLvl()<ARMY_HOUSE_AT){SFX.play('deny');ecoToast('🔒 The '+TROOPS[ACC.house].house.n+' marches from army level '+ARMY_HOUSE_AT);return false;}
+  if(CLASH.pts<c){SFX.play('deny');return false;}CLASH.pts-=c;CLASH.log.push({t:G.tick,a:'send',role});SFX.play('horn',200);
+  gSwap();clashSpawnTroops(ACC.house,role);gSwap();clashUiSync();return true;}
+/* ---------- the end ---------- */
+function clashFinish(){if(CLASH.fin)return;CLASH.fin=true;const w=CLASH.win,R=clashRec();G.state='over';G.armed=null;G.sel=null;closeSheet();
+  if(w==='A'){R.w++;R.streak++;R.best=Math.max(R.best,R.streak);if(R.streak>=2&&R.bot<5){R.bot++;R.streak=0;}SFX.play('win');}else if(w==='B'){R.l++;R.streak=0;SFX.play('lose');}else{R.d++;}
+  persist();   /* gold for clashes comes with the server record (v1.1.2, backend v32): the server pays, nothing is invented here */
+  const a=Math.round(100*G.doorHp/G.doorMax),b=Math.round(100*CLASH.B.doorHp/CLASH.B.doorMax),oh=HOUSES[CLASH.opp.house];
+  setTimeout(()=>{show(`<h1>${w==='A'?'🏆 Clash won':w==='B'?'💀 Clash lost':'🤝 A draw'}<small>vs ${CLASH.opp.name} of House ${oh.n} · wave ${Math.max(1,G.wave)}</small></h1>
+    <div class="clres"><div class="side me" style="--hc:${HOUSES[ACC.house].col}"><b>You</b><span class="bar"><i style="width:${a}%"></i></span><em>🧱 ${a}%</em></div><div class="side" style="--hc:${oh.col}"><b>${oh.n}</b><span class="bar"><i style="width:${b}%"></i></span><em>🧱 ${b}%</em></div></div>
+    <p class="m">${w==='A'&&R.streak===0&&R.bot>CLASH.opp.bot?'The bot grows: level '+R.bot+'. ':''}${clashServer()?'':'Practice pays nothing for a guest — a seat signed in through Telegram gets gold, leagues and friends.'}</p>
+    <p class="m" id="clSrv"></p><p class="m">Record: ${R.w}W · ${R.l}L · ${R.d}D</p>
+    <button class="btn" id="bClAgain">⚔️ Again</button><button class="btn sec" id="bClHome">To the castle</button>`);
+    $('#bClAgain').addEventListener('click',()=>{overlay.classList.add('hidden');if(CLASH.kind==='rank'&&clashServer())cl2Go('rank');else clashStart({bot:clashRec().bot,kind:'practice'});});
+    $('#bClHome').addEventListener('click',()=>{clashStop();showHub('battle');});CLASH.back=()=>showHub('events');clashAfter(w);},w==='A'?600:900);}
+function clashStop(){CLASH.on=false;CLASH.B=null;CLASH.fin=true;if(CLASH.ui){CLASH.ui.remove();CLASH.ui=null;}}
+/* ---------- drawing: the rival's lane on top, mine below ---------- */
+function clashDraw(now){const z=CAM.z,x=CAM.x,y=CAM.y;CAM.z=1;CAM.x=W/2;CAM.y=H/2;
+  ctx.setTransform(scale*dpr,0,0,scale*dpr,0,0);
+  gSwap();CLASH.dy=-CLASH_TOP;ctx.save();ctx.beginPath();ctx.rect(0,0,W,H/2);ctx.clip();try{draw(now);}catch(e){}ctx.restore();gSwap();
+  CLASH.dy=H/2-CLASH_TOP;ctx.save();ctx.beginPath();ctx.rect(0,H/2,W,H/2);ctx.clip();draw(now);ctx.restore();CLASH.dy=0;
+  ctx.setTransform(scale*dpr,0,0,scale*dpr,0,0);ctx.fillStyle='#0b1220';ctx.fillRect(0,H/2-2,W,4);ctx.fillStyle='rgba(227,182,97,0.55)';ctx.fillRect(0,H/2-0.5,W,1);
+  CAM.z=z;CAM.x=x;CAM.y=y;}
+/* ---------- the strip between the lanes: the rival's door, my points and the four sends ---------- */
+function clashUi(){if(CLASH.ui)CLASH.ui.remove();const el=document.createElement('div');el.id='clashUi';const hh=HOUSES[ACC.house],oh=HOUSES[CLASH.opp.house];
+  el.innerHTML=`<div class="ctop"><span class="who" style="--hc:${oh.col}">${oh.e} <b>${CLASH.opp.name}</b> · ${oh.n}</span><span class="door"><i id="clDoorB"></i></span><span class="wv" id="clWaveB">wave 1</span></div>
+    <div class="csend"><span class="pts" id="clPts"><b>${CLASH.pts}</b>/${CLASH_MAXPTS} ⚔</span>${TROOP_ROLES.map(r=>{const d=troopDef(ACC.house,r);return `<button class="cs" data-r="${r}" style="--hc:${hh.col}" title="${d.n}"><canvas width="56" height="56"></canvas><em>${CLASH_COST[r]}</em>${r==='house'&&armyLvl()<ARMY_HOUSE_AT?'<i>🔒</i>':''}</button>`;}).join('')}</div>`;
+  $('#stage').appendChild(el);CLASH.ui=el;
+  el.querySelectorAll('button.cs').forEach(b=>{try{troopPreview(b.querySelector('canvas'),ACC.house,b.dataset.r);}catch(e){}b.addEventListener('pointerdown',ev=>{ev.stopPropagation();ev.preventDefault();if(clashSend(b.dataset.r)){b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');}});});
+  clashUiSync();}
+function clashUiSync(){const el=CLASH.ui;if(!el)return;const p=el.querySelector('#clPts b');if(p)p.textContent=CLASH.pts;
+  el.querySelectorAll('button.cs').forEach(b=>b.classList.toggle('poor',CLASH.pts<CLASH_COST[b.dataset.r]));
+  const B=CLASH.lane==='A'?CLASH.B:G;if(B){const d=el.querySelector('#clDoorB');if(d)d.style.width=Math.round(100*Math.max(0,B.doorHp)/B.doorMax)+'%';const w=el.querySelector('#clWaveB');if(w)w.textContent='wave '+Math.max(1,B.wave)+' · 🧱 '+Math.round(100*Math.max(0,B.doorHp)/B.doorMax)+'%';}}
+function clashLayout(){const el=CLASH.ui;if(!el)return;el.style.left=canvas.offsetLeft+'px';el.style.top=canvas.offsetTop+'px';el.style.width=(W*scale)+'px';el.style.height=(H*scale)+'px';el.style.setProperty('--mid',(H/2*scale)+'px');}
+/* ---------- the screen: record, the bot's level, start ---------- */
+function clashCardHTML(){const R=ACC&&ACC.tut?clashRec():null;return `<button class="evcard live wide" id="bClashCard"><span class="ic">${HUB_ICON.clan||'⚔️'}</span><span class="tx"><b>Houses Clash</b><small>${R?`your lane below, the rival's above — send your house's soldiers at him · ${R.w}W ${R.l}L · bot level ${R.bot}`:'win your first battle first'}</small></span><span class="st">NEW</span></button>`;}
+function showClashLocal(back){const R=clashRec(),hh=HOUSES[ACC.house],lv=['Bronze','Silver','Gold','Crystal','Dragon'];if(typeof back==='function')CLASH.back=back;else if(!CLASH.back)CLASH.back=()=>showHub('events');
+  show(`<div class="topbar"><h1>⚔️ Houses Clash<small>Two lanes, the same dead. Send the soldiers of House ${hh.n} down the rival's road; whose door breaks first loses.</small></h1><button class="back" id="bBack">✖</button></div>
+    <div class="lg"><span class="le">🤖</span><b>Practice</b><span class="rt">${R.w}</span><small>wins · ${R.l} lost · ${R.d} drawn · best streak ${R.best}</small></div>
+    <div class="clbots">${lv.map((n,i)=>`<button class="clb ${i+1===R.bot?'on':''} ${i+1>R.bot?'lock':''}" data-b="${i+1}">${['🥉','🥈','🥇','💎','🐉'][i]}<b>${n}</b><small>bot ${i+1}</small></button>`).join('')}</div>
+    <p class="m">Two wins in a row at a level open the next. <b>Army points</b> come one every 10 s; a send costs 2–4. The ${TROOPS[ACC.house].house.n} needs army level ${ARMY_HOUSE_AT} (Army → City → Barracks).</p>
+    <button class="btn" id="bClashGo">⚔️ Fight bot ${R.bot}</button>
+    <p class="m" style="font-size:11.5px">Ranked leagues, friend links and a live friend come next (v1.1.2–3). Nothing here touches your rating.</p>`);
+  CLOUD.screen='clash-menu';$('#bBack').addEventListener('click',()=>CLASH.back());
+  card.querySelectorAll('.clb').forEach(b=>b.addEventListener('click',()=>{const n=+b.dataset.b;if(n>R.bot){SFX.play('deny');return;}card.querySelectorAll('.clb').forEach(x=>x.classList.toggle('on',x===b));$('#bClashGo').textContent='⚔️ Fight bot '+n;$('#bClashGo').dataset.b=n;SFX.play('tap',60);}));
+  $('#bClashGo').addEventListener('click',()=>{if(!ACC.tut){ecoToast('Finish the tutorial battle first');return;}overlay.classList.add('hidden');clashStart({bot:+($('#bClashGo').dataset.b||R.bot)});});}
+{const p0=SFX.play.bind(SFX);SFX.play=function(a,b,c){if(CLASH.on&&CLASH.lane==='B')return;return p0(a,b,c);};}
+/* =========================== HOUSES CLASH II (v1.1.2, backend v32) ===========================
+   The server keeps every finished clash as a record (seed, input log, waves held, door left) and hands records back as GHOSTS: a
+   ranked clash replays a real player's run on the top lane (his log, step by step, on the same seed — he is not asked and loses
+   nothing); Elo on the PvP rating shared with duels, leagues Bronze → Dragon, five a day; a friend clash by link (`startapp=c_<code>`,
+   any league): each plays against the other's record when it is there, the server compares the two; practice stays the bot.
+   Nothing is paid or ranked on the phone: `clash_finish` is the verdict. Guests (no seat signed in) keep the local practice. */
+const CL2={st:null,at:0,seat:-1,pending:null,busy:false,force:false};
+const CLASH_BOT_LINK='https://t.me/HoldorTDBot/play?startapp=c_';
+let cl2Rpc=(fn,args)=>ecoRpc(fn,args,10000);
+function clashServer(){return !!(CL2.force||(ecoOn()&&ACC&&ACC.tut));}
+function cl2Call(fn,args){if(CL2.force)return Promise.resolve(cl2Rpc(fn,args));return ecoLane(async()=>{await ecoSyncRaw();return await cl2Rpc(fn,Object.assign({seat:seatNo()},args));});}
+function cl2Load(force){if(!clashServer())return Promise.resolve(null);
+  if(!force&&CL2.st&&CL2.seat===seatNo()&&Date.now()-CL2.at<20000)return Promise.resolve(CL2.st);const seat=seatNo();
+  return cl2Call('clash_state',{seat}).then(r=>{if(r&&r.state&&!CL2.force)ecoApply(r.state);if(seat===seatNo()){CL2.st=r;CL2.at=Date.now();CL2.seat=seat;}return r;}).catch(e=>{ECO.err=ecoMsg(e);return null;});}
+/* ---------- a ghost: the rival's recorded log replayed on lane B ---------- */
+function clashGhostInit(gh){CLASH.ghost={log:(gh.log||[]).filter(a=>a&&a.a).slice().sort((a,b)=>(a.t||0)-(b.t||0)),i:0,run:gh,wait:0};}
+function clashGhostStep(){const g=CLASH.ghost;if(!g)return;const L=g.log;
+  while(g.i<L.length&&(L[g.i].t||0)<=G.tick){const a=L[g.i];const done=clashGhostDo(a);if(!done){if(G.tick-(a.t||0)>60*25)g.i++;break;}g.i++;}}
+function clashGhostDo(a){try{const slot=()=>G.map.slots.find(x=>x.id===a.s);
+  switch(a.a){
+    case 'build':{const s=slot();if(!s||s.tower||!TOWERS[a.type])return true;if(G.gold<costOf(a.type))return false;build(s,a.type);return true;}
+    case 'up':{const s=slot();if(!s||!s.tower||s.tower.lvl>=5)return true;if(G.gold<upCost(s.tower))return false;upgradeTower(s);return true;}
+    case 'sell':{const s=slot();if(s&&s.tower)sellTower(s);return true;}
+    case 'rally':{const s=slot();if(s&&s.tower){s.tower.rx=a.x;s.tower.ry=a.y;}return true;}
+    case 'call':if(canCall())callWave();return true;
+    case 'power':if(G.powerCd&&G.powerCd[a.id]>0)G.powerCd[a.id]=0;castPower(a.id,a.x,a.y);return true;
+    case 'ult':if(G.heroOn&&G.hero&&!G.hero.dead){G.hero.cd.ult=0;castUlt();}return true;
+    case 'move':if(G.hero&&G.heroOn){G.hero.tx=a.x;G.hero.ty=a.y;}return true;
+    case 'send':if(CLASH_COST[a.role]){CLASH.bsend=a.role;}return true;
+    default:return true;}}catch(e){return true;}}
+/* lane B's champion was made with the ghost's card: the bar at the bottom must show mine again */
+function clashHeroBar(){const h=G.hero;if(!h||!h.c)return;const c=h.c,pu=CHAMP_ART[c.id+'_portrait'];$('#hEmoji').textContent=pu?'':c.e;$('#hEmoji').style.backgroundImage=pu?`url(${pu})`:'';$('#hName').textContent=shortName(c);$('#uEmoji').textContent=SK[c.sk[2]].e;$('#uName').textContent=SK[c.sk[2]].n;}
+/* ---------- the record of my run, after the verdict on the phone ---------- */
+function clashRunLog(){return (G.log||[]).concat(CLASH.log||[]).filter(a=>a&&a.a&&a.a!=='wave').sort((a,b)=>(a.t||0)-(b.t||0)).slice(0,600);}
+function clashRunWaves(){return Math.min(10,Math.max(0,G.waveDone?G.wave:G.wave-1));}
+function clashAfter(w){const el=document.getElementById('clSrv');if(!clashServer()){if(el)el.textContent='';return;}
+  if(el)el.textContent='⏳ recording the run on the server…';
+  const gh=CLASH.opp&&CLASH.opp.ghost;const args={kind:CLASH.kind||'practice',house:ACC.house,champ:ACC.sel||null,lvl:G.hero?G.hero.lvl||1:1,army:armyLvl(),seed:G.seed,bot:CLASH.opp?CLASH.opp.bot||0:0,log:clashRunLog(),waves:clashRunWaves(),door:Math.round(100*Math.max(0,G.doorHp)/G.doorMax),ghost:gh?gh.id:null,code:CLASH.code||null};
+  cl2Call('clash_finish',args).then(r=>{CL2.st=null;if(r&&r.state&&!CL2.force)ecoApply(r.state);const e=document.getElementById('clSrv');if(!e)return;
+    if(!r||!r.ok){e.textContent='The server did not take the run.';return;}
+    const g=r.gift?Object.entries(r.gift).map(([k,v])=>'+'+v+(k==='gold'?' 🪙':' 💎')).join(' · '):'';
+    if(r.clash){const c=r.clash;e.innerHTML=c.status==='done'?`<b>Friend clash ${c.result==='win'?'won':c.result==='loss'?'lost':'drawn'}</b> vs ${esc(c.opponent)} — ${c.me.waves} waves · 🧱 ${c.me.door}% against ${c.them.waves} · 🧱 ${c.them.door}%`:`Recorded: ${c.me.waves} waves · 🧱 ${c.me.door}%. Waiting for ${esc(c.opponent)} to play.`;}
+    else if(r.run&&r.run.kind==='rank'){e.innerHTML=`<b>Server verdict: ${r.result==='win'?'WIN':r.result==='loss'?'LOSS':'DRAW'}</b> — ${r.run.waves} waves · 🧱 ${r.run.door}% against the ghost's ${gh.waves} · 🧱 ${gh.door}% · rating ${r.delta>0?'+':''}${r.delta} → ${r.rating} (${r.league})${g?' · '+g:''}`;}
+    else e.innerHTML=`Recorded on the server${g?': '+g:''}${r.run&&r.run.waves<2?' (two waves or more pay)':''}.`;
+    }).catch(err=>{const e=document.getElementById('clSrv');if(e)e.textContent='⚠️ '+String(ecoMsg(err)).slice(0,90);});}
+/* ---------- the link: startapp=c_<code> ---------- */
+function cl2FromStart(sp){if(sp&&/^c_[0-9a-f]{8}$/i.test(sp)){CL2.pending=sp.slice(2).toLowerCase();return true;}return false;}
+function cl2PendingOpen(){if(!CL2.pending)return;if(!ecoOn()){setTimeout(cl2PendingOpen,800);return;}
+  if(!ACC.tut){const c=CL2.pending;CL2.pending=null;ecoModal('⚔️ A clash challenge','Finish the tutorial battle first — then open the link again.',[{t:'OK'}]);return;}
+  showClash();}
+/* ---------- the screen ---------- */
+function cl2Share(code){const link=CLASH_BOT_LINK+code,u='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent('Houses Clash: my house against yours. Hold the door longer than me!');try{if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank');}catch(e){}}
+function cl2Go(kind,code){if(CL2.busy)return;CL2.busy=true;ecoWait(true);
+  cl2Call('clash_start',{kind,code:code||null}).then(r=>{CL2.busy=false;ecoWait(false);CL2.st=null;
+    if(kind==='friend'&&!code){showClash();return;}
+    if(kind==='friend'&&code&&r.clash&&r.clash.me&&r.clash.me.played){ecoToast('You have played this clash — waiting for '+r.clash.opponent);showClash();return;}
+    const gh=r.ghost;if(kind==='rank'&&!gh)ecoToast('No ghost near your rating yet — a practice against the bot instead');
+    overlay.classList.add('hidden');
+    if(gh)clashStart({ghost:gh,kind:gh&&kind==='rank'?'rank':kind,code:code||null,seed:gh.seed,house:gh.house,bot:1});
+    else clashStart({bot:clashRec().bot,kind:kind==='friend'?'friend':'practice',code:code||null});})
+  .catch(e=>{CL2.busy=false;ecoWait(false);const m=String(ecoMsg(e));ecoModal('⚔️ Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,140)),[{t:'OK',f:()=>showClash()}]);});}
+function cl2ClashRow(c){const st=c.status==='done'?(c.result==='win'?'<b class="dw">WIN</b>':c.result==='loss'?'<b class="dl">LOSS</b>':'<b>DRAW</b>'):c.status==='expired'?'<b class="dx">EXPIRED</b>':'<b class="dp">OPEN</b>';
+  const sc=x=>x&&x.played?`${x.waves} 🌊 · 🧱 ${x.door}%`:'—';
+  const link=c.status==='open'&&c.mine&&c.waiting?`<div class="reflink"><code>${esc(CLASH_BOT_LINK+c.code)}</code></div><div class="pvrow"><button class="btn" data-share="${c.code}">📨 Send to a friend</button><button class="btn sec" data-copy="${c.code}">Copy</button></div>`:'';
+  const play=c.status==='open'&&!c.waiting&&!(c.me&&c.me.played)?`<div class="pvrow"><button class="btn" data-play="${c.code}">▶ Play my run</button></div>`:c.status==='open'&&c.mine&&c.waiting&&!(c.me&&c.me.played)?`<div class="pvrow"><button class="btn sec" data-play="${c.code}">▶ Play my run now</button></div>`:'';
+  return `<div class="duelrow ${c.result||c.status}"><div class="dh"><span>🤝 ${c.waiting?'Friend clash':esc(c.opponent)}</span>${st}${c.status==='open'?`<small>${fmtLeft(c.left)} left</small>`:''}</div>
+    <div class="ds"><span>You<br><em>${sc(c.me)}</em></span><i>vs</i><span>${c.waiting?'waiting for a friend to open the link':esc(c.opponent)}<br><em>${sc(c.them)}</em></span></div>${link}${play}</div>`;}
+function showClash(back){if(typeof back==='function')CLASH.back=back;else if(!CLASH.back)CLASH.back=()=>showHub('events');
+  if(!clashServer()){showClashLocal(back);return;}
+  const R=clashRec(),hh=HOUSES[ACC.house];
+  const draw=body=>{show(`<div class="topbar"><h1>⚔️ Houses Clash<small>Two lanes, the same dead. Send the soldiers of House ${hh.n} down the rival's road; whose door breaks first loses.</small></h1><button class="back" id="bBack">✖</button></div>`+body);CLOUD.screen='clash-menu';$('#bBack').addEventListener('click',()=>CLASH.back());};
+  if(CL2.pending){const code=CL2.pending;CL2.pending=null;draw('<p class="m">⏳ joining the clash…</p>');cl2Go('friend',code);return;}
+  const s=CL2.st&&CL2.seat===seatNo()?CL2.st:null;
+  if(!s){draw('<p class="m">⏳ asking the server…</p>');cl2Load(true).then(()=>{if(CLOUD.screen==='clash-menu')showClash();});return;}
+  if(Date.now()-CL2.at>20000)cl2Load(true).then(()=>{});
+  const lv=['Bronze','Silver','Gold','Crystal','Dragon'];
+  draw(`<div class="lg"><span class="le">${DUEL_LEAGUE[s.league]||'🥉'}</span><b>${s.league}</b><span class="rt">${s.rating}</span><small>${s.wins}W · ${s.losses}L · ${s.draws}D ranked · ${s.cw}W ${s.cl}L in clashes</small></div>
+    <div class="dbtns"><button class="btn" id="bClRank" ${s.rank_left>0?'':'disabled'}>⚔️ Ranked clash <small>${s.rank_left} left today · a ghost near your rating</small></button>
+    <button class="btn sec" id="bClFriend">🤝 Challenge a friend <small>any league · no rating</small></button></div>
+    <div class="clbots">${lv.map((n,i)=>`<button class="clb ${i+1===R.bot?'on':''} ${i+1>R.bot?'lock':''}" data-b="${i+1}">${['🥉','🥈','🥇','💎','🐉'][i]}<b>${n}</b><small>bot ${i+1}</small></button>`).join('')}</div>
+    <button class="btn sec" id="bClashGo">🤖 Practice vs bot ${R.bot} <small>60 🪙 for two waves or more, five a day</small></button>
+    <div class="qlist">${(s.clashes||[]).map(cl2ClashRow).join('')}</div>
+    ${(s.runs||[]).length?`<div class="hh"><h2>Your runs</h2></div><div class="qlist">${s.runs.slice(0,8).map(r=>`<div class="duelrow ${r.result||''}"><div class="dh"><span>${r.kind==='rank'?'⚔️ Ranked':r.kind==='friend'?'🤝 Friend':'🤖 Practice'}</span>${r.result?`<b class="${r.result==='win'?'dw':r.result==='loss'?'dl':''}">${r.result.toUpperCase()}</b>`:''}${r.delta?`<small class="${r.delta>0?'dw':'dl'}">${r.delta>0?'+':''}${r.delta}</small>`:''}</div><div class="ds"><span>${r.waves} 🌊 · 🧱 ${r.door}%</span></div></div>`).join('')}</div>`:''}
+    <p class="m" style="font-size:11.5px">A ranked clash replays the recorded run of a real player near your rating on the top lane; the server compares the two records (waves, then the door). The ${TROOPS[ACC.house].house.n} needs army level ${ARMY_HOUSE_AT}.</p>`);
+  $('#bClRank').addEventListener('click',()=>cl2Go('rank'));
+  $('#bClFriend').addEventListener('click',()=>cl2Go('friend'));
+  card.querySelectorAll('.clb').forEach(b=>b.addEventListener('click',()=>{const n=+b.dataset.b;if(n>R.bot){SFX.play('deny');return;}card.querySelectorAll('.clb').forEach(x=>x.classList.toggle('on',x===b));$('#bClashGo').dataset.b=n;$('#bClashGo').firstChild.textContent='🤖 Practice vs bot '+n+' ';SFX.play('tap',60);}));
+  $('#bClashGo').addEventListener('click',()=>{overlay.classList.add('hidden');clashStart({bot:+($('#bClashGo').dataset.b||R.bot),kind:'practice'});});
+  card.querySelectorAll('[data-play]').forEach(b=>b.addEventListener('click',()=>cl2Go('friend',b.dataset.play)));
+  card.querySelectorAll('[data-share]').forEach(b=>b.addEventListener('click',()=>cl2Share(b.dataset.share)));
+  card.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',()=>{try{navigator.clipboard.writeText(CLASH_BOT_LINK+b.dataset.copy).then(()=>ecoToast('Link copied'),()=>ecoToast(CLASH_BOT_LINK+b.dataset.copy));}catch(e){ecoToast(CLASH_BOT_LINK+b.dataset.copy);}}));
+}
+window.HOLDOR_TROOPS={TROOPS,TROOP_ROLE,TROOP_ROLES,troopDef,troopUnits,troopStats,keepRole,troopDress,allyStrike,troopMend,drawTroopBody,troopPreview,showTrain,towerStats,HOUSE_ORDER,HOUSES,build,LEVELS};
+window.HOLDOR_CLASH={CLASH,CLASH_COST,CLASH_N,CLASH_TOP,genClash,clashStart,clashStop,clashSend,clashStepB,clashBot,clashSpawnTroops,clashFinish,clashDraw,showClash,clashCardHTML,gSnap,gSwap,toWorld,w2s};
+window.HOLDOR_CL2={CL2,clashServer,cl2Load,cl2Call,clashGhostInit,clashGhostStep,clashGhostDo,clashRunLog,clashRunWaves,clashAfter,cl2FromStart,cl2PendingOpen,cl2Go,showClash,showClashLocal,setRpc:f=>{cl2Rpc=f;}};
 window.HOLDOR_CARDS={CARD_NEED,CARD_MUL,cardRar,cardLvl,cardMax,cardNeed,cardHave,cardGold,cardName,cardOpen,cardReady,cardCan,addCards,cardLevelUp,accLevel,accXp,addXp,xpNeed,lvlChestTier,lvlChestsReady,cardPool,rollChest,stageCards,spellLvl,spellMul,showSpellRoom,showTowerRoom,migrate48,TOURS,toursOf,hubTour,startTour};
 window.HOLDOR_SEATS={seatNo,lbIsMe,lbName,lbStale,lbMine,scoreSummary,fetchLeaderboard,cachedLb};
 window.HOLDOR_BOOK={showBook,bookNew,bookDisc,bookNewCount,bookMarkRead,BOOK,trophiesOf,trophiesRow,rankOf,myRank,rankSVG,showRankSheet,RANKS,RANK_AT};
@@ -7472,6 +8448,12 @@ window.HOLDOR_GA={gearArt,gaFamily,GA_METAL,GA_SET};
 window.HOLDOR_GFX={gfxStart,gfxReveal,gfxEnd};
 window.HOLDOR_CHAT={showChat,CHAT,chatClean:null};
 window.HOLDOR_WAR={showRealmWar,showRealms,WAR};
+window.HOLDOR_FXB={FXB,fxbCounts,fxbTint,fxbGateKick,fxbDeath,fxbTick,fxbNum,drawFrame:n=>draw(n)};
+window.HOLDOR_FXUI={FXUI,fxuiHub,fxuiOff,fxuiCalm,fxuiLive,fxuiParTo,ecoModal,homeRaf:()=>HOME.raf,
+  drawTimer(){if(window.__fxDT)return window.__fxDT;const T={ms:0,n:0},d0=draw;draw=function(){const t=performance.now();const r=d0.apply(this,arguments);T.ms+=performance.now()-t;T.n++;return r;};window.__fxDT=T;return T;}};
+window.HOLDOR_FXT={FXT,TGUIDE,tgNums,towerGuideMini,towerGuideDemo,fxtUnder,openSheet,posE};
+window.HOLDOR_HOME98={HUB_HIDDEN,HUB_ORDER,hubClan,homeHold,hmMiniDraw,homeMovedBind,hubTabs,evPopup};
+window.HOLDOR_OB={LANGS,OB_NEED,hubLocked,obStage,obGuessRealm,tutPrebuild,obLessonOn,afterLoad,newLang,tutFrame,TOURS,HUB_LESSONS};
 window.HOLDOR={G,CAM,camTo,camReset,toWorld,callWave,canCall,spawnMark,spawnMarks,stageLevel,stageStars,stageOpen,updateHodor,posAt,heroSay,addFx,QUOTES,SK,SB,CLOUD,sbRpc,cloudLogin,cloudSave,fetchLeaderboard,scoreSummary,TALENTS,skVal,makeHero,showPause,SPELLS,spellOpen,get SAVE(){return SAVE;},get ACC(){return ACC;},setAcc(a){ACC=a;},flag,realmStats,newLang,newHouse,showArt,VERSION,ENEMIES,POOLS,tutNext,tutStart,tutEvent,showTitle:()=>showTitle(),afterLoad,openConfirm,openTowers,startGame,step,castUlt,castPower,build,LEVELS,CHAMPS,TOWERS,UPG,ACHS,DIFFS,newAccount,persist,showTitle,showSlots,showCampaign,showHeroRoom,showUpgrades,showEncyclopedia,showAchievements,showRealms,showShop,showSettings,showDifficulty,cprog,cleared,starsLeft,onlineOpen,costOf,upCost,upPrice,towerIconHTML,enemyIconHTML,ECON,goldOf,addGold,spendGold,genDeals,buyDeal,unlockDeal,dealsState,gameOver,victory,SFX,MAPPOS,mapSVG,showHub,openChest,rollChest,accLevel,drawIsland,CHEST_TIERS,dayKeyUTC};
 init();
 })();
