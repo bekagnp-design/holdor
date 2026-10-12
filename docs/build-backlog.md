@@ -797,3 +797,7 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 - Ready quests, social tasks and friend rewards come first on a gold row with a big pulsing **CLAIM** button; unfinished ones show a progress ring with the percentage and "40 / 300"; done ones fold under "✔ N done". The grey "…" buttons are gone.
 - The Daily card is a slim row; the invitation block is folded behind one button (state kept in `TASKS.invOpen`).
 - Data hooks kept (`data-q`, `data-c`, `data-o`, `.tks` subtabs). Backend `tasks_test.py` adapted + one new check. Client only.
+
+### Release v1.1.2 + Supabase v32 (2026-10-12)
+- On MR B's "release": PR #22 had been merged before v1.1.3–v1.1.6 were pushed, so the root gets the merged beta (v1.1.2) and the four newer versions go in PR #24 for a phone check first.
+- Supabase v32 applied as migration `holdor_v32_houses_clash` (additive only: no existing function replaced, so no backup was needed). Live checks: 9 functions, empty tables, the app role can run `clash_state` / `clash_start` / `clash_finish` and cannot touch the tables or the helper functions. Release PR #23 copies `beta/index.html` to `index.html`.
