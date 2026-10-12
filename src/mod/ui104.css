@@ -1,0 +1,33 @@
+/* v1.1.4: the interface arrives one piece at a time */
+#app.g-nospeed #bSpeed,#app.g-noinfo #bInfo{display:none}
+.pop-in{animation:uipop .7s cubic-bezier(.2,1.6,.4,1) both,uiring 1.5s ease-out .6s 2}
+@keyframes uipop{0%{opacity:0;transform:scale(.2) rotate(-12deg)}60%{opacity:1;transform:scale(1.18) rotate(3deg)}100%{opacity:1;transform:none}}
+@keyframes uiring{0%{box-shadow:0 0 0 0 rgba(255,224,138,.9)}100%{box-shadow:0 0 0 22px rgba(255,224,138,0)}}
+.hub.g-noarmy #bMapH,.hub.g-noarmy #bChampH{display:none}
+.hub.g-noarmy .battlerow{justify-content:center}
+/* coach bubble pictures */
+.cav .ga{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:24px}
+.ga-tap i{position:absolute;width:12px;height:12px;border-radius:50%;background:rgba(255,224,138,.9);animation:gatap 1.4s ease-out infinite}
+.ga-tap b{position:absolute;width:20px;height:26px;border-radius:10px 10px 8px 8px;background:#f3d2a0;border:2px solid #8a6d3b;transform:translate(6px,10px) rotate(-18deg);animation:gafinger 1.4s ease-in-out infinite}
+@keyframes gatap{0%{transform:scale(.4);opacity:1}100%{transform:scale(3);opacity:0}}
+@keyframes gafinger{0%,100%{transform:translate(6px,12px) rotate(-18deg)}40%{transform:translate(2px,4px) rotate(-18deg)}}
+.ga-chest{animation:gachest 1.3s ease-in-out infinite}
+@keyframes gachest{0%,100%{transform:rotate(0)}15%{transform:rotate(-14deg)}30%{transform:rotate(12deg)}45%{transform:rotate(-8deg)}60%{transform:rotate(0) scale(1.2)}}
+.ga-up i{position:absolute;left:8px;right:8px;bottom:8px;height:7px;border-radius:4px;background:#2a3a52}
+.ga-up i::after{content:'';position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:#7fd06a;animation:gabar 1.6s ease-in-out infinite}
+.ga-up b{font-size:19px;color:#7fd06a;animation:gaarrow 1.6s ease-in-out infinite}
+@keyframes gabar{0%{width:10%}70%,100%{width:100%}}
+@keyframes gaarrow{0%{transform:translateY(8px);opacity:0}50%{opacity:1}100%{transform:translateY(-8px);opacity:0}}
+.ga-cards i{position:absolute;font-style:normal;font-size:18px;animation:gacard 1.6s ease-in infinite}
+.ga-cards i:nth-child(2){animation-delay:.25s}.ga-cards i:nth-child(3){animation-delay:.5s}
+@keyframes gacard{0%{transform:translate(-18px,-16px) rotate(-30deg);opacity:0}30%{opacity:1}100%{transform:translate(0,4px) rotate(0);opacity:0}}
+.ga-lock i,.ga-lock b{position:absolute;font-style:normal;animation:galock 1.8s ease-in-out infinite}
+.ga-lock b{animation-delay:.9s;opacity:0}
+@keyframes galock{0%,40%{opacity:1;transform:scale(1)}50%{transform:scale(1.25) rotate(-12deg)}60%,100%{opacity:0;transform:scale(.6)}}
+.ga-lock b{animation-name:galock2}
+@keyframes galock2{0%,45%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.2)}100%{opacity:1;transform:scale(1)}}
+.ga-coin{animation:gacoin 1.2s ease-in-out infinite}
+@keyframes gacoin{0%,100%{transform:rotateY(0) translateY(0)}50%{transform:rotateY(180deg) translateY(-5px)}}
+.ga-skill{animation:gaskill 1.2s ease-in-out infinite}
+@keyframes gaskill{0%,100%{transform:scale(1) rotate(0);filter:drop-shadow(0 0 2px #ffd060)}50%{transform:scale(1.35) rotate(18deg);filter:drop-shadow(0 0 9px #ffd060)}}
+@media (prefers-reduced-motion:reduce){.pop-in{animation:none}.ga *,.ga{animation:none!important}}

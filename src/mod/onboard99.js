@@ -10,7 +10,7 @@
    replace v1.0.98's. */
 const OB_NEED={coll:1,shop:2,clan:3};
 const OB_LANG={ka:'Georgia',en:'United States',de:'Germany',fr:'France',it:'Italy',ru:'Russia',es:'Spain',pt:'Brazil',tr:'Turkey',uk:'Ukraine',ja:'Japan',zh:'China',hi:'India',ar:'Saudi Arabia',pl:'Poland',nl:'Netherlands',ko:'South Korea',id:'Indonesia',vi:'Vietnam',th:'Thailand',fa:'Iran',he:'Israel',kk:'Kazakhstan',az:'Azerbaijan',hy:'Armenia',uz:'Uzbekistan',el:'Greece',cs:'Czechia',ro:'Romania',hu:'Hungary',sv:'Sweden',no:'Norway',da:'Denmark',fi:'Finland',bg:'Bulgaria',sr:'Serbia',hr:'Croatia',sk:'Slovakia',lt:'Lithuania',lv:'Latvia',et:'Estonia',ms:'Malaysia',tl:'Philippines',bn:'Bangladesh',ur:'Pakistan',sw:'Kenya'};
-function obStage(){return ACC?cleared():0;}
+function obStage(){return ACC?(ACC.sv?Math.max(0,cleared()-3):cleared()):0;}   /* the story flow (v1.1.3): the castle opens after stage 3, then one part a stage */
 function hubLocked(k){return !!(OB_NEED[k]&&ACC&&!(ACC.tut&&obStage()>=OB_NEED[k]));}
 function obGuessRealm(){try{const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user,lc=String((u&&u.language_code)||navigator.language||'').slice(0,2).toLowerCase(),c=OB_LANG[lc];if(!c)return null;const j=LANGS.findIndex(L=>L.c===c);return j>=0?j:null;}catch(e){return null;}}
 /* ---------- the tabs, with locks ---------- */
@@ -45,9 +45,9 @@ TOURS.battle=()=>{const n=obStage(),L=learnMap();if(n>=1)L.chests=1;if(n>=2)L.ta
 /* only for accounts that began with the staged home (tutv 99): older ones had the full tour */
 function obNew(){return !!(ACC&&ACC.tutv>=99);}
 Object.assign(HUB_LESSONS,{
- chests:{need:()=>obNew()&&obStage()>=1,steps:()=>[{sel:'.hmslots',text:'Your chests: <b>stars</b> fill the first, <b>levels</b> the second, the third is <b>free</b> every day and the fourth is <b>today\'s gift</b>. Something is always on its way.'}]},
- tasks:{need:()=>obNew()&&obStage()>=2,steps:()=>[{sel:'#bTasks',text:'<b>Tasks</b> are open: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'}]},
- clan:{need:()=>obNew()&&obStage()>=3,steps:()=>[{sel:'.hubtabs button[data-tab="clan"]',text:'<b>Clan</b> is open: your realm\'s chat, the realm war and your friends.'}]},
+ chests:{need:()=>obNew()&&obStage()>=1,steps:()=>[{sel:'.hmslots',anim:'chest',text:'Your chests: <b>stars</b> fill the first, <b>levels</b> the second, the third is <b>free</b> every day and the fourth is <b>today\'s gift</b>. Something is always on its way.'}]},
+ tasks:{need:()=>obNew()&&obStage()>=2,steps:()=>[{sel:'#bTasks',anim:'tap',text:'<b>Tasks</b> are open: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'}]},
+ clan:{need:()=>obNew()&&obStage()>=3,steps:()=>[{sel:'.hubtabs button[data-tab="clan"]',anim:'lock',text:'<b>Clan</b> is open: your realm\'s chat, the realm war and your friends.'}]},
 });
 {const n0=HUB_LESSONS.champ.need;HUB_LESSONS.champ.need=()=>!hubLocked('coll')&&n0();}
 /* ---------- what left the first battle: short lessons on the next stages (for those who finished the new tutorial) ---------- */

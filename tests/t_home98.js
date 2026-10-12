@@ -70,7 +70,7 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
   await page.evaluate(() => window.HOLDOR.showHub('coll')); await page.waitForTimeout(400); await tap('#bCity', 600);
   ok('City opens from Army', await page.evaluate(() => !!document.querySelector('.city')), await scr());
   await page.evaluate(() => window.HOLDOR.showHub('coll')); await page.waitForTimeout(400); await tap('#bTavern', 600);
-  ok('Tavern opens from Army', /Tavern/.test(await page.evaluate(() => document.querySelector('#card').innerText.slice(0, 80))), await scr());
+  ok('Tavern opens from Army', /Champions/.test(await page.evaluate(() => document.querySelector('#card').innerText.slice(0, 80))), await scr());
   // ---- Shop: the Season Pass card on top
   await page.evaluate(() => window.HOLDOR.showHub('shop')); await page.waitForTimeout(500);
   const sh = await page.evaluate(() => ({ season: (document.querySelector('#bSeason') || {}).textContent, first: (document.querySelector('#hubBody').firstElementChild || {}).id, deals: !!document.querySelector('.shopgrid.deals') }));
