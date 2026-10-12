@@ -801,3 +801,9 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 ### Release v1.1.2 + Supabase v32 (2026-10-12)
 - On MR B's "release": PR #22 had been merged before v1.1.3–v1.1.6 were pushed, so the root gets the merged beta (v1.1.2) and the four newer versions go in PR #24 for a phone check first.
 - Supabase v32 applied as migration `holdor_v32_houses_clash` (additive only: no existing function replaced, so no backup was needed). Live checks: 9 functions, empty tables, the app role can run `clash_state` / `clash_start` / `clash_finish` and cannot touch the tables or the helper functions. Release PR #23 copies `beta/index.html` to `index.html`.
+
+### v1.1.7 — the first battle in six steps, and a CALL WAVE button (2026-10-12)
+- **Found on MR B's phone (v1.1.2):** the tutorial text sat on top of the ⚔ banner at the top of the road, so the one step "tap the banner" could not be done.
+- **A big ⚔ CALL WAVE button** (with the gold the early call pays) on the bottom left of the battle, shown whenever a wave can be called; the tutorial pulses it. The banner on the map still works.
+- **The tutorial is 7 steps (5 actions):** intro, call the wave, the tower kills, build a second tower, the champion arrives, tap the champion's skill, end. Upgrading, the second and third calls, spells and the cooldown note are gone from the tutorial; later waves come by the timer, the one-step lessons on stages 2–6 stay. `tut107.js`, part `98j_tut.py`.
+- Tests adapted: `t_onboard99.js` (7/5 steps), `t_story103.js`.

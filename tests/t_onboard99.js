@@ -33,7 +33,7 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
       frame: hero ? getComputedStyle(hero).borderTopWidth : '', label: hero ? getComputedStyle(hero, '::before').content : '', spells: sp ? getComputedStyle(sp, '::before').content : '', ult: !!document.querySelector('#rowHero #bUlt'), hub: !!document.querySelector('.hubtabs') }; });
   ok('the first battle begins by itself after the house (no home first, no cinematic screen): the tutorial is on at step 0', first.state === 'play' && first.tutorial && first.tut && first.step === 0 && !first.hub, JSON.stringify(first));
   ok('a Watchtower already stands by the door and the gold is still 90', first.towers.join() === 'watch1' && first.gold === 90, JSON.stringify(first));
-  ok('the tutorial has 13 steps, 10 of them actions (the rest became lessons on later stages)', first.steps === 13 && first.acts === 10, first.steps + '/' + first.acts);
+  ok('the tutorial has 7 steps, 5 of them actions (v1.1.7: call, kill, build, champion, skill; the rest are lessons on later stages)', first.steps === 7 && first.acts === 5, first.steps + '/' + first.acts);
   ok('the champion and the skill share a framed row labelled YOUR CHAMPION; the spells their own, labelled SPELLS', parseFloat(first.frame) >= 2 && /YOUR CHAMPION/.test(first.label) && /SPELLS/.test(first.spells) && first.ult, JSON.stringify([first.frame, first.label, first.spells]));
   await page.screenshot({ path: SC + 'ob99_battle.png' });
   // the first lesson: call the wave (the prebuilt tower shoots), then a kill

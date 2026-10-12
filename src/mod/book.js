@@ -105,7 +105,7 @@ function bookSpell(k){const S=SPELLS[k],open=cardOpen('s:'+k),l=spellLvl(k),m=sp
 function bookNotes(){const N=[
   ['🚪','The door','Every enemy that reaches Hodor breaks a piece of it; only Mend and Fortify repair it. More than 70% left at the end gives 3 stars, more than 35% gives 2.'],
   ['🏗️','Building','Tap a stone ring to build: pick a tower, then tap ✓. Tap a built tower to upgrade it (⬆), sell it for 60% (💰), read its numbers (i) or move a keep\'s banner (🚩).'],
-  ['⚔️','Calling waves','Tap the ⚔ banner at the top of the road to call the next wave early: every second left on the timer pays 1 gold.'],
+  ['⚔️','Calling waves','Tap ⚔ CALL WAVE (or the banner at the top of the road) to call the next wave early: every second left on the timer pays 1 gold.'],
   ['👆','Your champion','Tap your champion or their card, then tap the ground to send them there. Melee champions block the road; ranged ones shoot from where they stand.'],
   ['✨','Spells','Spells and the champion\'s ultimate recharge after use — the dark cover shows how long. Arrow rain hits a wide circle, Dracarys burns and is the one spell that fully hurts a dragon, Brothers send sworn men onto the road.'],
   ['🔷','Dragonglass','Glass is a trap, not a tower: it only wounds what walks through its ring. Put it on a pad the road touches. It ignores ice and armour — ×3 on White Walkers.'],
