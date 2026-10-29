@@ -44,7 +44,7 @@ check('a tower below the last level cannot be mastered', 'last level' in (buy(A,
 give(A, 500000, stages=29)
 check('under 30 stages is refused', 'clear 30 stages' in (buy(A, 'watch', 'a') or ''), buy(A, 'watch', 'a'))
 give(A, 500000)
-check('a tower without Mastery (Wildfire) is refused', 'no mastery' in (buy(A, 'wild', 'a') or ''))
+check('a tower without Mastery (an unknown tower) is refused', 'no mastery' in (buy(A, 'ballista', 'a') or ''))
 check('a bad path is refused', 'bad path' in (buy(A, 'watch', 'c') or ''))
 check('a wrong session is refused', 'bad session' in (err('mastery_buy', token='00000000-0000-0000-0000-000000000000', seat=0, tower='watch', path='a') or ''))
 check('nothing changed: gold 500 000, no step', W(A) == 500000 and M(A) == 0)
