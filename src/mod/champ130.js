@@ -9,7 +9,8 @@ const SYN={aoe:['Area',h=>{h.dmg*=1.15;return '+15% damage';}],rain:['Volleys',h
 function champOn(){return G.mode==='campaign'&&!G.tutorial&&!G.tut&&G.level&&G.level.id>=CLV.minStage&&G.hero&&G.heroOn;}
 function champTick(){if(!champOn())return;const n=G.hLv||0;if(n>=CLV.at.length||G.kills<CLV.at[n])return;
   const h=G.hero;G.hLv=n+1;h.dmg*=1.06;h.max=Math.round(h.max*1.06);h.hp=Math.min(h.max,h.hp+h.max*.2);
-  try{addText(h.x,h.y-52,'LEVEL '+(G.hLv+1),'#ffd54a',1);addFx({t:'ring',x:h.x,y:h.y-10,r0:8,r1:70,life:0.7,col:'#ffd54a'});SFX.play('levelup');}catch(e){}}
+  try{addText(h.x,h.y-52,'LEVEL '+(G.hLv+1),'#ffd54a',1);addFx({t:'ring',x:h.x,y:h.y-10,r0:8,r1:70,life:0.7,col:'#ffd54a'});SFX.play('levelup');}catch(e){}
+  if(G.hLv===2||G.hLv===4){G.learnWhy='LEVEL '+(G.hLv+1);if(typeof learnNow==='function')learnNow('L'+G.hLv);}}
 function champSynergy(id){const cat=skCat(id),h=G.hero,S=SYN[cat];if(!S)return null;G.synDone=G.synDone||{};if(G.synDone[cat])return null;
   let n=0;for(const k of h.c.sk)if(skCat(k)===cat)n++;for(const k of (G.learned||[]))if(skCat(k)===cat&&!h.c.sk.includes(k))n++;
   if(n<2)return null;G.synDone[cat]=1;const t=S[1](h);return S[0]+' synergy: '+t;}

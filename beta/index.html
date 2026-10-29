@@ -2684,7 +2684,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.3.3';
+const VERSION='1.3.4';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -6134,9 +6134,9 @@ function homeSlots(){const sN=starChestsReady(),prog=starsEarned()%3,lN=lvlChest
   const d=dailyOn()?(DAILY.st&&DAILY.seat===seatNo()?DAILY.st.login:null):null,dReady=!!(d&&d.can);
   const ring=p=>`style="--p:${Math.round(p*100)}"`;
   return `<div class="hmslots">
-    <button class="slot ${sN>0?'ready':''}" id="starChest" ${ring(sN>0?1:prog/3)}><span class="si">${chestSVG('iron')}</span><em>${sN>0?'OPEN':prog+'/3 ★'}</em>${sN>1?`<b class="cnt">×${sN}</b>`:''}</button>
+    <button class="slot ${sN>0?'ready':''}" id="starChest" ${ring(sN>0?1:prog/3)}><span class="si">${chestSVG('iron')}</span><em>${sN>0?'OPEN':'★ '+prog+'/3'}</em>${sN>1?`<b class="cnt">×${sN}</b>`:''}</button>
     ${lN>0?`<button class="slot ready" id="lvlChest" ${ring(1)}><span class="si">${chestSVG(lvlChestTier((ACC.lvlChests||0)+2))}</span><em>OPEN</em>${lN>1?`<b class="cnt">×${lN}</b>`:''}</button>`
-      :`<button class="slot" id="lvlNext" ${ring(L.xp/L.need)}><span class="si dim">${chestSVG(lvlChestTier(L.l+1))}</span><em>LV ${L.l+1}</em></button>`}
+      :`<button class="slot" id="lvlNext" ${ring(L.xp/L.need)}><span class="si dim">${chestSVG(lvlChestTier(L.l+1))}</span><em>AT LV ${L.l+1}</em></button>`}
     <button class="slot ${fr?'ready':''}" id="freeChest" ${ring(fr?1:1-fl/86400000)}><span class="si">${chestSVG('wood')}</span><em data-until="${fr?0:ACC.freeChestAt+86400000}">${fr?'FREE':fmtT(fl).str}</em></button>
     <button class="slot ${dReady?'ready':''}" id="dailyGift" ${ring(dReady?1:1-msToMidnightUTC()/86400000)}><span class="si gift">${icon('gift',38)}</span><em data-midnight="${dReady?0:1}">${!dailyOn()?'DAILY':dReady?'CLAIM':fmtT(msToMidnightUTC()).str}</em></button></div>`;}
 function homeQuick(){return `<div class="homerow"><button class="hbtn" id="bCity"><span class="ic">${icon('city',26)}</span><b>City</b></button><button class="hbtn" id="bTavern"><span class="ic">${icon('tavern',26)}</span><b>Tavern</b></button><button class="hbtn" id="bForge"><span class="ic">${icon('forge',26)}</span><b>Forge</b></button>${dailyBtnHTML()}${seasonBtnHTML()}</div>`;}
@@ -9617,17 +9617,19 @@ function learnOffer(){const h0=G.hero;let h=hash32('learn:'+(G.level?G.level.id:
   while(out.length<3&&pool.length){const id=pool.splice(rnd()%pool.length,1)[0];if(!out.includes(id))out.push(id);}return out;}
 function learnPick(id){if(!G.learnAsk||!SK[id])return;const h=G.hero,to=learnTo(id);h.perk=h.perk||{};h.perk[id]=to;(G.learned=G.learned||[]).push(id);
   const syn=typeof champSynergy==='function'?champSynergy(id):null;
-  G.learnAsk=null;const el=document.getElementById('boonOv');if(el)el.remove();G.paused=false;try{SFX.play('levelup');}catch(e){}
+  G.learnAsk=null;G.learnWhy=null;const el=document.getElementById('boonOv');if(el)el.remove();G.paused=false;try{SFX.play('levelup');}catch(e){}
   try{addText(h.x,h.y-48,'LEARNED '+SK[id].n,'#ffd54a',1);addFx({t:'ring',x:h.x,y:h.y-10,r0:8,r1:60,life:0.6,col:'#ffd54a'});if(syn)addText(h.x,h.y-70,'✦ '+syn,'#9fe6ff',1);}catch(e){}}
 function learnShow(offer){const ov=document.getElementById('boonOv');if(ov)ov.remove();
   const o=document.createElement('div');o.id='boonOv';
-  o.innerHTML=`<div class="bo-in"><small>${esc(shortName(G.hero.c))} · BEFORE WAVE ${G.wave+1}</small><h2>Learn a skill</h2><div class="bo-row">${offer.map((id,i)=>{const S=SK[id],to=learnTo(id),own=skLvl(G.hero,id);
+  o.innerHTML=`<div class="bo-in"><small>${esc(shortName(G.hero.c))} · ${G.learnWhy||('BEFORE WAVE '+(G.wave+1))}</small><h2>Learn a skill</h2><div class="bo-row">${offer.map((id,i)=>{const S=SK[id],to=learnTo(id),own=skLvl(G.hero,id);
     return `<button class="bo-card" data-learn="${id}" style="animation-delay:${i*90}ms"><span class="bo-e">${skillIcon(id,48,0)}</span><b>${esc(S.n)}</b><em>${esc(S.d(S.v[to-1]))}</em><small>${own?'RANK '+own+' → '+to:'NEW · rank '+to}</small></button>`;}).join('')}</div>
     ${(G.learnRr||0)<1?'<button class="linkbtn" id="learnRr">🎲 Other skills (once per battle)</button>':''}
     <p class="bo-have">${(G.learned||[]).length?'Learned this battle: '+G.learned.map(k=>esc(SK[k].n)).join(', '):'It lasts until the battle ends'}</p></div>`;
   (document.getElementById('stage')||document.body).appendChild(o);
   o.querySelectorAll('[data-learn]').forEach(b=>b.addEventListener('click',()=>learnPick(b.dataset.learn)));
   const rr=o.querySelector('#learnRr');if(rr)rr.addEventListener('click',()=>{G.learnRr=(G.learnRr||0)+1;const n=learnOffer();G.learnAsk=n;SFX.play('tap',60);learnShow(n);});}
+/* v1.3.4: battle levels 3 and 5 of the champion open an offer at once (no waiting for the next wave) */
+function learnNow(tag){if(G.learnAsk||!G.hero)return;G.learnDone=G.learnDone||{};if(G.learnDone[tag])return;G.learnDone[tag]=1;const offer=learnOffer();if(!offer.length)return;G.learnAsk=offer;G.paused=true;learnShow(offer);try{SFX.play('chest');}catch(e){}}
 function learnCheck(){if(G.learnAsk)return true;
   if(G.mode!=='campaign'||G.tutorial||G.tut||!G.level||G.level.id<LEARN.minStage||!G.hero||!LEARN.at.includes(G.wave))return false;
   G.learnDone=G.learnDone||{};if(G.learnDone[G.wave])return false;G.learnDone[G.wave]=1;
@@ -9646,7 +9648,8 @@ const SYN={aoe:['Area',h=>{h.dmg*=1.15;return '+15% damage';}],rain:['Volleys',h
 function champOn(){return G.mode==='campaign'&&!G.tutorial&&!G.tut&&G.level&&G.level.id>=CLV.minStage&&G.hero&&G.heroOn;}
 function champTick(){if(!champOn())return;const n=G.hLv||0;if(n>=CLV.at.length||G.kills<CLV.at[n])return;
   const h=G.hero;G.hLv=n+1;h.dmg*=1.06;h.max=Math.round(h.max*1.06);h.hp=Math.min(h.max,h.hp+h.max*.2);
-  try{addText(h.x,h.y-52,'LEVEL '+(G.hLv+1),'#ffd54a',1);addFx({t:'ring',x:h.x,y:h.y-10,r0:8,r1:70,life:0.7,col:'#ffd54a'});SFX.play('levelup');}catch(e){}}
+  try{addText(h.x,h.y-52,'LEVEL '+(G.hLv+1),'#ffd54a',1);addFx({t:'ring',x:h.x,y:h.y-10,r0:8,r1:70,life:0.7,col:'#ffd54a'});SFX.play('levelup');}catch(e){}
+  if(G.hLv===2||G.hLv===4){G.learnWhy='LEVEL '+(G.hLv+1);if(typeof learnNow==='function')learnNow('L'+G.hLv);}}
 function champSynergy(id){const cat=skCat(id),h=G.hero,S=SYN[cat];if(!S)return null;G.synDone=G.synDone||{};if(G.synDone[cat])return null;
   let n=0;for(const k of h.c.sk)if(skCat(k)===cat)n++;for(const k of (G.learned||[]))if(skCat(k)===cat&&!h.c.sk.includes(k))n++;
   if(n<2)return null;G.synDone[cat]=1;const t=S[1](h);return S[0]+' synergy: '+t;}

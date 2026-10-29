@@ -25,6 +25,10 @@ const { chromium } = require('playwright');
     const other = Object.keys(SK).find(id => !SK[id].ult && !kit.includes(id) && skCat(id) === cat && id !== 'taunt'); const dmg0 = G.hero.dmg, max0 = G.hero.max, gold0 = G.gold;
     G.learnAsk = [other]; window.HOLDOR_LEARN.learnPick(other); return { cat, other, dmg: G.hero.dmg / dmg0, max: G.hero.max / max0, gold: G.gold - gold0, done: G.synDone }; });
   ok('a second skill of the same kind: the synergy bonus lands once', (syn.dmg > 1.09 || syn.max > 1.09 || syn.gold >= 80 || syn.dmg < 1) && syn.done[syn.cat] === 1, JSON.stringify(syn));
+  // level 3 opens a skill offer at once
+  await start(8);
+  const lv3 = await page.evaluate(() => { const H = window.HOLDOR, G = H.G; window.HOLDOR_LEARN.LEARN.at.length = 0; G.kills = 32; H.step(); H.step(); return { lv: G.hLv, ask: !!G.learnAsk, paused: G.paused, txt: (document.getElementById('boonOv') || {}).innerText || '' }; });
+  ok('battle level 3 opens the skill offer at once', lv3.lv === 2 && lv3.ask && lv3.paused && /LEVEL 3/.test(lv3.txt), JSON.stringify(lv3).slice(0, 200));
   ok('no page errors', errors.length === 0, errors.join('|'));
   console.log(JSON.stringify(R, null, 1)); const bad = Object.values(R).filter(v => v.startsWith('FAIL')); console.log(bad.length ? 'FAILED ' + bad.length : 'ALL OK');
   await browser.close(); process.exit(bad.length ? 1 : 0);

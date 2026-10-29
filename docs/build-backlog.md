@@ -885,3 +885,6 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 - **Server:** `backend/holdor_v36.sql` (config only: `spells.jars`, `spells.beacon`), `v36_test.py`.
 - **Tests:** `t_spells133.js`.
 
+### v1.3.4 — clearer chest slots on the home (2026-10-29)
+- The level-chest slot says "AT LV n" (it was a bare "LV n") and the star-chest slot "★ 1/3". `skins.js` only.- Also in v1.3.4: the champion's battle levels 3 and 5 open a skill offer at once ("Robb · LEVEL 3"), on top of the offers before waves 3, 6, 9, 12 and 15 (`learnNow` in `learn126.js`, called from `champTick`). Test: `t_champ130.js`.
+
