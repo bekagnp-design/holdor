@@ -62,7 +62,7 @@ async function ecoSaved(force){let n=0;
 
 /* ---------- the server's answer → this seat ---------- */
 function ecoCalm(){return !ECO.q.length&&!ECO.fly.length&&!ECO.fin&&!(G.state==='play'&&G.bid);}
-function ecoSig(){if(!ACC)return '';const o=ACC.online||{};return [ACC.gold,ACC.gems,ACC.axp,ACC.lvlChests,ACC.starChests,ACC.freeChestAt?1:0,o.attempts,o.doorBonus,o.goldBonus,JSON.stringify(ACC.campaign),JSON.stringify(ACC.hard),JSON.stringify(ACC.tlv),JSON.stringify(ACC.slv),JSON.stringify(ACC.upg),JSON.stringify(ACC.champs),JSON.stringify(ACC.deals),ACC.army&&ACC.army.lvl].join('|');}
+function ecoSig(){if(!ACC)return '';const o=ACC.online||{};return [ACC.gold,ACC.gems,ACC.axp,ACC.lvlChests,ACC.starChests,ACC.freeChestAt?1:0,o.attempts,o.doorBonus,o.goldBonus,JSON.stringify(ACC.campaign),JSON.stringify(ACC.hard),JSON.stringify(ACC.tlv),JSON.stringify(ACC.slv),JSON.stringify(ACC.mst),JSON.stringify(ACC.upg),JSON.stringify(ACC.champs),JSON.stringify(ACC.deals),ACC.army&&ACC.army.lvl].join('|');}
 function ecoApply(st){
   if(!st||typeof st!=='object'||!ACC)return;const sig=ecoSig();
   ECO.st=st;ECO.at=Date.now();const t=Date.parse(st.at);if(t)ECO.off=t-Date.now();
@@ -88,9 +88,9 @@ function ecoLevels(L,P){
   const ids=new Set(Object.keys(ACC.champs||{}));for(const k in L){const m=/^(?:c|sk):([^:]+)/.exec(k);if(m)ids.add(m[1]);}
   for(const id of ids){if(!CBY[id])continue;const p=cprog(null,id);p.lvl=Math.min(CH_MAX,Math.max(1,+L['c:'+id]||1));
     for(let i=0;i<3;i++)p.sk[i]=Math.min(SK_MAX,Math.max(1,+L['sk:'+id+':'+i]||1));if(p.lvl<TAL_AT)p.tal=0;}
-  const tl={},sl={},up={};
-  for(const k in L){const v=+L[k]||0;if(k.startsWith('t:'))tl[k.slice(2)]=v;else if(k.startsWith('s:'))sl[k.slice(2)]=v;else if(k.startsWith('upg:')&&v>0)up[k.slice(4)]=1;}
-  ACC.tlv=tl;ACC.slv=sl;ACC.upg=up;ACC.army=Object.assign(ACC.army||{},{lvl:Math.max(1,+L.army||1)});
+  const tl={},sl={},up={},ms={};
+  for(const k in L){const v=+L[k]||0;if(k.startsWith('t:'))tl[k.slice(2)]=v;else if(k.startsWith('s:'))sl[k.slice(2)]=v;else if(k.startsWith('upg:')&&v>0)up[k.slice(4)]=1;else if(k.startsWith('m:')&&v>0)ms[k.slice(2)]=v;}
+  ACC.tlv=tl;ACC.slv=sl;ACC.upg=up;ACC.mst=ms;ACC.army=Object.assign(ACC.army||{},{lvl:Math.max(1,+L.army||1)});
   ACC.online.doorBonus=(+L.hold_door||0)+(P?P.door:0);ACC.online.goldBonus=(+L.hold_bank||0)+(P?P.bank:0);}
 /* what this seat earned before the server paid for it (the first battle's gift, achievements) is claimed once */
 function ecoClaims(st){if(!ACC)return;const sn=seatNo(),has=(r,k)=>ECO.q.concat(ECO.fly).some(o=>o.seat===sn&&o.op.r===r&&(k==null||o.op.k===k));

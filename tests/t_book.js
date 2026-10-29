@@ -27,7 +27,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   await page.waitForTimeout(400);
   const n1 = await page.evaluate(() => window.HOLDOR_BOOK.bookNewCount());
   // 3 towers + 4 enemies + champs up to tier 3 (7 houses × 4 = 28) + 3 spells = 38
-  ok('seeded new count', n1 === 31, n1);
+  ok('seeded new count', n1 === 32, n1);
   await tapEl('.subtabs button[data-sub="book"]');
   const det = await txt('#bkDetail');
   ok('first new tower shown', /Watchtower/.test(det) && /NEW/.test(det), det.slice(0, 60));
@@ -37,7 +37,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   ok('milestone done', /✓ \+8% range/.test(det));
   ok('good/weak chips', /Good against/i.test(det) && /Weak against/i.test(det));
   const tiles = await page.evaluate(() => [...document.querySelectorAll('#bkGrid .bktile')].map(b => b.dataset.k + ':' + (b.classList.contains('unk') ? (b.textContent.trim() || 'unk') : 'img') + (b.querySelector('.nw') ? '*' : '')));
-  ok('tower tiles', tiles.join(' ') === 'watch:img scorp:? wild:? glass:img* weir:🔒 keep:img*', tiles.join(' '));
+  ok('tower tiles', tiles.join(' ') === 'watch:img scorp:? wild:? glass:img* weir:🔒 keep:img* rook:🔒', tiles.join(' '));
   // tier chips: tap II → numbers for tier II; tap IV (locked) does nothing
   await tapEl('#bkDetail [data-tier="2"]');
   ok('tier II selected', await page.evaluate(() => document.querySelector('#bkDetail [data-tier="2"]').classList.contains('on')));

@@ -16,7 +16,7 @@ const CFG = JSON.parse(/insert into econ_config \(k, v\) values \('gear', '(\{[\
   const R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
   await page.evaluate(([cfg]) => { const H = window.HOLDOR, GX = window.HOLDOR_GEAR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tour = 99;
     a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1, tasks: 1 }; a.learn = { glass: 1, keep: 1, tier2: 1, fire: 1, reinf: 1, scorp: 1, wild: 1, weir: 1, tier3: 1, tier4: 1, tier5: 1, gates: 1, big: 1, chest: 1, hold: 1, champ: 1 };
-    a.gold = 99999; a.sel = 'jon'; a.copen = { jon: 1 }; for (let i = 1; i <= 30; i++) a.campaign[i] = 2; H.setAcc(a);
+    a.gold = 99999; a.sel = 'jon'; a.copen = { jon: 1 }; for (let i = 1; i <= 30; i++) a.campaign[i] = 2; { const LL = window.HOLDOR_TUT.LESSONS; a.learn = a.learn || {}; (Array.isArray(LL) ? LL.map(l => l.id || l.k) : Object.keys(LL)).forEach(k => a.learn[k] = 1); } H.setAcc(a);
     GX.gearTestBag([{ id: 's89', slot: 'weapon', kind: 11, r: 4, tier: 4, cap: 4, set: 'dragon', lvl: 2, champ: null, main: { k: 'dmg', v: 6 }, subs: [{ k: 'crit', v: 2 }] }], cfg); GX.showForge('jon'); }, [CFG]);
   await page.waitForTimeout(500);
   await page.locator('.gitem[data-i="s89"]').tap(); await page.waitForTimeout(500);
@@ -41,7 +41,7 @@ const CFG = JSON.parse(/insert into econ_config \(k, v\) values \('gear', '(\{[\
     const s = pick === 'free' ? G.map.slots.filter(x => !x.tower).sort((a, b) => Math.abs(a.x - 195) - Math.abs(b.x - 195))[0] : G.map.slots.find(x => x.tower);
     const st = document.querySelector('#stage').getBoundingClientRect(), p = Rg.w2s(s.x, s.y); return { x: st.left + p.x, y: st.top + p.y }; }, pick);
   let p = await slotXY('free'); await page.touchscreen.tap(p.x, p.y); await page.waitForTimeout(350);
-  const idx = await page.evaluate(() => window.HOLDOR_RING.state().items.findIndex(i => i.act === 'build'));
+  await page.screenshot({ path: SC + 'dbg89.png' });const idx = await page.evaluate(() => window.HOLDOR_RING.state().items.findIndex(i => i.act === 'build'));
   await page.locator('#ring .rb').nth(idx).tap(); await page.waitForTimeout(250); await page.locator('#ring .rb').nth(idx).tap(); await page.waitForTimeout(300);
   p = await slotXY('built'); await page.touchscreen.tap(p.x, p.y - 10); await page.waitForTimeout(350);
   const S = await page.evaluate(() => { const b = document.querySelector('#ring .rb.sell'); if (!b) return null; const w = b.querySelector('.rw'), r = w && w.getBoundingClientRect(), q = b.getBoundingClientRect();

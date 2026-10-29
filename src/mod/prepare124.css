@@ -1,0 +1,19 @@
+/* v1.2.4: preparation sheet */
+#prep{position:fixed;inset:0;z-index:9000;background:rgba(5,9,16,.86);display:flex;align-items:flex-end;justify-content:center;overflow:auto}
+#prep .pcard{width:100%;max-width:440px;background:#101c2e;border-radius:22px 22px 0 0;border:2px solid #e3b661;border-bottom:0;padding:14px 14px 18px;color:#e9f0f8}
+#prep h2{font:900 20px var(--f-display);color:#ffd54a;margin:0 0 8px;letter-spacing:.08em;text-align:center}
+#prep .psec{margin-bottom:10px;padding:8px;border-radius:14px;background:#16263c}
+#prep .pst{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}#prep .pst b{font-size:15px;color:#ffd54a}#prep small{font-size:11px;color:#b9c8da}
+#prep .pslots{display:flex;gap:8px;margin-bottom:6px}
+#prep .pslot{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:12px;background:#0d1726;border:2px solid #3a5478;color:#fff}
+#prep .pslot.on{border-color:#ffd54a;box-shadow:0 0 12px #ffd54a66}#prep .pslot b{font-size:12px}
+#prep .spi{width:34px!important;height:34px!important;padding:0!important;display:flex!important;align-items:center;justify-content:center;flex:none}#prep .spi svg{width:30px!important;height:30px!important}#prep .pitem .spi{width:28px!important;height:28px!important}#prep .pitem .spi svg{width:24px!important;height:24px!important}
+#prep .ppool{display:flex;flex-wrap:wrap;gap:6px}
+#prep .pitem{position:relative;width:62px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;border-radius:12px;background:#0d1726;border:2px solid #2a3d58;color:#cfd9e6;opacity:.65}
+#prep .pitem.in{opacity:1;border-color:#7cff6b;background:#14301f}#prep .pitem i{font-style:normal;font-size:10px;color:#ffd54a}
+#prep .phint{display:block;margin-top:4px;text-align:center}
+#prep .pch{display:flex;align-items:center;gap:8px}#prep .pch span{font-size:24px}#prep .pch b{font-size:15px}
+#prep .go{display:block;width:100%;margin-top:6px}#prep .linkbtn{display:block;margin:8px auto 0}
+#prep .go{padding:14px;border-radius:16px;border:2px solid #ffd54a;background:linear-gradient(180deg,#f0c14a,#b8841c);color:#2a1a00;font:900 18px var(--f-display);letter-spacing:.12em;box-shadow:0 4px 0 #6e4d0c}
+/* v1.2.6: the skill offer in battle */
+#boonOv .bo-card{min-width:0}#boonOv .bo-card small{font-size:10px;letter-spacing:.12em;color:#ffd54a}

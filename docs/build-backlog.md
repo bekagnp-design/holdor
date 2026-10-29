@@ -807,3 +807,59 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 - **A big ⚔ CALL WAVE button** (with the gold the early call pays) on the bottom left of the battle, shown whenever a wave can be called; the tutorial pulses it. The banner on the map still works.
 - **The tutorial is 7 steps (5 actions):** intro, call the wave, the tower kills, build a second tower, the champion arrives, tap the champion's skill, end. Upgrading, the second and third calls, spells and the cooldown note are gone from the tutorial; later waves come by the timer, the one-step lessons on stages 2–6 stay. `tut107.js`, part `98j_tut.py`.
 - Tests adapted: `t_onboard99.js` (7/5 steps), `t_story103.js`.
+
+### v1.1.8 — the Scorpion no longer whitens the map (2026-10-29)
+- **Found while filming a trailer:** four Scorpion towers on a map made the whole battle fade to near white after a few seconds (mean brightness of the map 216 instead of 141).
+- **Cause:** the Scorpion's "bolt is loading" glow in `fxtower.js` was drawn whenever the cooldown was below 0.32, including negative values (a tower that has been idle keeps counting down), so its size grew without a limit and the additive glows covered the map.
+- **Fix:** the glow only draws while the cooldown is between 0 and 0.32 and its size factor is capped at 1.
+- **Test:** `t_scorp108.js` compares the map brightness with four Scorpions and four Watchtowers (it failed before the fix: 198 against 141, and passes after: 141 against 141). Client only.
+
+### v1.2.0 — Mastery: two paths after a tower's last level (2026-10-29)
+- **Why:** MR B ends the day with ~30 000 gold: all six towers at level 16 cost 35 340 gold in total, so gold had nothing left to buy. Mastery is the late-game gold sink and a real choice.
+- **The rule:** a tower at card level 16 (Watchtower and Scorpion first) opens **Mastery** once 30 stages are cleared. The tower room shows two paths with three steps each. A step costs **20 000 / 40 000 / 80 000** gold, one path is 140 000. Switching the path costs 10 000 and the steps start again. Cumulative: step 2 includes step 1's effect.
+- **Watchtower:** *Volley* (1 / 2 / 3 extra arrows at other enemies for 60 / 70 / 80 % damage, step 3 fires 10 % faster) or *Marksman* (15 % critical ×2; +25 % against flyers and armoured; 30 % critical ×2.5).
+- **Scorpion:** *Piercing bolt* (the bolt also hits 1 / 2 / 3 enemies behind for 70 %, step 3 fires 10 % faster) or *Dragonbane* (×1.25 / ×1.25 / ×1.6 against dragons, walkers and armoured; step 2 chills 30 % for 2 s, step 3 40 %).
+- **State:** `ACC.mst[tower]` = 0 none, 1..3 path A step, 11..13 path B step (the same number is `levels['m:<tower>']` on the server). Perks fire from `mstFire` (a hook on the tower's shot) and `mstHit` (a hook when the projectile lands); critical rolls use `G.rng`.
+- **Server (backend v33, local only until "release"):** `econ_config 'mastery'` (prices, switch price, stages, towers), `mastery_buy(token, seat, tower, path)` and `mastery_reset(token, seat, tower)` book gold through the ledger (reason `mastery`) and return the new state. Additive: no existing function was replaced. A managed seat buys through these RPCs; a guest seat pays locally.
+- **Tests:** `t_mastery120.js` (locked states, buying, switching, no gold, the perks in battle), `backend/test/v33_test.py` (SQL), `backend/test/mastery_test.py` (a managed seat with taps).
+- **Not yet:** the other four towers, the battle limits were not recalibrated for stronger towers, and the prices are a first guess to be tuned from the real ledger after the release.
+
+### v1.2.1 — the spell loadout (3 of 5), Long Night and Gate repair (2026-10-29)
+- **Two new spells:** *Long Night* (unlocks at stage 8, recharge 45 s: every enemy on the road is slowed 40 % for 6 s; +6 % a level, up to 60 %) and *Gate repair* (stage 12, recharge 90 s: the gate regains 30 % of its strength; +6 % a level). Both fire at once, no aiming. They are cards like the other spells (levels 1–10, +6 % a level).
+- **The loadout:** the battle bar keeps three buttons, but they follow `ACC.loadout` (three spell ids). In the Spells room a spell has an "In battle" row of three slot buttons: tap a slot to put the spell there (if it is already in another slot they swap). The Loadout tab shows the three chosen spells, the Spells tab all five. The first battle always uses Arrow rain, Dracarys and Brothers. `loadout121.js`, part `98l_spells.py`; the encyclopedia knows the new spells.
+- **Server (backend v34, local only until "release"):** config only: `econ_config 'cards'` gets `spells.night` (open 8, Legendary) and `spells.repair` (open 12, Epic). `backend/econ.json` and `holdor_econ_data.sql` were regenerated from the game (`src/tools/econ_export.js` now takes `HOLDOR_HTML`); the only differences are these two entries and the version. `backend/test/v34_test.py` checks a level for each new card through the normal card operation.
+- **Tests:** `t_loadout121.js` (default, equip, swap, locked, the battle buttons, Long Night chills every enemy 40 %, Gate repair gives back 30 %, aimed spells in any slot, the first battle ignores the loadout).
+
+### v1.2.2 — the Rookery, a seventh tower (2026-10-29)
+- **What it does:** ravens go for what keeps the dead alive. Its target loop prefers (1) cold necromancers, skinchangers, chieftains and Walker Lieutenants, (2) flyers and birds, (3) the enemy closest to the gate. Every raven hit **silences** a support enemy for 3 s (4 s from level 12): it stops healing, speeding up and raising the dead. Damage is small (9 a hit, ×1.38 a level), range 150, 0.9 shots a second; cost 110 / 90 / 120 / 150 / 190 for tiers I to V.
+- **Where it sits in the game:** opens at stage 13, a Legendary card (rarity 3). The tower room, the build ring (now seven choices), the encyclopedia, the tower guide and the first-time lesson know it. Level milestones 4 / 8 / 12 / 16: +10 % range, +10 % damage, silence +1 s, +12 % fire rate. The building is drawn in code (a roost with ravens) until there is painted art; its icon is an SVG.
+- **How:** `rookery122.js` + part `98m_rookery.py`: it is a tower of kind `single` (so every generic tower rule applies), plus four hooks: the target score, the hit that silences, the three enemy support timers (`e.silT`) and the drawing. `TKEYS` gets `rook`.
+- **Server (backend v34, local only):** the same config file now also carries `towers.rook` (open 13, Legendary); `econ.json` and `holdor_econ_data.sql` were regenerated from the game.
+- **Tests:** `t_rook122.js` (it opens at 13 with seven tiles, the raven picks the necromancer over a nearer sword, birds next, a hit silences for about 3 s, a silenced skinchanger does not heal while a free one does), `v34_test.py` (a level for `t:rook`).
+- **Also fixed:** `backend/test/econ_test.py` had been failing since the story flow (v1.1.3) and the new tower room (v1.1.5): the account is marked as past the story, the coach tours are off, the tower room is `HOLDOR_ARMY`, and the pulsing LEVEL UP button is tapped with `force`.
+
+### v1.2.3 — Mastery on the other five towers (2026-10-29)
+- **What it does:** Wildfire (Inferno: bigger blasts, longer stronger burning / Seep: a burning pool where the shell lands), Dragonglass (Frostbite: slow, a freeze every 5 s, +20% damage / Walkerbane: x4 then x5 against Walkers, a Walker under 25% health shatters), Weirwood (Roots: slow, roots hold everything for 1.2 s every 6 s, then 1.6 s every 4.5 s / Whisper: 10-30% more damage taken, stealth revealed, supports silenced, +15% reach), Watch keep (Shield wall: up to +4 men and +70% health / Knight's charge: up to double damage, return 40% sooner), Rookery (Murder: up to three extra ravens / Omen: silence +1..+3 s and silenced enemies take 25-35% more). Same prices, same rules (level 16 + 30 stages) as v1.2.0.
+- **How:** `mastery120.js` got `mstStats` (a wrapper over `towerStats`, now `towerStats0` underneath), `mstTick(dt)` (pulses, shatter, reveal, silence, the omen mark, called once per step), `mstFire` for the Wildfire burn time / pool and the extra ravens; the splash branch pushes the pool into `G.clouds`; the Dragonglass walker multiplier reads `st.wm`. Part `98k_mastery.py`.
+- **Server (backend v33, local only):** the `mastery` config now lists seven towers; `v33_test.py` checks it.
+- **Tests:** `t_mastery123.js` (stats of every path, the pool, the freeze, the shatter, the roots, four ravens, the doom silence); `t_book.js` expects the Rookery tile.
+
+### v1.2.4 — the preparation sheet (2026-10-29)
+- **What it does:** tapping the stage button (from stage 5 on, when there is something to choose) opens a sheet: 3 spell slots filled from the open spells (tap a slot, then a spell), 5 towers out of the open ones (tap to swap), the champion, a big START. The build menu in battle shows only the chosen towers; the spell buttons follow the slots.
+- **How:** `prepare124.js` + `.css`, part `98n_prepare.py`: `towerRoster` / `battleTowers` (`ACC.roster`, max 5; default = the first five open), `prepGo(go)` wraps the stage button; retry / next buttons reuse the last choice. The tutorial is untouched.
+- **Tests:** `t_prep124.js`.
+
+### v1.2.5 — looping demos for spells, towers and champions (2026-10-29)
+- **What it does:** the spell room, the tower room and the champion room now show a small looping picture (16:9 canvas) of what the card does to three of the dead: Arrow rain, Dracarys, Brothers, Long Night, Gate repair; all seven towers (arrows, bolts, a lobbed green shell, the ring that slows, the aura that marks, soldiers that block, ravens that silence); a champion's picture plays its three skills one after another with the skill name under it. Skills keep their own demos in the Army rows (v1.1.4).
+- **How:** `demo125.js` + `.css`, part `98o_demos.py`: `demoFrame(c,kind,id,t)`, `demoHTML`, `demoMount` (loops stop when the canvas leaves the page); the three room functions are wrapped.
+- **Tests:** `t_demo125.js` (canvas in each room, the champion picture moves, every spell, tower and all 49 champions draw without errors; contact sheet in `.shots/demo_sheet.png`).
+
+### v1.2.6 — the champion learns in battle (2026-10-29)
+- **What it does:** in a campaign battle (from stage 5) the fight stops before waves 3, 6, 9, 12 and 15 and offers three skills; one tap and the champion has it until the battle ends. Any skill of any champion that works on its own (no ultimates) can come up; one of the three is always a rank-up of his own kit when there is room. A new skill starts at rank 2, a known one goes up one rank. The stage, the wave and the run number seed the offer, so it is the same on a replay of the same run.
+- **How:** `learn126.js`, part `98p_learn.py`: `learnCheck()` is called next to `boonCheck()` at the top of `startWave`; the choice writes `hero.perk[id]` (the same hand that gear perks use, so every `skVal` hook sees it). The overlay reuses the Hold blessing look (`#boonOv`).
+- **Tests:** `t_learn126.js` (no offer on stage 2; three cards on stage 8; one tap; the wave starts; no second offer).
+
+### v1.2.7 — what each battle button does (2026-10-29)
+- **What it does:** the three top buttons in battle carry a caption (BOOK, SPEED, PAUSE). More of the clean-up (the home) follows in later versions.
+- **How:** `ui127.css` + `data-cap` attributes, part `98q_ui127.py`. **Tests:** `t_ui127.js`. Also: `t_sheet89.js` marks every lesson as seen (the Rookery lesson of v1.2.2 covered the map).
+

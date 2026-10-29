@@ -8,7 +8,7 @@ const OUT = path.resolve(__dirname, '..', '..', process.argv[2] || 'backend/econ
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
   const page = await browser.newPage();
   await page.route(/telegram\.org|supabase\.co/, r => r.abort());
-  await page.goto('file://' + path.resolve(__dirname, '..', '..', 'beta/index.html'));
+  await page.goto('file://' + path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'beta/index.html'));
   await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_ECON && window.HOLDOR_CARDRULES, { timeout: 30000 });
   const d = await page.evaluate(() => {
     const { ECON, UPG, ACHS, CHEST_TIERS, PACK_ITEMS, ARMY_COST, ARMY_MAX, HOLD_ATTEMPTS, CH_MAX, T_MAX, S_MAX, SK_MAX, SK_CAP, VERSION } = window.HOLDOR_ECON;
