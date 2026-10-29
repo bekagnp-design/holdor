@@ -27,7 +27,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   await page.waitForTimeout(400);
   const n1 = await page.evaluate(() => window.HOLDOR_BOOK.bookNewCount());
   // 3 towers + 4 enemies + champs up to tier 3 (7 houses × 4 = 28) + 3 spells = 38
-  ok('seeded new count', n1 === 31, n1);
+  ok('seeded new count', n1 === 32, n1);
   await tapEl('.subtabs button[data-sub="book"]');
   const det = await txt('#bkDetail');
   ok('first new tower shown', /Watchtower/.test(det) && /NEW/.test(det), det.slice(0, 60));

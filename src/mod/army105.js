@@ -84,9 +84,10 @@ function showTowerRoom(k){armStop();
   const tiles=TKEYS.map(t=>{const o=towerOpen(t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-t="${t}">${towerIconHTML(t,o?Math.max(1,maxTowerLvl()):1,52)}<span class="nm">${o?TSHORT[t]+' · '+tLvl(t):'After '+TOWER_UNLOCK[t]}</span>${o&&cardCan('t:'+t)?'<span class="upb">⬆</span>':''}</button>`;}).join('');
   const chips=TMILE[k].map((m,i)=>{const got=L>=T_MILE[i];return `<button class="mchip ${got?'got':''}" data-mi="${i}"><i>${m[0]}</i><b>${got?'✔':'LV '+T_MILE[i]}</b></button>`;}).join('');
   const mtxt=TMILE[k].map((m,i)=>`<p class="mtx" data-mt="${i}" hidden><b>${esc(m[1])}</b> — ${m[2]}</p>`).join('');
-  const body=op?`<div class="hlv"><b>Lv ${L}</b><em>/ ${T_MAX}</em><span class="bar"><i style="width:${Math.round(100*L/T_MAX)}%"></i></span></div>${armLvlBtn('t:'+k,'data-a="tl"',L,T_MAX)}
+  const mp=typeof mstPanel==='function'?mstPanel(k):'';
+  const body=op?`<div class="hlv"><b>Lv ${L}</b><em>/ ${T_MAX}</em><span class="bar"><i style="width:${Math.round(100*L/T_MAX)}%"></i></span></div>${armLvlBtn('t:'+k,'data-a="tl"',L,T_MAX)}${L>=T_MAX?mp:''}
     <div class="nownext"><div><small>NOW</small><span>${towerLine(k,L)}</span></div>${L<T_MAX?`<div class="nx"><small>LV ${L+1}</small><span>${towerLine(k,L+1)}</span></div>`:''}</div>
-    <div class="mrow">${chips}</div>${mtxt}`:`<p class="m" style="text-align:center;color:var(--gold)">🔒 Opens after stage ${TOWER_UNLOCK[k]}</p>`;
+    <div class="mrow">${chips}</div>${mtxt}${L>=T_MAX?'':mp}`:`<p class="m" style="text-align:center;color:var(--gold)">🔒 Opens after stage ${TOWER_UNLOCK[k]}</p>`;
   show(`<div class="topbar"><h1>🏰 Towers<small>tap a tower, level it up</small></h1><button class="back" id="bBack">✖</button></div>
   <p class="m cur">🪙 <b style="color:var(--gold)">${fmtN(goldOf())}</b> · 🃏 ${cardHave('t:'+k)} ${TSHORT[k]} cards</p>
   <div class="hgrid strip" id="armStrip">${tiles}</div>
@@ -96,4 +97,5 @@ function showTowerRoom(k){armStop();
   card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showTowerRoom(t.dataset.t)));
   card.querySelectorAll('.mchip').forEach(m=>m.addEventListener('click',()=>{const i=m.dataset.mi,t=card.querySelector('[data-mt="'+i+'"]'),was=t&&!t.hidden;card.querySelectorAll('.mtx').forEach(x=>x.hidden=true);if(t&&!was){t.hidden=false;SFX.play('tap',50);}}));
   const b=card.querySelector('#clist button[data-a="tl"]');if(b)b.addEventListener('click',()=>{if(cardLevelUp('t:'+k)){SFX.play('upgrade');persist();}else SFX.play('deny');showTowerRoom(k);});
+  if(op&&typeof mstBind==='function')mstBind(k,showTowerRoom);
 }

@@ -1,5 +1,5 @@
 {
- "version": "1.0.71",
+ "version": "1.2.1",
  "max": {
   "c": 60,
   "t": 16,
@@ -515,6 +515,14 @@
    },
    "reinf": {
     "open": 7,
+    "rar": 2
+   },
+   "night": {
+    "open": 8,
+    "rar": 3
+   },
+   "repair": {
+    "open": 12,
     "rar": 2
    }
   },
