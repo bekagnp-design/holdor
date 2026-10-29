@@ -807,3 +807,9 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 - **A big ⚔ CALL WAVE button** (with the gold the early call pays) on the bottom left of the battle, shown whenever a wave can be called; the tutorial pulses it. The banner on the map still works.
 - **The tutorial is 7 steps (5 actions):** intro, call the wave, the tower kills, build a second tower, the champion arrives, tap the champion's skill, end. Upgrading, the second and third calls, spells and the cooldown note are gone from the tutorial; later waves come by the timer, the one-step lessons on stages 2–6 stay. `tut107.js`, part `98j_tut.py`.
 - Tests adapted: `t_onboard99.js` (7/5 steps), `t_story103.js`.
+
+### v1.1.8 — the Scorpion no longer whitens the map (2026-10-29)
+- **Found while filming a trailer:** four Scorpion towers on a map made the whole battle fade to near white after a few seconds (mean brightness of the map 216 instead of 141).
+- **Cause:** the Scorpion's "bolt is loading" glow in `fxtower.js` was drawn whenever the cooldown was below 0.32, including negative values (a tower that has been idle keeps counting down), so its size grew without a limit and the additive glows covered the map.
+- **Fix:** the glow only draws while the cooldown is between 0 and 0.32 and its size factor is capped at 1.
+- **Test:** `t_scorp108.js` compares the map brightness with four Scorpions and four Watchtowers (it failed before the fix: 198 against 141, and passes after: 141 against 141). Client only.
