@@ -30,8 +30,7 @@ node tests/t_champs54.js             # or one suite
 - A new version: bump `src/parts/01_version.py`, add one part file (+ `99_exportsNN.py` if tests need hooks), build, add/adapt a test, run the core set, update `docs/build-backlog.md` (one section) and `docs/roadmap.md`.
 - One version = one PR that touches only `src/`, `tests/`, `docs/`, `beta/` — never the root `index.html`. MR B merges it,
   Pages serves `https://bekagnp-design.github.io/holdor/beta/` a minute or two later, he tests it on his phone.
-- Release only on his word "release": a separate PR titled `vX.Y.Z` that copies `beta/index.html` → `index.html` and nothing else.
-  He merges it. Never put an untested build in the root.
+- Release: since 2026-10-29 MR B said "always update the Telegram game" — after every version whose tests pass, apply its Supabase files first (named migration + a `holdor_backup` copy; v33 + v34 applied that day), then a separate PR `vX.Y.Z` that copies `beta/index.html` → `index.html` and nothing else, and merge it. Never put an untested build in the root. The Edge Function `stars` and the cron files v28–v30 still wait for "გაუშვი ბოტი". `?v=N` in the Telegram mini-app URL is set by MR B in BotFather (bump it if Telegram shows an old build).
 
 ## Rules from MR B (do not break)
 - Never ask for, paste, echo or commit the Telegram bot token. It lives only in Supabase `app_secrets` (the Edge Function `stars` reads it there per request). The client carries only the Supabase URL and the publishable key.
