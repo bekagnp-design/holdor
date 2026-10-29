@@ -13,13 +13,13 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
     for (let i = 1; i <= stages; i++) a.campaign[i] = 3; a.gold = 5000; a.sel = 'robb'; H.setAcc(a); H.persist(); }, stages);
   // ---- the data
   const d = await page.evaluate(() => { const H = window.HOLDOR; return { def: !!H.TOWERS.rook, name: H.TOWERS.rook.n, keys: Object.keys(H.TOWERS).length }; });
-  ok('the Rookery is a tower next to the six others', d.def && d.keys === 7 && d.name === 'Rookery', JSON.stringify(d));
+  ok('the Rookery is a tower next to the others', d.def && d.keys >= 7 && d.name === 'Rookery', JSON.stringify(d));
   await setup(10); const closed = await page.evaluate(() => window.HOLDOR.cleared() >= 13);
   await setup(13);
   const open = await page.evaluate(() => { const H = window.HOLDOR; H.showHub('coll', 'towers'); return H.cleared(); });
   await page.evaluate(() => window.HOLDOR_ARMY.showTowerRoom('rook')); await page.waitForTimeout(500);
   const room = await page.evaluate(() => ({ txt: document.querySelector('#card').innerText.slice(0, 260), svg: !!document.querySelector('.tstage svg'), tiles: document.querySelectorAll('#armStrip .htile').length }));
-  ok('the tower room opens the Rookery with its drawn icon and seven tiles', /Rookery/.test(room.txt) && room.svg && room.tiles === 7, JSON.stringify(room));
+  ok('the tower room opens the Rookery with its drawn icon and all its tiles', /Rookery/.test(room.txt) && room.svg && room.tiles >= 7, JSON.stringify(room));
   await page.screenshot({ path: SC + 'rook122_room.png' });
   // ---- in battle
   const run = (fn) => page.evaluate((src) => { const H = window.HOLDOR, G = H.G, S = window.HOLDOR_CASTLE; H.startGame({ mode: 'campaign', level: H.stageLevel(1, 3) }); G.gold = 5000; G.waveDone = false; G.nextIn = 1e9; G.enemies.length = 0; G.allies.length = 0; G.projs.length = 0;

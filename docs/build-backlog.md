@@ -873,3 +873,9 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 - **How:** `champ130.js`, part `98r_champ.py` (`champTick()` next to `mstTick`, the HUD line, the reset in `startGame0`); `learnPick` asks `champSynergy`.
 - **Tests:** `t_champ130.js`.
 
+### v1.3.1 — the Siege maul, an eighth tower (2026-10-29)
+- **What it does:** one heavy swing every ~2.4 s on a spot of the road: damage in a small circle and a stagger (0.7 s stop, 1.0 s after the "Stagger" milestone) for everything that is not a boss. Opens at stage 18, Epic (rarity 2). Drawn in code (a frame with a swinging beam); tower room, build ring, guide, encyclopedia, lesson and the looping demo know it.
+- **How:** `maul132.js`, part `98s_maul.py`: a tower of kind `splash` with a near-instant shell; the shell carries `stun`, the splash branch calls `maulHit` (stagger = `chillT`/`chillV 98`), the impact colour is gold instead of Wildfire green, `case'maul'` in `drawTower`.
+- **Server:** `backend/holdor_v35.sql` (config only: `towers.maul` open 18, rarity 2), `v35_test.py`; `econ.json` / `holdor_econ_data.sql` regenerated.
+- **Tests:** `t_maul132.js`; the tower-count expectations in `t_book`, `t_tower97`, `t_prep124`, `t_rook122`, `t_ring` follow the eight towers.
+
