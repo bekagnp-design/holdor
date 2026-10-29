@@ -6,7 +6,7 @@
 --  The state lives in wallets.levels under 'm:<tower>': 0 = none, 1..3 = path A step, 11..13 = path B step.
 --  Gold is booked through the ledger (reason 'mastery'). Switching the path costs gold and the steps start again.
 -- ============================================================
-insert into econ_config (k, v) values ('mastery', '{"need_stages":30,"gold":[20000,40000,80000],"swap":10000,"towers":["watch","scorp"]}'::jsonb)
+insert into econ_config (k, v) values ('mastery', '{"need_stages":30,"gold":[20000,40000,80000],"swap":10000,"towers":["watch","scorp","wild","glass","weir","keep","rook"]}'::jsonb)
   on conflict (k) do update set v = excluded.v;
 
 create or replace function mastery_buy(token uuid, seat int, tower text, path text) returns jsonb

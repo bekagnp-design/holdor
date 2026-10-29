@@ -1,0 +1,31 @@
+// v1.2.6: the champion learns skills in battle — three on offer before waves 3, 6, 9…, one tap, it lasts for the battle.
+const { chromium } = require('playwright');
+const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs').mkdirSync(SC, { recursive: true });
+(async () => {
+  const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+  const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message));
+  await page.goto('file://' + require('path').resolve(__dirname, '..', process.env.HOLDOR_HTML || 'beta/index.html'));
+  await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_LEARN, { timeout: 20000 }); await page.waitForTimeout(300);
+  const R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
+  const start = (stage) => page.evaluate((stage) => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.sv = 0; a.castle = 1; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1 };
+    const L = window.HOLDOR_TUT.LESSONS; a.learn = {}; (Array.isArray(L) ? L.map(l => l.id || l.k) : Object.keys(L)).forEach(k => a.learn[k] = 1);
+    for (let i = 1; i <= 30; i++) a.campaign[i] = 3; a.sel = 'robb'; H.setAcc(a); H.persist(); H.startGame({ mode: 'campaign', level: H.LEVELS.find(l => l.id === stage) }); const G = H.G; G.wave = 2; G.waveDone = true; G.nextIn = 0; }, stage);
+  await start(2); await page.evaluate(() => { window.HOLDOR.step(); });
+  ok('stage 2 (the guided minutes): no offer', await page.evaluate(() => !window.HOLDOR.G.learnAsk && window.HOLDOR.G.wave === 3));
+  await start(8); await page.evaluate(() => { window.HOLDOR.step(); });
+  ok('stage 8 before wave 3: the fight stops and three skills are offered', await page.evaluate(() => { const G = window.HOLDOR.G; return !!G.learnAsk && G.learnAsk.length === 3 && G.paused && G.wave === 2 && document.querySelectorAll('#boonOv [data-learn]').length === 3; }));
+  await page.waitForTimeout(900); await page.screenshot({ path: SC + 'learn126.png' });
+  const id = await page.evaluate(() => window.HOLDOR.G.learnAsk[1]);
+  const before = await page.evaluate((id) => window.HOLDOR.skLvl ? window.HOLDOR.skLvl(window.HOLDOR.G.hero, id) : 0, id);
+  await page.locator('#boonOv [data-learn="' + id + '"]').tap({ force: true }); await page.waitForTimeout(200);
+  const st = await page.evaluate((id) => { const H = window.HOLDOR, G = H.G; return { paused: G.paused, perk: G.hero.perk && G.hero.perk[id], ov: !!document.getElementById('boonOv'), learned: G.learned }; }, id);
+  ok('one tap: the skill is learned for the battle and the fight goes on', !st.paused && st.perk >= 2 && !st.ov && st.learned.includes(id), JSON.stringify(st));
+  await page.evaluate(() => { for (let i = 0; i < 5; i++) window.HOLDOR.step(); });
+  ok('the wave starts after the choice, and the offer does not come twice', await page.evaluate(() => { const G = window.HOLDOR.G; return G.wave === 3 && !G.learnAsk; }));
+  const skv = await page.evaluate((id) => { const H = window.HOLDOR; return H.skVal ? H.skVal(H.G.hero, id) : -1; }, id);
+  ok('the learned skill has a value in battle', skv === -1 || skv > 0, skv);
+  ok('no page errors', errors.length === 0, errors.join('|'));
+  console.log(JSON.stringify(R, null, 1)); const bad = Object.values(R).filter(v => v.startsWith('FAIL')); console.log(bad.length ? 'FAILED ' + bad.length : 'ALL OK');
+  await browser.close(); process.exit(bad.length ? 1 : 0);
+})();

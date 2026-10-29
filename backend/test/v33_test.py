@@ -30,7 +30,7 @@ for t, nm in ((A, 'Ann'), (B, 'Bob')):
 tok = {t: q1('insert into sessions (tg_id) values (%s) returning token::text', t) for t in (A, B)}
 for t in (A, B): anon('econ_state', token=tok[t], seat=0)
 cfg = q1("select v from econ_config where k = 'mastery'")
-check('the Mastery config is there: prices 20k / 40k / 80k, switching 10k, 30 stages, two towers', cfg['gold'] == [20000, 40000, 80000] and cfg['swap'] == 10000 and cfg['need_stages'] == 30 and cfg['towers'] == ['watch', 'scorp'], json.dumps(cfg))
+check('the Mastery config is there: prices 20k / 40k / 80k, switching 10k, 30 stages, seven towers', cfg['gold'] == [20000, 40000, 80000] and cfg['swap'] == 10000 and cfg['need_stages'] == 30 and cfg['towers'] == ['watch', 'scorp', 'wild', 'glass', 'weir', 'keep', 'rook'], json.dumps(cfg))
 def give(t, gold, lvl=16, stages=30, m=None):
     q("update wallets set gold = %s, levels = levels || %s::jsonb where tg_id = %s and seat = 0", gold, json.dumps({'t:watch': lvl, 't:scorp': lvl, **({'m:watch': m} if m is not None else {})}), t)
     q("delete from progress where tg_id = %s", t)

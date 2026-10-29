@@ -1,4 +1,4 @@
-# v34 (the spells Long Night and Gate repair as cards) at SQL level on the local database, every app call as the anon role.
+# v34 (the spells Long Night and Gate repair and the tower Rookery as cards) at SQL level on the local database, every app call as the anon role.
 import os, json, uuid
 import psycopg2
 db = psycopg2.connect(host='127.0.0.1', dbname='postgres', user='postgres', password='pg'); db.autocommit = True
@@ -30,8 +30,10 @@ anon('econ_state', token=tok, seat=0)
 sp = q1("select v->'spells' from econ_config where k = 'cards'")
 check('the cards config lists five spells', sorted(sp.keys()) == ['arrows', 'fire', 'night', 'reinf', 'repair'], json.dumps(sp))
 check('Long Night opens at 8 (Legendary), Gate repair at 12 (Epic)', sp['night'] == {'open': 8, 'rar': 3} and sp['repair'] == {'open': 12, 'rar': 2})
-q("update wallets set gold = 100000, cards = cards || %s::jsonb where tg_id = %s and seat = 0", json.dumps({'s:night': 40, 's:repair': 40}), A)
-for k in ('s:night', 's:repair'):
+tw = q1("select v->'towers' from econ_config where k = 'cards'")
+check('the Rookery is a seventh tower card: opens at 13, Legendary', len(tw) == 7 and tw['rook'] == {'open': 13, 'rar': 3}, json.dumps(tw))
+q("update wallets set gold = 100000, cards = cards || %s::jsonb where tg_id = %s and seat = 0", json.dumps({'s:night': 40, 's:repair': 40, 't:rook': 40}), A)
+for k in ('s:night', 's:repair', 't:rook'):
     r = anon('econ_sync', token=tok, seat=0, ops=[{'r': 'card', 'k': k, 'to': 2, 'id': str(uuid.uuid4())}])
     check(f'a level for {k} through the normal card operation', q1("select (levels->>%s)::int from wallets where tg_id = %s and seat = 0", k, A) == 2, json.dumps(r)[:200])
 check('the cards were spent and the gold booked', q1("select gold from wallets where tg_id = %s and seat = 0", A) < 100000)

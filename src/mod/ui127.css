@@ -1,0 +1,5 @@
+/* v1.2.7: what each button does, said in words */
+.ic[data-cap]{position:relative;padding-bottom:10px;line-height:1}
+.ic[data-cap]::after{content:attr(data-cap);position:absolute;left:0;right:0;bottom:3px;font:800 7px var(--f-display);letter-spacing:.1em;color:#9fb4cf;pointer-events:none}
+.opt .rl{font-style:normal;font-size:9px;line-height:1.1;color:#9fb4cf;min-height:20px;display:block}
+.opt{padding-bottom:5px}
