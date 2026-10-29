@@ -19,7 +19,7 @@ const ACC = () => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 
   await page.addInitScript(() => { const raf0 = window.requestAnimationFrame.bind(window); window.__fxHold = false;
     window.requestAnimationFrame = cb => raf0(t => { if (window.__fxHold) window.requestAnimationFrame(cb); else cb(t); }); });
   await page.goto(URL);
-  await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_FXB, { timeout: 20000 }); await page.waitForTimeout(400);
+  await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_FXB, { timeout: 20000 }); await page.waitForTimeout(400); await page.evaluate(() => { window.HOLDOR_LEARN.LEARN.at.length = 0; });
   await page.evaluate(ACC); await page.evaluate(() => window.HOLDOR.showHub('battle')); await page.waitForTimeout(700);
   const tap = async sel => { const l = page.locator(sel).first(); if (!(await l.count())) return false; const b = await l.boundingBox(); if (!b) return false; await page.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2); return true; };
   // ---- 1. a real battle, entered by taps: Battle → HOLD THE DOOR
