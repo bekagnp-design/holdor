@@ -2684,7 +2684,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.2.7';
+const VERSION='1.3.0';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -3317,6 +3317,7 @@ function resetRun(map){
   G.enemies=[];G.allies=[];G.projs=[];G.fx=[];G.texts=[];G.traps=[];G.clouds=[];G.deaths=[];G.gateBonus=(UP('leather')?200:0)+(UP('ironwood')?400:0);
   G.spawnQueue=[];G.decals=[];G.banner=null;G.seen={};G.pending=null;G.tut=null;G.hodor=null;G.hodorT=0;G.hod=null;G.newq=[];G.newcard=null;G.spawnT=0;G.spawnInt=1;G.waveDone=true;G.nextIn=10;G.slowUntil=0;G.warcryUntil=0;G.warcryMult=1;G.eid=1;
   G.powerCd={arrows:0,fire:20,reinf:0,night:0,repair:0};G.powerMax={arrows:26,fire:UP('cache')?42:60,reinf:30,night:45,repair:90};G.slots=spellSlots();G.armed=null;G.sel=null;G.heroSel=false;G.log=[];G.typeCount={};
+  G.learnAsk=null;G.learnDone={};G.learned=[];G.learnRr=0;G.hLv=0;G.synDone={};
   G.stressT=0;G.brace=0;G.shoutT=0;G.kingT=12;G.heroOn=true;G.tutorial=false;G.safe=false;G.builds=0;G.calls=0;G.fireCount=0;G.packUsed=false;G.wallUntil=0;G.wallGate=0;G.goldx2Until=0;G.dgUntil=0;G.gearArmor=0;G.gearLs=0;G.gearRegen=0;G.gearCrit=0;G.fleet=null;G.harvestUntil=0;G.vengUntil=0;G.vengStore=0;G.growUntil=0;G.musterUntil=0;G.drownedUntil=0;G.maxGold=0;G.kingKilled=false;G.dragonFx=0;G.victory=false;G.hero=null;G.slowmoT=0;G.hitStop=0;G.ultCard=null;G.hsay=null;G.heroSayAt=null;G.blizzUntil=0;
 }
 function HERO_BASE(t){return t==='melee'?{hp:360,dmg:22,rate:0.6,range:32}:t==='ranged'?{hp:250,dmg:14,rate:0.8,range:140}:{hp:230,dmg:12,rate:0.9,range:150};}
@@ -3593,7 +3594,7 @@ function step(){
   for(const e of G.enemies){e.slow=e.chillT>G.time&&!e.slowImmune?1-(e.chillV||30)/100:1;e.mark=e.sunderT>G.time?1+(e.sunderV||20)/100:1;e.pblk=e.blockedBy;e.blockedBy=null;e.hasted=1;e.weak=e.disarmT>G.time&&!e.boss?0:1;}
   h.eng=0;for(const a of G.allies)a.eng=0;G.brace=0;G.stressT=Math.max(0,G.stressT-dt);
   const rangeM=(G.mod&&G.mod.range)||1;
-  mstTick(dt);
+  mstTick(dt);champTick();
   const alive=G.heroOn&&!h.dead;
   if(alive){
     const sa=skVal(h,'slowaura');
@@ -4004,7 +4005,7 @@ function updateHUD(){
   $('#hud').className=on?'':'off';$('#bar').className=on?'':'off';
   if(!on)return;
   const tw=(!G.totalWaves||G.totalWaves===Infinity)?'':' / '+G.totalWaves;$('#hWave').textContent='Wave '+Math.max(1,G.wave)+tw;
-  $('#hGold').textContent='💰 '+Math.floor(G.gold||0);$('#hKills').textContent='⚔️ '+G.kills;
+  $('#hGold').textContent='💰 '+Math.floor(G.gold||0);$('#hKills').textContent='⚔️ '+G.kills+(G.hLv?' · ⭐'+(G.hLv+1):'');
   $('#gFill').style.width=(100*G.doorHp/G.doorMax)+'%';$('#gFill').style.background=G.doorHp/G.doorMax>0.5?'#8fd3ff':G.doorHp/G.doorMax>0.25?'#ff9a3c':'#e14b4b';$('#gTxt').textContent='🧱 '+Math.ceil(G.doorHp)+' / '+G.doorMax;
 
 }
@@ -7618,6 +7619,7 @@ function drawTower(s,now){
     ctx.fillStyle='#eaf7ff';ctx.font='700 10px Cinzel,serif';ctx.textAlign='center';ctx.fillText('❄',x,y-34);
   }
   for(let i=0;i<l;i++){ctx.fillStyle='#e3b661';ctx.beginPath();ctx.moveTo(x-8+i*4,y+13);ctx.lineTo(x-6+i*4,y+15.5);ctx.lineTo(x-8+i*4,y+18);ctx.lineTo(x-10+i*4,y+15.5);ctx.closePath();ctx.fill();}
+  mstMark(t,x,y);
 }
 function drawDoorEmpty(gx,y,ratio,now,shakeX){
   if(GATE_EMPTY_IMG.complete&&GATE_EMPTY_IMG.naturalWidth>0){const m=GATE_EMPTY_META,sy=0.8;
@@ -9444,6 +9446,10 @@ function mstHit(p){
   if(o.pierce){const others=G.enemies.filter(e=>e!==t0&&e.hp>0&&!e.fly&&e.route===t0.route&&Math.abs(e.prog-t0.prog)<60).sort((a,b)=>Math.abs(a.prog-t0.prog)-Math.abs(b.prog-t0.prog)).slice(0,o.pierce);
     let far=null,fd=0;for(const e of others){dmg(e,p.dmg*0.7,p.src);const q=posE(e),dd=dist(q.x,q.y,p.lx,p.ly);if(dd>fd){fd=dd;far=q;}}
     if(far)addFx({t:'line',x:p.lx,y:p.ly-8,tx:far.x,ty:far.y-8,life:0.25,col:'#ffe2a0'});}}
+/* v1.2.8: a mastered tower wears its path in battle — three small marks under the level pips, filled by the step, gold for path A, ice for path B */
+function mstMark(t,x,y){const m=mstState(t.type);if(!m.p)return;const col=m.p==='a'?'#ffb23c':'#7fd8ff';
+  for(let i=0;i<3;i++){const cx=x+12+i*6,cy=y+15.5;ctx.beginPath();ctx.moveTo(cx,cy-3);ctx.lineTo(cx+2.6,cy);ctx.lineTo(cx,cy+3);ctx.lineTo(cx-2.6,cy);ctx.closePath();
+    if(i<m.s){ctx.fillStyle=col;ctx.fill();ctx.strokeStyle='#201400';ctx.lineWidth=.8;ctx.stroke();}else{ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=.8;ctx.stroke();}}}
 /* v1.2.1: the spell loadout (3 of 5), Long Night and Gate repair. ACC.loadout = three spell ids; the battle buttons #bP0..2 follow G.slots. */
 Object.assign(SPELLS,{
   night:{e:'❄️',n:'Long Night',cd:45,at:8,d:'The cold falls on the whole road: every enemy is slowed for 6 seconds'},
@@ -9601,25 +9607,45 @@ function demoMount(root){(DMS.stop||[]).forEach(f=>f());DMS.stop=[];(root||docum
 const LEARN={at:[2,5,8,11,14],minStage:5};
 function learnPool(){return Object.keys(SK).filter(id=>!SK[id].ult&&id!=='taunt'&&SK[id].v&&SK[id].v.length>=3);}
 function learnTo(id){const cur=skLvl(G.hero,id);return Math.min(SK[id].v.length,Math.max(cur+1,2));}
-function learnOffer(){const h0=G.hero;let h=hash32('learn:'+(G.level?G.level.id:0)+':'+G.wave+':'+G.runs);const rnd=()=>{h=Math.imul(h^(h>>>15),2246822507)>>>0;h=Math.imul(h^(h>>>13),3266489909)>>>0;h^=h>>>16;return h;};
+function learnOffer(){const h0=G.hero;let h=hash32('learn:'+(G.level?G.level.id:0)+':'+G.wave+':'+G.runs+':'+(G.learnRr||0));const rnd=()=>{h=Math.imul(h^(h>>>15),2246822507)>>>0;h=Math.imul(h^(h>>>13),3266489909)>>>0;h^=h>>>16;return h;};
   const pool=learnPool().filter(id=>skLvl(h0,id)<SK[id].v.length),mine=pool.filter(id=>h0.c.sk.includes(id)&&skLvl(h0,id)<SK_MAX),out=[];
   if(mine.length)out.push(mine.splice(rnd()%mine.length,1)[0]);
   while(out.length<3&&pool.length){const id=pool.splice(rnd()%pool.length,1)[0];if(!out.includes(id))out.push(id);}return out;}
 function learnPick(id){if(!G.learnAsk||!SK[id])return;const h=G.hero,to=learnTo(id);h.perk=h.perk||{};h.perk[id]=to;(G.learned=G.learned||[]).push(id);
+  const syn=typeof champSynergy==='function'?champSynergy(id):null;
   G.learnAsk=null;const el=document.getElementById('boonOv');if(el)el.remove();G.paused=false;try{SFX.play('levelup');}catch(e){}
-  try{addText(h.x,h.y-48,'LEARNED '+SK[id].n,'#ffd54a',1);addFx({t:'ring',x:h.x,y:h.y-10,r0:8,r1:60,life:0.6,col:'#ffd54a'});}catch(e){}}
+  try{addText(h.x,h.y-48,'LEARNED '+SK[id].n,'#ffd54a',1);addFx({t:'ring',x:h.x,y:h.y-10,r0:8,r1:60,life:0.6,col:'#ffd54a'});if(syn)addText(h.x,h.y-70,'✦ '+syn,'#9fe6ff',1);}catch(e){}}
+function learnShow(offer){const ov=document.getElementById('boonOv');if(ov)ov.remove();
+  const o=document.createElement('div');o.id='boonOv';
+  o.innerHTML=`<div class="bo-in"><small>${esc(shortName(G.hero.c))} · BEFORE WAVE ${G.wave+1}</small><h2>Learn a skill</h2><div class="bo-row">${offer.map((id,i)=>{const S=SK[id],to=learnTo(id),own=skLvl(G.hero,id);
+    return `<button class="bo-card" data-learn="${id}" style="animation-delay:${i*90}ms"><span class="bo-e">${skillIcon(id,48,0)}</span><b>${esc(S.n)}</b><em>${esc(S.d(S.v[to-1]))}</em><small>${own?'RANK '+own+' → '+to:'NEW · rank '+to}</small></button>`;}).join('')}</div>
+    ${(G.learnRr||0)<1?'<button class="linkbtn" id="learnRr">🎲 Other skills (once per battle)</button>':''}
+    <p class="bo-have">${(G.learned||[]).length?'Learned this battle: '+G.learned.map(k=>esc(SK[k].n)).join(', '):'It lasts until the battle ends'}</p></div>`;
+  (document.getElementById('stage')||document.body).appendChild(o);
+  o.querySelectorAll('[data-learn]').forEach(b=>b.addEventListener('click',()=>learnPick(b.dataset.learn)));
+  const rr=o.querySelector('#learnRr');if(rr)rr.addEventListener('click',()=>{G.learnRr=(G.learnRr||0)+1;const n=learnOffer();G.learnAsk=n;SFX.play('tap',60);learnShow(n);});}
 function learnCheck(){if(G.learnAsk)return true;
   if(G.mode!=='campaign'||G.tutorial||G.tut||!G.level||G.level.id<LEARN.minStage||!G.hero||!LEARN.at.includes(G.wave))return false;
   G.learnDone=G.learnDone||{};if(G.learnDone[G.wave])return false;G.learnDone[G.wave]=1;
   const offer=learnOffer();if(!offer.length)return false;G.learnAsk=offer;G.paused=true;
-  const ov=document.createElement('div');ov.id='boonOv';
-  ov.innerHTML=`<div class="bo-in"><small>${esc(shortName(G.hero.c))} · BEFORE WAVE ${G.wave+1}</small><h2>Learn a skill</h2><div class="bo-row">${offer.map((id,i)=>{const S=SK[id],to=learnTo(id),own=skLvl(G.hero,id);
-    return `<button class="bo-card" data-learn="${id}" style="animation-delay:${i*90}ms"><span class="bo-e">${skillIcon(id,48,0)}</span><b>${esc(S.n)}</b><em>${esc(S.d(S.v[to-1]))}</em><small>${own?'RANK '+own+' → '+to:'NEW · rank '+to}</small></button>`;}).join('')}</div>
-    <p class="bo-have">${(G.learned||[]).length?'Learned this battle: '+G.learned.map(k=>esc(SK[k].n)).join(', '):'It lasts until the battle ends'}</p></div>`;
-  (document.getElementById('stage')||document.body).appendChild(ov);
-  ov.querySelectorAll('[data-learn]').forEach(b=>b.addEventListener('click',()=>learnPick(b.dataset.learn)));try{SFX.play('chest');}catch(e){}
+  learnShow(offer);try{SFX.play('chest');}catch(e){}
   return true;}
 /* v1.2.7: captions under the battle buttons (CSS only, see ui127.css) */
+/* v1.3.0: the champion grows during the battle. Campaign only (from stage 5, like the skill offers): kills raise his battle level (12, 32, 60, 100 and 150 kills);
+   every level is +6% damage and +6% health, a fifth of his health back and a ring. Two skills of the same kind (his own plus the learned ones)
+   make a synergy once, with a small bonus. Hold, duel and clash battles are untouched, so their recorded runs stay the same. */
+const CLV={at:[12,32,60,100,150],minStage:5};
+const SYN={aoe:['Area',h=>{h.dmg*=1.15;return '+15% damage';}],rain:['Volleys',h=>{h.dmg*=1.15;return '+15% damage';}],strike:['Duelling',h=>{h.dmg*=1.15;return '+15% damage';}],
+  heal:['Mending',h=>{h.max=Math.round(h.max*1.15);h.hp=Math.min(h.max,h.hp+h.max*.15);return '+15% health';}],shield:['Bulwark',h=>{h.max=Math.round(h.max*1.15);h.hp=Math.min(h.max,h.hp+h.max*.15);return '+15% health';}],
+  control:['Winter',h=>{h.spd*=1.12;return '+12% speed';}],dot:['Embers',h=>{h.dmg*=1.1;h.rate*=0.92;return '+10% damage, faster strikes';}],
+  buff:['Command',h=>{G.gold+=80;return '+80 gold';}],summon:['Muster',h=>{G.gold+=80;return '+80 gold';}],gold:['Treasury',h=>{G.gold+=120;return '+120 gold';}]};
+function champOn(){return G.mode==='campaign'&&!G.tutorial&&!G.tut&&G.level&&G.level.id>=CLV.minStage&&G.hero&&G.heroOn;}
+function champTick(){if(!champOn())return;const n=G.hLv||0;if(n>=CLV.at.length||G.kills<CLV.at[n])return;
+  const h=G.hero;G.hLv=n+1;h.dmg*=1.06;h.max=Math.round(h.max*1.06);h.hp=Math.min(h.max,h.hp+h.max*.2);
+  try{addText(h.x,h.y-52,'LEVEL '+(G.hLv+1),'#ffd54a',1);addFx({t:'ring',x:h.x,y:h.y-10,r0:8,r1:70,life:0.7,col:'#ffd54a'});SFX.play('levelup');}catch(e){}}
+function champSynergy(id){const cat=skCat(id),h=G.hero,S=SYN[cat];if(!S)return null;G.synDone=G.synDone||{};if(G.synDone[cat])return null;
+  let n=0;for(const k of h.c.sk)if(skCat(k)===cat)n++;for(const k of (G.learned||[]))if(skCat(k)===cat&&!h.c.sk.includes(k))n++;
+  if(n<2)return null;G.synDone[cat]=1;const t=S[1](h);return S[0]+' synergy: '+t;}
 window.HOLDOR_TROOPS={TROOPS,TROOP_ROLE,TROOP_ROLES,troopDef,troopUnits,troopStats,keepRole,troopDress,allyStrike,troopMend,drawTroopBody,troopPreview,showTrain,towerStats,HOUSE_ORDER,HOUSES,build,LEVELS};
 window.HOLDOR_CLASH={CLASH,CLASH_COST,CLASH_N,CLASH_TOP,genClash,clashStart,clashStop,clashSend,clashStepB,clashBot,clashSpawnTroops,clashFinish,clashDraw,showClash,clashCardHTML,gSnap,gSwap,toWorld,w2s};
 window.HOLDOR_CL2={CL2,clashServer,cl2Load,cl2Call,clashGhostInit,clashGhostStep,clashGhostDo,clashRunLog,clashRunWaves,clashAfter,cl2FromStart,cl2PendingOpen,cl2Go,showClash,showClashLocal,setRpc:f=>{cl2Rpc=f;}};
@@ -9633,6 +9659,7 @@ window.HOLDOR_ROOK={rookPri,rookHit,rookSilence,rookDraw,rookSVG};
 window.HOLDOR_PREP={towerRoster,battleTowers,prepNeeded,prepGo,ROSTER_MAX};
 window.HOLDOR_DEMO={demoFrame,demoHTML,demoMount,dmSpell,dmTowerScene,dmChamp,showSpellRoom};
 window.HOLDOR_LEARN={LEARN,learnPool,learnOffer,learnPick,learnCheck,learnTo};
+window.HOLDOR_CHAMP={CLV,SYN,champOn,champTick,champSynergy,skCat,SK};
 window.HOLDOR_CARDS={CARD_NEED,CARD_MUL,cardRar,cardLvl,cardMax,cardNeed,cardHave,cardGold,cardName,cardOpen,cardReady,cardCan,addCards,cardLevelUp,accLevel,accXp,addXp,xpNeed,lvlChestTier,lvlChestsReady,cardPool,rollChest,stageCards,spellLvl,spellMul,showSpellRoom,showTowerRoom,migrate48,TOURS,toursOf,hubTour,startTour};
 window.HOLDOR_SEATS={seatNo,lbIsMe,lbName,lbStale,lbMine,scoreSummary,fetchLeaderboard,cachedLb};
 window.HOLDOR_BOOK={showBook,bookNew,bookDisc,bookNewCount,bookMarkRead,BOOK,trophiesOf,trophiesRow,rankOf,myRank,rankSVG,showRankSheet,RANKS,RANK_AT};

@@ -45,7 +45,7 @@ const { chromium } = require('playwright');
   ok('Rookery Murder 3: one shot sends 4 ravens', mur === 4, mur);
   const sil = await battle('rook', 13, 1, 'sword', (H, G, t, E) => H.HOLDOR_ROOK ? 0 : window.HOLDOR_ROOK.rookSilence(t));
   ok('Rookery Doom: silence lasts 3 s longer', sil >= 6, sil);
-  ok('no page errors', errors.length === 0, errors.join('|'));
+  await page.waitForTimeout(500); ok('no page errors (the mastery marks draw)', errors.length === 0, errors.join('|'));
   console.log(JSON.stringify(R, null, 1)); const bad = Object.values(R).filter(v => v.startsWith('FAIL')); console.log(bad.length ? 'FAILED ' + bad.length : 'ALL OK');
   await browser.close(); process.exit(bad.length ? 1 : 0);
 })();

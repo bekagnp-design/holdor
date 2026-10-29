@@ -863,3 +863,13 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 - **What it does:** the three top buttons in battle carry a caption (BOOK, SPEED, PAUSE). More of the clean-up (the home) follows in later versions.
 - **How:** `ui127.css` + `data-cap` attributes, part `98q_ui127.py`. **Tests:** `t_ui127.js`. Also: `t_sheet89.js` marks every lesson as seen (the Rookery lesson of v1.2.2 covered the map).
 
+### v1.2.8 — Mastery marks in battle, a reroll for the skill offer (2026-10-29)
+- **What it does:** a tower with Mastery shows three small diamonds under its level pips in battle (filled by step, gold for path A, ice for path B). The skill offer has one "other skills" reroll per battle. A new battle forgets the last battle's offers (`G.learnAsk/learnDone/learned/learnRr` reset in `startGame0`; before this fix a second battle would not have offered again).
+- **Battle limits (checked, no change needed):** `backend/limits.json` holds lower bounds (`min_steps`, kills) set by the wave timers, not by tower power, so stronger towers, Mastery and learned skills cannot beat them.
+- **Tests:** `t_learn126.js` (second battle, reroll once), `t_mastery123.js` (the marks draw without errors).
+
+### v1.3.0 — the champion grows in battle (2026-10-29)
+- **What it does:** in a campaign battle from stage 5 the champion's battle level rises with kills (12, 32, 60, 100, 150): +6% damage, +6% health, a fifth of his health back, a ring and "LEVEL n"; the HUD shows ⭐n next to the kills. Two skills of the same kind (his kit plus the learned ones) give a one-time synergy: area / volleys / duelling +15% damage, mending / bulwark +15% health, winter +12% speed, embers +10% damage and faster strikes, command / muster +80 gold, treasury +120 gold. Hold, duel and clash battles are untouched.
+- **How:** `champ130.js`, part `98r_champ.py` (`champTick()` next to `mstTick`, the HUD line, the reset in `startGame0`); `learnPick` asks `champSynergy`.
+- **Tests:** `t_champ130.js`.
+

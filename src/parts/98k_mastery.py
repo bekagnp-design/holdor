@@ -12,3 +12,6 @@ rep("function towerStats(t,ML){", "function towerStats(t,ML){return mstStats(t,t
 rep("  const rangeM=(G.mod&&G.mod.range)||1;\n  const alive=G.heroOn&&!h.dead;", "  const rangeM=(G.mod&&G.mod.range)||1;\n  mstTick(dt);\n  const alive=G.heroOn&&!h.dead;", 1, 'mst-tick')
 rep("dmg(e,st.dps*dt*(e.walker?3:1),'glass');", "dmg(e,st.dps*dt*(e.walker?(st.wm||3):1),'glass');", 1, 'mst-glass')
 rep("if(p.burn&&e.hp>0)e.burn={dps:p.burn,t:3};}}addFx({t:'ring',x:p.lx,y:p.ly,r0:6,r1:p.splash+6", "if(p.burn&&e.hp>0)e.burn={dps:p.burn,t:p.bt||3};}}if(p.pool)G.clouds.push({x:p.lx,y:p.ly,dps:p.pool.d,t:p.pool.t});addFx({t:'ring',x:p.lx,y:p.ly,r0:6,r1:p.splash+6", 1, 'mst-wild')
+
+# v1.2.8: the Mastery marks in battle
+rep("ctx.lineTo(x-10+i*4,y+15.5);ctx.closePath();ctx.fill();}\n}", "ctx.lineTo(x-10+i*4,y+15.5);ctx.closePath();ctx.fill();}\n  mstMark(t,x,y);\n}", 1, 'mst-mark')
