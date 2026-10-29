@@ -879,3 +879,9 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 - **Server:** `backend/holdor_v35.sql` (config only: `towers.maul` open 18, rarity 2), `v35_test.py`; `econ.json` / `holdor_econ_data.sql` regenerated.
 - **Tests:** `t_maul132.js`; the tower-count expectations in `t_book`, `t_tower97`, `t_prep124`, `t_rook122`, `t_ring` follow the eight towers.
 
+### v1.3.3 — two more spells: Wildfire jars and Beacon (2026-10-29)
+- **What it does:** Wildfire jars (aimed like Arrow rain: tap the button, then the road) leave a burning pool for 8 s, 70 damage a second at level 1; Beacon (instant) makes every tower shoot 30% faster for 8 s and reveals stealth enemies. They open at stage 15 (Epic) and 20 (Legendary), grow +6% a level like the others, and fill the loadout choice (now 7 spells, 3 slots). (The Armory upgrade "Wildfire cache" already exists, so the spell is named "jars".)
+- **How:** `spells133.js`, part `98t_spells2.py` (`castPower` / `spellLine` / `spellSVG` wrappers, the cooldown tables, the aimed list, the Beacon rate factor in the tower step); `book.js` lines for both.
+- **Server:** `backend/holdor_v36.sql` (config only: `spells.jars`, `spells.beacon`), `v36_test.py`.
+- **Tests:** `t_spells133.js`.
+

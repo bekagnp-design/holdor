@@ -2684,7 +2684,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.3.1';
+const VERSION='1.3.3';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -3316,7 +3316,7 @@ function resetRun(map){
   G.map=map;G.tick=0;G.time=0;G.kills=0;G.wave=0;G.doorMax=Math.round((1000+(UP('leather')?200:0)+(UP('ironwood')?400:0))*DIFF().gate);G.doorHp=G.doorMax;
   G.enemies=[];G.allies=[];G.projs=[];G.fx=[];G.texts=[];G.traps=[];G.clouds=[];G.deaths=[];G.gateBonus=(UP('leather')?200:0)+(UP('ironwood')?400:0);
   G.spawnQueue=[];G.decals=[];G.banner=null;G.seen={};G.pending=null;G.tut=null;G.hodor=null;G.hodorT=0;G.hod=null;G.newq=[];G.newcard=null;G.spawnT=0;G.spawnInt=1;G.waveDone=true;G.nextIn=10;G.slowUntil=0;G.warcryUntil=0;G.warcryMult=1;G.eid=1;
-  G.powerCd={arrows:0,fire:20,reinf:0,night:0,repair:0};G.powerMax={arrows:26,fire:UP('cache')?42:60,reinf:30,night:45,repair:90};G.slots=spellSlots();G.armed=null;G.sel=null;G.heroSel=false;G.log=[];G.typeCount={};
+  G.powerCd={arrows:0,fire:20,reinf:0,night:0,repair:0,jars:0,beacon:0};G.powerMax={arrows:26,fire:UP('cache')?42:60,reinf:30,night:45,repair:90,jars:35,beacon:50};G.beaconUntil=0;G.slots=spellSlots();G.armed=null;G.sel=null;G.heroSel=false;G.log=[];G.typeCount={};
   G.learnAsk=null;G.learnDone={};G.learned=[];G.learnRr=0;G.hLv=0;G.synDone={};
   G.stressT=0;G.brace=0;G.shoutT=0;G.kingT=12;G.heroOn=true;G.tutorial=false;G.safe=false;G.builds=0;G.calls=0;G.fireCount=0;G.packUsed=false;G.wallUntil=0;G.wallGate=0;G.goldx2Until=0;G.dgUntil=0;G.gearArmor=0;G.gearLs=0;G.gearRegen=0;G.gearCrit=0;G.fleet=null;G.harvestUntil=0;G.vengUntil=0;G.vengStore=0;G.growUntil=0;G.musterUntil=0;G.drownedUntil=0;G.maxGold=0;G.kingKilled=false;G.dragonFx=0;G.victory=false;G.hero=null;G.slowmoT=0;G.hitStop=0;G.ultCard=null;G.hsay=null;G.heroSayAt=null;G.blizzUntil=0;
 }
@@ -3619,7 +3619,7 @@ function step(){
     let best=null,bestV=-Infinity;
     for(const e of G.enemies){if(e.hp<=0)continue;const p=posE(e);const d=dist(p.x,p.y,s.x,s.y);if(d>range+e.r)continue;if(e.stealth&&d>62)continue;if(def.minRange&&d<def.minRange)continue;const v=t.type==='rook'?rookPri(e):(e.fly?(t.type==='scorp'?1e9:-1e6+e.y):-remainOf(e));if(v>bestV){bestV=v;best=e;}}
     if(!best)continue;
-    let rate=st.rate;const ra=skVal(h,'rally');if(alive&&ra&&dist(s.x,s.y,h.x,h.y)<=90)rate*=1+ra/100;if(t.webbed>G.time)rate*=0.72;
+    let rate=st.rate;const ra=skVal(h,'rally');if(alive&&ra&&dist(s.x,s.y,h.x,h.y)<=90)rate*=1+ra/100;if(t.webbed>G.time)rate*=0.72;if(G.beaconUntil>G.time)rate*=(G.beaconMul||1.3);
     t.cd=1/rate;const p=posE(best);t.face=Math.atan2(p.y-s.y,p.x-s.x);
     {const _pr={x:s.x,y:s.y-14,tgt:best,lx:p.x,ly:p.y,spd:def.pspd,dmg:st.dmg,src:t.type,splash:def.kind==='splash'?st.splash:0,burn:st.burn,ang:t.face};G.projs.push(_pr);mstFire(t,s,st,best,def,_pr);if(t.type==='rook')_pr.sil=rookSilence(t);if(t.type==='maul')_pr.stun=maulStun();}
     if(G.tut)tutEvent('shot');SFX.play(TSFX[t.type]||'arrow',55);
@@ -7150,8 +7150,8 @@ function bookChamp(id){const c=CBY[id],hh=HOUSES[c.house],open=unlocked(null,c),
   <div class="bkh">Talents · level ${TAL_AT}</div><div class="bkchips">${tal}</div>`;}
 function bookSpell(k){const S=SPELLS[k],open=cardOpen('s:'+k),l=spellLvl(k),m=spellMul(k);
   if(!open)return `<div class="bkdet"><div class="bkpic dark"><span class="q">?</span></div><div class="tx"><h3>${S.n}</h3><span class="sub">spell</span><p>Opens after stage ${S.at} is held.</p></div></div>`;
-  const eff=k==='arrows'?[bookStat('💥',Math.round(170*m),'damage each'),bookStat('📏','95 px','circle')]:k==='fire'?[bookStat('💥',Math.round(400*m),'damage each'),bookStat('🔥',Math.round(20*m)+'/s · 3 s','burning'),bookStat('📏','72 px','circle'),bookStat('🐉','full','vs dragons')]:k==='night'?[bookStat('❄️',Math.min(60,Math.round(40*m))+'%','slower'),bookStat('⏱️','6 s','on every enemy')]:k==='repair'?[bookStat('🧱',Math.round(30*m)+'%','of the gate back')]:[bookStat('👥',(UP('sworn')?5:3)+(l>=S_MAX?1:0),'brothers'),bookStat('❤️',Math.round(150*(1+0.2*(maxTowerLvl()-1))*m),'health each'),bookStat('⏱️','15 s','on the road')];
-  return `<div class="bkdet"><div class="bkpic dark"><span class="spi">${spellSVG(k)}</span></div><div class="tx"><h3>${S.n}${bookIsNew('spells',k)?'<span class="bknew">NEW</span>':''}</h3><span class="sub">spell · level ${l} of ${S_MAX} · recharges ${S.cd} s</span><p>${S.d}. ${k==='arrows'?'Tap the button, then the road — the volley lands where you tap.':k==='fire'?'Tap the button, then the road. The one spell that fully hurts a dragon.':k==='night'?'No aim needed: the cold falls on every enemy at once.':k==='repair'?'No aim needed: the masons mend the gate at once.':'No aim needed: they march out of the gate onto the busiest road.'}</p></div></div>
+  const eff=k==='arrows'?[bookStat('💥',Math.round(170*m),'damage each'),bookStat('📏','95 px','circle')]:k==='fire'?[bookStat('💥',Math.round(400*m),'damage each'),bookStat('🔥',Math.round(20*m)+'/s · 3 s','burning'),bookStat('📏','72 px','circle'),bookStat('🐉','full','vs dragons')]:k==='night'?[bookStat('❄️',Math.min(60,Math.round(40*m))+'%','slower'),bookStat('⏱️','6 s','on every enemy')]:k==='repair'?[bookStat('🧱',Math.round(30*m)+'%','of the gate back')]:k==='jars'?[bookStat('🔥',Math.round(70*m)+'/s','burning pool'),bookStat('⏱️','8 s','it stays'),bookStat('📏','60 px','circle')]:k==='beacon'?[bookStat('⚡','+'+Math.round(30*m)+'%','fire rate, all towers'),bookStat('⏱️','8 s','it burns'),bookStat('👁️','all','stealth revealed')]:[bookStat('👥',(UP('sworn')?5:3)+(l>=S_MAX?1:0),'brothers'),bookStat('❤️',Math.round(150*(1+0.2*(maxTowerLvl()-1))*m),'health each'),bookStat('⏱️','15 s','on the road')];
+  return `<div class="bkdet"><div class="bkpic dark"><span class="spi">${spellSVG(k)}</span></div><div class="tx"><h3>${S.n}${bookIsNew('spells',k)?'<span class="bknew">NEW</span>':''}</h3><span class="sub">spell · level ${l} of ${S_MAX} · recharges ${S.cd} s</span><p>${S.d}. ${k==='arrows'?'Tap the button, then the road — the volley lands where you tap.':k==='fire'?'Tap the button, then the road. The one spell that fully hurts a dragon.':k==='night'?'No aim needed: the cold falls on every enemy at once.':k==='repair'?'No aim needed: the masons mend the gate at once.':k==='jars'?'Tap the button, then the road: the jars break there and the fire stays.':k==='beacon'?'No aim needed: every tower in the battle shoots faster while it burns.':'No aim needed: they march out of the gate onto the busiest road.'}</p></div></div>
   <div class="bkst">${eff.join('')}${bookStat('⏱️',S.cd+' s','recharge')}</div>
   <div class="bkdisc">Cards and gold raise a spell to level ${S_MAX}: +6% power a level${k==='reinf'?', a fourth brother at the top':''}.</div>`;}
 function bookNotes(){const N=[
@@ -9463,7 +9463,7 @@ function spellEquip(k,slot){if(!SPELLS[k]||slot<0||slot>2)return false;const L=s
 function spellSlots(){return (G.tutorial||(G.tut&&G.tut.key==='tut'))?SPELL_DEFAULT.slice():spellLoadout();}
 /* the three battle buttons: arrows and fire are aimed (tap, then the road), the rest fly at once */
 function spellBtn(i){const k=(G.slots||SPELL_DEFAULT)[i];if(!k||G.state!=='play'||!spellOpen(k))return;
-  if(k==='arrows'||k==='fire'){if(G.powerCd[k]>0)return;G.armed=G.armed===k?null:k;G.heroSel=false;updateBar();return;}
+  if(k==='arrows'||k==='fire'||k==='jars'){if(G.powerCd[k]>0)return;G.armed=G.armed===k?null:k;G.heroSel=false;updateBar();return;}
   const was=G.powerCd[k];castPower(k);if(G.tut&&was<=0&&G.state==='play')tutEvent('power',k);}
 /* the two new spells */
 {const cp0=castPower;castPower=function(id,x,y){
@@ -9673,6 +9673,26 @@ function maulDraw(t,l,now,x){const hgt=16+3*l;ctx.fillStyle='#5a3f26';ctx.fillRe
 function maulSVG(px){return `<svg viewBox="0 0 48 48" style="width:${px}px;height:${px}px"><ellipse cx="24" cy="43" rx="15" ry="3.2" fill="#0007"/><path d="M11 43V20h4v23zM33 43V20h4v23z" fill="#7a5636" stroke="#3a2a1a" stroke-width="1.2"/><path d="M9 20h30v-3H9z" fill="#3a2a1a"/><g transform="rotate(-38 24 18)"><rect x="22" y="2" width="4" height="22" fill="#8a6038" stroke="#3a2a1a" stroke-width="1"/><rect x="16" y="0" width="16" height="8" rx="1.5" fill="#8a90a0" stroke="#2c3040" stroke-width="1.2"/></g></svg>`;}
 {const th0=towerIconHTML;towerIconHTML=function(type,lvl,px){return type==='maul'?maulSVG(px||34):th0(type,lvl,px);};}
 LESSONS.maul={need:()=>towerOpen('maul'),steps:towerLesson('maul','New tower: the Siege maul. One heavy swing every couple of seconds on a whole knot of the dead, and they stop for a moment — build it at a bend in the road.')};
+/* v1.3.3: two more spells — Wildfire jars (aimed: a burning pool that stays 8 s) and Beacon (every tower shoots 30% faster for 8 s, stealth revealed). */
+Object.assign(SPELLS,{
+  jars:{e:'🏺',n:'Wildfire jars',cd:35,at:15,d:'Jars of green fire break on the road and leave a burning pool for eight seconds'},
+  beacon:{e:'🔥',n:'Beacon',cd:50,at:20,d:'The beacon is lit: every tower shoots 30% faster for eight seconds and nothing hides in its light'}});
+S_RAR.jars=2;S_RAR.beacon=3;
+{const cp1=castPower;castPower=function(id,x,y){
+  if(id!=='jars'&&id!=='beacon')return cp1(id,x,y);
+  if(G.state!=='play'||G.powerCd[id]>0)return;G.powerCd[id]=G.powerMax[id];SFX.play('spell');G.log.push({t:G.tick,a:'power',id,x:Math.round(x||0),y:Math.round(y||0)});
+  const m=spellMul(id);
+  if(id==='jars'){G.clouds.push({x,y,dps:Math.round(70*m),t:8});addFx({t:'burst',x,y:y-6,r0:6,r1:60,life:0.5,col:'#7cff6b'});addText(x,y-36,'WILDFIRE','#b8ffb8',true);}
+  else{G.beaconUntil=G.time+8;G.beaconMul=1+0.3*m;for(const e of G.enemies)if(e.stealth)e.stealth=false;
+    for(const s of G.map.slots)if(s.tower)addFx({t:'ring',x:s.x,y:s.y,r0:6,r1:34,life:0.7,col:'#ffb23c'});addText(W/2,H*0.3,'BEACON +'+Math.round(30*m)+'%','#ffd54a',true);}
+  updateBar();};}
+{const sl1=spellLine;spellLine=function(k,l){const m=1+0.06*((l||spellLvl(k))-1);
+  if(k==='jars')return `a pool burning ${Math.round(70*m)} a second for 8 s`;
+  if(k==='beacon')return `every tower ${Math.round(30*m)}% faster for 8 s`;return sl1(k,l);};
+ const sv1=spellSVG;spellSVG=function(k){
+  if(k==='jars')return '<svg viewBox="0 0 24 24" fill="none" stroke="#7cff6b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6M10 4v3c-3 1-4 4-4 7 0 3 2 6 6 6s6-3 6-6c0-3-1-6-4-7V4"/><path d="M12 11c1 1.5 2 2 2 3.5a2 2 0 0 1-4 0c0-1 1-2 2-3.5z"/></svg>';
+  if(k==='beacon')return '<svg viewBox="0 0 24 24" fill="none" stroke="#ffb23c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21l1.5-9h5L16 21M7 21h10M12 3c2 2 3 3.5 3 5.5a3 3 0 0 1-6 0c0-2 1-3.5 3-5.5z"/></svg>';
+  return sv1(k);};}
 window.HOLDOR_TROOPS={TROOPS,TROOP_ROLE,TROOP_ROLES,troopDef,troopUnits,troopStats,keepRole,troopDress,allyStrike,troopMend,drawTroopBody,troopPreview,showTrain,towerStats,HOUSE_ORDER,HOUSES,build,LEVELS};
 window.HOLDOR_CLASH={CLASH,CLASH_COST,CLASH_N,CLASH_TOP,genClash,clashStart,clashStop,clashSend,clashStepB,clashBot,clashSpawnTroops,clashFinish,clashDraw,showClash,clashCardHTML,gSnap,gSwap,toWorld,w2s};
 window.HOLDOR_CL2={CL2,clashServer,cl2Load,cl2Call,clashGhostInit,clashGhostStep,clashGhostDo,clashRunLog,clashRunWaves,clashAfter,cl2FromStart,cl2PendingOpen,cl2Go,showClash,showClashLocal,setRpc:f=>{cl2Rpc=f;}};
@@ -9681,7 +9701,7 @@ window.HOLDOR_STORY={STORY,stOn,stSeen,stMark,stPlay,storyNext,stBeat,stBeatChai
 window.HOLDOR_GUIDE={lessonStart,SKCAT,SKSETS,SKTAG,skCat,skillDemoFrame,skillDemoLoop,SDW,SDH,RV,rvDue,rvMark,revealChampion,rvGo,rvEnd,uiHud,uiHome,uiSeen,uiMark,GANIM,UIR};
 window.HOLDOR_ARMY={ARM,armStop,armLvlBtn,armPips,showHeroRoom,showTowerRoom};
 window.HOLDOR_MST={MST,MST_PATHS,mstState,mstEnc,mstOpen,mstReady,mstBuy,mstReset,mstPanel,mstFire,mstHit,mstLabel,mstStats,mstTick,towerStats};
-window.HOLDOR_SP={SPELLS,spellLoadout,spellEquip,spellSlots,spellBtn,SPELL_DEFAULT};
+window.HOLDOR_SP={SPELLS,spellLoadout,spellEquip,spellSlots,spellBtn,SPELL_DEFAULT,castPower:(...a)=>castPower(...a),spellMul};
 window.HOLDOR_ROOK={rookPri,rookHit,rookSilence,rookDraw,rookSVG};
 window.HOLDOR_PREP={towerRoster,battleTowers,prepNeeded,prepGo,ROSTER_MAX};
 window.HOLDOR_DEMO={demoFrame,demoHTML,demoMount,dmSpell,dmTowerScene,dmChamp,showSpellRoom};
