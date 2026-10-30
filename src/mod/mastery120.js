@@ -13,13 +13,13 @@ const MST_PATHS={
       {n:'Dead shot',t:'30% critical chance, critical damage ×2.5.'}]}},
   scorp:{
     a:{n:'Piercing bolt',e:'➳',d:'The bolt runs through a line',steps:[
-      {n:'Through one',t:'The bolt also hits the enemy behind for 70% damage.'},
+      {n:'Through one',t:'The bolt also hits the enemy behind for 50% damage.'},
       {n:'Through two',t:'It pierces two enemies behind the first.'},
       {n:'Through three',t:'It pierces three enemies and fires 10% faster.'}]},
     b:{n:'Dragonbane',e:'🐉',d:'Built to bring down the big ones',steps:[
-      {n:'Giant slayer',t:'×1.25 damage against dragons, walkers and armoured enemies.'},
+      {n:'Giant slayer',t:'×1.2 damage against dragons, walkers and armoured enemies.'},
       {n:'Chilling bolt',t:'Every hit chills: 30% slower for 2 seconds.'},
-      {n:'Dragonbane',t:'×1.6 against the big ones and a 40% chill.'}]}}};
+      {n:'Dragonbane',t:'×1.35 against the big ones and a 40% chill.'}]}}};
 MST_PATHS.wild={
   a:{n:'Inferno',e:'🔥',d:'Bigger blasts that burn longer',steps:[
     {n:'Hotter mix',t:'Splash +15%, burning ×1.3 for 3 s.'},
@@ -27,17 +27,17 @@ MST_PATHS.wild={
     {n:'Dragonfire pot',t:'Splash +45%, burning ×2 for 5 s.'}]},
   b:{n:'Seep',e:'🧪',d:'Every blast leaves a burning pool',steps:[
     {n:'Spill',t:'A pool of green fire stays 3 s where the shell lands.'},
-    {n:'Deep pool',t:'The pool burns 50% harder and stays 4 s.'},
-    {n:'Marsh fire',t:'The pool burns twice as hard and stays 5 s.'}]}};
+    {n:'Deep pool',t:'The pool burns 40% harder and stays 4 s.'},
+    {n:'Marsh fire',t:'The pool burns 80% harder and stays 5 s.'}]}};
 MST_PATHS.glass={
   a:{n:'Frostbite',e:'❄️',d:'Slow and freeze everything inside',steps:[
     {n:'Cold spears',t:'Slows 8% harder.'},
     {n:'Deep freeze',t:'Every 5 s everything inside is frozen for 1 s.'},
     {n:'Winter edge',t:'Slows 12% harder in total, +20% damage.'}]},
   b:{n:'Walkerbane',e:'🗡️',d:'Built to kill White Walkers',steps:[
-    {n:'Obsidian tips',t:'White Walkers take ×4 instead of ×3.'},
+    {n:'Obsidian tips',t:'White Walkers take ×3.5 instead of ×3.'},
     {n:'Shatter',t:'A White Walker below 25% health is shattered at once.'},
-    {n:'Walkerbane',t:'×5 against White Walkers and +25% damage.'}]}};
+    {n:'Walkerbane',t:'×4 against White Walkers and +25% damage.'}]}};
 MST_PATHS.weir={
   a:{n:'Roots',e:'🌳',d:'The old trees hold enemies in place',steps:[
     {n:'Deeper roots',t:'Slows 6% harder.'},
@@ -53,14 +53,14 @@ MST_PATHS.keep={
     {n:'Pikemen',t:'+1 more soldier, +40% health.'},
     {n:'Shield wall',t:'+2 more soldiers, +70% health.'}]},
   b:{n:"Knight's charge",e:'⚔️',d:'Fewer men who hit hard and return quickly',steps:[
-    {n:'Spurs',t:'+25% soldier damage, return 15% sooner.'},
-    {n:'Lances',t:'+50% damage, return 30% sooner.'},
-    {n:'Heavy horse',t:'Double damage, return 40% sooner.'}]}};
+    {n:'Spurs',t:'+20% soldier damage, return 15% sooner.'},
+    {n:'Lances',t:'+40% damage, return 30% sooner.'},
+    {n:'Heavy horse',t:'+70% damage, return 40% sooner.'}]}};
 MST_PATHS.rook={
   a:{n:'Murder',e:'🐦‍⬛',d:'More ravens at once',steps:[
-    {n:'Pair',t:'A second raven goes for another target (60% damage).'},
-    {n:'Flock',t:'Two extra ravens (70% damage).'},
-    {n:'Murder of crows',t:'Three extra ravens (80% damage).'}]},
+    {n:'Pair',t:'A second raven goes for another target (50% damage).'},
+    {n:'Flock',t:'Two extra ravens (55% damage).'},
+    {n:'Murder of crows',t:'Three extra ravens (60% damage).'}]},
   b:{n:'Omen',e:'🔔',d:'Silence that lasts and marks',steps:[
     {n:'Long toll',t:'Silence lasts 1 s longer.'},
     {n:'Ill omen',t:'+2 s of silence; silenced enemies take 25% more damage.'},
@@ -105,9 +105,9 @@ function mstStep(k){const m=mstState(k);return m.p?m:{p:null,s:0};}
 function mstStats(t,st){
   const k=t.type;if(k==='watch'||k==='scorp')return st;const m=mstStep(k);if(!m.p)return st;const s=m.s,o=Object.assign({},st);
   if(k==='wild'){if(m.p==='a'){o.splash*=[1.15,1.3,1.45][s-1];o.burn*=[1.3,1.6,2][s-1];}}
-  else if(k==='glass'){if(m.p==='a'){o.slow-=s>=3?0.12:0.08;if(s>=3)o.dps*=1.2;}else{o.wm=[4,4,5][s-1];if(s>=3)o.dps*=1.25;}}
+  else if(k==='glass'){if(m.p==='a'){o.slow-=s>=3?0.12:0.08;if(s>=3)o.dps*=1.2;}else{o.wm=[3.5,3.5,4][s-1];if(s>=3)o.dps*=1.25;}}
   else if(k==='weir'){if(m.p==='a'){o.slow-=s>=3?0.10:0.06;}else{o.mark+=[0.1,0.2,0.3][s-1];if(s>=3)o.range*=1.15;}}
-  else if(k==='keep'){if(m.p==='a'){o.count=Math.min(8,o.count+[1,2,4][s-1]);o.shp=Math.round(o.shp*[1.2,1.4,1.7][s-1]);}else{o.sdmg=Math.round(o.sdmg*[1.25,1.5,2][s-1]*10)/10;o.resp=Math.round(o.resp*[0.85,0.7,0.6][s-1]*10)/10;}}
+  else if(k==='keep'){if(m.p==='a'){o.count=Math.min(8,o.count+[1,2,4][s-1]);o.shp=Math.round(o.shp*[1.2,1.4,1.7][s-1]);}else{o.sdmg=Math.round(o.sdmg*[1.2,1.4,1.7][s-1]*10)/10;o.resp=Math.round(o.resp*[0.85,0.7,0.6][s-1]*10)/10;}}
   if(o.slow<0.1)o.slow=0.1;return o;}
 function mstRookSil(){const m=mstStep('rook');return m.p==='b'?[1,2,3][m.s-1]:0;}
 function mstRookMark(){const m=mstStep('rook');return m.p==='b'&&m.s>=2?(m.s>=3?1.35:1.25):1;}
@@ -135,19 +135,19 @@ function mstFire(t,s,st,best,def,pr){
       if(rnd()<ch){pr.dmg*=cm;pr.crit=1;const q=posE(best);addText(q.x,q.y-22,'CRIT','#ffd54a',true);}}}
   else if(k==='wild'){
     if(m.p==='a')pr.bt=[3,4,5][sx-1];
-    else pr.pool={d:st.burn*[1.5,2.25,3][sx-1],t:[3,4,5][sx-1]};}
+    else pr.pool={d:st.burn*[1.25,1.75,2.25][sx-1],t:[3,4,5][sx-1]};}
   else if(k==='rook'){
-    if(m.p==='a'){const n=[1,2,3][sx-1],mul=[0.6,0.7,0.8][sx-1];
+    if(m.p==='a'){const n=[1,2,3][sx-1],mul=[0.5,0.55,0.6][sx-1];
       const others=G.enemies.filter(e=>e!==best&&e.hp>0&&(e.raise||e.healAura||e.speedAura||e.lord||e.fly||e.air||true)&&!(e.stealth&&dist(posE(e).x,posE(e).y,s.x,s.y)>62)&&dist(posE(e).x,posE(e).y,s.x,s.y)<=st.range+e.r).sort((a,b)=>rookPri(b)-rookPri(a)).slice(0,n);
       for(const e of others){const q=posE(e);G.projs.push({x:s.x,y:s.y-14,tgt:e,lx:q.x,ly:q.y,spd:def.pspd,dmg:st.dmg*mul,src:k,splash:0,burn:0,ang:t.face,sil:rookSilence(t)});}}}
   else if(k==='scorp'){
     if(m.p==='a'){pr.mp={pierce:[1,2,3][sx-1]};if(sx>=3)t.cd*=0.909;}
-    else{const big=best.armored||best.dragon||best.walker;if(big)pr.dmg*=[1.25,1.25,1.6][sx-1];if(sx>=2)pr.mp={chill:sx>=3?40:30};}}}
+    else{const big=best.armored||best.dragon||best.walker;if(big)pr.dmg*=[1.2,1.2,1.35][sx-1];if(sx>=2)pr.mp={chill:sx>=3?40:30};}}}
 function mstHit(p){
   const o=p.mp,t0=p.tgt;if(!o)return;
   if(o.chill&&t0.hp>0&&!t0.slowImmune){t0.chillT=G.time+2;t0.chillV=o.chill;}
   if(o.pierce){const others=G.enemies.filter(e=>e!==t0&&e.hp>0&&!e.fly&&e.route===t0.route&&Math.abs(e.prog-t0.prog)<60).sort((a,b)=>Math.abs(a.prog-t0.prog)-Math.abs(b.prog-t0.prog)).slice(0,o.pierce);
-    let far=null,fd=0;for(const e of others){dmg(e,p.dmg*0.7,p.src);const q=posE(e),dd=dist(q.x,q.y,p.lx,p.ly);if(dd>fd){fd=dd;far=q;}}
+    let far=null,fd=0;for(const e of others){dmg(e,p.dmg*0.5,p.src);const q=posE(e),dd=dist(q.x,q.y,p.lx,p.ly);if(dd>fd){fd=dd;far=q;}}
     if(far)addFx({t:'line',x:p.lx,y:p.ly-8,tx:far.x,ty:far.y-8,life:0.25,col:'#ffe2a0'});}}
 /* v1.2.8: a mastered tower wears its path in battle — three small marks under the level pips, filled by the step, gold for path A, ice for path B */
 function mstMark(t,x,y){const m=mstState(t.type);if(!m.p)return;const col=m.p==='a'?'#ffb23c':'#7fd8ff';

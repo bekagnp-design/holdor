@@ -719,7 +719,7 @@ table.lv tr.lk td{color:#9a8a6a}
   background:repeating-linear-gradient(90deg,rgba(0,0,0,.08) 0 3px,transparent 3px 11px),linear-gradient(180deg,#6b4a2b,#4a3119) #5a3d22}
 .bookfs::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(255,255,255,.035) 0 2px,transparent 2px 9px);pointer-events:none}
 .bkhead{position:relative;display:flex;align-items:flex-end;gap:3px;padding:6px 46px 0 2px;min-height:44px}
-.bkrib{flex:1;min-width:0;background:linear-gradient(180deg,#a3542b,#7a3a1a);border:2px solid #3a1c0c;border-bottom:0;border-radius:8px 8px 0 0;color:#f6e3bb;font-family:var(--f-display);font-size:8.5px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;padding:10px 1px 7px;text-align:center;text-shadow:0 1px 0 #3a1c0c;position:relative;top:2px;white-space:nowrap}
+.bkrib{flex:1;min-width:0;background:linear-gradient(180deg,#a3542b,#7a3a1a);border:2px solid #3a1c0c;border-bottom:0;border-radius:8px 8px 0 0;color:#f6e3bb;font-family:var(--f-display);font-size:8px;font-weight:900;letter-spacing:0;text-transform:uppercase;padding:10px 1px 7px;text-align:center;text-shadow:0 1px 0 #3a1c0c;position:relative;top:2px;white-space:nowrap}
 .bkrib.on{background:linear-gradient(180deg,#ffe97a,#f2a62c);color:#3a1c0c;text-shadow:0 1px 0 rgba(255,255,255,.4);padding-top:13px;top:0;border-color:#7a4a10}
 .bkrib .n{position:absolute;top:-1px;right:-1px;min-width:13px;height:13px;border-radius:7px;background:#e14b4b;color:#fff;font-size:8.5px;line-height:13px;text-align:center;padding:0 3px;border:1px solid #3a1c0c;letter-spacing:0}
 .bkx{position:absolute;right:0;top:-2px;width:42px;height:46px;border:0;background:linear-gradient(180deg,#c9612f,#8e3b16);clip-path:polygon(0 0,100% 0,100% 100%,50% 82%,0 100%);color:#f6e3bb;font-size:18px;font-weight:900;padding:0 0 8px;text-shadow:0 1px 0 #3a1c0c}
@@ -796,6 +796,8 @@ table.lv tr.lk td{color:#9a8a6a}
 .bookfs .btn{max-width:360px;margin:12px auto 0}
 .bookfs .tutnote{margin:10px 0 0;background:rgba(11,26,46,.85);color:#f2e6c9;border:1px solid var(--gold);border-radius:10px;padding:8px 10px;font-size:12.5px}
 .subtabs button .n{display:inline-block;min-width:14px;height:14px;line-height:14px;border-radius:7px;background:#e14b4b;color:#fff;font-size:9px;text-align:center;margin-left:3px;padding:0 3px;border:1px solid #7a1d1d;vertical-align:1px}
+
+.bkrib .n{top:-6px;right:-3px}
 
 /* ---- ranks (v1.0.50) ---- */
 .rksvg{flex:0 0 auto;filter:drop-shadow(0 1px 0 rgba(0,0,0,.5))}
@@ -1788,6 +1790,18 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 .bcard .bcshare{margin:10px auto 0;padding:6px 14px;font-size:13px}
 /* v1.3.7: the founder tag */
 .who small .fnd{color:#ffd54a;font-weight:800;letter-spacing:.04em}
+/* v1.3.8: the challenge sheet */
+.chal{text-align:center}.chal b{display:block;font-size:14px;color:#ffd54a;line-height:1.35}.chal small{display:block;margin-top:6px;font-size:11px;color:#bfe6ff}
+/* v1.3.8: Trials */
+.trcard{margin:8px 0;padding:10px;border-radius:16px;background:linear-gradient(180deg,#26304a,#141a2c);border:2px solid #4a5f8f;box-shadow:0 3px 0 rgba(0,0,0,.45)}
+.trcard .trrow{display:flex;gap:10px;align-items:center}
+.trcard .hmmini{flex:0 0 84px;width:84px;height:60px;border-radius:10px;border:2px solid rgba(0,0,0,.55)}
+.trcard .trtx{display:flex;flex-direction:column;gap:2px;min-width:0}.trcard .trtx b{font:900 17px var(--f-display);color:#ffe08a;letter-spacing:.04em}
+.trcard .trtx small{font-size:11px;color:#bfd2f2}.trcard .trtx em{font-style:normal;font-weight:800;font-size:13px;color:#fff}
+.trcard .trinfo{margin:10px 2px 8px;font-size:13px;line-height:1.35;color:#dfe9f7}
+.trcard .trgo{width:100%;font-size:20px;letter-spacing:.12em}.trcard .trnote{margin:8px 2px 0;font-size:11px;color:#9fb2d4;text-align:center}
+.trlast{margin-top:10px;padding:8px;border-radius:12px;background:rgba(0,0,0,.28)}.trlast .trlh b{display:block;font:900 13px var(--f-display);color:#ffd54a}.trlast .trlh small{font-size:11px;color:#bfe6ff}
+.trlast .bcsk{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.trlast .bcs{display:flex;flex-direction:column;align-items:center;width:58px}.trlast .bcs small{font-size:9px;color:#d6c8f0;text-align:center;line-height:1.1}
 </style>
 </head>
 <body>
@@ -2691,7 +2705,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.3.7';
+const VERSION='1.4.1';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -4661,7 +4675,7 @@ function confirmWipe(i){
   $('#bYes').addEventListener('click',()=>{SAVE.slots[i]=null;if(SAVE.cur===i){SAVE.cur=-1;ACC=null;}persist();showSlots();});
 }
 function afterLoad(){
-  ecoStart();stClass();
+  ecoStart();stClass();try{chalFromStart(TG&&TG.initDataUnsafe&&TG.initDataUnsafe.start_param);}catch(e){}
   if(ACC&&ACC.sv){showHub('battle');return;}
   if(!ACC.intro){showCinematic(()=>{ACC.intro=1;persist();if(!ACC.tut)startTutorial();else showHub('battle');});return;}
   showHub('battle');
@@ -5718,7 +5732,7 @@ async function dailyClaimFr(other){if(DAILY.busy||!ecoOn())return;DAILY.busy=tru
     DAILY.fr=r.friends;DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);dailyClaimModal(r,'👥 A friend’s gift');}
   catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await frLoad();ecoModal('👥 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily('friends')}]);}}
 /* a new player who opened the game from an invite link joins his friend (once per device; the server checks he is really new) */
-function refJoinFromStart(){try{const sp=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.start_param;if(sp&&/^d_[0-9a-f]{8}$/i.test(sp)){DUEL.pending=sp.slice(2);return;}if(cl2FromStart(sp))return;if(sp&&/^s_[a-z0-9_]{2,16}$/i.test(sp)&&CLOUD.token){const k0='holdor_src';if(localStorage.getItem(k0)===sp)return;localStorage.setItem(k0,sp);sbRpc('src_set',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).catch(()=>{});return;}if(!sp||!/^r_[0-9a-f]{8}$/i.test(sp)||!CLOUD.token)return;
+function refJoinFromStart(){try{const sp=chalSp(TG&&TG.initDataUnsafe&&TG.initDataUnsafe.start_param);if(sp&&/^d_[0-9a-f]{8}$/i.test(sp)){DUEL.pending=sp.slice(2);return;}if(cl2FromStart(sp))return;if(sp&&/^s_[a-z0-9_]{2,16}$/i.test(sp)&&CLOUD.token){const k0='holdor_src';if(localStorage.getItem(k0)===sp)return;localStorage.setItem(k0,sp);sbRpc('src_set',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).catch(()=>{});return;}if(!sp||!/^r_[0-9a-f]{8}$/i.test(sp)||!CLOUD.token)return;
   const k='holdor_refjoin';if(localStorage.getItem(k)===sp)return;localStorage.setItem(k,sp);
   sbRpc('ref_join',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).then(r=>{if(r&&r.by)ecoToast('👥 You joined '+r.by+'’s house of friends — clear 5 stages for a gift');}).catch(e=>{const m=String(e&&e.message||e);if(/only a new player|already invited/.test(m))setTimeout(()=>ecoToast('👥 You already play HOLDOR — friend gifts are for new players. You can still duel your friend: ask for a duel link.'),2500);});}catch(e){}}
 /* the popup when the castle opens and today's reward waits (once a session; never over a tutorial or a tour) */
@@ -7158,7 +7172,7 @@ function bookChamp(id){const c=CBY[id],hh=HOUSES[c.house],open=unlocked(null,c),
 function bookSpell(k){const S=SPELLS[k],open=cardOpen('s:'+k),l=spellLvl(k),m=spellMul(k);
   if(!open)return `<div class="bkdet"><div class="bkpic dark"><span class="q">?</span></div><div class="tx"><h3>${S.n}</h3><span class="sub">spell</span><p>Opens after stage ${S.at} is held.</p></div></div>`;
   const eff=k==='arrows'?[bookStat('💥',Math.round(170*m),'damage each'),bookStat('📏','95 px','circle')]:k==='fire'?[bookStat('💥',Math.round(400*m),'damage each'),bookStat('🔥',Math.round(20*m)+'/s · 3 s','burning'),bookStat('📏','72 px','circle'),bookStat('🐉','full','vs dragons')]:k==='night'?[bookStat('❄️',Math.min(60,Math.round(40*m))+'%','slower'),bookStat('⏱️','6 s','on every enemy')]:k==='repair'?[bookStat('🧱',Math.round(30*m)+'%','of the gate back')]:k==='jars'?[bookStat('🔥',Math.round(70*m)+'/s','burning pool'),bookStat('⏱️','8 s','it stays'),bookStat('📏','60 px','circle')]:k==='beacon'?[bookStat('⚡','+'+Math.round(30*m)+'%','fire rate, all towers'),bookStat('⏱️','8 s','it burns'),bookStat('👁️','all','stealth revealed')]:[bookStat('👥',(UP('sworn')?5:3)+(l>=S_MAX?1:0),'brothers'),bookStat('❤️',Math.round(150*(1+0.2*(maxTowerLvl()-1))*m),'health each'),bookStat('⏱️','15 s','on the road')];
-  return `<div class="bkdet"><div class="bkpic dark"><span class="spi">${spellSVG(k)}</span></div><div class="tx"><h3>${S.n}${bookIsNew('spells',k)?'<span class="bknew">NEW</span>':''}</h3><span class="sub">spell · level ${l} of ${S_MAX} · recharges ${S.cd} s</span><p>${S.d}. ${k==='arrows'?'Tap the button, then the road — the volley lands where you tap.':k==='fire'?'Tap the button, then the road. The one spell that fully hurts a dragon.':k==='night'?'No aim needed: the cold falls on every enemy at once.':k==='repair'?'No aim needed: the masons mend the gate at once.':k==='jars'?'Tap the button, then the road: the jars break there and the fire stays.':k==='beacon'?'No aim needed: every tower in the battle shoots faster while it burns.':'No aim needed: they march out of the gate onto the busiest road.'}</p></div></div>
+  return `<div class="bkdet"><div class="bkpic dark"><span class="spi">${spellSVG(k)}</span></div><div class="tx"><h3>${S.n}${bookIsNew('spells',k)?'<span class="bknew">NEW</span>':''}</h3><span class="sub">spell · level ${l} of ${S_MAX} · recharges&nbsp;${S.cd}&nbsp;s</span><p>${S.d}. ${k==='arrows'?'Tap the button, then the road — the volley lands where you tap.':k==='fire'?'Tap the button, then the road. The one spell that fully hurts a dragon.':k==='night'?'No aim needed: the cold falls on every enemy at once.':k==='repair'?'No aim needed: the masons mend the gate at once.':k==='jars'?'Tap the button, then the road: the jars break there and the fire stays.':k==='beacon'?'No aim needed: every tower in the battle shoots faster while it burns.':'No aim needed: they march out of the gate onto the busiest road.'}</p></div></div>
   <div class="bkst">${eff.join('')}${bookStat('⏱️',S.cd+' s','recharge')}</div>
   <div class="bkdisc">Cards and gold raise a spell to level ${S_MAX}: +6% power a level${k==='reinf'?', a fourth brother at the top':''}.</div>`;}
 function bookNotes(){const N=[
@@ -7973,13 +7987,13 @@ function showHub(tab,sub){
   if(!ACC){showTitle();return;}
   if(ecoWants()&&!ecoOn()&&!ECO.starting&&Date.now()-ECO.failAt>20000)ecoStart();else if(ecoOn()&&Date.now()-ECO.at>60000&&ecoCalm())ecoRefresh();
   rollDay();tab=tab||'battle';
-  const body=tab==='shop'?hubShop():tab==='coll'?hubCollection(sub):tab==='events'?hubEvents(sub):tab==='tasks'?hubTasks(sub):tab==='hold'?hubHold():tab==='clan'?hubClan():hubHome();
+  const body=tab==='shop'?hubShop():tab==='coll'?hubCollection(sub):tab==='events'?hubEvents(sub):tab==='tasks'?hubTasks(sub):tab==='hold'?hubHold():tab==='clan'?hubClan():tab==='trials'?hubTrials():hubHome();
   show(`<div class="hub look-${skinOf()}" style="--sig:url(${SIGILS[ACC.house]||''})">${hubTop()}<div class="hubbody ${tab} ${hubDir>0?'slide-r':hubDir<0?'slide-l':''}" id="hubBody">${body}</div>${hubTabs(tab)}</div>`,'full');
   hubDir=0;CLOUD.screen='hub:'+tab;hubHiddenBack(tab);
   card.querySelectorAll('.hubtabs button').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.lock){hubLockSay(b.dataset.tab);return;}SFX.play('tap',60);hubDir=Math.sign(HUB_ORDER.indexOf(b.dataset.tab)-HUB_ORDER.indexOf(tab));showHub(b.dataset.tab);}));
   $('#hubAva').addEventListener('click',()=>showSettings());const he=$('#hubEn');if(he)he.addEventListener('click',()=>{SFX.play('tap',60);ecoEnergySheet(0,null);});const hr=$('#hubRank');if(hr)hr.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});card.querySelectorAll('.plus').forEach(b=>b.addEventListener('click',()=>showHub(b.dataset.go)));
   hubSwipe(card.querySelector('.hub'),tab);juiceHub(tab);
-  if(tab==='battle'){hubBattleBind();homeBind();}else if(tab==='coll')hubCollectionBind(sub);else if(tab==='shop')hubShopBind();else if(tab==='events')hubEventsBind(sub);else if(tab==='tasks')hubTasksBind();else if(tab==='clan')hubClanBind();else hubHoldBind();
+  if(tab==='battle'){hubBattleBind();homeBind();}else if(tab==='coll')hubCollectionBind(sub);else if(tab==='shop')hubShopBind();else if(tab==='events')hubEventsBind(sub);else if(tab==='tasks')hubTasksBind();else if(tab==='clan')hubClanBind();else if(tab==='trials')hubTrialsBind();else hubHoldBind();
   setTimeout(()=>hubTour(tab),400);
   if(tab==='battle'){if(DUEL.pending)setTimeout(duelPendingOpen,500);else{setTimeout(dailyPopupCheck,1100);setTimeout(evPopupCheck,2600);}}
 }
@@ -8238,7 +8252,7 @@ function hubTabs(on){const t=[['shop','Shop'],['coll','Army'],['battle','Battle'
   return `<div class="hubtabs four">${t.map(([k,n])=>`<button class="${k===sel?'on':''} ${k==='battle'?'mid':''}" data-tab="${k}">${HUB_ICON[k]}${n}${dot[k]?'<span class="dot"></span>':''}</button>`).join('')}</div>`;}
 /* a page without a tab: a back arrow on top */
 function hubHiddenBack(tab){if(!HUB_HIDDEN[tab])return;const b=document.getElementById('hubBody');if(!b)return;
-  const d=document.createElement('div');d.className='hback';d.innerHTML=`<button id="hubBack">◀ Back</button><span>${tab==='tasks'?'Tasks':tab==='hold'?'The Hold':'Standings'}</span>`;
+  const d=document.createElement('div');d.className='hback';d.innerHTML=`<button id="hubBack">◀ Back</button><span>${tab==='tasks'?'Tasks':tab==='hold'?'The Hold':tab==='clan'?'Clan':'Standings'}</span>`;
   b.insertBefore(d,b.firstChild);d.querySelector('#hubBack').addEventListener('click',()=>{SFX.play('tap',60);showHub('battle');});}
 /* one look: the living gate */
 function skinOf(){return 'b';}
@@ -8598,7 +8612,7 @@ function showClashLocal(back){const R=clashRec(),hh=HOUSES[ACC.house],lv=['Bronz
     <div class="clbots">${lv.map((n,i)=>`<button class="clb ${i+1===R.bot?'on':''} ${i+1>R.bot?'lock':''}" data-b="${i+1}">${['🥉','🥈','🥇','💎','🐉'][i]}<b>${n}</b><small>bot ${i+1}</small></button>`).join('')}</div>
     <p class="m">Two wins in a row at a level open the next. <b>Army points</b> come one every 10 s; a send costs 2–4. The ${TROOPS[ACC.house].house.n} needs army level ${ARMY_HOUSE_AT} (Army → City → Barracks).</p>
     <button class="btn" id="bClashGo">⚔️ Fight bot ${R.bot}</button>
-    <p class="m" style="font-size:11.5px">Ranked leagues, friend links and a live friend come next (v1.1.2–3). Nothing here touches your rating.</p>`);
+    <p class="m" style="font-size:11.5px">Practice never touches your rating.</p>`);
   CLOUD.screen='clash-menu';$('#bBack').addEventListener('click',()=>CLASH.back());
   card.querySelectorAll('.clb').forEach(b=>b.addEventListener('click',()=>{const n=+b.dataset.b;if(n>R.bot){SFX.play('deny');return;}card.querySelectorAll('.clb').forEach(x=>x.classList.toggle('on',x===b));$('#bClashGo').textContent='⚔️ Fight bot '+n;$('#bClashGo').dataset.b=n;SFX.play('tap',60);}));
   $('#bClashGo').addEventListener('click',()=>{if(!ACC.tut){ecoToast('Finish the tutorial battle first');return;}overlay.classList.add('hidden');clashStart({bot:+($('#bClashGo').dataset.b||R.bot)});});}
@@ -8923,7 +8937,7 @@ function filmPlay(id,done,o){const F=typeof id==='string'?FILMS[id]:id;if(!F||!F
 window.addEventListener('resize',()=>{if(FIL)filmFit();});
 /* a chapter card: a title, a few seconds */
 function filmCard(text,sub,done){filmPlay({id:'card',shots:[{scene:'title',d:2.8,p:{text,sub,crack:.4},cap:[],sfx:[{at:.1,k:'cold'}]}]},done);}
-const STORY_DATA={"films":[{"id":"f0","title":"Seven Hours","chapter":"Cold open","shots":[{"scene":"black","d":3.4,"p":{"pulse":true},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"heartbeat"},{"at":2.6,"k":"thud"}],"cap":[{"at":0.4,"text":"Count the knocks.","kind":"whisper","hold":2.0}],"flash":[2.6]},{"scene":"dunes","d":6,"p":{"frost":0.3,"palms":true,"fires":2},"cam":{"from":1.02,"to":1.12,"dx":0,"dy":-10},"cut":"fade","sfx":[{"at":0,"k":"wind"},{"at":2.5,"k":"cold"}],"cap":[{"at":0.5,"text":"Dorne. Midsummer.","kind":"line","hold":2.2},{"at":3.2,"text":"Frost. On the sand.","kind":"whisper","hold":2.2}]},{"scene":"wall","d":4.2,"p":{"aurora":0.6,"snow":0.4,"beacons":0},"cam":{"from":1,"to":1.2,"dx":0,"dy":12},"cut":"fade","sfx":[{"at":0,"k":"drone"}],"cap":[{"at":0.3,"text":"Eight beacons run south from the Wall.","kind":"line","hold":2.4},{"at":2.6,"text":"None lit. Yet.","kind":"whisper","hold":1.6}]},{"scene":"beacons","d":3.2,"p":{"n":1},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":1,"k":"horn"}],"flash":[1],"cap":[{"at":1,"text":"ONE.","kind":"shout","hold":1.8}]},{"scene":"road","d":3.8,"p":{"rider":true,"eyes":3,"fog":0.7,"snow":0.5},"cam":{"from":1,"to":1.25,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"gallop"},{"at":2,"k":"silence"}],"cap":[{"at":0.2,"text":"A lone rider, racing the dead.","kind":"line","hold":1.8},{"at":2,"text":"No hoofbeats.","kind":"whisper","hold":1.7}]},{"scene":"black","d":1.2,"p":{"eyes":6},"cam":{"from":1,"to":1.05,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"sting"}],"flash":[0.1]},{"scene":"gate","d":5,"p":{"knock":3,"frost":0.2},"cam":{"from":1,"to":1.15,"dx":0,"dy":-6},"cut":"hard","sfx":[{"at":0.2,"k":"silence"},{"at":1,"k":"knock3"}],"shake":[{"at":1,"amp":7,"dur":0.6}],"cap":[{"at":1.8,"text":"Open! The dead are behind me!","kind":"speech","who":"Rider","hold":1.8},{"at":3.3,"text":"Dawn is seven hours off!","kind":"speech","who":"Rider","hold":1.7}]},{"scene":"hodor","d":3.4,"p":{"look":"ahead","sweat":true},"cam":{"from":1,"to":1.2,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"heartbeat"}],"cap":[{"at":0.5,"text":"Hodor.","kind":"speech","who":"Hodor","hold":1.7},{"at":1.6,"text":"Hodor did not open.","kind":"line","hold":1.8}]},{"scene":"champion","d":3.4,"p":{"rim":true,"eyes":true,"breath":true},"cam":{"from":1,"to":1.15,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"cold"}],"cap":[{"at":0.5,"text":"Show me your breath.","kind":"speech","who":"Champion","hold":2.4}]},{"scene":"title","d":3.2,"p":{"text":"HOLD THE DOOR","sub":"Seven hours to dawn.","crack":0.7},"cam":{"from":1,"to":1.05,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"sting"}],"flash":[0]},{"scene":"door","d":4.6,"p":{"thuds":5,"frost":0.5,"light":0.6},"cam":{"from":1,"to":1.3,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0.3,"k":"thud"},{"at":1,"k":"thud"},{"at":1.7,"k":"thud"},{"at":2.4,"k":"thud"},{"at":3.1,"k":"thud"}],"shake":[{"at":0.3,"amp":8,"dur":0.4},{"at":1,"amp":8,"dur":0.4},{"at":1.7,"amp":9,"dur":0.4},{"at":2.4,"amp":10,"dur":0.4},{"at":3.1,"amp":12,"dur":0.5}],"cap":[{"at":0.3,"text":"HOLD THE DOOR!","kind":"shout","hold":2},{"at":2.8,"text":"Seven hours. One door.","kind":"line","hold":1.8}]}]},{"id":"f1","title":"Do Not Answer","chapter":"Stage 1 - Sunspear","shots":[{"scene":"gate","d":4,"p":{"knock":3,"frost":0.4},"cam":{"from":1,"to":1.15,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0.3,"k":"knock3"}],"shake":[{"at":0.3,"amp":6,"dur":0.5}],"cap":[{"at":0.9,"text":"Still holding? Six hours to dawn.","kind":"speech","who":"Rider","hold":2.6}]},{"scene":"dunes","d":4.6,"p":{"frost":0.5,"palms":true,"fires":3},"cam":{"from":1.05,"to":1.05,"dx":0,"dy":0},"cut":"fade","sfx":[{"at":1,"k":"cold"}],"cap":[{"at":0.6,"text":"Frost on sand. Past midnight.","kind":"line","hold":2.2},{"at":2.6,"text":"Where is the sentry?","kind":"whisper","hold":1.8}]},{"scene":"raven","d":3.6,"p":{"letter":true},"cam":{"from":1,"to":1.15,"dx":0,"dy":0},"cut":"fade","sfx":[{"at":0.3,"k":"crow"}],"cap":[{"at":0.4,"text":"A raven. Sealed in {HOUSE} wax.","kind":"line","hold":2.4}]},{"scene":"raven","d":2,"p":{"close":true,"letter":true},"cam":{"from":1.1,"to":1.3,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"sting"}],"flash":[0.2],"cap":[{"at":0.1,"text":"Do not answer. They wear voices.","kind":"speech","who":"Letter","hold":1.9}]},{"scene":"hodor","d":4.2,"p":{"look":"down"},"cam":{"from":1,"to":1.15,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"cold"}],"cap":[{"at":0.4,"text":"The wax was still warm.","kind":"line","hold":2.2},{"at":2.5,"text":"Hodor?","kind":"speech","who":"Hodor","hold":1.7}]},{"scene":"title","d":3.2,"p":{"text":"6 HOURS","sub":"Hold the door.","crack":0.4},"cam":{"from":1,"to":1.05,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":1.2,"k":"knock3"}]}]},{"id":"f2","title":"The Third Fire","chapter":"Stage 2 - Salt Shore","shots":[{"scene":"beacons","d":3.2,"p":{"n":3},"cam":{"from":1,"to":1.15,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":1.2,"k":"horn"}],"flash":[1.2],"cap":[{"at":0.3,"text":"The third beacon lit itself.","kind":"line","hold":2.4}]},{"scene":"dunes","d":3.6,"p":{"frost":0.9,"palms":true,"fires":1},"cam":{"from":1,"to":1.15,"dx":0,"dy":-8},"cut":"fade","sfx":[{"at":0,"k":"wind"},{"at":1.5,"k":"cold"}],"cap":[{"at":0.4,"text":"Snow on the palm trees.","kind":"whisper","hold":2.2}]},{"scene":"gate","d":3.4,"p":{"knock":3,"crack":0.5},"cam":{"from":1,"to":1.2,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":1.8,"k":"knock3"}],"shake":[{"at":1.8,"amp":8,"dur":0.6}],"cap":[{"at":0.2,"text":"Five hours, friend. Open.","kind":"speech","who":"Rider","hold":1.7}]},{"scene":"title","d":2.6,"p":{"text":"5 HOURS","sub":"Count the knocks.","crack":0.6},"cam":{"from":1,"to":1.05,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"sting"}]}]},{"id":"f3","title":"No Breath","chapter":"Stage 3 - Yronwood","shots":[{"scene":"champion","d":4,"p":{"rim":true,"breath":true},"cam":{"from":1,"to":1.15,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"cold"}],"cap":[{"at":0.3,"text":"Every breath smoked in the cold.","kind":"line","hold":2.2},{"at":2.3,"text":"Except one.","kind":"whisper","hold":1.7}]},{"scene":"road","d":3.4,"p":{"figure":true,"fog":0.85,"snow":0.3},"cam":{"from":1,"to":1.2,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0.2,"k":"drone"}],"cap":[{"at":0.4,"text":"A shape. Standing too still.","kind":"whisper","hold":2}]},{"scene":"gate","d":3,"p":{"knock":3,"frost":0.6},"cam":{"from":1,"to":1.15,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":1.5,"k":"knock3"}],"shake":[{"at":1.5,"amp":6,"dur":0.5}],"cap":[{"at":0.3,"text":"Four hours. Open up.","kind":"speech","who":"Rider","hold":1.7}]},{"scene":"title","d":3,"p":{"text":"4 HOURS","sub":"Something is wrong. Hold.","crack":0.8},"cam":{"from":1,"to":1.05,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"sting"}]}]},{"id":"f4","title":"The War Room","chapter":"The keep opens","shots":[{"scene":"hall","d":3.6,"p":{"crest":true,"embers":0.5},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"fade","sfx":[{"at":0.2,"k":"relief"}],"cap":[{"at":0.3,"text":"Three gates held. Behind them, {SEAT}.","kind":"line","hold":2.6}]},{"scene":"map","d":5.2,"p":{"frost":0.45,"mark":4},"cam":{"from":1,"to":1.3,"dx":0,"dy":10},"cut":"hard","sfx":[{"at":0,"k":"cold"}],"cap":[{"at":0.3,"text":"Fifty gates. Frost runs south.","kind":"line","hold":2},{"at":2.7,"text":"Each fire marks where they walked.","kind":"line","hold":2.4}]},{"scene":"beacons","d":3.2,"p":{"n":5},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0.2,"k":"horn"}],"flash":[0.3],"cap":[{"at":0.4,"text":"Five lit. Three to go.","kind":"line","hold":2}]},{"scene":"black","d":4,"p":{"flame":true},"cam":{"from":1,"to":1.08,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"silence"}],"cap":[{"at":0.6,"text":"He always knew the hour.","kind":"speech","who":"Champion","hold":2.8}]},{"scene":"road","d":3.4,"p":{"rider":true,"eyes":8,"fog":0.8,"snow":0.5},"cam":{"from":1,"to":1.25,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"silence"},{"at":1.6,"k":"sting"}],"flash":[1.6],"shake":[{"at":1.6,"amp":6,"dur":0.5}],"cap":[{"at":0.3,"text":"No hoofbeats. No breath.","kind":"line","hold":1.8},{"at":1.6,"text":"HE LEADS THEM.","kind":"shout","hold":1.8}]},{"scene":"king","d":3.6,"p":{"eyes":true,"wind":0.7},"cam":{"from":1,"to":1.2,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0.1,"k":"sting"},{"at":0.2,"k":"drone"}],"cap":[{"at":0.3,"text":"Dawn was their word for the eighth fire.","kind":"line","hold":2.7},{"at":2,"text":"Dawn is not coming.","kind":"whisper","hold":1.6}]},{"scene":"hall","d":3.6,"p":{"crest":true,"embers":0.8},"cam":{"from":1,"to":1.12,"dx":0,"dy":0},"cut":"fade","sfx":[{"at":0,"k":"relief"}],"cap":[{"at":0.4,"text":"Behind this door, we are still warm.","kind":"line","hold":2.6}]},{"scene":"crest","d":3.4,"p":{"glow":0.8},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"fade","sfx":[{"at":0.2,"k":"horn"}],"cap":[{"at":0.5,"text":"THE WAR ROOM","kind":"title","hold":2.6}]}]},{"id":"f5","title":"Muster","chapter":"Stage 4 - the Army opens","shots":[{"scene":"hall","d":3,"p":{"crest":true,"embers":0.6},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"relief"}],"cap":[{"at":0.3,"text":"The banners answer. The army wakes.","kind":"line","hold":2.4}]},{"scene":"beacons","d":2.6,"p":{"n":6},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0.2,"k":"horn"}],"flash":[0.3],"cap":[{"at":0.3,"text":"SIX LIT.","kind":"shout","hold":1.7}]},{"scene":"title","d":2.6,"p":{"text":"2 FIRES","sub":"Hold the door.","crack":0.4},"cam":{"from":1,"to":1.05,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"knock3"}]}]},{"id":"f6","title":"Buy Time","chapter":"Stage 5 - the Shop opens","shots":[{"scene":"hall","d":3,"p":{"embers":0.5},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"relief"}],"cap":[{"at":0.3,"text":"Merchants come with the cold. Buy time.","kind":"line","hold":2.5}]},{"scene":"beacons","d":2.6,"p":{"n":7},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0.2,"k":"horn"}],"flash":[0.3],"cap":[{"at":0.3,"text":"ONE FIRE LEFT.","kind":"shout","hold":1.8}]},{"scene":"title","d":2.6,"p":{"text":"1 FIRE","sub":"Hold the door.","crack":0.6},"cam":{"from":1,"to":1.05,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"knock3"}]}]},{"id":"f7","title":"Not Alone","chapter":"Stage 6 - the Clan opens","shots":[{"scene":"beacons","d":2.6,"p":{"n":8},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0.2,"k":"horn"},{"at":0.3,"k":"thunder"}],"flash":[0.3],"cap":[{"at":0.3,"text":"EIGHT.","kind":"shout","hold":1.7}]},{"scene":"dawn","d":2.8,"p":{"sun":0.15,"smoke":0.8},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"fade","sfx":[{"at":0,"k":"wind"}],"cap":[{"at":0.2,"text":"The eighth fire burns. We still stand.","kind":"line","hold":2.5}]},{"scene":"title","d":3,"p":{"text":"YOU ARE NOT ALONE","sub":"Other houses answer. Hold Starfall.","crack":0.3},"cam":{"from":1,"to":1.05,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"relief"}]}]}],"tutorial_lines":["Seven hours to dawn. The dead march on the door. Hodor holds it; you build the towers that stop them.","A Watchtower already stands by the door. Tap the ⚔ banner at the top of the road, call the first wave, and count the knocks.","","Gold builds towers. Tap the glowing stone ring and raise a second Watchtower. The clock is running.","Your champion rides up from the keep. Tap the ground where they should stand.","The framed card is your champion; the skill beside it is theirs alone: {SKILL}. Tap it before the dark closes in.","","Towers grow with gold. Tap your Watchtower, then ⬆ and ✓. Faster. Dawn will not wait.","Another knock is coming. Tap the ⚔ banner and call the second wave.","Your house's spells wait on the right. Arrow rain is a volley from the wall: tap it, then tap the dead on the road.","A spell needs time to return: the dark cover drains away while it recharges. Your champion's skill works the same way.","Tap the ⚔ banner for the last wave. Seven hours, one door. Hold it!","That is all I can teach you. Hold the gate, and listen for the knock."]};
+const STORY_DATA={"films":[{"id":"f0","title":"Seven Hours","chapter":"Cold open","shots":[{"scene":"black","d":3.4,"p":{"pulse":true},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"heartbeat"},{"at":2.6,"k":"thud"}],"cap":[{"at":0.4,"text":"Count the knocks.","kind":"whisper","hold":2.0}],"flash":[2.6]},{"scene":"dunes","d":6,"p":{"frost":0.3,"palms":true,"fires":2},"cam":{"from":1.02,"to":1.12,"dx":0,"dy":-10},"cut":"fade","sfx":[{"at":0,"k":"wind"},{"at":2.5,"k":"cold"}],"cap":[{"at":0.5,"text":"Dorne. Midsummer.","kind":"line","hold":2.2},{"at":3.2,"text":"Frost. On the sand.","kind":"whisper","hold":2.2}]},{"scene":"wall","d":4.2,"p":{"aurora":0.6,"snow":0.4,"beacons":0},"cam":{"from":1,"to":1.2,"dx":0,"dy":12},"cut":"fade","sfx":[{"at":0,"k":"drone"}],"cap":[{"at":0.3,"text":"Eight beacons run south from the Wall.","kind":"line","hold":2.4},{"at":2.6,"text":"None lit. Yet.","kind":"whisper","hold":1.6}]},{"scene":"beacons","d":3.2,"p":{"n":1},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":1,"k":"horn"}],"flash":[1],"cap":[{"at":1,"text":"ONE.","kind":"shout","hold":1.8}]},{"scene":"road","d":3.8,"p":{"rider":true,"eyes":3,"fog":0.7,"snow":0.5},"cam":{"from":1,"to":1.25,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"gallop"},{"at":2,"k":"silence"}],"cap":[{"at":0.2,"text":"A lone rider, racing the dead.","kind":"line","hold":1.8},{"at":2,"text":"No hoofbeats.","kind":"whisper","hold":1.7}]},{"scene":"black","d":1.2,"p":{"eyes":6},"cam":{"from":1,"to":1.05,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"sting"}],"flash":[0.1]},{"scene":"gate","d":5,"p":{"knock":3,"frost":0.2},"cam":{"from":1,"to":1.15,"dx":0,"dy":-6},"cut":"hard","sfx":[{"at":0.2,"k":"silence"},{"at":1,"k":"knock3"}],"shake":[{"at":1,"amp":7,"dur":0.6}],"cap":[{"at":1.8,"text":"Open! The dead are behind me!","kind":"speech","who":"Rider","hold":1.8},{"at":3.3,"text":"Dawn is seven hours off!","kind":"speech","who":"Rider","hold":1.7}]},{"scene":"hodor","d":3.4,"p":{"look":"ahead","sweat":true},"cam":{"from":1,"to":1.2,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"heartbeat"}],"cap":[{"at":0.5,"text":"Hodor.","kind":"speech","who":"Hodor","hold":1.7},{"at":1.6,"text":"Hodor did not open.","kind":"line","hold":1.8}]},{"scene":"champion","d":3.4,"p":{"rim":true,"eyes":true,"breath":true},"cam":{"from":1,"to":1.15,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"cold"}],"cap":[{"at":0.5,"text":"Show me your breath.","kind":"speech","who":"Champion","hold":2.4}]},{"scene":"title","d":3.2,"p":{"text":"HOLD THE DOOR","sub":"Seven hours to dawn.","crack":0.7},"cam":{"from":1,"to":1.05,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"sting"}],"flash":[0]},{"scene":"door","d":4.6,"p":{"thuds":5,"frost":0.5,"light":0.6},"cam":{"from":1,"to":1.3,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0.3,"k":"thud"},{"at":1,"k":"thud"},{"at":1.7,"k":"thud"},{"at":2.4,"k":"thud"},{"at":3.1,"k":"thud"}],"shake":[{"at":0.3,"amp":8,"dur":0.4},{"at":1,"amp":8,"dur":0.4},{"at":1.7,"amp":9,"dur":0.4},{"at":2.4,"amp":10,"dur":0.4},{"at":3.1,"amp":12,"dur":0.5}],"cap":[{"at":0.3,"text":"HOLD THE DOOR!","kind":"shout","hold":2},{"at":2.8,"text":"Seven hours. One door.","kind":"line","hold":1.8}]}]},{"id":"f1","title":"Do Not Answer","chapter":"Stage 1 - Sunspear","shots":[{"scene":"gate","d":4,"p":{"knock":3,"frost":0.4},"cam":{"from":1,"to":1.15,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0.3,"k":"knock3"}],"shake":[{"at":0.3,"amp":6,"dur":0.5}],"cap":[{"at":0.9,"text":"Still holding? Six hours to dawn.","kind":"speech","who":"Rider","hold":2.6}]},{"scene":"dunes","d":4.6,"p":{"frost":0.5,"palms":true,"fires":3},"cam":{"from":1.05,"to":1.05,"dx":0,"dy":0},"cut":"fade","sfx":[{"at":1,"k":"cold"}],"cap":[{"at":0.6,"text":"Frost on sand. Past midnight.","kind":"line","hold":2.2},{"at":2.6,"text":"Where is the sentry?","kind":"whisper","hold":1.8}]},{"scene":"raven","d":3.6,"p":{"letter":true},"cam":{"from":1,"to":1.15,"dx":0,"dy":0},"cut":"fade","sfx":[{"at":0.3,"k":"crow"}],"cap":[{"at":0.4,"text":"A raven. Sealed in {HOUSE} wax.","kind":"line","hold":2.4}]},{"scene":"raven","d":2,"p":{"close":true,"letter":true},"cam":{"from":1.1,"to":1.3,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"sting"}],"flash":[0.2],"cap":[{"at":0.1,"text":"Do not answer. They wear voices.","kind":"speech","who":"Letter","hold":1.9}]},{"scene":"hodor","d":4.2,"p":{"look":"down"},"cam":{"from":1,"to":1.15,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"cold"}],"cap":[{"at":0.4,"text":"The wax was still warm.","kind":"line","hold":2.2},{"at":2.5,"text":"Hodor?","kind":"speech","who":"Hodor","hold":1.7}]},{"scene":"title","d":3.2,"p":{"text":"6 HOURS","sub":"Hold the door.","crack":0.4},"cam":{"from":1,"to":1.05,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":1.2,"k":"knock3"}]}]},{"id":"f2","title":"The Third Fire","chapter":"Stage 2 - Salt Shore","shots":[{"scene":"beacons","d":3.2,"p":{"n":3},"cam":{"from":1,"to":1.15,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":1.2,"k":"horn"}],"flash":[1.2],"cap":[{"at":0.3,"text":"The third beacon lit itself.","kind":"line","hold":2.4}]},{"scene":"dunes","d":3.6,"p":{"frost":0.9,"palms":true,"fires":1},"cam":{"from":1,"to":1.15,"dx":0,"dy":-8},"cut":"fade","sfx":[{"at":0,"k":"wind"},{"at":1.5,"k":"cold"}],"cap":[{"at":0.4,"text":"Snow on the palm trees.","kind":"whisper","hold":2.2}]},{"scene":"gate","d":3.4,"p":{"knock":3,"crack":0.5},"cam":{"from":1,"to":1.2,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":1.8,"k":"knock3"}],"shake":[{"at":1.8,"amp":8,"dur":0.6}],"cap":[{"at":0.2,"text":"Five hours, friend. Open.","kind":"speech","who":"Rider","hold":1.7}]},{"scene":"title","d":2.6,"p":{"text":"5 HOURS","sub":"Count the knocks.","crack":0.6},"cam":{"from":1,"to":1.05,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"sting"}]}]},{"id":"f3","title":"No Breath","chapter":"Stage 3 - Yronwood","shots":[{"scene":"champion","d":4,"p":{"rim":true,"breath":true},"cam":{"from":1,"to":1.15,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"cold"}],"cap":[{"at":0.3,"text":"Every breath smoked in the cold.","kind":"line","hold":2.2},{"at":2.3,"text":"Except one.","kind":"whisper","hold":1.7}]},{"scene":"road","d":3.4,"p":{"figure":true,"fog":0.85,"snow":0.3},"cam":{"from":1,"to":1.2,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0.2,"k":"drone"}],"cap":[{"at":0.4,"text":"A shape. Standing too still.","kind":"whisper","hold":2}]},{"scene":"gate","d":3,"p":{"knock":3,"frost":0.6},"cam":{"from":1,"to":1.15,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":1.5,"k":"knock3"}],"shake":[{"at":1.5,"amp":6,"dur":0.5}],"cap":[{"at":0.3,"text":"Four hours. Open up.","kind":"speech","who":"Rider","hold":1.7}]},{"scene":"title","d":3,"p":{"text":"4 HOURS","sub":"Something is wrong. Hold.","crack":0.8},"cam":{"from":1,"to":1.05,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"sting"}]}]},{"id":"f4","title":"The War Room","chapter":"The keep opens","shots":[{"scene":"hall","d":3.6,"p":{"crest":true,"embers":0.5},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"fade","sfx":[{"at":0.2,"k":"relief"}],"cap":[{"at":0.3,"text":"Three gates held. Behind them, {SEAT}.","kind":"line","hold":2.6}]},{"scene":"map","d":5.2,"p":{"frost":0.45,"mark":4},"cam":{"from":1,"to":1.3,"dx":0,"dy":10},"cut":"hard","sfx":[{"at":0,"k":"cold"}],"cap":[{"at":0.3,"text":"Fifty gates. Frost runs south.","kind":"line","hold":2},{"at":2.7,"text":"Each fire marks where they walked.","kind":"line","hold":2.4}]},{"scene":"beacons","d":3.2,"p":{"n":5},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0.2,"k":"horn"}],"flash":[0.3],"cap":[{"at":0.4,"text":"Five lit. Three to go.","kind":"line","hold":2}]},{"scene":"black","d":4,"p":{"flame":true},"cam":{"from":1,"to":1.08,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"silence"}],"cap":[{"at":0.6,"text":"He always knew the hour.","kind":"speech","who":"Champion","hold":2.8}]},{"scene":"road","d":3.4,"p":{"rider":true,"eyes":8,"fog":0.8,"snow":0.5},"cam":{"from":1,"to":1.25,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"silence"},{"at":1.6,"k":"sting"}],"flash":[1.6],"shake":[{"at":1.6,"amp":6,"dur":0.5}],"cap":[{"at":0.3,"text":"No hoofbeats. No breath.","kind":"line","hold":1.8},{"at":1.6,"text":"HE LEADS THEM.","kind":"shout","hold":1.8}]},{"scene":"king","d":3.6,"p":{"eyes":true,"wind":0.7},"cam":{"from":1,"to":1.2,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0.1,"k":"sting"},{"at":0.2,"k":"drone"}],"cap":[{"at":0.3,"text":"Dawn was their word for the eighth fire.","kind":"line","hold":2.7},{"at":2,"text":"Dawn is not coming.","kind":"whisper","hold":1.6}]},{"scene":"hall","d":3.6,"p":{"crest":true,"embers":0.8},"cam":{"from":1,"to":1.12,"dx":0,"dy":0},"cut":"fade","sfx":[{"at":0,"k":"relief"}],"cap":[{"at":0.4,"text":"Behind this door, we are still warm.","kind":"line","hold":2.6}]},{"scene":"crest","d":3.4,"p":{"glow":0.8},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"fade","sfx":[{"at":0.2,"k":"horn"}],"cap":[{"at":0.5,"text":"THE WAR ROOM","kind":"title","hold":2.6}]}]},{"id":"f5","title":"Muster","chapter":"Stage 4 - the Army opens","shots":[{"scene":"hall","d":3,"p":{"crest":true,"embers":0.6},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"relief"}],"cap":[{"at":0.3,"text":"The banners answer. The army wakes.","kind":"line","hold":2.4}]},{"scene":"beacons","d":2.6,"p":{"n":6},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0.2,"k":"horn"}],"flash":[0.3],"cap":[{"at":0.3,"text":"SIX LIT.","kind":"shout","hold":1.7}]},{"scene":"title","d":2.6,"p":{"text":"2 FIRES","sub":"Hold the door.","crack":0.4},"cam":{"from":1,"to":1.05,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"knock3"}]}]},{"id":"f6","title":"Buy Time","chapter":"Stage 5 - the Shop opens","shots":[{"scene":"hall","d":3,"p":{"embers":0.5},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"relief"}],"cap":[{"at":0.3,"text":"Merchants come with the cold. Buy time.","kind":"line","hold":2.5}]},{"scene":"beacons","d":2.6,"p":{"n":7},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0.2,"k":"horn"}],"flash":[0.3],"cap":[{"at":0.3,"text":"ONE FIRE LEFT.","kind":"shout","hold":1.8}]},{"scene":"title","d":2.6,"p":{"text":"1 FIRE","sub":"Hold the door.","crack":0.6},"cam":{"from":1,"to":1.05,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"knock3"}]}]},{"id":"f7","title":"Not Alone","chapter":"Stage 6 - you are not alone","shots":[{"scene":"beacons","d":2.6,"p":{"n":8},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0.2,"k":"horn"},{"at":0.3,"k":"thunder"}],"flash":[0.3],"cap":[{"at":0.3,"text":"EIGHT.","kind":"shout","hold":1.7}]},{"scene":"dawn","d":2.8,"p":{"sun":0.15,"smoke":0.8},"cam":{"from":1,"to":1.1,"dx":0,"dy":0},"cut":"fade","sfx":[{"at":0,"k":"wind"}],"cap":[{"at":0.2,"text":"The eighth fire burns. We still stand.","kind":"line","hold":2.5}]},{"scene":"title","d":3,"p":{"text":"YOU ARE NOT ALONE","sub":"Other houses answer. Hold Starfall.","crack":0.3},"cam":{"from":1,"to":1.05,"dx":0,"dy":0},"cut":"hard","sfx":[{"at":0,"k":"relief"}]}]}],"tutorial_lines":["Seven hours to dawn. The dead march on the door. Hodor holds it; you build the towers that stop them.","A Watchtower already stands by the door. Tap the ⚔ banner at the top of the road, call the first wave, and count the knocks.","","Gold builds towers. Tap the glowing stone ring and raise a second Watchtower. The clock is running.","Your champion rides up from the keep. Tap the ground where they should stand.","The framed card is your champion; the skill beside it is theirs alone: {SKILL}. Tap it before the dark closes in.","","Towers grow with gold. Tap your Watchtower, then ⬆ and ✓. Faster. Dawn will not wait.","Another knock is coming. Tap the ⚔ banner and call the second wave.","Your house's spells wait on the right. Arrow rain is a volley from the wall: tap it, then tap the dead on the road.","A spell needs time to return: the dark cover drains away while it recharges. Your champion's skill works the same way.","Tap the ⚔ banner for the last wave. Seven hours, one door. Hold it!","That is all I can teach you. Hold the gate, and listen for the knock."]};
 /* =========================== THE STORY FLOW (v1.1.3) ===========================
    A tester: "too much happens at the start". A new account never sees a menu at first. The first minutes are a thriller told in short
    films (film.js, the script in src/story/story.json) between battles, and the tutorial speaks in the story's voice:
@@ -9118,7 +9132,7 @@ function uiPop(el){if(!el)return;el.classList.remove('pop-in');void el.offsetWid
 /* the home: what is still asleep stays out of sight; what just woke up pops */
 function uiHome(){if(!ACC||!ACC.sv||!ACC.castle)return;const hub=card.querySelector('.hub');if(!hub)return;const n=obStage();
   hub.classList.toggle('g-noarmy',n<1);
-  const wake=[['army',n>=1,['#bMapH','#bChampH','.hmslots','.hubtabs button[data-tab="coll"]']],['shop',n>=2,['.hubtabs button[data-tab="shop"]','#bTasks']],['clan',n>=3,['.hubtabs button[data-tab="clan"]','#evBadge','#hmHold']]];
+  const wake=[['army',n>=1,['#bMapH','#bChampH','.hmslots','.hubtabs button[data-tab="coll"]']],['shop',n>=2,['.hubtabs button[data-tab="shop"]','#bTasks']],['clan',n>=3,['#evBadge','#hmHold']],['trials',n>=5,['.hubtabs button[data-tab="trials"]']]];
   wake.forEach(([k,on,sels])=>{if(on&&!uiSeen('home_'+k)){sels.forEach(q=>hub.querySelectorAll(q).forEach((e,i)=>{e.style.animationDelay=(i*0.12)+'s';uiPop(e);}));uiMark('home_'+k);SFX.play('unlock');}});}
 {const sh1=showHub;showHub=function(tab,sub){
   if(ACC&&ACC.sv&&ACC.castle&&!FILM.on&&!RV.on&&!stBeat()&&(!tab||tab==='battle')){const r=rvDue();if(r){revealChampion(r.id,r.kind,()=>showHub(tab,sub));return;}}
@@ -9298,7 +9312,7 @@ function callBtnInit(){
 function callBtnTick(){
   const b=CALLB.el;if(!b)return;
   const ok=typeof G!=='undefined'&&G&&(G.mode==='campaign'||G.mode==='online')&&canCall();
-  b.hidden=!ok;if(!ok)return;
+  {const sh=document.getElementById('sheet');b.hidden=!ok||G.state!=='play'||!!(sh&&sh.classList.contains('open'));}if(b.hidden)return;
   b.textContent='⚔ CALL WAVE'+(G.nextIn>1?'  +'+Math.ceil(G.nextIn)+'🪙':'');
   b.classList.toggle('want',!!(G.tut&&typeof tutWantBase==='function'&&tutWantBase()==='call'));
 }
@@ -9318,13 +9332,13 @@ const MST_PATHS={
       {n:'Dead shot',t:'30% critical chance, critical damage ×2.5.'}]}},
   scorp:{
     a:{n:'Piercing bolt',e:'➳',d:'The bolt runs through a line',steps:[
-      {n:'Through one',t:'The bolt also hits the enemy behind for 70% damage.'},
+      {n:'Through one',t:'The bolt also hits the enemy behind for 50% damage.'},
       {n:'Through two',t:'It pierces two enemies behind the first.'},
       {n:'Through three',t:'It pierces three enemies and fires 10% faster.'}]},
     b:{n:'Dragonbane',e:'🐉',d:'Built to bring down the big ones',steps:[
-      {n:'Giant slayer',t:'×1.25 damage against dragons, walkers and armoured enemies.'},
+      {n:'Giant slayer',t:'×1.2 damage against dragons, walkers and armoured enemies.'},
       {n:'Chilling bolt',t:'Every hit chills: 30% slower for 2 seconds.'},
-      {n:'Dragonbane',t:'×1.6 against the big ones and a 40% chill.'}]}}};
+      {n:'Dragonbane',t:'×1.35 against the big ones and a 40% chill.'}]}}};
 MST_PATHS.wild={
   a:{n:'Inferno',e:'🔥',d:'Bigger blasts that burn longer',steps:[
     {n:'Hotter mix',t:'Splash +15%, burning ×1.3 for 3 s.'},
@@ -9332,17 +9346,17 @@ MST_PATHS.wild={
     {n:'Dragonfire pot',t:'Splash +45%, burning ×2 for 5 s.'}]},
   b:{n:'Seep',e:'🧪',d:'Every blast leaves a burning pool',steps:[
     {n:'Spill',t:'A pool of green fire stays 3 s where the shell lands.'},
-    {n:'Deep pool',t:'The pool burns 50% harder and stays 4 s.'},
-    {n:'Marsh fire',t:'The pool burns twice as hard and stays 5 s.'}]}};
+    {n:'Deep pool',t:'The pool burns 40% harder and stays 4 s.'},
+    {n:'Marsh fire',t:'The pool burns 80% harder and stays 5 s.'}]}};
 MST_PATHS.glass={
   a:{n:'Frostbite',e:'❄️',d:'Slow and freeze everything inside',steps:[
     {n:'Cold spears',t:'Slows 8% harder.'},
     {n:'Deep freeze',t:'Every 5 s everything inside is frozen for 1 s.'},
     {n:'Winter edge',t:'Slows 12% harder in total, +20% damage.'}]},
   b:{n:'Walkerbane',e:'🗡️',d:'Built to kill White Walkers',steps:[
-    {n:'Obsidian tips',t:'White Walkers take ×4 instead of ×3.'},
+    {n:'Obsidian tips',t:'White Walkers take ×3.5 instead of ×3.'},
     {n:'Shatter',t:'A White Walker below 25% health is shattered at once.'},
-    {n:'Walkerbane',t:'×5 against White Walkers and +25% damage.'}]}};
+    {n:'Walkerbane',t:'×4 against White Walkers and +25% damage.'}]}};
 MST_PATHS.weir={
   a:{n:'Roots',e:'🌳',d:'The old trees hold enemies in place',steps:[
     {n:'Deeper roots',t:'Slows 6% harder.'},
@@ -9358,14 +9372,14 @@ MST_PATHS.keep={
     {n:'Pikemen',t:'+1 more soldier, +40% health.'},
     {n:'Shield wall',t:'+2 more soldiers, +70% health.'}]},
   b:{n:"Knight's charge",e:'⚔️',d:'Fewer men who hit hard and return quickly',steps:[
-    {n:'Spurs',t:'+25% soldier damage, return 15% sooner.'},
-    {n:'Lances',t:'+50% damage, return 30% sooner.'},
-    {n:'Heavy horse',t:'Double damage, return 40% sooner.'}]}};
+    {n:'Spurs',t:'+20% soldier damage, return 15% sooner.'},
+    {n:'Lances',t:'+40% damage, return 30% sooner.'},
+    {n:'Heavy horse',t:'+70% damage, return 40% sooner.'}]}};
 MST_PATHS.rook={
   a:{n:'Murder',e:'🐦‍⬛',d:'More ravens at once',steps:[
-    {n:'Pair',t:'A second raven goes for another target (60% damage).'},
-    {n:'Flock',t:'Two extra ravens (70% damage).'},
-    {n:'Murder of crows',t:'Three extra ravens (80% damage).'}]},
+    {n:'Pair',t:'A second raven goes for another target (50% damage).'},
+    {n:'Flock',t:'Two extra ravens (55% damage).'},
+    {n:'Murder of crows',t:'Three extra ravens (60% damage).'}]},
   b:{n:'Omen',e:'🔔',d:'Silence that lasts and marks',steps:[
     {n:'Long toll',t:'Silence lasts 1 s longer.'},
     {n:'Ill omen',t:'+2 s of silence; silenced enemies take 25% more damage.'},
@@ -9410,9 +9424,9 @@ function mstStep(k){const m=mstState(k);return m.p?m:{p:null,s:0};}
 function mstStats(t,st){
   const k=t.type;if(k==='watch'||k==='scorp')return st;const m=mstStep(k);if(!m.p)return st;const s=m.s,o=Object.assign({},st);
   if(k==='wild'){if(m.p==='a'){o.splash*=[1.15,1.3,1.45][s-1];o.burn*=[1.3,1.6,2][s-1];}}
-  else if(k==='glass'){if(m.p==='a'){o.slow-=s>=3?0.12:0.08;if(s>=3)o.dps*=1.2;}else{o.wm=[4,4,5][s-1];if(s>=3)o.dps*=1.25;}}
+  else if(k==='glass'){if(m.p==='a'){o.slow-=s>=3?0.12:0.08;if(s>=3)o.dps*=1.2;}else{o.wm=[3.5,3.5,4][s-1];if(s>=3)o.dps*=1.25;}}
   else if(k==='weir'){if(m.p==='a'){o.slow-=s>=3?0.10:0.06;}else{o.mark+=[0.1,0.2,0.3][s-1];if(s>=3)o.range*=1.15;}}
-  else if(k==='keep'){if(m.p==='a'){o.count=Math.min(8,o.count+[1,2,4][s-1]);o.shp=Math.round(o.shp*[1.2,1.4,1.7][s-1]);}else{o.sdmg=Math.round(o.sdmg*[1.25,1.5,2][s-1]*10)/10;o.resp=Math.round(o.resp*[0.85,0.7,0.6][s-1]*10)/10;}}
+  else if(k==='keep'){if(m.p==='a'){o.count=Math.min(8,o.count+[1,2,4][s-1]);o.shp=Math.round(o.shp*[1.2,1.4,1.7][s-1]);}else{o.sdmg=Math.round(o.sdmg*[1.2,1.4,1.7][s-1]*10)/10;o.resp=Math.round(o.resp*[0.85,0.7,0.6][s-1]*10)/10;}}
   if(o.slow<0.1)o.slow=0.1;return o;}
 function mstRookSil(){const m=mstStep('rook');return m.p==='b'?[1,2,3][m.s-1]:0;}
 function mstRookMark(){const m=mstStep('rook');return m.p==='b'&&m.s>=2?(m.s>=3?1.35:1.25):1;}
@@ -9440,19 +9454,19 @@ function mstFire(t,s,st,best,def,pr){
       if(rnd()<ch){pr.dmg*=cm;pr.crit=1;const q=posE(best);addText(q.x,q.y-22,'CRIT','#ffd54a',true);}}}
   else if(k==='wild'){
     if(m.p==='a')pr.bt=[3,4,5][sx-1];
-    else pr.pool={d:st.burn*[1.5,2.25,3][sx-1],t:[3,4,5][sx-1]};}
+    else pr.pool={d:st.burn*[1.25,1.75,2.25][sx-1],t:[3,4,5][sx-1]};}
   else if(k==='rook'){
-    if(m.p==='a'){const n=[1,2,3][sx-1],mul=[0.6,0.7,0.8][sx-1];
+    if(m.p==='a'){const n=[1,2,3][sx-1],mul=[0.5,0.55,0.6][sx-1];
       const others=G.enemies.filter(e=>e!==best&&e.hp>0&&(e.raise||e.healAura||e.speedAura||e.lord||e.fly||e.air||true)&&!(e.stealth&&dist(posE(e).x,posE(e).y,s.x,s.y)>62)&&dist(posE(e).x,posE(e).y,s.x,s.y)<=st.range+e.r).sort((a,b)=>rookPri(b)-rookPri(a)).slice(0,n);
       for(const e of others){const q=posE(e);G.projs.push({x:s.x,y:s.y-14,tgt:e,lx:q.x,ly:q.y,spd:def.pspd,dmg:st.dmg*mul,src:k,splash:0,burn:0,ang:t.face,sil:rookSilence(t)});}}}
   else if(k==='scorp'){
     if(m.p==='a'){pr.mp={pierce:[1,2,3][sx-1]};if(sx>=3)t.cd*=0.909;}
-    else{const big=best.armored||best.dragon||best.walker;if(big)pr.dmg*=[1.25,1.25,1.6][sx-1];if(sx>=2)pr.mp={chill:sx>=3?40:30};}}}
+    else{const big=best.armored||best.dragon||best.walker;if(big)pr.dmg*=[1.2,1.2,1.35][sx-1];if(sx>=2)pr.mp={chill:sx>=3?40:30};}}}
 function mstHit(p){
   const o=p.mp,t0=p.tgt;if(!o)return;
   if(o.chill&&t0.hp>0&&!t0.slowImmune){t0.chillT=G.time+2;t0.chillV=o.chill;}
   if(o.pierce){const others=G.enemies.filter(e=>e!==t0&&e.hp>0&&!e.fly&&e.route===t0.route&&Math.abs(e.prog-t0.prog)<60).sort((a,b)=>Math.abs(a.prog-t0.prog)-Math.abs(b.prog-t0.prog)).slice(0,o.pierce);
-    let far=null,fd=0;for(const e of others){dmg(e,p.dmg*0.7,p.src);const q=posE(e),dd=dist(q.x,q.y,p.lx,p.ly);if(dd>fd){fd=dd;far=q;}}
+    let far=null,fd=0;for(const e of others){dmg(e,p.dmg*0.5,p.src);const q=posE(e),dd=dist(q.x,q.y,p.lx,p.ly);if(dd>fd){fd=dd;far=q;}}
     if(far)addFx({t:'line',x:p.lx,y:p.ly-8,tx:far.x,ty:far.y-8,life:0.25,col:'#ffe2a0'});}}
 /* v1.2.8: a mastered tower wears its path in battle — three small marks under the level pips, filled by the step, gold for path A, ice for path B */
 function mstMark(t,x,y){const m=mstState(t.type);if(!m.p)return;const col=m.p==='a'?'#ffb23c':'#7fd8ff';
@@ -9628,7 +9642,8 @@ const LEARN={at:[2,5,8,11,14],minStage:5};
 function learnPool(){return Object.keys(SK).filter(id=>!SK[id].ult&&id!=='taunt'&&SK[id].v&&SK[id].v.length>=3);}
 function learnTo(id){const cur=skLvl(G.hero,id);return Math.min(SK[id].v.length,Math.max(cur+1,2));}
 function learnOffer(){const h0=G.hero;let h=hash32('learn:'+(G.level?G.level.id:0)+':'+G.wave+':'+G.runs+':'+(G.learnRr||0));const rnd=()=>{h=Math.imul(h^(h>>>15),2246822507)>>>0;h=Math.imul(h^(h>>>13),3266489909)>>>0;h^=h>>>16;return h;};
-  const pool=learnPool().filter(id=>skLvl(h0,id)<SK[id].v.length),mine=pool.filter(id=>h0.c.sk.includes(id)&&skLvl(h0,id)<SK_MAX),out=[];
+  const nShield=(G.learned||[]).filter(k=>skCat(k)==='shield').length;
+  const pool=learnPool().filter(id=>skLvl(h0,id)<SK[id].v.length&&!(nShield>=2&&skCat(id)==='shield'&&!h0.c.sk.includes(id))),mine=pool.filter(id=>h0.c.sk.includes(id)&&skLvl(h0,id)<SK_MAX),out=[];
   if(mine.length)out.push(mine.splice(rnd()%mine.length,1)[0]);
   while(out.length<3&&pool.length){const id=pool.splice(rnd()%pool.length,1)[0];if(!out.includes(id))out.push(id);}return out;}
 function learnPick(id){if(!G.learnAsk||!SK[id])return;const h=G.hero,to=learnTo(id);h.perk=h.perk||{};h.perk[id]=to;(G.learned=G.learned||[]).push(id);
@@ -9647,7 +9662,7 @@ function learnShow(offer){const ov=document.getElementById('boonOv');if(ov)ov.re
 /* v1.3.4: battle levels 3 and 5 of the champion open an offer at once (no waiting for the next wave) */
 function learnNow(tag){if(G.learnAsk||!G.hero)return;G.learnDone=G.learnDone||{};if(G.learnDone[tag])return;G.learnDone[tag]=1;const offer=learnOffer();if(!offer.length)return;G.learnAsk=offer;G.paused=true;learnShow(offer);try{SFX.play('chest');}catch(e){}}
 function learnCheck(){if(G.learnAsk)return true;
-  if(G.mode!=='campaign'||G.tutorial||G.tut||!G.level||G.level.id<LEARN.minStage||!G.hero||!LEARN.at.includes(G.wave))return false;
+  if(G.mode!=='campaign'||G.tutorial||G.tut||!G.level||G.level.id<LEARN.minStage||!G.hero||!(LEARN.at.includes(G.wave)||G.trials))return false;
   G.learnDone=G.learnDone||{};if(G.learnDone[G.wave])return false;G.learnDone[G.wave]=1;
   const offer=learnOffer();if(!offer.length)return false;G.learnAsk=offer;G.paused=true;
   learnShow(offer);try{SFX.play('chest');}catch(e){}
@@ -9662,7 +9677,7 @@ const SYN={aoe:['Area',h=>{h.dmg*=1.15;return '+15% damage';}],rain:['Volleys',h
   control:['Winter',h=>{h.spd*=1.12;return '+12% speed';}],dot:['Embers',h=>{h.dmg*=1.1;h.rate*=0.92;return '+10% damage, faster strikes';}],
   buff:['Command',h=>{G.gold+=80;return '+80 gold';}],summon:['Muster',h=>{G.gold+=80;return '+80 gold';}],gold:['Treasury',h=>{G.gold+=120;return '+120 gold';}]};
 function champOn(){return G.mode==='campaign'&&!G.tutorial&&!G.tut&&G.level&&G.level.id>=CLV.minStage&&G.hero&&G.heroOn;}
-function champTick(){if(!champOn())return;const n=G.hLv||0;if(n>=CLV.at.length||G.kills<CLV.at[n])return;
+function champTick(){if(!champOn())return;const n=G.hLv||0;if(n>=CLV.at.length||G.kills<Math.round(CLV.at[n]*(1+0.03*Math.max(0,(G.level.id||5)-5))))return;
   const h=G.hero;G.hLv=n+1;h.dmg*=1.06;h.max=Math.round(h.max*1.06);h.hp=Math.min(h.max,h.hp+h.max*.2);
   try{addText(h.x,h.y-52,'LEVEL '+(G.hLv+1),'#ffd54a',1);addFx({t:'ring',x:h.x,y:h.y-10,r0:8,r1:70,life:0.7,col:'#ffd54a'});SFX.play('levelup');}catch(e){}
   if(G.hLv===2||G.hLv===4){G.learnWhy='LEVEL '+(G.hLv+1);if(typeof learnNow==='function')learnNow('L'+G.hLv);}}
@@ -9721,7 +9736,7 @@ function buildCard(){if(!G.hero||!(G.learned||[]).length)return '';const syn=Obj
     <div class="bcsk">${G.learned.map(k=>`<span class="bcs">${skillIcon(k,38,0)}<small>${esc(SK[k].n)}</small></span>`).join('')}</div>
     <button class="btn sec bcshare" id="bBuildShare">📨 Show your build</button></div>`;}
 function buildShareText(){const h=G.hero;return `My ${buildName()||'build'} in HOLDOR: ${shortName(h.c)} learned ${G.learned.map(k=>SK[k].n).join(', ')} (battle level ${(G.hLv||0)+1}). Beat it:`;}
-{const scr1=showCampaignResult;showCampaignResult=function(win,stars,nu,gained){scr1(win,stars,nu,gained);try{const bc=buildCard();if(!bc)return;const at=card.querySelector('.resrow')||card.querySelector('#bRetry');if(at)at.insertAdjacentHTML('beforebegin',bc);const sb=card.querySelector('#bBuildShare');if(sb)sb.addEventListener('click',()=>{SFX.play('tap',60);shareText(buildShareText());});}catch(e){}};}
+{const scr1=showCampaignResult;showCampaignResult=function(win,stars,nu,gained){scr1(win,stars,nu,gained);try{const bc=buildCard();if(!bc)return;const at=card.querySelector('.resrow')||card.querySelector('#bRetry');if(at)at.insertAdjacentHTML('beforebegin',bc);const sb=card.querySelector('#bBuildShare');if(sb)sb.addEventListener('click',()=>{SFX.play('tap',60);chalShare(buildShareText());});}catch(e){}};}
 /* v1.3.6: every champion's blows look like him. The effect at the target follows the kind of his first skill (embers, frost, shock rings, slashes,
    green motes, gold stars, ghost smoke…) and his house colour. Display only: nothing here touches damage or the simulation. */
 const SIGFX={dot:['fire','#ff8a3c',16],control:['burst','#9fe6ff',20],aoe:['ring','#ffd54a',30],rain:['slash','#ffe08a',0],heal:['burst','#8dffa0',16],shield:['hit','#bfe6ff',0],
@@ -9746,6 +9761,112 @@ function founderTag(){
   if(!FND.asked&&typeof CLOUD!=='undefined'&&CLOUD.on&&CLOUD.token){FND.asked=true;
     ecoRpc('founder_no',{},8000).then(n=>{if(typeof n==='number'&&n>0&&n<=100&&ACC){ACC.fno=n;persist();const el=document.querySelector('.who small');if(el&&!el.querySelector('.fnd'))el.insertAdjacentHTML('beforeend',founderTag());}}).catch(()=>{});}
   return '';}
+/* v1.3.8: "Challenge a friend with my build". The build card's share link carries the stage, the champion, the skills learned and the battle level
+   in the one startapp parameter: b_<SS><CC><L><KK…>[_<invitation code>] — SS stage (base36, 2), CC champion index in CHAMPS (2), L battle level (1),
+   KK… skill indexes in Object.keys(SK) (2 each, at most 8), then the sender's invitation code (8 hex) so the invitation reward still works. ≤ 47 chars.
+   The receiver sees a sheet with what the link carries and a button for that stage; a bad link or a closed stage is ignored in silence. Local only. */
+const CHAL={pending:null,tries:0};
+const b36=(n,w)=>(n>>>0).toString(36).padStart(w,'0'),f36=s=>parseInt(s,36);
+function chalEncode(stage,champ,skills,lv,code){const sk=Object.keys(SK),ci=CHAMPS.findIndex(c=>c.id===champ);if(ci<0||!(stage>0))return '';
+  const ks=(skills||[]).slice(0,8).map(k=>sk.indexOf(k)).filter(i=>i>=0);
+  return 'b_'+b36(stage,2)+b36(ci,2)+b36(Math.min(35,Math.max(1,lv||1)),1)+ks.map(i=>b36(i,2)).join('')+(code&&/^[0-9a-f]{8}$/i.test(code)?'_'+code.toLowerCase():'');}
+function chalDecode(sp){try{const m=/^b_([0-9a-z]{5}(?:[0-9a-z]{2}){0,8})(?:_([0-9a-f]{8}))?$/i.exec(sp||'');if(!m)return null;const b=m[1].toLowerCase(),sk=Object.keys(SK);
+  const stage=f36(b.slice(0,2)),ch=CHAMPS[f36(b.slice(2,4))],lv=f36(b[4]),skills=[];if(!ch||!(stage>0)||!(lv>0))return null;
+  for(let i=5;i<b.length;i+=2){const k=sk[f36(b.slice(i,i+2))];if(!k)return null;skills.push(k);}
+  return {stage,champ:ch.id,lv,skills,code:m[2]?m[2].toLowerCase():null};}catch(e){return null;}}
+function chalSp(sp){const d=chalDecode(sp);return d&&d.code?'r_'+d.code:sp;}   /* so the invitation join sees the plain r_ code */
+function chalName(c,skills){const n={};for(const k of c.sk)if(!SK[k].ult)n[skCat(k)]=(n[skCat(k)]||0)+1;for(const k of skills)n[skCat(k)]=(n[skCat(k)]||0)+1;
+  let best=null,bv=0;for(const x in n)if(n[x]>bv&&SYN[x]){bv=n[x];best=x;}return best?SYN[best][0]+' build':'build';}
+async function chalLink(){const lv=(G.hLv||0)+1,st=G.level&&G.level.id;if(!G.hero||!st||!(G.learned||[]).length)return shareLink();
+  let code=null;try{const l=await shareLink();const m=/startapp=r_([0-9a-f]{8})/i.exec(l);if(m)code=m[1];}catch(e){}
+  const sp=chalEncode(st,G.hero.c.id,G.learned,lv,code);return sp?BOT_LINK+'?startapp='+sp:BOT_LINK;}
+async function chalShare(text){const link=await chalLink(),u='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent(text);
+  try{if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank');}catch(e){}}
+function chalFromStart(sp){const d=chalDecode(sp);if(!d)return false;CHAL.pending=d;CHAL.tries=0;setTimeout(chalOpen,900);return true;}
+/* the stage must be open for this player; otherwise the link is dropped without a word */
+function chalCheck(d){const L=LEVELS.find(l=>l.id===d.stage);return L&&levelOpen(null,L)?L:null;}
+function chalOpen(){const d=CHAL.pending;if(!d)return;
+  if(!ACC||!ACC.tut||G.state==='play'||!/^hub/.test(CLOUD.screen||'')||document.querySelector('#ecoModal.on')||document.querySelector('#cer:not(.hidden)')||(typeof COACH!=='undefined'&&COACH.on)){if(++CHAL.tries<90)setTimeout(chalOpen,1000);else CHAL.pending=null;return;}
+  CHAL.pending=null;const L=chalCheck(d);if(!L)return;const c=CBY[d.champ],own=unlocked(null,c),sh=shortName(c);
+  ecoModal('⚔️ A friend’s challenge',`<div class="chal"><b>A friend’s ${esc(chalName(c,d.skills))} beat stage ${L.id} with ${esc([sh].concat(d.skills.map(k=>SK[k].n)).join(' + '))}.</b>
+    <small>Target: hold ${esc(L.n)} · the friend reached battle level ${d.lv}.</small>
+    <small>${own?'You ride with '+esc(sh)+', as they did.':'You ride with your own champion — '+esc(shortName(CBY[ACC.sel]||CHAMPS[0]))+'.'} Skills you pick in battle are yours.</small></div>`,
+    [{t:'⚔️ Beat it — stage '+L.id,f:()=>chalGo(d)},{t:'Later'}]);}
+function chalGo(d){const L=chalCheck(d);if(!L||G.state==='play')return false;const keep=ACC.sel,c=CBY[d.champ];
+  if(c&&unlocked(null,c))ACC.sel=c.id;try{startGame({mode:'campaign',level:L});}finally{ACC.sel=keep;}return true;}
+/* =========================== TRIALS (v1.3.8) ===========================
+   The Clan tab left the bottom bar (five players do not make a clan): TRIALS took its place. One player, no server: an endless run called
+   "The Long Night" on the map of the day. It is a local campaign-like battle (G.mode 'campaign', G.trials set, endless waves on the Hold's
+   steeper curve) — it never calls battle_start / battle_finish and never touches the economy RPCs. Before EVERY wave the champion learns one of
+   three skills (learn126), his battle levels and synergies work (champ130), the result shows the build card (build135).
+   Rewards: a guest gets a little gold and a wooden chest per 5 waves held; a signed-in seat gets none, because its gold and chests live on the
+   server — the page says so. ACC.trials = {best, runs, last:{waves, hero, learned, name, kills}}. The old Clan page stays: showHub('clan'),
+   with a back arrow; the invitations live on the Tasks page (a card on Quests opens Friends). Unlocks with stage 8 (OB_NEED.trials = 5). */
+const TRIALS={gold:240,every:5,maxChests:4,goldPer:12};
+HUB_ICON.trials='<svg viewBox="0 0 24 24"><path d="M15.5 3.2a9 9 0 1 0 5.3 15.6A7.6 7.6 0 0 1 15.5 3.2z" fill="#cfd8ea" stroke="#33415c" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 9.5l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" fill="#ffd54a" stroke="#5a3a08" stroke-width=".6"/></svg>';
+/* the tabs: Shop · Army · Battle · Trials. Clan is a page without a tab */
+HUB_ORDER.splice(0,HUB_ORDER.length,'shop','coll','battle','trials');
+HUB_HIDDEN.clan=1;
+delete OB_NEED.clan;OB_NEED.trials=5;
+delete HUB_LESSONS.clan;
+HUB_LESSONS.trials={need:()=>obNew()&&obStage()>=5,steps:()=>[{sel:'.hubtabs button[data-tab="trials"]',anim:'lock',text:'<b>Trials</b> are open: an endless run on the map of the day. Your champion learns a new skill before every wave. How far can you build him?'}]};
+function hubTabs(on){const t=[['shop','Shop'],['coll','Army'],['battle','Battle'],['trials','Trials']];
+  const dot={shop:freeChestReady()||starChestsReady()>0,coll:typeof bookNewCount==='function'&&bookNewCount()>0,battle:starChestsReady()>0||(onlineOpen()&&ACC.online.attempts>0&&!(ACC.online.runs||[]).length),trials:false};
+  const sel=HUB_HIDDEN[on]?'battle':on;
+  return `<div class="hubtabs four">${t.map(([k,n])=>{const lk=hubLocked(k);return `<button class="${k===sel?'on':''} ${k==='battle'?'mid':''} ${lk?'lock':''}" data-tab="${k}"${lk?` data-lock="${OB_NEED[k]}"`:''}>${HUB_ICON[k]}${n}${lk?`<i class="lk">🔒 ${OB_NEED[k]}</i>`:dot[k]?'<span class="dot"></span>':''}</button>`;}).join('')}</div>`;}
+function hubLockSay(k){SFX.play('deny');const st=OB_NEED[k]+(ACC&&ACC.sv?3:0);
+  ecoToast(`🔒 ${k==='coll'?'Army':k==='shop'?'The Shop':'Trials'} opens after stage ${st}${ACC&&!ACC.tut?' — win your first battle first':''}`);}
+function trialsAcc(){if(!ACC.trials||typeof ACC.trials!=='object')ACC.trials={best:0,runs:0};ACC.trials.best|=0;ACC.trials.runs|=0;return ACC.trials;}
+/* ---------- the page ---------- */
+function trialsLastHTML(){const T=ACC.trials,l=T&&T.last;if(!l||!l.learned||!l.learned.length)return '';
+  return `<div class="trlast"><div class="trlh"><b>Last build</b><small>${esc(l.name||'build')} · ${l.waves} ${l.waves===1?'wave':'waves'}</small></div><div class="bcsk">${l.learned.filter(k=>SK[k]).map(k=>`<span class="bcs">${skillIcon(k,34,0)}<small>${esc(SK[k].n)}</small></span>`).join('')}</div></div>`;}
+function trialsRewardNote(){return ecoWants()?'This seat is kept by the server, so Trials count your best wave and pay nothing yet.':`Every ${TRIALS.every} waves held: a wooden chest (up to ${TRIALS.maxChests}), and a little gold.`;}
+function hubTrials(){rollDay();const T=trialsAcc(),gm=genDaily(hash32(dayKeyUTC())),bio=gm.biome.charAt(0).toUpperCase()+gm.biome.slice(1);
+  return `<div class="hh"><h2>Trials</h2><small>one player · nothing to wait for</small></div>
+  <div class="trcard" id="trCard"><div class="trrow"><canvas class="hmmini" id="hmMini" width="84" height="60"></canvas>
+    <div class="trtx"><b>The Long Night</b><small>${gm.mod.e} ${esc(gm.mod.n)} · ${esc(bio)} · the map of the day</small>
+    <em id="trBest">${T.best?`Best: wave ${T.best} · ${T.runs} ${T.runs===1?'run':'runs'}`:'Not played yet'}</em></div></div>
+    <p class="trinfo">Hold the gate as long as you can. Before every wave your champion learns one of three skills — shape his build; every wave is harder than the last.</p>
+    <button class="btn trgo" id="bTrials">START</button><p class="trnote">${trialsRewardNote()}</p>${trialsLastHTML()}</div>`;}
+function hubTrialsBind(){const b=document.getElementById('bTrials');if(b)b.addEventListener('click',()=>{SFX.play('tap',60);trialsStart();});hmMiniDraw();}
+/* ---------- the run ---------- */
+function trialsStart(){if(hubLocked('trials')){hubLockSay('trials');return;}startGame({mode:'trials'});}
+function trialsLevel(gm){const L=Object.assign({},LEVELS[LEVELS.length-1],{n:'The Long Night',sub:'Trials',pts:gm.pts,biome:gm.biome,waves:1e9,mult:1,gold:TRIALS.gold,mod:null,boss:false,intro:'',dragon:8,king:25,lord:true,trials:true,stage:1});
+  delete L.routes;delete L.gates;delete L.raw;delete L.lay;delete L.style;return L;}
+function trialsRun(){const gm=genDaily(hash32(dayKeyUTC()));trialsAcc();G.bid=null;
+  startGame0({mode:'campaign',level:trialsLevel(gm)});
+  G.trials={day:dayKeyUTC()};G.totalWaves=Infinity;G.wo.online=true;G.mult=1;G.mod=gm.mod;G.lq=[];
+  G.learnAsk=null;G.learnDone={};G.learned=[];G.learnRr=0;persist();}
+{const sg1=startGame;startGame=function(o){if(o&&(o.mode==='trials'||(o.level&&o.level.trials)))return trialsRun();return sg1(o);};
+ const sg0=startGame0;startGame0=function(o){G.trials=null;return sg0(o);};
+ const sw1=startWave;startWave=function(){if(G.trials&&G.wave>=15&&!G.learnAsk)G.mult*=1.02;return sw1();};
+ const go1=gameOver;gameOver=function(){if(G.state!=='play'||!G.trials||G.mode!=='campaign')return go1();
+   G.state='over';G.armed=null;G.sel=null;closeSheet();mergeStats();SFX.play('lose');trialsEnd();};}
+/* the gate fell: the best is stored, a guest is paid, the result opens */
+function trialsEnd(){const T=trialsAcc(),waves=Math.max(0,G.wave-1),neu=waves>T.best;
+  T.runs++;if(neu)T.best=waves;
+  const name=typeof buildName==='function'?buildName():'';
+  T.last={waves,kills:G.kills|0,hero:G.hero?G.hero.c.id:null,learned:(G.learned||[]).slice(),name,syn:Object.keys(G.synDone||{}),lv:(G.hLv||0)+1};
+  const paid=!ecoWants(),chests=paid?Math.min(TRIALS.maxChests,Math.floor(waves/TRIALS.every)):0,gold=paid?waves*TRIALS.goldPer:0;
+  if(gold)addGold(gold);
+  G.trialsR={waves,neu,chests,gold,paid,claimed:0};persist();trialsResult();}
+function trialsResult(){const R=G.trialsR;if(!R)return;const T=ACC.trials;
+  const left=R.chests-R.claimed;
+  show(`<h1>The Long Night took the gate<small>Trials · ${esc(shortName(G.hero.c))}</small></h1><div class="big">🌊 ${R.waves}</div>
+  <p class="m">${R.waves===1?'wave':'waves'} held · ${G.kills} of the dead put down${R.neu&&R.waves>0?' · <b style="color:var(--gold)">new best</b>':` · best ${T.best}`}</p>
+  ${R.paid?`<p class="m">${R.gold?`<b style="color:var(--gold)">+${R.gold} 🪙 gold</b>`:'no gold this time'}${R.chests?` · ${R.chests} Trials ${R.chests===1?'chest':'chests'}`:''}</p>`:`<p class="m">Signed-in seat: Trials pay no rewards yet.</p>`}
+  ${buildCard()}
+  ${left>0?`<button class="btn" id="bTrChest"><span class="e">🎁</span> Open ${left} ${left===1?'chest':'chests'}</button>`:''}
+  <button class="btn ${left>0?'sec':''}" id="bTrAgain"><span class="e">🔁</span> Try again</button><button class="btn sec" id="bTrBack">🌙 Back to Trials</button>`);
+  const q=id=>document.getElementById(id);
+  const sb=q('bBuildShare');if(sb)sb.addEventListener('click',()=>{SFX.play('tap',60);shareText(buildShareText());});
+  const bc=q('bTrChest');if(bc)bc.addEventListener('click',()=>{SFX.play('tap',60);R.claimed++;openChest('wood',()=>trialsResult());});
+  q('bTrAgain').addEventListener('click',()=>{SFX.play('tap',60);trialsStart();});
+  q('bTrBack').addEventListener('click',()=>{SFX.play('tap',60);showHub('trials');});}
+/* ---------- invitations on the Tasks page: one small card on Quests opens Friends ---------- */
+function trialsInviteCard(){return `<button class="evcard wide" id="bInvCard"><span class="ic">👥</span><span class="tx"><b>Invite friends</b><small>a link, and a gift for you both</small></span><span class="st">›</span></button>`;}
+{const ht1=hubTasks;hubTasks=function(sub){const h=ht1(sub);if(!tasksOn()||TASKS.sub!=='quests')return h;return h.replace('<div class="tkbody">','<div class="tkbody">'+trialsInviteCard());};
+ const hb1=hubTasksBind;hubTasksBind=function(){hb1();const b=document.getElementById('bInvCard');if(b)b.addEventListener('click',()=>{SFX.play('tap',60);showHub('tasks','friends');});};}
 window.HOLDOR_TROOPS={TROOPS,TROOP_ROLE,TROOP_ROLES,troopDef,troopUnits,troopStats,keepRole,troopDress,allyStrike,troopMend,drawTroopBody,troopPreview,showTrain,towerStats,HOUSE_ORDER,HOUSES,build,LEVELS};
 window.HOLDOR_CLASH={CLASH,CLASH_COST,CLASH_N,CLASH_TOP,genClash,clashStart,clashStop,clashSend,clashStepB,clashBot,clashSpawnTroops,clashFinish,clashDraw,showClash,clashCardHTML,gSnap,gSwap,toWorld,w2s};
 window.HOLDOR_CL2={CL2,clashServer,cl2Load,cl2Call,clashGhostInit,clashGhostStep,clashGhostDo,clashRunLog,clashRunWaves,clashAfter,cl2FromStart,cl2PendingOpen,cl2Go,showClash,showClashLocal,setRpc:f=>{cl2Rpc=f;}};
@@ -9764,6 +9885,8 @@ window.HOLDOR_MAUL={maulStun,maulHit,maulDraw,maulSVG};
 window.HOLDOR_BUILD={buildName,buildCard,buildShareText};
 window.HOLDOR_SIG={SIGFX,sigStyle,heroSig};
 window.HOLDOR_FND={FND,founderTag};
+window.HOLDOR_CHAL={CHAL,chalEncode,chalDecode,chalSp,chalLink,chalFromStart,chalOpen,chalGo,chalCheck,chalName,CHAMPS,unlocked};
+window.HOLDOR_TRIALS={TRIALS,trialsAcc,trialsStart,trialsRun,trialsEnd,trialsResult,hubTrials,hubTabs,trialsInviteCard,gameOver:()=>gameOver()};
 window.HOLDOR_CARDS={CARD_NEED,CARD_MUL,cardRar,cardLvl,cardMax,cardNeed,cardHave,cardGold,cardName,cardOpen,cardReady,cardCan,addCards,cardLevelUp,accLevel,accXp,addXp,xpNeed,lvlChestTier,lvlChestsReady,cardPool,rollChest,stageCards,spellLvl,spellMul,showSpellRoom,showTowerRoom,migrate48,TOURS,toursOf,hubTour,startTour};
 window.HOLDOR_SEATS={seatNo,lbIsMe,lbName,lbStale,lbMine,scoreSummary,fetchLeaderboard,cachedLb};
 window.HOLDOR_BOOK={showBook,bookNew,bookDisc,bookNewCount,bookMarkRead,BOOK,trophiesOf,trophiesRow,rankOf,myRank,rankSVG,showRankSheet,RANKS,RANK_AT};

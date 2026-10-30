@@ -104,7 +104,7 @@ function showClash(back){const R=clashRec(),hh=HOUSES[ACC.house],lv=['Bronze','S
     <div class="clbots">${lv.map((n,i)=>`<button class="clb ${i+1===R.bot?'on':''} ${i+1>R.bot?'lock':''}" data-b="${i+1}">${['🥉','🥈','🥇','💎','🐉'][i]}<b>${n}</b><small>bot ${i+1}</small></button>`).join('')}</div>
     <p class="m">Two wins in a row at a level open the next. <b>Army points</b> come one every 10 s; a send costs 2–4. The ${TROOPS[ACC.house].house.n} needs army level ${ARMY_HOUSE_AT} (Army → City → Barracks).</p>
     <button class="btn" id="bClashGo">⚔️ Fight bot ${R.bot}</button>
-    <p class="m" style="font-size:11.5px">Ranked leagues, friend links and a live friend come next (v1.1.2–3). Nothing here touches your rating.</p>`);
+    <p class="m" style="font-size:11.5px">Practice never touches your rating.</p>`);
   CLOUD.screen='clash-menu';$('#bBack').addEventListener('click',()=>CLASH.back());
   card.querySelectorAll('.clb').forEach(b=>b.addEventListener('click',()=>{const n=+b.dataset.b;if(n>R.bot){SFX.play('deny');return;}card.querySelectorAll('.clb').forEach(x=>x.classList.toggle('on',x===b));$('#bClashGo').textContent='⚔️ Fight bot '+n;$('#bClashGo').dataset.b=n;SFX.play('tap',60);}));
   $('#bClashGo').addEventListener('click',()=>{if(!ACC.tut){ecoToast('Finish the tutorial battle first');return;}overlay.classList.add('hidden');clashStart({bot:+($('#bClashGo').dataset.b||R.bot)});});}

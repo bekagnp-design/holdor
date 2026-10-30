@@ -13,7 +13,7 @@ const { chromium } = require('playwright');
     H.startGame({ mode: 'campaign', level: H.LEVELS.find(l => l.id === stage) }); H.G.waveDone = false; H.G.nextIn = 1e9; }, [stage, mode]);
   await start(8);
   const base = await page.evaluate(() => { const h = window.HOLDOR.G.hero; return { dmg: h.dmg, max: h.max }; });
-  const r1 = await page.evaluate(() => { const H = window.HOLDOR, G = H.G; G.kills = 12; G.hero.hp = G.hero.max * 0.5; H.step(); const h = G.hero; return { lv: G.hLv, dmg: h.dmg, max: h.max, hp: h.hp }; });
+  const r1 = await page.evaluate(() => { const H = window.HOLDOR, G = H.G; G.kills = 14; G.hero.hp = G.hero.max * 0.5; H.step(); const h = G.hero; return { lv: G.hLv, dmg: h.dmg, max: h.max, hp: h.hp }; });
   ok('12 kills: battle level 2, +6% damage and health, a fifth of the health back', r1.lv === 1 && Math.abs(r1.dmg / base.dmg - 1.06) < 1e-6 && Math.abs(r1.max / base.max - 1.06) < 0.01 && r1.hp > base.max * 0.5, JSON.stringify([base, r1]));
   const r2 = await page.evaluate(() => { const H = window.HOLDOR, G = H.G; G.kills = 500; for (let i = 0; i < 10; i++) H.step(); return G.hLv; });
   ok('all five levels come, one per step, no more', r2 === 5, r2);
@@ -27,7 +27,7 @@ const { chromium } = require('playwright');
   ok('a second skill of the same kind: the synergy bonus lands once', (syn.dmg > 1.09 || syn.max > 1.09 || syn.gold >= 80 || syn.dmg < 1) && syn.done[syn.cat] === 1, JSON.stringify(syn));
   // level 3 opens a skill offer at once
   await start(8);
-  const lv3 = await page.evaluate(() => { const H = window.HOLDOR, G = H.G; window.HOLDOR_LEARN.LEARN.at.length = 0; G.kills = 32; H.step(); H.step(); return { lv: G.hLv, ask: !!G.learnAsk, paused: G.paused, txt: (document.getElementById('boonOv') || {}).innerText || '' }; });
+  const lv3 = await page.evaluate(() => { const H = window.HOLDOR, G = H.G; window.HOLDOR_LEARN.LEARN.at.length = 0; G.kills = 36; H.step(); H.step(); return { lv: G.hLv, ask: !!G.learnAsk, paused: G.paused, txt: (document.getElementById('boonOv') || {}).innerText || '' }; });
   ok('battle level 3 opens the skill offer at once', lv3.lv === 2 && lv3.ask && lv3.paused && /LEVEL 3/.test(lv3.txt), JSON.stringify(lv3).slice(0, 200));
   ok('no page errors', errors.length === 0, errors.join('|'));
   console.log(JSON.stringify(R, null, 1)); const bad = Object.values(R).filter(v => v.startsWith('FAIL')); console.log(bad.length ? 'FAILED ' + bad.length : 'ALL OK');

@@ -23,7 +23,7 @@ function callBtnInit(){
 function callBtnTick(){
   const b=CALLB.el;if(!b)return;
   const ok=typeof G!=='undefined'&&G&&(G.mode==='campaign'||G.mode==='online')&&canCall();
-  b.hidden=!ok;if(!ok)return;
+  {const sh=document.getElementById('sheet');b.hidden=!ok||G.state!=='play'||!!(sh&&sh.classList.contains('open'));}if(b.hidden)return;
   b.textContent='⚔ CALL WAVE'+(G.nextIn>1?'  +'+Math.ceil(G.nextIn)+'🪙':'');
   b.classList.toggle('want',!!(G.tut&&typeof tutWantBase==='function'&&tutWantBase()==='call'));
 }

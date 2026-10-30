@@ -7,7 +7,7 @@ const SYN={aoe:['Area',h=>{h.dmg*=1.15;return '+15% damage';}],rain:['Volleys',h
   control:['Winter',h=>{h.spd*=1.12;return '+12% speed';}],dot:['Embers',h=>{h.dmg*=1.1;h.rate*=0.92;return '+10% damage, faster strikes';}],
   buff:['Command',h=>{G.gold+=80;return '+80 gold';}],summon:['Muster',h=>{G.gold+=80;return '+80 gold';}],gold:['Treasury',h=>{G.gold+=120;return '+120 gold';}]};
 function champOn(){return G.mode==='campaign'&&!G.tutorial&&!G.tut&&G.level&&G.level.id>=CLV.minStage&&G.hero&&G.heroOn;}
-function champTick(){if(!champOn())return;const n=G.hLv||0;if(n>=CLV.at.length||G.kills<CLV.at[n])return;
+function champTick(){if(!champOn())return;const n=G.hLv||0;if(n>=CLV.at.length||G.kills<Math.round(CLV.at[n]*(1+0.03*Math.max(0,(G.level.id||5)-5))))return;
   const h=G.hero;G.hLv=n+1;h.dmg*=1.06;h.max=Math.round(h.max*1.06);h.hp=Math.min(h.max,h.hp+h.max*.2);
   try{addText(h.x,h.y-52,'LEVEL '+(G.hLv+1),'#ffd54a',1);addFx({t:'ring',x:h.x,y:h.y-10,r0:8,r1:70,life:0.7,col:'#ffd54a'});SFX.play('levelup');}catch(e){}
   if(G.hLv===2||G.hLv===4){G.learnWhy='LEVEL '+(G.hLv+1);if(typeof learnNow==='function')learnNow('L'+G.hLv);}}

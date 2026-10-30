@@ -4,7 +4,7 @@
   background:repeating-linear-gradient(90deg,rgba(0,0,0,.08) 0 3px,transparent 3px 11px),linear-gradient(180deg,#6b4a2b,#4a3119) #5a3d22}
 .bookfs::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(255,255,255,.035) 0 2px,transparent 2px 9px);pointer-events:none}
 .bkhead{position:relative;display:flex;align-items:flex-end;gap:3px;padding:6px 46px 0 2px;min-height:44px}
-.bkrib{flex:1;min-width:0;background:linear-gradient(180deg,#a3542b,#7a3a1a);border:2px solid #3a1c0c;border-bottom:0;border-radius:8px 8px 0 0;color:#f6e3bb;font-family:var(--f-display);font-size:8.5px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;padding:10px 1px 7px;text-align:center;text-shadow:0 1px 0 #3a1c0c;position:relative;top:2px;white-space:nowrap}
+.bkrib{flex:1;min-width:0;background:linear-gradient(180deg,#a3542b,#7a3a1a);border:2px solid #3a1c0c;border-bottom:0;border-radius:8px 8px 0 0;color:#f6e3bb;font-family:var(--f-display);font-size:8px;font-weight:900;letter-spacing:0;text-transform:uppercase;padding:10px 1px 7px;text-align:center;text-shadow:0 1px 0 #3a1c0c;position:relative;top:2px;white-space:nowrap}
 .bkrib.on{background:linear-gradient(180deg,#ffe97a,#f2a62c);color:#3a1c0c;text-shadow:0 1px 0 rgba(255,255,255,.4);padding-top:13px;top:0;border-color:#7a4a10}
 .bkrib .n{position:absolute;top:-1px;right:-1px;min-width:13px;height:13px;border-radius:7px;background:#e14b4b;color:#fff;font-size:8.5px;line-height:13px;text-align:center;padding:0 3px;border:1px solid #3a1c0c;letter-spacing:0}
 .bkx{position:absolute;right:0;top:-2px;width:42px;height:46px;border:0;background:linear-gradient(180deg,#c9612f,#8e3b16);clip-path:polygon(0 0,100% 0,100% 100%,50% 82%,0 100%);color:#f6e3bb;font-size:18px;font-weight:900;padding:0 0 8px;text-shadow:0 1px 0 #3a1c0c}
@@ -81,3 +81,5 @@
 .bookfs .btn{max-width:360px;margin:12px auto 0}
 .bookfs .tutnote{margin:10px 0 0;background:rgba(11,26,46,.85);color:#f2e6c9;border:1px solid var(--gold);border-radius:10px;padding:8px 10px;font-size:12.5px}
 .subtabs button .n{display:inline-block;min-width:14px;height:14px;line-height:14px;border-radius:7px;background:#e14b4b;color:#fff;font-size:9px;text-align:center;margin-left:3px;padding:0 3px;border:1px solid #7a1d1d;vertical-align:1px}
+
+.bkrib .n{top:-6px;right:-3px}

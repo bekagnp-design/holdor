@@ -23,7 +23,7 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
     pills: [...document.querySelectorAll('.hmstrip .hpill')].map(b => b.id), slots: document.querySelectorAll('.hmslots.top .slot').length, stage: !!document.querySelector('#hmStage #hmGate'), goal: !!document.querySelector('#hmGoal'),
     gone: ['#bCity', '#bForge', '#bTavern', '#bDaily', '#bSeason', '#bSkin', '#hmHero', '#hmMap'].filter(s => document.querySelector(s)), look: document.querySelector('.hub').className,
     battle: (document.querySelector('#bBattle') || {}).textContent, champ: !!document.querySelector('#bChampH'), map: !!document.querySelector('#bMapH') }));
-  ok('four tabs: Shop · Army · Battle · Clan, Battle on', home.tabs.join('|') === 'shop:Shop|coll:Army|battle:Battle|clan:Clan' && home.on === 'battle', JSON.stringify(home.tabs));
+  ok('four tabs: Shop · Army · Battle · Trials (v1.3.8: Clan left the bar), Battle on', home.tabs.join('|') === 'shop:Shop|coll:Army|battle:Battle|trials:Trials' && home.on === 'battle', JSON.stringify(home.tabs));
   ok('the strip: rank, Tasks, the event; four chest slots on top; the living gate with the next goal; no quick buttons, no 🎨, one look', home.pills.join() === 'hubTro,bTasks,evBadge' && home.slots === 4 && home.stage && home.goal && !home.gone.length && /look-b/.test(home.look), JSON.stringify(home));
   ok('the campaign row stays under the Hold: BATTLE! · STAGE 10, the map and the champion', /BATTLE/.test(home.battle) && /STAGE 10/.test(home.battle) && home.champ && home.map, home.battle);
   const hold = await page.evaluate(() => { const c = document.getElementById('hmMini'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; const seen = new Set(); for (let i = 0; i < d.length; i += 4 * 13) seen.add(d[i] + ',' + d[i + 1] + ',' + d[i + 2]);
@@ -77,7 +77,7 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
   ok('Shop: the Season Pass card sits on top, the deals below', /Season Pass/.test(sh.season || '') && sh.deals, JSON.stringify(sh));
   await tap('#bSeason', 600); ok('the Season card opens the season', /Season/i.test(await page.evaluate(() => document.querySelector('#card').innerText.slice(0, 120))), await scr());
   // ---- Clan: the realm, the clans to come, the friends; chat / war / standings and back to Clan
-  await page.evaluate(() => window.HOLDOR.showHub('battle')); await page.waitForTimeout(300); await tap('.hubtabs button[data-tab="clan"]', 700);
+  await page.evaluate(() => window.HOLDOR.showHub('battle')); await page.waitForTimeout(300); await page.evaluate(() => window.HOLDOR.showHub('clan')); await page.waitForTimeout(700);   // v1.3.8: no Clan tab; the page opens by function
   const cl = await page.evaluate(() => ({ scr: window.HOLDOR.CLOUD.screen, realm: (document.querySelector('#clRealm .cltx b') || {}).textContent, flag: !!document.querySelector('#clRealm .clhead svg, #clRealm .clhead img'), btns: ['#bClChat', '#bClWar', '#bClRealms'].filter(s => document.querySelector(s)).length,
     soon: /Clans/.test((document.querySelector('.clcard.soon') || {}).textContent || ''), friends: /friends/i.test(document.getElementById('hubBody').innerText) }));
   ok('Clan: the realm card (flag, name, chat / war / standings), the clans to come, the friends block', cl.scr === 'hub:clan' && cl.realm === 'Georgia' && cl.flag && cl.btns === 3 && cl.soon && cl.friends, JSON.stringify(cl));
