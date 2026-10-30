@@ -5,7 +5,8 @@ const LEARN={at:[2,5,8,11,14],minStage:5};
 function learnPool(){return Object.keys(SK).filter(id=>!SK[id].ult&&id!=='taunt'&&SK[id].v&&SK[id].v.length>=3);}
 function learnTo(id){const cur=skLvl(G.hero,id);return Math.min(SK[id].v.length,Math.max(cur+1,2));}
 function learnOffer(){const h0=G.hero;let h=hash32('learn:'+(G.level?G.level.id:0)+':'+G.wave+':'+G.runs+':'+(G.learnRr||0));const rnd=()=>{h=Math.imul(h^(h>>>15),2246822507)>>>0;h=Math.imul(h^(h>>>13),3266489909)>>>0;h^=h>>>16;return h;};
-  const pool=learnPool().filter(id=>skLvl(h0,id)<SK[id].v.length),mine=pool.filter(id=>h0.c.sk.includes(id)&&skLvl(h0,id)<SK_MAX),out=[];
+  const nShield=(G.learned||[]).filter(k=>skCat(k)==='shield').length;
+  const pool=learnPool().filter(id=>skLvl(h0,id)<SK[id].v.length&&!(nShield>=2&&skCat(id)==='shield'&&!h0.c.sk.includes(id))),mine=pool.filter(id=>h0.c.sk.includes(id)&&skLvl(h0,id)<SK_MAX),out=[];
   if(mine.length)out.push(mine.splice(rnd()%mine.length,1)[0]);
   while(out.length<3&&pool.length){const id=pool.splice(rnd()%pool.length,1)[0];if(!out.includes(id))out.push(id);}return out;}
 function learnPick(id){if(!G.learnAsk||!SK[id])return;const h=G.hero,to=learnTo(id);h.perk=h.perk||{};h.perk[id]=to;(G.learned=G.learned||[]).push(id);

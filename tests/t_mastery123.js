@@ -18,12 +18,12 @@ const { chromium } = require('playwright');
   // stats
   const g0 = await stat('glass', 0), g1 = await stat('glass', 1), g3 = await stat('glass', 3), gb3 = await stat('glass', 13);
   ok('Dragonglass Frostbite 1 slows 8% harder, 3 slows 12% and +20% dps', Math.abs((g0.slow - g1.slow) - 0.08) < 1e-6 && Math.abs((g0.slow - g3.slow) - 0.12) < 1e-6 && Math.abs(g3.dps / g0.dps - 1.2) < 1e-6, JSON.stringify([g0.slow, g1.slow, g3.slow]));
-  ok('Walkerbane: ×4 / ×5 against walkers', gb3.wm === 5 && g0.wm === undefined);
+  ok('Walkerbane: ×3.5 / ×4 against walkers', gb3.wm === 4 && g0.wm === undefined);
   const w0 = await stat('weir', 0), wb2 = await stat('weir', 12), wb3 = await stat('weir', 13);
   ok('Weirwood Whisper: +10/20/30% damage taken, reach +15% at 3', Math.abs(wb2.mark - w0.mark - 0.2) < 1e-6 && Math.abs(wb3.mark - w0.mark - 0.3) < 1e-6 && Math.abs(wb3.range / w0.range - 1.15) < 1e-6);
   const k0 = await stat('keep', 0), ka3 = await stat('keep', 3), kb3 = await stat('keep', 13);
   ok('Keep Shield wall 3: +4 men, +70% health', ka3.count === Math.min(8, k0.count + 4) && ka3.shp === Math.round(k0.shp * 1.7), JSON.stringify([k0.count, ka3.count, k0.shp, ka3.shp]));
-  ok("Keep Knight's charge 3: double damage, return 40% sooner", Math.abs(kb3.sdmg / k0.sdmg - 2) < 0.05 && Math.abs(kb3.resp / k0.resp - 0.6) < 0.05);
+  ok("Keep Knight's charge 3: +70% damage, return 40% sooner", Math.abs(kb3.sdmg / k0.sdmg - 1.7) < 0.05 && Math.abs(kb3.resp / k0.resp - 0.6) < 0.05);
   const wl0 = await stat('wild', 0), wla3 = await stat('wild', 3);
   ok('Wildfire Inferno 3: splash +45%, burning ×2', Math.abs(wla3.splash / wl0.splash - 1.45) < 1e-6 && Math.abs(wla3.burn / wl0.burn - 2) < 1e-6);
   // Wildfire pool
