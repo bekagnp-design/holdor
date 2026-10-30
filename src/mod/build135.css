@@ -2,3 +2,4 @@
 .bcard{margin:10px 0;padding:10px;border-radius:16px;background:linear-gradient(180deg,#2b2146,#171028);border:2px solid #7a4a10;text-align:center}
 .bcard .bch b{display:block;font:900 15px var(--f-display);color:#ffd54a;letter-spacing:.06em}.bcard .bch small{font-size:11px;color:#bfe6ff}
 .bcsk{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:8px}.bcs{display:flex;flex-direction:column;align-items:center;gap:2px;width:64px}.bcs small{font-size:9px;color:#d6c8f0;line-height:1.1}
+.bcard .bcshare{margin:10px auto 0;padding:6px 14px;font-size:13px}

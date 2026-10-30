@@ -16,6 +16,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   const r = await run(['warhammer', 'howl']);
   ok('two skills learned: the card names the build and shows both', r.has && r.icons === 2 && /build/.test(r.txt) && /battle level 3/.test(r.txt), JSON.stringify(r).slice(0, 220));
   await page.waitForTimeout(1500); await page.screenshot({ path: SC + 'build135.png' });
+  ok('the build card has a share button with the build in the text', await page.evaluate(() => !!document.getElementById('bBuildShare') && /build/.test(window.HOLDOR_BUILD.buildShareText())));
   ok('no page errors', errors.length === 0, errors.join('|'));
   console.log(JSON.stringify(R, null, 1)); const bad = Object.values(R).filter(v => v.startsWith('FAIL')); console.log(bad.length ? 'FAILED ' + bad.length : 'ALL OK');
   await browser.close(); process.exit(bad.length ? 1 : 0);

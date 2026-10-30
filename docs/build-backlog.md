@@ -896,3 +896,8 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 - **What it does:** the effect where a champion's blow lands follows the kind of his first skill (ten looks: embers, frost bursts, gold shock rings, slashes, green motes, shield sparks, red cross-slashes, gold stars, ghost smoke, coins) plus a small ring in his house colour. 49 champions, ten looks, and no two kits are the same. Display only; skipped when more than 90 effects are alive.
 - **How:** `sig136.js`, part `98v_sig.py` (`heroSig` is called from `heroAfterHit`). **Tests:** `t_sig136.js`.
 
+### v1.3.7 — Founder number, share the build, demos for the two new spells (2026-10-30)
+- **Founder #N:** the first hundred players ever see "Founder #N" under their name on the home. The number is the real order of signing up, read once per session from the server (`founder_no(token)`, backend v37: it counts `players` rows created before and at the player's own row; read-only, nothing stored). Kept in `ACC.fno`. Guests and later players see nothing. (`founder137.js`, part `98w_founder.py`, `t_founder137.js`, `backend/test/v37_test.py`.)
+- **Share the build:** the build card on the result screen has "Show your build": a Telegram share with the build name, the skills and the battle level plus the player's invitation link (`build135.js`).
+- **Fix:** the spell room showed an empty picture for Wildfire jars and Beacon (the v1.3.3 spells had no demo scene); both now have one, and `t_demo125.js` fails when any scene is blank. `t_champs53` and the managed Mastery test (`mastery_test.py`, the new-day calendar popup) no longer flake.
+

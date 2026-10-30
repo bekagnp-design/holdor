@@ -50,12 +50,15 @@ with sync_playwright() as p:
     for i in range(1, 31): q("insert into progress (tg_id, seat, mode, stage, stars) values (%s, 0, 'c', %s, 3) on conflict do nothing", TG, i)
     setw(levels={'t:watch': 16, 't:scorp': 15})
     book('gold', 70000)
-    ev("HOLDOR_ECON.ecoRefresh()"); settle()
+    def later():
+        try: pg.get_by_text('Later', exact=True).first.click(timeout=1500)   # the daily calendar of a new day may open over the room
+        except Exception: pass
+    ev("HOLDOR_ECON.ecoRefresh()"); settle(); later()
     ev("HOLDOR_ARMY.showTowerRoom('watch')"); pg.wait_for_timeout(500)
     check('the Watchtower room shows two Mastery paths with a big button each', ev("document.querySelectorAll('[data-mb]').length") == 2)
     pg.screenshot(path=SHOTS + '/mastery_managed.png')
     check('the Scorpion (level 15) is still locked', (ev("HOLDOR_ARMY.showTowerRoom('scorp'),document.querySelector('#card').innerText") or '').find('opens at the last level') >= 0)
-    ev("HOLDOR_ARMY.showTowerRoom('watch')"); pg.wait_for_timeout(400)
+    later(); ev("HOLDOR_ARMY.showTowerRoom('watch')"); pg.wait_for_timeout(400)
     g0 = W()[2]
     tap('[data-mb="a"]', 900); settle()
     lv = W()[0]
@@ -65,7 +68,7 @@ with sync_playwright() as p:
     check('step 2 costs 40 000', W()[0].get('m:watch') == 2 and g0 - W()[2] == 60000, f'{W()[0]} {g0 - W()[2]}')
     tap('[data-mb="a"]', 900); settle()
     check('step 3 needs 80 000 and the wallet has 10 000: refused, nothing changes', W()[0].get('m:watch') == 2 and W()[2] == g0 - 60000, f'{W()[0]} {W()[2]}')
-    book('gold', 120000); ev("HOLDOR_ECON.ecoRefresh()"); settle(); ev("HOLDOR_ARMY.showTowerRoom('watch')"); pg.wait_for_timeout(400)
+    book('gold', 120000); ev("HOLDOR_ECON.ecoRefresh()"); settle(); later(); ev("HOLDOR_ARMY.showTowerRoom('watch')"); pg.wait_for_timeout(400)
     tap('[data-mb="a"]', 900); settle()
     check('with enough gold step 3 is bought: mastered', W()[0].get('m:watch') == 3 and 'MASTERED' in ev("document.querySelector('#card').innerText"))
     g1 = W()[2]
