@@ -888,3 +888,11 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 ### v1.3.4 — clearer chest slots on the home (2026-10-29)
 - The level-chest slot says "AT LV n" (it was a bare "LV n") and the star-chest slot "★ 1/3". `skins.js` only.- Also in v1.3.4: the champion's battle levels 3 and 5 open a skill offer at once ("Robb · LEVEL 3"), on top of the offers before waves 3, 6, 9, 12 and 15 (`learnNow` in `learn126.js`, called from `champTick`). Test: `t_champ130.js`.
 
+### v1.3.5 — the build card on the result screen (2026-10-30)
+- **What it does:** after a campaign battle in which the champion learned skills, the result screen shows his build: "Robb's Area build", the battle level, the synergies caught and an icon for every skill learned. The build is named after the kind of skill he holds most of (kit + learned). Nothing is shown when nothing was learned.
+- **How:** `build135.js` + `.css`, part `98u_build.py` (a wrapper over `showCampaignResult`). **Tests:** `t_build135.js`.
+
+### v1.3.6 — every champion's blows look like him (2026-10-30)
+- **What it does:** the effect where a champion's blow lands follows the kind of his first skill (ten looks: embers, frost bursts, gold shock rings, slashes, green motes, shield sparks, red cross-slashes, gold stars, ghost smoke, coins) plus a small ring in his house colour. 49 champions, ten looks, and no two kits are the same. Display only; skipped when more than 90 effects are alive.
+- **How:** `sig136.js`, part `98v_sig.py` (`heroSig` is called from `heroAfterHit`). **Tests:** `t_sig136.js`.
+
