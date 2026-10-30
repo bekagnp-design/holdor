@@ -1781,6 +1781,10 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 .ic[data-cap]::after{content:attr(data-cap);position:absolute;left:0;right:0;bottom:3px;font:800 7px var(--f-display);letter-spacing:.1em;color:#9fb4cf;pointer-events:none}
 .opt .rl{font-style:normal;font-size:9px;line-height:1.1;color:#9fb4cf;min-height:20px;display:block}
 .opt{padding-bottom:5px}
+/* v1.3.5: the build card */
+.bcard{margin:10px 0;padding:10px;border-radius:16px;background:linear-gradient(180deg,#2b2146,#171028);border:2px solid #7a4a10;text-align:center}
+.bcard .bch b{display:block;font:900 15px var(--f-display);color:#ffd54a;letter-spacing:.06em}.bcard .bch small{font-size:11px;color:#bfe6ff}
+.bcsk{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:8px}.bcs{display:flex;flex-direction:column;align-items:center;gap:2px;width:64px}.bcs small{font-size:9px;color:#d6c8f0;line-height:1.1}
 </style>
 </head>
 <body>
@@ -2684,7 +2688,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.3.4';
+const VERSION='1.3.5';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -9696,6 +9700,14 @@ S_RAR.jars=2;S_RAR.beacon=3;
   if(k==='jars')return '<svg viewBox="0 0 24 24" fill="none" stroke="#7cff6b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6M10 4v3c-3 1-4 4-4 7 0 3 2 6 6 6s6-3 6-6c0-3-1-6-4-7V4"/><path d="M12 11c1 1.5 2 2 2 3.5a2 2 0 0 1-4 0c0-1 1-2 2-3.5z"/></svg>';
   if(k==='beacon')return '<svg viewBox="0 0 24 24" fill="none" stroke="#ffb23c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21l1.5-9h5L16 21M7 21h10M12 3c2 2 3 3.5 3 5.5a3 3 0 0 1-6 0c0-2 1-3.5 3-5.5z"/></svg>';
   return sv1(k);};}
+/* v1.3.5: the build card on the result screen — what the champion learned in this battle, the synergies he caught and his battle level.
+   The build is named after the kind of skill he holds most of (his kit plus the learned ones). Nothing is shown when nothing was learned. */
+function buildName(){const h=G.hero;if(!h)return '';const n={};for(const k of h.c.sk)if(!SK[k].ult)n[skCat(k)]=(n[skCat(k)]||0)+1;for(const k of (G.learned||[]))n[skCat(k)]=(n[skCat(k)]||0)+1;
+  let best=null,bv=0;for(const c in n)if(n[c]>bv&&SYN[c]){bv=n[c];best=c;}return best?SYN[best][0]+' build':'';}
+function buildCard(){if(!G.hero||!(G.learned||[]).length)return '';const syn=Object.keys(G.synDone||{}).map(c=>SYN[c]?SYN[c][0]:c);
+  return `<div class="bcard"><div class="bch"><b>${esc(shortName(G.hero.c))}'s ${esc(buildName()||'build')}</b><small>battle level ${(G.hLv||0)+1}${syn.length?' · ✦ '+esc(syn.join(', '))+' synergy':''}</small></div>
+    <div class="bcsk">${G.learned.map(k=>`<span class="bcs">${skillIcon(k,38,0)}<small>${esc(SK[k].n)}</small></span>`).join('')}</div></div>`;}
+{const scr1=showCampaignResult;showCampaignResult=function(win,stars,nu,gained){scr1(win,stars,nu,gained);try{const bc=buildCard();if(!bc)return;const at=card.querySelector('.resrow')||card.querySelector('#bRetry');if(at)at.insertAdjacentHTML('beforebegin',bc);}catch(e){}};}
 window.HOLDOR_TROOPS={TROOPS,TROOP_ROLE,TROOP_ROLES,troopDef,troopUnits,troopStats,keepRole,troopDress,allyStrike,troopMend,drawTroopBody,troopPreview,showTrain,towerStats,HOUSE_ORDER,HOUSES,build,LEVELS};
 window.HOLDOR_CLASH={CLASH,CLASH_COST,CLASH_N,CLASH_TOP,genClash,clashStart,clashStop,clashSend,clashStepB,clashBot,clashSpawnTroops,clashFinish,clashDraw,showClash,clashCardHTML,gSnap,gSwap,toWorld,w2s};
 window.HOLDOR_CL2={CL2,clashServer,cl2Load,cl2Call,clashGhostInit,clashGhostStep,clashGhostDo,clashRunLog,clashRunWaves,clashAfter,cl2FromStart,cl2PendingOpen,cl2Go,showClash,showClashLocal,setRpc:f=>{cl2Rpc=f;}};
@@ -9711,6 +9723,7 @@ window.HOLDOR_DEMO={demoFrame,demoHTML,demoMount,dmSpell,dmTowerScene,dmChamp,sh
 window.HOLDOR_LEARN={LEARN,learnPool,learnOffer,learnPick,learnCheck,learnTo};
 window.HOLDOR_CHAMP={CLV,SYN,champOn,champTick,champSynergy,skCat,SK};
 window.HOLDOR_MAUL={maulStun,maulHit,maulDraw,maulSVG};
+window.HOLDOR_BUILD={buildName,buildCard};
 window.HOLDOR_CARDS={CARD_NEED,CARD_MUL,cardRar,cardLvl,cardMax,cardNeed,cardHave,cardGold,cardName,cardOpen,cardReady,cardCan,addCards,cardLevelUp,accLevel,accXp,addXp,xpNeed,lvlChestTier,lvlChestsReady,cardPool,rollChest,stageCards,spellLvl,spellMul,showSpellRoom,showTowerRoom,migrate48,TOURS,toursOf,hubTour,startTour};
 window.HOLDOR_SEATS={seatNo,lbIsMe,lbName,lbStale,lbMine,scoreSummary,fetchLeaderboard,cachedLb};
 window.HOLDOR_BOOK={showBook,bookNew,bookDisc,bookNewCount,bookMarkRead,BOOK,trophiesOf,trophiesRow,rankOf,myRank,rankSVG,showRankSheet,RANKS,RANK_AT};
