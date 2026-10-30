@@ -94,6 +94,34 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
   // ---- a signed-in seat: no rewards, and the page says so
   const note = await page.evaluate(() => { const E = window.HOLDOR_ECON; return { guest: document.querySelector('.trnote').textContent }; });
   ok('the guest page lists the real reward rule', /wooden chest/.test(note.guest), note.guest);
+  // ---- v1.4.1: a server-managed seat — trials_start on START, trials_claim on the result; the answers are mocked (the real ones: backend v38)
+  const calls = []; let claimAnswer = null;
+  await page.route(/rpc\/trials_start/, r => { calls.push(['start', r.request().postDataJSON()]); r.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }); });
+  await page.route(/rpc\/trials_claim/, r => { calls.push(['claim', r.request().postDataJSON()]); r.fulfill(claimAnswer); });
+  const managed = async () => { await page.evaluate(() => { const H = window.HOLDOR, E = window.HOLDOR_ECON; if (H.SAVE.cur < 0) H.SAVE.cur = 0; E.ECO.on = true; E.ECO.seat = H.SAVE.cur; H.CLOUD.on = true; H.CLOUD.token = '00000000-0000-0000-0000-000000000001'; }); };
+  const endRun = async (w) => { await page.evaluate((w) => { const G = window.HOLDOR.G; G.learnAsk = null; G.paused = false; const o = document.getElementById('boonOv'); if (o) o.remove(); G.wave = w + 1; G.learnDone[w + 1] = 1; G.waveDone = false; G.spawnQueue.length = 0; G.nextIn = 14; G.doorHp = 0; window.HOLDOR_TRIALS.gameOver(); }, w); await page.waitForTimeout(900); };
+  await managed(); await page.evaluate(() => window.HOLDOR.showHub('trials')); await page.waitForTimeout(500);
+  ok('the page tells a server seat the real rule (12 gold a wave, a chest per 5, one claim an hour, 600 a day)', await page.evaluate(() => /12 gold a wave/.test(document.querySelector('.trnote').textContent) && /one claim an hour/.test(document.querySelector('.trnote').textContent) && /600 gold a day/.test(document.querySelector('.trnote').textContent)));
+  const stAns = { gold: 5000, gems: 70, xp: 0, at: new Date().toISOString() };
+  claimAnswer = { status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, waves: 12, gold: 144, chests: 2, chest_gold: 230, chest_gems: 9, day_left: 226, state: stAns }) };
+  const g1 = await page.evaluate(() => window.HOLDOR.ACC.gold);
+  await tap('#bTrials', 300); await page.waitForTimeout(300);
+  ok('START on a server seat calls trials_start with the seat', calls.length === 1 && calls[0][0] === 'start' && calls[0][1].seat === (await page.evaluate(() => window.HOLDOR.SAVE.cur)) && !!calls[0][1].token, JSON.stringify(calls));
+  await endRun(12);
+  const m1 = await page.evaluate(() => ({ txt: document.getElementById('card').innerText, gold: window.HOLDOR.ACC.gold, big: (document.querySelector('.big') || {}).textContent }));
+  ok('the result calls trials_claim with 12 waves and shows the SERVER numbers (374 gold = 144 + 230, 9 gems, 2 chests, 226 left)', calls.length === 2 && calls[1][0] === 'claim' && calls[1][1].waves === 12 && /\+374/.test(m1.txt) && /\+9/.test(m1.txt) && /2 Trials chests/.test(m1.txt) && /226 gold left/.test(m1.txt), m1.txt.replace(/\s+/g, ' ').slice(0, 300));
+  ok('…the wallet takes the server state (gold 5000), not a local guess', m1.gold === 5000, String(m1.gold) + ' from ' + g1);
+  await page.screenshot({ path: SC + 'trials141_managed.png' });
+  // a refusal shows its reason and changes nothing
+  claimAnswer = { status: 400, contentType: 'application/json', body: JSON.stringify({ code: 'P0001', message: 'one claim per hour' }) };
+  await tap('#bTrAgain', 300); await page.waitForTimeout(300); await endRun(6);
+  const m2 = await page.evaluate(() => ({ txt: document.getElementById('card').innerText, gold: window.HOLDOR.ACC.gold }));
+  ok('a refusal ("one claim per hour") is shown as the reason and the gold stays', calls.length === 4 && /No reward this time: one claim per hour/.test(m2.txt) && m2.gold === 5000, m2.txt.replace(/\s+/g, ' ').slice(0, 300));
+  // 0 waves: nothing to claim, no call
+  await tap('#bTrAgain', 300); await page.waitForTimeout(300); const n0 = calls.length;
+  await page.evaluate(() => { const G = window.HOLDOR.G; G.learnAsk = null; G.paused = false; const o = document.getElementById('boonOv'); if (o) o.remove(); G.doorHp = 0; window.HOLDOR_TRIALS.gameOver(); }); await page.waitForTimeout(500);
+  ok('a run with 0 waves makes no claim', calls.length === n0 && (await page.evaluate(() => /no reward is waiting/.test(document.getElementById('card').innerText))), String(calls.length - n0));
+  await page.evaluate(() => { window.HOLDOR_ECON.ECO.on = false; window.HOLDOR.CLOUD.on = false; });
   ok('no page errors', errors.length === 0, errors.join('|'));
   console.log(JSON.stringify(R, null, 1)); const bad = Object.values(R).filter(v => v.startsWith('FAIL')); console.log(bad.length ? 'FAILED ' + bad.length : 'ALL OK');
   await browser.close(); process.exit(bad.length ? 1 : 0);
