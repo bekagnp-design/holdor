@@ -86,7 +86,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
     const b0 = G.allies.find(a => a.kind === 'brother'); const rb = b0.route || 0, R0 = G.map.routes[rb]; S.spawn('sword', R0.total - 110, rb); e = G.enemies[G.enemies.length - 1]; e.hp = e.max = 50000;
     h.x = b0.x + 78; h.y = b0.y + 6; h.tx = null;   // within 90 px of the brother, but out of the wight's reach (26 + 8), so the wight is blocked by a brother, not by Kevan
     const hp = new Map(G.allies.map(a => [a, a.hp])); const blows = [];
-    for (let i = 0; i < 240 && blows.length < 3; i++) { H.step(); for (const a of G.allies) { const p0 = hp.get(a); if (p0 != null && a.hp < p0 - 0.01) { blows.push({ d: Math.round(Math.hypot(a.x - h.x, a.y - h.y)), hit: Math.round((p0 - a.hp) * 100) / 100 }); } hp.set(a, a.hp); } }
+    for (let i = 0; i < 240 && blows.length < 3; i++) { h.x = b0.x + 78; h.y = b0.y + 6; h.tx = null; H.step(); for (const a of G.allies) { const p0 = hp.get(a); if (p0 != null && a.hp < p0 - 0.01) { blows.push({ d: Math.round(Math.hypot(a.x - h.x, a.y - h.y)), hit: Math.round((p0 - a.hp) * 100) / 100 }); } hp.set(a, a.hp); } }
     out.discipline = { blows, soft: Math.round(e.dps * 0.7 * 0.65 * 100) / 100, full: Math.round(e.dps * 0.7 * 100) / 100 };
     return out; });
   ok('iron skin 35%', M.ironskin === 65, M.ironskin);
