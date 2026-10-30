@@ -1785,6 +1785,9 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 .bcard{margin:10px 0;padding:10px;border-radius:16px;background:linear-gradient(180deg,#2b2146,#171028);border:2px solid #7a4a10;text-align:center}
 .bcard .bch b{display:block;font:900 15px var(--f-display);color:#ffd54a;letter-spacing:.06em}.bcard .bch small{font-size:11px;color:#bfe6ff}
 .bcsk{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:8px}.bcs{display:flex;flex-direction:column;align-items:center;gap:2px;width:64px}.bcs small{font-size:9px;color:#d6c8f0;line-height:1.1}
+.bcard .bcshare{margin:10px auto 0;padding:6px 14px;font-size:13px}
+/* v1.3.7: the founder tag */
+.who small .fnd{color:#ffd54a;font-weight:800;letter-spacing:.04em}
 </style>
 </head>
 <body>
@@ -2688,7 +2691,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.3.6';
+const VERSION='1.3.7';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -7959,7 +7962,7 @@ function fmtT(ms){ms=Math.max(0,ms);const h=Math.floor(ms/3600000),m=Math.floor(
 
 function hubTop(){const c=CBY[ACC.sel],L=accLevel(),hh=HOUSES[ACC.house];const pu=CHAMP_ART[c.id+'_portrait'];
   return `<div class="hubtop"><div class="ava" id="hubAva">${pu?`<img src="${pu}" alt="">`:`<span class="pe">${c.e}</span>`}<span class="lv">${L.l}</span></div>
-  <div class="who"><div class="nmrow"><b>${esc(playerName())}</b><span id="hubRank">${rankChip()}</span></div><small>House ${hh.n} · ${flag(lang().c,14)} ${lang().c}</small><div class="xp" title="Level ${L.l}"><i style="width:${Math.round(100*L.xp/L.need)}%"></i></div></div>
+  <div class="who"><div class="nmrow"><b>${esc(playerName())}</b><span id="hubRank">${rankChip()}</span></div><small>House ${hh.n} · ${flag(lang().c,14)} ${lang().c}${founderTag()}</small><div class="xp" title="Level ${L.l}"><i style="width:${Math.round(100*L.xp/L.need)}%"></i></div></div>
   <div class="cur ${ecoOn()?'three':''}"><span title="Gold — levels, skills, upgrades">${GOLD_SVG}${fmtN(goldOf())}<i class="plus" data-go="shop">+</i></span><span title="Dragonglass — chests and deals">${GEM_SVG}${fmtN(ACC.gems)}<i class="plus" data-go="shop">+</i></span>${ecoOn()?ecoChip():''}</div></div>`;}
 function hubTabs(on){const t=[['shop','Shop'],['coll','Collection'],['battle','Battle'],['tasks','Tasks'],['hold','Hold']];
   const dot={tasks:tasksReady()>0,shop:freeChestReady()||starChestsReady()>0,battle:starChestsReady()>0,coll:bookNewCount()>0,hold:onlineOpen()&&ACC.online.attempts>0&&!(ACC.online.runs||[]).length};
@@ -9576,6 +9579,15 @@ function dmSpell(c,id,t){const P=3.2,ph=t%P;dmBg(c);
   else if(id==='night'){const sl=ph>.9;dmWights(c,t,P,{stop:200,walk:sl?3.2:1.4,slowFrom:sl?0:null,tint:'#0a1626'});
     if(ph>.5){c.save();c.globalAlpha=Math.min(.35,(ph-.5)*.5);c.fillStyle='#7fb8ff';c.fillRect(0,0,SDW,SDH);c.restore();for(let i=0;i<26;i++){const x=(i*37+ph*30)%SDW,y=((i*53+ph*60)%SDH);c.fillStyle='rgba(220,240,255,.8)';c.fillRect(x,y,2,2);}
       sdNum(c,160,60,'LONG NIGHT  −40%',Math.min(1,(ph-.5)*2),'#bfe6ff');}}
+  else if(id==='jars'){const E=dmWights(c,t,P,{stop:215,walk:1.3});const q=(ph-.7)/.55;
+    if(q>0&&q<1){const x=60+(215-60)*q,y=100+(132-100)*q-Math.sin(q*3.14)*70;c.save();c.translate(x,y);c.rotate(q*9);c.fillStyle='#6b8f3a';c.fillRect(-4,-5,8,10);c.fillStyle='#7cff6b';c.fillRect(-2,-7,4,3);c.restore();}
+    if(ph>1.25){const k=Math.min(1,(ph-1.25)/.3),pu=.8+.2*Math.sin(t*8);c.save();c.globalCompositeOperation='lighter';fGlow(c,215,132,60*k*pu,'#7cff6b',.55);c.restore();c.fillStyle='rgba(60,190,70,'+(.35*k)+')';c.beginPath();c.ellipse(215,138,44*k,12*k,0,0,6.283);c.fill();
+      E.forEach((e,i)=>{for(let j=0;j<3;j++){const kk=((ph*1.4+j*.3+i*.1)%1);c.fillStyle='rgba(110,255,110,'+(1-kk)+')';c.beginPath();c.arc(e.x-4+j*4,e.y-30-kk*26,2.4,0,6.283);c.fill();}});if(ph<2.8)sdNum(c,215,84,'BURNS 8 s',1,'#b8ffb8');}}
+  else if(id==='beacon'){dmWights(c,t,P,{stop:240,from:310,walk:1.2});[70,125].forEach((x,i)=>dmTower(c,x,142,'#e3b661',34+i*6));
+    if(ph>.7){const k=Math.min(1,(ph-.7)/.3);c.save();c.globalCompositeOperation='lighter';fGlow(c,98,70,110*k,'#ffb23c',.45);c.restore();
+      for(const x of [70,125])for(let j=0;j<3;j++){const st=(ph*3.2+j/3+x/90)%1;dmLine(c,x+10+st*100,100-st*6,x+22+st*100,100-st*6,'#ffe08a',2);}
+      c.strokeStyle='rgba(255,178,60,'+(1-((ph*1.5)%1))+')';c.lineWidth=2;for(const x of [70,125]){c.beginPath();c.arc(x,112,10+((ph*1.5)%1)*30,0,6.283);c.stroke();}
+      sdNum(c,160,50,'+30% FIRE RATE',Math.min(1,(ph-.7)*3),'#ffd54a');}}
   else if(id==='repair'){c.fillStyle='#2a1f1a';c.fillRect(8,84,38,58);c.beginPath();c.arc(27,84,19,Math.PI,0);c.fill();c.fillStyle='#14100d';c.fillRect(16,98,22,44);const hp=Math.min(1,.35+Math.max(0,ph-1)/1.2*.3);
     c.fillStyle='rgba(0,0,0,.6)';c.fillRect(8,72,38,7);c.fillStyle=hp>.6?'#7fd06a':'#e3b661';c.fillRect(9,73,36*hp,5);dmWights(c,t,P,{stop:130,walk:3,from:260});
     if(ph>1){for(let i=0;i<9;i++){const k=((ph*.8+i/9)%1);c.save();c.globalCompositeOperation='lighter';fGlow(c,27+Math.sin(i*4+ph*5)*14,130-k*60,9,'#7fff8a',.9*(1-k));c.restore();}sdNum(c,27,60-(ph-1)*8,'+30%',Math.min(1,2.4-(ph-1)),'#9dff9d');}}}
@@ -9706,8 +9718,10 @@ function buildName(){const h=G.hero;if(!h)return '';const n={};for(const k of h.
   let best=null,bv=0;for(const c in n)if(n[c]>bv&&SYN[c]){bv=n[c];best=c;}return best?SYN[best][0]+' build':'';}
 function buildCard(){if(!G.hero||!(G.learned||[]).length)return '';const syn=Object.keys(G.synDone||{}).map(c=>SYN[c]?SYN[c][0]:c);
   return `<div class="bcard"><div class="bch"><b>${esc(shortName(G.hero.c))}'s ${esc(buildName()||'build')}</b><small>battle level ${(G.hLv||0)+1}${syn.length?' · ✦ '+esc(syn.join(', '))+' synergy':''}</small></div>
-    <div class="bcsk">${G.learned.map(k=>`<span class="bcs">${skillIcon(k,38,0)}<small>${esc(SK[k].n)}</small></span>`).join('')}</div></div>`;}
-{const scr1=showCampaignResult;showCampaignResult=function(win,stars,nu,gained){scr1(win,stars,nu,gained);try{const bc=buildCard();if(!bc)return;const at=card.querySelector('.resrow')||card.querySelector('#bRetry');if(at)at.insertAdjacentHTML('beforebegin',bc);}catch(e){}};}
+    <div class="bcsk">${G.learned.map(k=>`<span class="bcs">${skillIcon(k,38,0)}<small>${esc(SK[k].n)}</small></span>`).join('')}</div>
+    <button class="btn sec bcshare" id="bBuildShare">📨 Show your build</button></div>`;}
+function buildShareText(){const h=G.hero;return `My ${buildName()||'build'} in HOLDOR: ${shortName(h.c)} learned ${G.learned.map(k=>SK[k].n).join(', ')} (battle level ${(G.hLv||0)+1}). Beat it:`;}
+{const scr1=showCampaignResult;showCampaignResult=function(win,stars,nu,gained){scr1(win,stars,nu,gained);try{const bc=buildCard();if(!bc)return;const at=card.querySelector('.resrow')||card.querySelector('#bRetry');if(at)at.insertAdjacentHTML('beforebegin',bc);const sb=card.querySelector('#bBuildShare');if(sb)sb.addEventListener('click',()=>{SFX.play('tap',60);shareText(buildShareText());});}catch(e){}};}
 /* v1.3.6: every champion's blows look like him. The effect at the target follows the kind of his first skill (embers, frost, shock rings, slashes,
    green motes, gold stars, ghost smoke…) and his house colour. Display only: nothing here touches damage or the simulation. */
 const SIGFX={dot:['fire','#ff8a3c',16],control:['burst','#9fe6ff',20],aoe:['ring','#ffd54a',30],rain:['slash','#ffe08a',0],heal:['burst','#8dffa0',16],shield:['hit','#bfe6ff',0],
@@ -9723,6 +9737,15 @@ function heroSig(e){const h=G.hero;if(!h||!h.c||!e)return;const S=sigStyle(h.c),
   else if(S[0]==='puff')addFx({t:'puff',x:q.x,y:q.y-16,r:S[2],life:0.4,dur:0.4,rgb:'150,170,200'});
   else addFx({t:'hit',x:q.x,y:q.y-14,life:0.2});
   addFx({t:'ring',x:q.x,y:q.y-14,r0:2,r1:9,life:0.18,col:hc});}
+/* v1.3.7: the founder number. The first hundred players ever get "Founder #N" under their name on the home. The number is the player's real
+   place in the order of signing up, read from the server (founder_no); it is asked once per session and kept in ACC.fno. Guests and everyone
+   after the hundredth see nothing. */
+const FND={asked:false};
+function founderTag(){
+  if(ACC&&ACC.fno>0&&ACC.fno<=100)return ` · <b class="fnd">Founder #${ACC.fno}</b>`;
+  if(!FND.asked&&typeof CLOUD!=='undefined'&&CLOUD.on&&CLOUD.token){FND.asked=true;
+    ecoRpc('founder_no',{},8000).then(n=>{if(typeof n==='number'&&n>0&&n<=100&&ACC){ACC.fno=n;persist();const el=document.querySelector('.who small');if(el&&!el.querySelector('.fnd'))el.insertAdjacentHTML('beforeend',founderTag());}}).catch(()=>{});}
+  return '';}
 window.HOLDOR_TROOPS={TROOPS,TROOP_ROLE,TROOP_ROLES,troopDef,troopUnits,troopStats,keepRole,troopDress,allyStrike,troopMend,drawTroopBody,troopPreview,showTrain,towerStats,HOUSE_ORDER,HOUSES,build,LEVELS};
 window.HOLDOR_CLASH={CLASH,CLASH_COST,CLASH_N,CLASH_TOP,genClash,clashStart,clashStop,clashSend,clashStepB,clashBot,clashSpawnTroops,clashFinish,clashDraw,showClash,clashCardHTML,gSnap,gSwap,toWorld,w2s};
 window.HOLDOR_CL2={CL2,clashServer,cl2Load,cl2Call,clashGhostInit,clashGhostStep,clashGhostDo,clashRunLog,clashRunWaves,clashAfter,cl2FromStart,cl2PendingOpen,cl2Go,showClash,showClashLocal,setRpc:f=>{cl2Rpc=f;}};
@@ -9738,8 +9761,9 @@ window.HOLDOR_DEMO={demoFrame,demoHTML,demoMount,dmSpell,dmTowerScene,dmChamp,sh
 window.HOLDOR_LEARN={LEARN,learnPool,learnOffer,learnPick,learnCheck,learnTo};
 window.HOLDOR_CHAMP={CLV,SYN,champOn,champTick,champSynergy,skCat,SK};
 window.HOLDOR_MAUL={maulStun,maulHit,maulDraw,maulSVG};
-window.HOLDOR_BUILD={buildName,buildCard};
+window.HOLDOR_BUILD={buildName,buildCard,buildShareText};
 window.HOLDOR_SIG={SIGFX,sigStyle,heroSig};
+window.HOLDOR_FND={FND,founderTag};
 window.HOLDOR_CARDS={CARD_NEED,CARD_MUL,cardRar,cardLvl,cardMax,cardNeed,cardHave,cardGold,cardName,cardOpen,cardReady,cardCan,addCards,cardLevelUp,accLevel,accXp,addXp,xpNeed,lvlChestTier,lvlChestsReady,cardPool,rollChest,stageCards,spellLvl,spellMul,showSpellRoom,showTowerRoom,migrate48,TOURS,toursOf,hubTour,startTour};
 window.HOLDOR_SEATS={seatNo,lbIsMe,lbName,lbStale,lbMine,scoreSummary,fetchLeaderboard,cachedLb};
 window.HOLDOR_BOOK={showBook,bookNew,bookDisc,bookNewCount,bookMarkRead,BOOK,trophiesOf,trophiesRow,rankOf,myRank,rankSVG,showRankSheet,RANKS,RANK_AT};
