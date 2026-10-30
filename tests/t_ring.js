@@ -16,7 +16,7 @@ const VW = +(process.env.VW || 430), VH = +(process.env.VH || 766);
   const out = {};
   // a player on stage 12 with every tower open
   out.setup = await page.evaluate(() => {
-    const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tour = 1; a.learn = {rook:1,glass:1,keep:1,tier2:1,fire:1,reinf:1,scorp:1,wild:1,weir:1,tier3:1,tier4:1,tier5:1,gates:1,big:1,chest:1,hold:1,champ:1};
+    const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tour = 1; a.learn = {maul:1,rook:1,glass:1,keep:1,tier2:1,fire:1,reinf:1,scorp:1,wild:1,weir:1,tier3:1,tier4:1,tier5:1,gates:1,big:1,chest:1,hold:1,champ:1};
     for (let i = 1; i <= 30; i++) a.campaign[i] = 2; a.sel = 'jon'; H.setAcc(a);
     H.startGame({ mode: 'campaign', level: H.LEVELS[11] }); const G = H.G; G.gold = 5000;
     const app = document.querySelector('#app').getBoundingClientRect(), bar = document.querySelector('#bar').getBoundingClientRect();

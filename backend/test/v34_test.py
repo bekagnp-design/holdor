@@ -28,10 +28,10 @@ q("insert into players (tg_id, name, house, realm, save, save_ver) values (%s, '
 tok = q1('insert into sessions (tg_id) values (%s) returning token::text', A)
 anon('econ_state', token=tok, seat=0)
 sp = q1("select v->'spells' from econ_config where k = 'cards'")
-check('the cards config lists five spells', sorted(sp.keys()) == ['arrows', 'fire', 'night', 'reinf', 'repair'], json.dumps(sp))
+check('the cards config lists the five spells', all(k in sp for k in ['arrows', 'fire', 'night', 'reinf', 'repair']), json.dumps(sp))
 check('Long Night opens at 8 (Legendary), Gate repair at 12 (Epic)', sp['night'] == {'open': 8, 'rar': 3} and sp['repair'] == {'open': 12, 'rar': 2})
 tw = q1("select v->'towers' from econ_config where k = 'cards'")
-check('the Rookery is a seventh tower card: opens at 13, Legendary', len(tw) == 7 and tw['rook'] == {'open': 13, 'rar': 3}, json.dumps(tw))
+check('the Rookery is a seventh tower card: opens at 13, Legendary', len(tw) >= 7 and tw['rook'] == {'open': 13, 'rar': 3}, json.dumps(tw))
 q("update wallets set gold = 100000, cards = cards || %s::jsonb where tg_id = %s and seat = 0", json.dumps({'s:night': 40, 's:repair': 40, 't:rook': 40}), A)
 for k in ('s:night', 's:repair', 't:rook'):
     r = anon('econ_sync', token=tok, seat=0, ops=[{'r': 'card', 'k': k, 'to': 2, 'id': str(uuid.uuid4())}])

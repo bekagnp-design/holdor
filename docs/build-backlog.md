@@ -863,3 +863,28 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 - **What it does:** the three top buttons in battle carry a caption (BOOK, SPEED, PAUSE). More of the clean-up (the home) follows in later versions.
 - **How:** `ui127.css` + `data-cap` attributes, part `98q_ui127.py`. **Tests:** `t_ui127.js`. Also: `t_sheet89.js` marks every lesson as seen (the Rookery lesson of v1.2.2 covered the map).
 
+### v1.2.8 — Mastery marks in battle, a reroll for the skill offer (2026-10-29)
+- **What it does:** a tower with Mastery shows three small diamonds under its level pips in battle (filled by step, gold for path A, ice for path B). The skill offer has one "other skills" reroll per battle. A new battle forgets the last battle's offers (`G.learnAsk/learnDone/learned/learnRr` reset in `startGame0`; before this fix a second battle would not have offered again).
+- **Battle limits (checked, no change needed):** `backend/limits.json` holds lower bounds (`min_steps`, kills) set by the wave timers, not by tower power, so stronger towers, Mastery and learned skills cannot beat them.
+- **Tests:** `t_learn126.js` (second battle, reroll once), `t_mastery123.js` (the marks draw without errors).
+
+### v1.3.0 — the champion grows in battle (2026-10-29)
+- **What it does:** in a campaign battle from stage 5 the champion's battle level rises with kills (12, 32, 60, 100, 150): +6% damage, +6% health, a fifth of his health back, a ring and "LEVEL n"; the HUD shows ⭐n next to the kills. Two skills of the same kind (his kit plus the learned ones) give a one-time synergy: area / volleys / duelling +15% damage, mending / bulwark +15% health, winter +12% speed, embers +10% damage and faster strikes, command / muster +80 gold, treasury +120 gold. Hold, duel and clash battles are untouched.
+- **How:** `champ130.js`, part `98r_champ.py` (`champTick()` next to `mstTick`, the HUD line, the reset in `startGame0`); `learnPick` asks `champSynergy`.
+- **Tests:** `t_champ130.js`.
+
+### v1.3.1 — the Siege maul, an eighth tower (2026-10-29)
+- **What it does:** one heavy swing every ~2.4 s on a spot of the road: damage in a small circle and a stagger (0.7 s stop, 1.0 s after the "Stagger" milestone) for everything that is not a boss. Opens at stage 18, Epic (rarity 2). Drawn in code (a frame with a swinging beam); tower room, build ring, guide, encyclopedia, lesson and the looping demo know it.
+- **How:** `maul132.js`, part `98s_maul.py`: a tower of kind `splash` with a near-instant shell; the shell carries `stun`, the splash branch calls `maulHit` (stagger = `chillT`/`chillV 98`), the impact colour is gold instead of Wildfire green, `case'maul'` in `drawTower`.
+- **Server:** `backend/holdor_v35.sql` (config only: `towers.maul` open 18, rarity 2), `v35_test.py`; `econ.json` / `holdor_econ_data.sql` regenerated.
+- **Tests:** `t_maul132.js`; the tower-count expectations in `t_book`, `t_tower97`, `t_prep124`, `t_rook122`, `t_ring` follow the eight towers.
+
+### v1.3.3 — two more spells: Wildfire jars and Beacon (2026-10-29)
+- **What it does:** Wildfire jars (aimed like Arrow rain: tap the button, then the road) leave a burning pool for 8 s, 70 damage a second at level 1; Beacon (instant) makes every tower shoot 30% faster for 8 s and reveals stealth enemies. They open at stage 15 (Epic) and 20 (Legendary), grow +6% a level like the others, and fill the loadout choice (now 7 spells, 3 slots). (The Armory upgrade "Wildfire cache" already exists, so the spell is named "jars".)
+- **How:** `spells133.js`, part `98t_spells2.py` (`castPower` / `spellLine` / `spellSVG` wrappers, the cooldown tables, the aimed list, the Beacon rate factor in the tower step); `book.js` lines for both.
+- **Server:** `backend/holdor_v36.sql` (config only: `spells.jars`, `spells.beacon`), `v36_test.py`.
+- **Tests:** `t_spells133.js`.
+
+### v1.3.4 — clearer chest slots on the home (2026-10-29)
+- The level-chest slot says "AT LV n" (it was a bare "LV n") and the star-chest slot "★ 1/3". `skins.js` only.- Also in v1.3.4: the champion's battle levels 3 and 5 open a skill offer at once ("Robb · LEVEL 3"), on top of the offers before waves 3, 6, 9, 12 and 15 (`learnNow` in `learn126.js`, called from `champTick`). Test: `t_champ130.js`.
+

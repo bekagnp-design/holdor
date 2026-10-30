@@ -149,3 +149,8 @@ function mstHit(p){
   if(o.pierce){const others=G.enemies.filter(e=>e!==t0&&e.hp>0&&!e.fly&&e.route===t0.route&&Math.abs(e.prog-t0.prog)<60).sort((a,b)=>Math.abs(a.prog-t0.prog)-Math.abs(b.prog-t0.prog)).slice(0,o.pierce);
     let far=null,fd=0;for(const e of others){dmg(e,p.dmg*0.7,p.src);const q=posE(e),dd=dist(q.x,q.y,p.lx,p.ly);if(dd>fd){fd=dd;far=q;}}
     if(far)addFx({t:'line',x:p.lx,y:p.ly-8,tx:far.x,ty:far.y-8,life:0.25,col:'#ffe2a0'});}}
+/* v1.2.8: a mastered tower wears its path in battle — three small marks under the level pips, filled by the step, gold for path A, ice for path B */
+function mstMark(t,x,y){const m=mstState(t.type);if(!m.p)return;const col=m.p==='a'?'#ffb23c':'#7fd8ff';
+  for(let i=0;i<3;i++){const cx=x+12+i*6,cy=y+15.5;ctx.beginPath();ctx.moveTo(cx,cy-3);ctx.lineTo(cx+2.6,cy);ctx.lineTo(cx,cy+3);ctx.lineTo(cx-2.6,cy);ctx.closePath();
+    if(i<m.s){ctx.fillStyle=col;ctx.fill();ctx.strokeStyle='#201400';ctx.lineWidth=.8;ctx.stroke();}else{ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=.8;ctx.stroke();}}}
+

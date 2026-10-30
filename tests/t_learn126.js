@@ -25,6 +25,14 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   ok('the wave starts after the choice, and the offer does not come twice', await page.evaluate(() => { const G = window.HOLDOR.G; return G.wave === 3 && !G.learnAsk; }));
   const skv = await page.evaluate((id) => { const H = window.HOLDOR; return H.skVal ? H.skVal(H.G.hero, id) : -1; }, id);
   ok('the learned skill has a value in battle', skv === -1 || skv > 0, skv);
+  // a second battle offers again; the reroll works once
+  await start(8); await page.evaluate(() => { window.HOLDOR.step(); });
+  await page.waitForFunction(() => window.HOLDOR.G.learnAsk, { timeout: 5000 }).catch(() => {});
+  const first = await page.evaluate(() => (window.HOLDOR.G.learnAsk || []).join());
+  ok('a new battle offers again', first.length > 0);
+  await page.waitForTimeout(800); await page.screenshot({ path: SC + 'learn128.png' }); await page.evaluate(() => document.getElementById('learnRr').click()); await page.waitForTimeout(300);
+  const second = await page.evaluate(() => ({ a: window.HOLDOR.G.learnAsk.join(), btn: !!document.getElementById('learnRr'), cards: document.querySelectorAll('#boonOv [data-learn]').length }));
+  ok('the reroll gives other cards, once', second.a !== first && !second.btn && second.cards === 3, JSON.stringify(second));
   ok('no page errors', errors.length === 0, errors.join('|'));
   console.log(JSON.stringify(R, null, 1)); const bad = Object.values(R).filter(v => v.startsWith('FAIL')); console.log(bad.length ? 'FAILED ' + bad.length : 'ALL OK');
   await browser.close(); process.exit(bad.length ? 1 : 0);

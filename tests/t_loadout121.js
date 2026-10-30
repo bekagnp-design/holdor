@@ -19,7 +19,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   await setup(30); ok('the default loadout is Arrow rain, Dracarys, Brothers', (await lo()) === 'arrows,fire,reinf', await lo());
   await page.evaluate(() => window.HOLDOR.showHeroRoom && 0); await page.evaluate(() => { window.HOLDOR.showHub('coll', 'spells'); }); await page.waitForTimeout(400);
   const grid = await page.evaluate(() => document.querySelectorAll('.ccard[data-s]').length);
-  ok('the Spells tab shows all five spells', grid === 5, grid);
+  ok('the Spells tab shows all seven spells', grid === 7, grid);
   await page.evaluate(() => window.HOLDOR_ROOM ? 0 : 0);
   await page.evaluate(() => document.querySelector('.ccard[data-s="night"]').click()); await page.waitForTimeout(500);
   const eq = await page.evaluate(() => ({ slots: document.querySelectorAll('[data-eq]').length, txt: document.querySelector('#card').innerText.slice(0, 200) }));

@@ -16,7 +16,7 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
   await page.waitForTimeout(600);
   // ---- the guide texts: every tower has one, with real numbers
   const g = await page.evaluate(() => { const X = window.HOLDOR_FXT, out = {}; for (const k of Object.keys(X.TGUIDE)) { const h = X.towerGuideMini(k, 3), n = X.tgNums(k, 3); out[k] = { len: h.length, nums: n.length, txt: h.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ') }; } return out; });
-  ok('all seven towers have a guide with numbers and a strong / weak line', Object.keys(g).length === 7 && Object.values(g).every(x => x.nums >= 3 && /✔/.test(x.txt) && /✖/.test(x.txt)), JSON.stringify(Object.keys(g)));
+  ok('all eight towers have a guide with numbers and a strong / weak line', Object.keys(g).length === 8 && Object.values(g).every(x => x.nums >= 3 && /✔/.test(x.txt) && /✖/.test(x.txt)), JSON.stringify(Object.keys(g)));
   const nm = await page.evaluate(() => { const X = window.HOLDOR_FXT, T = window.HOLDOR.TOWERS || {}; const w = X.tgNums('watch', 1), gl = X.tgNums('glass', 1), we = X.tgNums('weir', 1);
     return { w: w.map(x => x[2]), gl: gl.map(x => x[2]), we: we.map(x => x[2]) }; });
   ok('numbers come from the game: Watchtower lvl 1 = 10 per hit, 1.60/s, 16 dps; Dragonglass slow 45%; Weirwood slow 30%, +20%', nm.w[0] === '10 per hit' && nm.w[1] === '1.60 / s' && String(nm.w[2]) === '16' && /45%/.test(nm.gl[1]) && /30%/.test(nm.we[0]) && /\+20%/.test(nm.we[1]), JSON.stringify(nm));

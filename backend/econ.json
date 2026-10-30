@@ -1,5 +1,5 @@
 {
- "version": "1.2.2",
+ "version": "1.3.3",
  "max": {
   "c": 60,
   "t": 16,
@@ -506,6 +506,10 @@
    "rook": {
     "open": 13,
     "rar": 3
+   },
+   "maul": {
+    "open": 18,
+    "rar": 2
    }
   },
   "spells": {
@@ -528,6 +532,14 @@
    "repair": {
     "open": 12,
     "rar": 2
+   },
+   "jars": {
+    "open": 15,
+    "rar": 2
+   },
+   "beacon": {
+    "open": 20,
+    "rar": 3
    }
   },
   "need": [

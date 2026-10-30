@@ -27,9 +27,9 @@ function homeSlots(){const sN=starChestsReady(),prog=starsEarned()%3,lN=lvlChest
   const d=dailyOn()?(DAILY.st&&DAILY.seat===seatNo()?DAILY.st.login:null):null,dReady=!!(d&&d.can);
   const ring=p=>`style="--p:${Math.round(p*100)}"`;
   return `<div class="hmslots">
-    <button class="slot ${sN>0?'ready':''}" id="starChest" ${ring(sN>0?1:prog/3)}><span class="si">${chestSVG('iron')}</span><em>${sN>0?'OPEN':prog+'/3 ★'}</em>${sN>1?`<b class="cnt">×${sN}</b>`:''}</button>
+    <button class="slot ${sN>0?'ready':''}" id="starChest" ${ring(sN>0?1:prog/3)}><span class="si">${chestSVG('iron')}</span><em>${sN>0?'OPEN':'★ '+prog+'/3'}</em>${sN>1?`<b class="cnt">×${sN}</b>`:''}</button>
     ${lN>0?`<button class="slot ready" id="lvlChest" ${ring(1)}><span class="si">${chestSVG(lvlChestTier((ACC.lvlChests||0)+2))}</span><em>OPEN</em>${lN>1?`<b class="cnt">×${lN}</b>`:''}</button>`
-      :`<button class="slot" id="lvlNext" ${ring(L.xp/L.need)}><span class="si dim">${chestSVG(lvlChestTier(L.l+1))}</span><em>LV ${L.l+1}</em></button>`}
+      :`<button class="slot" id="lvlNext" ${ring(L.xp/L.need)}><span class="si dim">${chestSVG(lvlChestTier(L.l+1))}</span><em>AT LV ${L.l+1}</em></button>`}
     <button class="slot ${fr?'ready':''}" id="freeChest" ${ring(fr?1:1-fl/86400000)}><span class="si">${chestSVG('wood')}</span><em data-until="${fr?0:ACC.freeChestAt+86400000}">${fr?'FREE':fmtT(fl).str}</em></button>
     <button class="slot ${dReady?'ready':''}" id="dailyGift" ${ring(dReady?1:1-msToMidnightUTC()/86400000)}><span class="si gift">🎁</span><em data-midnight="${dReady?0:1}">${!dailyOn()?'DAILY':dReady?'CLAIM':fmtT(msToMidnightUTC()).str}</em></button></div>`;}
 function homeQuick(){return `<div class="homerow"><button class="hbtn" id="bCity"><span class="ic">🏰</span><b>City</b></button><button class="hbtn" id="bTavern"><span class="ic">🍺</span><b>Tavern</b></button><button class="hbtn" id="bForge"><span class="ic">⚒️</span><b>Forge</b></button>${dailyBtnHTML()}${seasonBtnHTML()}</div>`;}
