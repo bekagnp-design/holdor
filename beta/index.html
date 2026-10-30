@@ -719,7 +719,7 @@ table.lv tr.lk td{color:#9a8a6a}
   background:repeating-linear-gradient(90deg,rgba(0,0,0,.08) 0 3px,transparent 3px 11px),linear-gradient(180deg,#6b4a2b,#4a3119) #5a3d22}
 .bookfs::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(255,255,255,.035) 0 2px,transparent 2px 9px);pointer-events:none}
 .bkhead{position:relative;display:flex;align-items:flex-end;gap:3px;padding:6px 46px 0 2px;min-height:44px}
-.bkrib{flex:1;min-width:0;background:linear-gradient(180deg,#a3542b,#7a3a1a);border:2px solid #3a1c0c;border-bottom:0;border-radius:8px 8px 0 0;color:#f6e3bb;font-family:var(--f-display);font-size:8.5px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;padding:10px 1px 7px;text-align:center;text-shadow:0 1px 0 #3a1c0c;position:relative;top:2px;white-space:nowrap}
+.bkrib{flex:1;min-width:0;background:linear-gradient(180deg,#a3542b,#7a3a1a);border:2px solid #3a1c0c;border-bottom:0;border-radius:8px 8px 0 0;color:#f6e3bb;font-family:var(--f-display);font-size:8px;font-weight:900;letter-spacing:0;text-transform:uppercase;padding:10px 1px 7px;text-align:center;text-shadow:0 1px 0 #3a1c0c;position:relative;top:2px;white-space:nowrap}
 .bkrib.on{background:linear-gradient(180deg,#ffe97a,#f2a62c);color:#3a1c0c;text-shadow:0 1px 0 rgba(255,255,255,.4);padding-top:13px;top:0;border-color:#7a4a10}
 .bkrib .n{position:absolute;top:-1px;right:-1px;min-width:13px;height:13px;border-radius:7px;background:#e14b4b;color:#fff;font-size:8.5px;line-height:13px;text-align:center;padding:0 3px;border:1px solid #3a1c0c;letter-spacing:0}
 .bkx{position:absolute;right:0;top:-2px;width:42px;height:46px;border:0;background:linear-gradient(180deg,#c9612f,#8e3b16);clip-path:polygon(0 0,100% 0,100% 100%,50% 82%,0 100%);color:#f6e3bb;font-size:18px;font-weight:900;padding:0 0 8px;text-shadow:0 1px 0 #3a1c0c}
@@ -796,6 +796,8 @@ table.lv tr.lk td{color:#9a8a6a}
 .bookfs .btn{max-width:360px;margin:12px auto 0}
 .bookfs .tutnote{margin:10px 0 0;background:rgba(11,26,46,.85);color:#f2e6c9;border:1px solid var(--gold);border-radius:10px;padding:8px 10px;font-size:12.5px}
 .subtabs button .n{display:inline-block;min-width:14px;height:14px;line-height:14px;border-radius:7px;background:#e14b4b;color:#fff;font-size:9px;text-align:center;margin-left:3px;padding:0 3px;border:1px solid #7a1d1d;vertical-align:1px}
+
+.bkrib .n{top:-6px;right:-3px}
 
 /* ---- ranks (v1.0.50) ---- */
 .rksvg{flex:0 0 auto;filter:drop-shadow(0 1px 0 rgba(0,0,0,.5))}
@@ -2691,7 +2693,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.3.7';
+const VERSION='1.3.8';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -7158,7 +7160,7 @@ function bookChamp(id){const c=CBY[id],hh=HOUSES[c.house],open=unlocked(null,c),
 function bookSpell(k){const S=SPELLS[k],open=cardOpen('s:'+k),l=spellLvl(k),m=spellMul(k);
   if(!open)return `<div class="bkdet"><div class="bkpic dark"><span class="q">?</span></div><div class="tx"><h3>${S.n}</h3><span class="sub">spell</span><p>Opens after stage ${S.at} is held.</p></div></div>`;
   const eff=k==='arrows'?[bookStat('💥',Math.round(170*m),'damage each'),bookStat('📏','95 px','circle')]:k==='fire'?[bookStat('💥',Math.round(400*m),'damage each'),bookStat('🔥',Math.round(20*m)+'/s · 3 s','burning'),bookStat('📏','72 px','circle'),bookStat('🐉','full','vs dragons')]:k==='night'?[bookStat('❄️',Math.min(60,Math.round(40*m))+'%','slower'),bookStat('⏱️','6 s','on every enemy')]:k==='repair'?[bookStat('🧱',Math.round(30*m)+'%','of the gate back')]:k==='jars'?[bookStat('🔥',Math.round(70*m)+'/s','burning pool'),bookStat('⏱️','8 s','it stays'),bookStat('📏','60 px','circle')]:k==='beacon'?[bookStat('⚡','+'+Math.round(30*m)+'%','fire rate, all towers'),bookStat('⏱️','8 s','it burns'),bookStat('👁️','all','stealth revealed')]:[bookStat('👥',(UP('sworn')?5:3)+(l>=S_MAX?1:0),'brothers'),bookStat('❤️',Math.round(150*(1+0.2*(maxTowerLvl()-1))*m),'health each'),bookStat('⏱️','15 s','on the road')];
-  return `<div class="bkdet"><div class="bkpic dark"><span class="spi">${spellSVG(k)}</span></div><div class="tx"><h3>${S.n}${bookIsNew('spells',k)?'<span class="bknew">NEW</span>':''}</h3><span class="sub">spell · level ${l} of ${S_MAX} · recharges ${S.cd} s</span><p>${S.d}. ${k==='arrows'?'Tap the button, then the road — the volley lands where you tap.':k==='fire'?'Tap the button, then the road. The one spell that fully hurts a dragon.':k==='night'?'No aim needed: the cold falls on every enemy at once.':k==='repair'?'No aim needed: the masons mend the gate at once.':k==='jars'?'Tap the button, then the road: the jars break there and the fire stays.':k==='beacon'?'No aim needed: every tower in the battle shoots faster while it burns.':'No aim needed: they march out of the gate onto the busiest road.'}</p></div></div>
+  return `<div class="bkdet"><div class="bkpic dark"><span class="spi">${spellSVG(k)}</span></div><div class="tx"><h3>${S.n}${bookIsNew('spells',k)?'<span class="bknew">NEW</span>':''}</h3><span class="sub">spell · level ${l} of ${S_MAX} · recharges&nbsp;${S.cd}&nbsp;s</span><p>${S.d}. ${k==='arrows'?'Tap the button, then the road — the volley lands where you tap.':k==='fire'?'Tap the button, then the road. The one spell that fully hurts a dragon.':k==='night'?'No aim needed: the cold falls on every enemy at once.':k==='repair'?'No aim needed: the masons mend the gate at once.':k==='jars'?'Tap the button, then the road: the jars break there and the fire stays.':k==='beacon'?'No aim needed: every tower in the battle shoots faster while it burns.':'No aim needed: they march out of the gate onto the busiest road.'}</p></div></div>
   <div class="bkst">${eff.join('')}${bookStat('⏱️',S.cd+' s','recharge')}</div>
   <div class="bkdisc">Cards and gold raise a spell to level ${S_MAX}: +6% power a level${k==='reinf'?', a fourth brother at the top':''}.</div>`;}
 function bookNotes(){const N=[
@@ -8598,7 +8600,7 @@ function showClashLocal(back){const R=clashRec(),hh=HOUSES[ACC.house],lv=['Bronz
     <div class="clbots">${lv.map((n,i)=>`<button class="clb ${i+1===R.bot?'on':''} ${i+1>R.bot?'lock':''}" data-b="${i+1}">${['🥉','🥈','🥇','💎','🐉'][i]}<b>${n}</b><small>bot ${i+1}</small></button>`).join('')}</div>
     <p class="m">Two wins in a row at a level open the next. <b>Army points</b> come one every 10 s; a send costs 2–4. The ${TROOPS[ACC.house].house.n} needs army level ${ARMY_HOUSE_AT} (Army → City → Barracks).</p>
     <button class="btn" id="bClashGo">⚔️ Fight bot ${R.bot}</button>
-    <p class="m" style="font-size:11.5px">Ranked leagues, friend links and a live friend come next (v1.1.2–3). Nothing here touches your rating.</p>`);
+    <p class="m" style="font-size:11.5px">Practice never touches your rating.</p>`);
   CLOUD.screen='clash-menu';$('#bBack').addEventListener('click',()=>CLASH.back());
   card.querySelectorAll('.clb').forEach(b=>b.addEventListener('click',()=>{const n=+b.dataset.b;if(n>R.bot){SFX.play('deny');return;}card.querySelectorAll('.clb').forEach(x=>x.classList.toggle('on',x===b));$('#bClashGo').textContent='⚔️ Fight bot '+n;$('#bClashGo').dataset.b=n;SFX.play('tap',60);}));
   $('#bClashGo').addEventListener('click',()=>{if(!ACC.tut){ecoToast('Finish the tutorial battle first');return;}overlay.classList.add('hidden');clashStart({bot:+($('#bClashGo').dataset.b||R.bot)});});}
@@ -9298,7 +9300,7 @@ function callBtnInit(){
 function callBtnTick(){
   const b=CALLB.el;if(!b)return;
   const ok=typeof G!=='undefined'&&G&&(G.mode==='campaign'||G.mode==='online')&&canCall();
-  b.hidden=!ok;if(!ok)return;
+  {const sh=document.getElementById('sheet');b.hidden=!ok||G.state!=='play'||!!(sh&&sh.classList.contains('open'));}if(b.hidden)return;
   b.textContent='⚔ CALL WAVE'+(G.nextIn>1?'  +'+Math.ceil(G.nextIn)+'🪙':'');
   b.classList.toggle('want',!!(G.tut&&typeof tutWantBase==='function'&&tutWantBase()==='call'));
 }
