@@ -1,0 +1,10 @@
+/* v1.3.8: Trials */
+.trcard{margin:8px 0;padding:10px;border-radius:16px;background:linear-gradient(180deg,#26304a,#141a2c);border:2px solid #4a5f8f;box-shadow:0 3px 0 rgba(0,0,0,.45)}
+.trcard .trrow{display:flex;gap:10px;align-items:center}
+.trcard .hmmini{flex:0 0 84px;width:84px;height:60px;border-radius:10px;border:2px solid rgba(0,0,0,.55)}
+.trcard .trtx{display:flex;flex-direction:column;gap:2px;min-width:0}.trcard .trtx b{font:900 17px var(--f-display);color:#ffe08a;letter-spacing:.04em}
+.trcard .trtx small{font-size:11px;color:#bfd2f2}.trcard .trtx em{font-style:normal;font-weight:800;font-size:13px;color:#fff}
+.trcard .trinfo{margin:10px 2px 8px;font-size:13px;line-height:1.35;color:#dfe9f7}
+.trcard .trgo{width:100%;font-size:20px;letter-spacing:.12em}.trcard .trnote{margin:8px 2px 0;font-size:11px;color:#9fb2d4;text-align:center}
+.trlast{margin-top:10px;padding:8px;border-radius:12px;background:rgba(0,0,0,.28)}.trlast .trlh b{display:block;font:900 13px var(--f-display);color:#ffd54a}.trlast .trlh small{font-size:11px;color:#bfe6ff}
+.trlast .bcsk{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.trlast .bcs{display:flex;flex-direction:column;align-items:center;width:58px}.trlast .bcs small{font-size:9px;color:#d6c8f0;text-align:center;line-height:1.1}

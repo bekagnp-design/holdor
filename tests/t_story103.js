@@ -67,13 +67,14 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
   await page.screenshot({ path: SC + 'story103_keep_btn.png' });
   await tap('#bNext', 1600);
   const k = await page.evaluate(() => { const A = window.HOLDOR.ACC; return { castle: !!A.castle, f4: !!A.film.f4, hub: !!document.querySelector('.hubtabs'), scr: window.HOLDOR.CLOUD.screen, locks: [...document.querySelectorAll('.hubtabs button.lock')].map(b => b.dataset.tab + ':' + b.dataset.lock).join(), pills: [...document.querySelectorAll('.hmstrip .hpill')].map(b => b.id).join(), slots: document.querySelectorAll('.hmslots .slot').length, app: document.getElementById('app').classList.contains('prestory') }; });
-  ok('film 4 → the castle opens for the first time: only BATTLE is open — Army, Shop, Clan locked (stages 4, 5, 6), no chests, the rank pill only', k.castle && k.f4 && k.hub && k.scr === 'hub:battle' && /shop:2/.test(k.locks) && /coll:1/.test(k.locks) && /clan:3/.test(k.locks) && k.pills === 'hubTro' && k.slots === 0 && !k.app, JSON.stringify(k));
+  ok('film 4 → the castle opens for the first time: only BATTLE is open — Army, Shop, Trials locked (stages 4, 5, 8), no chests, the rank pill only', k.castle && k.f4 && k.hub && k.scr === 'hub:battle' && /shop:2/.test(k.locks) && /coll:1/.test(k.locks) && /trials:5/.test(k.locks) && k.pills === 'hubTro' && k.slots === 0 && !k.app, JSON.stringify(k));
   await page.screenshot({ path: SC + 'story103_castle.png' });
   // ---- after the castle: a stage at a time opens a part, with its film
   const open = async n => { await page.evaluate(n => { const H = window.HOLDOR; H.G.state = 'menu'; for (let i = 1; i <= n; i++) H.ACC.campaign[i] = 3; H.persist(); H.showHub('battle'); }, n); await page.waitForTimeout(900); return page.evaluate(() => ({ locks: [...document.querySelectorAll('.hubtabs button.lock')].map(b => b.dataset.tab).join(), f: Object.keys(window.HOLDOR.ACC.film || {}).join(), slots: document.querySelectorAll('.hmslots .slot').length })); };
-  const a4 = await open(4); ok('stage 4 held: film 5, the Army and the chests open', a4.locks === 'shop,clan' && /f5/.test(a4.f) && a4.slots === 4, JSON.stringify(a4));
-  const a5 = await open(5); ok('stage 5 held: film 6, the Shop and the Tasks pill open', a5.locks === 'clan' && /f6/.test(a5.f), JSON.stringify(a5));
-  const a6 = await open(6); ok('stage 6 held: film 7, the Clan opens — nothing is locked', a6.locks === '' && /f7/.test(a6.f), JSON.stringify(a6));
+  const a4 = await open(4); ok('stage 4 held: film 5, the Army and the chests open', a4.locks === 'shop,trials' && /f5/.test(a4.f) && a4.slots === 4, JSON.stringify(a4));
+  const a5 = await open(5); ok('stage 5 held: film 6, the Shop and the Tasks pill open', a5.locks === 'trials' && /f6/.test(a5.f), JSON.stringify(a5));
+  const a6 = await open(6); ok('stage 6 held: film 7 (v1.3.8: the Clan has no tab; only Trials stay locked, until stage 8)', a6.locks === 'trials' && /f7/.test(a6.f), JSON.stringify(a6));
+  const a8 = await open(8); ok('stage 8 held: Trials open — nothing is locked', a8.locks === '', JSON.stringify(a8));
   // ---- more doors out of the story are closed: the campaign map, and a battle that cannot start leaves a card with Continue
   const wk = await page.evaluate(() => { const H = window.HOLDOR; H.ACC.castle = 0; H.ACC.sv = 1; H.ACC.tutWon = 1; H.ACC.campaign = { 1: 3, 2: 3 }; H.ACC.film = { f0: 1, f1: 1, f2: 1, f3: 1 }; H.G.state = 'menu'; window.HOLDOR_STORY.stClass(); window.HOLDOR_STORY.showCampaign(); return { state: H.G.state, scr: H.CLOUD.screen, map: !!document.querySelector('.stagegrid, .campmap, #bMapBack') }; }); await page.waitForTimeout(600);
   const wk2 = await st();
