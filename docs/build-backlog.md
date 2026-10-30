@@ -920,3 +920,6 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 - **Changed:** Scorpion Dragonbane ×1.6 → ×1.35 (step 1–2 ×1.25 → ×1.2), pierce side hits 70% → 50%, Walkerbane ×4/×4/×5 → ×3.5/×3.5/×4, Knight's charge ×1.25/1.5/2 → ×1.2/1.4/1.7, Seep pools ×1.5/2.25/3 → ×1.25/1.75/2.25 of the burn, Rookery extra ravens 60/70/80% → 50/55/60%. After two learned shield-kind skills the offer stops offering more of them (his own kit's are still offered). Battle-level thresholds grow 3% a stage after stage 5 (they were all reached by stage 5).
 - **Not changed (proposals kept):** Bleed on bosses and Bloodmagic caps (a champion's own skill is covered by `t_champs54`); retuning `src/mults.json` for stages 25 and 35 needs a bot that answers the offer and a matching tower profile (the old `bot45.js` stalls at wave 2 on the unanswered offer): a separate job.
 
+### v1.4.2 — gates readable in battle (2026-10-30)
+- On two- and three-gate stages the CALL WAVE button no longer covers a gate (it sits higher, `tut107.css`), the WEST / MID / EAST labels are light text above the Hodor bar and the bar's text is larger (`98z_polish.py`). Still open from the second audit: the enemy name pill's icon over its first letters, Dracarys' label under the cooldown cover, Daily tab / Shop unlock label wrapping, the champion's bubble over the build ring.
+
