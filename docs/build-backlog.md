@@ -901,3 +901,11 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 - **Share the build:** the build card on the result screen has "Show your build": a Telegram share with the build name, the skills and the battle level plus the player's invitation link (`build135.js`).
 - **Fix:** the spell room showed an empty picture for Wildfire jars and Beacon (the v1.3.3 spells had no demo scene); both now have one, and `t_demo125.js` fails when any scene is blank. `t_champs53` and the managed Mastery test (`mastery_test.py`, the new-day calendar popup) no longer flake.
 
+### v1.3.8 — visual polish from the second audit (2026-10-30)
+- The yellow CALL WAVE button no longer sits over the tower sheet or the result card (hidden while `#sheet` is open or the battle is not running; `tut107.js`). The Houses Clash start screen no longer promises v1.1.2–3 as "coming" (`clash.js`). Book tabs: smaller label, the count badge no longer covers a letter (`book.css`); the spell header keeps "recharges 26 s" together (`book.js`).
+- Audit items not fixed yet (see the audit in the session log): HODOR bar over the gate labels, the enemy pill icon over its first letters, Dracarys label contrast under the cooldown cover, Daily tabs / Shop unlock label wrapping, the champion bubble over the build ring.
+
+### v1.3.9 — challenge a friend with your build (2026-10-30)
+- The "Show your build" share link carries the build: `startapp=b_<SS><CC><L><KK…>[_<code>]` in base36 (stage, champion index, battle level, up to 8 skill indexes in `Object.keys(SK)` order, then the sender's invitation code). A player who opens it sees "A friend's Area build beat stage 12 with Robb + Warhammer + Howl" and a "Beat it — stage N" button that starts that stage (with the receiver's own champion unless the receiver owns the sender's). The invitation reward still works (`b_..._code` is turned back into `r_code` before `ref_join`). Malformed links and closed stages are ignored silently. No backend. **Caveat:** skill indexes follow the order of `SK`: only append new skills at the end.
+- `challenge138.js`, part `98x_challenge.py`, `t_challenge138.js`.
+

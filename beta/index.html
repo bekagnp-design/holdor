@@ -1790,6 +1790,8 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 .bcard .bcshare{margin:10px auto 0;padding:6px 14px;font-size:13px}
 /* v1.3.7: the founder tag */
 .who small .fnd{color:#ffd54a;font-weight:800;letter-spacing:.04em}
+/* v1.3.8: the challenge sheet */
+.chal{text-align:center}.chal b{display:block;font-size:14px;color:#ffd54a;line-height:1.35}.chal small{display:block;margin-top:6px;font-size:11px;color:#bfe6ff}
 </style>
 </head>
 <body>
@@ -2693,7 +2695,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.3.8';
+const VERSION='1.3.9';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -4663,7 +4665,7 @@ function confirmWipe(i){
   $('#bYes').addEventListener('click',()=>{SAVE.slots[i]=null;if(SAVE.cur===i){SAVE.cur=-1;ACC=null;}persist();showSlots();});
 }
 function afterLoad(){
-  ecoStart();stClass();
+  ecoStart();stClass();try{chalFromStart(TG&&TG.initDataUnsafe&&TG.initDataUnsafe.start_param);}catch(e){}
   if(ACC&&ACC.sv){showHub('battle');return;}
   if(!ACC.intro){showCinematic(()=>{ACC.intro=1;persist();if(!ACC.tut)startTutorial();else showHub('battle');});return;}
   showHub('battle');
@@ -5720,7 +5722,7 @@ async function dailyClaimFr(other){if(DAILY.busy||!ecoOn())return;DAILY.busy=tru
     DAILY.fr=r.friends;DAILY.seat=seat;ecoWait(false);DAILY.busy=false;SFX.play('collect');persist();if(r.reward&&r.reward.gear)gearLoad(true);dailyClaimModal(r,'👥 A friend’s gift');}
   catch(e){DAILY.busy=false;ecoWait(false);const m=ecoMsg(e);if(!ecoNet(m))await frLoad();ecoModal('👥 Not now',ecoNet(m)?'No connection to the server. Try again in a moment.':esc(m.slice(0,120)),[{t:'OK',f:()=>showDaily('friends')}]);}}
 /* a new player who opened the game from an invite link joins his friend (once per device; the server checks he is really new) */
-function refJoinFromStart(){try{const sp=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.start_param;if(sp&&/^d_[0-9a-f]{8}$/i.test(sp)){DUEL.pending=sp.slice(2);return;}if(cl2FromStart(sp))return;if(sp&&/^s_[a-z0-9_]{2,16}$/i.test(sp)&&CLOUD.token){const k0='holdor_src';if(localStorage.getItem(k0)===sp)return;localStorage.setItem(k0,sp);sbRpc('src_set',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).catch(()=>{});return;}if(!sp||!/^r_[0-9a-f]{8}$/i.test(sp)||!CLOUD.token)return;
+function refJoinFromStart(){try{const sp=chalSp(TG&&TG.initDataUnsafe&&TG.initDataUnsafe.start_param);if(sp&&/^d_[0-9a-f]{8}$/i.test(sp)){DUEL.pending=sp.slice(2);return;}if(cl2FromStart(sp))return;if(sp&&/^s_[a-z0-9_]{2,16}$/i.test(sp)&&CLOUD.token){const k0='holdor_src';if(localStorage.getItem(k0)===sp)return;localStorage.setItem(k0,sp);sbRpc('src_set',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).catch(()=>{});return;}if(!sp||!/^r_[0-9a-f]{8}$/i.test(sp)||!CLOUD.token)return;
   const k='holdor_refjoin';if(localStorage.getItem(k)===sp)return;localStorage.setItem(k,sp);
   sbRpc('ref_join',{token:CLOUD.token,code:sp.slice(2)},{timeout:8000}).then(r=>{if(r&&r.by)ecoToast('👥 You joined '+r.by+'’s house of friends — clear 5 stages for a gift');}).catch(e=>{const m=String(e&&e.message||e);if(/only a new player|already invited/.test(m))setTimeout(()=>ecoToast('👥 You already play HOLDOR — friend gifts are for new players. You can still duel your friend: ask for a duel link.'),2500);});}catch(e){}}
 /* the popup when the castle opens and today's reward waits (once a session; never over a tutorial or a tour) */
@@ -9723,7 +9725,7 @@ function buildCard(){if(!G.hero||!(G.learned||[]).length)return '';const syn=Obj
     <div class="bcsk">${G.learned.map(k=>`<span class="bcs">${skillIcon(k,38,0)}<small>${esc(SK[k].n)}</small></span>`).join('')}</div>
     <button class="btn sec bcshare" id="bBuildShare">📨 Show your build</button></div>`;}
 function buildShareText(){const h=G.hero;return `My ${buildName()||'build'} in HOLDOR: ${shortName(h.c)} learned ${G.learned.map(k=>SK[k].n).join(', ')} (battle level ${(G.hLv||0)+1}). Beat it:`;}
-{const scr1=showCampaignResult;showCampaignResult=function(win,stars,nu,gained){scr1(win,stars,nu,gained);try{const bc=buildCard();if(!bc)return;const at=card.querySelector('.resrow')||card.querySelector('#bRetry');if(at)at.insertAdjacentHTML('beforebegin',bc);const sb=card.querySelector('#bBuildShare');if(sb)sb.addEventListener('click',()=>{SFX.play('tap',60);shareText(buildShareText());});}catch(e){}};}
+{const scr1=showCampaignResult;showCampaignResult=function(win,stars,nu,gained){scr1(win,stars,nu,gained);try{const bc=buildCard();if(!bc)return;const at=card.querySelector('.resrow')||card.querySelector('#bRetry');if(at)at.insertAdjacentHTML('beforebegin',bc);const sb=card.querySelector('#bBuildShare');if(sb)sb.addEventListener('click',()=>{SFX.play('tap',60);chalShare(buildShareText());});}catch(e){}};}
 /* v1.3.6: every champion's blows look like him. The effect at the target follows the kind of his first skill (embers, frost, shock rings, slashes,
    green motes, gold stars, ghost smoke…) and his house colour. Display only: nothing here touches damage or the simulation. */
 const SIGFX={dot:['fire','#ff8a3c',16],control:['burst','#9fe6ff',20],aoe:['ring','#ffd54a',30],rain:['slash','#ffe08a',0],heal:['burst','#8dffa0',16],shield:['hit','#bfe6ff',0],
@@ -9748,6 +9750,39 @@ function founderTag(){
   if(!FND.asked&&typeof CLOUD!=='undefined'&&CLOUD.on&&CLOUD.token){FND.asked=true;
     ecoRpc('founder_no',{},8000).then(n=>{if(typeof n==='number'&&n>0&&n<=100&&ACC){ACC.fno=n;persist();const el=document.querySelector('.who small');if(el&&!el.querySelector('.fnd'))el.insertAdjacentHTML('beforeend',founderTag());}}).catch(()=>{});}
   return '';}
+/* v1.3.8: "Challenge a friend with my build". The build card's share link carries the stage, the champion, the skills learned and the battle level
+   in the one startapp parameter: b_<SS><CC><L><KK…>[_<invitation code>] — SS stage (base36, 2), CC champion index in CHAMPS (2), L battle level (1),
+   KK… skill indexes in Object.keys(SK) (2 each, at most 8), then the sender's invitation code (8 hex) so the invitation reward still works. ≤ 47 chars.
+   The receiver sees a sheet with what the link carries and a button for that stage; a bad link or a closed stage is ignored in silence. Local only. */
+const CHAL={pending:null,tries:0};
+const b36=(n,w)=>(n>>>0).toString(36).padStart(w,'0'),f36=s=>parseInt(s,36);
+function chalEncode(stage,champ,skills,lv,code){const sk=Object.keys(SK),ci=CHAMPS.findIndex(c=>c.id===champ);if(ci<0||!(stage>0))return '';
+  const ks=(skills||[]).slice(0,8).map(k=>sk.indexOf(k)).filter(i=>i>=0);
+  return 'b_'+b36(stage,2)+b36(ci,2)+b36(Math.min(35,Math.max(1,lv||1)),1)+ks.map(i=>b36(i,2)).join('')+(code&&/^[0-9a-f]{8}$/i.test(code)?'_'+code.toLowerCase():'');}
+function chalDecode(sp){try{const m=/^b_([0-9a-z]{5}(?:[0-9a-z]{2}){0,8})(?:_([0-9a-f]{8}))?$/i.exec(sp||'');if(!m)return null;const b=m[1].toLowerCase(),sk=Object.keys(SK);
+  const stage=f36(b.slice(0,2)),ch=CHAMPS[f36(b.slice(2,4))],lv=f36(b[4]),skills=[];if(!ch||!(stage>0)||!(lv>0))return null;
+  for(let i=5;i<b.length;i+=2){const k=sk[f36(b.slice(i,i+2))];if(!k)return null;skills.push(k);}
+  return {stage,champ:ch.id,lv,skills,code:m[2]?m[2].toLowerCase():null};}catch(e){return null;}}
+function chalSp(sp){const d=chalDecode(sp);return d&&d.code?'r_'+d.code:sp;}   /* so the invitation join sees the plain r_ code */
+function chalName(c,skills){const n={};for(const k of c.sk)if(!SK[k].ult)n[skCat(k)]=(n[skCat(k)]||0)+1;for(const k of skills)n[skCat(k)]=(n[skCat(k)]||0)+1;
+  let best=null,bv=0;for(const x in n)if(n[x]>bv&&SYN[x]){bv=n[x];best=x;}return best?SYN[best][0]+' build':'build';}
+async function chalLink(){const lv=(G.hLv||0)+1,st=G.level&&G.level.id;if(!G.hero||!st||!(G.learned||[]).length)return shareLink();
+  let code=null;try{const l=await shareLink();const m=/startapp=r_([0-9a-f]{8})/i.exec(l);if(m)code=m[1];}catch(e){}
+  const sp=chalEncode(st,G.hero.c.id,G.learned,lv,code);return sp?BOT_LINK+'?startapp='+sp:BOT_LINK;}
+async function chalShare(text){const link=await chalLink(),u='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent(text);
+  try{if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank');}catch(e){}}
+function chalFromStart(sp){const d=chalDecode(sp);if(!d)return false;CHAL.pending=d;CHAL.tries=0;setTimeout(chalOpen,900);return true;}
+/* the stage must be open for this player; otherwise the link is dropped without a word */
+function chalCheck(d){const L=LEVELS.find(l=>l.id===d.stage);return L&&levelOpen(null,L)?L:null;}
+function chalOpen(){const d=CHAL.pending;if(!d)return;
+  if(!ACC||!ACC.tut||G.state==='play'||!/^hub/.test(CLOUD.screen||'')||document.querySelector('#ecoModal.on')||document.querySelector('#cer:not(.hidden)')||(typeof COACH!=='undefined'&&COACH.on)){if(++CHAL.tries<90)setTimeout(chalOpen,1000);else CHAL.pending=null;return;}
+  CHAL.pending=null;const L=chalCheck(d);if(!L)return;const c=CBY[d.champ],own=unlocked(null,c),sh=shortName(c);
+  ecoModal('⚔️ A friend’s challenge',`<div class="chal"><b>A friend’s ${esc(chalName(c,d.skills))} beat stage ${L.id} with ${esc([sh].concat(d.skills.map(k=>SK[k].n)).join(' + '))}.</b>
+    <small>Target: hold ${esc(L.n)} · the friend reached battle level ${d.lv}.</small>
+    <small>${own?'You ride with '+esc(sh)+', as they did.':'You ride with your own champion — '+esc(shortName(CBY[ACC.sel]||CHAMPS[0]))+'.'} Skills you pick in battle are yours.</small></div>`,
+    [{t:'⚔️ Beat it — stage '+L.id,f:()=>chalGo(d)},{t:'Later'}]);}
+function chalGo(d){const L=chalCheck(d);if(!L||G.state==='play')return false;const keep=ACC.sel,c=CBY[d.champ];
+  if(c&&unlocked(null,c))ACC.sel=c.id;try{startGame({mode:'campaign',level:L});}finally{ACC.sel=keep;}return true;}
 window.HOLDOR_TROOPS={TROOPS,TROOP_ROLE,TROOP_ROLES,troopDef,troopUnits,troopStats,keepRole,troopDress,allyStrike,troopMend,drawTroopBody,troopPreview,showTrain,towerStats,HOUSE_ORDER,HOUSES,build,LEVELS};
 window.HOLDOR_CLASH={CLASH,CLASH_COST,CLASH_N,CLASH_TOP,genClash,clashStart,clashStop,clashSend,clashStepB,clashBot,clashSpawnTroops,clashFinish,clashDraw,showClash,clashCardHTML,gSnap,gSwap,toWorld,w2s};
 window.HOLDOR_CL2={CL2,clashServer,cl2Load,cl2Call,clashGhostInit,clashGhostStep,clashGhostDo,clashRunLog,clashRunWaves,clashAfter,cl2FromStart,cl2PendingOpen,cl2Go,showClash,showClashLocal,setRpc:f=>{cl2Rpc=f;}};
@@ -9766,6 +9801,7 @@ window.HOLDOR_MAUL={maulStun,maulHit,maulDraw,maulSVG};
 window.HOLDOR_BUILD={buildName,buildCard,buildShareText};
 window.HOLDOR_SIG={SIGFX,sigStyle,heroSig};
 window.HOLDOR_FND={FND,founderTag};
+window.HOLDOR_CHAL={CHAL,chalEncode,chalDecode,chalSp,chalLink,chalFromStart,chalOpen,chalGo,chalCheck,chalName,CHAMPS,unlocked};
 window.HOLDOR_CARDS={CARD_NEED,CARD_MUL,cardRar,cardLvl,cardMax,cardNeed,cardHave,cardGold,cardName,cardOpen,cardReady,cardCan,addCards,cardLevelUp,accLevel,accXp,addXp,xpNeed,lvlChestTier,lvlChestsReady,cardPool,rollChest,stageCards,spellLvl,spellMul,showSpellRoom,showTowerRoom,migrate48,TOURS,toursOf,hubTour,startTour};
 window.HOLDOR_SEATS={seatNo,lbIsMe,lbName,lbStale,lbMine,scoreSummary,fetchLeaderboard,cachedLb};
 window.HOLDOR_BOOK={showBook,bookNew,bookDisc,bookNewCount,bookMarkRead,BOOK,trophiesOf,trophiesRow,rankOf,myRank,rankSVG,showRankSheet,RANKS,RANK_AT};
