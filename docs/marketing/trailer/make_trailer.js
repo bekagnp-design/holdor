@@ -10,7 +10,7 @@ const CAPS = [ // [t0, t1, text, kind]  kind: card = full black card, cap = capt
   [3.3, 5.6, 'One guard.<br>One word.', 'cap'],
   [5.6, 7.4, 'So you build things.', 'cap'],
   [7.4, 9.4, 'Lots of things.', 'cap'],
-  [9.6, 12.6, 'Your hero learns new tricks<br>in the middle of the fight.', 'top'],
+  [9.6, 12.6, 'Your hero learns<br>new tricks mid-fight.', 'cap'],
   [12.7, 14.0, '(The guard learns nothing.)', 'cap'],
   [14.0, 16.0, 'Set things on fire.<br>Responsibly.', 'cap'],
   [16.0, 16.9, 'Irresponsibly.', 'cap'],
@@ -42,10 +42,10 @@ at(17.0, `(()=>{const H=__H,G=H.G;G.speed=1;for(const k of ['warhammer','howl','
     window.__tick = now => { __T = now; const l = window.__raf; window.__raf = []; for (const cb of l) { try { cb(now); } catch (e) {} } }; });
   await p.goto('file:///home/user/holdor/beta/index.html'); await p.waitForFunction(() => window.HOLDOR && window.HOLDOR_MARKET, { timeout: 30000 });
   for (let i = 0; i < 5; i++) await p.evaluate(t => window.__tick(t), 1000 + i * 33);
-  await p.addStyleTag({ content: `#tvc{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;background:#05070c;color:#ffd54a;font:900 30px Cinzel,Georgia,serif;letter-spacing:.04em;padding:30px;text-shadow:0 3px 0 #000}
+  await p.addStyleTag({ content: `#boonOv .bo-in{transform:scale(.84)}#boonOv .linkbtn,#boonOv .bo-have{visibility:hidden}#bCall,#bInfo,#bSpeed,#bPause{visibility:hidden!important}#tvc{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;background:#05070c;color:#ffd54a;font:900 30px Cinzel,Georgia,serif;letter-spacing:.04em;padding:30px;text-shadow:0 3px 0 #000}
     #tvp{position:fixed;left:0;right:0;bottom:118px;z-index:99998;text-align:center;pointer-events:none;color:#fff;font:900 26px Cinzel,Georgia,serif;text-shadow:0 3px 0 #000,0 0 14px #000,0 0 26px #000;padding:0 16px;line-height:1.15}
     #tve{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:radial-gradient(circle at 50% 40%,#1d2f55,#05070c 75%);pointer-events:none;color:#fff;font-family:Cinzel,Georgia,serif;text-align:center}
-    #tve b{font-size:58px;color:#ffd54a;letter-spacing:.14em;text-shadow:0 4px 0 #6b4a00}#tve small{font-size:22px;letter-spacing:.3em;color:#bfe6ff}#tve em{font-style:normal;font-size:26px;margin-top:22px;color:#fff}#tve u{text-decoration:none;font-size:18px;color:#ffd54a}` });
+    #tve b{font-size:44px;color:#ffd54a;letter-spacing:.08em;text-shadow:0 4px 0 #6b4a00}#tve small{font-size:22px;letter-spacing:.3em;color:#bfe6ff}#tve em{font-style:normal;font-size:26px;margin-top:22px;color:#fff}#tve u{text-decoration:none;font-size:18px;color:#ffd54a}` });
   await p.evaluate(() => { for (const id of ['tvc', 'tvp', 'tve']) { const d = document.createElement('div'); d.id = id; d.style.display = 'none'; document.body.appendChild(d); } });
   const base = 5000; let ei = 0; const f0 = Math.floor(from * FPS), f1 = Math.floor(to * FPS);
   // run the events before `from`
@@ -57,10 +57,10 @@ at(17.0, `(()=>{const H=__H,G=H.G;G.speed=1;for(const k of ['warhammer','howl','
     const c = CAPS.find(c => t >= c[0] && t < c[1]);
     await p.evaluate(([c, t]) => {
       const card = document.getElementById('tvc'), cap = document.getElementById('tvp'), end = document.getElementById('tve'); card.style.display = cap.style.display = end.style.display = 'none';
-      if (window.__resT != null) { const ra = Math.max(0, t - 17.0) * 1000; for (const a of document.getAnimations()) { try { a.pause(); a.currentTime = ra; } catch (e) {} } }
+      if (window.__resT != null) { { const cd = document.getElementById('card'); if (cd) { cd.style.transform = 'translateY(116px) scale(.85)'; cd.style.transformOrigin = 'top center'; } } const ra = Math.max(0, t - 17.0) * 1000; for (const a of document.getAnimations()) { try { a.pause(); a.currentTime = ra; } catch (e) {} } }
       if (!c) return; const k = Math.min(1, (t - c[0]) / 0.25), out = Math.min(1, (c[1] - t) / 0.2), al = Math.min(k, out);
       if (c[3] === 'card') { card.innerHTML = c[2]; card.style.display = 'flex'; card.style.opacity = al; }
-      else if (c[3] === 'cap' || c[3] === 'top') { cap.style.bottom = c[3] === 'top' ? 'auto' : '118px'; cap.style.top = c[3] === 'top' ? '64px' : 'auto'; cap.innerHTML = c[2]; cap.style.display = 'block'; cap.style.opacity = al; cap.style.transform = 'translateY(' + ((1 - k) * 14) + 'px) scale(' + (0.96 + 0.04 * k) + ')'; }
+      else if (c[3] === 'cap' || c[3] === 'top') { cap.style.bottom = c[3] === 'top' ? 'auto' : '118px'; cap.style.top = c[3] === 'top' ? '72px' : 'auto'; cap.innerHTML = c[2]; cap.style.display = 'block'; cap.style.opacity = al; cap.style.transform = 'translateY(' + ((1 - k) * 14) + 'px) scale(' + (0.96 + 0.04 * k) + ')'; }
       else { end.innerHTML = c[2]; end.style.display = 'flex'; end.style.opacity = Math.min(1, (t - c[0]) / 0.3); }
     }, [c, t]);
     await p.screenshot({ path: path.join(OUT, 'f' + String(f).padStart(4, '0') + '.jpg'), type: 'jpeg', quality: 88 });

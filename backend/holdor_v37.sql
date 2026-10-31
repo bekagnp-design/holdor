@@ -9,7 +9,7 @@ language plpgsql stable security definer set search_path = public as $$
 declare pid bigint; n int;
 begin
   pid := ec_session(token);
-  select count(*)::int into n from players p where (p.created_at, p.tg_id) <= (select (q.created_at, q.tg_id) from players q where q.tg_id = pid);
+  select count(*)::int into n from players p where (p.created_at, p.tg_id) <= (select q.created_at, q.tg_id from players q where q.tg_id = pid);
   return case when n between 1 and 100 then n else null end;
 end $$;
 revoke all on function founder_no(uuid) from public;

@@ -1,0 +1,3 @@
+# v1.4.2 — the gate's labels (WEST / MID / EAST) sit above the Hodor health bar instead of under it, and the bar's text is a little larger.
+rep("ctx.fillText(['WEST','MID','EAST'][gates.length===2?(g.i?2:0):g.i]||'',g.x,y+70);", "ctx.fillStyle='rgba(242,230,201,.95)';ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=3;ctx.fillText(['WEST','MID','EAST'][gates.length===2?(g.i?2:0):g.i]||'',g.x,y+57);ctx.shadowBlur=0;", 1, 'gate-labels')
+rep("ctx.font='700 7px Cinzel,serif';ctx.textAlign='center';ctx.shadowColor='rgba(0,0,0,.8)';ctx.shadowBlur=2;ctx.fillText('HODOR · '", "ctx.font='800 8px Cinzel,serif';ctx.textAlign='center';ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=3;ctx.fillText('HODOR · '", 1, 'hodor-bar-text')
