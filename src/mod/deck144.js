@@ -56,3 +56,6 @@ function deckSheet(kind,k,where){const el=document.getElementById('dkSheet')||do
         DECK.mode=null;deckRedraw();return;}
       DECK.mode=null;deckRedraw();return;}
     SFX.play('tap',60);deckSheet(kind,k,where);}));};}
+/* v1.4.5: a tower or spell that is not open yet is grey in its own room too (the big picture and the demo) */
+{const tr2=showTowerRoom;showTowerRoom=function(k){tr2(k);const kk=(card.querySelector('.htile.view')||{dataset:{}}).dataset.t||k;if(TOWERS[kk]&&!towerOpen(kk))card.querySelectorAll('#clist .tstage,#clist .dmw').forEach(e=>e.classList.add('lock'));};
+ const sr2=showSpellRoom;showSpellRoom=function(k){sr2(k);k=SPELLS[k]?k:'arrows';if(!cardOpen('s:'+k))card.querySelectorAll('#clist .hport,#clist .dmw').forEach(e=>e.classList.add('lock'));};}

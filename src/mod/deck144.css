@@ -17,3 +17,6 @@
 #dkSheet p{font-size:13px;color:#d6e2f0;margin:10px 0}
 #dkSheet .dks-b{display:flex;flex-direction:column;gap:8px}#dkSheet .linkbtn{display:block;margin:10px auto 0}
 .ccard .rar.dkst{color:#9fb4cf;font-weight:900;letter-spacing:.08em}.ccard .rar.dkst.in{color:#8dff9d}
+/* v1.4.5: everything not yet open is grey, everywhere (cards, tiles, tabs, the Hold card, events, shop items); the buy/unlock buttons stay coloured */
+.lock:not(.deal):not(.scell),.locked,.hubtabs button.lock{filter:grayscale(1) brightness(.78)!important}
+.ccard.lock .im img,.ccard.lock .im svg,.htile.lock img,.htile.lock svg{filter:grayscale(1)}

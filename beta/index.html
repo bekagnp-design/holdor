@@ -1821,6 +1821,9 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 #dkSheet p{font-size:13px;color:#d6e2f0;margin:10px 0}
 #dkSheet .dks-b{display:flex;flex-direction:column;gap:8px}#dkSheet .linkbtn{display:block;margin:10px auto 0}
 .ccard .rar.dkst{color:#9fb4cf;font-weight:900;letter-spacing:.08em}.ccard .rar.dkst.in{color:#8dff9d}
+/* v1.4.5: everything not yet open is grey, everywhere (cards, tiles, tabs, the Hold card, events, shop items); the buy/unlock buttons stay coloured */
+.lock:not(.deal):not(.scell),.locked,.hubtabs button.lock{filter:grayscale(1) brightness(.78)!important}
+.ccard.lock .im img,.ccard.lock .im svg,.htile.lock img,.htile.lock svg{filter:grayscale(1)}
 </style>
 </head>
 <body>
@@ -2724,7 +2727,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.4.4';
+const VERSION='1.4.5';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -9955,6 +9958,9 @@ function deckSheet(kind,k,where){const el=document.getElementById('dkSheet')||do
         DECK.mode=null;deckRedraw();return;}
       DECK.mode=null;deckRedraw();return;}
     SFX.play('tap',60);deckSheet(kind,k,where);}));};}
+/* v1.4.5: a tower or spell that is not open yet is grey in its own room too (the big picture and the demo) */
+{const tr2=showTowerRoom;showTowerRoom=function(k){tr2(k);const kk=(card.querySelector('.htile.view')||{dataset:{}}).dataset.t||k;if(TOWERS[kk]&&!towerOpen(kk))card.querySelectorAll('#clist .tstage,#clist .dmw').forEach(e=>e.classList.add('lock'));};
+ const sr2=showSpellRoom;showSpellRoom=function(k){sr2(k);k=SPELLS[k]?k:'arrows';if(!cardOpen('s:'+k))card.querySelectorAll('#clist .hport,#clist .dmw').forEach(e=>e.classList.add('lock'));};}
 window.HOLDOR_TROOPS={TROOPS,TROOP_ROLE,TROOP_ROLES,troopDef,troopUnits,troopStats,keepRole,troopDress,allyStrike,troopMend,drawTroopBody,troopPreview,showTrain,towerStats,HOUSE_ORDER,HOUSES,build,LEVELS};
 window.HOLDOR_CLASH={CLASH,CLASH_COST,CLASH_N,CLASH_TOP,genClash,clashStart,clashStop,clashSend,clashStepB,clashBot,clashSpawnTroops,clashFinish,clashDraw,showClash,clashCardHTML,gSnap,gSwap,toWorld,w2s};
 window.HOLDOR_CL2={CL2,clashServer,cl2Load,cl2Call,clashGhostInit,clashGhostStep,clashGhostDo,clashRunLog,clashRunWaves,clashAfter,cl2FromStart,cl2PendingOpen,cl2Go,showClash,showClashLocal,setRpc:f=>{cl2Rpc=f;}};
