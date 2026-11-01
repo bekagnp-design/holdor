@@ -55,7 +55,7 @@ function showHeroRoom(viewId,fod,openSk){armStop();
   <div class="hgrid strip" id="armStrip">${tiles}</div>
   <div id="clist"><div class="hdet2" style="--hc:${hh.col};--hc2:${hh.col2}">${stage}${name}<div class="hact">${act}</div>${ridebtn}${skills}${tal}${foot}</div></div>`);
   CLOUD.screen='hero';armStrip('#armStrip');armTilt(card.querySelector('.hstage'));
-  const openDemo=row=>{if(ARM.stop){ARM.stop();ARM.stop=null;}const cv=row&&row.querySelector('canvas');if(cv)ARM.stop=skillDemoLoop(cv,cv.dataset.sk,c.house);};
+  const openDemo=row=>{if(ARM.stop){ARM.stop();ARM.stop=null;}const cv=row&&row.querySelector('canvas');if(cv)ARM.stop=skillDemoLoop(cv,cv.dataset.sk,c.house,c.id);};
   const o=card.querySelector('.skr.open');if(o)openDemo(o);
   $('#bBack').addEventListener('click',()=>{armStop();showHub('coll','heroes');});
   card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showHeroRoom(t.dataset.c)));

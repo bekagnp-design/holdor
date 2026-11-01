@@ -34,7 +34,7 @@ function rvSkillStep(i){const c=CBY[RV.id],p=cprog(null,c.id),sk=c.sk[i],S=SK[sk
   if(RV.stop){RV.stop();RV.stop=null;}
   box.innerHTML=`<div class="rvskh"><span class="rvski">${skillIcon(sk,44,0)}</span><span class="rvskn"><b>${esc(S.n)}</b>${S.ult?'<em>ULTIMATE</em>':''}<small>${SKTAG[cat]}</small></span><button class="rvinfo" data-i="1" aria-label="Full text">ⓘ</button></div><canvas class="rvdemo" width="640" height="360"></canvas><p class="rvfull" hidden>${esc(S.d(S.v[l-1]))}</p>
     <div class="rvdots">${[0,1,2].map(j=>`<i class="${j===i?'on':''}"></i>`).join('')}</div>`;
-  RV.stop=skillDemoLoop(box.querySelector('canvas'),sk,c.house);box.classList.remove('pop');void box.offsetWidth;box.classList.add('pop');
+  RV.stop=skillDemoLoop(box.querySelector('canvas'),sk,c.house,c.id);box.classList.remove('pop');void box.offsetWidth;box.classList.add('pop');
   box.querySelector('.rvinfo').addEventListener('click',()=>{const f=box.querySelector('.rvfull');f.hidden=!f.hidden;SFX.play('tap',50);});SFX.play(S.ult?'unlock':'tap',60);}
 function rvGo(step){if(!RV.on)return;RV.step=step;const el=RV.el,c=CBY[RV.id],nx=el.querySelector('.rvnext'),cta=el.querySelector('.rvcta');
   el.classList.toggle('mini',step>=1);el.classList.toggle('skills',step>=1&&step<=3);el.classList.toggle('last',step>=4);
