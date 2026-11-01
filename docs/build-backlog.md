@@ -942,3 +942,10 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 - **How:** part `98zb_demoart.py` turns the game's drawing context `ctx` into a `let`; `dmRun` points it at the demo canvas for one synchronous draw and always restores it (and `G.time`) in a `finally`, so a running battle never sees it. `skilldemo.js` (a shared scene kit + the 11 kinds), `demo125.js` (spells, towers, champion); `reveal.js` / `army105.js` pass the champion id.
 - **Tests:** `t_demo125.js` also draws the 11 skill kinds and checks none is blank. Not checked on a phone.
 
+### v1.4.7 — the chest opening redrawn, tap through the rewards (2026-11-01)
+- **Why:** MR B did not like the chests, and wanted to speed up the rewards by tapping.
+- **Chests:** one SVG per tier drawn in code (oak + iron straps; steel plates + rivets + blue gem; dark ebony + rippled steel + glowing runes; red lacquer + scales + gold wings and horns + ruby); `chestSVG` returns the new art everywhere (home slots, shop, lucky taps).
+- **Opening:** wobble, the lid swings back on a lit inside of coins and gems, light beams, flash and sparks, slow rays in the tier colour; the open chest drops to the bottom with "×N left". Each reward flies out face down and flips: rarity frame and ribbon, a medallion icon, gold counting up; Epic+ a light sweep; Legendary a gold card, gold flash, burst and a short shake. Then a grid of everything and a pulsing COLLECT. Reduced motion: fades only.
+- **Taps:** before opening as before (open / the three lucky taps of `lucky.js`). After opening every tap finishes the current card and starts the next; SKIP › lays out the rest. A 4-reward chest takes ~3.6 s untouched. What is granted does not change (the scene still reads `rollChest` / the server's `ECO.roll`).
+- **Files / tests:** `chest145.js` + `.css`, part `98zb_chest.py`, `t_chest145.js` (25 checks incl. 6 taps → 6 cards in 1.1 s, SKIP, COLLECT, Epic/Legendary, lucky taps, a server-shaped roll). Not checked on a phone or with a real signed-in `chest_open`.
+
