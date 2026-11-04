@@ -1713,6 +1713,40 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 .mchip i{font-style:normal;font-size:20px}.mchip b{font:800 10.5px/1 var(--f-display)}
 .mtx{margin:2px 2px 0;font:500 13px/1.35 var(--f-body);color:#dbe3ec;background:rgba(255,255,255,.06);padding:8px 10px;border-radius:10px}
 @media (prefers-reduced-motion:reduce){.bigbtn.lvl.ready{animation:none}}
+/* v1.4.8: the champion's head row — card beside name, level and stars; LEVEL UP on the first screen */
+.hhead{display:grid;grid-template-columns:142px 1fr;gap:12px;align-items:center;padding:8px 10px 8px 4px;border-radius:18px;
+  background:radial-gradient(120% 140% at 18% 50%,color-mix(in srgb,var(--hc) 34%,transparent),transparent 62%),linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015));
+  border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.hhead .hstage{height:196px;animation:hfloat 4.2s ease-in-out infinite}
+.hhead .acard{width:132px;height:184px}
+.hhead .aimg.emoji,.hhead .aimg.sealed{font-size:70px}
+.hhead .asig{transform:translateZ(40px) scale(.82);right:-8px;top:-10px}
+.hhead .aback{animation:hhalo 3.2s ease-in-out infinite}
+.hinfo{display:flex;flex-direction:column;gap:8px;min-width:0}
+.hinfo .hname{align-items:flex-start;text-align:left}
+.hinfo .hname b{font-size:22px;letter-spacing:.02em;background:linear-gradient(180deg,#fff6da,#e9c97a);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.8))}
+.hinfo .hname small{font-size:12px}
+.hinfo .hlv .bar i{box-shadow:0 0 8px rgba(160,240,120,.6)}
+/* the card: a light that sweeps across the face, an inner frame, a halo by rarity */
+.aface::before{content:"";position:absolute;inset:5px;border-radius:11px;border:1px solid rgba(255,255,255,.22);z-index:2;pointer-events:none;box-shadow:inset 0 0 18px rgba(0,0,0,.45)}
+.aface::after{content:"";position:absolute;top:-20%;bottom:-20%;width:42%;left:-60%;z-index:3;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.0) 20%,rgba(255,255,255,.34) 50%,rgba(255,255,255,0) 80%,transparent);transform:skewX(-14deg);animation:hsheen 4.6s ease-in-out infinite 1s}
+.hhead.r2 .aback,.hhead.r3 .aback,.hhead.r4 .aback{background:radial-gradient(circle,var(--rc),transparent 66%);opacity:.75}
+.hhead.r3 .aface,.hhead.r4 .aface{box-shadow:0 0 0 2px rgba(0,0,0,.55),0 14px 30px rgba(0,0,0,.55),0 0 30px var(--rc),0 0 60px color-mix(in srgb,var(--rc) 45%,transparent)}
+.hhead.r4 .hstage::before,.hhead.r4 .hstage::after,.hhead.r3 .hstage::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;
+  background-image:radial-gradient(2px 2px at 20% 80%,#ffe9a8,transparent),radial-gradient(1.6px 1.6px at 72% 90%,#ffd060,transparent),radial-gradient(2px 2px at 48% 96%,#fff3c4,transparent),radial-gradient(1.4px 1.4px at 86% 70%,#ffd060,transparent),radial-gradient(1.8px 1.8px at 8% 60%,#ffe9a8,transparent);
+  animation:hember 3.6s linear infinite}
+.hhead.r3 .hstage::before{filter:hue-rotate(215deg) saturate(1.4)}
+.hhead.r4 .hstage::after{animation-delay:-1.8s;transform:scaleX(-1)}
+@keyframes hfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes hhalo{0%,100%{opacity:.45;transform:translateZ(-44px) scale(.96)}50%{opacity:.8;transform:translateZ(-44px) scale(1.04)}}
+@keyframes hsheen{0%{left:-60%}38%,100%{left:130%}}
+@keyframes hember{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(-190px);opacity:0}}
+.hhead.r4 .hstage::after{animation-name:hember2}
+@keyframes hember2{0%{transform:scaleX(-1) translateY(0);opacity:0}15%{opacity:1}100%{transform:scaleX(-1) translateY(-190px);opacity:0}}
+.hdet2>.dmw{margin-top:2px}
+@media (prefers-reduced-motion:reduce){.hhead .hstage,.hhead .aback,.aface::after,.hhead .hstage::before,.hhead .hstage::after{animation:none}}
+.aface .arar,.aface .aglare{z-index:2}
 /* v1.1.6: Tasks */
 .tkhead{display:flex;align-items:center;gap:10px;margin:2px 0 8px;padding:10px 14px;border-radius:16px;background:#12294a;border:2px solid #0b1a2e;color:#b9cfe6}
 .tkhead .tkn{min-width:34px;height:34px;border-radius:17px;background:#2a4a74;color:#fff;font:800 18px/34px var(--f-display);text-align:center}
@@ -2852,7 +2886,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.4.7';
+const VERSION='1.4.8';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -9226,9 +9260,14 @@ function dGroup(types,ph,P,o){const n=types.length,v=o.v||70,x0=o.x0==null?VW+14
 /* the champion's own battle sprite; o: face, walk, moving, strike (0..1 while striking, else <0), name */
 function dHero(id,x,y,o){const f=o.face||1,sp=champImg(id,'stance');ctx.fillStyle='rgba(0,0,0,.35)';ell(ctx,x,y+2,11,4);
   if(!sp){sdFig(ctx,x,y,1,'#5a6270',DT0*6);return;}
-  const st=o.strike!=null&&o.strike>=0&&o.strike<1,at=st&&champImg(id,'attack'),im=at||sp,m=CHAMP_META[at?id+'_attack':id],Hh=47,sc=Hh/m.h,D=m.C*sc,lunge=st?Math.sin(Math.PI*o.strike)*5:0;
-  ctx.save();ctx.translate(x+lunge*f,y+1);ctx.scale(f,1);drawWalking(im,m,sc,D,'walk',o.walk||0,DT0,1.1,DHE,!!o.moving&&!st);ctx.restore();
-  if(o.name){ctx.textAlign='center';ctx.font='700 9.5px Cinzel,serif';ctx.fillStyle='rgba(6,11,20,0.85)';ctx.fillText(o.name,x,y-48);ctx.fillStyle='#f2e6c9';ctx.fillText(o.name,x,y-49);}}
+  const st=o.strike!=null&&o.strike>=0&&o.strike<1,at=st&&champImg(id,'attack'),im=at||sp,m=CHAMP_META[at?id+'_attack':id],Hh=50,sc=Hh/m.h,D=m.C*sc;
+  /* v1.4.8: a wind-up, a quick thrust that eases back, a squash on the blow, breathing while idle, the house's light at the feet */
+  const k=st?o.strike:0,lunge=!st?0:k<0.22?-3.5*Math.sin(k/0.22*Math.PI/2):k<0.45?-3.5+12.5*(1-Math.pow(1-(k-0.22)/0.23,3)):9*(1-dmK(k,0.45,1))*(1-dmK(k,0.45,1));
+  const br=!st&&!o.moving?Math.sin(DT0*2.6)*0.018:0,sq=st&&k>0.4&&k<0.6?Math.sin((k-0.4)/0.2*Math.PI)*0.06:0;
+  const H=HOUSES[(CBY[id]||{}).house],hc=H&&H.col&&H.col[0]==='#'?hexRGB(H.col):'227,182,97';dGlow(x,y,26,8,hc,0.35+0.12*Math.sin(DT0*3));
+  ctx.save();ctx.translate(x+lunge*f,y+1);ctx.scale(f*(1+sq-br*0.5),1+br-sq);drawWalking(im,m,sc,D,'walk',o.walk||0,DT0,1.1,DHE,!!o.moving&&!st);ctx.restore();
+  if(st&&k>0.38&&k<0.62)dGlow(x+(12+lunge)*f,y-22,22,18,'255,236,190',0.55*Math.sin((k-0.38)/0.24*Math.PI));
+  if(o.name){ctx.textAlign='center';ctx.font='700 9.5px Cinzel,serif';ctx.fillStyle='rgba(6,11,20,0.85)';ctx.fillText(o.name,x,y-52);ctx.fillStyle='#f2e6c9';ctx.fillText(o.name,x,y-53);}}
 /* a real tower on its spot (drawTower: art, drawn rook/maul, level pips) */
 function dTower(type,lvl,x,y,cd){const s=DTS;s.x=x;s.y=y;s.tower.type=type;s.tower.lvl=lvl;s.tower.cd=cd==null?9:cd;s.tower.face=-Math.PI/2;s.tower.frozen=0;drawTower(s,DT0*1000);}
 /* a soldier: kind 'brother' = a sworn brother (drawAllyBody), otherwise a house troop of `house` (drawTroopBody) */
@@ -9435,7 +9474,7 @@ function showHeroRoom(viewId,fod,openSk){armStop();
       act=`<div class="ascbox"><b>★${st} → ★${st+1}</b><small>opens levels ${10*st+1}–${Math.min(CH_MAX,10*st+10)} · 🪙 ${fmtN(ascGold(c.id))} + burn the cards of another champion:</small>
         <div class="fods">${fods.length?fods.map(f=>{const n=ascNeed(c.id,f.id),h=cardHave('c:'+f.id);return `<button class="fod ${fsel&&fsel.id===f.id?'on':''} ${h>=n?'':'short'}" data-a="fod" data-f="${f.id}" style="--rc:${RAR_C[champRar(f)]}">${portraitHTML(f,34)}<small>${h}/${n}</small></button>`;}).join(''):'<small class="none">No cards of another champion yet — chests and the portal bring them.</small>'}</div>
         <button class="bigbtn lvl ${fsel?'ready':'need'} ascgo" data-a="asc" data-f="${fsel?fsel.id:''}" ${fsel?'':'disabled'}><span class="bt">⭐ RAISE TO ★${st+1}</span><span class="bs">${fsel?`burn ${ascNeed(c.id,fsel.id)} ${esc(shortName(fsel))}`:'pick a champion to burn'}</span></button></div>`;}
-    else{act=`<div class="hlv"><b>Lv ${p.lvl}</b><em>/ ${lc}</em><span class="bar"><i style="width:${Math.round(100*p.lvl/lc)}%"></i></span></div>${armLvlBtn(key,'data-a="lvl"',p.lvl,CH_MAX)}${cardHave(key)<cardNeed(key)&&p.lvl<CH_MAX?`<button class="linkbtn" data-a="chests">🎁 Cards come from chests ›</button>`:''}`;}}
+    else{act=`${armLvlBtn(key,'data-a="lvl"',p.lvl,CH_MAX)}${cardHave(key)<cardNeed(key)&&p.lvl<CH_MAX?`<button class="linkbtn" data-a="chests">🎁 Cards come from chests ›</button>`:''}`;}}
   const ridebtn=`<button class="bigbtn ride ${ride?'on':''}" data-a="sel" ${!un||ride?'disabled':''}><span class="bt">${ride?'✔ RIDING WITH YOU':'⚔ RIDE WITH '+esc(shortName(c)).toUpperCase()}</span></button>`;
   const skills=`<div class="skl">${c.sk.map((sk,i)=>{const S=SK[sk],l=p.sk[i],capd=l>=cap&&l<SK_MAX,nb=skBooks(l),cat=skCat(sk),op=openSk===i,can=skCan(c.id,i);
     const lab=l>=SK_MAX?'MAX':capd?`🔒 Lv ${armSkRankLock(l,p.lvl)}`:`⬆ 📖${nb} · 🪙${fmtN(ECON.skCost(l))}`;
@@ -9447,7 +9486,7 @@ function showHeroRoom(viewId,fod,openSk){armStop();
   show(`<div class="topbar"><h1>🍺 Champions<small>swipe, tap, level up</small></h1><button class="back" id="bBack">✖</button></div>
   <p class="m cur">🪙 <b style="color:var(--gold)">${fmtN(goldOf())}</b> · 💎 ${ACC.gems} · <span class="bkl">${booksLine()}</span></p>
   <div class="hgrid strip" id="armStrip">${tiles}</div>
-  <div id="clist"><div class="hdet2" style="--hc:${hh.col};--hc2:${hh.col2}">${stage}${name}<div class="hact">${act}</div>${ridebtn}${skills}${tal}${foot}</div></div>`);
+  <div id="clist"><div class="hdet2" style="--hc:${hh.col};--hc2:${hh.col2}"><div class="hhead r${r}">${stage}<div class="hinfo">${name}${un?`<div class="hlv"><b>Lv ${p.lvl}</b><em>/ ${lc}</em><span class="bar"><i style="width:${Math.round(100*p.lvl/lc)}%"></i></span></div>`:''}</div></div><div class="hact">${act}</div>${ridebtn}${skills}${tal}${foot}</div></div>`);
   CLOUD.screen='hero';armStrip('#armStrip');armTilt(card.querySelector('.hstage'));
   const openDemo=row=>{if(ARM.stop){ARM.stop();ARM.stop=null;}const cv=row&&row.querySelector('canvas');if(cv)ARM.stop=skillDemoLoop(cv,cv.dataset.sk,c.house,c.id);};
   const o=card.querySelector('.skr.open');if(o)openDemo(o);
@@ -9907,6 +9946,7 @@ function dmTowerScene(c,k,t){const P=3.2,ph=t%P;dmRun(c,t,()=>{dGround(DMB[k]||'
     dFx('ring',140,RDY,dmK(ph,1.5,1.9),'#e3b661',6,52);for(let i=0;i<5;i++)dFx('puff',118+i*11,RDY+4,dmK(ph,1.52+i*0.02,2.2),null,0,14);for(let i=0;i<4;i++)dPop(E[i].x,E[i].y-36,'46',ph,1.56,'#ffd54a');cap('SLAM + STAGGER','#ffe08a');}
 });}
 function dmChamp(c,ch,t){const P=3.2,i=Math.floor(t/P)%ch.sk.length,sk=ch.sk[i];skillDemoFrame(c,sk,t,ch.house,ch.id);
+  {const ph=t%P,fd=ph<0.22?1-ph/0.22:ph>P-0.22?(ph-(P-0.22))/0.22:0;if(fd>0){c.save();c.fillStyle='rgba(6,11,20,'+(fd*0.85).toFixed(3)+')';c.fillRect(0,0,SDW,SDH);c.restore();}}
   c.save();const g=c.createLinearGradient(0,SDH-34,0,SDH);g.addColorStop(0,'rgba(6,11,20,0)');g.addColorStop(1,'rgba(6,11,20,.85)');c.fillStyle=g;c.fillRect(0,SDH-34,SDW,34);c.font='800 13px Cinzel,serif';c.fillStyle='#ffe08a';c.textAlign='left';c.fillText((SK[sk]?SK[sk].n:sk)+(SK[sk]&&SK[sk].ult?'  · ULT':''),10,SDH-9);c.textAlign='right';c.fillStyle='#b9c8da';c.fillText((i+1)+' / '+ch.sk.length,SDW-10,SDH-9);c.restore();}
 function demoFrame(c,kind,id,t,house){if(kind==='spell')dmSpell(c,id,t);else if(kind==='tower')dmTowerScene(c,id,t);else if(kind==='champ'){const ch=CBY[id];if(ch)dmChamp(c,ch,t);}}
 function demoLoop(cv){const kind=cv.dataset.dk,id=cv.dataset.di,c=cv.getContext('2d'),k=cv.width/SDW;let raf=0,t0=performance.now(),on=true;fSprites();
@@ -9915,8 +9955,8 @@ function demoHTML(kind,id){return `<div class="dmw"><canvas class="dmv" width="6
 function demoMount(root){(DMS.stop||[]).forEach(f=>f());DMS.stop=[];(root||document).querySelectorAll('canvas.dmv').forEach(cv=>DMS.stop.push(demoLoop(cv)));}
 /* the rooms */
 {const sr1=showSpellRoom;showSpellRoom=function(k){sr1(k);k=SPELLS[k]?k:'arrows';const det=card.querySelector('#clist .hdet');if(det){det.insertAdjacentHTML('afterbegin',demoHTML('spell',k));demoMount(det);}};
- const tr1=showTowerRoom;showTowerRoom=function(k){tr1(k);const st=card.querySelector('#clist .tstage');if(st){const kk=card.querySelector('.htile.view');const key=kk?kk.dataset.t:k;if(TOWERS[key]){st.insertAdjacentHTML('afterend',demoHTML('tower',key));demoMount(card.querySelector('#clist'));}}};
- const hr1=showHeroRoom;showHeroRoom=function(v){hr1.apply(this,arguments);const nm=card.querySelector('#clist .hname');const list=CHAMPS.filter(x=>x.house===ACC.house);const c=list.find(x=>x.id===v)||list.find(x=>x.id===ACC.sel)||list[0];if(nm&&c&&unlocked(null,c)){nm.insertAdjacentHTML('afterend',demoHTML('champ',c.id));demoMount(card.querySelector('#clist'));}};}
+ const tr1=showTowerRoom;showTowerRoom=function(k){tr1(k);const st=card.querySelector('#clist .hact')||card.querySelector('#clist .tstage');if(st){const kk=card.querySelector('.htile.view');const key=kk?kk.dataset.t:k;if(TOWERS[key]){st.insertAdjacentHTML('afterend',demoHTML('tower',key));demoMount(card.querySelector('#clist'));}}};
+ const hr1=showHeroRoom;showHeroRoom=function(v){hr1.apply(this,arguments);const nm=card.querySelector('#clist .bigbtn.ride');const list=CHAMPS.filter(x=>x.house===ACC.house);const c=list.find(x=>x.id===v)||list.find(x=>x.id===ACC.sel)||list[0];if(nm&&c&&unlocked(null,c)){nm.insertAdjacentHTML('afterend',demoHTML('champ',c.id));demoMount(card.querySelector('#clist'));}};}
 /* v1.2.6: the champion learns in battle. Before waves 3, 6, 9, 12 and 15 of a campaign battle (from stage 5) the fight stops and the champion
    may learn one of three skills — any skill of any champion that works on its own (no ultimates). A skill he already has goes up a rank.
    It lasts for this battle (hero.perk, the same hand that gear perks use). The three on offer come from the stage, the wave and the run. */
