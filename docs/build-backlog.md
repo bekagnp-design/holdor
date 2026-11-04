@@ -769,6 +769,13 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
   - `v_active_daily`: players seen, seats that fought, new players per day.
 - First reading (2026-09-28): 1 active seat. Stage 35 won in 308 s with 3 ⭐, 6 energy spent, 0 refills, first spend a card level, 1 Rare ring from an iron level chest.
 
+## v1.4.8 — the champion room: LEVEL UP on the first screen, a finer card, smoother champion animations
+- `army105.js` `showHeroRoom`: a head row `.hhead` — the 3D card (132×184) beside the name, rarity line, stars and the level bar; LEVEL UP and RIDE follow it, so both sit on the first screen (on 390×844 LEVEL UP ends at ~518 px, RIDE at ~649 px; before, LEVEL UP was at 800–862, below the fold).
+- `demo125.js`: the champion demo now goes after the RIDE button, the tower demo after the level block (it was right under the art and pushed the buttons down).
+- `army105.css`: a light sweeps across the card face, an inner frame, the card floats, the halo breathes; Rare and up get a halo in the rarity colour, Epic violet and Legendary gold embers rise; reduced-motion turns all of it off.
+- `skilldemo.js` `dHero`: a wind-up before the blow, an eased thrust and return, a squash on impact with a flash, idle breathing, the house's light at the feet; the champion drawn a little larger. `dmChamp` fades between skills instead of cutting.
+- Test: `t_army105.js` checks LEVEL UP and RIDE end above 680 px of 844.
+
 ## Not done / next
 - **On MR B (one step at a time):** 1) merge the v1.0.58 PR, then the v1.0.59 PR, and play `…/holdor/beta/` on the phone; 2) say "release" — Claude first applies `holdor_v7.sql`, the regenerated `holdor_econ_data.sql` and `holdor_v8.sql` in Supabase (hashes verified), then opens the release PR. Art: the Dorne kit first (`holdor-prompts-v45.md`); still open: 8 chest images, 30 skill icons, 7 island images, 4 event banners, house film clips.
 - **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.64 city → v1.0.65 account levels + HOLDOR Coin + Tasks + invites → v1.0.66 chats → v1.0.67–68 PvP 1v1 → v1.0.69 country war → v1.0.70 languages → v1.0.71 Season Pass + rewarded ads + VIP → v1.0.72 marketing.

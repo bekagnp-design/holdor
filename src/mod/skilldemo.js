@@ -86,9 +86,14 @@ function dGroup(types,ph,P,o){const n=types.length,v=o.v||70,x0=o.x0==null?VW+14
 /* the champion's own battle sprite; o: face, walk, moving, strike (0..1 while striking, else <0), name */
 function dHero(id,x,y,o){const f=o.face||1,sp=champImg(id,'stance');ctx.fillStyle='rgba(0,0,0,.35)';ell(ctx,x,y+2,11,4);
   if(!sp){sdFig(ctx,x,y,1,'#5a6270',DT0*6);return;}
-  const st=o.strike!=null&&o.strike>=0&&o.strike<1,at=st&&champImg(id,'attack'),im=at||sp,m=CHAMP_META[at?id+'_attack':id],Hh=47,sc=Hh/m.h,D=m.C*sc,lunge=st?Math.sin(Math.PI*o.strike)*5:0;
-  ctx.save();ctx.translate(x+lunge*f,y+1);ctx.scale(f,1);drawWalking(im,m,sc,D,'walk',o.walk||0,DT0,1.1,DHE,!!o.moving&&!st);ctx.restore();
-  if(o.name){ctx.textAlign='center';ctx.font='700 9.5px Cinzel,serif';ctx.fillStyle='rgba(6,11,20,0.85)';ctx.fillText(o.name,x,y-48);ctx.fillStyle='#f2e6c9';ctx.fillText(o.name,x,y-49);}}
+  const st=o.strike!=null&&o.strike>=0&&o.strike<1,at=st&&champImg(id,'attack'),im=at||sp,m=CHAMP_META[at?id+'_attack':id],Hh=50,sc=Hh/m.h,D=m.C*sc;
+  /* v1.4.8: a wind-up, a quick thrust that eases back, a squash on the blow, breathing while idle, the house's light at the feet */
+  const k=st?o.strike:0,lunge=!st?0:k<0.22?-3.5*Math.sin(k/0.22*Math.PI/2):k<0.45?-3.5+12.5*(1-Math.pow(1-(k-0.22)/0.23,3)):9*(1-dmK(k,0.45,1))*(1-dmK(k,0.45,1));
+  const br=!st&&!o.moving?Math.sin(DT0*2.6)*0.018:0,sq=st&&k>0.4&&k<0.6?Math.sin((k-0.4)/0.2*Math.PI)*0.06:0;
+  const H=HOUSES[(CBY[id]||{}).house],hc=H&&H.col&&H.col[0]==='#'?hexRGB(H.col):'227,182,97';dGlow(x,y,26,8,hc,0.35+0.12*Math.sin(DT0*3));
+  ctx.save();ctx.translate(x+lunge*f,y+1);ctx.scale(f*(1+sq-br*0.5),1+br-sq);drawWalking(im,m,sc,D,'walk',o.walk||0,DT0,1.1,DHE,!!o.moving&&!st);ctx.restore();
+  if(st&&k>0.38&&k<0.62)dGlow(x+(12+lunge)*f,y-22,22,18,'255,236,190',0.55*Math.sin((k-0.38)/0.24*Math.PI));
+  if(o.name){ctx.textAlign='center';ctx.font='700 9.5px Cinzel,serif';ctx.fillStyle='rgba(6,11,20,0.85)';ctx.fillText(o.name,x,y-52);ctx.fillStyle='#f2e6c9';ctx.fillText(o.name,x,y-53);}}
 /* a real tower on its spot (drawTower: art, drawn rook/maul, level pips) */
 function dTower(type,lvl,x,y,cd){const s=DTS;s.x=x;s.y=y;s.tower.type=type;s.tower.lvl=lvl;s.tower.cd=cd==null?9:cd;s.tower.face=-Math.PI/2;s.tower.frozen=0;drawTower(s,DT0*1000);}
 /* a soldier: kind 'brother' = a sworn brother (drawAllyBody), otherwise a house troop of `house` (drawTroopBody) */

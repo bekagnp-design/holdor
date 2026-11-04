@@ -17,6 +17,8 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   const s0 = await page.evaluate(() => ({ strip: !!document.querySelector('#armStrip'), card: !!document.querySelector('.acard'),
     big: (() => { const b = document.querySelector('.bigbtn.lvl.ready'); return b ? b.getBoundingClientRect().height : 0; })(),
     tal: document.querySelector('[data-tgt="tal"]').hidden, portal: document.querySelector('[data-tgt="portal"]').hidden }));
+  const fold = await page.evaluate(() => { const q = s => { const e = document.querySelector(s); return e ? Math.round(e.getBoundingClientRect().bottom) : 9999; }; return { lvl: q('.bigbtn.lvl'), ride: q('.bigbtn.ride'), head: !!document.querySelector('.hhead .acard + *, .hhead .hinfo .hlv') }; });
+  ok('v1.4.8: LEVEL UP and RIDE on the first screen (bottom <= 680 of 844), card beside name + level', fold.lvl <= 680 && fold.ride <= 680 && fold.head, JSON.stringify(fold));
   ok('strip, 3D card, a big green LEVEL UP (>=48px), talent + portal folded', s0.strip && s0.card && s0.big >= 48 && s0.tal && s0.portal, JSON.stringify(s0));
   await tap('.bigbtn.lvl.ready');
   ok('the big button levels up (3 → 4)', await page.evaluate(() => window.HOLDOR.cprog(null, 'robb').lvl) === 4);
