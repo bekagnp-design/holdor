@@ -46,8 +46,10 @@ function lvlChestsReady(){return Math.max(0,accLevel().l-1-(ACC.lvlChests||0));}
 function lvlToast(l){try{document.querySelectorAll('.lvltoast').forEach(e=>e.remove());const el=document.createElement('div');el.className='lvltoast';el.innerHTML=`<b>LEVEL ${l}</b><small>${CHEST_TIERS[lvlChestTier(l)].n} waits in your castle</small>`;document.getElementById('app').appendChild(el);requestAnimationFrame(()=>el.classList.add('in'));setTimeout(()=>{el.classList.remove('in');setTimeout(()=>el.remove(),400);},2600);}catch(e){}}
 /* ---------- where cards come from ---------- */
 function cardPool(){const keys=[];for(const c of CHAMPS)if(c.house===ACC.house&&unlocked(null,c)&&cprog(null,c.id).lvl<CH_MAX)keys.push('c:'+c.id);
-  for(const k of TKEYS)if(towerOpen(k)&&tLvl(k)<T_MAX)keys.push('t:'+k);
-  for(const k in SPELLS)if((k==='arrows'||cleared()>=SPELLS[k].at)&&cardLvl('s:'+k)<S_MAX)keys.push('s:'+k);return keys;}
+  for(const k of TKEYS)if(towerOpen(k)&&tLvl(k)<T_MAX&&!cardCovered('t:'+k))keys.push('t:'+k);
+  for(const k in SPELLS)if((k==='arrows'||cleared()>=SPELLS[k].at)&&cardLvl('s:'+k)<S_MAX&&!cardCovered('s:'+k))keys.push('s:'+k);return keys;}
+/* v1.4.9: the copies held already pay every level left — a chest would only waste them (backend v39 ec_pool, same rule) */
+function cardCovered(key){const mx=cardMax(key);let n=0;for(let l=cardLvl(key);l<mx;l++)n+=cardNeed(key,l);return cardHave(key)>=n;}
 function cardStack(pool,tier,minR,used){const T=CARD_PACK[tier]||CARD_PACK.wood;let c=pool.filter(k=>!used.has(k)&&cardRar(k)>=minR);
   if(!c.length)c=pool.filter(k=>!used.has(k));if(!c.length)c=pool.slice();if(!c.length)return null;
   const w=k=>[10,6,3,1][cardRar(k)];let tot=c.reduce((s,k)=>s+w(k),0),r=Math.random()*tot,key=c[c.length-1];for(const k of c){r-=w(k);if(r<=0){key=k;break;}}
@@ -75,13 +77,14 @@ function showSpellRoom(k){
   const det=`<div class="hdet" style="--hc:${rc};--hc2:#1d2a3c">
     <div class="hdtop"><div class="hport"><span class="spi big">${spellSVG(k)}</span></div>
       <div class="hdinfo"><b>${S.n}</b><small>${S.d} · cooldown ${S.cd}s</small>
-      ${op?cardLvlLine(key,'data-a="sl"')+`<small>+6% power per level${k==='reinf'?' · a fourth brother at level '+S_MAX:''}</small>`:`<small style="color:var(--gold)">🔒 Opens after stage ${S.at}</small>`}</div></div>
+      ${op?`<div class="hlv"><b>Lv ${l}</b><em>/ ${S_MAX}</em><span class="bar"><i style="width:${Math.round(100*l/S_MAX)}%"></i></span></div><small>+6% power per level${k==='reinf'?' · a fourth brother at level '+S_MAX:''}</small>`:`<small style="color:var(--gold)">🔒 Opens after stage ${S.at}</small>`}</div></div>
+    ${op?`<div class="hact">${typeof armLvlBtn==='function'?armLvlBtn(key,'data-a="sl"',l,S_MAX):cardLvlLine(key,'data-a="sl"')}${l<S_MAX&&cardHave(key)<cardNeed(key)?'<small class="cfrom">🎁 Cards come from chests</small>':cardCovered(key)?'<small class="cfrom done">✔ You hold every card it needs — chests stop giving it</small>':''}</div>`:''}
     ${op?`<div class="lvbox" style="margin:8px 0;font-size:12.5px;color:#f2e6c9"><b>Now</b> · ${spellLine(k,l)}${l<S_MAX?`<br><b style="color:var(--gold)">Lv ${l+1}</b> · ${spellLine(k,l+1)}`:''}</div>`:''}
     <div class="cfoot"><button data-a="arm">🛡️ Armory — one-time spell upgrades</button></div></div>`;
   show(`<div class="topbar"><h1>✨ Spells<small>Cards from chests and gold buy levels — every level is +6% power.</small></h1><button class="back" id="bBack">✖</button></div>
   <p class="m">🪙 <b style="color:var(--gold)">${fmtN(goldOf())}</b> gold · 🃏 ${cardHave(key)} ${S.n} cards</p>
-  <div class="hgrid c3">${tiles}</div><div id="clist">${det}</div>`);
-  $('#bBack').addEventListener('click',()=>showHub('coll','spells'));
+  <div class="hgrid strip" id="spStrip">${tiles}</div><div id="clist">${det}</div>`);
+  $('#bBack').addEventListener('click',()=>showHub('coll','spells'));if(typeof armStrip==='function')armStrip('#spStrip');
   card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showSpellRoom(t.dataset.s)));
   const b=card.querySelector('#clist button[data-a="sl"]');if(b)b.addEventListener('click',()=>{if(cardLevelUp(key)){SFX.play('upgrade');persist();}else SFX.play('deny');showSpellRoom(k);});
   const ba=card.querySelector('#clist button[data-a="arm"]');if(ba)ba.addEventListener('click',()=>showUpgrades());

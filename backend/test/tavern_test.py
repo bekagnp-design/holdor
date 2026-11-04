@@ -54,11 +54,18 @@ with sync_playwright() as p:
     setw(levels={'c:robb': 10}, cards={'c:brienne': 40, 'c:robb': 100, 'b:c': 3})
     book('gold', 20000); book('gems', 1000)
     ev("HOLDOR_ECON.ecoRefresh()"); settle()
+    wait("(HOLDOR.ACC.cards||{})['c:brienne']===40&&HOLDOR.ACC.gold>=20000", 10000)   # the refresh has landed (else the ★ button is still disabled)
     ev("HOLDOR_TAVERN.showHeroRoom('robb')"); pg.wait_for_timeout(500)
+    check('the ★ button is live', ev("(()=>{const b=document.querySelector('.ascgo');return !!b&&!b.disabled})()"))
     check('the tavern shows the star box at the cap', ev("!!document.querySelector('.ascbox')"))
     pg.screenshot(path=SHOTS + '/tavern_asc.png')
     g0 = W()[2]
+    try: pg.get_by_text('Later', exact=True).first.click(timeout=1500)   # the daily calendar of a new day may open over the room
+    except Exception: pass
+    pg.wait_for_timeout(300)
+    hit = ev("(()=>{const b=document.querySelector('.ascgo'),r=b.getBoundingClientRect(),e=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return [Math.round(r.top),Math.round(r.bottom),innerHeight,e?(e.closest('.ascgo')?'ascgo':e.id+'.'+e.className):'none',(document.querySelector('#ecoModal.on')||{}).innerText||'']})()")
     tap('.ascgo', 500); settle()
+    if os.environ.get('V'): print('ASC', hit, q("select kind, detail from econ_flags where tg_id = %s and at > now() - interval '20 seconds' order by id desc limit 3", TG))
     lv, cd = W()[0], W()[1]
     check('★2 on the server, 20 Brienne cards burnt, 1500 gold', lv.get('st:robb') == 2 and cd.get('c:brienne') == 20 and g0 - W()[2] == 1500, (lv, cd, g0 - W()[2]))
     check('the app shows ★2', ev("HOLDOR_TAVERN.cstar('robb')") == 2 and ev("HOLDOR.ACC.gold") == W()[2])

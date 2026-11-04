@@ -1,0 +1,40 @@
+// v1.4.9: the spell room — a big LEVEL UP on the first screen, the spells as a strip; chests stop giving a card that is
+// maxed or whose held copies already pay every level left (towers and spells; champions keep theirs for ascension).
+const { chromium } = require('playwright');
+const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs').mkdirSync(SC, { recursive: true });
+(async () => {
+  const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+  const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message));
+  await page.goto('file://' + require('path').resolve(__dirname, '..', process.env.HOLDOR_HTML || 'beta/index.html'));
+  await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_CARDS, { timeout: 20000 }); await page.waitForTimeout(300);
+  const R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
+  await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1 };
+    for (let i = 1; i <= 30; i++) a.campaign[i] = 3; a.gold = 60000; a.cards = { 's:arrows': 9 }; H.setAcc(a); H.persist(); window.HOLDOR_CARDS.showSpellRoom('arrows'); });
+  await page.waitForTimeout(600);
+  const s0 = await page.evaluate(() => { const b = document.querySelector('#clist .bigbtn.lvl.ready'), r = b && b.getBoundingClientRect(), d = document.querySelector('#clist canvas.dmv');
+    return { h: r ? Math.round(r.height) : 0, bottom: r ? Math.round(r.bottom) : 9999, strip: !!document.querySelector('#spStrip.strip'), demoBelow: !!(d && r && d.getBoundingClientRect().top > r.bottom) }; });
+  ok('a big green LEVEL UP (>=56px) ends above 600 px of 844, the spells in a strip, the demo below it', s0.h >= 56 && s0.bottom <= 600 && s0.strip && s0.demoBelow, JSON.stringify(s0));
+  await page.locator('#clist .bigbtn.lvl.ready').tap({ force: true }); await page.waitForTimeout(350);
+  ok('the tap levels the spell up (1 → 2)', await page.evaluate(() => window.HOLDOR_CARDS.spellLvl('arrows')) === 2);
+  await page.screenshot({ path: SC + 'spell149.png' });
+  const p = await page.evaluate(() => { const C = window.HOLDOR_CARDS, A = window.HOLDOR.ACC, need = k => { let n = 0; for (let l = C.cardLvl(k); l < C.cardMax(k); l++) n += C.cardNeed(k, l); return n; };
+    const r = {}; A.cards = {}; r.start = C.cardPool().includes('s:fire');
+    A.cards['s:fire'] = need('s:fire') - 1; r.short = C.cardPool().includes('s:fire') && !C.cardCovered('s:fire');
+    A.cards['s:fire'] = need('s:fire'); r.covered = !C.cardPool().includes('s:fire') && C.cardCovered('s:fire');
+    A.cards['s:fire'] = 0; A.slv.fire = C.cardMax('s:fire'); r.maxed = !C.cardPool().includes('s:fire');
+    A.cards['t:watch'] = need('t:watch'); r.tower = !C.cardPool().includes('t:watch');
+    const ch = C.cardPool().find(k => k[0] === 'c'); A.cards[ch] = 99999; r.champ = C.cardPool().includes(ch);
+    for (const k of C.cardPool()) if (k[0] === 's') A.cards[k] = need(k);
+    let spells = 0; for (let i = 0; i < 30; i++) for (const x of C.rollChest('dragon')) if (x.key && x.key[0] === 's') spells++; r.chestSpells = spells; return r; });
+  ok('in the pool at first; one copy short: still in', p.start && p.short, JSON.stringify(p));
+  ok('copies cover every level left: out of the pool', p.covered);
+  ok('a maxed spell, a covered tower: out of the pool', p.maxed && p.tower);
+  ok('a champion keeps dropping (ascension uses copies)', p.champ);
+  ok('30 dragon chests with every spell covered: no spell card', p.chestSpells === 0, String(p.chestSpells));
+  await page.evaluate(() => window.HOLDOR_CARDS.showSpellRoom('fire')); await page.waitForTimeout(300);
+  ok('a maxed spell: FULLY FORGED, no level button', await page.evaluate(() => !!document.querySelector('#clist .bigbtn.max') && !document.querySelector('#clist .bigbtn.lvl')));
+  ok('no page errors', !errors.length, errors.join(' | '));
+  console.log(JSON.stringify(R, null, 1)); console.log('ERR', JSON.stringify(errors));
+  await browser.close(); process.exit(Object.values(R).some(v => v.startsWith('FAIL')) || errors.length ? 1 : 0);
+})();
