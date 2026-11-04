@@ -1747,6 +1747,9 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 .hdet2>.dmw{margin-top:2px}
 @media (prefers-reduced-motion:reduce){.hhead .hstage,.hhead .aback,.aface::after,.hhead .hstage::before,.hhead .hstage::after{animation:none}}
 .aface .arar,.aface .aglare{z-index:2}
+.hdet .hact{margin:10px 0 4px}.hdet .hact .cfrom{display:block;text-align:center;color:#ffd060;font:600 12.5px/1.2 var(--f-body);margin-top:2px}
+#spStrip .htile .spi.big{width:44px;height:44px}
+.hdet .hlv{color:#2a1d0c}.hdet .hlv em{color:#6b5a3e}.hdet .hlv .bar{background:rgba(42,29,12,.25);border-color:rgba(42,29,12,.3)}.hdet .hact .cfrom.done{color:#3f8a32}
 /* v1.1.6: Tasks */
 .tkhead{display:flex;align-items:center;gap:10px;margin:2px 0 8px;padding:10px 14px;border-radius:16px;background:#12294a;border:2px solid #0b1a2e;color:#b9cfe6}
 .tkhead .tkn{min-width:34px;height:34px;border-radius:17px;background:#2a4a74;color:#fff;font:800 18px/34px var(--f-display);text-align:center}
@@ -2280,8 +2283,10 @@ function lvlChestsReady(){return Math.max(0,accLevel().l-1-(ACC.lvlChests||0));}
 function lvlToast(l){try{document.querySelectorAll('.lvltoast').forEach(e=>e.remove());const el=document.createElement('div');el.className='lvltoast';el.innerHTML=`<b>LEVEL ${l}</b><small>${CHEST_TIERS[lvlChestTier(l)].n} waits in your castle</small>`;document.getElementById('app').appendChild(el);requestAnimationFrame(()=>el.classList.add('in'));setTimeout(()=>{el.classList.remove('in');setTimeout(()=>el.remove(),400);},2600);}catch(e){}}
 /* ---------- where cards come from ---------- */
 function cardPool(){const keys=[];for(const c of CHAMPS)if(c.house===ACC.house&&unlocked(null,c)&&cprog(null,c.id).lvl<CH_MAX)keys.push('c:'+c.id);
-  for(const k of TKEYS)if(towerOpen(k)&&tLvl(k)<T_MAX)keys.push('t:'+k);
-  for(const k in SPELLS)if((k==='arrows'||cleared()>=SPELLS[k].at)&&cardLvl('s:'+k)<S_MAX)keys.push('s:'+k);return keys;}
+  for(const k of TKEYS)if(towerOpen(k)&&tLvl(k)<T_MAX&&!cardCovered('t:'+k))keys.push('t:'+k);
+  for(const k in SPELLS)if((k==='arrows'||cleared()>=SPELLS[k].at)&&cardLvl('s:'+k)<S_MAX&&!cardCovered('s:'+k))keys.push('s:'+k);return keys;}
+/* v1.4.9: the copies held already pay every level left — a chest would only waste them (backend v39 ec_pool, same rule) */
+function cardCovered(key){const mx=cardMax(key);let n=0;for(let l=cardLvl(key);l<mx;l++)n+=cardNeed(key,l);return cardHave(key)>=n;}
 function cardStack(pool,tier,minR,used){const T=CARD_PACK[tier]||CARD_PACK.wood;let c=pool.filter(k=>!used.has(k)&&cardRar(k)>=minR);
   if(!c.length)c=pool.filter(k=>!used.has(k));if(!c.length)c=pool.slice();if(!c.length)return null;
   const w=k=>[10,8,6,3,1][cardRar(k)];let tot=c.reduce((s,k)=>s+w(k),0),r=Math.random()*tot,key=c[c.length-1];for(const k of c){r-=w(k);if(r<=0){key=k;break;}}
@@ -2312,13 +2317,14 @@ function showSpellRoom(k){
   const det=`<div class="hdet" style="--hc:${rc};--hc2:#1d2a3c">
     <div class="hdtop"><div class="hport"><span class="spi big">${spellSVG(k)}</span></div>
       <div class="hdinfo"><b>${S.n}</b><small>${S.d} · cooldown ${S.cd}s</small>
-      ${op?cardLvlLine(key,'data-a="sl"')+`<small>+6% power per level${k==='reinf'?' · a fourth brother at level '+S_MAX:''}</small>`:`<small style="color:var(--gold)">🔒 Opens after stage ${S.at}</small>`}</div></div>
+      ${op?`<div class="hlv"><b>Lv ${l}</b><em>/ ${S_MAX}</em><span class="bar"><i style="width:${Math.round(100*l/S_MAX)}%"></i></span></div><small>+6% power per level${k==='reinf'?' · a fourth brother at level '+S_MAX:''}</small>`:`<small style="color:var(--gold)">🔒 Opens after stage ${S.at}</small>`}</div></div>
+    ${op?`<div class="hact">${typeof armLvlBtn==='function'?armLvlBtn(key,'data-a="sl"',l,S_MAX):cardLvlLine(key,'data-a="sl"')}${l<S_MAX&&cardHave(key)<cardNeed(key)?'<small class="cfrom">🎁 Cards come from chests</small>':cardCovered(key)?'<small class="cfrom done">✔ You hold every card it needs — chests stop giving it</small>':''}</div>`:''}
     ${op?`<div class="lvbox" style="margin:8px 0;font-size:12.5px;color:#f2e6c9"><b>Now</b> · ${spellLine(k,l)}${l<S_MAX?`<br><b style="color:var(--gold)">Lv ${l+1}</b> · ${spellLine(k,l+1)}`:''}</div>`:''}
     <div class="cfoot"><button data-a="arm">🛡️ Armory — one-time spell upgrades</button></div></div>`;
   show(`<div class="topbar"><h1>✨ Spells<small>Cards from chests and gold buy levels — every level is +6% power.</small></h1><button class="back" id="bBack">✖</button></div>
   <p class="m">🪙 <b style="color:var(--gold)">${fmtN(goldOf())}</b> gold · 🃏 ${cardHave(key)} ${S.n} cards</p>
-  <div class="hgrid c3">${tiles}</div><div id="clist">${det}</div>`);
-  $('#bBack').addEventListener('click',()=>showHub('coll','spells'));
+  <div class="hgrid strip" id="spStrip">${tiles}</div><div id="clist">${det}</div>`);
+  $('#bBack').addEventListener('click',()=>showHub('coll','spells'));if(typeof armStrip==='function')armStrip('#spStrip');
   card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showSpellRoom(t.dataset.s)));
   const b=card.querySelector('#clist button[data-a="sl"]');if(b)b.addEventListener('click',()=>{if(cardLevelUp(key)){SFX.play('upgrade');persist();}else SFX.play('deny');showSpellRoom(k);});
   const ba=card.querySelector('#clist button[data-a="arm"]');if(ba)ba.addEventListener('click',()=>showUpgrades());
@@ -2886,7 +2892,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.4.8';
+const VERSION='1.4.9';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -9954,7 +9960,7 @@ function demoLoop(cv){const kind=cv.dataset.dk,id=cv.dataset.di,c=cv.getContext(
 function demoHTML(kind,id){return `<div class="dmw"><canvas class="dmv" width="640" height="360" data-dk="${kind}" data-di="${id}"></canvas></div>`;}
 function demoMount(root){(DMS.stop||[]).forEach(f=>f());DMS.stop=[];(root||document).querySelectorAll('canvas.dmv').forEach(cv=>DMS.stop.push(demoLoop(cv)));}
 /* the rooms */
-{const sr1=showSpellRoom;showSpellRoom=function(k){sr1(k);k=SPELLS[k]?k:'arrows';const det=card.querySelector('#clist .hdet');if(det){det.insertAdjacentHTML('afterbegin',demoHTML('spell',k));demoMount(det);}};
+{const sr1=showSpellRoom;showSpellRoom=function(k){sr1(k);k=SPELLS[k]?k:'arrows';const det=card.querySelector('#clist .hdet');if(det){const ha=det.querySelector('.hact');if(ha)ha.insertAdjacentHTML('afterend',demoHTML('spell',k));else det.insertAdjacentHTML('afterbegin',demoHTML('spell',k));demoMount(det);}};
  const tr1=showTowerRoom;showTowerRoom=function(k){tr1(k);const st=card.querySelector('#clist .hact')||card.querySelector('#clist .tstage');if(st){const kk=card.querySelector('.htile.view');const key=kk?kk.dataset.t:k;if(TOWERS[key]){st.insertAdjacentHTML('afterend',demoHTML('tower',key));demoMount(card.querySelector('#clist'));}}};
  const hr1=showHeroRoom;showHeroRoom=function(v){hr1.apply(this,arguments);const nm=card.querySelector('#clist .bigbtn.ride');const list=CHAMPS.filter(x=>x.house===ACC.house);const c=list.find(x=>x.id===v)||list.find(x=>x.id===ACC.sel)||list[0];if(nm&&c&&unlocked(null,c)){nm.insertAdjacentHTML('afterend',demoHTML('champ',c.id));demoMount(card.querySelector('#clist'));}};}
 /* v1.2.6: the champion learns in battle. Before waves 3, 6, 9, 12 and 15 of a campaign battle (from stage 5) the fight stops and the champion
@@ -10425,7 +10431,7 @@ window.HOLDOR_CHAL={CHAL,chalEncode,chalDecode,chalSp,chalLink,chalFromStart,cha
 window.HOLDOR_TRIALS={TRIALS,trialsAcc,trialsStart,trialsRun,trialsEnd,trialsResult,hubTrials,hubTabs,trialsInviteCard,gameOver:()=>gameOver()};
 window.HOLDOR_DECK={DECK,deckState,deckSwap,deckBody};
 window.HOLDOR_CHEST={C5,chest145SVG,chest145Open,get state(){const el=document.getElementById('cer');return el&&el._c5&&el._c5.api?el._c5.api.state():null;}};
-window.HOLDOR_CARDS={CARD_NEED,CARD_MUL,cardRar,cardLvl,cardMax,cardNeed,cardHave,cardGold,cardName,cardOpen,cardReady,cardCan,addCards,cardLevelUp,accLevel,accXp,addXp,xpNeed,lvlChestTier,lvlChestsReady,cardPool,rollChest,stageCards,spellLvl,spellMul,showSpellRoom,showTowerRoom,migrate48,TOURS,toursOf,hubTour,startTour};
+window.HOLDOR_CARDS={cardCovered,CARD_NEED,CARD_MUL,cardRar,cardLvl,cardMax,cardNeed,cardHave,cardGold,cardName,cardOpen,cardReady,cardCan,addCards,cardLevelUp,accLevel,accXp,addXp,xpNeed,lvlChestTier,lvlChestsReady,cardPool,rollChest,stageCards,spellLvl,spellMul,showSpellRoom,showTowerRoom,migrate48,TOURS,toursOf,hubTour,startTour};
 window.HOLDOR_SEATS={seatNo,lbIsMe,lbName,lbStale,lbMine,scoreSummary,fetchLeaderboard,cachedLb};
 window.HOLDOR_BOOK={showBook,bookNew,bookDisc,bookNewCount,bookMarkRead,BOOK,trophiesOf,trophiesRow,rankOf,myRank,rankSVG,showRankSheet,RANKS,RANK_AT};
 window.HOLDOR_CASTLE={spawn,maxTowerLvl,armyLvl,armyMul,trainArmy,armyUnits,unitStats,PACK_ITEMS,packOf,packCount,buyPack,usePack,openPackSheet,showTrain,showSpellShop,ARMY_HOUSE_AT,ARMY_MAX};

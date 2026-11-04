@@ -776,6 +776,12 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 - `skilldemo.js` `dHero`: a wind-up before the blow, an eased thrust and return, a squash on impact with a flash, idle breathing, the house's light at the feet; the champion drawn a little larger. `dmChamp` fades between skills instead of cutting.
 - Test: `t_army105.js` checks LEVEL UP and RIDE end above 680 px of 844.
 
+## v1.4.9 — the spell room's LEVEL UP up front; no wasted cards from chests
+- `cards.js` `showSpellRoom`: the spells as a swipe strip (`#spStrip`) instead of a 3-column grid, the level bar beside the icon, the big `armLvlBtn` LEVEL UP under it (on 390×844 it ends at ~455 px; before it was a small chip far below the fold); the demo follows the button (`demo125.js`).
+- `cardPool`: a tower or a spell also leaves the chest pool once its held copies pay every level left (`cardCovered`); maxed ones already did. Champions keep the old rule: their copies also feed ascension. The room says so ("You hold every card it needs — chests stop giving it").
+- Backend **v39**: `ec_pool` with the same rule for managed seats (chest stacks, lucky chests, everything that uses `ec_card_stack`). `v39_test.py`.
+- Test `t_spell149.js` (core).
+
 ## Not done / next
 - **On MR B (one step at a time):** 1) merge the v1.0.58 PR, then the v1.0.59 PR, and play `…/holdor/beta/` on the phone; 2) say "release" — Claude first applies `holdor_v7.sql`, the regenerated `holdor_econ_data.sql` and `holdor_v8.sql` in Supabase (hashes verified), then opens the release PR. Art: the Dorne kit first (`holdor-prompts-v45.md`); still open: 8 chest images, 30 skill icons, 7 island images, 4 event banners, house film clips.
 - **Next versions (`docs/design-v2.md`, `roadmap.md`):** v1.0.64 city → v1.0.65 account levels + HOLDOR Coin + Tasks + invites → v1.0.66 chats → v1.0.67–68 PvP 1v1 → v1.0.69 country war → v1.0.70 languages → v1.0.71 Season Pass + rewarded ads + VIP → v1.0.72 marketing.
