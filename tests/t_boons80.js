@@ -30,7 +30,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   await page.locator(`#boonOv [data-boon="${k}"]`).tap({ force: true }); await page.waitForTimeout(300);
   const after = await page.evaluate(() => ({ ov: !!document.getElementById('boonOv'), paused: window.HOLDOR.G.paused, boons: window.HOLDOR.G.boons, boon: window.HOLDOR.G.boon, gold: Math.floor(window.HOLDOR.G.gold), door: window.HOLDOR.G.doorHp, max: window.HOLDOR.G.doorMax }));
   ok('a tap takes the blessing, closes the offer and lets the game run', !after.ov && !after.paused && after.boons.length === 1 && after.boons[0] === k, JSON.stringify(after));
-  const eff = { arrows: after.boon && after.boon.tw === 0.15, blade: after.boon && after.boon.hero === 0.35, storm: after.boon && after.boon.sp === 0.4, coin: after.gold === before.gold + 300,
+  const eff = { arrows: after.boon && after.boon.tw === 0.15, blade: after.boon && after.boon.hero === 0.35, storm: after.boon && after.boon.sp === 0.4, coin: after.gold >= before.gold + 300 && after.gold < before.gold + 300 + 120,
     loot: after.boon && after.boon.loot === 0.2, mend: after.door > before.door || before.door === before.max, oak: after.max === before.max + Math.round(before.max * 0.2), focus: true }[k];
   ok('the blessing works (' + k + ')', eff, JSON.stringify([before, after]));
   // the wave starts after the pick

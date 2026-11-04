@@ -41,7 +41,7 @@ function showHeroRoom(viewId,fod,openSk){armStop();
       act=`<div class="ascbox"><b>★${st} → ★${st+1}</b><small>opens levels ${10*st+1}–${Math.min(CH_MAX,10*st+10)} · 🪙 ${fmtN(ascGold(c.id))} + burn the cards of another champion:</small>
         <div class="fods">${fods.length?fods.map(f=>{const n=ascNeed(c.id,f.id),h=cardHave('c:'+f.id);return `<button class="fod ${fsel&&fsel.id===f.id?'on':''} ${h>=n?'':'short'}" data-a="fod" data-f="${f.id}" style="--rc:${RAR_C[champRar(f)]}">${portraitHTML(f,34)}<small>${h}/${n}</small></button>`;}).join(''):'<small class="none">No cards of another champion yet — chests and the portal bring them.</small>'}</div>
         <button class="bigbtn lvl ${fsel?'ready':'need'} ascgo" data-a="asc" data-f="${fsel?fsel.id:''}" ${fsel?'':'disabled'}><span class="bt">⭐ RAISE TO ★${st+1}</span><span class="bs">${fsel?`burn ${ascNeed(c.id,fsel.id)} ${esc(shortName(fsel))}`:'pick a champion to burn'}</span></button></div>`;}
-    else{act=`<div class="hlv"><b>Lv ${p.lvl}</b><em>/ ${lc}</em><span class="bar"><i style="width:${Math.round(100*p.lvl/lc)}%"></i></span></div>${armLvlBtn(key,'data-a="lvl"',p.lvl,CH_MAX)}${cardHave(key)<cardNeed(key)&&p.lvl<CH_MAX?`<button class="linkbtn" data-a="chests">🎁 Cards come from chests ›</button>`:''}`;}}
+    else{act=`${armLvlBtn(key,'data-a="lvl"',p.lvl,CH_MAX)}${cardHave(key)<cardNeed(key)&&p.lvl<CH_MAX?`<button class="linkbtn" data-a="chests">🎁 Cards come from chests ›</button>`:''}`;}}
   const ridebtn=`<button class="bigbtn ride ${ride?'on':''}" data-a="sel" ${!un||ride?'disabled':''}><span class="bt">${ride?'✔ RIDING WITH YOU':'⚔ RIDE WITH '+esc(shortName(c)).toUpperCase()}</span></button>`;
   const skills=`<div class="skl">${c.sk.map((sk,i)=>{const S=SK[sk],l=p.sk[i],capd=l>=cap&&l<SK_MAX,nb=skBooks(l),cat=skCat(sk),op=openSk===i,can=skCan(c.id,i);
     const lab=l>=SK_MAX?'MAX':capd?`🔒 Lv ${armSkRankLock(l,p.lvl)}`:`⬆ 📖${nb} · 🪙${fmtN(ECON.skCost(l))}`;
@@ -53,7 +53,7 @@ function showHeroRoom(viewId,fod,openSk){armStop();
   show(`<div class="topbar"><h1>🍺 Champions<small>swipe, tap, level up</small></h1><button class="back" id="bBack">✖</button></div>
   <p class="m cur">🪙 <b style="color:var(--gold)">${fmtN(goldOf())}</b> · 💎 ${ACC.gems} · <span class="bkl">${booksLine()}</span></p>
   <div class="hgrid strip" id="armStrip">${tiles}</div>
-  <div id="clist"><div class="hdet2" style="--hc:${hh.col};--hc2:${hh.col2}">${stage}${name}<div class="hact">${act}</div>${ridebtn}${skills}${tal}${foot}</div></div>`);
+  <div id="clist"><div class="hdet2" style="--hc:${hh.col};--hc2:${hh.col2}"><div class="hhead r${r}">${stage}<div class="hinfo">${name}${un?`<div class="hlv"><b>Lv ${p.lvl}</b><em>/ ${lc}</em><span class="bar"><i style="width:${Math.round(100*p.lvl/lc)}%"></i></span></div>`:''}</div></div><div class="hact">${act}</div>${ridebtn}${skills}${tal}${foot}</div></div>`);
   CLOUD.screen='hero';armStrip('#armStrip');armTilt(card.querySelector('.hstage'));
   const openDemo=row=>{if(ARM.stop){ARM.stop();ARM.stop=null;}const cv=row&&row.querySelector('canvas');if(cv)ARM.stop=skillDemoLoop(cv,cv.dataset.sk,c.house,c.id);};
   const o=card.querySelector('.skr.open');if(o)openDemo(o);

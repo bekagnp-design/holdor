@@ -72,3 +72,37 @@
 .mchip i{font-style:normal;font-size:20px}.mchip b{font:800 10.5px/1 var(--f-display)}
 .mtx{margin:2px 2px 0;font:500 13px/1.35 var(--f-body);color:#dbe3ec;background:rgba(255,255,255,.06);padding:8px 10px;border-radius:10px}
 @media (prefers-reduced-motion:reduce){.bigbtn.lvl.ready{animation:none}}
+/* v1.4.8: the champion's head row — card beside name, level and stars; LEVEL UP on the first screen */
+.hhead{display:grid;grid-template-columns:142px 1fr;gap:12px;align-items:center;padding:8px 10px 8px 4px;border-radius:18px;
+  background:radial-gradient(120% 140% at 18% 50%,color-mix(in srgb,var(--hc) 34%,transparent),transparent 62%),linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015));
+  border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.hhead .hstage{height:196px;animation:hfloat 4.2s ease-in-out infinite}
+.hhead .acard{width:132px;height:184px}
+.hhead .aimg.emoji,.hhead .aimg.sealed{font-size:70px}
+.hhead .asig{transform:translateZ(40px) scale(.82);right:-8px;top:-10px}
+.hhead .aback{animation:hhalo 3.2s ease-in-out infinite}
+.hinfo{display:flex;flex-direction:column;gap:8px;min-width:0}
+.hinfo .hname{align-items:flex-start;text-align:left}
+.hinfo .hname b{font-size:22px;letter-spacing:.02em;background:linear-gradient(180deg,#fff6da,#e9c97a);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.8))}
+.hinfo .hname small{font-size:12px}
+.hinfo .hlv .bar i{box-shadow:0 0 8px rgba(160,240,120,.6)}
+/* the card: a light that sweeps across the face, an inner frame, a halo by rarity */
+.aface::before{content:"";position:absolute;inset:5px;border-radius:11px;border:1px solid rgba(255,255,255,.22);z-index:2;pointer-events:none;box-shadow:inset 0 0 18px rgba(0,0,0,.45)}
+.aface::after{content:"";position:absolute;top:-20%;bottom:-20%;width:42%;left:-60%;z-index:3;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.0) 20%,rgba(255,255,255,.34) 50%,rgba(255,255,255,0) 80%,transparent);transform:skewX(-14deg);animation:hsheen 4.6s ease-in-out infinite 1s}
+.hhead.r2 .aback,.hhead.r3 .aback,.hhead.r4 .aback{background:radial-gradient(circle,var(--rc),transparent 66%);opacity:.75}
+.hhead.r3 .aface,.hhead.r4 .aface{box-shadow:0 0 0 2px rgba(0,0,0,.55),0 14px 30px rgba(0,0,0,.55),0 0 30px var(--rc),0 0 60px color-mix(in srgb,var(--rc) 45%,transparent)}
+.hhead.r4 .hstage::before,.hhead.r4 .hstage::after,.hhead.r3 .hstage::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;
+  background-image:radial-gradient(2px 2px at 20% 80%,#ffe9a8,transparent),radial-gradient(1.6px 1.6px at 72% 90%,#ffd060,transparent),radial-gradient(2px 2px at 48% 96%,#fff3c4,transparent),radial-gradient(1.4px 1.4px at 86% 70%,#ffd060,transparent),radial-gradient(1.8px 1.8px at 8% 60%,#ffe9a8,transparent);
+  animation:hember 3.6s linear infinite}
+.hhead.r3 .hstage::before{filter:hue-rotate(215deg) saturate(1.4)}
+.hhead.r4 .hstage::after{animation-delay:-1.8s;transform:scaleX(-1)}
+@keyframes hfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes hhalo{0%,100%{opacity:.45;transform:translateZ(-44px) scale(.96)}50%{opacity:.8;transform:translateZ(-44px) scale(1.04)}}
+@keyframes hsheen{0%{left:-60%}38%,100%{left:130%}}
+@keyframes hember{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(-190px);opacity:0}}
+.hhead.r4 .hstage::after{animation-name:hember2}
+@keyframes hember2{0%{transform:scaleX(-1) translateY(0);opacity:0}15%{opacity:1}100%{transform:scaleX(-1) translateY(-190px);opacity:0}}
+.hdet2>.dmw{margin-top:2px}
+@media (prefers-reduced-motion:reduce){.hhead .hstage,.hhead .aback,.aface::after,.hhead .hstage::before,.hhead .hstage::after{animation:none}}
+.aface .arar,.aface .aglare{z-index:2}
