@@ -1,2 +1,2 @@
-# v1.5.0/v1.5.1 test hooks: the home's three answers; the battle flow (map card, result screen); the Shop drawing.
-rep("window.HOLDOR={", "window.HOLDOR_HOME150={homeReadyItems,homeNextOpen,homeGo};\nwindow.HOLDOR_FLOW150={PREP,deckStripHTML};\nwindow.HOLDOR_SHOP150={shop150HTML,shNeed,shChip,shBuyBtn,shCard,hubShopV1};\nwindow.HOLDOR={", 1, 'exports150')
+# v1.5.0/v1.5.1 test hooks: the home's three answers; the battle flow (map card, result screen); the Shop drawing; the battle HUD fixes.
+rep("window.HOLDOR={", "window.HOLDOR_HOME150={homeReadyItems,homeNextOpen,homeGo};\nwindow.HOLDOR_FLOW150={PREP,deckStripHTML};\nwindow.HOLDOR_SHOP150={shop150HTML,shNeed,shChip,shBuyBtn,shCard,hubShopV1};\nwindow.HOLDOR_BF150={callBtnPlace,callBtnTick,CALLP,CALL_SPOTS,openRing,closeRing,get RING(){return RING;}};\nwindow.HOLDOR={", 1, 'exports150')

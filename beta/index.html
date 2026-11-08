@@ -2039,6 +2039,10 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 #cer.c145.done.many .rw .rcard.sm b{font-size:8.5px}
 #cer.c145 .c5bg::after{content:'';position:absolute;left:50%;top:47%;width:380px;height:380px;margin:-190px 0 0 -190px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--tg) 38%,transparent) 0,transparent 70%);transition:top .5s cubic-bezier(.2,.8,.3,1)}
 #cer.c145.opened .c5bg::after{top:40%}
+/* battle-screen fixes: the spell's name stays readable while the cooldown cover drains over the icon */
+.pw .cd{z-index:0}
+.pw .l{position:relative;z-index:1}
+.pw:disabled .l{color:#e4ecf7;text-shadow:0 1px 2px rgba(0,0,0,.85),0 0 4px rgba(0,0,0,.6)}
 /* flow150: the map card is the preparation step */
 .mapcard2{margin:6px 8px 4px;padding:10px 12px 10px;border-radius:16px}
 .mapcard2 .gt{font-size:11px;letter-spacing:.2em}
@@ -4358,10 +4362,10 @@ function placeRing(force){
     const tx=clamp(cx-tw/2,6,Math.max(6,sw-tw-6));ringTip.style.left=Math.round(tx)+'px';ringTip.style.top=Math.round(Math.max(4,ty))+'px';}}
 function openRing(s){
   if(!s||G.state!=='play')return;
-  RING={s,items:[],arm:null};G.sel=s;ringEl.hidden=false;renderRing();SFX.play('tap');}
+  RING={s,items:[],arm:null};G.sel=s;ringEl.hidden=false;renderRing();SFX.play('tap');if(typeof callBtnTick==='function')callBtnTick();}
 function closeRing(){
   if(!RING&&ringEl.hidden)return;
-  RING=null;ringEl.hidden=true;ringEl.innerHTML='';ringTip.hidden=true;G.pending=null;
+  RING=null;ringEl.hidden=true;ringEl.innerHTML='';ringTip.hidden=true;G.pending=null;if(typeof callBtnTick==='function')callBtnTick();
   if(G.sel&&!G.sel.tower&&!sheet.classList.contains('open'))G.sel=null;}
 function ringTap(it){
   if(!RING||G.state!=='play')return;const s=RING.s,t=s.tower;
@@ -5475,11 +5479,11 @@ function drawNewCard(now){
   const c=G.newcard;if(!c)return;const el=(now-c.t0)/1000;if(el>=2.4){G.newcard=null;return;}
   const E=ENEMIES[c.key],k=el<0.25?el/0.25:el>2.0?(2.4-el)/0.4:1;
   ctx.save();ctx.globalAlpha=k;
-  ctx.font='700 9px Cinzel,serif';const name=E.n.toUpperCase();const tw=ctx.measureText(name).width;const w=tw+62,h=22,x=W/2-w/2,y=64+(1-k)*-6;
+  ctx.font='700 9px Cinzel,serif';const name=E.n.toUpperCase();const tw=ctx.measureText(name).width;const w=tw+66,h=22,x=W/2-w/2,y=64+(1-k)*-6;
   ctx.fillStyle='rgba(244,239,226,0.94)';rr(ctx,x,y,w,h,11);ctx.fill();ctx.strokeStyle='#8a6d3b';ctx.lineWidth=1;rr(ctx,x,y,w,h,11);ctx.stroke();
   ctx.fillStyle='#7a1d1d';ctx.beginPath();ctx.arc(x+12,y+11,8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f4efe2';ctx.font='700 8px Cinzel,serif';ctx.textAlign='center';ctx.fillText('N',x+12,y+14);
-  const eim=enemyImg(c.key);if(eim){ctx.drawImage(eim,x+23,y+2,18,18);}else{ctx.font='13px serif';ctx.textAlign='left';ctx.fillText(E.e,x+24,y+16);}
-  ctx.fillStyle='#2e2113';ctx.font='700 9px Cinzel,serif';ctx.fillText(name,x+42,y+14.5);
+  const eim=enemyImg(c.key);if(eim){ctx.drawImage(eim,x+24,y+2,18,18);}else{ctx.font='13px serif';ctx.textAlign='left';ctx.fillText(E.e,x+24,y+16);}
+  ctx.fillStyle='#2e2113';ctx.font='700 9px Cinzel,serif';ctx.textAlign='left';ctx.fillText(name,x+46,y+14.5);G.ncBox={x,y,w,h,ix:x+24,iw:18,tx:x+46,tw,align:ctx.textAlign};
   ctx.restore();
 }
 /* =========================== CASTLE (v1.0.51) ===========================
@@ -8238,7 +8242,7 @@ function draw(now){
   drawAmbient(now);
   if(G.time<G.blizzUntil&&G.state==='play'){const t=now/1000;ctx.strokeStyle='rgba(235,245,255,0.55)';ctx.lineWidth=1.2;for(let i=0;i<40;i++){const sp=520+(i%5)*80,x=((i*97)%W+t*sp*0.6)%(W+40)-20,y=((i*61)%H+t*sp)%(H+40)-20;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-7,y-16);ctx.stroke();}}
   if(G.hodor){const el=(now-G.hodor.t0)/G.hodor.ms;if(el>=1)G.hodor=null;else drawBubble(G.hodor.txt,el,G.hod?G.hod.x:GX,GATE_Y-30,'900 13px Cinzel,serif');}
-  if(G.hsay){const el=(now-G.hsay.t0)/G.hsay.ms;if(el>=1||!G.hero||G.hero.dead||!G.heroOn||G.state!=='play')G.hsay=null;else drawBubble(G.hsay.txt,el,G.hero.x,G.hero.y-48,'italic 700 12.5px "EB Garamond",serif',G.hsay.col);}
+  if(G.hsay){const el=(now-G.hsay.t0)/G.hsay.ms;if(el>=1||!G.hero||G.hero.dead||!G.heroOn||G.state!=='play')G.hsay=null;else if(typeof RING!=='undefined'&&RING)G.hsayHid=(G.hsayHid||0)+1;else{G.hsayHid=0;drawBubble(G.hsay.txt,el,G.hero.x,G.hero.y-48,'italic 700 12.5px "EB Garamond",serif',G.hsay.col);}}
   if(G.state==='play')drawUltCard(now);
   if(G.state==='play')drawNewCard(now);
   if(G.tut&&G.state==='play')drawNarrator(now);
@@ -9885,8 +9889,8 @@ function callBtnInit(){
 function callBtnTick(){
   const b=CALLB.el;if(!b)return;
   const ok=typeof G!=='undefined'&&G&&(G.mode==='campaign'||G.mode==='online')&&canCall();
-  {const sh=document.getElementById('sheet');b.hidden=!ok||G.state!=='play'||!!(sh&&sh.classList.contains('open'));}if(b.hidden)return;
-  b.textContent='⚔ CALL WAVE'+(G.nextIn>1?'  +'+Math.ceil(G.nextIn)+'🪙':'');
+  {const sh=document.getElementById('sheet');b.hidden=!ok||G.state!=='play'||!!(sh&&sh.classList.contains('open'))||!!(typeof RING!=='undefined'&&RING);}if(b.hidden)return;
+  b.textContent='⚔ CALL WAVE'+(G.nextIn>1?'  +'+Math.ceil(G.nextIn)+'🪙':'');callBtnPlace(b);
   b.classList.toggle('want',!!(G.tut&&typeof tutWantBase==='function'&&tutWantBase()==='call'));
 }
 callBtnInit();
@@ -10732,6 +10736,15 @@ function chest145Open(t,done,fixed){   /* fixed: a list of rewards to show inste
   q('ccol').addEventListener('click',e=>{e.stopPropagation();if(!q('ccol').classList.contains('in'))return;clearAll();el._c5=null;el.onclick=null;el.className='hidden';el.innerHTML='';done&&done();});
   S.api={open,advance,skip,finish,rewards,state:()=>({phase:S.phase,idx:S.idx,n:N,shown:el.querySelectorAll('#crw .rcard').length})};
 }
+/* battle-screen fixes.
+   · The CALL WAVE button keeps off the build pads: per stage it takes the first free spot of bottom-left, bottom-right,
+     then one row higher on either side (the default spot when none is free); it hides while a build ring is open, because
+     the ring's buttons would sit under it. Placed once per stage and canvas size (CALLP.key).
+   · The champion's speech bubble is not drawn while a ring is open; the new-enemy toast draws its name left-aligned after
+     the icon (both patched in place by src/parts/98zc_battlefix.py). */
+const CALLP={key:null,pick:null};
+const CALL_SPOTS=[[10,null,108],[null,10,108],['c',null,108],[10,null,170],[null,10,170],['c',null,170],[10,null,232],[null,10,232],['c',null,232]];   /* left / right / centre, three heights */
+function callBtnPlace(b){CALLP.pick=CALL_SPOTS[0];}   /* v1.5.1: the button keeps its v1.4.2 spot (left, above the spell bar); moving it off the build pads per stage was tried and dropped — the candidates still covered pads on a third of the stages */
 /* =========================== THE BATTLE FLOW (flow150) ===========================
    Home → map → fight in two taps. The map card is the preparation step: the stage, the chosen deck (champion, 3 spells, 5 towers) as a
    strip, one ⚔ TO BATTLE button, a quiet "change ›" link to Army → Loadout (the one editor; a "◀ Back to the battle" pill brings the
@@ -10922,6 +10935,7 @@ window.HOLDOR_CHEST={C5,chest145SVG,chest145Open,get state(){const el=document.g
 window.HOLDOR_HOME150={homeReadyItems,homeNextOpen,homeGo};
 window.HOLDOR_FLOW150={PREP,deckStripHTML};
 window.HOLDOR_SHOP150={shop150HTML,shNeed,shChip,shBuyBtn,shCard,hubShopV1};
+window.HOLDOR_BF150={callBtnPlace,callBtnTick,CALLP,CALL_SPOTS,openRing,closeRing,get RING(){return RING;}};
 window.HOLDOR_CARDS={cardCovered,CARD_NEED,CARD_MUL,cardRar,cardLvl,cardMax,cardNeed,cardHave,cardGold,cardName,cardOpen,cardReady,cardCan,addCards,cardLevelUp,accLevel,accXp,addXp,xpNeed,lvlChestTier,lvlChestsReady,cardPool,rollChest,stageCards,spellLvl,spellMul,showSpellRoom,showTowerRoom,migrate48,TOURS,toursOf,hubTour,startTour};
 window.HOLDOR_SEATS={seatNo,lbIsMe,lbName,lbStale,lbMine,scoreSummary,fetchLeaderboard,cachedLb};
 window.HOLDOR_BOOK={showBook,bookNew,bookDisc,bookNewCount,bookMarkRead,BOOK,trophiesOf,trophiesRow,rankOf,myRank,rankSVG,showRankSheet,RANKS,RANK_AT};
