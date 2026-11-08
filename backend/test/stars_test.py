@@ -61,7 +61,8 @@ with sync_playwright() as p:
     check('the shop sells three dragonglass packs for Stars, enabled', ev("['gems_s','gems_m','gems_l'].every(k=>{const b=document.querySelector('[data-stars=\"'+k+'\"]');return b&&!b.disabled})"))
     check('the Starter pack is offered (the server says it is not bought)', wait("!!document.querySelector('[data-stars=\"starter\"]')", 6000))
     pg.screenshot(path=SHOTS + '/stars_shop.png')
-    check('prices in Stars', ev("[...document.querySelectorAll('[data-stars]')].map(b=>b.dataset.stars+':'+b.textContent.trim()).join('|')") == 'starter:⭐ 75|gems_s:⭐ 50|gems_m:⭐ 125|gems_l:⭐ 350')
+    # v1.5.1: the price sits in a chip on the card (.pchip.star), the button reads BUY
+    check('prices in Stars', ev("[...document.querySelectorAll('[data-stars]')].map(b=>{const c=b.closest('.sitem,.shcard,[class*=card]')||b.parentElement;const ch=c&&c.querySelector('.pchip.star');return b.dataset.stars+':'+(ch?ch.textContent.trim():b.textContent.trim());}).join('|')") == 'starter:⭐ 75|gems_s:⭐ 50|gems_m:⭐ 125|gems_l:⭐ 350', ev("[...document.querySelectorAll('[data-stars]')].map(b=>b.dataset.stars+':'+b.textContent.trim()+'/'+((b.closest('.sitem,.shcard,[class*=card]')||b.parentElement).querySelector('.pchip.star')||{}).textContent).join('|')"))
 
     # ---- a pack: tap → invoice → Telegram takes the Stars → the app waits for the server → the balance ----
     g0 = W()[0]
