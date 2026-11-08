@@ -1,0 +1,245 @@
+diff --git a/src/mod/army105.css b/src/mod/army105.css
+index 3954afa..a8f98ac 100644
+--- a/src/mod/army105.css
++++ b/src/mod/army105.css
+@@ -109,3 +109,14 @@
+ .hdet .hact{margin:10px 0 4px}.hdet .hact .cfrom{display:block;text-align:center;color:#ffd060;font:600 12.5px/1.2 var(--f-body);margin-top:2px}
+ #spStrip .htile .spi.big{width:44px;height:44px}
+ .hdet .hlv{color:#2a1d0c}.hdet .hlv em{color:#6b5a3e}.hdet .hlv .bar{background:rgba(42,29,12,.25);border-color:rgba(42,29,12,.3)}.hdet .hact .cfrom.done{color:#3f8a32}
++/* v1.5.0: the strip on small phones — tiles grow with their caption (name on one line, level under it, stars), the RIDING ribbon and
++   the ⬆ badge are not clipped (the ribbon above the tile, the badge a green coin inside the corner) */
++.hgrid.strip{padding:16px 2px 12px}
++.hgrid.strip .htile{aspect-ratio:auto;height:auto;min-height:76px;padding:5px 4px 5px;justify-content:flex-start;gap:3px}
++.hgrid.strip .htile.tvt{overflow:visible}
++.hgrid.strip .htile .nm{display:block;max-width:100%;font-size:9px;letter-spacing:.01em;white-space:normal;overflow:visible;line-height:1.1}
++.hgrid.strip .htile .tlv{display:block;font:800 8.5px/1 var(--f-display);letter-spacing:.08em;color:#6b5a3e;text-transform:uppercase}
++.hgrid.strip .htile .stars.sm{font-size:7px;line-height:1}
++.hgrid.strip .htile .rb{top:-8px;z-index:3;white-space:nowrap}
++.hgrid.strip .htile .upb{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:linear-gradient(180deg,#a8f58a,#3fb04a);border:2px solid #0b1a2e;color:#fff;font-size:11px;font-weight:900;line-height:16px;text-align:center;z-index:2;box-shadow:0 2px 0 #1c5a24;animation:upbp .9s ease-in-out infinite alternate}
++@media (prefers-reduced-motion:reduce){.hgrid.strip .htile .upb{animation:none}}
+diff --git a/src/mod/army105.js b/src/mod/army105.js
+index a2fe01c..077a1e6 100644
+--- a/src/mod/army105.js
++++ b/src/mod/army105.js
+@@ -19,6 +19,10 @@ function armTilt(stage){const el=stage.querySelector('.acard');if(!el)return;con
+ function armStrip(q){const s=card.querySelector(q),v=s&&s.querySelector('.view');if(s&&v)s.scrollLeft=Math.max(0,v.offsetLeft-s.clientWidth/2+v.offsetWidth/2);}
+ function armPips(h,n){const k=Math.min(h,n);return `<span class="cardpips" aria-label="${h} of ${n} cards">${'<i class="on"></i>'.repeat(k)}${'<i></i>'.repeat(Math.max(0,n-k))}</span>`;}
+ function armWake(key){return key;}
++/* v1.5.0: a strip tile's caption — the name on one line (ellipsis), the level under it; the back arrow of a room returns to the sub-tab
++   it came from (ARM.ret, set by the deck) */
++function armTileName(n,lvl){return `<span class="nm">${n}</span>${lvl!=null?`<span class="tlv">Lv ${lvl}</span>`:''}`;}
++function armBack(sub){const r=ARM.ret;ARM.ret=null;armStop();showHub('coll',r||sub);}
+ /* the one big button for a level: ready (green, pulsing), missing (grey, says what), max */
+ function armLvlBtn(key,attr,l,mx){const h=cardHave(key),n=cardNeed(key),g=cardGold(key),can=cardCan(key);
+   if(l>=mx)return `<button class="bigbtn max" disabled><span class="bt">★ FULLY FORGED</span></button>`;
+@@ -30,7 +34,7 @@ function showHeroRoom(viewId,fod,openSk){armStop();
+   const hh=HOUSES[ACC.house],list=CHAMPS.filter(c=>c.house===ACC.house);
+   const c=list.find(x=>x.id===viewId)||list.find(x=>x.id===ACC.sel)||list[0],p=cprog(null,c.id),un=unlocked(null,c),ride=ACC.sel===c.id,cap=rankCap(p.lvl),r=champRar(c),st=cstar(c.id),lc=champCap(c.id),key='c:'+c.id;
+   const tiles=list.map(x=>{const u=unlocked(null,x),rd=ACC.sel===x.id,v=x.id===c.id,rr=champRar(x);
+-    return `<button class="htile tvt ${u?'':'lock'} ${v?'view':''} ${rd?'ride':''}" style="--rc:${RAR_C[rr]}" data-c="${x.id}">${u?portraitHTML(x,58):'<span class="pe">🔒</span>'}<span class="nm">${u?shortName(x)+' · '+cprog(null,x.id).lvl:'After '+UNLOCK_STAGE[x.tier]}</span>${u?starsHTML(cstar(x.id),'sm'):''}${rd?'<i class="rb">RIDING</i>':''}${u&&(cardCan('c:'+x.id)||(ascReady(x.id)&&list.some(f=>ascCan(x.id,f.id))))?'<span class="upb">⬆</span>':''}</button>`;}).join('');
++    return `<button class="htile tvt ${u?'':'lock'} ${v?'view':''} ${rd?'ride':''}" style="--rc:${RAR_C[rr]}" data-c="${x.id}">${u?portraitHTML(x,54):'<span class="pe">🔒</span>'}${u?armTileName(shortName(x),cprog(null,x.id).lvl):armTileName('After '+UNLOCK_STAGE[x.tier])}${u?starsHTML(cstar(x.id),'sm'):''}${rd?'<i class="rb">RIDING</i>':''}${u&&(cardCan('c:'+x.id)||(ascReady(x.id)&&list.some(f=>ascCan(x.id,f.id))))?'<span class="upb">⬆</span>':''}</button>`;}).join('');
+   const art=CHAMP_ART[c.id+'_portrait'];
+   const stage=`<div class="hstage"><div class="acard" style="--rc:${RAR_C[r]};--hc:${hh.col}"><div class="aback"></div><div class="aface">${un?(art?`<div class="aimg" style="background-image:url(${art})"></div>`:`<div class="aimg emoji">${c.e}</div>`):'<div class="aimg sealed">🔒</div>'}<span class="aglare"></span><span class="arar" style="color:${RAR_C[r]}">${un?RAR_N[r]:'SEALED'}</span></div><span class="asig">${crest(ACC.house,30)}</span></div></div>`;
+   const name=`<div class="hname"><b>${un?esc(c.n):'Sealed champion'}</b><small>${un?`<em style="color:${RAR_C[r]}">${RAR_N[r]}</em> · ${String(TYPE_LBL[c.type]).split(',')[0]} · House ${hh.n}`:`🔒 After ${UNLOCK_STAGE[c.tier]} stages — or from the portal`}</small>${un?starsHTML(st):''}</div>`;
+@@ -57,7 +61,7 @@ function showHeroRoom(viewId,fod,openSk){armStop();
+   CLOUD.screen='hero';armStrip('#armStrip');armTilt(card.querySelector('.hstage'));
+   const openDemo=row=>{if(ARM.stop){ARM.stop();ARM.stop=null;}const cv=row&&row.querySelector('canvas');if(cv)ARM.stop=skillDemoLoop(cv,cv.dataset.sk,c.house,c.id);};
+   const o=card.querySelector('.skr.open');if(o)openDemo(o);
+-  $('#bBack').addEventListener('click',()=>{armStop();showHub('coll','heroes');});
++  $('#bBack').addEventListener('click',()=>armBack('heroes'));
+   card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showHeroRoom(t.dataset.c)));
+   card.querySelectorAll('.skrh').forEach(h=>h.addEventListener('click',e=>{if(e.target.closest('button'))return;const row=h.parentNode,was=row.classList.contains('open');card.querySelectorAll('.skr.open').forEach(x=>x.classList.remove('open'));if(ARM.stop){ARM.stop();ARM.stop=null;}if(!was){row.classList.add('open');SFX.play('tap',50);openDemo(row);}}));
+   card.querySelectorAll('[data-tog]').forEach(b=>b.addEventListener('click',()=>{const t=card.querySelector('[data-tgt="'+b.dataset.tog+'"]');if(t){t.hidden=!t.hidden;SFX.play('tap',50);}}));
+@@ -81,7 +85,7 @@ function showHeroRoom(viewId,fod,openSk){armStop();
+ function showTowerRoom(k){armStop();
+   const open=TKEYS.filter(towerOpen);k=k&&TOWERS[k]?k:(open[0]||'watch');
+   const D=TOWERS[k],L=tLvl(k),op=towerOpen(k),rc=(UGROUPS.find(g=>g[0]===k)||[])[3]||'#8a97a8';
+-  const tiles=TKEYS.map(t=>{const o=towerOpen(t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-t="${t}">${towerIconHTML(t,o?Math.max(1,maxTowerLvl()):1,52)}<span class="nm">${o?TSHORT[t]+' · '+tLvl(t):'After '+TOWER_UNLOCK[t]}</span>${o&&cardCan('t:'+t)?'<span class="upb">⬆</span>':''}</button>`;}).join('');
++  const tiles=TKEYS.map(t=>{const o=towerOpen(t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-t="${t}">${towerIconHTML(t,o?Math.max(1,maxTowerLvl()):1,52)}${o?armTileName(TSHORT[t],tLvl(t)):armTileName('After '+TOWER_UNLOCK[t])}${o&&cardCan('t:'+t)?'<span class="upb">⬆</span>':''}</button>`;}).join('');
+   const chips=TMILE[k].map((m,i)=>{const got=L>=T_MILE[i];return `<button class="mchip ${got?'got':''}" data-mi="${i}"><i>${m[0]}</i><b>${got?'✔':'LV '+T_MILE[i]}</b></button>`;}).join('');
+   const mtxt=TMILE[k].map((m,i)=>`<p class="mtx" data-mt="${i}" hidden><b>${esc(m[1])}</b> — ${m[2]}</p>`).join('');
+   const mp=typeof mstPanel==='function'?mstPanel(k):'';
+@@ -93,7 +97,7 @@ function showTowerRoom(k){armStop();
+   <div class="hgrid strip" id="armStrip">${tiles}</div>
+   <div id="clist"><div class="hdet2" style="--hc:${rc};--hc2:#1d2a3c"><div class="tstage">${towerIconHTML(k,Math.max(1,maxTowerLvl()),130)}</div><div class="hname"><b>${D.n}</b><small>${D.sub}</small></div><div class="hact">${body}</div></div></div>`);
+   CLOUD.screen='tower';armStrip('#armStrip');
+-  $('#bBack').addEventListener('click',()=>showHub('coll','towers'));
++  $('#bBack').addEventListener('click',()=>armBack('towers'));
+   card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showTowerRoom(t.dataset.t)));
+   card.querySelectorAll('.mchip').forEach(m=>m.addEventListener('click',()=>{const i=m.dataset.mi,t=card.querySelector('[data-mt="'+i+'"]'),was=t&&!t.hidden;card.querySelectorAll('.mtx').forEach(x=>x.hidden=true);if(t&&!was){t.hidden=false;SFX.play('tap',50);}}));
+   const b=card.querySelector('#clist button[data-a="tl"]');if(b)b.addEventListener('click',()=>{if(cardLevelUp('t:'+k)){SFX.play('upgrade');persist();}else SFX.play('deny');showTowerRoom(k);});
+diff --git a/src/mod/cards.js b/src/mod/cards.js
+index 3b0d1e5..3ff5937 100644
+--- a/src/mod/cards.js
++++ b/src/mod/cards.js
+@@ -73,7 +73,7 @@ function spellLine(k,l){const m=1+0.06*((l||spellLvl(k))-1);
+   const n=(UP('sworn')?5:3)+((l||spellLvl(k))>=S_MAX?1:0);return `${n} brothers · ${Math.round(150*m)} hp · ${Math.round(15*m)} damage each`;}
+ function showSpellRoom(k){
+   k=SPELLS[k]?k:'arrows';const S=SPELLS[k],key='s:'+k,l=spellLvl(k),op=cardOpen(key),rc=k==='fire'?'#ff9a3c':k==='reinf'?'#8fd3ff':'#e3b661';
+-  const tiles=Object.keys(SPELLS).map(t=>{const o=cardOpen('s:'+t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-s="${t}"><span class="spi big">${spellSVG(t)}</span><span class="nm">${o?SPELLS[t].n+' · '+spellLvl(t):'After '+SPELLS[t].at}</span></button>`;}).join('');
++  const tiles=Object.keys(SPELLS).map(t=>{const o=cardOpen('s:'+t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-s="${t}"><span class="spi big">${spellSVG(t)}</span>${typeof armTileName==='function'?(o?armTileName(SPELLS[t].n,spellLvl(t)):armTileName('After '+SPELLS[t].at)):`<span class="nm">${o?SPELLS[t].n+' · '+spellLvl(t):'After '+SPELLS[t].at}</span>`}</button>`;}).join('');
+   const det=`<div class="hdet" style="--hc:${rc};--hc2:#1d2a3c">
+     <div class="hdtop"><div class="hport"><span class="spi big">${spellSVG(k)}</span></div>
+       <div class="hdinfo"><b>${S.n}</b><small>${S.d} · cooldown ${S.cd}s</small>
+@@ -84,7 +84,7 @@ function showSpellRoom(k){
+   show(`<div class="topbar"><h1>✨ Spells<small>Cards from chests and gold buy levels — every level is +6% power.</small></h1><button class="back" id="bBack">✖</button></div>
+   <p class="m">🪙 <b style="color:var(--gold)">${fmtN(goldOf())}</b> gold · 🃏 ${cardHave(key)} ${S.n} cards</p>
+   <div class="hgrid strip" id="spStrip">${tiles}</div><div id="clist">${det}</div>`);
+-  $('#bBack').addEventListener('click',()=>showHub('coll','spells'));if(typeof armStrip==='function')armStrip('#spStrip');
++  $('#bBack').addEventListener('click',()=>typeof armBack==='function'?armBack('spells'):showHub('coll','spells'));if(typeof armStrip==='function')armStrip('#spStrip');
+   card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showSpellRoom(t.dataset.s)));
+   const b=card.querySelector('#clist button[data-a="sl"]');if(b)b.addEventListener('click',()=>{if(cardLevelUp(key)){SFX.play('upgrade');persist();}else SFX.play('deny');showSpellRoom(k);});
+   const ba=card.querySelector('#clist button[data-a="arm"]');if(ba)ba.addEventListener('click',()=>showUpgrades());
+diff --git a/src/mod/deck144.css b/src/mod/deck144.css
+index ffbe2c7..3efd19f 100644
+--- a/src/mod/deck144.css
++++ b/src/mod/deck144.css
+@@ -20,3 +20,14 @@
+ /* v1.4.5: everything not yet open is grey, everywhere (cards, tiles, tabs, the Hold card, events, shop items); the buy/unlock buttons stay coloured */
+ .lock:not(.deal):not(.scell),.locked,.hubtabs button.lock{filter:grayscale(1) brightness(.78)!important}
+ .ccard.lock .im img,.ccard.lock .im svg,.htile.lock img,.htile.lock svg{filter:grayscale(1)}
++/* v1.5.0: small phones — the deck row (the champion card wider, its four skill icons smaller so they fit), captions on one line,
++   the swap banner above the tab bar with room under it, 44 px taps (Cancel, Close), badges inside the card (.ccard clips its overflow) */
++.deckrow.dkrow{gap:6px}.deckrow.dkrow .ccard.hero{flex:1.25}
++.deckrow.dkrow .skrow{gap:2px}.deckrow.dkrow .skrow .skb{margin-right:0;width:18px!important;height:18px!important;--px:18px}
++.ccard .rar.dkst{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
++.deckrow.dkrow .ccard:not(.hero) .nm{font-size:8.5px;letter-spacing:0;white-space:normal;overflow:visible;line-height:1.1}
++.ccard .upb{top:4px;right:4px}.deckrow .ccard .tag{top:4px}
++.hubbody.dkon{padding-bottom:104px}
++.dkban button{min-height:44px;min-width:76px;padding:8px 12px}
++#dkSheet .linkbtn{min-height:44px;padding:10px 22px;margin-top:4px}
++#dkSheet .dks-ic.lock{opacity:.8}
+diff --git a/src/mod/deck144.js b/src/mod/deck144.js
+index 02bd069..93e9a9c 100644
+--- a/src/mod/deck144.js
++++ b/src/mod/deck144.js
+@@ -20,7 +20,7 @@ function deckBody(){const S=deckState(),c=CBY[ACC.sel];
+   const lock=S.tlock.map(k=>deckCard('t',k,'lock')).concat(S.slock.map(k=>deckCard('s',k,'lock')));
+   return `<div class="hh"><h2>Your battle deck</h2><small>tap a card to swap or level it</small></div>${ban}
+     <div class="dksec"><b>Champion & spells</b><small>${S.sin.length}/3 spells</small></div>
+-    <div class="deckrow">${champCard(c,{})}${S.sin.map(k=>deckCard('s',k,'in')).join('')}</div>
++    <div class="deckrow dkrow">${champCard(c,{}).replace('class="ccard ','class="ccard hero ')}${S.sin.map(k=>deckCard('s',k,'in')).join('')}</div>
+     <div class="dksec"><b>Towers in battle</b><small>${S.tin.length}/${ROSTER_MAX} · tier ${ROMAN[maxTowerLvl()-1]}</small></div>
+     <div class="cgrid c3">${S.tin.map(k=>deckCard('t',k,'in')).join('')}</div>
+     <div class="hh dkcolh"><h2>Collection</h2><small>${col.length?'stay home · tap to bring one in':'every open card is in your deck'}</small></div>
+@@ -36,19 +36,26 @@ function deckSheet(kind,k,where){const el=document.getElementById('dkSheet')||do
+   const S=deckState(),others=kind==='t'?(where==='in'?S.tout:S.tin):(where==='in'?S.sout:S.sin),lvl=kind==='t'?tLvl(k):spellLvl(k);
+   const line=kind==='t'?(TGUIDE[k]?TGUIDE[k].role:TOWERS[k].sub):(SPELLS[k].d);
+   const swapLbl=where==='in'?'⇄ SWAP OUT':'⇄ USE IN BATTLE';
+-  el.innerHTML=`<div class="dks-in"><div class="dks-h"><span class="dks-ic">${kind==='t'?towerIconHTML(k,Math.max(1,maxTowerLvl()),46):`<span class="spi">${spellSVG(k)}</span>`}</span><span><b>${esc(deckName(kind,k))}</b><small>${where==='lock'?'locked':'level '+lvl}${where==='in'?' · in your deck':where==='out'?' · in your collection':''}</small></span></div>
++  const at=kind==='t'?TOWER_UNLOCK[k]:SPELLS[k].at;
++  el.innerHTML=`<div class="dks-in"><div class="dks-h"><span class="dks-ic${where==='lock'?' lock':''}">${kind==='t'?towerIconHTML(k,Math.max(1,maxTowerLvl()),46):`<span class="spi">${spellSVG(k)}</span>`}</span><span><b>${esc(deckName(kind,k))}</b><small>${where==='lock'?'🔒 opens after stage '+at:'level '+lvl}${where==='in'?' · in your deck':where==='out'?' · in your collection':''}</small></span></div>
+     <p>${esc(line)}</p>
+     <div class="dks-b">${where!=='lock'&&others.length?`<button class="bigbtn lvl ready" data-dka="swap"><span class="bt">${swapLbl}</span></button>`:''}<button class="bigbtn" data-dka="info"><span class="bt">${where==='lock'?'ⓘ INFO':'⬆ LEVEL UP · INFO'}</span></button></div>
+     <button class="linkbtn" data-dka="x">Close</button></div>`;
+   el.classList.add('on');
+   el.querySelectorAll('[data-dka]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const a=b.dataset.dka;el.classList.remove('on');
+-    if(a==='info'){SFX.play('tap',60);if(kind==='t')showTowerRoom(k);else showSpellRoom(k);}
++    if(a==='info'){SFX.play('tap',60);deckRet();if(kind==='t')showTowerRoom(k);else showSpellRoom(k);}
+     else if(a==='swap'){SFX.play('tap',60);Object.assign(DECK,{mode:'swap',kind,pick:k,side:where});deckRedraw();}}));
+   el.onclick=e=>{if(e.target===el)el.classList.remove('on');};}
+-{const hc1=hubCollection;hubCollection=function(sub){sub=sub||'deck';if(sub!=='deck'){DECK.mode=null;return hc1(sub);}
++/* v1.5.0: a room opened from the deck comes back to the deck (ARM.ret, read by armBack); every Army render forgets it */
++function deckRet(){if(typeof ARM==='object'&&ARM)ARM.ret='deck';}
++{const hc1=hubCollection;hubCollection=function(sub){sub=sub||'deck';if(typeof ARM==='object'&&ARM)ARM.ret=null;if(sub!=='deck'){DECK.mode=null;return hc1(sub);}
+   const full=hc1('deck'),i=full.indexOf('<div class="hh"><h2>Battle loadout');return (i>0?full.slice(0,i):full)+deckBody();};
+  const hb1=hubCollectionBind;hubCollectionBind=function(sub){hb1(sub);if((sub||'deck')!=='deck')return;
+   const cn=document.getElementById('dkCancel');if(cn)cn.addEventListener('click',()=>{DECK.mode=null;SFX.play('tap',40);deckRedraw();});
++  /* v1.5.0: the banner stays above the tab bar whatever its height, and the body gets room under it so the last row is reachable */
++  const hb=document.getElementById('hubBody');if(hb)hb.classList.toggle('dkon',!!DECK.mode);
++  const ban=card.querySelector('.dkban'),tabs=card.querySelector('.hubtabs');if(ban&&tabs){const t=tabs.getBoundingClientRect().top;if(t>0&&t<innerHeight)ban.style.bottom=Math.round(innerHeight-t)+14+'px';}
++  const row=card.querySelector('.deckrow.dkrow');if(row)row.addEventListener('click',e=>{if(e.target.closest('.ccard[data-c]'))deckRet();},true);
+   card.querySelectorAll('.ccard[data-dk]').forEach(b=>b.addEventListener('click',()=>{const kind=b.dataset.dk,k=b.dataset.dv,where=b.dataset.dw;
+     if(DECK.mode){
+       if(kind===DECK.kind&&where!==DECK.side&&where!=='lock'&&k!==DECK.pick){const a=DECK.side==='in'?DECK.pick:k,bb=DECK.side==='in'?k:DECK.pick;
+diff --git a/tests/t_deck150.js b/tests/t_deck150.js
+new file mode 100644
+index 0000000..dea7548
+--- /dev/null
++++ b/tests/t_deck150.js
+@@ -0,0 +1,85 @@
++// v1.5.0: the Army tab on a small phone (360×740) — real taps. The deck: no horizontal overflow on any sub-tab, captions on one line,
++// the ⬆ badge and the RIDING tag inside the card, the swap banner above the tab bar with the last row still reachable under it,
++// 44 px taps (Cancel, Close), a locked card's sheet grey with the stage it opens at; the deck's INFO opens a room whose back arrow
++// returns to the deck (the Towers / Spells sub-tabs still come back to themselves); the champion strip: one-line names, the level under
++// them, the RIDING ribbon and the ⬆ coin visible.
++const { chromium } = require('playwright');
++const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs').mkdirSync(SC, { recursive: true });
++(async () => {
++  const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
++  const page = await browser.newPage({ viewport: { width: 360, height: 740 }, deviceScaleFactor: 2, hasTouch: true });
++  const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message));
++  await page.goto('file://' + require('path').resolve(__dirname, '..', process.env.HOLDOR_HTML || 'beta/index.html'));
++  await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_DECK && window.HOLDOR_ARMY, { timeout: 20000 }); await page.waitForTimeout(300);
++  const R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
++  const tap = async (sel) => { await page.locator(sel).first().tap({ force: true }); await page.waitForTimeout(300); };
++  const sub = () => page.evaluate(() => (document.querySelector('.subtabs button.on') || { dataset: {} }).dataset.sub || null);
++  // 14 stages held: 6 towers open (5 in the deck, 1 at home), weirwood + maul locked; 5 spells open, jars + beacon locked; cards for the ⬆ badge
++  await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('targaryen', 0, 'squire'); a.intro = 1; a.tut = 1; a.sv = 0; a.castle = 1; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1, trials: 1 };
++    const L = window.HOLDOR_TUT.LESSONS; a.learn = {}; (Array.isArray(L) ? L.map(l => l.id || l.k) : Object.keys(L)).forEach(k => a.learn[k] = 1);
++    for (let i = 1; i <= 14; i++) a.campaign[i] = 3; a.gold = 90000; a.gems = 500; a.cards = { ['c:' + a.sel]: 300, 't:watch': 300, 's:arrows': 300 }; H.setAcc(a); H.persist(); H.showHub('coll', 'deck'); });
++  await page.waitForTimeout(500);
++  // 1. no horizontal overflow on any Army sub-tab
++  const over = {};
++  for (const s of ['deck', 'heroes', 'towers', 'spells']) { await page.evaluate(s => window.HOLDOR.showHub('coll', s), s); await page.waitForTimeout(250);
++    over[s] = await page.evaluate(() => { const hb = document.getElementById('hubBody'); return [document.documentElement.scrollWidth, innerWidth, hb.scrollWidth, hb.clientWidth]; }); }
++  ok('no horizontal overflow on the Army tab (deck, champions, towers, spells)', Object.values(over).every(v => v[0] <= v[1] && v[2] <= v[3]), JSON.stringify(over));
++  await page.evaluate(() => window.HOLDOR.showHub('coll', 'deck')); await page.waitForTimeout(400);
++  // 2. the deck's cards: captions on one line, the champion's four skill icons fit, the badges inside the card
++  const d0 = await page.evaluate(() => { const r = e => e.getBoundingClientRect(); const cards = [...document.querySelectorAll('.ccard.dkc')];
++    const clip = cards.filter(c => ['.nm', '.rar'].some(q => { const e = c.querySelector(q); return e && (e.scrollWidth > e.clientWidth + 1 || r(e).height > 24); })).map(c => c.dataset.dv);
++    const hero = document.querySelector('.deckrow .ccard[data-c]'), sk = hero.querySelector('.skrow'), hb = r(hero), inside = e => { if (!e) return true; const b = r(e); return b.left >= hb.left - 1 && b.right <= hb.right + 1 && b.top >= hb.top - 1 && b.bottom <= hb.bottom + 1; };
++    const tw = document.querySelector('.ccard.dkc[data-dk="t"]'), tb = r(tw), tu = tw.querySelector('.upb');
++    return { n: cards.length, clip, lockN: document.querySelectorAll('.ccard.dkc[data-dw="lock"]').length, inDeck: document.querySelectorAll('.ccard.dkc.indeck').length, skFit: sk.scrollWidth <= sk.clientWidth + 1, skW: [sk.scrollWidth, sk.clientWidth], heroW: Math.round(hb.width),
++      tagIn: inside(hero.querySelector('.tag')), upbIn: inside(hero.querySelector('.upb')), hasTag: !!hero.querySelector('.tag'), hasUpb: !!hero.querySelector('.upb'), towerUpbIn: !!tu && r(tu).top >= tb.top && r(tu).right <= tb.right + 1 }; });
++  ok('deck: 15 cards (8 in the deck, 4 locked), no caption clips, the four skill icons fit the champion card', d0.n === 15 && d0.inDeck === 8 && d0.lockN === 4 && !d0.clip.length && d0.skFit, JSON.stringify(d0));
++  ok('deck: the RIDING tag and the ⬆ badge sit inside the card (not clipped by its overflow)', d0.hasTag && d0.hasUpb && d0.tagIn && d0.upbIn && d0.towerUpbIn, JSON.stringify([d0.hasTag, d0.hasUpb, d0.tagIn, d0.upbIn, d0.towerUpbIn]));
++  // 3. swap mode by taps: the banner above the tab bar, Cancel 44 px, the last row reachable under the banner
++  const S = await page.evaluate(() => window.HOLDOR_DECK.deckState());
++  await tap(`.ccard[data-dk="t"][data-dv="${S.tout[0]}"]`);
++  const sh = await page.evaluate(() => { const r = e => e.getBoundingClientRect(); const x = document.querySelector('#dkSheet [data-dka="x"]'), sw = document.querySelector('#dkSheet [data-dka="swap"]'); return { on: document.getElementById('dkSheet').classList.contains('on'), closeH: x && r(x).height, swapH: sw && r(sw).height }; });
++  ok('the card sheet: Close ≥ 44 px, the swap button ≥ 44 px', sh.on && sh.closeH >= 44 && sh.swapH >= 44, JSON.stringify(sh));
++  await tap('#dkSheet [data-dka="swap"]');
++  const b0 = await page.evaluate(() => { const r = e => e.getBoundingClientRect(); const ban = document.querySelector('.dkban'), tabs = document.querySelector('.hubtabs'), cn = document.getElementById('dkCancel'); return ban && { banB: Math.round(r(ban).bottom), tabsT: Math.round(r(tabs).top), cancelH: Math.round(r(cn).height), cancelW: Math.round(r(cn).width), banL: Math.round(r(ban).left), banR: Math.round(r(ban).right), pulse: document.querySelectorAll('.ccard.dkc.swap[data-dk="t"][data-dw="in"]').length }; });
++  ok('swap banner: its bottom ≤ the tab bar top, Cancel ≥ 44 px, inside the screen, 5 deck towers pulse', b0 && b0.banB <= b0.tabsT && b0.cancelH >= 44 && b0.banL >= 0 && b0.banR <= 360 && b0.pulse === 5, JSON.stringify(b0));
++  await page.screenshot({ path: SC + 'deck150_swap.png' });
++  const b1 = await page.evaluate(() => { const hb = document.getElementById('hubBody'); hb.scrollTop = hb.scrollHeight; const r = e => e.getBoundingClientRect(); const cards = [...document.querySelectorAll('.ccard.dkc')], last = cards[cards.length - 1], ban = document.querySelector('.dkban'); return { lastB: Math.round(r(last).bottom), banT: Math.round(r(ban).top), lastV: last.dataset.dv, room: hb.classList.contains('dkon') }; });
++  ok('scrolled to the end in swap mode: the last card is fully above the banner', b1.lastB <= b1.banT && b1.room, JSON.stringify(b1));
++  await page.screenshot({ path: SC + 'deck150_swap_end.png' });
++  await tap('#dkCancel');
++  ok('cancel: the banner goes, the body gives its room back', await page.evaluate(() => !document.querySelector('.dkban') && !document.getElementById('hubBody').classList.contains('dkon')));
++  // 4. the deck's INFO opens a room whose back arrow returns to the deck (tower, spell); the Towers / Spells sub-tabs still come back to themselves
++  await page.evaluate(() => { document.getElementById('hubBody').scrollTop = 0; });
++  await tap(`.ccard[data-dk="t"][data-dv="${S.tin[0]}"]`); await tap('#dkSheet [data-dka="info"]');
++  const room1 = await page.evaluate(() => !!document.querySelector('#armStrip') && !document.querySelector('.subtabs'));
++  await tap('#bBack'); const back1 = await sub();
++  await tap(`.ccard[data-dk="s"][data-dv="${S.sin[0]}"]`); await tap('#dkSheet [data-dka="info"]');
++  const room2 = await page.evaluate(() => !!document.querySelector('#spStrip'));
++  await tap('#bBack'); const back2 = await sub();
++  ok('INFO from the deck: the tower room and the spell room come back to the deck', room1 && back1 === 'deck' && room2 && back2 === 'deck', JSON.stringify([room1, back1, room2, back2]));
++  await tap('.subtabs button[data-sub="towers"]'); await tap('.ccard[data-t]'); await tap('#bBack'); const back3 = await sub();
++  await tap('.subtabs button[data-sub="spells"]'); await tap('.ccard[data-s]'); await tap('#bBack'); const back4 = await sub();
++  ok('from the Towers / Spells sub-tabs the rooms still come back to their own sub-tab', back3 === 'towers' && back4 === 'spells', JSON.stringify([back3, back4]));
++  // 5. a locked card: its sheet is grey and says when it opens
++  await tap('.subtabs button[data-sub="deck"]');
++  await page.evaluate(() => { const hb = document.getElementById('hubBody'); hb.scrollTop = hb.scrollHeight; });
++  await tap('.ccard[data-dk="t"][data-dw="lock"]');
++  const lk = await page.evaluate(() => { const el = document.getElementById('dkSheet'), ic = el.querySelector('.dks-ic'); return { on: el.classList.contains('on'), grey: ic.classList.contains('lock') && getComputedStyle(ic).filter.includes('grayscale'), txt: el.innerText.replace(/\s+/g, ' ').slice(0, 120), noSwap: !el.querySelector('[data-dka="swap"]') }; });
++  ok('a locked card: the sheet icon is grey, says "opens after stage N", no swap button', lk.on && lk.grey && /opens after stage \d+/.test(lk.txt) && lk.noSwap, JSON.stringify(lk));
++  await tap('#dkSheet [data-dka="x"]');
++  // 6. the champion strip: one-line names with the level under them, the RIDING ribbon and the ⬆ coin visible
++  await page.evaluate(() => window.HOLDOR_ARMY.showHeroRoom(window.HOLDOR.ACC.sel)); await page.waitForTimeout(500);
++  const st = await page.evaluate(() => { const r = e => e.getBoundingClientRect(); const strip = document.querySelector('#armStrip'), sb = r(strip), tiles = [...strip.querySelectorAll('.htile')];
++    const nmH = tiles.map(t => Math.round(r(t.querySelector('.nm')).height)), lv = tiles.filter(t => t.querySelector('.tlv')).length, rb = strip.querySelector('.rb'), up = strip.querySelector('.upb'), rt = rb && rb.closest('.htile'), stars = rt && rt.querySelector('.stars');
++    return { nmH, lv, open: tiles.filter(t => !t.classList.contains('lock')).length, rbVis: !!rb && r(rb).top >= sb.top && r(rb).bottom <= r(rt).bottom && r(rb).width > 30, rbOverName: !!rb && !!rt && r(rb).bottom <= r(rt.querySelector('.nm')).top,
++      upIn: !!up && r(up).width >= 18 && r(up).left >= r(up.closest('.htile')).left && r(up).right <= r(up.closest('.htile')).right + 1 && getComputedStyle(up).borderRadius !== '0px', starsIn: !!stars && r(stars).bottom <= r(rt).bottom + 1, docW: document.documentElement.scrollWidth }; });
++  ok('strip: every name on one line, the level under the open ones, no horizontal overflow', st.nmH.every(h => h <= 14) && st.lv === st.open && st.docW <= 360, JSON.stringify(st));
++  ok('strip: the RIDING ribbon is visible above the portrait (not clipped, not over the name), the ⬆ coin inside the tile, the stars inside', st.rbVis && st.rbOverName && st.upIn && st.starsIn, JSON.stringify([st.rbVis, st.rbOverName, st.upIn, st.starsIn]));
++  await page.screenshot({ path: SC + 'deck150_strip.png' });
++  await page.evaluate(() => window.HOLDOR_ARMY.showTowerRoom('watch')); await page.waitForTimeout(400);
++  const tt = await page.evaluate(() => [...document.querySelectorAll('#armStrip .htile .nm')].map(n => Math.round(n.getBoundingClientRect().height)));
++  ok('tower strip: every name on one line', tt.length === 8 && tt.every(h => h <= 14), JSON.stringify(tt));
++  ok('no page errors', errors.length === 0, errors.join('|'));
++  console.log(JSON.stringify(R, null, 1)); const bad = Object.values(R).filter(v => v.startsWith('FAIL')); console.log(bad.length ? 'FAILED ' + bad.length : 'ALL OK');
++  await browser.close(); process.exit(bad.length ? 1 : 0);
++})();

@@ -26,9 +26,14 @@ const DG={},DFX={t:'ring',x:0,y:0,tx:0,ty:0,r0:0,r1:0,r:0,col:'#fff',life:1,dur:
   DAL=[0,1,2,3].map(i=>({x:0,y:0,face:1,kind:'brother',role:'foot',troop:'stark',moving:false,walk:0,strikeT:null,hitT:null,hp:1,max:1,t:Infinity})),
   DEO=[0,1,2,3,4,5].map(i=>({id:i*7+3,type:'axe',accS:0})),DPOS=[0,1,2,3,4,5].map(()=>({x:0,y:0,top:0,on:false,type:'axe'}));
 let DT0=0;
+/* v1.5.0: the blow of the current scene — when it lands (ph), how hard the camera shakes (px), whether the pops are crits (an ultimate) */
+const DBL={at:-9,amp:0,ult:false,ph:0};
+const DBLOW={aoe:1.3,rain:1.25,heal:1.1,shield:1.3,control:1.1,dot:1.6,buff:0.75,summon:1.0,gold:1.2,strike:1.45,generic:1.2};
+/* a short camera shake: 0.15 s after the blow, 1–2 px, decaying; deterministic in ph so the loop repeats exactly */
+function dShake(ph){const k=dmK(ph,DBL.at,DBL.at+0.15);if(DBL.amp<=0||k<=0||k>=1)return null;const d=DBL.amp*(1-k);return {x:d*Math.sin(k*Math.PI*7),y:d*0.6*Math.cos(k*Math.PI*5)};}
 const HBIOME={stark:'snow',lannister:'mountain',baratheon:'storm',targaryen:'ash',greyjoy:'coast',tyrell:'reach',martell:'desert'};
 /* one frame with the game's ctx pointed at the demo canvas, in world px; G.time is lifted far away so no battle timer (war cry, frost) leaks in */
-function dmRun(c,t,fn){const oc=ctx,ot=G.time;ctx=c;G.time=DTB+(t%3.2);DT0=t;c.save();try{c.scale(DZ,DZ);fn();}finally{c.restore();ctx=oc;G.time=ot;}}
+function dmRun(c,t,fn){const oc=ctx,ot=G.time;ctx=c;G.time=DTB+(t%3.2);DT0=t;DBL.ph=t%3.2;c.save();try{const sh=dShake(DBL.ph);if(sh)c.translate(Math.round(sh.x*2)/2,Math.round(sh.y*2)/2);c.scale(DZ,DZ);fn();}finally{c.restore();ctx=oc;G.time=ot;DBL.at=-9;DBL.amp=0;DBL.ult=false;}}
 function dLast(ph,a,per){return ph<a?null:a+Math.floor((ph-a)/per)*per;}
 function dmK(ph,a,b){return ph<=a?0:ph>=b?1:(ph-a)/(b-a);}
 function dGround(biome){let g=DG[biome];if(!g){const Y=300;let m=null;try{m=buildMap({routes:[[[470,Y],[40,Y],[40,640]]],raw:true,style:'bend',seed:hash32('dm-'+biome),biome});}catch(e){}
@@ -41,8 +46,11 @@ function dFx(t,x,y,k,col,r0,r1,tx,ty){if(k<=0||k>=1)return;const f=DFX;f.t=t;f.x
 function dProj(src,x,y,ang,col){const p=DPJ;p.src=src;p.x=x;p.y=y;p.ang=ang;p.col=col||'#fff';p.orb=false;drawProj(p);}
 function dShot(src,x0,y0,x1,y1,k,arc,col){if(k<=0||k>=1)return;const x=x0+(x1-x0)*k,y=y0+(y1-y0)*k-Math.sin(k*Math.PI)*(arc||0),dy=(y1-y0)-Math.cos(k*Math.PI)*Math.PI*(arc||0),a=Math.atan2(dy,x1-x0);if(src==='watch')dArrow(x,y,a,1);else dProj(src,x,y,a,col);}
 function dArrow(x,y,ang,a){if(a<=0.01)return;ctx.save();ctx.globalAlpha=a;ctx.translate(x,y);ctx.rotate(ang);ctx.strokeStyle='#5a3a20';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(-14,0);ctx.lineTo(0,0);ctx.stroke();ctx.fillStyle='#e9eef5';ctx.beginPath();ctx.moveTo(3,0);ctx.lineTo(-2,-2.2);ctx.lineTo(-2,2.2);ctx.closePath();ctx.fill();ctx.fillStyle='#d6dfe9';ctx.fillRect(-15,-1.8,3,1.2);ctx.fillRect(-15,0.6,3,1.2);ctx.restore();}
-function dTxt(x,y,txt,a,col,big){if(a<=0.01)return;ctx.save();ctx.globalAlpha=Math.min(1,a);ctx.textAlign='center';ctx.font=big?'900 15px Cinzel,serif':'800 12px Cinzel,serif';ctx.lineWidth=3;const hw=ctx.measureText(txt).width/2+3;x=Math.max(hw,Math.min(VW-hw,x));ctx.strokeStyle='rgba(6,11,20,.85)';ctx.strokeText(txt,x,y);ctx.fillStyle=col||'#fff';ctx.fillText(txt,x,y);ctx.restore();}
-function dPop(x,y,txt,ph,at,col,big){const k=dmK(ph,at,at+0.85);if(k<=0||k>=1)return;dTxt(x,y-k*14,txt,k<0.7?1:(1-k)/0.3,col,big);}
+function dTxt(x,y,txt,a,col,big,sc,crit){if(a<=0.01)return;ctx.save();ctx.globalAlpha=Math.min(1,a);ctx.textAlign='center';ctx.font=crit?'900 18px Cinzel,serif':big?'900 15px Cinzel,serif':'800 12px Cinzel,serif';ctx.lineWidth=crit?4:3;const hw=ctx.measureText(txt).width/2*(sc||1)+3;x=Math.max(hw,Math.min(VW-hw,x));ctx.translate(x,y);if(sc&&sc!==1)ctx.scale(sc,sc);ctx.strokeStyle=crit?'rgba(60,30,4,.95)':'rgba(6,11,20,.85)';ctx.strokeText(txt,0,0);ctx.fillStyle=col||'#fff';ctx.fillText(txt,0,0);if(crit){ctx.lineWidth=1;ctx.strokeStyle='rgba(255,250,220,.9)';ctx.strokeText(txt,0,0);}ctx.restore();}
+/* v1.5.0: a damage number lands big (1.3→1 in the first 15 %), rises with an ease-out and fades; an ultimate's numbers are crits: bigger, gold, a glow */
+function dPop(x,y,txt,ph,at,col,big){const k=dmK(ph,at,at+0.85);if(k<=0||k>=1)return;const crit=DBL.ult,rise=(crit?18:14)*(1-(1-k)*(1-k)),sc=k<0.15?(crit?1.6:1.3)-(crit?0.6:0.3)*(k/0.15):1,a=k<0.55?1:(1-k)/0.45;
+  if(crit){dGlow(x,y-rise-5,22,12,'255,210,60',0.45*a*(k<0.3?1:1-dmK(k,0.3,0.7)));col='#ffd23c';}
+  dTxt(x,y-rise,txt,a,col,big,sc,crit);}
 function dBar(x,top,w,fr,col){ctx.fillStyle='#101a2b';ctx.fillRect(x-w/2,top-2,w,3);ctx.fillStyle=col||'#ff9a3c';ctx.fillRect(x-w/2,top-2,w*Math.max(0,Math.min(1,fr)),3);}
 /* an enemy sprite at (x,y), feet on y, facing left by default; o: walk (px walked), moving, hit, a (alpha), face */
 function dFoe(i,type,x,y,o){const e=DEO[i];e.type=type;const E=ENEMIES[type]||{},im=enemyImg(type),m=ENEMY_META[type],cfg=ENEMY_CFG[type]||{h:30,an:'walk'},s=1,big=(E.big||1)*(E.small||1),f=o.face||-1;
@@ -53,9 +61,13 @@ function dFoe(i,type,x,y,o){const e=DEO[i];e.type=type;const E=ENEMIES[type]||{}
   ctx.fillStyle='rgba(0,0,0,.35)';ell(ctx,x,y+2,(E.arch==='beast'||E.arch==='mount'?12:7)*big,3*big);
   if(im){const H=cfg.h*s,sc=H/m.h,D=m.C*sc,fl=cfg.an==='float'?Math.sin(DT0*2.5+e.id)*2.5:0;ctx.translate(x,y+1+fl);ctx.scale(f,1);if(cfg.an==='float')ctx.globalAlpha*=0.82+0.18*Math.sin(DT0*3.1+e.id);
     drawWalking(im,m,sc,D,cfg.an,o.walk||0,DT0,s,e,o.moving!==false);
-    if(o.hit){const wh=enemyWhite(type);if(wh){ctx.globalAlpha=0.5*a;ctx.drawImage(wh,-m.cx*sc,-m.by*sc,D,D);}}}
+    if(o.hit){const wh=enemyWhite(type);if(wh){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=a*0.85*(1-(o.hitK||0));ctx.drawImage(wh,-m.cx*sc,-m.by*sc,D,D);ctx.globalCompositeOperation='source-over';}}}
   else{fWight(ctx,x,y,.62*big,DT0*3+i,'#0b1018');}
   ctx.restore();return y-(cfg.h||30)-2;}
+/* v1.5.0: a small spark where a blow lands: five rays flying out and a bright core, 0.16 s, drawn additively; i seeds the angles */
+function dSpark(x,y,k,i,col){if(k<=0||k>=1)return;ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=1-k;ctx.lineCap='round';ctx.lineWidth=1.6;ctx.strokeStyle=col||'#fff6d8';
+  for(let j=0;j<5;j++){const a=Math.PI+(-1.1+j*0.55)+i*0.7+(j%2?0.2:-0.2),r0=2+k*10,r1=r0+4+6*(1-k);ctx.beginPath();ctx.moveTo(x+Math.cos(a)*r0,y+Math.sin(a)*r0*0.8);ctx.lineTo(x+Math.cos(a)*r1,y+Math.sin(a)*r1*0.8);ctx.stroke();}
+  ctx.fillStyle='rgba(255,255,255,'+(0.9*(1-k))+')';ctx.beginPath();ctx.arc(x,y,3.8*(1-k*0.6),0,Math.PI*2);ctx.fill();ctx.restore();dGlow(x,y,12,9,'255,236,190',0.5*(1-k));}
 /* a dead enemy: the battle's own corpse fx (fall / shatter / dissolve), k = 0..1 */
 function dDie(type,x,y,k){if(k<0||k>=1)return;const E=ENEMIES[type]||{},f=DCP;f.type=type;f.x=x;f.y=y;f.face=-1;f.s=1;f.kind=E.walker||E.king||E.lord?'shatter':E.arch==='wraith'?'dissolve':E.fly?'drop':'fall';f.max=f.kind==='shatter'?0.4:0.75;f.life=f.max*(1-k);drawCorpse(f,DT0*1000);}
 /* a group of enemies walking in from the right along the road.
@@ -66,14 +78,18 @@ function dGroup(types,ph,P,o){const n=types.length,v=o.v||70,x0=o.x0==null?VW+14
   for(const i of ord){const ty=types[i],y=RDY+(o.lane?o.lane[i]:(i%2?5:-3)),sa=o.slowAt==null?99:o.slowAt,sf=o.slowF==null?1:o.slowF;
     let d=v*Math.min(ph,sa)+v*sf*Math.max(0,ph-sa);let x=x0+i*gap-d,stopped=false;const st=o.stop==null?null:o.stop+i*(o.sgap||gap);if(st!=null&&x<st){x=st;stopped=true;}
     const walk=(x0+i*gap-x)*(stopped?0:1)+(stopped?(x0+i*gap-st):0);
-    const die=o.dieAt!=null&&(o.dies?o.dies[i]:1)?o.dieAt+(o.dieStep||0)*i:null;
+    const dies=o.dies?o.dies[i]:1;let die=o.dieAt!=null&&dies?o.dieAt+(o.dieStep||0)*i:null;
+    /* v1.5.0: the hits — the last one landed (lh), the one that kills (hp 0) starts the death on the spot, not later */
+    let hp=1,lh=-9;if(o.hitAt)for(let j=0;j<o.hitAt.length;j++){const h=o.hitAt[j]+(o.hitStep==null?0.045:o.hitStep)*i,to=o.hpTo?o.hpTo[j]:Math.max(0.15,1-0.3*(j+1));if(to<=0&&dies&&(die==null||h<die))die=h;if(ph>=h){hp=to;lh=h;}}
+    const dying=die!=null&&ph>=die;if(dying)lh=die;const dh=ph-lh,hit=dh>=0&&dh<0.1;
+    const E=ENEMIES[ty]||{},kq=dh/0.28,kb=dh<0||kq>=1?0:3.2*(E.big||1)*(kq<0.2?kq/0.2:Math.pow(1-(kq-0.2)/0.8,2))*(o.kb||1);x+=kb;
     const P0=DPOS[i];P0.x=x;P0.y=y;P0.type=ty;P0.on=die==null||ph<die;
-    if(die!=null&&ph>=die){dDie(ty,x,y,(ph-die)/0.75);continue;}
-    let hit=false,hp=1;if(o.hitAt)for(let j=0;j<o.hitAt.length;j++){const h=o.hitAt[j]+(o.hitStep==null?0.045:o.hitStep)*i;if(ph>=h){hp=o.hpTo?o.hpTo[j]:Math.max(0.15,1-0.3*(j+1));if(ph<h+0.07)hit=true;}}
+    if(dying&&ph>=die+0.1){dDie(ty,x,y,(ph-die-0.1)/0.75);continue;}
     const fade=o.keep?1:Math.min(1,(P-ph)/0.3,ph/0.15+0.4);
-    const strike=stopped&&o.strike?Math.max(0,Math.sin((ph*2.2+i*0.37)*Math.PI*2)):0;
-    const top=dFoe(i,ty,x-strike*4,y,{walk,moving:!stopped,hit,a:fade});P0.top=top;
-    const E=ENEMIES[ty]||{};
+    const strike=stopped&&o.strike&&!dying?Math.max(0,Math.sin((ph*2.2+i*0.37)*Math.PI*2)):0;
+    const top=dFoe(i,ty,x-strike*4,y,{walk,moving:!stopped&&!dying,hit,hitK:hit?dh/0.1:0,a:fade});P0.top=top;
+    if(dh>=0&&dh<0.16&&fade>0.3)dSpark(x-4*(o.kb||1)+(i%2?2:-2),top+(y-top)*0.45,dh/0.16,i,dying?'#ffe9a8':'#fff6d8');
+    if(dying)continue;
     if(fade>0.3){ctx.save();ctx.globalAlpha=fade;
       if(o.burn!=null&&ph>o.burn)for(let k=0;k<3;k++){const fx=x-5+k*5+Math.sin(DT0*18+i+k)*1.5,fh=5+3*Math.abs(Math.sin(DT0*14+k*1.7+i));ctx.fillStyle=k===1?'rgba(255,220,120,0.9)':'rgba(255,140,50,0.85)';ctx.beginPath();ctx.moveTo(fx-2.2,top+8);ctx.quadraticCurveTo(fx-2.5,top+8-fh*0.6,fx,top+8-fh);ctx.quadraticCurveTo(fx+2.5,top+8-fh*0.6,fx+2.2,top+8);ctx.closePath();ctx.fill();}
       if(o.poison!=null&&ph>o.poison){ctx.fillStyle='rgba(124,255,107,0.9)';for(let k=0;k<3;k++){const q=((DT0*1.4)+k*0.33+i*0.13)%1,dx=x-6+k*6,dy=top+4+q*16;ctx.globalAlpha=fade*(1-q);ctx.beginPath();ctx.moveTo(dx,dy-3);ctx.quadraticCurveTo(dx+2.2,dy,dx,dy+1.8);ctx.quadraticCurveTo(dx-2.2,dy,dx,dy-3);ctx.fill();}ctx.globalAlpha=fade;}
@@ -90,8 +106,10 @@ function dHero(id,x,y,o){const f=o.face||1,sp=champImg(id,'stance');ctx.fillStyl
   /* v1.4.8: a wind-up, a quick thrust that eases back, a squash on the blow, breathing while idle, the house's light at the feet */
   const k=st?o.strike:0,lunge=!st?0:k<0.22?-3.5*Math.sin(k/0.22*Math.PI/2):k<0.45?-3.5+12.5*(1-Math.pow(1-(k-0.22)/0.23,3)):9*(1-dmK(k,0.45,1))*(1-dmK(k,0.45,1));
   const br=!st&&!o.moving?Math.sin(DT0*2.6)*0.018:0,sq=st&&k>0.4&&k<0.6?Math.sin((k-0.4)/0.2*Math.PI)*0.06:0;
-  const H=HOUSES[(CBY[id]||{}).house],hc=H&&H.col&&H.col[0]==='#'?hexRGB(H.col):'227,182,97';dGlow(x,y,26,8,hc,0.35+0.12*Math.sin(DT0*3));
-  ctx.save();ctx.translate(x+lunge*f,y+1);ctx.scale(f*(1+sq-br*0.5),1+br-sq);drawWalking(im,m,sc,D,'walk',o.walk||0,DT0,1.1,DHE,!!o.moving&&!st);ctx.restore();
+  /* v1.5.0: a weight shift every ~1.6 s while idle (the body sways, the shadow stays), fading out around a strike; the feet light swells on the blow */
+  const swm=o.moving?0:st?(k<0.25?1-k/0.25:k>0.75?(k-0.75)/0.25:0):1,sw=Math.sin(DT0*Math.PI/1.6)*swm,pul=DBL.at>-1&&DBL.ph>=DBL.at?1-dmK(DBL.ph,DBL.at,DBL.at+0.45):0;
+  const H=HOUSES[(CBY[id]||{}).house],hc=H&&H.col&&H.col[0]==='#'?hexRGB(H.col):'227,182,97';dGlow(x,y,26+12*pul,8+3*pul,hc,0.35+0.12*Math.sin(DT0*3)+0.5*pul);
+  ctx.save();ctx.translate(x+lunge*f+sw*1.4,y+1);ctx.rotate(-sw*0.025*f);ctx.scale(f*(1+sq-br*0.5),1+br-sq);drawWalking(im,m,sc,D,'walk',o.walk||0,DT0,1.1,DHE,!!o.moving&&!st);ctx.restore();
   if(st&&k>0.38&&k<0.62)dGlow(x+(12+lunge)*f,y-22,22,18,'255,236,190',0.55*Math.sin((k-0.38)/0.24*Math.PI));
   if(o.name){ctx.textAlign='center';ctx.font='700 9.5px Cinzel,serif';ctx.fillStyle='rgba(6,11,20,0.85)';ctx.fillText(o.name,x,y-52);ctx.fillStyle='#f2e6c9';ctx.fillText(o.name,x,y-53);}}
 /* a real tower on its spot (drawTower: art, drawn rook/maul, level pips) */
@@ -111,9 +129,11 @@ function dGate(ratio,x){const st=gateStage(ratio),im=GATE_IMG[st],mt=GATE_META[s
   const bw=58,by=RDY+26;ctx.fillStyle='#101a2b';rr(ctx,gx-bw/2,by,bw,6,3);ctx.fill();ctx.fillStyle=ratio>0.5?'#8fd3ff':ratio>0.25?'#ff9a3c':'#e14b4b';rr(ctx,gx-bw/2,by,Math.max(4,bw*ratio),6,3);ctx.fill();}
 function dmChampOf(house,cid){if(cid&&CBY[cid])return CBY[cid];const sel=typeof ACC!=='undefined'&&ACC&&CBY[ACC.sel];if(sel&&sel.house===house)return sel;return CHAMPS.find(x=>x.house===house)||CHAMPS[0];}
 /* ---------- the eleven kinds ---------- */
-function skillDemoFrame(c,sk,t,house,cid){const cat=skCat(sk),P=3.2,ph=t%P,hh=HOUSES[house]||HOUSES.stark,ch=dmChampOf(house,cid),id=ch.id,hc=hh.col,rgb=hexRGB(hc[0]==='#'?hc:'#e3b661'),nm=shortName(ch).toUpperCase(),rng=ch.type==='ranged'||ch.type==='mage';
+function skillDemoFrame(c,sk,t,house,cid){const cat=skCat(sk),P=3.2,ph=t%P,hh=HOUSES[house]||HOUSES.stark,ch=dmChampOf(house,cid),id=ch.id,hc=hh.col,rgb=hexRGB(hc[0]==='#'?hc:'#e3b661'),nm=shortName(ch).toUpperCase(),rng=ch.type==='ranged'||ch.type==='mage',ult=!!(SK[sk]&&SK[sk].ult);
+  /* v1.5.0: the blow of this scene — the camera shakes on an AoE, a mighty strike or any ultimate; an ultimate's numbers are crits; the feet light swells */
+  DBL.at=DBLOW[cat]||DBLOW.generic;DBL.amp=cat==='aoe'||ult?2:cat==='strike'?1.5:0;DBL.ult=ult;
   dmRun(c,t,()=>{dGround(HBIOME[ch.house]||'forest');const hx=58,hy=RDY+2;
-  if(cat==='aoe'){const sw=dmK(ph,1.15,1.45);const E=dGroup(['axe','sword','hound','axe'],ph,P,{v:95,stop:hx+24,sgap:12,hitAt:[1.3],hpTo:[0.2],dieAt:1.55,strike:1});
+  if(cat==='aoe'){const sw=dmK(ph,1.15,1.45);const E=dGroup(['axe','sword','hound','axe'],ph,P,{v:95,stop:hx+24,sgap:12,hitAt:[1.3],hpTo:[0],strike:1});
     dHero(id,hx,hy,{face:1,strike:ph>1.1&&ph<1.45?sw:-1,name:nm});
     dFx('cleave',hx+6,hy-10,dmK(ph,1.15,1.6),hc);dFx('ring',hx+6,hy-4,dmK(ph,1.2,1.75),'#ffe08a',10,78);dGlow(hx+8,hy-8,60,34,rgb,0.5*(1-dmK(ph,1.2,1.8))*(ph>1.2?1:0));
     for(let i=0;i<4;i++)dPop(E[i].x,E[i].y-36,'40',ph,1.3,'#ffe08a');}
@@ -148,9 +168,9 @@ function skillDemoFrame(c,sk,t,house,cid){const cat=skCat(sk),P=3.2,ph=t%P,hh=HO
     dHero(id,hx,hy,{face:1,strike:ph>0.5&&ph<0.8?dmK(ph,0.5,0.8):-1,name:nm});
     if(k>0){for(let i=0;i<2;i++){const x=hx+28+i*18+Math.min(1,dmK(ph,1.0,1.5))*24,y=hy+(i?6:-4);dFx('puff',x,y-8,dmK(ph,0.7,1.2),null,0,18);ctx.save();ctx.globalAlpha=k;dAlly(i,'foot',ch.house,x,y,1,ph<1.5,ph*40,dLast(ph,1.5+i*0.12,0.5));ctx.restore();}
       dGlow(hx+40,hy-14,40,26,'255,255,255',0.5*(1-k));}}
-  else if(cat==='gold'){const E=dGroup(['axe','sword','axe'],ph,P,{v:70,stop:110,sgap:16,hitAt:[1.2],hpTo:[0],dieAt:1.3,dieStep:0.12});
+  else if(cat==='gold'){const E=dGroup(['axe','sword','axe'],ph,P,{v:70,stop:110,sgap:16,hitAt:[1.2],hitStep:0.12,hpTo:[0]});
     dHero(id,hx,hy,{face:1,strike:ph>1&&ph<1.3?dmK(ph,1,1.3):-1,name:nm});
-    for(let i=0;i<3;i++){dFx('coins',E[i].x,E[i].y-12,dmK(ph,1.32+i*0.12,2.1+i*0.12));dPop(E[i].x,E[i].y-36,'+35%',ph,1.35+i*0.12,'#ffd23c');}
+    for(let i=0;i<3;i++){dFx('coins',E[i].x,E[i].y-12,dmK(ph,1.25+i*0.12,2.05+i*0.12));dPop(E[i].x,E[i].y-36,'+35%',ph,1.22+i*0.12,'#ffd23c');}
     ctx.save();ctx.fillStyle='rgba(6,11,20,.7)';rr(ctx,6,6,62,17,8);ctx.fill();ctx.font='800 11px Cinzel,serif';ctx.textAlign='left';ctx.fillStyle='#ffd23c';ctx.fillText('● '+(120+Math.round(dmK(ph,1.4,2.3)*42)),13,18.5);ctx.restore();}
   else if(cat==='strike'){const E=dGroup(['giant'],ph,P,{v:70,stop:122,strike:1,hitAt:[1.45],hpTo:[0],dieAt:1.75,lane:[2]});const run=dmK(ph,0.5,1.25);
     dHero(id,hx+run*36,hy,{face:1,moving:ph>0.5&&ph<1.25,walk:run*36,strike:ph>1.25&&ph<1.55?dmK(ph,1.25,1.55):-1,name:nm});

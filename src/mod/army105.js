@@ -13,8 +13,10 @@ const ARM={stop:null,tilt:null};
 function armStop(){if(ARM.stop){ARM.stop();ARM.stop=null;}if(ARM.tilt){cancelAnimationFrame(ARM.tilt.raf);ARM.tilt=null;}}
 function armTilt(stage){const el=stage.querySelector('.acard');if(!el)return;const T={x:0,y:0,tx:0,ty:0,drag:0,t0:performance.now(),raf:0};ARM.tilt=T;
   const pt=e=>{const q=e.touches?e.touches[0]:e,b=stage.getBoundingClientRect();T.drag=1;T.tx=fClamp((q.clientX-(b.left+b.width/2))/(b.width/2),-1,1)*24;T.ty=fClamp((q.clientY-(b.top+b.height/2))/(b.height/2),-1,1)*14;};
-  stage.addEventListener('pointerdown',pt);stage.addEventListener('pointermove',e=>{if(T.drag)pt(e);});['pointerup','pointercancel','pointerleave'].forEach(n=>stage.addEventListener(n,()=>{T.drag=0;}));
-  const f=()=>{if(!stage.isConnected){return;}const t=(performance.now()-T.t0)/1000;if(!T.drag){T.tx=Math.sin(t*.9)*10;T.ty=Math.cos(t*.7)*5;}T.x+=(T.tx-T.x)*.12;T.y+=(T.ty-T.y)*.12;
+  /* v1.5.0: the card lifts while the finger holds it (a class set on the events, not per frame); no idle drift when the system asks for less motion */
+  const rm=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  stage.addEventListener('pointerdown',e=>{pt(e);el.classList.add('held');});stage.addEventListener('pointermove',e=>{if(T.drag)pt(e);});['pointerup','pointercancel','pointerleave'].forEach(n=>stage.addEventListener(n,()=>{T.drag=0;el.classList.remove('held');}));
+  const f=()=>{if(!stage.isConnected){return;}const t=(performance.now()-T.t0)/1000;if(!T.drag){T.tx=rm?0:Math.sin(t*.9)*10;T.ty=rm?0:Math.cos(t*.7)*5;}T.x+=(T.tx-T.x)*.12;T.y+=(T.ty-T.y)*.12;
     el.style.setProperty('--ry',T.x.toFixed(2)+'deg');el.style.setProperty('--rx',(-T.y).toFixed(2)+'deg');el.style.setProperty('--gx',(50+T.x*2.6).toFixed(1)+'%');el.style.setProperty('--gy',(40-T.y*3).toFixed(1)+'%');T.raf=requestAnimationFrame(f);};T.raf=requestAnimationFrame(f);}
 function armStrip(q){const s=card.querySelector(q),v=s&&s.querySelector('.view');if(s&&v)s.scrollLeft=Math.max(0,v.offsetLeft-s.clientWidth/2+v.offsetWidth/2);}
 function armPips(h,n){const k=Math.min(h,n);return `<span class="cardpips" aria-label="${h} of ${n} cards">${'<i class="on"></i>'.repeat(k)}${'<i></i>'.repeat(Math.max(0,n-k))}</span>`;}
@@ -84,14 +86,17 @@ function showTowerRoom(k){armStop();
   const tiles=TKEYS.map(t=>{const o=towerOpen(t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-t="${t}">${towerIconHTML(t,o?Math.max(1,maxTowerLvl()):1,52)}<span class="nm">${o?TSHORT[t]+' · '+tLvl(t):'After '+TOWER_UNLOCK[t]}</span>${o&&cardCan('t:'+t)?'<span class="upb">⬆</span>':''}</button>`;}).join('');
   const chips=TMILE[k].map((m,i)=>{const got=L>=T_MILE[i];return `<button class="mchip ${got?'got':''}" data-mi="${i}"><i>${m[0]}</i><b>${got?'✔':'LV '+T_MILE[i]}</b></button>`;}).join('');
   const mtxt=TMILE[k].map((m,i)=>`<p class="mtx" data-mt="${i}" hidden><b>${esc(m[1])}</b> — ${m[2]}</p>`).join('');
-  const mp=typeof mstPanel==='function'?mstPanel(k):'';
-  const body=op?`<div class="hlv"><b>Lv ${L}</b><em>/ ${T_MAX}</em><span class="bar"><i style="width:${Math.round(100*L/T_MAX)}%"></i></span></div>${armLvlBtn('t:'+k,'data-a="tl"',L,T_MAX)}${L>=T_MAX?mp:''}
-    <div class="nownext"><div><small>NOW</small><span>${towerLine(k,L)}</span></div>${L<T_MAX?`<div class="nx"><small>LV ${L+1}</small><span>${towerLine(k,L+1)}</span></div>`:''}</div>
-    <div class="mrow">${chips}</div>${mtxt}${L>=T_MAX?'':mp}`:`<p class="m" style="text-align:center;color:var(--gold)">🔒 Opens after stage ${TOWER_UNLOCK[k]}</p>`;
+  const mp=typeof mstPanel==='function'?mstPanel(k):'',r=typeof cardRar==='function'?cardRar('t:'+k):0;
+  /* v1.5.0: the champion room's head row — the tower on the left, name + what it does + the level bar on the right;
+     LEVEL UP alone in .hact (the demo lands right under it), then NOW / LV n, the milestones and Mastery in .tdet */
+  const head=`<div class="hhead tw r${r}" style="--rc:${RAR_C[r]}"><div class="tstage">${towerIconHTML(k,Math.max(1,maxTowerLvl()),124)}</div><div class="hinfo"><div class="hname"><b>${D.n}</b><small>${D.sub}</small></div>${op?`<div class="hlv"><b>Lv ${L}</b><em>/ ${T_MAX}</em><span class="bar"><i style="width:${Math.round(100*L/T_MAX)}%"></i></span></div>`:`<small class="hlock">🔒 Opens after stage ${TOWER_UNLOCK[k]}</small>`}</div></div>`;
+  const act=op?armLvlBtn('t:'+k,'data-a="tl"',L,T_MAX):'';
+  const det=op?`<div class="tdet">${L>=T_MAX?mp:''}<div class="nownext"><div><small>NOW</small><span>${towerLine(k,L)}</span></div>${L<T_MAX?`<div class="nx"><small>LV ${L+1}</small><span>${towerLine(k,L+1)}</span></div>`:''}</div>
+    <div class="mrow">${chips}</div>${mtxt}${L>=T_MAX?'':mp}</div>`:'';
   show(`<div class="topbar"><h1>🏰 Towers<small>tap a tower, level it up</small></h1><button class="back" id="bBack">✖</button></div>
   <p class="m cur">🪙 <b style="color:var(--gold)">${fmtN(goldOf())}</b> · 🃏 ${cardHave('t:'+k)} ${TSHORT[k]} cards</p>
   <div class="hgrid strip" id="armStrip">${tiles}</div>
-  <div id="clist"><div class="hdet2" style="--hc:${rc};--hc2:#1d2a3c"><div class="tstage">${towerIconHTML(k,Math.max(1,maxTowerLvl()),130)}</div><div class="hname"><b>${D.n}</b><small>${D.sub}</small></div><div class="hact">${body}</div></div></div>`);
+  <div id="clist"><div class="hdet2" style="--hc:${rc};--hc2:#1d2a3c">${head}<div class="hact">${act}</div>${det}</div></div>`);
   CLOUD.screen='tower';armStrip('#armStrip');
   $('#bBack').addEventListener('click',()=>showHub('coll','towers'));
   card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showTowerRoom(t.dataset.t)));
