@@ -7,6 +7,10 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message));
+  // the offer and the Hold's waves come from the day's key (todayKey): pin the page's Date before the page loads, so the run is the same
+  // on every calendar day. 2026-10-15 opens wave 5 with Champion's edge (an exact number to check), wave 10 with another three. Only
+  // Date is fixed (setFixedTime); timers and rAF stay real — a flowing fake clock (clock.install) lags behind real time on a loaded machine.
+  await page.clock.setFixedTime(new Date('2026-10-15T10:00:00Z'));
   await page.goto('file://' + require('path').resolve(__dirname, '..', process.env.HOLDOR_HTML || 'beta/index.html'));
   await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_BOONS, { timeout: 20000 }); await page.waitForTimeout(300);
   const R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };

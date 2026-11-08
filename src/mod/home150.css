@@ -1,0 +1,79 @@
+/* v1.5.0: the home answers three questions — what is ready, what to do now, what is new (src/mod/home150.js).
+   One rhythm: 8 px between pieces, 12 px inside, 16 px radii; body ≥ 13 px, captions ≥ 11 px, tap targets ≥ 44 px. */
+.hubbody.battle{padding:6px 10px 10px}
+/* WHAT IS READY: gold pills on dark, only when something is */
+.hmready{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+.hmready .rdy{flex:1 1 calc(50% - 4px);min-width:0;min-height:44px;display:flex;align-items:center;gap:8px;padding:6px 10px 6px 8px;border-radius:14px;border:2px solid #e9b949;background:linear-gradient(180deg,rgba(60,40,8,.78),rgba(28,20,6,.86));color:#ffe8a8;text-align:left;box-shadow:0 3px 0 #5a3a10,0 0 14px rgba(255,214,100,.28)}
+.hmready .rdy i{font-style:normal;font-size:20px;line-height:1;flex:0 0 24px;display:flex;align-items:center;justify-content:center;color:#8be26a}
+.hmready .rdy i svg{width:22px;height:22px;filter:drop-shadow(0 1px 0 rgba(0,0,0,.5))}
+.hmready .rdy b{flex:1;min-width:0;font-family:var(--f-display);font-size:13px;letter-spacing:.02em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 0 rgba(0,0,0,.6)}
+.hmready .rdy em{font-style:normal;font-weight:900;font-size:18px;line-height:1;opacity:.75}
+.hmready .rdy.champ,.hmready .rdy.tower{border-color:#7fd06a;color:#dfffd3;box-shadow:0 3px 0 #1e5a1c,0 0 14px rgba(120,230,100,.25)}
+.hmready .rdy.champ i,.hmready .rdy.tower i{color:#8be26a;font-weight:900}
+/* the stage: the art, the 🎨 in the corner, the road-north bar at the foot */
+.hmstage{margin:0 -2px 8px;min-height:200px}
+.hmskin{position:absolute;right:8px;top:8px;z-index:5;width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.22);background:rgba(0,0,0,.38);font-size:16px;line-height:1;padding:0;opacity:.8}
+.hmskin::before{content:'';position:absolute;inset:-5px}
+.hmgoal.v150{left:8px;right:8px;bottom:8px;min-height:44px;padding:5px 12px;gap:10px;border-radius:12px;border-color:rgba(255,255,255,.14);background:linear-gradient(90deg,rgba(0,0,0,.66),rgba(0,0,0,.42))}
+.hmgoal.v150 .gl{flex:1;min-width:0;gap:2px}.hmgoal.v150 .gl small{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9fe0ff}
+.hmgoal.v150 .gl b{font-size:13px;font-weight:700}
+.hmgoal.v150 .gp{flex:0 0 72px;height:8px;border-radius:4px}.hmgoal.v150 .gp i{border-radius:4px}
+.hmgoal.v150 .gs{font-size:12px;letter-spacing:0;color:#ffe08a;font-weight:800;white-space:nowrap}
+.hmgoal.v150 .arr{font-style:normal;font-size:16px;font-weight:900;color:#cfe6ff;opacity:.8}
+/* WHAT DO I DO NOW: one green button, straight under the art */
+.battlerow.v150{margin:0 0 8px}
+.bbig.go150{display:flex;align-items:center;gap:10px;min-height:72px;padding:8px 12px 8px 10px;text-align:left;border-radius:18px;border:3px solid #1e5a1c;border-bottom:8px solid #1e5a1c;color:#fff;letter-spacing:.04em;font-size:24px;
+  background:linear-gradient(180deg,#9aea78 0%,#5cbd4c 50%,#3f9a3a 100%);text-shadow:0 2px 0 rgba(0,0,0,.45);box-shadow:inset 0 3px 0 rgba(255,255,255,.45),0 10px 16px rgba(0,0,0,.35),0 0 24px rgba(120,230,100,.3)}
+.bbig.go150 .bbi{flex:0 0 46px;width:46px;height:46px;border-radius:12px;background:rgba(0,0,0,.26);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.15)}
+.bbig.go150 .bbi svg{width:32px;height:32px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.4))}
+.bbig.go150 .bbt{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;line-height:1}
+.bbig.go150 .bbt b{font-size:24px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bbig.go150 .bbt small,.bbig.go150 .bbr small{display:block;margin:0;font-size:12px;letter-spacing:.06em;font-weight:800;color:#eaffe0;text-shadow:0 1px 0 rgba(0,0,0,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bbig.go150 .bbr{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;line-height:1}
+.bbig.go150 .bbr em{font-style:normal;font-size:15px;font-weight:900;color:#fff3b0;letter-spacing:.02em}
+.bbig.go150 .bbr small{color:#ffe08a;letter-spacing:0}.bbig.go150 .bbr small i{font-style:normal;color:rgba(255,255,255,.35)}
+.bbig.go150.pulse{animation:go150Pulse 1.6s ease-in-out infinite}
+@keyframes go150Pulse{0%,100%{box-shadow:inset 0 3px 0 rgba(255,255,255,.45),0 10px 16px rgba(0,0,0,.35)}50%{box-shadow:inset 0 3px 0 rgba(255,255,255,.45),0 10px 16px rgba(0,0,0,.35),0 0 0 5px rgba(170,255,140,.5),0 0 30px rgba(120,230,100,.8)}}
+html.fxui .battlerow.v150 .fxglow{border-radius:20px;box-shadow:0 0 16px 5px rgba(140,230,110,.7),0 0 34px 10px rgba(80,180,70,.35)}
+/* the quiet row under it: Map · what opens next · the champion */
+.hmside{display:flex;gap:8px;margin:0 0 8px;align-items:stretch}
+.hmside .bside{flex:0 0 64px;height:52px;padding:3px 2px;gap:1px;line-height:1;border-radius:14px;border:2px solid rgba(255,255,255,.14);border-bottom-width:4px;background:rgba(10,24,48,.55);box-shadow:none;font-size:11px;position:relative;text-shadow:0 1px 0 rgba(0,0,0,.6)}
+.hmside .bside img{width:26px;height:26px;border-radius:8px}.hmside .bside .pe{font-size:21px;line-height:1}
+.hmside .bside .upb{position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;background:linear-gradient(180deg,#8be26a,#3f9a3a);border:2px solid #fff;color:#0b2a0a;font-style:normal;font-size:13px;line-height:18px;text-align:center;text-shadow:none;z-index:2}
+.hmnew{flex:1;min-width:0;height:52px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;padding:6px 12px;border-radius:14px;border:2px solid rgba(255,255,255,.14);border-bottom-width:4px;background:rgba(10,24,48,.55);color:#fff;text-align:left;font-family:var(--f-body)}
+.hmnew small{font-size:11px;letter-spacing:.12em;font-weight:800;color:#9fe0ff;text-transform:uppercase;line-height:1}
+.hmnew b{font-family:var(--f-display);font-size:13px;line-height:1.1;display:flex;align-items:center;gap:6px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hmnew b .ni{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:0 0 auto;font-size:16px;font-family:var(--f-body)}
+.hmnew b .ni svg,.hmnew b .ni img{width:22px;height:22px}
+.hmnew.done small{color:#ffe08a}
+.hub.g-noarmy .hmside{justify-content:center}
+/* the chests: a label on each, the ready ones lit, the rest quiet */
+.hmslots.top{gap:8px;margin:0 0 8px}
+.hmslots.top .slot{aspect-ratio:auto;height:96px;padding:6px 2px 6px;justify-content:space-between}
+.slot .sl{position:relative;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#bcd3ee;line-height:1;font-family:var(--f-body)}
+.slot.ready .sl{color:#ffe08a}
+.slot:not(.ready) .si{opacity:.82}
+.slot em{font-size:11px;padding:2px 7px;letter-spacing:.03em}
+.slot .si.gift svg{width:34px;height:34px}
+/* the Hold steps back: a quiet card, a blue button */
+.hmhold{margin:0 0 8px;border-width:2px;border-color:rgba(255,255,255,.14);background:linear-gradient(90deg,rgba(29,79,138,.55),rgba(18,58,107,.55));box-shadow:0 3px 0 rgba(0,0,0,.35)}
+.hmhold .hmrow{padding:8px 10px 6px;gap:12px}.hmhold .hmtx{gap:0}
+.hmhold .hmtx b{font-size:13px;color:#dfe9f7;text-shadow:0 1px 0 rgba(0,0,0,.6)}
+.hmhold .hmtx small,.hmhold .hmtx em{font-size:11px}.hmhold .hmcd{font-size:11px}
+.hmhold .hmgo{min-width:72px;min-height:48px;padding:6px 8px;font-size:14px;border-width:2px;border-color:rgba(255,255,255,.14);background:rgba(0,0,0,.3);box-shadow:none;color:#bcd3ee}
+.hmhold .hmgo small{font-size:9.5px}
+.hmhold .hmgo.go{background:linear-gradient(180deg,#5aa0ff,#2f63c7);color:#fff;border-color:#163a7a;box-shadow:0 3px 0 #163a7a;animation:none}
+.hmhold .hmlink{min-height:32px;font-size:12px;padding:6px 12px}
+/* the strip: rank · Tasks · the event, quiet, at the bottom */
+.hmstrip.low{margin:0 0 2px;gap:8px}
+.hmstrip.low .hpill{min-height:44px;padding:0 12px 0 9px;border-radius:20px;background:rgba(10,24,48,.55);border:2px solid rgba(255,255,255,.14);box-shadow:none;color:#dfe9f7;font-size:12px;position:relative}
+.hmstrip.low .hpill::before{content:'';position:absolute;inset:-3px}
+.hmstrip.low .hpill b{font-size:13px}.hmstrip.low .hpill small{font-size:11px;color:#bcd3ee}.hmstrip.low .hpill em{font-size:11px}
+.hmstrip.low .hpill.hot{border-color:#e9b949}.hmstrip.low .hpill.hot b{color:#ffe08a}
+.hmstrip.low .hpill.ev.on{background:linear-gradient(90deg,#6a2f0c,#a3531a);border-color:#3a1806}
+.hubtabs.four button{font-size:11px}
+/* short phones: the button stays in the first screen */
+@media (max-height:700px){.hmstage{min-height:140px}.bbig.go150{min-height:64px}.bbig.go150 .bbt b{font-size:22px}.hmslots.top .slot{height:86px}.hmside .bside,.hmnew{height:48px}.hmstrip.low .hpill{min-height:44px}}
+@media (prefers-reduced-motion:reduce){.bbig.go150.pulse{animation:none}}
+
+#bHoldMore{min-height:44px;display:flex;align-items:center}

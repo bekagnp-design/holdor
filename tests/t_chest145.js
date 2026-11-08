@@ -9,16 +9,17 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message));
-  await page.goto('file://' + require('path').resolve(__dirname, '..', process.env.HOLDOR_HTML || 'beta/index.html'));
+  const HTML = 'file://' + require('path').resolve(__dirname, '..', process.env.HOLDOR_HTML || 'beta/index.html');
+  await page.goto(HTML);
   await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_CHEST && window.HOLDOR_LUCKY, { timeout: 20000 }); await page.waitForTimeout(300);
   const R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
-  await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tour = 99; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1, tasks: 1 };
+  const boot = p => p.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tour = 99; a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1, tasks: 1 };
     a.learn = { chest: 1, hold: 1, champ: 1, glass: 1, keep: 1, tier2: 1, fire: 1 }; a.gold = 1000; H.setAcc(a); H.showHub('battle'); });
-  await page.waitForTimeout(400);
-  const st = () => page.evaluate(() => window.HOLDOR_CHEST.state);
+  await boot(page); await page.waitForTimeout(400);
+  const st = (p = page) => p.evaluate(() => window.HOLDOR_CHEST.state);
   const waitFor = async (fn, ms) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await page.evaluate(fn)) return Date.now() - t0; await page.waitForTimeout(25); } return -1; };
-  const center = () => page.touchscreen.tap(195, 430);
-  const fixed = n => page.evaluate(n => { window.__done = 0; const R = [{ k: 'gold', n: 'Gold', s: '+150', r: 0 }, { k: 'gems', n: 'Dragonglass', s: '+8', r: 0 }]; while (R.length < n) R.push({ k: 'gold', n: 'Gold', s: '+100', r: 0 });
+  const center = (p = page) => p.touchscreen.tap(195, 430);
+  const fixed = (n, p = page) => p.evaluate(n => { window.__done = 0; const R = [{ k: 'gold', n: 'Gold', s: '+150', r: 0 }, { k: 'gems', n: 'Dragonglass', s: '+8', r: 0 }]; while (R.length < n) R.push({ k: 'gold', n: 'Gold', s: '+100', r: 0 });
     window.HOLDOR_CHEST.chest145Open('iron', () => { window.__done++; }, R); }, n);
 
   // 1. every tier: a drawn chest, TAP TO OPEN, real rewards, untouched it plays to the end; the gold paid is the gold shown
@@ -41,26 +42,36 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   }
   ok('COLLECT closes the scene and calls done once', await page.evaluate(() => window.__done === 1 && document.getElementById('cer').className === 'hidden' && document.getElementById('cer').innerHTML === ''));
 
+  // 2 and 3 measure the chest's own timers (setTimeout chain + rAF count-up). They run on a second page whose clock is Playwright's fake
+  // one, paused and advanced by hand (runFor): the scene gets exactly the game time it is given, and the machine's load (shared CPU) never
+  // counts. Wall-clock waits used to fail here under load (4465 ms for "≤ 4 s", 6.4 s for six taps) with nothing wrong in the chest. The
+  // main page keeps its real clock: a fake clock that flows (clock.install alone) lags behind real time on a loaded machine.
+  const p2 = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true }); p2.on('pageerror', e => errors.push('PE2:' + e.message));
+  await p2.clock.install(); await p2.goto(HTML);
+  await p2.waitForFunction(() => window.HOLDOR && window.HOLDOR_CHEST && window.HOLDOR_LUCKY, { timeout: 20000 }); await boot(p2);
+  await p2.clock.pauseAt(await p2.evaluate(() => Date.now() + 1000));
+  const run = ms => p2.clock.runFor(ms);
+  const runUntil = async (fn, ms, step) => { for (let t = 0; t < ms; t += step) { await run(step); if (await p2.evaluate(fn)) return t + step; } return -1; };
   // 2. the default sequence for a 4-reward chest is about 4 s or less
-  await fixed(4); await page.waitForTimeout(200); await page.locator('#cch').tap({ force: true });
-  const t4 = await waitFor(() => !!document.querySelector('#ccol.in'), 9000);
-  ok('untouched, a 4-reward chest opens and lays out all four in ≤ 4 s', t4 > 0 && t4 <= 4000 && (await st()).shown === 4, 't=' + t4 + 'ms');
-  await page.locator('#ccol').tap({ force: true }); await page.waitForTimeout(200);
+  await fixed(4, p2); await run(200); await p2.locator('#cch').tap({ force: true });
+  const t4 = await runUntil(() => !!document.querySelector('#ccol.in'), 9000, 100);
+  ok('untouched, a 4-reward chest opens and lays out all four in ≤ 4 s (game time)', t4 > 0 && t4 <= 4000 && (await st(p2)).shown === 4, 't=' + t4 + 'ms');
+  await p2.locator('#ccol').tap({ force: true }); await run(200);
 
   // 3. tap to speed up: once the first card is out, each tap sends it to the row at once and brings the next
-  await fixed(6); await page.waitForTimeout(200); await page.locator('#cch').tap({ force: true });
-  await waitFor(() => { const s = window.HOLDOR_CHEST.state; return s.phase === 'show' && s.idx === 0; }, 3000);
-  const t0 = Date.now(), steps = [];
-  for (let i = 0; i < 6; i++) { await center(); await page.waitForTimeout(110); const s = await st(); steps.push(s.shown + (s.phase === 'done' ? '!' : '')); }
-  const tTap = Date.now() - t0;
+  await fixed(6, p2); await run(200); await p2.locator('#cch').tap({ force: true });
+  await runUntil(() => { const s = window.HOLDOR_CHEST.state; return s.phase === 'show' && s.idx === 0; }, 3000, 50);
+  const steps = []; let tTap = 0;
+  for (let i = 0; i < 6; i++) { await center(p2); await run(110); tTap += 110; const s = await st(p2); steps.push(s.shown + (s.phase === 'done' ? '!' : '')); }
   ok('6 taps after opening: each tap adds exactly one card to the row, the 6th ends it', JSON.stringify(steps) === JSON.stringify(['1', '2', '3', '4', '5', '6!']), JSON.stringify(steps));
-  ok('tapping walks through 6 rewards far faster than the old timer (6 × 1150 ms)', tTap < 2000 && tTap < 1150 * 6 / 3, tTap + 'ms');
-  await page.locator('#ccol').tap({ force: true }); await page.waitForTimeout(200);
+  ok('tapping walks through 6 rewards far faster than the old timer (6 × 1150 ms): each tap lands within 110 ms of game time', tTap < 1150 * 6 / 3 && (await st(p2)).phase === 'done', tTap + 'ms');
+  await p2.locator('#ccol').tap({ force: true }); await run(200);
   // a tap during the lid swing jumps straight to the first card
-  await fixed(3); await page.waitForTimeout(200); await page.locator('#cch').tap({ force: true }); await page.waitForTimeout(90); await center(); await page.waitForTimeout(40);
-  const jump = await st();
+  await fixed(3, p2); await run(200); await p2.locator('#cch').tap({ force: true }); await run(90); await center(p2); await run(40);
+  const jump = await st(p2);
   ok('a tap while the lid is still swinging shows the first card at once', jump.phase === 'show' && jump.idx === 0, JSON.stringify(jump));
-  await page.locator('#cskip').tap({ force: true }); await page.waitForTimeout(150); await page.locator('#ccol').tap({ force: true }); await page.waitForTimeout(200);
+  await p2.locator('#cskip').tap({ force: true }); await run(150); await p2.locator('#ccol').tap({ force: true }); await run(200);
+  await p2.close();   // the rest plays on the main page, real clock
 
   // 4. SKIP › lays out every remaining reward at once
   await page.evaluate(() => { window.__done = 0; window.HOLDOR_CHEST.chest145Open('dragon', () => { window.__done++; }); }); await page.waitForTimeout(250);

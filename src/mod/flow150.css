@@ -1,0 +1,39 @@
+/* flow150: the map card is the preparation step */
+.mapcard2{margin:6px 8px 4px;padding:10px 12px 10px;border-radius:16px}
+.mapcard2 .gt{font-size:11px;letter-spacing:.2em}
+.mapcard2 h2{font-size:21px;margin:1px 0 2px;line-height:1.1}
+.mapcard2 .pchips{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:3px 0 4px}
+.mapcard2 .pchips i{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#ffe08a;background:rgba(255,213,74,.12);border:1px solid rgba(255,213,74,.35);border-radius:999px;padding:3px 9px}
+.mapcard2 .sb{font-size:12px;line-height:1.35}.mapcard2 .sb .bst{color:#ffd54a;font-style:normal;letter-spacing:.04em}.mapcard2 .sb .bst i{color:rgba(255,255,255,.28);font-style:normal}
+.mapcard2 .en{margin-top:6px}
+.pdeck{margin:8px 0 0;padding:4px 8px 8px;border-radius:12px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08)}
+.pdh{display:flex;justify-content:space-between;align-items:center;min-height:30px}
+.pdh small{font:900 10px var(--f-display);letter-spacing:.18em;color:#b9c8da}
+.pchg{background:none;border:0;color:#ffd060;font:700 12.5px var(--f-body);padding:12px 2px 12px 14px;margin:-6px -2px -6px 0;min-height:44px;text-decoration:underline;text-underline-offset:2px}
+.pds{display:flex;align-items:center;justify-content:center;gap:4px}
+.pdi{width:34px;height:34px;border-radius:9px;background:#0d1726;border:1px solid #2a3d58;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none}
+.pdi img{width:100%;height:100%;object-fit:cover;display:block}.pdi i{font-style:normal;font-size:18px}
+.pdi.ch{border-color:#e3b661}.pdi.sp{border-color:#3a5478}.pdi.tw{border-color:#2f6b3a;background:#0f1f16}
+.pdi .spi{width:26px!important;height:26px!important;padding:0!important;display:flex!important;align-items:center;justify-content:center}.pdi .spi svg{width:22px!important;height:22px!important}
+.pdi.tw img,.pdi.tw svg{width:30px;height:30px}
+.pdsep{width:1px;height:26px;background:rgba(255,255,255,.18);margin:0 3px;flex:none}
+.mapcard2 .go{margin-top:10px;min-height:54px;padding:12px;font-size:17px;letter-spacing:.14em;border-radius:14px;border:2px solid #ffd54a;background:linear-gradient(180deg,#f0c14a,#b8841c);color:#2a1a00;font-weight:900;box-shadow:0 4px 0 #6e4d0c}
+.mapcard2 .go .ecost{display:block;font-size:11px;letter-spacing:0;font-weight:700;opacity:.8;margin-top:2px}
+.mapcard2 .prow{display:flex;gap:8px;margin-top:8px}
+.mapcard2 .prow .btn{margin:0;flex:1;min-height:44px;padding:8px 6px;font-size:12.5px;font-weight:700;border-radius:12px}
+.hback.dkret{margin:4px 0 10px}
+/* flow150: the result screen */
+.card.res{padding:16px 14px 14px}
+.card.res h1 small{margin-top:4px}
+.card.res .rsub{margin:0 0 6px;font-size:12.5px;color:#b9c8da}
+.card.res .rew{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:6px 0 2px}
+.card.res .rew .rt{display:inline-flex;align-items:center;gap:4px;padding:7px 12px;border-radius:999px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.16);color:#fff;font:800 14px var(--f-body);font-variant-numeric:tabular-nums;line-height:1.1}
+.card.res .rew .rt.gold{color:#ffd54a;border-color:rgba(255,213,74,.5);background:rgba(255,213,74,.12);font-size:16px}
+.card.res .rew .rt.dim{color:#9fb4cf;font-weight:600}
+.card.res .tip{font-size:12.5px;color:#d6e2f0;margin:6px 0 0;line-height:1.4}
+.card.res .btn.nextbig{margin-top:12px;min-height:64px;padding:10px 12px 9px;border-radius:16px}
+.card.res .btn.nextbig .nx{font-size:23px;line-height:1.05}.card.res .btn.nextbig small{font-size:12px}
+.card.res .resrow{display:flex;gap:8px;margin-top:10px}
+.card.res .resrow .btn{flex:1;margin:0;min-height:46px;padding:10px 6px;font-size:13.5px;font-weight:700;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.24);color:#fff;letter-spacing:.02em}
+.card.res .reslinks{display:flex;justify-content:center;gap:2px;margin-top:2px;flex-wrap:wrap}
+.card.res .reslinks button{background:none;border:0;color:#bfd3ec;font:600 12.5px var(--f-body);padding:12px 10px;min-height:44px;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(191,211,236,.45)}

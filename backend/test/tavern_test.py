@@ -49,6 +49,7 @@ with sync_playwright() as p:
     ev("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;a.tour=1;a.tours={win:1,battle:1,coll:1,shop:1,hold:1,events:1};a.learn={chest:1,hold:1,champ:1};a.holdTut=1;a.holdIntro=1;
       for(let i=1;i<=30;i++)a.campaign[i]=3;H.SAVE.slots[0]=a;H.SAVE.cur=0;H.setAcc(a);H.persist();H.afterLoad();})()""")
     check('seat managed', wait("HOLDOR_ECON.ecoOn()", 12000)); settle()
+    ev("HOLDOR_DAILY.DAILY.shown=true")   # the daily calendar popup (a new seat can always claim day 1) must not cover the taps below
     # the server's side: 30 stages held, Robb at level 10 (★1 cap), 40 Brienne cards, 3 Common books, gold and dragonglass
     for i in range(1, 31): q("insert into progress (tg_id, seat, mode, stage, stars) values (%s, 0, 'c', %s, 3) on conflict do nothing", TG, i)
     setw(levels={'c:robb': 10}, cards={'c:brienne': 40, 'c:robb': 100, 'b:c': 3})

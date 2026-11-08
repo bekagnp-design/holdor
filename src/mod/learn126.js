@@ -13,12 +13,16 @@ function learnPick(id){if(!G.learnAsk||!SK[id])return;const h=G.hero,to=learnTo(
   const syn=typeof champSynergy==='function'?champSynergy(id):null;
   G.learnAsk=null;G.learnWhy=null;const el=document.getElementById('boonOv');if(el)el.remove();G.paused=false;try{SFX.play('levelup');}catch(e){}
   try{addText(h.x,h.y-48,'LEARNED '+SK[id].n,'#ffd54a',1);addFx({t:'ring',x:h.x,y:h.y-10,r0:8,r1:60,life:0.6,col:'#ffd54a'});if(syn)addText(h.x,h.y-70,'✦ '+syn,'#9fe6ff',1);}catch(e){}}
+/* v1.5.0: what he learned so far, compact — a Trials run learns a skill every wave, so the names are grouped (×n) and capped at five */
+function learnHaveText(){const L=G.learned||[];if(!L.length)return 'It lasts until the battle ends';const n={};for(const k of L)n[k]=(n[k]||0)+1;
+  const ks=Object.keys(n).sort((a,b)=>n[b]-n[a]),top=ks.slice(0,5).map(k=>esc(SK[k].n)+(n[k]>1?' ×'+n[k]:''));
+  return `Learned this battle (${L.length}): ${top.join(' · ')}${ks.length>5?' · +'+(ks.length-5)+' more':''}`;}
 function learnShow(offer){const ov=document.getElementById('boonOv');if(ov)ov.remove();
   const o=document.createElement('div');o.id='boonOv';
   o.innerHTML=`<div class="bo-in"><small>${esc(shortName(G.hero.c))} · ${G.learnWhy||('BEFORE WAVE '+(G.wave+1))}</small><h2>Learn a skill</h2><div class="bo-row">${offer.map((id,i)=>{const S=SK[id],to=learnTo(id),own=skLvl(G.hero,id);
     return `<button class="bo-card" data-learn="${id}" style="animation-delay:${i*90}ms"><span class="bo-e">${skillIcon(id,48,0)}</span><b>${esc(S.n)}</b><em>${esc(S.d(S.v[to-1]))}</em><small>${own?'RANK '+own+' → '+to:'NEW · rank '+to}</small></button>`;}).join('')}</div>
     ${(G.learnRr||0)<1?'<button class="linkbtn" id="learnRr">🎲 Other skills (once per battle)</button>':''}
-    <p class="bo-have">${(G.learned||[]).length?'Learned this battle: '+G.learned.map(k=>esc(SK[k].n)).join(', '):'It lasts until the battle ends'}</p></div>`;
+    <p class="bo-have">${learnHaveText()}</p></div>`;
   (document.getElementById('stage')||document.body).appendChild(o);
   o.querySelectorAll('[data-learn]').forEach(b=>b.addEventListener('click',()=>learnPick(b.dataset.learn)));
   const rr=o.querySelector('#learnRr');if(rr)rr.addEventListener('click',()=>{G.learnRr=(G.learnRr||0)+1;const n=learnOffer();G.learnAsk=n;SFX.play('tap',60);learnShow(n);});}

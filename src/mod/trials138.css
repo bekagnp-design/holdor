@@ -3,8 +3,27 @@
 .trcard .trrow{display:flex;gap:10px;align-items:center}
 .trcard .hmmini{flex:0 0 84px;width:84px;height:60px;border-radius:10px;border:2px solid rgba(0,0,0,.55)}
 .trcard .trtx{display:flex;flex-direction:column;gap:2px;min-width:0}.trcard .trtx b{font:900 17px var(--f-display);color:#ffe08a;letter-spacing:.04em}
-.trcard .trtx small{font-size:11px;color:#bfd2f2}.trcard .trtx em{font-style:normal;font-weight:800;font-size:13px;color:#fff}
+.trcard .trtx small{font-size:11px;color:#bfd2f2}.trcard .trtx em{font-style:normal;font-weight:800;font-size:13px;color:#fff;line-height:1.25}
+.trcard .trtx em b{font:inherit;color:#ffd54a;letter-spacing:0}.trcard .trtx em b.no{color:#ff9b9b}
 .trcard .trinfo{margin:10px 2px 8px;font-size:13px;line-height:1.35;color:#dfe9f7}
-.trcard .trgo{width:100%;font-size:20px;letter-spacing:.12em}.trcard .trnote{margin:8px 2px 0;font-size:11px;color:#9fb2d4;text-align:center}
+.trcard .trnote{margin:8px 2px 0;font-size:11px;color:#9fb2d4;text-align:center}
+/* v1.5.0: the one big button — green when the run pays, grey with the reason when it does not (a tap still starts a run) */
+.bigbtn.trgo{min-height:64px}
+.bigbtn.trgo .bt{letter-spacing:.08em}
+.bigbtn.trgo.ready{background:linear-gradient(180deg,#8be26a,#3f9a3a);border-color:#d8ffbf;color:#0b2a0a;box-shadow:0 8px 20px rgba(0,0,0,.45),0 0 22px rgba(120,230,100,.55);animation:armpulse 1.4s ease-in-out infinite}
+.bigbtn.trgo.ready .bs{color:#0f3a0e;opacity:.95}
+.bigbtn.trgo.wait{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.18);color:#9fb6c9}
+.bigbtn.trgo.wait .bt{font-size:17px}.bigbtn.trgo.wait .bs{color:#cfe0ee}
 .trlast{margin-top:10px;padding:8px;border-radius:12px;background:rgba(0,0,0,.28)}.trlast .trlh b{display:block;font:900 13px var(--f-display);color:#ffd54a}.trlast .trlh small{font-size:11px;color:#bfe6ff}
 .trlast .bcsk{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.trlast .bcs{display:flex;flex-direction:column;align-items:center;width:58px}.trlast .bcs small{font-size:9px;color:#d6c8f0;text-align:center;line-height:1.1}
+/* v1.5.0: the reward on the result as a compact list */
+.trrw{margin:8px 0 10px;padding:6px 10px;border-radius:12px;background:rgba(0,0,0,.28);display:flex;flex-direction:column;gap:4px;text-align:left}
+.trrw .trr{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13.5px;line-height:1.3;color:#dfe9f7}
+.trrw .trr b{font-family:var(--f-display);font-weight:900;color:var(--gold);white-space:nowrap;text-align:right}
+.trrw .trr.mut{color:#9fb2d4;font-size:12px}.trrw .trr.mut b{color:#cfe0ee;font-weight:700;font-family:var(--f-body);white-space:normal}
+.trrw .trr b .tx{font:700 13px var(--f-body);color:#cfe0ee;letter-spacing:0}
+.trrw .trr.no{flex-direction:column;align-items:flex-start;gap:1px;color:#ffd0d0}.trrw .trr.no b{color:#ff9b9b;font-family:var(--f-body);font-weight:800;white-space:normal;text-align:left}
+.trrw .trr.tot{border-top:1px solid rgba(255,255,255,.14);padding-top:5px;margin-top:2px;font-weight:800;color:#fff}
+/* v1.5.0: the skill offer on a short phone — the box scrolls instead of clipping, and sits tighter */
+#boonOv{align-items:stretch;overflow:hidden}#boonOv .bo-in{margin:auto;max-height:100%;overflow-y:auto;box-sizing:border-box}
+@media (max-height:720px){#boonOv .bo-in{padding:10px 10px}#boonOv h2{font-size:21px;margin:0 0 10px}#boonOv .bo-card{padding:10px 5px 9px;gap:4px}#boonOv .bo-have{margin-top:8px;font-size:12px}}

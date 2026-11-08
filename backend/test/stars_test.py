@@ -55,12 +55,14 @@ with sync_playwright() as p:
     ev("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;a.tour=1;a.tours={win:1,battle:1,coll:1,shop:1,hold:1,events:1};a.learn={chest:1,hold:1,champ:1};a.holdTut=1;a.holdIntro=1;
       H.SAVE.slots[0]=a;H.SAVE.cur=0;H.setAcc(a);H.persist();H.afterLoad();})()""")
     check('seat managed', wait("HOLDOR_ECON.ecoOn()", 12000)); settle()
+    ev("HOLDOR_DAILY.DAILY.shown=true")   # the daily calendar popup (a new seat can always claim day 1) must not cover the taps below
 
     ev("HOLDOR.showHub('shop')"); pg.wait_for_timeout(800)
     check('the shop sells three dragonglass packs for Stars, enabled', ev("['gems_s','gems_m','gems_l'].every(k=>{const b=document.querySelector('[data-stars=\"'+k+'\"]');return b&&!b.disabled})"))
     check('the Starter pack is offered (the server says it is not bought)', wait("!!document.querySelector('[data-stars=\"starter\"]')", 6000))
     pg.screenshot(path=SHOTS + '/stars_shop.png')
-    check('prices in Stars', ev("[...document.querySelectorAll('[data-stars]')].map(b=>b.dataset.stars+':'+b.textContent.trim()).join('|')") == 'starter:⭐ 75|gems_s:⭐ 50|gems_m:⭐ 125|gems_l:⭐ 350')
+    # v1.5.1: the price sits in a chip on the card (.pchip.star), the button reads BUY
+    check('prices in Stars', ev("[...document.querySelectorAll('[data-stars]')].map(b=>{const c=b.closest('.sitem,.shcard,[class*=card]')||b.parentElement;const ch=c&&c.querySelector('.pchip.star');return b.dataset.stars+':'+(ch?ch.textContent.trim():b.textContent.trim());}).join('|')") == 'starter:⭐ 75|gems_s:⭐ 50|gems_m:⭐ 125|gems_l:⭐ 350', ev("[...document.querySelectorAll('[data-stars]')].map(b=>b.dataset.stars+':'+b.textContent.trim()+'/'+((b.closest('.sitem,.shcard,[class*=card]')||b.parentElement).querySelector('.pchip.star')||{}).textContent).join('|')"))
 
     # ---- a pack: tap → invoice → Telegram takes the Stars → the app waits for the server → the balance ----
     g0 = W()[0]

@@ -87,18 +87,26 @@ function chest145SVG(t,mode){
 /* the card back: the tier's colour, a lattice and a door in a ring */
 function c5Back(P){return `<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="${P.m1}" stroke-width="2.4"/><circle cx="30" cy="30" r="17" fill="${P.w3}" stroke="${P.m2}" stroke-width="1.4"/><path d="M22 42V28a8 8 0 0 1 16 0v14z" fill="${P.m2}" stroke="#160b04" stroke-width="1.6"/><path d="M30 20v22M22 33h16" stroke="#160b04" stroke-width="1.2"/></svg>`;}
 function c5Icon(r){return r.k==='card'?cardIcon(r.key,96):r.k==='champ'||r.k==='skill'?(CHAMP_ART[r.c.id+'_portrait']?`<img src="${CHAMP_ART[r.c.id+'_portrait']}" alt="">`:`<span style="font-size:40px">${r.c.e}</span>`):r.k==='gems'?GEM_SVG:r.k==='gold'?GOLD_SVG:r.k==='upg'?`<span style="font-size:44px">${r.u.e}</span>`:r.k==='att'?HUB_ICON.hold:STAR_SVG;}
+/* chest150: under a card stack, the copies held now against the card's next level (have/need; READY ⬆ when they suffice), the bar
+   filling as the stack lands (cardHave already counts the new copies: a guest's rollChest added them, a seat's server state came first).
+   A +100 gold with fill:1 stood in for a stack because every card is owned (v1.4.9 cardPool / ec_pool): the card says so, the grid too. */
+function c5Prog(r){if(r.k!=='card'||!r.key||!/^[cts]:/.test(r.key))return null;try{const key=r.key,h=cardHave(key),n=cardNeed(key);
+  if(!n)return{max:1,h,n:0,ready:false,w0:100,w1:100};const h0=Math.max(0,h-(r.cnt||0));
+  return{max:0,h,n,ready:cardReady(key),w0:Math.min(100,Math.round(100*h0/n)),w1:Math.min(100,Math.round(100*h/n))};}catch(e){return null;}}
+function c5ProgHTML(p,w){return p?`<span class="c5prog${p.max?' max':p.ready?' ok':''}"><i style="width:${w}%"></i><em>${p.max?'MAX':p.h+'/'+p.n}</em></span>${p.ready?'<span class="c5ready">READY ⬆</span>':''}`:'';}
+function c5Fill(r){return r.k==='gold'&&!!r.fill;}
 function chest145Open(t,done,fixed){   /* fixed: a list of rewards to show instead of rolling (previews and tests only) */
   const T=CHEST_TIERS[t]||CHEST_TIERS.wood,P=C5.P[t]||C5.P.wood,RC=RAR_C,RN=RAR_N,RM=c5Reduced();
   let el=$('#cer');if(!el){el=document.createElement('div');el.id='cer';document.getElementById('app').appendChild(el);}
   const rewards=fixed||rollChest(t);if(!fixed)persist();const N=rewards.length;
-  const S={phase:'closed',idx:-1,cur:null,timer:0,timers:[]};el._c5=S;
+  const S={phase:'closed',idx:-1,cur:null,timer:0,timers:[]},fills=rewards.filter(c5Fill).length;el._c5=S;
   el.className='c145 t-'+t+(N>6?' many':'');el.style.setProperty('--tg',P.glow);el.style.setProperty('--tbg',P.bg);
   el.innerHTML=`<div class="c5bg"><i class="c5rays"></i><i class="c5flash" id="c5fl"></i></div>
     <h2>${T.n}</h2><div class="c5sub"><b>${esc(T.sub)}</b> · ${N} reward${N>1?'s':''}</div>
     <div class="rw" id="crw"></div><div class="cbig" id="cbig"></div>
     <div class="cchest" id="cch"><div class="glow" id="cglow"></div><div class="c5beams">${[-48,-30,-14,0,14,30,48].map((a,i)=>`<i style="--a:${a}deg;--d:${i*40}ms"></i>`).join('')}</div><div class="cimg" id="cimg">${CHEST_ART[t]?chestSVG(t):chest145SVG(t,'anim')}</div><b class="c5left" id="c5left"></b></div>
     <div class="tap" id="ctap">TAP TO OPEN</div><div class="c5hint" id="c5hint">TAP FOR THE NEXT</div>
-    <button class="c5skip" id="cskip">SKIP ›</button><button class="collect" id="ccol">COLLECT</button>`;
+    <button class="c5skip" id="cskip">SKIP ›</button><div class="c5note" id="c5note"></div><button class="collect" id="ccol">COLLECT</button>`;
   const q=id=>document.getElementById(id),live=()=>el._c5===S;
   const later=(f,ms)=>{const h=setTimeout(()=>{if(live())f();},ms);S.timers.push(h);return h;};
   const clearAll=()=>{S.timers.forEach(clearTimeout);S.timers=[];};
@@ -107,16 +115,17 @@ function chest145Open(t,done,fixed){   /* fixed: a list of rewards to show inste
       host.appendChild(s);setTimeout(()=>s.remove(),1000);}};
   const flash=cls=>{const f=q('c5fl');if(!f)return;f.className='c5flash';void f.offsetWidth;f.className='c5flash '+(cls||'on');};
   const left=()=>{const b=q('c5left');if(!b)return;const n=N-S.idx-1;b.textContent=n>0?'×'+n:'';b.classList.toggle('on',n>0);};
-  const smHTML=r=>`<span class="im">${c5Icon(r)}</span><b>${esc(r.n)}</b><small>${esc(r.s)}</small><span class="rar">${RN[r.r]||''}</span>`;
+  const smHTML=r=>{const p=c5Prog(r);return `<span class="im">${c5Icon(r)}</span><b>${esc(r.n)}</b><small>${esc(r.s)}</small><span class="rar${c5Fill(r)?' fl':''}">${c5Fill(r)?'all owned':(RN[r.r]||'')}</span>${c5ProgHTML(p,p?p.w1:0)}`;};
   const addSm=(r,i,delay)=>{const d=document.createElement('div');d.className='rcard sm in r'+r.r;d.style.setProperty('--rc',RC[r.r]);if(delay)d.style.animationDelay=delay+'ms';d.innerHTML=smHTML(r);const w=q('crw');if(w)w.appendChild(d);};
   /* count "+320" up while the card lands */
   const countUp=(node,s)=>{const m=/^\+(\d+)$/.exec(s);if(!m||RM)return;const to=+m[1],t0=performance.now(),D=420;
     const f=now=>{if(!node.isConnected)return;const k=Math.min(1,(now-t0-C5.fly*.5)/D);node.textContent='+'+Math.round(to*Math.max(0,k));if(k<1)requestAnimationFrame(f);};node.textContent='+0';requestAnimationFrame(f);};
   const showNext=()=>{S.idx++;left();if(S.idx>=N){finish();return;}
     const r=rewards[S.idx],rr=r.r|0,big=q('cbig');if(!big)return;
-    big.innerHTML='';const c=document.createElement('div');c.className='c5card r'+rr+(rr>=3?' shine':'')+(rr>=4?' legend':'');c.style.setProperty('--rc',RC[rr]);
-    c.innerHTML=`<i class="c5burst"></i><div class="c5in"><div class="c5b">${c5Back(P)}</div><div class="c5f"><span class="c5rib">${RN[rr]||''}</span><span class="c5med">${c5Icon(r)}</span><b class="c5nm">${esc(r.n)}</b><span class="c5amt">${esc(r.s)}</span></div></div>`;
+    big.innerHTML='';const c=document.createElement('div'),p=c5Prog(r),fl=c5Fill(r);c.className='c5card r'+rr+(rr>=3?' shine':'')+(rr>=4?' legend':'');c.style.setProperty('--rc',RC[rr]);
+    c.innerHTML=`<i class="c5burst"></i><div class="c5in"><div class="c5b">${c5Back(P)}</div><div class="c5f${p||fl?' hasp':''}"><span class="c5rib">${RN[rr]||''}</span><span class="c5med">${c5Icon(r)}</span><b class="c5nm">${esc(r.n)}</b><span class="c5amt">${esc(r.s)}</span>${fl?'<small class="c5fill">All cards owned → gold</small>':c5ProgHTML(p,p&&!RM?p.w0:p?p.w1:0)}</div></div>`;
     big.appendChild(c);S.cur={r,c,i:S.idx};countUp(c.querySelector('.c5amt'),r.s);
+    if(p&&!p.max&&!RM)later(()=>{const b=c.querySelector('.c5prog i');if(b)b.style.width=p.w1+'%';},C5.fly*.9);
     try{SFX.play(rr>=4?'legend':rr>=3?'epic':'card',60);}catch(e){}
     if(rr>=3)later(()=>{flash(rr>=4?'gold':'on');sparks(big,rr>=4?34:18,'50%','45%',rr>=4?190:140,RC[rr]);if(rr>=4){el.classList.remove('quake');void el.offsetWidth;el.classList.add('quake');}},C5.fly*.75);
     S.timer=later(autoNext,C5.dwell[rr]||C5.dwell[0]);};
@@ -130,7 +139,8 @@ function chest145Open(t,done,fixed){   /* fixed: a list of rewards to show inste
   const advance=()=>{if(S.phase==='opening'){clearAll();burst();S.phase='show';showNext();return;}
     if(S.phase!=='show')return;clearAll();commit(true);showNext();};
   const finish=()=>{if(S.phase==='done')return;S.phase='done';clearAll();const big=q('cbig');if(big)big.innerHTML='';
-    el.classList.add('done');[...el.querySelectorAll('#crw .rcard')].forEach((d,i)=>{d.classList.remove('fin');void d.offsetWidth;d.style.animationDelay=(i*45)+'ms';d.classList.add('fin');});
+    el.classList.add('done');if(fills){el.classList.add('fills');const nt=q('c5note');if(nt)nt.textContent='Your cards are complete — the chest paid gold instead';}
+    [...el.querySelectorAll('#crw .rcard')].forEach((d,i)=>{d.classList.remove('fin');void d.offsetWidth;d.style.animationDelay=(i*45)+'ms';d.classList.add('fin');});
     const cc=q('ccol');if(cc)cc.classList.add('in');try{SFX.play('collect');}catch(e){}};
   const skip=()=>{if(S.phase==='closed'||S.phase==='done')return;clearAll();burst();commit(true);
     for(let i=S.idx+1;i<N;i++)addSm(rewards[i],i);S.idx=N-1;left();finish();};
@@ -138,5 +148,5 @@ function chest145Open(t,done,fixed){   /* fixed: a list of rewards to show inste
     if(S.phase==='closed'){if(tg&&tg.closest('#cch,#ctap'))open();return;}advance();};
   q('cskip').addEventListener('click',e=>{e.stopPropagation();skip();});
   q('ccol').addEventListener('click',e=>{e.stopPropagation();if(!q('ccol').classList.contains('in'))return;clearAll();el._c5=null;el.onclick=null;el.className='hidden';el.innerHTML='';done&&done();});
-  S.api={open,advance,skip,finish,rewards,state:()=>({phase:S.phase,idx:S.idx,n:N,shown:el.querySelectorAll('#crw .rcard').length})};
+  S.api={open,advance,skip,finish,rewards,state:()=>({phase:S.phase,idx:S.idx,n:N,fills,shown:el.querySelectorAll('#crw .rcard').length})};
 }

@@ -123,3 +123,26 @@
 #cer.c145.done.many .rw .rcard.sm b{font-size:8.5px}
 #cer.c145 .c5bg::after{content:'';position:absolute;left:50%;top:47%;width:380px;height:380px;margin:-190px 0 0 -190px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--tg) 38%,transparent) 0,transparent 70%);transition:top .5s cubic-bezier(.2,.8,.3,1)}
 #cer.c145.opened .c5bg::after{top:40%}
+/* chest150: under a card, the copies held against its next level; READY ⬆ when they suffice; a +100 that stood in for a stack says why */
+#cer.c145 .c5prog{position:relative;display:block;width:76%;height:14px;flex:none;border-radius:7px;background:#0c1f3a;border:2px solid #0b1a2e;box-sizing:border-box;overflow:hidden;box-shadow:inset 0 2px 3px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.08)}
+#cer.c145 .c5prog i{display:block;height:100%;background:linear-gradient(180deg,#8ff0ff,#22b3f0);transition:width .55s cubic-bezier(.2,.8,.3,1)}
+#cer.c145 .c5prog.ok i{background:linear-gradient(180deg,#a8f58a,#3fb04a)}
+#cer.c145 .c5prog.max i{background:linear-gradient(180deg,#ffe97a,#f2a62c)}
+#cer.c145 .c5prog em{position:absolute;inset:0;font-style:normal;font-family:var(--f-display);font-size:9px;font-weight:900;line-height:10px;text-align:center;color:#fff;letter-spacing:.04em;text-shadow:-1px 0 0 #0b1a2e,1px 0 0 #0b1a2e,0 -1px 0 #0b1a2e,0 1px 0 #0b1a2e}
+#cer.c145 .c5ready{position:absolute;right:7px;top:31px;background:linear-gradient(180deg,#a8f58a,#3fb04a);color:#0b2a10;font-family:var(--f-display);font-size:9px;font-weight:900;letter-spacing:.1em;padding:3px 7px;border-radius:999px;border:2px solid #0b1a2e;box-shadow:0 2px 0 rgba(0,0,0,.45),0 0 10px rgba(120,240,120,.5);transform:rotate(7deg);z-index:2;white-space:nowrap}
+#cer.c145 .c5card .c5ready{animation:c5pop .3s cubic-bezier(.2,1.6,.4,1) .62s both}
+#cer.c145 .c5f.hasp{padding-bottom:11px;gap:3px}
+#cer.c145 .c5f.hasp .c5med{width:72%}
+#cer.c145 .c5f.hasp .c5amt{font-size:21px}
+#cer.c145 .c5fill{font-family:var(--f-display);font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#ffe36e;background:rgba(0,0,0,.38);border:1px solid rgba(255,227,110,.5);border-radius:999px;padding:3px 8px;white-space:nowrap;flex:none}
+#cer.c145 .rw .rcard.sm{position:relative}
+#cer.c145 .rw .rcard.sm .c5prog,#cer.c145 .rw .rcard.sm .c5ready{display:none}
+#cer.c145.done .rw .rcard.sm .c5prog{display:block;width:100%;height:12px;margin-top:2px}
+#cer.c145.done.many .rw .rcard.sm .c5prog{height:11px;margin-top:1px}
+#cer.c145.done .rw .rcard.sm .c5prog em{font-size:8px;line-height:8px}
+#cer.c145.done .rw .rcard.sm .c5ready{display:block;top:-9px;right:-8px;font-size:7.5px;padding:2px 5px;border-width:1.5px}
+#cer.c145.done .rw .rcard.sm .rar.fl{color:#ffe36e}
+#cer.c145 .c5note{left:16px;right:16px;bottom:calc(106px + 5%);text-align:center;font-family:var(--f-display);font-size:10px;font-weight:900;letter-spacing:.03em;line-height:1.35;color:#ffe36e;text-shadow:0 2px 0 #0b1a2e,-1px 0 0 #0b1a2e,1px 0 0 #0b1a2e;opacity:0;z-index:3;pointer-events:none;transition:opacity .3s}
+#cer.c145.done.fills .c5note{opacity:1}
+#cer.c145.done.fills .rw{bottom:calc(140px + 6%)}
+@media (prefers-reduced-motion:reduce){#cer.c145 .c5prog i{transition:none}#cer.c145 .c5card .c5ready{animation:none!important}}

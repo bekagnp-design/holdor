@@ -1,1 +1,1 @@
-rep("window.HOLDOR={", "window.HOLDOR_TRIALS={TRIALS,trialsAcc,trialsStart,trialsRun,trialsEnd,trialsResult,hubTrials,hubTabs,trialsInviteCard,gameOver:()=>gameOver()};\nwindow.HOLDOR={", 1, 'exports138b')
+rep("window.HOLDOR={", "window.HOLDOR_TRIALS={TRIALS,trialsAcc,trialsStart,trialsRun,trialsEnd,trialsResult,hubTrials,hubTabs,trialsInviteCard,trialsGate,trialsTick,trialsBtnHTML,gameOver:()=>gameOver()};\nwindow.HOLDOR={", 1, 'exports138b')

@@ -20,3 +20,14 @@
 /* v1.4.5: everything not yet open is grey, everywhere (cards, tiles, tabs, the Hold card, events, shop items); the buy/unlock buttons stay coloured */
 .lock:not(.deal):not(.scell),.locked,.hubtabs button.lock{filter:grayscale(1) brightness(.78)!important}
 .ccard.lock .im img,.ccard.lock .im svg,.htile.lock img,.htile.lock svg{filter:grayscale(1)}
+/* v1.5.0: small phones — the deck row (the champion card wider, its four skill icons smaller so they fit), captions on one line,
+   the swap banner above the tab bar with room under it, 44 px taps (Cancel, Close), badges inside the card (.ccard clips its overflow) */
+.deckrow.dkrow{gap:6px}.deckrow.dkrow .ccard.hero{flex:1.25}
+.deckrow.dkrow .skrow{gap:2px}.deckrow.dkrow .skrow .skb{margin-right:0;width:18px!important;height:18px!important;--px:18px}
+.ccard .rar.dkst{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.deckrow.dkrow .ccard:not(.hero) .nm{font-size:8.5px;letter-spacing:0;white-space:normal;overflow:visible;line-height:1.1}
+.ccard .upb{top:4px;right:4px}.deckrow .ccard .tag{top:4px}
+.hubbody.dkon{padding-bottom:104px}
+.dkban button{min-height:44px;min-width:76px;padding:8px 12px}
+#dkSheet .linkbtn{min-height:44px;padding:10px 22px;margin-top:4px}
+#dkSheet .dks-ic.lock{opacity:.8}

@@ -1778,6 +1778,17 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 .hdet .hdinfo>b{font:900 22px/1.1 var(--f-display);color:#2a1d0c;letter-spacing:.02em}
 .hdet .hdinfo>small{font:600 12px/1.3 var(--f-body);color:#4a3a22;margin:0}
 .hdet .hdinfo .hlock{color:#8a5a12}
+/* v1.5.0: the strip on small phones — tiles grow with their caption (name on one line, level under it, stars), the RIDING ribbon and
+   the ⬆ badge are not clipped (the ribbon above the tile, the badge a green coin inside the corner) */
+.hgrid.strip{padding:16px 2px 12px}
+.hgrid.strip .htile{aspect-ratio:auto;height:auto;min-height:76px;padding:5px 4px 5px;justify-content:flex-start;gap:3px}
+.hgrid.strip .htile.tvt{overflow:visible}
+.hgrid.strip .htile .nm{display:block;max-width:100%;font-size:9px;letter-spacing:.01em;white-space:normal;overflow:visible;line-height:1.1}
+.hgrid.strip .htile .tlv{display:block;font:800 8.5px/1 var(--f-display);letter-spacing:.08em;color:#6b5a3e;text-transform:uppercase}
+.hgrid.strip .htile .stars.sm{font-size:7px;line-height:1}
+.hgrid.strip .htile .rb{top:-8px;z-index:3;white-space:nowrap}
+.hgrid.strip .htile .upb{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:linear-gradient(180deg,#a8f58a,#3fb04a);border:2px solid #0b1a2e;color:#fff;font-size:11px;font-weight:900;line-height:16px;text-align:center;z-index:2;box-shadow:0 2px 0 #1c5a24;animation:upbp .9s ease-in-out infinite alternate}
+@media (prefers-reduced-motion:reduce){.hgrid.strip .htile .upb{animation:none}}
 /* v1.1.6: Tasks */
 .tkhead{display:flex;align-items:center;gap:10px;margin:2px 0 8px;padding:10px 14px;border-radius:16px;background:#12294a;border:2px solid #0b1a2e;color:#b9cfe6}
 .tkhead .tkn{min-width:34px;height:34px;border-radius:17px;background:#2a4a74;color:#fff;font:800 18px/34px var(--f-display);text-align:center}
@@ -1822,23 +1833,7 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 .eqs .spi{width:38px!important;height:38px!important;display:flex!important;align-items:center;justify-content:center;padding:0!important;background:none!important}.eqs .spi svg{width:34px!important;height:34px!important}
 .eqs b{position:absolute;top:-8px;left:-6px;width:20px;height:20px;border-radius:10px;background:#2a4a74;color:#fff;font:800 11px/20px var(--f-display);text-align:center}
 .eqs.on{border-color:#ffd54a;background:#2a2410;box-shadow:0 0 14px #ffd54a55}.eqs.on b{background:#ffd54a;color:#2a1a05}
-/* v1.2.4: preparation sheet */
-#prep{position:fixed;inset:0;z-index:9000;background:rgba(5,9,16,.86);display:flex;align-items:flex-end;justify-content:center;overflow:auto}
-#prep .pcard{width:100%;max-width:440px;background:#101c2e;border-radius:22px 22px 0 0;border:2px solid #e3b661;border-bottom:0;padding:14px 14px 18px;color:#e9f0f8}
-#prep h2{font:900 20px var(--f-display);color:#ffd54a;margin:0 0 8px;letter-spacing:.08em;text-align:center}
-#prep .psec{margin-bottom:10px;padding:8px;border-radius:14px;background:#16263c}
-#prep .pst{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}#prep .pst b{font-size:15px;color:#ffd54a}#prep small{font-size:11px;color:#b9c8da}
-#prep .pslots{display:flex;gap:8px;margin-bottom:6px}
-#prep .pslot{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:12px;background:#0d1726;border:2px solid #3a5478;color:#fff}
-#prep .pslot.on{border-color:#ffd54a;box-shadow:0 0 12px #ffd54a66}#prep .pslot b{font-size:12px}
-#prep .spi{width:34px!important;height:34px!important;padding:0!important;display:flex!important;align-items:center;justify-content:center;flex:none}#prep .spi svg{width:30px!important;height:30px!important}#prep .pitem .spi{width:28px!important;height:28px!important}#prep .pitem .spi svg{width:24px!important;height:24px!important}
-#prep .ppool{display:flex;flex-wrap:wrap;gap:6px}
-#prep .pitem{position:relative;width:62px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;border-radius:12px;background:#0d1726;border:2px solid #2a3d58;color:#cfd9e6;opacity:.65}
-#prep .pitem.in{opacity:1;border-color:#7cff6b;background:#14301f}#prep .pitem i{font-style:normal;font-size:10px;color:#ffd54a}
-#prep .phint{display:block;margin-top:4px;text-align:center}
-#prep .pch{display:flex;align-items:center;gap:8px}#prep .pch span{font-size:24px}#prep .pch b{font-size:15px}
-#prep .go{display:block;width:100%;margin-top:6px}#prep .linkbtn{display:block;margin:8px auto 0}
-#prep .go{padding:14px;border-radius:16px;border:2px solid #ffd54a;background:linear-gradient(180deg,#f0c14a,#b8841c);color:#2a1a00;font:900 18px var(--f-display);letter-spacing:.12em;box-shadow:0 4px 0 #6e4d0c}
+/* v1.2.4: the preparation sheet — flow150 moved the deck onto the map card (.pdeck in flow150.css); nothing of the sheet is left */
 /* v1.2.6: the skill offer in battle */
 #boonOv .bo-card{min-width:0}#boonOv .bo-card small{font-size:10px;letter-spacing:.12em;color:#ffd54a}
 /* v1.2.5: demos */
@@ -1848,11 +1843,11 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 .ic[data-cap]::after{content:attr(data-cap);position:absolute;left:0;right:0;bottom:3px;font:800 7px var(--f-display);letter-spacing:.1em;color:#9fb4cf;pointer-events:none}
 .opt .rl{font-style:normal;font-size:9px;line-height:1.1;color:#9fb4cf;min-height:20px;display:block}
 .opt{padding-bottom:5px}
-/* v1.3.5: the build card */
-.bcard{margin:10px 0;padding:10px;border-radius:16px;background:linear-gradient(180deg,#2b2146,#171028);border:2px solid #7a4a10;text-align:center}
-.bcard .bch b{display:block;font:900 15px var(--f-display);color:#ffd54a;letter-spacing:.06em}.bcard .bch small{font-size:11px;color:#bfe6ff}
-.bcsk{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:8px}.bcs{display:flex;flex-direction:column;align-items:center;gap:2px;width:64px}.bcs small{font-size:9px;color:#d6c8f0;line-height:1.1}
-.bcard .bcshare{margin:10px auto 0;padding:6px 14px;font-size:13px}
+/* v1.3.5: the build card (flow150: compact, under the buttons) */
+.bcard{margin:10px 0 0;padding:8px 10px;border-radius:14px;background:linear-gradient(180deg,#2b2146,#171028);border:1px solid #7a4a10;text-align:left;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.bcard .bch{flex:1;min-width:140px}.bcard .bch b{display:block;font:900 13px var(--f-display);color:#ffd54a;letter-spacing:.04em}.bcard .bch small{font-size:11px;color:#bfe6ff}
+.bcsk{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px 8px}.bcs{display:flex;align-items:center;gap:4px}.bcs small{font-size:10px;color:#d6c8f0;line-height:1.1}
+.bcard .bcshare{flex:none;width:100%;margin:0;padding:10px 6px;min-height:40px;background:none;border:0;color:#bfd3ec;font:600 12px var(--f-body);text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(191,211,236,.45)}
 /* v1.3.7: the founder tag */
 .who small .fnd{color:#ffd54a;font-weight:800;letter-spacing:.04em}
 /* v1.3.8: the challenge sheet */
@@ -1862,11 +1857,30 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 .trcard .trrow{display:flex;gap:10px;align-items:center}
 .trcard .hmmini{flex:0 0 84px;width:84px;height:60px;border-radius:10px;border:2px solid rgba(0,0,0,.55)}
 .trcard .trtx{display:flex;flex-direction:column;gap:2px;min-width:0}.trcard .trtx b{font:900 17px var(--f-display);color:#ffe08a;letter-spacing:.04em}
-.trcard .trtx small{font-size:11px;color:#bfd2f2}.trcard .trtx em{font-style:normal;font-weight:800;font-size:13px;color:#fff}
+.trcard .trtx small{font-size:11px;color:#bfd2f2}.trcard .trtx em{font-style:normal;font-weight:800;font-size:13px;color:#fff;line-height:1.25}
+.trcard .trtx em b{font:inherit;color:#ffd54a;letter-spacing:0}.trcard .trtx em b.no{color:#ff9b9b}
 .trcard .trinfo{margin:10px 2px 8px;font-size:13px;line-height:1.35;color:#dfe9f7}
-.trcard .trgo{width:100%;font-size:20px;letter-spacing:.12em}.trcard .trnote{margin:8px 2px 0;font-size:11px;color:#9fb2d4;text-align:center}
+.trcard .trnote{margin:8px 2px 0;font-size:11px;color:#9fb2d4;text-align:center}
+/* v1.5.0: the one big button — green when the run pays, grey with the reason when it does not (a tap still starts a run) */
+.bigbtn.trgo{min-height:64px}
+.bigbtn.trgo .bt{letter-spacing:.08em}
+.bigbtn.trgo.ready{background:linear-gradient(180deg,#8be26a,#3f9a3a);border-color:#d8ffbf;color:#0b2a0a;box-shadow:0 8px 20px rgba(0,0,0,.45),0 0 22px rgba(120,230,100,.55);animation:armpulse 1.4s ease-in-out infinite}
+.bigbtn.trgo.ready .bs{color:#0f3a0e;opacity:.95}
+.bigbtn.trgo.wait{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.18);color:#9fb6c9}
+.bigbtn.trgo.wait .bt{font-size:17px}.bigbtn.trgo.wait .bs{color:#cfe0ee}
 .trlast{margin-top:10px;padding:8px;border-radius:12px;background:rgba(0,0,0,.28)}.trlast .trlh b{display:block;font:900 13px var(--f-display);color:#ffd54a}.trlast .trlh small{font-size:11px;color:#bfe6ff}
 .trlast .bcsk{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.trlast .bcs{display:flex;flex-direction:column;align-items:center;width:58px}.trlast .bcs small{font-size:9px;color:#d6c8f0;text-align:center;line-height:1.1}
+/* v1.5.0: the reward on the result as a compact list */
+.trrw{margin:8px 0 10px;padding:6px 10px;border-radius:12px;background:rgba(0,0,0,.28);display:flex;flex-direction:column;gap:4px;text-align:left}
+.trrw .trr{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13.5px;line-height:1.3;color:#dfe9f7}
+.trrw .trr b{font-family:var(--f-display);font-weight:900;color:var(--gold);white-space:nowrap;text-align:right}
+.trrw .trr.mut{color:#9fb2d4;font-size:12px}.trrw .trr.mut b{color:#cfe0ee;font-weight:700;font-family:var(--f-body);white-space:normal}
+.trrw .trr b .tx{font:700 13px var(--f-body);color:#cfe0ee;letter-spacing:0}
+.trrw .trr.no{flex-direction:column;align-items:flex-start;gap:1px;color:#ffd0d0}.trrw .trr.no b{color:#ff9b9b;font-family:var(--f-body);font-weight:800;white-space:normal;text-align:left}
+.trrw .trr.tot{border-top:1px solid rgba(255,255,255,.14);padding-top:5px;margin-top:2px;font-weight:800;color:#fff}
+/* v1.5.0: the skill offer on a short phone — the box scrolls instead of clipping, and sits tighter */
+#boonOv{align-items:stretch;overflow:hidden}#boonOv .bo-in{margin:auto;max-height:100%;overflow-y:auto;box-sizing:border-box}
+@media (max-height:720px){#boonOv .bo-in{padding:10px 10px}#boonOv h2{font-size:21px;margin:0 0 10px}#boonOv .bo-card{padding:10px 5px 9px;gap:4px}#boonOv .bo-have{margin-top:8px;font-size:12px}}
 /* v1.4.4: the deck */
 .dksec{display:flex;justify-content:space-between;align-items:baseline;margin:8px 2px 2px}.dksec b{font:900 13px var(--f-display);color:#ffd54a;letter-spacing:.06em;text-transform:uppercase}.dksec small{font-size:11px;color:#b9c8da}
 .dksec.dklock b{color:#8a97a8}
@@ -1889,6 +1903,17 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 /* v1.4.5: everything not yet open is grey, everywhere (cards, tiles, tabs, the Hold card, events, shop items); the buy/unlock buttons stay coloured */
 .lock:not(.deal):not(.scell),.locked,.hubtabs button.lock{filter:grayscale(1) brightness(.78)!important}
 .ccard.lock .im img,.ccard.lock .im svg,.htile.lock img,.htile.lock svg{filter:grayscale(1)}
+/* v1.5.0: small phones — the deck row (the champion card wider, its four skill icons smaller so they fit), captions on one line,
+   the swap banner above the tab bar with room under it, 44 px taps (Cancel, Close), badges inside the card (.ccard clips its overflow) */
+.deckrow.dkrow{gap:6px}.deckrow.dkrow .ccard.hero{flex:1.25}
+.deckrow.dkrow .skrow{gap:2px}.deckrow.dkrow .skrow .skb{margin-right:0;width:18px!important;height:18px!important;--px:18px}
+.ccard .rar.dkst{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.deckrow.dkrow .ccard:not(.hero) .nm{font-size:8.5px;letter-spacing:0;white-space:normal;overflow:visible;line-height:1.1}
+.ccard .upb{top:4px;right:4px}.deckrow .ccard .tag{top:4px}
+.hubbody.dkon{padding-bottom:104px}
+.dkban button{min-height:44px;min-width:76px;padding:8px 12px}
+#dkSheet .linkbtn{min-height:44px;padding:10px 22px;margin-top:4px}
+#dkSheet .dks-ic.lock{opacity:.8}
 /* chest145: the chest opening scene */
 #cer.c145,#cer.lucky{background:radial-gradient(75% 48% at 50% 50%,color-mix(in srgb,var(--tbg,#14304f) 82%,#fff) 0%,var(--tbg,#14304f) 40%,#060d18 100%);touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 #cer.c145{display:block;padding:0}
@@ -2014,6 +2039,223 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 #cer.c145.done.many .rw .rcard.sm b{font-size:8.5px}
 #cer.c145 .c5bg::after{content:'';position:absolute;left:50%;top:47%;width:380px;height:380px;margin:-190px 0 0 -190px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--tg) 38%,transparent) 0,transparent 70%);transition:top .5s cubic-bezier(.2,.8,.3,1)}
 #cer.c145.opened .c5bg::after{top:40%}
+/* chest150: under a card, the copies held against its next level; READY ⬆ when they suffice; a +100 that stood in for a stack says why */
+#cer.c145 .c5prog{position:relative;display:block;width:76%;height:14px;flex:none;border-radius:7px;background:#0c1f3a;border:2px solid #0b1a2e;box-sizing:border-box;overflow:hidden;box-shadow:inset 0 2px 3px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.08)}
+#cer.c145 .c5prog i{display:block;height:100%;background:linear-gradient(180deg,#8ff0ff,#22b3f0);transition:width .55s cubic-bezier(.2,.8,.3,1)}
+#cer.c145 .c5prog.ok i{background:linear-gradient(180deg,#a8f58a,#3fb04a)}
+#cer.c145 .c5prog.max i{background:linear-gradient(180deg,#ffe97a,#f2a62c)}
+#cer.c145 .c5prog em{position:absolute;inset:0;font-style:normal;font-family:var(--f-display);font-size:9px;font-weight:900;line-height:10px;text-align:center;color:#fff;letter-spacing:.04em;text-shadow:-1px 0 0 #0b1a2e,1px 0 0 #0b1a2e,0 -1px 0 #0b1a2e,0 1px 0 #0b1a2e}
+#cer.c145 .c5ready{position:absolute;right:7px;top:31px;background:linear-gradient(180deg,#a8f58a,#3fb04a);color:#0b2a10;font-family:var(--f-display);font-size:9px;font-weight:900;letter-spacing:.1em;padding:3px 7px;border-radius:999px;border:2px solid #0b1a2e;box-shadow:0 2px 0 rgba(0,0,0,.45),0 0 10px rgba(120,240,120,.5);transform:rotate(7deg);z-index:2;white-space:nowrap}
+#cer.c145 .c5card .c5ready{animation:c5pop .3s cubic-bezier(.2,1.6,.4,1) .62s both}
+#cer.c145 .c5f.hasp{padding-bottom:11px;gap:3px}
+#cer.c145 .c5f.hasp .c5med{width:72%}
+#cer.c145 .c5f.hasp .c5amt{font-size:21px}
+#cer.c145 .c5fill{font-family:var(--f-display);font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#ffe36e;background:rgba(0,0,0,.38);border:1px solid rgba(255,227,110,.5);border-radius:999px;padding:3px 8px;white-space:nowrap;flex:none}
+#cer.c145 .rw .rcard.sm{position:relative}
+#cer.c145 .rw .rcard.sm .c5prog,#cer.c145 .rw .rcard.sm .c5ready{display:none}
+#cer.c145.done .rw .rcard.sm .c5prog{display:block;width:100%;height:12px;margin-top:2px}
+#cer.c145.done.many .rw .rcard.sm .c5prog{height:11px;margin-top:1px}
+#cer.c145.done .rw .rcard.sm .c5prog em{font-size:8px;line-height:8px}
+#cer.c145.done .rw .rcard.sm .c5ready{display:block;top:-9px;right:-8px;font-size:7.5px;padding:2px 5px;border-width:1.5px}
+#cer.c145.done .rw .rcard.sm .rar.fl{color:#ffe36e}
+#cer.c145 .c5note{left:16px;right:16px;bottom:calc(106px + 5%);text-align:center;font-family:var(--f-display);font-size:10px;font-weight:900;letter-spacing:.03em;line-height:1.35;color:#ffe36e;text-shadow:0 2px 0 #0b1a2e,-1px 0 0 #0b1a2e,1px 0 0 #0b1a2e;opacity:0;z-index:3;pointer-events:none;transition:opacity .3s}
+#cer.c145.done.fills .c5note{opacity:1}
+#cer.c145.done.fills .rw{bottom:calc(140px + 6%)}
+@media (prefers-reduced-motion:reduce){#cer.c145 .c5prog i{transition:none}#cer.c145 .c5card .c5ready{animation:none!important}}
+/* battle-screen fixes: the spell's name stays readable while the cooldown cover drains over the icon */
+.pw .cd{z-index:0}
+.pw .l{position:relative;z-index:1}
+.pw:disabled .l{color:#e4ecf7;text-shadow:0 1px 2px rgba(0,0,0,.85),0 0 4px rgba(0,0,0,.6)}
+/* flow150: the map card is the preparation step */
+.mapcard2{margin:6px 8px 4px;padding:10px 12px 10px;border-radius:16px}
+.mapcard2 .gt{font-size:11px;letter-spacing:.2em}
+.mapcard2 h2{font-size:21px;margin:1px 0 2px;line-height:1.1}
+.mapcard2 .pchips{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:3px 0 4px}
+.mapcard2 .pchips i{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#ffe08a;background:rgba(255,213,74,.12);border:1px solid rgba(255,213,74,.35);border-radius:999px;padding:3px 9px}
+.mapcard2 .sb{font-size:12px;line-height:1.35}.mapcard2 .sb .bst{color:#ffd54a;font-style:normal;letter-spacing:.04em}.mapcard2 .sb .bst i{color:rgba(255,255,255,.28);font-style:normal}
+.mapcard2 .en{margin-top:6px}
+.pdeck{margin:8px 0 0;padding:4px 8px 8px;border-radius:12px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08)}
+.pdh{display:flex;justify-content:space-between;align-items:center;min-height:30px}
+.pdh small{font:900 10px var(--f-display);letter-spacing:.18em;color:#b9c8da}
+.pchg{background:none;border:0;color:#ffd060;font:700 12.5px var(--f-body);padding:12px 2px 12px 14px;margin:-6px -2px -6px 0;min-height:44px;text-decoration:underline;text-underline-offset:2px}
+.pds{display:flex;align-items:center;justify-content:center;gap:4px}
+.pdi{width:34px;height:34px;border-radius:9px;background:#0d1726;border:1px solid #2a3d58;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none}
+.pdi img{width:100%;height:100%;object-fit:cover;display:block}.pdi i{font-style:normal;font-size:18px}
+.pdi.ch{border-color:#e3b661}.pdi.sp{border-color:#3a5478}.pdi.tw{border-color:#2f6b3a;background:#0f1f16}
+.pdi .spi{width:26px!important;height:26px!important;padding:0!important;display:flex!important;align-items:center;justify-content:center}.pdi .spi svg{width:22px!important;height:22px!important}
+.pdi.tw img,.pdi.tw svg{width:30px;height:30px}
+.pdsep{width:1px;height:26px;background:rgba(255,255,255,.18);margin:0 3px;flex:none}
+.mapcard2 .go{margin-top:10px;min-height:54px;padding:12px;font-size:17px;letter-spacing:.14em;border-radius:14px;border:2px solid #ffd54a;background:linear-gradient(180deg,#f0c14a,#b8841c);color:#2a1a00;font-weight:900;box-shadow:0 4px 0 #6e4d0c}
+.mapcard2 .go .ecost{display:block;font-size:11px;letter-spacing:0;font-weight:700;opacity:.8;margin-top:2px}
+.mapcard2 .prow{display:flex;gap:8px;margin-top:8px}
+.mapcard2 .prow .btn{margin:0;flex:1;min-height:44px;padding:8px 6px;font-size:12.5px;font-weight:700;border-radius:12px}
+.hback.dkret{margin:4px 0 10px}
+/* flow150: the result screen */
+.card.res{padding:16px 14px 14px}
+.card.res h1 small{margin-top:4px}
+.card.res .rsub{margin:0 0 6px;font-size:12.5px;color:#b9c8da}
+.card.res .rew{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:6px 0 2px}
+.card.res .rew .rt{display:inline-flex;align-items:center;gap:4px;padding:7px 12px;border-radius:999px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.16);color:#fff;font:800 14px var(--f-body);font-variant-numeric:tabular-nums;line-height:1.1}
+.card.res .rew .rt.gold{color:#ffd54a;border-color:rgba(255,213,74,.5);background:rgba(255,213,74,.12);font-size:16px}
+.card.res .rew .rt.dim{color:#9fb4cf;font-weight:600}
+.card.res .tip{font-size:12.5px;color:#d6e2f0;margin:6px 0 0;line-height:1.4}
+.card.res .btn.nextbig{margin-top:12px;min-height:64px;padding:10px 12px 9px;border-radius:16px}
+.card.res .btn.nextbig .nx{font-size:23px;line-height:1.05}.card.res .btn.nextbig small{font-size:12px}
+.card.res .resrow{display:flex;gap:8px;margin-top:10px}
+.card.res .resrow .btn{flex:1;margin:0;min-height:46px;padding:10px 6px;font-size:13.5px;font-weight:700;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.24);color:#fff;letter-spacing:.02em}
+.card.res .reslinks{display:flex;justify-content:center;gap:2px;margin-top:2px;flex-wrap:wrap}
+.card.res .reslinks button{background:none;border:0;color:#bfd3ec;font:600 12.5px var(--f-body);padding:12px 10px;min-height:44px;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(191,211,236,.45)}
+/* v1.5.0: the home answers three questions — what is ready, what to do now, what is new (src/mod/home150.js).
+   One rhythm: 8 px between pieces, 12 px inside, 16 px radii; body ≥ 13 px, captions ≥ 11 px, tap targets ≥ 44 px. */
+.hubbody.battle{padding:6px 10px 10px}
+/* WHAT IS READY: gold pills on dark, only when something is */
+.hmready{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+.hmready .rdy{flex:1 1 calc(50% - 4px);min-width:0;min-height:44px;display:flex;align-items:center;gap:8px;padding:6px 10px 6px 8px;border-radius:14px;border:2px solid #e9b949;background:linear-gradient(180deg,rgba(60,40,8,.78),rgba(28,20,6,.86));color:#ffe8a8;text-align:left;box-shadow:0 3px 0 #5a3a10,0 0 14px rgba(255,214,100,.28)}
+.hmready .rdy i{font-style:normal;font-size:20px;line-height:1;flex:0 0 24px;display:flex;align-items:center;justify-content:center;color:#8be26a}
+.hmready .rdy i svg{width:22px;height:22px;filter:drop-shadow(0 1px 0 rgba(0,0,0,.5))}
+.hmready .rdy b{flex:1;min-width:0;font-family:var(--f-display);font-size:13px;letter-spacing:.02em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 0 rgba(0,0,0,.6)}
+.hmready .rdy em{font-style:normal;font-weight:900;font-size:18px;line-height:1;opacity:.75}
+.hmready .rdy.champ,.hmready .rdy.tower{border-color:#7fd06a;color:#dfffd3;box-shadow:0 3px 0 #1e5a1c,0 0 14px rgba(120,230,100,.25)}
+.hmready .rdy.champ i,.hmready .rdy.tower i{color:#8be26a;font-weight:900}
+/* the stage: the art, the 🎨 in the corner, the road-north bar at the foot */
+.hmstage{margin:0 -2px 8px;min-height:200px}
+.hmskin{position:absolute;right:8px;top:8px;z-index:5;width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.22);background:rgba(0,0,0,.38);font-size:16px;line-height:1;padding:0;opacity:.8}
+.hmskin::before{content:'';position:absolute;inset:-5px}
+.hmgoal.v150{left:8px;right:8px;bottom:8px;min-height:44px;padding:5px 12px;gap:10px;border-radius:12px;border-color:rgba(255,255,255,.14);background:linear-gradient(90deg,rgba(0,0,0,.66),rgba(0,0,0,.42))}
+.hmgoal.v150 .gl{flex:1;min-width:0;gap:2px}.hmgoal.v150 .gl small{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9fe0ff}
+.hmgoal.v150 .gl b{font-size:13px;font-weight:700}
+.hmgoal.v150 .gp{flex:0 0 72px;height:8px;border-radius:4px}.hmgoal.v150 .gp i{border-radius:4px}
+.hmgoal.v150 .gs{font-size:12px;letter-spacing:0;color:#ffe08a;font-weight:800;white-space:nowrap}
+.hmgoal.v150 .arr{font-style:normal;font-size:16px;font-weight:900;color:#cfe6ff;opacity:.8}
+/* WHAT DO I DO NOW: one green button, straight under the art */
+.battlerow.v150{margin:0 0 8px}
+.bbig.go150{display:flex;align-items:center;gap:10px;min-height:72px;padding:8px 12px 8px 10px;text-align:left;border-radius:18px;border:3px solid #1e5a1c;border-bottom:8px solid #1e5a1c;color:#fff;letter-spacing:.04em;font-size:24px;
+  background:linear-gradient(180deg,#9aea78 0%,#5cbd4c 50%,#3f9a3a 100%);text-shadow:0 2px 0 rgba(0,0,0,.45);box-shadow:inset 0 3px 0 rgba(255,255,255,.45),0 10px 16px rgba(0,0,0,.35),0 0 24px rgba(120,230,100,.3)}
+.bbig.go150 .bbi{flex:0 0 46px;width:46px;height:46px;border-radius:12px;background:rgba(0,0,0,.26);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.15)}
+.bbig.go150 .bbi svg{width:32px;height:32px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.4))}
+.bbig.go150 .bbt{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;line-height:1}
+.bbig.go150 .bbt b{font-size:24px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bbig.go150 .bbt small,.bbig.go150 .bbr small{display:block;margin:0;font-size:12px;letter-spacing:.06em;font-weight:800;color:#eaffe0;text-shadow:0 1px 0 rgba(0,0,0,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bbig.go150 .bbr{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;line-height:1}
+.bbig.go150 .bbr em{font-style:normal;font-size:15px;font-weight:900;color:#fff3b0;letter-spacing:.02em}
+.bbig.go150 .bbr small{color:#ffe08a;letter-spacing:0}.bbig.go150 .bbr small i{font-style:normal;color:rgba(255,255,255,.35)}
+.bbig.go150.pulse{animation:go150Pulse 1.6s ease-in-out infinite}
+@keyframes go150Pulse{0%,100%{box-shadow:inset 0 3px 0 rgba(255,255,255,.45),0 10px 16px rgba(0,0,0,.35)}50%{box-shadow:inset 0 3px 0 rgba(255,255,255,.45),0 10px 16px rgba(0,0,0,.35),0 0 0 5px rgba(170,255,140,.5),0 0 30px rgba(120,230,100,.8)}}
+html.fxui .battlerow.v150 .fxglow{border-radius:20px;box-shadow:0 0 16px 5px rgba(140,230,110,.7),0 0 34px 10px rgba(80,180,70,.35)}
+/* the quiet row under it: Map · what opens next · the champion */
+.hmside{display:flex;gap:8px;margin:0 0 8px;align-items:stretch}
+.hmside .bside{flex:0 0 64px;height:52px;padding:3px 2px;gap:1px;line-height:1;border-radius:14px;border:2px solid rgba(255,255,255,.14);border-bottom-width:4px;background:rgba(10,24,48,.55);box-shadow:none;font-size:11px;position:relative;text-shadow:0 1px 0 rgba(0,0,0,.6)}
+.hmside .bside img{width:26px;height:26px;border-radius:8px}.hmside .bside .pe{font-size:21px;line-height:1}
+.hmside .bside .upb{position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;background:linear-gradient(180deg,#8be26a,#3f9a3a);border:2px solid #fff;color:#0b2a0a;font-style:normal;font-size:13px;line-height:18px;text-align:center;text-shadow:none;z-index:2}
+.hmnew{flex:1;min-width:0;height:52px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;padding:6px 12px;border-radius:14px;border:2px solid rgba(255,255,255,.14);border-bottom-width:4px;background:rgba(10,24,48,.55);color:#fff;text-align:left;font-family:var(--f-body)}
+.hmnew small{font-size:11px;letter-spacing:.12em;font-weight:800;color:#9fe0ff;text-transform:uppercase;line-height:1}
+.hmnew b{font-family:var(--f-display);font-size:13px;line-height:1.1;display:flex;align-items:center;gap:6px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hmnew b .ni{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:0 0 auto;font-size:16px;font-family:var(--f-body)}
+.hmnew b .ni svg,.hmnew b .ni img{width:22px;height:22px}
+.hmnew.done small{color:#ffe08a}
+.hub.g-noarmy .hmside{justify-content:center}
+/* the chests: a label on each, the ready ones lit, the rest quiet */
+.hmslots.top{gap:8px;margin:0 0 8px}
+.hmslots.top .slot{aspect-ratio:auto;height:96px;padding:6px 2px 6px;justify-content:space-between}
+.slot .sl{position:relative;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#bcd3ee;line-height:1;font-family:var(--f-body)}
+.slot.ready .sl{color:#ffe08a}
+.slot:not(.ready) .si{opacity:.82}
+.slot em{font-size:11px;padding:2px 7px;letter-spacing:.03em}
+.slot .si.gift svg{width:34px;height:34px}
+/* the Hold steps back: a quiet card, a blue button */
+.hmhold{margin:0 0 8px;border-width:2px;border-color:rgba(255,255,255,.14);background:linear-gradient(90deg,rgba(29,79,138,.55),rgba(18,58,107,.55));box-shadow:0 3px 0 rgba(0,0,0,.35)}
+.hmhold .hmrow{padding:8px 10px 6px;gap:12px}.hmhold .hmtx{gap:0}
+.hmhold .hmtx b{font-size:13px;color:#dfe9f7;text-shadow:0 1px 0 rgba(0,0,0,.6)}
+.hmhold .hmtx small,.hmhold .hmtx em{font-size:11px}.hmhold .hmcd{font-size:11px}
+.hmhold .hmgo{min-width:72px;min-height:48px;padding:6px 8px;font-size:14px;border-width:2px;border-color:rgba(255,255,255,.14);background:rgba(0,0,0,.3);box-shadow:none;color:#bcd3ee}
+.hmhold .hmgo small{font-size:9.5px}
+.hmhold .hmgo.go{background:linear-gradient(180deg,#5aa0ff,#2f63c7);color:#fff;border-color:#163a7a;box-shadow:0 3px 0 #163a7a;animation:none}
+.hmhold .hmlink{min-height:32px;font-size:12px;padding:6px 12px}
+/* the strip: rank · Tasks · the event, quiet, at the bottom */
+.hmstrip.low{margin:0 0 2px;gap:8px}
+.hmstrip.low .hpill{min-height:44px;padding:0 12px 0 9px;border-radius:20px;background:rgba(10,24,48,.55);border:2px solid rgba(255,255,255,.14);box-shadow:none;color:#dfe9f7;font-size:12px;position:relative}
+.hmstrip.low .hpill::before{content:'';position:absolute;inset:-3px}
+.hmstrip.low .hpill b{font-size:13px}.hmstrip.low .hpill small{font-size:11px;color:#bcd3ee}.hmstrip.low .hpill em{font-size:11px}
+.hmstrip.low .hpill.hot{border-color:#e9b949}.hmstrip.low .hpill.hot b{color:#ffe08a}
+.hmstrip.low .hpill.ev.on{background:linear-gradient(90deg,#6a2f0c,#a3531a);border-color:#3a1806}
+.hubtabs.four button{font-size:11px}
+/* short phones: the button stays in the first screen */
+@media (max-height:700px){.hmstage{min-height:140px}.bbig.go150{min-height:64px}.bbig.go150 .bbt b{font-size:22px}.hmslots.top .slot{height:86px}.hmside .bside,.hmnew{height:48px}.hmstrip.low .hpill{min-height:44px}}
+@media (prefers-reduced-motion:reduce){.bbig.go150.pulse{animation:none}}
+
+#bHoldMore{min-height:44px;display:flex;align-items:center}
+/* v1.5.0 — the Shop made simple. Scoped to the Shop tab: .sitem is also used by the castle and the troops. Spacing 8 / 12 / 16, type ≥ 13 px
+   (badges 12 px), every button ≥ 44 px tall. */
+.hubbody.shop{padding:0 10px 16px}
+/* the balance, pinned on top */
+.shbal{position:sticky;top:0;z-index:6;display:flex;gap:8px;padding:8px 10px;margin:0 -10px 16px;background:linear-gradient(180deg,#0b1a2e,#0d2140);border-bottom:2px solid #1f3f6a;box-shadow:0 4px 10px rgba(0,0,0,.35)}
+.shbal .bal{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-height:48px;background:linear-gradient(180deg,#1b4a86,#123462);border:2px solid #0b1a2e;border-radius:12px;padding:5px 10px;color:#fff;text-align:left;box-shadow:inset 0 2px 0 rgba(255,255,255,.14),0 3px 0 #06101e;font:inherit;cursor:pointer}
+.shbal .bal:active{transform:translateY(2px);box-shadow:inset 0 2px 0 rgba(255,255,255,.14),0 1px 0 #06101e}
+.shbal .bal .n{display:flex;align-items:center;gap:6px;font-family:var(--f-display);font-weight:900;font-size:17px;line-height:1.1;font-variant-numeric:tabular-nums;text-shadow:0 1px 0 #0b1a2e}
+.shbal .bal .n svg{width:20px;height:20px;filter:drop-shadow(0 1px 0 #000)}
+.shbal .bal small{font-size:13px;line-height:1.2;color:#cfe6ff;font-weight:700;text-shadow:0 1px 0 #0b1a2e}
+/* section heads */
+.hubbody.shop .hh{margin:16px 0 12px;scroll-margin-top:76px}
+.hubbody.shop .shbal+.hh{margin-top:0}
+.hubbody.shop .hh h2{font-size:17px}
+.hubbody.shop .hh small{font-size:13px}
+.hubbody.shop .hh small svg{width:15px;height:15px}
+.shtimer{display:inline-flex;align-items:center;gap:6px;background:#0c1f3a;border:2px solid #0b1a2e;border-radius:10px;padding:4px 10px;color:#ffe08a;font-family:var(--f-display);font-weight:900;font-size:13px;font-variant-numeric:tabular-nums;box-shadow:inset 0 2px 0 rgba(255,255,255,.08),0 2px 0 #06101e}
+.shtimer em{font-style:normal;color:#cfe6ff;font-family:var(--f-body);font-weight:700}
+.hubbody.shop .shopnote{margin:-4px 0 12px;font-size:13px;line-height:1.3}
+/* grids */
+.hubbody.shop .shopgrid{grid-template-columns:repeat(2,1fr);gap:16px 8px}
+.hubbody.shop .shopgrid.deals{grid-template-columns:repeat(2,1fr);gap:16px 8px}
+.hubbody.shop .shopgrid.deals.locked{grid-template-columns:repeat(3,1fr);margin-top:16px}
+.hubbody.shop .shopgrid.three{grid-template-columns:repeat(3,1fr);gap:16px 8px}
+.hubbody.shop .shopgrid+.shopgrid{margin-top:16px}
+/* one card */
+.hubbody.shop .sitem{padding:14px 8px 8px;gap:6px;border-radius:16px;border-color:var(--rc,#0b1a2e);box-shadow:inset 0 2px 0 rgba(255,255,255,.22),0 5px 0 #0b1a2e,0 0 14px color-mix(in srgb,var(--rc,#0b1a2e) 35%,transparent)}
+.hubbody.shop .sitem.wide{grid-column:1/-1}
+.hubbody.shop .sitem .ch{width:72px;height:72px;margin-top:4px}
+.hubbody.shop .sitem .dic{width:64px;height:64px;border-radius:14px}
+.hubbody.shop .sitem .dic svg{width:40px;height:40px}
+.hubbody.shop .sitem .dic .pe{font-size:34px}
+.hubbody.shop .sitem.chest .ch{width:104px;height:90px;margin-top:6px}
+.hubbody.shop .shopgrid.three .sitem{padding:14px 6px 6px}
+.hubbody.shop .shopgrid.three .sitem .ch{width:56px;height:56px}
+.hubbody.shop .shopgrid.three .sitem .dic{width:52px;height:52px}
+.hubbody.shop .shopgrid.three .sitem .dic svg{width:34px;height:34px}
+.hubbody.shop .sitem b{font-size:14px;line-height:1.15;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:100%;text-overflow:clip}
+.hubbody.shop .sitem small{font-size:13px;line-height:1.3;min-height:34px;color:#dbeeff}
+.hubbody.shop .sitem.deal small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hubbody.shop .shopgrid.three .sitem small{min-height:17px}
+.hubbody.shop .sitem small svg{width:13px;height:13px;vertical-align:-2px;filter:drop-shadow(0 1px 0 #000)}
+/* the buttons: green = you can, grey = what is missing, gold = Stars */
+.hubbody.shop .sitem button{width:100%;min-height:44px;font-size:14px;padding:8px 6px;gap:5px;margin-top:auto;line-height:1.1;border-radius:12px}
+.hubbody.shop .sitem button svg{width:15px;height:15px}
+.hubbody.shop .sitem button.buy,.hubbody.shop .sitem button.free{background:linear-gradient(180deg,#b6ff9a,#6fdc55 45%,#3faf2f);border-color:#1f5a17;text-shadow:0 1px 0 #1f5a17,-1px 0 0 #1f5a17,1px 0 0 #1f5a17,0 -1px 0 #1f5a17,0 2px 0 #1f5a17}
+.hubbody.shop .sitem button.stbtn.buy{background:linear-gradient(180deg,#ffe97a,#ffcf3d 45%,#f2a62c);border-color:#7a4a10;text-shadow:0 1px 0 #7a4a10,-1px 0 0 #7a4a10,1px 0 0 #7a4a10,0 -1px 0 #7a4a10,0 2px 0 #7a4a10;color:#fff}
+.hubbody.shop .sitem button:disabled{opacity:1;filter:none;background:linear-gradient(180deg,#7b8a9e,#55657a 55%,#45546a);border-color:#2a3647;color:#f2f6fb;text-shadow:0 1px 0 #2a3647,-1px 0 0 #2a3647,1px 0 0 #2a3647,0 -1px 0 #2a3647;box-shadow:inset 0 2px 0 rgba(255,255,255,.18)}
+.hubbody.shop .sitem button.need{font-size:13px;letter-spacing:0;flex-wrap:wrap;row-gap:0;padding:6px 4px}
+.hubbody.shop .sitem button.need span{white-space:normal}
+.hubbody.shop .sitem button.need span svg{display:inline-block;vertical-align:-3px;margin-left:1px}
+.hubbody.shop .sitem button.done{background:linear-gradient(180deg,#5f8f6a,#3e6b49);border-color:#1f5a17;color:#eaffea}
+/* the price tag and the badge */
+.pchip{position:absolute;top:-12px;right:8px;display:inline-flex;align-items:center;gap:4px;background:#0c1f3a;border:2px solid #0b1a2e;border-radius:9px;padding:2px 8px;font-family:var(--f-display);font-weight:900;font-size:13px;line-height:1.2;color:#fff;z-index:2;font-variant-numeric:tabular-nums;white-space:nowrap;box-shadow:0 2px 0 #06101e;text-shadow:0 1px 0 #000}
+.pchip svg{width:14px;height:14px;filter:drop-shadow(0 1px 0 #000)}
+.pchip.free{color:#b6ff9a}.pchip.star,.pchip.gold{color:#ffe08a}.pchip.gem{color:#cfe6ff}
+.hubbody.shop .sitem .badge{font-size:12px;top:-12px;left:8px;padding:2px 8px;border-radius:9px;letter-spacing:.06em;line-height:1.2;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hubbody.shop .sitem .badge.in{position:static;margin:auto auto 2px;max-width:100%}
+.hubbody.shop .sitem .badge.best{background:linear-gradient(180deg,#ffe97a,#f2a62c);border-color:#7a4a10;color:#3a2404;text-shadow:none}
+.hubbody.shop .shopgrid.three .sitem .pchip,.hubbody.shop .shopgrid.deals.locked .sitem .pchip{right:4px;padding:2px 6px}
+.hubbody.shop .shopgrid.three .sitem .badge,.hubbody.shop .shopgrid.deals.locked .sitem .badge{left:4px;padding:2px 6px}
+/* locked and taken */
+.hubbody.shop .sitem.lock{opacity:.8;filter:saturate(.25);background:linear-gradient(180deg,#3b4a5e,#2a3647)}
+.hubbody.shop .sitem.deal.done{opacity:.55;filter:saturate(.4)}
+.hubbody.shop .sitem.starter{background:linear-gradient(160deg,rgba(255,213,74,.2),rgba(19,40,74,.92))}
+.hubbody.shop .sitem.starter.lock{filter:none;opacity:.85}
+/* the Season Pass & VIP card */
+.hubbody.shop .shseason{margin:16px 0 0;padding:12px;gap:12px}
+.hubbody.shop .shseason .tx b{font-size:14px}
+.hubbody.shop .shseason .tx small{font-size:13px;line-height:1.3;margin-top:3px}
+.hubbody.shop .shseason .tx small svg{width:13px;height:13px;vertical-align:-2px}
+.hubbody.shop .shseason .st{font-size:14px;min-height:44px;min-width:64px;display:inline-flex;align-items:center;justify-content:center;padding:0 12px}
 </style>
 </head>
 <body>
@@ -2325,9 +2567,9 @@ function rollChest(t){const T=CHEST_TIERS[t],out=[],rnd=n=>Math.floor(Math.rando
   const gold=R?R.gold:T.gold[0]+rnd(T.gold[1]-T.gold[0]+1);if(!R)addGold(gold);out.push({k:'gold',n:'Gold',s:'+'+gold,r:0});
   const gems=R?R.gems:T.gems[0]+rnd(T.gems[1]-T.gems[0]+1);if(!R)ACC.gems+=gems;out.push({k:'gems',n:'Dragonglass',s:'+'+gems,r:0});
   if(R&&R.stacks){for(const x of R.stacks){const rr=cardRar(x.k);out.push({k:'card',key:x.k,cnt:x.n,r:rr,n:cardName(x.k),s:'+'+x.n+' card'+(x.n>1?'s':'')});}
-    for(let i=0;i<(R.fills||0);i++)out.push({k:'gold',n:'Gold',s:'+100',r:0});chestBooks(t,R,out);return out;}   /* the server rolled the stacks and already paid the empty slots */
+    for(let i=0;i<(R.fills||0);i++)out.push({k:'gold',n:'Gold',s:'+100',r:0,fill:1});chestBooks(t,R,out);return out;}   /* the server rolled the stacks and already paid the empty slots */
   const pool=cardPool(),used=new Set();
-  for(let i=0;i<T.cards;i++){const st=cardStack(pool,t,i<T.rare?Math.min(4,2+i):0,used);if(st)out.push(st);else{nf++;addGold(100);out.push({k:'gold',n:'Gold',s:'+100',r:0});}}
+  for(let i=0;i<T.cards;i++){const st=cardStack(pool,t,i<T.rare?Math.min(4,2+i):0,used);if(st)out.push(st);else{nf++;addGold(100);out.push({k:'gold',n:'Gold',s:'+100',r:0,fill:1});}}
   if(R&&nf)ecoOp({r:'chestfill',k:R.id,n:nf},{g:100*nf});
   chestBooks(t,R,out);return out;}
 /* first time a stage is held: a few cards of something you own */
@@ -2343,7 +2585,7 @@ function spellLine(k,l){const m=1+0.06*((l||spellLvl(k))-1);
 const SPELL_RC={arrows:'#e3b661',fire:'#ff9a3c',reinf:'#8fd3ff',night:'#bfe6ff',repair:'#7cff6b',jars:'#b8ffb8',beacon:'#ffb23c'};
 function showSpellRoom(k){if(typeof armStop==='function')armStop();
   k=SPELLS[k]?k:'arrows';const S=SPELLS[k],key='s:'+k,l=spellLvl(k),op=cardOpen(key),rc=SPELL_RC[k]||'#e3b661',r=cardRar(key);
-  const tiles=Object.keys(SPELLS).map(t=>{const o=cardOpen('s:'+t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-s="${t}"><span class="spi big">${spellSVG(t)}</span><span class="nm">${o?SPELLS[t].n+' · '+spellLvl(t):'After '+SPELLS[t].at}</span></button>`;}).join('');
+  const tiles=Object.keys(SPELLS).map(t=>{const o=cardOpen('s:'+t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-s="${t}"><span class="spi big">${spellSVG(t)}</span>${typeof armTileName==='function'?(o?armTileName(SPELLS[t].n,spellLvl(t)):armTileName('After '+SPELLS[t].at)):`<span class="nm">${o?SPELLS[t].n+' · '+spellLvl(t):'After '+SPELLS[t].at}</span>`}</button>`;}).join('');
   /* v1.5.0: the spell stands as a card like the champion's (frame in the spell's colour, sheen, halo); name, what it does and the level bar beside it */
   const stage=`<div class="hport scard" style="--rc:${rc};--hc:${rc}"><div class="acard"><div class="aback"></div><div class="aface"><div class="aimg sp"><span class="spi big">${spellSVG(k)}</span></div><span class="aglare"></span><span class="arar" style="color:${op?RAR_C[r]:'#8a97a8'}">${op?RAR_N[r]:'Sealed'}</span></div></div></div>`;
   const det=`<div class="hdet" style="--hc:${rc};--hc2:#1d2a3c">
@@ -2356,7 +2598,7 @@ function showSpellRoom(k){if(typeof armStop==='function')armStop();
   show(`<div class="topbar"><h1>✨ Spells<small>Cards from chests and gold buy levels — every level is +6% power.</small></h1><button class="back" id="bBack">✖</button></div>
   <p class="m cur">🪙 <b style="color:var(--gold)">${fmtN(goldOf())}</b> gold · 🃏 ${cardHave(key)} ${S.n} cards</p>
   <div class="hgrid strip" id="spStrip">${tiles}</div><div id="clist">${det}</div>`);
-  $('#bBack').addEventListener('click',()=>showHub('coll','spells'));if(typeof armStrip==='function')armStrip('#spStrip');
+  $('#bBack').addEventListener('click',()=>typeof armBack==='function'?armBack('spells'):showHub('coll','spells'));if(typeof armStrip==='function')armStrip('#spStrip');
   if(typeof armTilt==='function')armTilt(card.querySelector('#clist .hport'));
   card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showSpellRoom(t.dataset.s)));
   const b=card.querySelector('#clist button[data-a="sl"]');if(b)b.addEventListener('click',()=>{if(cardLevelUp(key)){SFX.play('upgrade');persist();}else SFX.play('deny');showSpellRoom(k);});
@@ -2925,7 +3167,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.5.0';
+const VERSION='1.5.1';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -4143,10 +4385,10 @@ function placeRing(force){
     const tx=clamp(cx-tw/2,6,Math.max(6,sw-tw-6));ringTip.style.left=Math.round(tx)+'px';ringTip.style.top=Math.round(Math.max(4,ty))+'px';}}
 function openRing(s){
   if(!s||G.state!=='play')return;
-  RING={s,items:[],arm:null};G.sel=s;ringEl.hidden=false;renderRing();SFX.play('tap');}
+  RING={s,items:[],arm:null};G.sel=s;ringEl.hidden=false;renderRing();SFX.play('tap');if(typeof callBtnTick==='function')callBtnTick();}
 function closeRing(){
   if(!RING&&ringEl.hidden)return;
-  RING=null;ringEl.hidden=true;ringEl.innerHTML='';ringTip.hidden=true;G.pending=null;
+  RING=null;ringEl.hidden=true;ringEl.innerHTML='';ringTip.hidden=true;G.pending=null;if(typeof callBtnTick==='function')callBtnTick();
   if(G.sel&&!G.sel.tower&&!sheet.classList.contains('open'))G.sel=null;}
 function ringTap(it){
   if(!RING||G.state!=='play')return;const s=RING.s,t=s.tower;
@@ -5001,7 +5243,7 @@ function mapSVG(selId){
   for(let i=1;i<road.length;i++){const q=road[i-1],p=road[i],mx=(q[0]+p[0])/2,my=(q[1]+p[1])/2,dx=p[0]-q[0],dy=p[1]-q[1],bend=(i%2?1:-1)*0.14;seg.push(`M${q[0]} ${q[1]} Q${(mx-dy*bend).toFixed(1)} ${(my+dx*bend).toFixed(1)} ${p[0]} ${p[1]}`);}
   const doneN=LEVELS.filter(l=>C[l.id]).length;
   const roadDone=seg.slice(0,Math.max(0,next.id-1)).join(' '),roadLeft=seg.slice(Math.max(0,next.id-1)).join(' ');
-  const nodes=LEVELS.map(L=>{const [x,y]=MAPPOS[L.id],st=C[L.id]||0,open=levelOpen(null,L),isNext=L.id===next.id&&!st,sel=L.id===selId,boss=L.boss;
+  const top=L=>(L.id===selId||L.id===next.id)?1:0;const nodes=LEVELS.slice().sort((a,b)=>top(a)-top(b)).map(L=>{const [x,y]=MAPPOS[L.id],st=C[L.id]||0,open=levelOpen(null,L),isNext=L.id===next.id&&!st,sel=L.id===selId,boss=L.boss;
     const r=boss?17:14,fill=st?'#e3b661':open?'#9b2323':'#48505b',stroke=sel?'#ffffff':st?'#7a4f0e':open?'#ffd97a':'#262b33';
     const pulse=isNext?`<circle cx="${x}" cy="${y}" r="${r+2}" fill="none" stroke="#ffd97a" stroke-width="3.5"><animate attributeName="r" values="${r+2};${r+22}" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values=".95;0" dur="1.5s" repeatCount="indefinite"/></circle>`:'';
     const stars=st?`<rect x="${x-19}" y="${y+r+1}" width="38" height="14" rx="7" fill="rgba(20,12,4,.82)"/><text x="${x}" y="${y+r+12}" text-anchor="middle" font-size="11" fill="#ffd97a">${'★'.repeat(st)}${'☆'.repeat(3-st)}</text>`:'';
@@ -5025,14 +5267,16 @@ function showCampaign(tab,selId){
   const hh=HOUSES[ACC.house],L=lang(),c=CBY[ACC.sel];
   const auto=nextStage();const L0=(selId&&LEVELS.find(l=>l.id===selId&&levelOpen(null,l)))||auto;const C=campOf(),st=C[L0.id]||0;
   const news=(POOLS[L0.id]||[]).map(k=>enemyIconHTML(k,30)).join('');const hard=ACC.diff==='kingsguard';
-  const pc=`<div class="playcard mapcard2" id="playcard">
-      <div class="gt">STAGE ${L0.id} OF ${LEVELS.length}${hard?' · HARD':''}${L0.mod?' · '+MODS[L0.mod].e+' '+MODS[L0.mod].n.toUpperCase():''}${L0.boss?' · 👑 BATTLE':''}</div><h2>${L0.n}</h2>
-      <div class="sb">${L0.sub} · ${BIOME_E[L0.biome]||''} ${L0.waves} waves · ${(L0.gates||[GX]).length} gate${(L0.gates||[GX]).length>1?'s':''}${st?' · best '+'★'.repeat(st)+'☆'.repeat(3-st):''}</div>
+  const pc=`<div class="playcard mapcard2 ${st?'done':''}" id="playcard">
+      <div class="gt">STAGE ${L0.id} OF ${LEVELS.length}</div><h2>${L0.n}</h2>
+      ${(hard||L0.mod||L0.boss)?`<div class="pchips">${hard?'<i>👑 Hard</i>':''}${L0.mod?`<i>${MODS[L0.mod].e} ${esc(MODS[L0.mod].n)}</i>`:''}${L0.boss?'<i>⚔ Boss battle</i>':''}</div>`:''}
+      <div class="sb">${L0.sub} · ${BIOME_E[L0.biome]||''} ${L0.waves} waves · ${(L0.gates||[GX]).length} gate${(L0.gates||[GX]).length>1?'s':''}${st?` · best <b class="bst">${'★'.repeat(st)}<i>${'★'.repeat(3-st)}</i></b>`:''}</div>
       ${news?`<div class="en"><small>new</small> ${news}</div>`:''}
-      <button class="go" id="bGo">${st?'DEFEND AGAIN':'HOLD THE DOOR'}${ecoWants()?`<small class="ecost">⚡ ${ecoCost(L0,hard)} energy${ecoOn()?' · you have '+ecoEnergy().n:''}</small>`:''}</button>
-      <div style="display:flex;gap:6px;margin-top:7px">
-        ${hardOpen()?`<button class="btn sec" id="bDiff" style="margin:0;flex:1">${DIFFS[ACC.diff].e} ${DIFFS[ACC.diff].lbl}</button>`:`<button class="btn sec" id="bNextC" style="margin:0;flex:1">📍 Stage ${auto.id}</button>`}
-        <button class="btn sec" id="bOn" style="margin:0;flex:1">🚪 Daily Hold</button>
+      ${deckStripHTML()}
+      <button class="go" id="bGo">⚔ TO BATTLE${ecoWants()?`<small class="ecost">⚡ ${ecoCost(L0,hard)} energy${ecoOn()?' · you have '+ecoEnergy().n:''}</small>`:''}</button>
+      <div class="prow">
+        ${hardOpen()?`<button class="btn sec" id="bDiff">${DIFFS[ACC.diff].e} ${DIFFS[ACC.diff].lbl}</button>`:''}${L0.id!==auto.id?`<button class="btn sec" id="bNextC">📍 Next stage</button>`:''}
+        <button class="btn sec" id="bOn">🚪 Daily Hold</button>
       </div></div>`;
   show(`<div class="home">
     <div class="hbar"><button class="back" id="bHubBack" style="position:static;margin-right:2px">◀</button>${crest(ACC.house,34)}<span class="who"><b>The road north</b><small>${cleared()}/${LEVELS.length} stages · ⭐ ${starsEarned()} · ${flag(L.c,14)} ${L.c}</small></span>
@@ -5042,6 +5286,7 @@ function showCampaign(tab,selId){
     ${hubTabs('battle')}</div>`,'full');
   document.querySelectorAll('.hubtabs button').forEach(b=>b.addEventListener('click',()=>{SFX.play('tap',60);showHub(b.dataset.tab);}));
   $('#bGo').addEventListener('click',()=>prepGo(()=>startGame({mode:'campaign',level:L0})));
+  const pdk=$('#pDeck');if(pdk)pdk.addEventListener('click',()=>{SFX.play('tap',60);PREP.ret=L0.id;showHub('coll','deck');});
   const bd=$('#bDiff');if(bd)bd.addEventListener('click',()=>showDifficulty(false));
   const bn=$('#bNextC');if(bn)bn.addEventListener('click',()=>{MAPVIEW.l=null;showCampaign('gates',auto.id);});
   $('#bOn').addEventListener('click',()=>showHub('hold'));
@@ -5062,25 +5307,26 @@ const BIOME_E={snow:'❄️',wall:'🧊',forest:'🌲',swamp:'🐸',river:'🌊'
 function showCampaignResult(win,stars,newUnlocks,gained){
   const L=G.level,next=LEVELS[L.id]||null,nextOpen=next&&levelOpen(null,next);
   const got=grantAch();persist();
-  const nx=nextOpen?`<button class="btn nextbig" id="bNext"><span class="nx">NEXT ▸</span><small>Stage ${next.id} · ${next.n}${ecoWants()?' · ⚡'+ecoCost(next,ACC.diff==='kingsguard'):''}</small></button>`:'';
+  const nx=nextOpen?`<button class="btn nextbig" id="bNext"><span class="nx">NEXT STAGE ›</span><small>Stage ${next.id} · ${esc(next.n)}${ecoWants()?' · ⚡'+ecoCost(next,ACC.diff==='kingsguard'):''}</small></button>`:'';
   if(win)show(`<h1>The gate held<small>Stage ${L.id} · ${L.n} · ${G.kills} of the dead put down</small></h1><div class="big stars">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
-  <p>Gate at ${Math.round(100*G.doorHp/G.doorMax)}% · best here ${'⭐'.repeat(stageStars(null,L.id,1))}</p>
-  <p class="m"><b style="color:var(--gold)">+${G.goldReward||0} 🪙 gold</b> · ${gained?`+${gained} ⭐ · +${gained*(ACC.diff==='kingsguard'?12:8)} 💎`:'no new stars this time'}${G.cardReward?` · <span style="color:var(--gold)">+${G.cardReward.n} ${esc(G.cardReward.name)} card${G.cardReward.n>1?'s':''}</span>`:''}${newUnlocks?` · <span style="color:var(--gold)">${newUnlocks} new champion${newUnlocks>1?'s':''}</span>`:''}${cleared()===ONLINE_AT?' · <span style="color:var(--gold)">Daily Hold unlocked</span>':''}</p>
+  <p class="rsub">Gate at ${Math.round(100*G.doorHp/G.doorMax)}% · best here ${'★'.repeat(stageStars(null,L.id,1))}</p>
+  <p class="m rew"><b class="rt gold">+${G.goldReward||0} 🪙 gold</b>${gained?`<b class="rt">+${gained} ⭐</b><b class="rt">+${gained*(ACC.diff==='kingsguard'?12:8)} 💎</b>`:'<b class="rt dim">no new stars</b>'}${G.cardReward?`<b class="rt">+${G.cardReward.n} 🃏 ${esc(G.cardReward.name)}</b>`:''}${newUnlocks?`<b class="rt">+${newUnlocks} champion${newUnlocks>1?'s':''}</b>`:''}${cleared()===ONLINE_AT?'<b class="rt">🚪 Daily Hold unlocked</b>':''}</p>
   ${got.map(a=>`<p style="color:var(--gold)">🏆 ${a.n} +${a.g}💎</p>`).join('')}
   ${G.hardNew?'<p style="color:var(--gold);font-weight:700">👑 All fifty stages held. HARD is open — the same road, tougher dead, more gold.</p>':''}
   ${nx}${!next?`<p style="color:var(--gold)">${ACC.diff==='kingsguard'?'Westeros stands, even on Hard.':'Westeros stands. The Long Night is over.'}</p>`:''}
   ${G.hardNew?'<button class="btn" id="bHard">👑 Ride on Hard</button>':''}
-  <div class="resrow"><button class="btn sec" id="bRetry">🔁 Replay</button><button class="btn sec" id="bUp">⬆️ Upgrades</button><button class="btn sec" id="bMap">🗺️ Map</button><button class="btn sec" id="bShare">📨 Share</button></div>`);
-  else show(`<h1>The gate has fallen<small>Stage ${L.id} · ${L.n}, wave ${G.wave} of ${L.waves}</small></h1><p class="m">${G.kills} kills · ${DIFFS[ACC.diff].e} ${DIFFS[ACC.diff].lbl}</p><p>${tipFor(L)}</p>
+  <div class="resrow"><button class="btn sec" id="bRetry">⟲ Replay</button><button class="btn sec" id="bHome">🏠 Home</button></div>
+  <div class="reslinks"><button id="bMap">🗺 Map</button><button id="bUp">⬆ Upgrades</button><button id="bShare">📨 Share</button></div>`);
+  else show(`<h1>The gate has fallen<small>Stage ${L.id} · ${L.n}, wave ${G.wave} of ${L.waves}</small></h1><p class="m">${G.kills} kills · ${DIFFS[ACC.diff].e} ${DIFFS[ACC.diff].lbl}</p><p class="tip">${tipFor(L)}</p>
   ${got.map(a=>`<p style="color:var(--gold)">🏆 ${a.n} +${a.g}💎</p>`).join('')}
-  <button class="btn" id="bRetry"><span class="e">🔁</span> Try again</button>
-  <div class="resrow"><button class="btn sec" id="bHero">⚔️ Champion</button><button class="btn sec" id="bUp">🏰 Towers</button><button class="btn sec" id="bMap">🗺️ Map</button></div>
-  ${hardOpen()?`<button class="btn sec" id="bDiff2">${DIFFS[ACC.diff].e} Change difficulty</button>`:''}`);
+  <button class="btn nextbig retry" id="bRetry"><span class="nx">⟲ TRY AGAIN</span><small>Stage ${L.id} · ${esc(L.n)}</small></button>
+  <div class="resrow"><button class="btn sec" id="bHome">🏠 Home</button><button class="btn sec" id="bHero">⚔️ Champion</button><button class="btn sec" id="bUp">🏰 Towers</button></div>
+  <div class="reslinks"><button id="bMap">🗺 Map</button>${hardOpen()?`<button id="bDiff2">${DIFFS[ACC.diff].e} Change difficulty</button>`:''}</div>`);
   const bn=$('#bNext');if(bn)bn.addEventListener('click',()=>{SFX.play('tap',60);startGame({mode:'campaign',level:next});});
   const bh=$('#bHard');if(bh)bh.addEventListener('click',()=>{ACC.diff='kingsguard';persist();showCampaign();});
   const bd=$('#bDiff2');if(bd)bd.addEventListener('click',()=>showDifficulty(false));
   const bhe=$('#bHero');if(bhe)bhe.addEventListener('click',()=>showHeroRoom(ACC.sel));
-  $('#bRetry').addEventListener('click',()=>startGame({mode:'campaign',level:L}));
+  $('#bRetry').addEventListener('click',()=>startGame({mode:'campaign',level:L}));const bhm=$('#bHome');if(bhm)bhm.addEventListener('click',()=>{SFX.play('tap',60);showHub('battle');});
   $('#bUp').addEventListener('click',()=>win?showUpgrades():showTowerRoom());$('#bMap').addEventListener('click',()=>showCampaign());const bsh=$('#bShare');if(bsh)bsh.addEventListener('click',()=>{SFX.play('tap',60);shareWin(L.id,stars);});
 }
 function tipFor(L){if(tLvl('watch')<3&&L.id>6)return'Tip: gold from every battle buys tower levels in Collection → Towers. Small steps, but they add up.';if(L.dragon&&G.wave>=L.dragon)return'Tip: the dragon takes full damage only from Scorpions and Dracarys. Two upgraded Scorpions near the gate.';if(L.giants)return'Tip: giants walk past champions without Challenge. Scorpions hit them hardest.';if(L.archers)return'Tip: archers stop 135 px from the gate and shoot it. Cover that stretch.';return'Tip: call waves early for bonus gold while the road is quiet.';}
@@ -5256,11 +5502,11 @@ function drawNewCard(now){
   const c=G.newcard;if(!c)return;const el=(now-c.t0)/1000;if(el>=2.4){G.newcard=null;return;}
   const E=ENEMIES[c.key],k=el<0.25?el/0.25:el>2.0?(2.4-el)/0.4:1;
   ctx.save();ctx.globalAlpha=k;
-  ctx.font='700 9px Cinzel,serif';const name=E.n.toUpperCase();const tw=ctx.measureText(name).width;const w=tw+62,h=22,x=W/2-w/2,y=64+(1-k)*-6;
+  ctx.font='700 9px Cinzel,serif';const name=E.n.toUpperCase();const tw=ctx.measureText(name).width;const w=tw+66,h=22,x=W/2-w/2,y=64+(1-k)*-6;
   ctx.fillStyle='rgba(244,239,226,0.94)';rr(ctx,x,y,w,h,11);ctx.fill();ctx.strokeStyle='#8a6d3b';ctx.lineWidth=1;rr(ctx,x,y,w,h,11);ctx.stroke();
   ctx.fillStyle='#7a1d1d';ctx.beginPath();ctx.arc(x+12,y+11,8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f4efe2';ctx.font='700 8px Cinzel,serif';ctx.textAlign='center';ctx.fillText('N',x+12,y+14);
-  const eim=enemyImg(c.key);if(eim){ctx.drawImage(eim,x+23,y+2,18,18);}else{ctx.font='13px serif';ctx.textAlign='left';ctx.fillText(E.e,x+24,y+16);}
-  ctx.fillStyle='#2e2113';ctx.font='700 9px Cinzel,serif';ctx.fillText(name,x+42,y+14.5);
+  const eim=enemyImg(c.key);if(eim){ctx.drawImage(eim,x+24,y+2,18,18);}else{ctx.font='13px serif';ctx.textAlign='left';ctx.fillText(E.e,x+24,y+16);}
+  ctx.fillStyle='#2e2113';ctx.font='700 9px Cinzel,serif';ctx.textAlign='left';ctx.fillText(name,x+46,y+14.5);G.ncBox={x,y,w,h,ix:x+24,iw:18,tx:x+46,tw,align:ctx.textAlign};
   ctx.restore();
 }
 /* =========================== CASTLE (v1.0.51) ===========================
@@ -8019,7 +8265,7 @@ function draw(now){
   drawAmbient(now);
   if(G.time<G.blizzUntil&&G.state==='play'){const t=now/1000;ctx.strokeStyle='rgba(235,245,255,0.55)';ctx.lineWidth=1.2;for(let i=0;i<40;i++){const sp=520+(i%5)*80,x=((i*97)%W+t*sp*0.6)%(W+40)-20,y=((i*61)%H+t*sp)%(H+40)-20;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-7,y-16);ctx.stroke();}}
   if(G.hodor){const el=(now-G.hodor.t0)/G.hodor.ms;if(el>=1)G.hodor=null;else drawBubble(G.hodor.txt,el,G.hod?G.hod.x:GX,GATE_Y-30,'900 13px Cinzel,serif');}
-  if(G.hsay){const el=(now-G.hsay.t0)/G.hsay.ms;if(el>=1||!G.hero||G.hero.dead||!G.heroOn||G.state!=='play')G.hsay=null;else drawBubble(G.hsay.txt,el,G.hero.x,G.hero.y-48,'italic 700 12.5px "EB Garamond",serif',G.hsay.col);}
+  if(G.hsay){const el=(now-G.hsay.t0)/G.hsay.ms;if(el>=1||!G.hero||G.hero.dead||!G.heroOn||G.state!=='play')G.hsay=null;else if(typeof RING!=='undefined'&&RING)G.hsayHid=(G.hsayHid||0)+1;else{G.hsayHid=0;drawBubble(G.hsay.txt,el,G.hero.x,G.hero.y-48,'italic 700 12.5px "EB Garamond",serif',G.hsay.col);}}
   if(G.state==='play')drawUltCard(now);
   if(G.state==='play')drawNewCard(now);
   if(G.tut&&G.state==='play')drawNarrator(now);
@@ -8244,7 +8490,7 @@ function hubBattle(){const hh=HOUSES[ACC.house],c=CBY[ACC.sel],g=Object.keys(cam
   ${ACC.tut?'':'<div class="hint">▲ TAP BEGIN — YOUR CHAMPION WILL TEACH YOU</div>'}${ACC.refund?`<div class="hint" id="refundNote">🪙 Tower upgrades are now tower levels — ${ACC.refund} gold refunded. Collection → Towers.</div>`:''}`;}
 function hubBattleBind(){if(ACC.refund){ACC.refund=0;persist();}
   const cv=$('#isle');if(cv)drawIsland(cv,ACC.house);evBadgeBind();seasonBtnBind2();if(seasonOn())seasonLoad().then(()=>{const c=document.getElementById('bSeason');if(c&&SEASON.st){c.outerHTML=seasonBtnHTML();seasonBtnBind2();}});const bcy=$('#bCity');if(bcy)bcy.addEventListener('click',()=>{SFX.play('tap',60);showCity();});const bt=$('#bTrain');if(bt)bt.addEventListener('click',()=>{SFX.play('tap',60);showTrain();});const bs=$('#bSpellShop');if(bs)bs.addEventListener('click',()=>{SFX.play('tap',60);showSpellShop();});const btv=$('#bTavern');if(btv)btv.addEventListener('click',()=>{SFX.play('tap',60);showHeroRoom();});dailyBtnBind();dailyBtnRefresh();const bf=$('#bForge');if(bf)bf.addEventListener('click',()=>{SFX.play('tap',60);showForge();});const ht=$('#hubTro');if(ht)ht.addEventListener('click',()=>{SFX.play('tap',60);showRankSheet();});
-  $('#bBattle').addEventListener('click',()=>{SFX.play('tap',80);if(!ACC.tut)startTutorial();else showCampaign();});
+  $('#bBattle').addEventListener('click',homeGo);
   const bdh=$('#bDiffH');if(bdh)bdh.addEventListener('click',()=>showDifficulty(false));const bmh=$('#bMapH');if(bmh)bmh.addEventListener('click',()=>{SFX.play('tap',60);showCampaign();});
   $('#bChampH').addEventListener('click',()=>showHeroRoom(ACC.sel));
   const sc0=$('#starChest');if(sc0)sc0.addEventListener('click',()=>{if(starChestsReady()>0){if(ecoWants()){ecoChest('iron','star',()=>showHub('battle'));return;}ACC.starChests=(ACC.starChests||0)+1;persist();openChest('iron',()=>showHub('battle'));}});
@@ -8349,7 +8595,8 @@ function hubCollectionBind(sub){homeMovedBind();
 /* ---------- SHOP ---------- */
 function priceHTML(p){if(p.gold)return `${GOLD_SVG}${fmtN(p.gold)}`;if(p.gems)return `${GEM_SVG}${p.gems}`;return 'FREE';}
 function canPay(p){if(p.gold)return goldOf()>=p.gold;if(p.gems)return ACC.gems>=p.gems;return true;}
-function hubShop(){const free=freeChestReady(),ft=fmtT(86400000-(Date.now()-(ACC.freeChestAt||0)));
+function hubShop(){return shop150HTML();}
+function hubShopV1(){const free=freeChestReady(),ft=fmtT(86400000-(Date.now()-(ACC.freeChestAt||0)));
   const D=dealsState(),deals=genDeals(),dt=fmtT(msToDeals());
   const RC=['#8a97a8','#4fb0ff','#b47cff','#e3b661'];
   const dealHTML=(d,i)=>{const bought=D.bought[i],unl=D.unl[i],freeSlot=i===0;
@@ -8365,7 +8612,7 @@ function hubShop(){const free=freeChestReady(),ft=fmtT(86400000-(Date.now()-(ACC
   <div class="hh" style="margin-top:14px"><h2>Gold for dragonglass</h2><small>${GOLD_SVG} ${fmtN(goldOf())} gold</small></div>
   <div class="shopgrid three">${ECON.exchange.map(([g,gd],i)=>`<div class="sitem" style="--rc:#e3b661"><span class="ch dic">${GOLD_SVG}</span><b>${['Purse','Chest','Hoard'][i]}</b><small>+${gd.toLocaleString()} gold${i===2?' · best value':i===1?' · +7%':''}</small><button data-xch="${i}" ${ACC.gems>=g?'':'disabled'}>${GEM_SVG}${g}</button></div>`).join('')}</div>
   ${starsShopHTML()}`;}
-function hubShopBind(){homeMovedBind();
+function hubShopBind(){homeMovedBind();shop150Bind();
   const tick=()=>{if(CLOUD.screen!=='hub:shop')return;const el=$('#dealCd');if(!el)return;const t=fmtT(msToDeals());el.textContent=t.h+':'+t.m+':'+t.s;if(msToDeals()<1000){showHub('shop');return;}setTimeout(tick,1000);};tick();
   bind('[data-buy]',b=>{const t=b.dataset.buy,T=CHEST_TIERS[t];if(ecoWants()){if(t==='wood'?!freeChestReady():ACC.gems<T.price)return;ecoChest(t,'shop',()=>showHub('shop'));return;}if(t==='wood'){if(!freeChestReady())return;ACC.freeChestAt=Date.now();}else{if(ACC.gems<T.price)return;ACC.gems-=T.price;}persist();openChest(t,()=>showHub('shop'));});
   bind('[data-deal]',b=>{const i=+b.dataset.deal;const d=genDeals()[i];if(buyDeal(i)){SFX.play(d.k==='gold'||d.k==='gems'?'buy':'card');flyReward(b,d);showHub('shop');}else SFX.play('deny');});
@@ -8588,10 +8835,10 @@ function tutPrebuild(){if(!G.map||!G.tutorial)return;const R=G.map.routes[0],q=p
 TOURS.battle=()=>{const n=obStage(),L=learnMap();if(n>=1)L.chests=1;if(n>=2)L.tasks=1;return [
   {sel:'.hubtop .cur',wait:()=>!!$('#bBattle'),text:'<b>Gold</b> 🪙 and <b>cards</b> level up your champions, towers and spells. <b>Dragonglass</b> 💎 opens chests and buys deals. Battles pay both.'},
   {sel:'#hubAva',text:'This is you: your champion\'s face and your <b>level</b>. Every upgrade you buy adds to it, and every level pays a chest. Tap it later for settings and the book.'},
-  {sel:'.hmgoal',text:'Your road north: the next stage, its stars and how far you are of fifty. Tap it to open the map.'},
+  {sel:'.hmgoal',text:'Your road north: how many of the fifty stages you hold, and your stars. Tap it to open the map.'},
   n>=1?{sel:'.hmslots',text:'Four chests: <b>stars</b> fill the first, <b>levels</b> the second, the third is <b>free</b> every day and the fourth is <b>today\'s gift</b>. Something is always on its way.'}:null,
   n>=2?{sel:'#bTasks',text:'<b>Tasks</b>: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'}:null,
-  {sel:'#bBattle',tap:1,text:'<b>BATTLE!</b> opens the map at your next stage. Tap it.'}];};
+  {sel:'#bBattle',tap:1,text:'<b>BATTLE</b> takes you straight to your next stage — its name and the gold it pays are on the button. Tap it.'}];};
 /* only for accounts that began with the staged home (tutv 99): older ones had the full tour */
 function obNew(){return !!(ACC&&ACC.tutv>=99);}
 Object.assign(HUB_LESSONS,{
@@ -9513,6 +9760,10 @@ function armTilt(stage){const el=stage.querySelector('.acard');if(!el)return;con
 function armStrip(q){const s=card.querySelector(q),v=s&&s.querySelector('.view');if(s&&v)s.scrollLeft=Math.max(0,v.offsetLeft-s.clientWidth/2+v.offsetWidth/2);}
 function armPips(h,n){const k=Math.min(h,n);return `<span class="cardpips" aria-label="${h} of ${n} cards">${'<i class="on"></i>'.repeat(k)}${'<i></i>'.repeat(Math.max(0,n-k))}</span>`;}
 function armWake(key){return key;}
+/* v1.5.0: a strip tile's caption — the name on one line (ellipsis), the level under it; the back arrow of a room returns to the sub-tab
+   it came from (ARM.ret, set by the deck) */
+function armTileName(n,lvl){return `<span class="nm">${n}</span>${lvl!=null?`<span class="tlv">Lv ${lvl}</span>`:''}`;}
+function armBack(sub){const r=ARM.ret;ARM.ret=null;armStop();showHub('coll',r||sub);}
 /* the one big button for a level: ready (green, pulsing), missing (grey, says what), max */
 function armLvlBtn(key,attr,l,mx){const h=cardHave(key),n=cardNeed(key),g=cardGold(key),can=cardCan(key);
   if(l>=mx)return `<button class="bigbtn max" disabled><span class="bt">★ FULLY FORGED</span></button>`;
@@ -9524,7 +9775,7 @@ function showHeroRoom(viewId,fod,openSk){armStop();
   const hh=HOUSES[ACC.house],list=CHAMPS.filter(c=>c.house===ACC.house);
   const c=list.find(x=>x.id===viewId)||list.find(x=>x.id===ACC.sel)||list[0],p=cprog(null,c.id),un=unlocked(null,c),ride=ACC.sel===c.id,cap=rankCap(p.lvl),r=champRar(c),st=cstar(c.id),lc=champCap(c.id),key='c:'+c.id;
   const tiles=list.map(x=>{const u=unlocked(null,x),rd=ACC.sel===x.id,v=x.id===c.id,rr=champRar(x);
-    return `<button class="htile tvt ${u?'':'lock'} ${v?'view':''} ${rd?'ride':''}" style="--rc:${RAR_C[rr]}" data-c="${x.id}">${u?portraitHTML(x,58):'<span class="pe">🔒</span>'}<span class="nm">${u?shortName(x)+' · '+cprog(null,x.id).lvl:'After '+UNLOCK_STAGE[x.tier]}</span>${u?starsHTML(cstar(x.id),'sm'):''}${rd?'<i class="rb">RIDING</i>':''}${u&&(cardCan('c:'+x.id)||(ascReady(x.id)&&list.some(f=>ascCan(x.id,f.id))))?'<span class="upb">⬆</span>':''}</button>`;}).join('');
+    return `<button class="htile tvt ${u?'':'lock'} ${v?'view':''} ${rd?'ride':''}" style="--rc:${RAR_C[rr]}" data-c="${x.id}">${u?portraitHTML(x,54):'<span class="pe">🔒</span>'}${u?armTileName(shortName(x),cprog(null,x.id).lvl):armTileName('After '+UNLOCK_STAGE[x.tier])}${u?starsHTML(cstar(x.id),'sm'):''}${rd?'<i class="rb">RIDING</i>':''}${u&&(cardCan('c:'+x.id)||(ascReady(x.id)&&list.some(f=>ascCan(x.id,f.id))))?'<span class="upb">⬆</span>':''}</button>`;}).join('');
   const art=CHAMP_ART[c.id+'_portrait'];
   const stage=`<div class="hstage"><div class="acard" style="--rc:${RAR_C[r]};--hc:${hh.col}"><div class="aback"></div><div class="aface">${un?(art?`<div class="aimg" style="background-image:url(${art})"></div>`:`<div class="aimg emoji">${c.e}</div>`):'<div class="aimg sealed">🔒</div>'}<span class="aglare"></span><span class="arar" style="color:${RAR_C[r]}">${un?RAR_N[r]:'SEALED'}</span></div><span class="asig">${crest(ACC.house,30)}</span></div></div>`;
   const name=`<div class="hname"><b>${un?esc(c.n):'Sealed champion'}</b><small>${un?`<em style="color:${RAR_C[r]}">${RAR_N[r]}</em> · ${String(TYPE_LBL[c.type]).split(',')[0]} · House ${hh.n}`:`🔒 After ${UNLOCK_STAGE[c.tier]} stages — or from the portal`}</small>${un?starsHTML(st):''}</div>`;
@@ -9551,7 +9802,7 @@ function showHeroRoom(viewId,fod,openSk){armStop();
   CLOUD.screen='hero';armStrip('#armStrip');armTilt(card.querySelector('.hstage'));
   const openDemo=row=>{if(ARM.stop){ARM.stop();ARM.stop=null;}const cv=row&&row.querySelector('canvas');if(cv)ARM.stop=skillDemoLoop(cv,cv.dataset.sk,c.house,c.id);};
   const o=card.querySelector('.skr.open');if(o)openDemo(o);
-  $('#bBack').addEventListener('click',()=>{armStop();showHub('coll','heroes');});
+  $('#bBack').addEventListener('click',()=>armBack('heroes'));
   card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showHeroRoom(t.dataset.c)));
   card.querySelectorAll('.skrh').forEach(h=>h.addEventListener('click',e=>{if(e.target.closest('button'))return;const row=h.parentNode,was=row.classList.contains('open');card.querySelectorAll('.skr.open').forEach(x=>x.classList.remove('open'));if(ARM.stop){ARM.stop();ARM.stop=null;}if(!was){row.classList.add('open');SFX.play('tap',50);openDemo(row);}}));
   card.querySelectorAll('[data-tog]').forEach(b=>b.addEventListener('click',()=>{const t=card.querySelector('[data-tgt="'+b.dataset.tog+'"]');if(t){t.hidden=!t.hidden;SFX.play('tap',50);}}));
@@ -9575,7 +9826,7 @@ function showHeroRoom(viewId,fod,openSk){armStop();
 function showTowerRoom(k){armStop();
   const open=TKEYS.filter(towerOpen);k=k&&TOWERS[k]?k:(open[0]||'watch');
   const D=TOWERS[k],L=tLvl(k),op=towerOpen(k),rc=(UGROUPS.find(g=>g[0]===k)||[])[3]||'#8a97a8';
-  const tiles=TKEYS.map(t=>{const o=towerOpen(t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-t="${t}">${towerIconHTML(t,o?Math.max(1,maxTowerLvl()):1,52)}<span class="nm">${o?TSHORT[t]+' · '+tLvl(t):'After '+TOWER_UNLOCK[t]}</span>${o&&cardCan('t:'+t)?'<span class="upb">⬆</span>':''}</button>`;}).join('');
+  const tiles=TKEYS.map(t=>{const o=towerOpen(t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-t="${t}">${towerIconHTML(t,o?Math.max(1,maxTowerLvl()):1,52)}${o?armTileName(TSHORT[t],tLvl(t)):armTileName('After '+TOWER_UNLOCK[t])}${o&&cardCan('t:'+t)?'<span class="upb">⬆</span>':''}</button>`;}).join('');
   const chips=TMILE[k].map((m,i)=>{const got=L>=T_MILE[i];return `<button class="mchip ${got?'got':''}" data-mi="${i}"><i>${m[0]}</i><b>${got?'✔':'LV '+T_MILE[i]}</b></button>`;}).join('');
   const mtxt=TMILE[k].map((m,i)=>`<p class="mtx" data-mt="${i}" hidden><b>${esc(m[1])}</b> — ${m[2]}</p>`).join('');
   const mp=typeof mstPanel==='function'?mstPanel(k):'',r=typeof cardRar==='function'?cardRar('t:'+k):0;
@@ -9590,7 +9841,7 @@ function showTowerRoom(k){armStop();
   <div class="hgrid strip" id="armStrip">${tiles}</div>
   <div id="clist"><div class="hdet2" style="--hc:${rc};--hc2:#1d2a3c">${head}<div class="hact">${act}</div>${det}</div></div>`);
   CLOUD.screen='tower';armStrip('#armStrip');
-  $('#bBack').addEventListener('click',()=>showHub('coll','towers'));
+  $('#bBack').addEventListener('click',()=>armBack('towers'));
   card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showTowerRoom(t.dataset.t)));
   card.querySelectorAll('.mchip').forEach(m=>m.addEventListener('click',()=>{const i=m.dataset.mi,t=card.querySelector('[data-mt="'+i+'"]'),was=t&&!t.hidden;card.querySelectorAll('.mtx').forEach(x=>x.hidden=true);if(t&&!was){t.hidden=false;SFX.play('tap',50);}}));
   const b=card.querySelector('#clist button[data-a="tl"]');if(b)b.addEventListener('click',()=>{if(cardLevelUp('t:'+k)){SFX.play('upgrade');persist();}else SFX.play('deny');showTowerRoom(k);});
@@ -9661,8 +9912,8 @@ function callBtnInit(){
 function callBtnTick(){
   const b=CALLB.el;if(!b)return;
   const ok=typeof G!=='undefined'&&G&&(G.mode==='campaign'||G.mode==='online')&&canCall();
-  {const sh=document.getElementById('sheet');b.hidden=!ok||G.state!=='play'||!!(sh&&sh.classList.contains('open'));}if(b.hidden)return;
-  b.textContent='⚔ CALL WAVE'+(G.nextIn>1?'  +'+Math.ceil(G.nextIn)+'🪙':'');
+  {const sh=document.getElementById('sheet');b.hidden=!ok||G.state!=='play'||!!(sh&&sh.classList.contains('open'))||!!(typeof RING!=='undefined'&&RING);}if(b.hidden)return;
+  b.textContent='⚔ CALL WAVE'+(G.nextIn>1?'  +'+Math.ceil(G.nextIn)+'🪙':'');callBtnPlace(b);
   b.classList.toggle('want',!!(G.tut&&typeof tutWantBase==='function'&&tutWantBase()==='call'));
 }
 callBtnInit();
@@ -9888,7 +10139,9 @@ function rookSVG(px){return `<svg viewBox="0 0 48 48" style="width:${px}px;heigh
 {const th0=towerIconHTML;towerIconHTML=function(type,lvl,px){return type==='rook'?rookSVG(px||34):th0(type,lvl,px);};}
 /* the first time it opens, a short lesson */
 LESSONS.rook={need:()=>towerOpen('rook'),steps:towerLesson('rook','New tower: the Rookery. Its ravens go for what keeps the dead alive, the necromancers, healers and chieftains, and silence them for three seconds with every hit.')};
-/* v1.2.4: the preparation sheet before a battle — 3 spells, 5 towers, the champion. ACC.roster = tower ids (max 5); ACC.loadout = spell ids. */
+/* v1.2.4: the preparation before a battle — 3 spells, 5 towers, the champion. ACC.roster = tower ids (max 5); ACC.loadout = spell ids.
+   flow150: the sheet with its own editor is gone. The map card shows the chosen deck (deckStripHTML in flow150.js) with one ⚔ TO BATTLE
+   button and a "change ›" link to Army → Loadout, the one place the deck is edited; prepGo() starts the battle at once. The data stays. */
 const ROSTER_MAX=5;
 function towerRoster(){const open=openTowers();if(open.length<=ROSTER_MAX)return open;
   const out=[];for(const k of ((ACC&&ACC.roster)||[]))if(open.includes(k)&&!out.includes(k))out.push(k);
@@ -9896,29 +10149,7 @@ function towerRoster(){const open=openTowers();if(open.length<=ROSTER_MAX)return
 function battleTowers(){return G.tutorial?['watch']:towerRoster();}
 function prepNeeded(){return !!(ACC&&ACC.castle&&cleared()>=5&&(openTowers().length>ROSTER_MAX||Object.keys(SPELLS).filter(k=>k==='arrows'||cleared()>=SPELLS[k].at).length>3));}
 function prepOpenSpells(){return Object.keys(SPELLS).filter(k=>k==='arrows'||cleared()>=SPELLS[k].at);}
-function prepGo(go){
-  if(!prepNeeded()){go();return;}
-  document.querySelectorAll('#prep').forEach(n=>n.remove());
-  const el=document.createElement('div');el.id='prep';document.body.appendChild(el);
-  let slot=0;const open=openTowers(),c=CBY[ACC.sel];
-  const draw=()=>{const L=spellLoadout(),R=towerRoster(),pool=prepOpenSpells();
-    el.innerHTML=`<div class="pcard"><h2>Prepare</h2>
-      <div class="psec"><div class="pst"><b>Spells</b><small>pick 3 · tap a slot, then a spell</small></div>
-        <div class="pslots">${L.map((k,i)=>`<button class="pslot ${i===slot?'on':''}" data-s="${i}"><span class="spi">${spellSVG(k)}</span><b>${esc(SPELLS[k].n)}</b><small>Lv ${spellLvl(k)}</small></button>`).join('')}</div>
-        <div class="ppool">${pool.map(k=>`<button class="pitem ${L.includes(k)?'in':''}" data-sp="${k}"><span class="spi">${spellSVG(k)}</span><small>${esc(SPELLS[k].n)}</small><i>Lv ${spellLvl(k)}</i></button>`).join('')}</div>
-        <small class="phint">${esc(spellLine(L[slot],spellLvl(L[slot])))}</small></div>
-      <div class="psec"><div class="pst"><b>Towers</b><small>${R.length}/${ROSTER_MAX} for this battle${open.length>ROSTER_MAX?' · tap to swap':''}</small></div>
-        <div class="ppool">${open.map(k=>`<button class="pitem ${R.includes(k)?'in':''}" data-tw="${k}">${towerIconHTML(k,Math.max(1,maxTowerLvl()),40)}<small>${esc(TSHORT[k]||TOWERS[k].n)}</small><i>Lv ${tLvl(k)}</i></button>`).join('')}</div></div>
-      <div class="psec pch"><span>${c?c.e||'':''}</span><b>${c?esc(c.n):''}</b><small>your champion</small></div>
-      <button class="go" id="pGo">START</button><button class="linkbtn" id="pX">Cancel</button></div>`;
-    el.querySelectorAll('[data-s]').forEach(b=>b.addEventListener('click',()=>{slot=+b.dataset.s;SFX.play('tap',50);draw();}));
-    el.querySelectorAll('[data-sp]').forEach(b=>b.addEventListener('click',()=>{spellEquip(b.dataset.sp,slot);slot=(slot+1)%3;SFX.play('tap',60);draw();}));
-    el.querySelectorAll('[data-tw]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.tw;let r=towerRoster().slice();
-      if(r.includes(k)){if(r.length<=1){SFX.play('deny');return;}r=r.filter(x=>x!==k);}else{if(r.length>=ROSTER_MAX)r.shift();r.push(k);}
-      ACC.roster=r;persist();SFX.play('tap',60);draw();}));
-    el.querySelector('#pX').addEventListener('click',()=>el.remove());
-    el.querySelector('#pGo').addEventListener('click',()=>{el.remove();go();});};
-  draw();}
+function prepGo(go){document.querySelectorAll('#prep').forEach(n=>n.remove());go();}
 /* =========================== DEMOS FOR SPELLS, TOWERS AND CHAMPIONS (v1.2.5, real art since v1.4.6) ===========================
    The same small looping canvas as the skill demos (skilldemo.js) for every spell, every tower and every champion: a slice of a real
    battlefield, the real sprites and the battle's own fx, one short caption. A champion's picture plays his three skills one after another.
@@ -10036,12 +10267,16 @@ function learnPick(id){if(!G.learnAsk||!SK[id])return;const h=G.hero,to=learnTo(
   const syn=typeof champSynergy==='function'?champSynergy(id):null;
   G.learnAsk=null;G.learnWhy=null;const el=document.getElementById('boonOv');if(el)el.remove();G.paused=false;try{SFX.play('levelup');}catch(e){}
   try{addText(h.x,h.y-48,'LEARNED '+SK[id].n,'#ffd54a',1);addFx({t:'ring',x:h.x,y:h.y-10,r0:8,r1:60,life:0.6,col:'#ffd54a'});if(syn)addText(h.x,h.y-70,'✦ '+syn,'#9fe6ff',1);}catch(e){}}
+/* v1.5.0: what he learned so far, compact — a Trials run learns a skill every wave, so the names are grouped (×n) and capped at five */
+function learnHaveText(){const L=G.learned||[];if(!L.length)return 'It lasts until the battle ends';const n={};for(const k of L)n[k]=(n[k]||0)+1;
+  const ks=Object.keys(n).sort((a,b)=>n[b]-n[a]),top=ks.slice(0,5).map(k=>esc(SK[k].n)+(n[k]>1?' ×'+n[k]:''));
+  return `Learned this battle (${L.length}): ${top.join(' · ')}${ks.length>5?' · +'+(ks.length-5)+' more':''}`;}
 function learnShow(offer){const ov=document.getElementById('boonOv');if(ov)ov.remove();
   const o=document.createElement('div');o.id='boonOv';
   o.innerHTML=`<div class="bo-in"><small>${esc(shortName(G.hero.c))} · ${G.learnWhy||('BEFORE WAVE '+(G.wave+1))}</small><h2>Learn a skill</h2><div class="bo-row">${offer.map((id,i)=>{const S=SK[id],to=learnTo(id),own=skLvl(G.hero,id);
     return `<button class="bo-card" data-learn="${id}" style="animation-delay:${i*90}ms"><span class="bo-e">${skillIcon(id,48,0)}</span><b>${esc(S.n)}</b><em>${esc(S.d(S.v[to-1]))}</em><small>${own?'RANK '+own+' → '+to:'NEW · rank '+to}</small></button>`;}).join('')}</div>
     ${(G.learnRr||0)<1?'<button class="linkbtn" id="learnRr">🎲 Other skills (once per battle)</button>':''}
-    <p class="bo-have">${(G.learned||[]).length?'Learned this battle: '+G.learned.map(k=>esc(SK[k].n)).join(', '):'It lasts until the battle ends'}</p></div>`;
+    <p class="bo-have">${learnHaveText()}</p></div>`;
   (document.getElementById('stage')||document.body).appendChild(o);
   o.querySelectorAll('[data-learn]').forEach(b=>b.addEventListener('click',()=>learnPick(b.dataset.learn)));
   const rr=o.querySelector('#learnRr');if(rr)rr.addEventListener('click',()=>{G.learnRr=(G.learnRr||0)+1;const n=learnOffer();G.learnAsk=n;SFX.play('tap',60);learnShow(n);});}
@@ -10114,15 +10349,17 @@ S_RAR.jars=2;S_RAR.beacon=3;
   if(k==='beacon')return '<svg viewBox="0 0 24 24" fill="none" stroke="#ffb23c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21l1.5-9h5L16 21M7 21h10M12 3c2 2 3 3.5 3 5.5a3 3 0 0 1-6 0c0-2 1-3.5 3-5.5z"/></svg>';
   return sv1(k);};}
 /* v1.3.5: the build card on the result screen — what the champion learned in this battle, the synergies he caught and his battle level.
-   The build is named after the kind of skill he holds most of (his kit plus the learned ones). Nothing is shown when nothing was learned. */
+   The build is named after the kind of skill he holds most of (his kit plus the learned ones). Nothing is shown when nothing was learned.
+   flow150: the card is compact (one row: name and level, the skills as small icons with their names, the share as a link) and sits under
+   the buttons, so NEXT STAGE › stays the first thing on the screen. */
 function buildName(){const h=G.hero;if(!h)return '';const n={};for(const k of h.c.sk)if(!SK[k].ult)n[skCat(k)]=(n[skCat(k)]||0)+1;for(const k of (G.learned||[]))n[skCat(k)]=(n[skCat(k)]||0)+1;
   let best=null,bv=0;for(const c in n)if(n[c]>bv&&SYN[c]){bv=n[c];best=c;}return best?SYN[best][0]+' build':'';}
 function buildCard(){if(!G.hero||!(G.learned||[]).length)return '';const syn=Object.keys(G.synDone||{}).map(c=>SYN[c]?SYN[c][0]:c);
   return `<div class="bcard"><div class="bch"><b>${esc(shortName(G.hero.c))}'s ${esc(buildName()||'build')}</b><small>battle level ${(G.hLv||0)+1}${syn.length?' · ✦ '+esc(syn.join(', '))+' synergy':''}</small></div>
-    <div class="bcsk">${G.learned.map(k=>`<span class="bcs">${skillIcon(k,38,0)}<small>${esc(SK[k].n)}</small></span>`).join('')}</div>
-    <button class="btn sec bcshare" id="bBuildShare">📨 Show your build</button></div>`;}
+    <div class="bcsk">${G.learned.map(k=>`<span class="bcs">${skillIcon(k,28,0)}<small>${esc(SK[k].n)}</small></span>`).join('')}</div>
+    <button class="bcshare" id="bBuildShare">📨 Show your build</button></div>`;}
 function buildShareText(){const h=G.hero;return `My ${buildName()||'build'} in HOLDOR: ${shortName(h.c)} learned ${G.learned.map(k=>SK[k].n).join(', ')} (battle level ${(G.hLv||0)+1}). Beat it:`;}
-{const scr1=showCampaignResult;showCampaignResult=function(win,stars,nu,gained){scr1(win,stars,nu,gained);try{const bc=buildCard();if(!bc)return;const at=card.querySelector('.resrow')||card.querySelector('#bRetry');if(at)at.insertAdjacentHTML('beforebegin',bc);const sb=card.querySelector('#bBuildShare');if(sb)sb.addEventListener('click',()=>{SFX.play('tap',60);chalShare(buildShareText());});}catch(e){}};}
+{const scr1=showCampaignResult;showCampaignResult=function(win,stars,nu,gained){scr1(win,stars,nu,gained);try{const bc=buildCard();if(!bc)return;const at=card.querySelector('.reslinks')||card.querySelector('.resrow')||card.querySelector('#bRetry');if(at)at.insertAdjacentHTML('afterend',bc);const sb=card.querySelector('#bBuildShare');if(sb)sb.addEventListener('click',()=>{SFX.play('tap',60);chalShare(buildShareText());});}catch(e){}};}
 /* v1.3.6: every champion's blows look like him. The effect at the target follows the kind of his first skill (embers, frost, shock rings, slashes,
    green motes, gold stars, ghost smoke…) and his house colour. Display only: nothing here touches damage or the simulation. */
 const SIGFX={dot:['fire','#ff8a3c',16],control:['burst','#9fe6ff',20],aoe:['ring','#ffd54a',30],rain:['slash','#ffe08a',0],heal:['burst','#8dffa0',16],shield:['hit','#bfe6ff',0],
@@ -10185,10 +10422,14 @@ function chalGo(d){const L=chalCheck(d);if(!L||G.state==='play')return false;con
    "The Long Night" on the map of the day. It is a local campaign-like battle (G.mode 'campaign', G.trials set, endless waves on the Hold's
    steeper curve) — it never calls battle_start / battle_finish and never touches the economy RPCs. Before EVERY wave the champion learns one of
    three skills (learn126), his battle levels and synergies work (champ130), the result shows the build card (build135).
-   Rewards: a guest gets a little gold and a wooden chest per 5 waves held; a signed-in seat gets none, because its gold and chests live on the
-   server — the page says so. ACC.trials = {best, runs, last:{waves, hero, learned, name, kills}}. The old Clan page stays: showHub('clan'),
-   with a back arrow; the invitations live on the Tasks page (a card on Quests opens Friends). Unlocks with stage 8 (OB_NEED.trials = 5). */
-const TRIALS={gold:240,every:5,maxChests:4,goldPer:12,dayGold:600};
+   Rewards: a guest gets a little gold and a wooden chest per 5 waves held; a signed-in seat is paid by the server (backend v38: trials_start /
+   trials_claim — 12 gold a wave, a wooden chest per 5 waves, one claim an hour, 600 gold a day). ACC.trials = {best, runs, last:{waves, hero,
+   learned, name, kills}, srv:{d, at, left, next}} — `srv` is what the server last said about today's reward (day_left and the hour rule), so the
+   page can say "next reward in 42 min" / "today's reward taken" with the server's own numbers. The old Clan page stays: showHub('clan'),
+   with a back arrow; the invitations live on the Tasks page (a card on Quests opens Friends). Unlocks with stage 8 (OB_NEED.trials = 5).
+   v1.5.0 polish: one big button that says its state (green START TRIAL / grey with the reason), best + gold left as one line, the reward on the
+   result as a compact list. */
+const TRIALS={gold:240,every:5,maxChests:4,goldPer:12,dayGold:600,gapMin:5,t:0};
 HUB_ICON.trials='<svg viewBox="0 0 24 24"><path d="M15.5 3.2a9 9 0 1 0 5.3 15.6A7.6 7.6 0 0 1 15.5 3.2z" fill="#cfd8ea" stroke="#33415c" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 9.5l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" fill="#ffd54a" stroke="#5a3a08" stroke-width=".6"/></svg>';
 /* the tabs: Shop · Army · Battle · Trials. Clan is a page without a tab */
 HUB_ORDER.splice(0,HUB_ORDER.length,'shop','coll','battle','trials');
@@ -10203,18 +10444,54 @@ function hubTabs(on){const t=[['shop','Shop'],['coll','Army'],['battle','Battle'
 function hubLockSay(k){SFX.play('deny');const st=OB_NEED[k]+(ACC&&ACC.sv?3:0);
   ecoToast(`🔒 ${k==='coll'?'Army':k==='shop'?'The Shop':'Trials'} opens after stage ${st}${ACC&&!ACC.tut?' — win your first battle first':''}`);}
 function trialsAcc(){if(!ACC.trials||typeof ACC.trials!=='object')ACC.trials={best:0,runs:0};ACC.trials.best|=0;ACC.trials.runs|=0;return ACC.trials;}
+/* ---------- the server's rule, remembered (v1.5.0) ----------
+   The server pays once per UTC clock hour and at least 5 min after the last claim, up to 600 gold a UTC day. It tells the client only when a claim
+   is made (day_left) or refused (the reason). ACC.trials.srv keeps that answer for the day: {d: UTC day, at, left: gold left today or null when
+   unknown, next: when the hour rule lets the next claim through}. Times are the server's clock (ecoOff). */
+function trialsNow(){return Date.now()+(typeof ecoOff==='function'?ecoOff():0);}
+function trialsDay(t){return new Date(t).toISOString().slice(0,10);}
+function trialsNextAt(t){const h=new Date(t);h.setUTCMinutes(0,0,0);return Math.max(h.getTime()+3600000,t+TRIALS.gapMin*60000);}
+function trialsNote(kind,r){const T=trialsAcc(),t=trialsNow(),d=trialsDay(t),S=T.srv&&T.srv.d===d?T.srv:{};
+  if(kind==='ok')T.srv={d,at:t,left:Math.max(0,r.day_left|0),next:trialsNextAt(t)};
+  else if(kind==='hour')T.srv={d,at:t,left:S.left==null?null:S.left,next:trialsNextAt(t)};
+  else if(kind==='day')T.srv={d,at:t,left:0,next:S.next||0};
+  else return;persist();}
+/* what the reason of a refusal means: hour → the clock rule, day → the daily cap, else the server's own words */
+function trialsWhyKind(why){return /one claim per hour|a moment ago/i.test(why)?'hour':/used up/i.test(why)?'day':'';}
+function trialsMins(ms){const m=Math.max(1,Math.ceil(ms/60000));return m>=60?'1 h':m+' min';}
+function trialsHours(ms){return Math.max(1,Math.ceil(ms/3600000))+' h';}
+/* the gate on the reward: ready | wait (the hour rule) | done (today's gold is used up). A guest is always ready: his run pays locally. */
+function trialsGate(){const T=trialsAcc();if(!ecoWants())return {st:'ready',guest:true,left:null};
+  const t=trialsNow(),d=trialsDay(t),S=T.srv&&T.srv.d===d?T.srv:null,left=S?S.left:null;
+  if(S&&S.left!=null&&S.left<=0){const x=new Date(t);return {st:'done',left:0,ms:Date.UTC(x.getUTCFullYear(),x.getUTCMonth(),x.getUTCDate()+1)-t};}
+  if(S&&S.next>t)return {st:'wait',left,ms:S.next-t};
+  return {st:'ready',left};}
 /* ---------- the page ---------- */
 function trialsLastHTML(){const T=ACC.trials,l=T&&T.last;if(!l||!l.learned||!l.learned.length)return '';
   return `<div class="trlast"><div class="trlh"><b>Last build</b><small>${esc(l.name||'build')} · ${l.waves} ${l.waves===1?'wave':'waves'}</small></div><div class="bcsk">${l.learned.filter(k=>SK[k]).map(k=>`<span class="bcs">${skillIcon(k,34,0)}<small>${esc(SK[k].n)}</small></span>`).join('')}</div></div>`;}
-function trialsRewardNote(){return ecoWants()?`This seat is kept by the server: a finished run pays ${TRIALS.goldPer} gold a wave and a wooden chest every ${TRIALS.every} waves, checked by the server — one claim an hour, up to ${TRIALS.dayGold} gold a day.`:`Every ${TRIALS.every} waves held: a wooden chest (up to ${TRIALS.maxChests}), and a little gold.`;}
-function hubTrials(){rollDay();const T=trialsAcc(),gm=genDaily(hash32(dayKeyUTC())),bio=gm.biome.charAt(0).toUpperCase()+gm.biome.slice(1);
+/* one small line: the record, the runs, and (a server seat) today's gold left */
+function trialsBestHTML(){const T=trialsAcc(),g=trialsGate(),best=T.best?`Best: wave ${T.best} · ${T.runs} ${T.runs===1?'run':'runs'}`:'Not played yet';
+  if(g.guest)return best;
+  return best+' · '+(g.left==null?`up to ${TRIALS.dayGold} 🪙 a day`:`<b class="${g.left>0?'ok':'no'}">${g.left} 🪙</b> left today`);}
+/* the one big button: green when the run pays, grey saying why it does not (it still starts a run for the record) */
+function trialsBtnHTML(){const g=trialsGate();
+  if(g.st==='wait')return `<button class="bigbtn trgo wait" id="bTrials" data-st="wait"><span class="bt">⏳ NEXT REWARD IN ${trialsMins(g.ms).toUpperCase()}</span><span class="bs">⚔ Start anyway — this run counts for the record</span></button>`;
+  if(g.st==='done')return `<button class="bigbtn trgo wait" id="bTrials" data-st="done"><span class="bt">✔ TODAY'S REWARD TAKEN</span><span class="bs">⚔ Play for the record · more gold in ${trialsHours(g.ms)}</span></button>`;
+  return `<button class="bigbtn trgo ready" id="bTrials" data-st="ready"><span class="bt">⚔ START TRIAL</span><span class="bs">${TRIALS.goldPer} 🪙 a wave · a wooden chest every ${TRIALS.every} waves</span></button>`;}
+function trialsRewardNote(){return ecoWants()?`Paid by the server after the run · one reward an hour · up to ${TRIALS.dayGold} 🪙 a day`:`Wooden chests open on the result screen · up to ${TRIALS.maxChests} a run`;}
+function hubTrials(){rollDay();trialsAcc();const gm=genDaily(hash32(dayKeyUTC())),bio=gm.biome.charAt(0).toUpperCase()+gm.biome.slice(1);
   return `<div class="hh"><h2>Trials</h2><small>one player · nothing to wait for</small></div>
   <div class="trcard" id="trCard"><div class="trrow"><canvas class="hmmini" id="hmMini" width="84" height="60"></canvas>
     <div class="trtx"><b>The Long Night</b><small>${gm.mod.e} ${esc(gm.mod.n)} · ${esc(bio)} · the map of the day</small>
-    <em id="trBest">${T.best?`Best: wave ${T.best} · ${T.runs} ${T.runs===1?'run':'runs'}`:'Not played yet'}</em></div></div>
-    <p class="trinfo">Hold the gate as long as you can. Before every wave your champion learns one of three skills — shape his build; every wave is harder than the last.</p>
-    <button class="btn trgo" id="bTrials">START</button><p class="trnote">${trialsRewardNote()}</p>${trialsLastHTML()}</div>`;}
-function hubTrialsBind(){const b=document.getElementById('bTrials');if(b)b.addEventListener('click',()=>{SFX.play('tap',60);trialsStart();});hmMiniDraw();}
+    <em id="trBest">${trialsBestHTML()}</em></div></div>
+    <p class="trinfo">Hold the gate as long as you can — your champion learns a skill before every wave.</p>
+    ${trialsBtnHTML()}<p class="trnote">${trialsRewardNote()}</p>${trialsLastHTML()}</div>`;}
+function hubTrialsBind(){const b=document.getElementById('bTrials');if(b)b.addEventListener('click',()=>{SFX.play('tap',60);trialsStart();});hmMiniDraw();trialsTick();}
+/* the countdown on the button moves while the page is open (every 30 s), in place, so the tap keeps working */
+function trialsTick(){clearTimeout(TRIALS.t);const b=document.getElementById('bTrials');if(!b)return;
+  const d=document.createElement('div');d.innerHTML=trialsBtnHTML();const nb=d.firstChild;
+  if(b.className!==nb.className||b.innerHTML!==nb.innerHTML){b.className=nb.className;b.dataset.st=nb.dataset.st;b.innerHTML=nb.innerHTML;const e=document.getElementById('trBest');if(e)e.innerHTML=trialsBestHTML();}
+  if(trialsGate().st!=='ready')TRIALS.t=setTimeout(trialsTick,30000);}
 /* ---------- the run ---------- */
 function trialsStart(){if(hubLocked('trials')){hubLockSay('trials');return;}startGame({mode:'trials'});}
 function trialsLevel(gm){const L=Object.assign({},LEVELS[LEVELS.length-1],{n:'The Long Night',sub:'Trials',pts:gm.pts,biome:gm.biome,waves:1e9,mult:1,gold:TRIALS.gold,mod:null,boss:false,intro:'',dragon:8,king:25,lord:true,trials:true,stage:1});
@@ -10240,18 +10517,26 @@ function trialsEnd(){const T=trialsAcc(),waves=Math.max(0,G.wave-1),neu=waves>T.
   if(G.trialsR.srv)trialsClaim(G.trialsR);}
 /* v1.4.1: a server seat asks the server to pay the run (backend v38 trials_claim); the screen shows its numbers or its refusal */
 async function trialsClaim(R){
-  try{await ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('trials_claim',{seat:seatNo(),waves:R.waves},10000);ecoApply(r.state);R.srv={st:'ok',gold:r.gold|0,chests:r.chests|0,cg:r.chest_gold|0,cm:r.chest_gems|0,left:r.day_left|0};return r;});}
-  catch(e){R.srv={st:'no',why:ecoMsg(e).replace(/^.*?(P0001|exception):?\s*/i,'').slice(0,120)||'refused'};}
+  try{await ecoLane(async()=>{await ecoSyncRaw();const r=await ecoRpc('trials_claim',{seat:seatNo(),waves:R.waves},10000);ecoApply(r.state);R.srv={st:'ok',w:r.waves|0||R.waves,gold:r.gold|0,chests:r.chests|0,cg:r.chest_gold|0,cm:r.chest_gems|0,left:r.day_left|0};trialsNote('ok',r);return r;});}
+  catch(e){const why=ecoMsg(e).replace(/^.*?(P0001|exception):?\s*/i,'').slice(0,120)||'refused';R.srv={st:'no',why,kind:trialsWhyKind(why)};trialsNote(R.srv.kind);}
   if(G.trialsR===R&&document.getElementById('bTrAgain'))trialsResult();}
-function trialsSrvLine(R){const s=R.srv;if(!s)return '<p class="m">Signed-in seat: no reward is waiting.</p>';
-  if(s.st==='wait')return '<p class="m">Asking the server for the reward…</p>';
-  if(s.st==='ok')return `<p class="m"><b style="color:var(--gold)">+${s.gold+s.cg} 🪙 gold</b>${s.cm?` · +${s.cm} 💎`:''}${s.chests?` · ${s.chests} Trials ${s.chests===1?'chest':'chests'} opened`:''} · ${s.left} gold left today</p>`;
-  return `<p class="m">No reward this time: ${esc(s.why)}</p>`;}
+/* the reward as a compact list: what was held, what it paid, what is left today */
+function trialsRows(R){const rows=[],row=(a,b,c)=>rows.push(`<div class="trr ${c||''}"><span>${a}</span><b>${b}</b></div>`),w=R.waves,ws=n=>`${n} ${n===1?'wave':'waves'} held`,cs=n=>`${n} Trials ${n===1?'chest':'chests'}`;
+  if(R.paid){row(ws(w),R.gold?`+${R.gold} 🪙`:'—',R.gold?'':'mut');
+    if(R.chests)row(cs(R.chests),`<i class="tx">${R.claimed>=R.chests?'opened ✔':'open below ↓'}</i>`);}
+  else{const s=R.srv,g=trialsGate();
+    if(!s)row(w>0?'Reward':'No waves held',w>0?'the server is not reachable':'nothing to claim','mut');
+    else if(s.st==='wait')row('Reward','asking the server…','mut');
+    else if(s.st==='ok'){row(ws(s.w||w),`+${s.gold} 🪙`);if(s.chests)row(cs(s.chests)+' opened',`+${s.cg} 🪙${s.cm?` · +${s.cm} 💎`:''}`);
+      if(s.chests)row('Earned',`+${s.gold+s.cg} 🪙${s.cm?` · +${s.cm} 💎`:''}`,'tot');row('Left today',`${s.left} / ${TRIALS.dayGold} 🪙`,'mut');}
+    else{row('No reward this time',s.kind==='hour'?`one reward an hour${g.st==='wait'?' · next in '+trialsMins(g.ms):''}`:s.kind==='day'?`today's ${TRIALS.dayGold} 🪙 are taken${g.st==='done'?' · more in '+trialsHours(g.ms):''}`:esc(s.why),'no');
+      row('The run counts for the record','',"mut");}}
+  return `<div class="trrw">${rows.join('')}</div>`;}
 function trialsResult(){const R=G.trialsR;if(!R)return;const T=ACC.trials;
   const left=R.chests-R.claimed;
   show(`<h1>The Long Night took the gate<small>Trials · ${esc(shortName(G.hero.c))}</small></h1><div class="big">🌊 ${R.waves}</div>
   <p class="m">${R.waves===1?'wave':'waves'} held · ${G.kills} of the dead put down${R.neu&&R.waves>0?' · <b style="color:var(--gold)">new best</b>':` · best ${T.best}`}</p>
-  ${!R.paid?trialsSrvLine(R):`<p class="m">${R.gold?`<b style="color:var(--gold)">+${R.gold} 🪙 gold</b>`:'no gold this time'}${R.chests?` · ${R.chests} Trials ${R.chests===1?'chest':'chests'}`:''}</p>`}
+  ${trialsRows(R)}
   ${buildCard()}
   ${left>0?`<button class="btn" id="bTrChest"><span class="e">🎁</span> Open ${left} ${left===1?'chest':'chests'}</button>`:''}
   <button class="btn ${left>0?'sec':''}" id="bTrAgain"><span class="e">🔁</span> Try again</button><button class="btn sec" id="bTrBack">🌙 Back to Trials</button>`);
@@ -10286,7 +10571,7 @@ function deckBody(){const S=deckState(),c=CBY[ACC.sel];
   const lock=S.tlock.map(k=>deckCard('t',k,'lock')).concat(S.slock.map(k=>deckCard('s',k,'lock')));
   return `<div class="hh"><h2>Your battle deck</h2><small>tap a card to swap or level it</small></div>${ban}
     <div class="dksec"><b>Champion & spells</b><small>${S.sin.length}/3 spells</small></div>
-    <div class="deckrow">${champCard(c,{})}${S.sin.map(k=>deckCard('s',k,'in')).join('')}</div>
+    <div class="deckrow dkrow">${champCard(c,{}).replace('class="ccard ','class="ccard hero ')}${S.sin.map(k=>deckCard('s',k,'in')).join('')}</div>
     <div class="dksec"><b>Towers in battle</b><small>${S.tin.length}/${ROSTER_MAX} · tier ${ROMAN[maxTowerLvl()-1]}</small></div>
     <div class="cgrid c3">${S.tin.map(k=>deckCard('t',k,'in')).join('')}</div>
     <div class="hh dkcolh"><h2>Collection</h2><small>${col.length?'stay home · tap to bring one in':'every open card is in your deck'}</small></div>
@@ -10302,19 +10587,26 @@ function deckSheet(kind,k,where){const el=document.getElementById('dkSheet')||do
   const S=deckState(),others=kind==='t'?(where==='in'?S.tout:S.tin):(where==='in'?S.sout:S.sin),lvl=kind==='t'?tLvl(k):spellLvl(k);
   const line=kind==='t'?(TGUIDE[k]?TGUIDE[k].role:TOWERS[k].sub):(SPELLS[k].d);
   const swapLbl=where==='in'?'⇄ SWAP OUT':'⇄ USE IN BATTLE';
-  el.innerHTML=`<div class="dks-in"><div class="dks-h"><span class="dks-ic">${kind==='t'?towerIconHTML(k,Math.max(1,maxTowerLvl()),46):`<span class="spi">${spellSVG(k)}</span>`}</span><span><b>${esc(deckName(kind,k))}</b><small>${where==='lock'?'locked':'level '+lvl}${where==='in'?' · in your deck':where==='out'?' · in your collection':''}</small></span></div>
+  const at=kind==='t'?TOWER_UNLOCK[k]:SPELLS[k].at;
+  el.innerHTML=`<div class="dks-in"><div class="dks-h"><span class="dks-ic${where==='lock'?' lock':''}">${kind==='t'?towerIconHTML(k,Math.max(1,maxTowerLvl()),46):`<span class="spi">${spellSVG(k)}</span>`}</span><span><b>${esc(deckName(kind,k))}</b><small>${where==='lock'?'🔒 opens after stage '+at:'level '+lvl}${where==='in'?' · in your deck':where==='out'?' · in your collection':''}</small></span></div>
     <p>${esc(line)}</p>
     <div class="dks-b">${where!=='lock'&&others.length?`<button class="bigbtn lvl ready" data-dka="swap"><span class="bt">${swapLbl}</span></button>`:''}<button class="bigbtn" data-dka="info"><span class="bt">${where==='lock'?'ⓘ INFO':'⬆ LEVEL UP · INFO'}</span></button></div>
     <button class="linkbtn" data-dka="x">Close</button></div>`;
   el.classList.add('on');
   el.querySelectorAll('[data-dka]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const a=b.dataset.dka;el.classList.remove('on');
-    if(a==='info'){SFX.play('tap',60);if(kind==='t')showTowerRoom(k);else showSpellRoom(k);}
+    if(a==='info'){SFX.play('tap',60);deckRet();if(kind==='t')showTowerRoom(k);else showSpellRoom(k);}
     else if(a==='swap'){SFX.play('tap',60);Object.assign(DECK,{mode:'swap',kind,pick:k,side:where});deckRedraw();}}));
   el.onclick=e=>{if(e.target===el)el.classList.remove('on');};}
-{const hc1=hubCollection;hubCollection=function(sub){sub=sub||'deck';if(sub!=='deck'){DECK.mode=null;return hc1(sub);}
+/* v1.5.0: a room opened from the deck comes back to the deck (ARM.ret, read by armBack); every Army render forgets it */
+function deckRet(){if(typeof ARM==='object'&&ARM)ARM.ret='deck';}
+{const hc1=hubCollection;hubCollection=function(sub){sub=sub||'deck';if(typeof ARM==='object'&&ARM)ARM.ret=null;if(sub!=='deck'){DECK.mode=null;return hc1(sub);}
   const full=hc1('deck'),i=full.indexOf('<div class="hh"><h2>Battle loadout');return (i>0?full.slice(0,i):full)+deckBody();};
  const hb1=hubCollectionBind;hubCollectionBind=function(sub){hb1(sub);if((sub||'deck')!=='deck')return;
   const cn=document.getElementById('dkCancel');if(cn)cn.addEventListener('click',()=>{DECK.mode=null;SFX.play('tap',40);deckRedraw();});
+  /* v1.5.0: the banner stays above the tab bar whatever its height, and the body gets room under it so the last row is reachable */
+  const hb=document.getElementById('hubBody');if(hb)hb.classList.toggle('dkon',!!DECK.mode);
+  const ban=card.querySelector('.dkban'),tabs=card.querySelector('.hubtabs');if(ban&&tabs){const t=tabs.getBoundingClientRect().top;if(t>0&&t<innerHeight)ban.style.bottom=Math.round(innerHeight-t)+14+'px';}
+  const row=card.querySelector('.deckrow.dkrow');if(row)row.addEventListener('click',e=>{if(e.target.closest('.ccard[data-c]'))deckRet();},true);
   card.querySelectorAll('.ccard[data-dk]').forEach(b=>b.addEventListener('click',()=>{const kind=b.dataset.dk,k=b.dataset.dv,where=b.dataset.dw;
     if(DECK.mode){
       if(kind===DECK.kind&&where!==DECK.side&&where!=='lock'&&k!==DECK.pick){const a=DECK.side==='in'?DECK.pick:k,bb=DECK.side==='in'?k:DECK.pick;
@@ -10414,18 +10706,26 @@ function chest145SVG(t,mode){
 /* the card back: the tier's colour, a lattice and a door in a ring */
 function c5Back(P){return `<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="${P.m1}" stroke-width="2.4"/><circle cx="30" cy="30" r="17" fill="${P.w3}" stroke="${P.m2}" stroke-width="1.4"/><path d="M22 42V28a8 8 0 0 1 16 0v14z" fill="${P.m2}" stroke="#160b04" stroke-width="1.6"/><path d="M30 20v22M22 33h16" stroke="#160b04" stroke-width="1.2"/></svg>`;}
 function c5Icon(r){return r.k==='card'?cardIcon(r.key,96):r.k==='champ'||r.k==='skill'?(CHAMP_ART[r.c.id+'_portrait']?`<img src="${CHAMP_ART[r.c.id+'_portrait']}" alt="">`:`<span style="font-size:40px">${r.c.e}</span>`):r.k==='gems'?GEM_SVG:r.k==='gold'?GOLD_SVG:r.k==='upg'?`<span style="font-size:44px">${r.u.e}</span>`:r.k==='att'?HUB_ICON.hold:STAR_SVG;}
+/* chest150: under a card stack, the copies held now against the card's next level (have/need; READY ⬆ when they suffice), the bar
+   filling as the stack lands (cardHave already counts the new copies: a guest's rollChest added them, a seat's server state came first).
+   A +100 gold with fill:1 stood in for a stack because every card is owned (v1.4.9 cardPool / ec_pool): the card says so, the grid too. */
+function c5Prog(r){if(r.k!=='card'||!r.key||!/^[cts]:/.test(r.key))return null;try{const key=r.key,h=cardHave(key),n=cardNeed(key);
+  if(!n)return{max:1,h,n:0,ready:false,w0:100,w1:100};const h0=Math.max(0,h-(r.cnt||0));
+  return{max:0,h,n,ready:cardReady(key),w0:Math.min(100,Math.round(100*h0/n)),w1:Math.min(100,Math.round(100*h/n))};}catch(e){return null;}}
+function c5ProgHTML(p,w){return p?`<span class="c5prog${p.max?' max':p.ready?' ok':''}"><i style="width:${w}%"></i><em>${p.max?'MAX':p.h+'/'+p.n}</em></span>${p.ready?'<span class="c5ready">READY ⬆</span>':''}`:'';}
+function c5Fill(r){return r.k==='gold'&&!!r.fill;}
 function chest145Open(t,done,fixed){   /* fixed: a list of rewards to show instead of rolling (previews and tests only) */
   const T=CHEST_TIERS[t]||CHEST_TIERS.wood,P=C5.P[t]||C5.P.wood,RC=RAR_C,RN=RAR_N,RM=c5Reduced();
   let el=$('#cer');if(!el){el=document.createElement('div');el.id='cer';document.getElementById('app').appendChild(el);}
   const rewards=fixed||rollChest(t);if(!fixed)persist();const N=rewards.length;
-  const S={phase:'closed',idx:-1,cur:null,timer:0,timers:[]};el._c5=S;
+  const S={phase:'closed',idx:-1,cur:null,timer:0,timers:[]},fills=rewards.filter(c5Fill).length;el._c5=S;
   el.className='c145 t-'+t+(N>6?' many':'');el.style.setProperty('--tg',P.glow);el.style.setProperty('--tbg',P.bg);
   el.innerHTML=`<div class="c5bg"><i class="c5rays"></i><i class="c5flash" id="c5fl"></i></div>
     <h2>${T.n}</h2><div class="c5sub"><b>${esc(T.sub)}</b> · ${N} reward${N>1?'s':''}</div>
     <div class="rw" id="crw"></div><div class="cbig" id="cbig"></div>
     <div class="cchest" id="cch"><div class="glow" id="cglow"></div><div class="c5beams">${[-48,-30,-14,0,14,30,48].map((a,i)=>`<i style="--a:${a}deg;--d:${i*40}ms"></i>`).join('')}</div><div class="cimg" id="cimg">${CHEST_ART[t]?chestSVG(t):chest145SVG(t,'anim')}</div><b class="c5left" id="c5left"></b></div>
     <div class="tap" id="ctap">TAP TO OPEN</div><div class="c5hint" id="c5hint">TAP FOR THE NEXT</div>
-    <button class="c5skip" id="cskip">SKIP ›</button><button class="collect" id="ccol">COLLECT</button>`;
+    <button class="c5skip" id="cskip">SKIP ›</button><div class="c5note" id="c5note"></div><button class="collect" id="ccol">COLLECT</button>`;
   const q=id=>document.getElementById(id),live=()=>el._c5===S;
   const later=(f,ms)=>{const h=setTimeout(()=>{if(live())f();},ms);S.timers.push(h);return h;};
   const clearAll=()=>{S.timers.forEach(clearTimeout);S.timers=[];};
@@ -10434,16 +10734,17 @@ function chest145Open(t,done,fixed){   /* fixed: a list of rewards to show inste
       host.appendChild(s);setTimeout(()=>s.remove(),1000);}};
   const flash=cls=>{const f=q('c5fl');if(!f)return;f.className='c5flash';void f.offsetWidth;f.className='c5flash '+(cls||'on');};
   const left=()=>{const b=q('c5left');if(!b)return;const n=N-S.idx-1;b.textContent=n>0?'×'+n:'';b.classList.toggle('on',n>0);};
-  const smHTML=r=>`<span class="im">${c5Icon(r)}</span><b>${esc(r.n)}</b><small>${esc(r.s)}</small><span class="rar">${RN[r.r]||''}</span>`;
+  const smHTML=r=>{const p=c5Prog(r);return `<span class="im">${c5Icon(r)}</span><b>${esc(r.n)}</b><small>${esc(r.s)}</small><span class="rar${c5Fill(r)?' fl':''}">${c5Fill(r)?'all owned':(RN[r.r]||'')}</span>${c5ProgHTML(p,p?p.w1:0)}`;};
   const addSm=(r,i,delay)=>{const d=document.createElement('div');d.className='rcard sm in r'+r.r;d.style.setProperty('--rc',RC[r.r]);if(delay)d.style.animationDelay=delay+'ms';d.innerHTML=smHTML(r);const w=q('crw');if(w)w.appendChild(d);};
   /* count "+320" up while the card lands */
   const countUp=(node,s)=>{const m=/^\+(\d+)$/.exec(s);if(!m||RM)return;const to=+m[1],t0=performance.now(),D=420;
     const f=now=>{if(!node.isConnected)return;const k=Math.min(1,(now-t0-C5.fly*.5)/D);node.textContent='+'+Math.round(to*Math.max(0,k));if(k<1)requestAnimationFrame(f);};node.textContent='+0';requestAnimationFrame(f);};
   const showNext=()=>{S.idx++;left();if(S.idx>=N){finish();return;}
     const r=rewards[S.idx],rr=r.r|0,big=q('cbig');if(!big)return;
-    big.innerHTML='';const c=document.createElement('div');c.className='c5card r'+rr+(rr>=3?' shine':'')+(rr>=4?' legend':'');c.style.setProperty('--rc',RC[rr]);
-    c.innerHTML=`<i class="c5burst"></i><div class="c5in"><div class="c5b">${c5Back(P)}</div><div class="c5f"><span class="c5rib">${RN[rr]||''}</span><span class="c5med">${c5Icon(r)}</span><b class="c5nm">${esc(r.n)}</b><span class="c5amt">${esc(r.s)}</span></div></div>`;
+    big.innerHTML='';const c=document.createElement('div'),p=c5Prog(r),fl=c5Fill(r);c.className='c5card r'+rr+(rr>=3?' shine':'')+(rr>=4?' legend':'');c.style.setProperty('--rc',RC[rr]);
+    c.innerHTML=`<i class="c5burst"></i><div class="c5in"><div class="c5b">${c5Back(P)}</div><div class="c5f${p||fl?' hasp':''}"><span class="c5rib">${RN[rr]||''}</span><span class="c5med">${c5Icon(r)}</span><b class="c5nm">${esc(r.n)}</b><span class="c5amt">${esc(r.s)}</span>${fl?'<small class="c5fill">All cards owned → gold</small>':c5ProgHTML(p,p&&!RM?p.w0:p?p.w1:0)}</div></div>`;
     big.appendChild(c);S.cur={r,c,i:S.idx};countUp(c.querySelector('.c5amt'),r.s);
+    if(p&&!p.max&&!RM)later(()=>{const b=c.querySelector('.c5prog i');if(b)b.style.width=p.w1+'%';},C5.fly*.9);
     try{SFX.play(rr>=4?'legend':rr>=3?'epic':'card',60);}catch(e){}
     if(rr>=3)later(()=>{flash(rr>=4?'gold':'on');sparks(big,rr>=4?34:18,'50%','45%',rr>=4?190:140,RC[rr]);if(rr>=4){el.classList.remove('quake');void el.offsetWidth;el.classList.add('quake');}},C5.fly*.75);
     S.timer=later(autoNext,C5.dwell[rr]||C5.dwell[0]);};
@@ -10457,7 +10758,8 @@ function chest145Open(t,done,fixed){   /* fixed: a list of rewards to show inste
   const advance=()=>{if(S.phase==='opening'){clearAll();burst();S.phase='show';showNext();return;}
     if(S.phase!=='show')return;clearAll();commit(true);showNext();};
   const finish=()=>{if(S.phase==='done')return;S.phase='done';clearAll();const big=q('cbig');if(big)big.innerHTML='';
-    el.classList.add('done');[...el.querySelectorAll('#crw .rcard')].forEach((d,i)=>{d.classList.remove('fin');void d.offsetWidth;d.style.animationDelay=(i*45)+'ms';d.classList.add('fin');});
+    el.classList.add('done');if(fills){el.classList.add('fills');const nt=q('c5note');if(nt)nt.textContent='Your cards are complete — the chest paid gold instead';}
+    [...el.querySelectorAll('#crw .rcard')].forEach((d,i)=>{d.classList.remove('fin');void d.offsetWidth;d.style.animationDelay=(i*45)+'ms';d.classList.add('fin');});
     const cc=q('ccol');if(cc)cc.classList.add('in');try{SFX.play('collect');}catch(e){}};
   const skip=()=>{if(S.phase==='closed'||S.phase==='done')return;clearAll();burst();commit(true);
     for(let i=S.idx+1;i<N;i++)addSm(rewards[i],i);S.idx=N-1;left();finish();};
@@ -10465,8 +10767,182 @@ function chest145Open(t,done,fixed){   /* fixed: a list of rewards to show inste
     if(S.phase==='closed'){if(tg&&tg.closest('#cch,#ctap'))open();return;}advance();};
   q('cskip').addEventListener('click',e=>{e.stopPropagation();skip();});
   q('ccol').addEventListener('click',e=>{e.stopPropagation();if(!q('ccol').classList.contains('in'))return;clearAll();el._c5=null;el.onclick=null;el.className='hidden';el.innerHTML='';done&&done();});
-  S.api={open,advance,skip,finish,rewards,state:()=>({phase:S.phase,idx:S.idx,n:N,shown:el.querySelectorAll('#crw .rcard').length})};
+  S.api={open,advance,skip,finish,rewards,state:()=>({phase:S.phase,idx:S.idx,n:N,fills,shown:el.querySelectorAll('#crw .rcard').length})};
 }
+/* battle-screen fixes.
+   · The CALL WAVE button keeps off the build pads: per stage it takes the first free spot of bottom-left, bottom-right,
+     then one row higher on either side (the default spot when none is free); it hides while a build ring is open, because
+     the ring's buttons would sit under it. Placed once per stage and canvas size (CALLP.key).
+   · The champion's speech bubble is not drawn while a ring is open; the new-enemy toast draws its name left-aligned after
+     the icon (both patched in place by src/parts/98zc_battlefix.py). */
+const CALLP={key:null,pick:null};
+const CALL_SPOTS=[[10,null,108],[null,10,108],['c',null,108],[10,null,170],[null,10,170],['c',null,170],[10,null,232],[null,10,232],['c',null,232]];   /* left / right / centre, three heights */
+function callBtnPlace(b){CALLP.pick=CALL_SPOTS[0];}   /* v1.5.1: the button keeps its v1.4.2 spot (left, above the spell bar); moving it off the build pads per stage was tried and dropped — the candidates still covered pads on a third of the stages */
+/* =========================== THE BATTLE FLOW (flow150) ===========================
+   Home → map → fight in two taps. The map card is the preparation step: the stage, the chosen deck (champion, 3 spells, 5 towers) as a
+   strip, one ⚔ TO BATTLE button, a quiet "change ›" link to Army → Loadout (the one editor; a "◀ Back to the battle" pill brings the
+   player back to the same stage). The result screen: NEXT STAGE › (or ⟲ TRY AGAIN) is the one big button, Replay and Home sit under it,
+   Map / Upgrades / Share are links; gold, stars and cards earned are chips read in one glance. The data (ACC.roster, ACC.loadout) is
+   unchanged; the old preparation sheet with its editor is gone (prepGo starts the battle at once). */
+const PREP={ret:null};   /* the stage to come back to from the deck */
+function deckStripHTML(){if(typeof prepNeeded!=='function'||!prepNeeded())return '';
+  const c=CBY[ACC.sel],pu=c&&CHAMP_ART[c.id+'_portrait'],L=spellLoadout(),R=towerRoster(),lv=Math.max(1,maxTowerLvl());
+  return `<div class="pdeck" id="pDeckStrip"><div class="pdh"><small>YOUR DECK</small><button class="pchg" id="pDeck">change ›</button></div>
+    <div class="pds"><span class="pdi ch" title="${c?esc(c.n):''}">${pu?`<img src="${pu}" alt="">`:`<i>${c?c.e:''}</i>`}</span>${L.map(k=>`<span class="pdi sp" data-ds="${k}" title="${esc(SPELLS[k].n)}"><span class="spi">${spellSVG(k)}</span></span>`).join('')}<i class="pdsep"></i>${R.map(k=>`<span class="pdi tw" data-dt="${k}" title="${esc(TSHORT[k]||TOWERS[k].n)}">${towerIconHTML(k,lv,30)}</span>`).join('')}</div></div>`;}
+/* the deck opened from the map card: a pill on top brings the player back to the same stage; any other tab forgets it */
+{const sh5=showHub;showHub=function(tab,sub){if(PREP.ret&&!(tab==='coll'&&(sub||'deck')==='deck'))PREP.ret=null;return sh5.apply(this,arguments);};
+ const hb5=hubCollectionBind;hubCollectionBind=function(sub){hb5(sub);if(!PREP.ret||(sub||'deck')!=='deck')return;
+  const b=document.getElementById('hubBody'),L=LEVELS.find(l=>l.id===PREP.ret);if(!b||!L)return;
+  const d=document.createElement('div');d.className='hback dkret';d.innerHTML=`<button id="dkRet">◀ Back to the battle</button><span>Stage ${L.id} · ${esc(L.n)}</span>`;
+  b.insertBefore(d,b.firstChild);d.querySelector('#dkRet').addEventListener('click',()=>{SFX.play('tap',60);const id=PREP.ret;PREP.ret=null;showCampaign('gates',id);});};}
+/* the result screen before the castle (the story) has no home yet; an emptied row leaves no gap */
+{const r5=showCampaignResult;showCampaignResult=function(win,stars,nu,gained){r5(win,stars,nu,gained);
+  try{if(typeof stOn==='function'&&stOn()){const h=$('#bHome');if(h)h.remove();}
+    card.querySelectorAll('.resrow,.reslinks').forEach(r=>{if(!r.children.length)r.remove();});}catch(e){}};}
+/* =========================== THE HOME ANSWERS THREE QUESTIONS (v1.5.0) ===========================
+   A tester with the phone in hand: "two gold buttons, which one?" So the first screen now answers, top to bottom:
+     WHAT IS READY  — a row of gold pills, only when something is: chests to open, gifts to claim, a champion or a tower that can
+                      level up. Nothing ready → no row.
+     WHAT DO I DO NOW — one green button straight under the stage art: BATTLE · STAGE 7 · its name · the gold it pays. One tap opens
+                      the map card at that stage (the deck strip and ⚔ TO BATTLE, flow150): two taps from the home to the fight.
+     WHAT IS NEW    — a quiet pill between Map and the champion: the next thing that opens and at which stage (tower, spell,
+                      champion, the Hold, Trials, Kingsguard). Tap: its room.
+   Everything else steps back: the chests under the button with a label each (Stars · Level · Free · Gift), the Hold card in quiet
+   blue, the rank / Tasks / event pills at the bottom with lower contrast. The three looks are back behind a small 🎨 in the art's
+   corner (A hero stage · B living gate · C war map; skins.js draws them). Injected last: hubHome / homeStrip / homeSlots / homeGoal /
+   homeBattleRow / skinOf / skinNext here replace the earlier ones; homeBind is wrapped. The ids the coach and the tests know stay:
+   #bBattle, #bMapH / #bDiffH, #bChampH, #hmGoal, #hmStage, .hmslots .slot (#starChest #lvlChest #lvlNext #freeChest
+   #dailyGift), #hmHold / #bHold / #bHoldMore, .hmstrip (#hubTro #bTasks #evBadge). New: #hmReady .rdy[data-r], #hmNew. */
+/* ---------- what is ready ---------- */
+function homeReadyItems(n){const out=[];if(!ACC||!ACC.tut)return out;
+  if(n>=1){const d=dailyOn()?(DAILY.st&&DAILY.seat===seatNo()?DAILY.st.login:null):null;
+    const ch=Math.max(0,starChestsReady())+lvlChestsReady()+(freeChestReady()?1:0)+(d&&d.can?1:0);
+    if(ch)out.push({k:'chest',e:icon('gift',22),t:`${ch} ${ch===1?'chest':'chests'} to open`,go:()=>{const s=document.querySelector('.hmslots .slot.ready');if(s)s.click();}});}
+  if(n>=2){const tk=typeof tasksReady==='function'?tasksReady():0;if(tk)out.push({k:'task',e:icon('quests',22),t:`${tk} ${tk===1?'gift':'gifts'} to claim`,go:()=>showHub('tasks')});}
+  if(!hubLocked('coll')&&typeof cardCan==='function'){const c=CBY[ACC.sel];
+    if(c&&cardCan('c:'+c.id))out.push({k:'champ',e:'⬆',t:`${shortName(c)} can level up`,go:()=>showHeroRoom(c.id)});
+    const tw=TKEYS.filter(t=>towerOpen(t)&&cardCan('t:'+t));
+    if(tw.length)out.push({k:'tower',e:'⬆',t:tw.length===1?`${TSHORT[tw[0]]||TOWERS[tw[0]].n} can level up`:`${tw.length} towers can level up`,go:()=>showTowerRoom(tw[0])});}
+  return out;}
+function homeReadyRow(n){const it=homeReadyItems(n);if(!it.length)return '';
+  return `<div class="hmready" id="hmReady">${it.map(i=>`<button class="rdy ${i.k}" data-r="${i.k}"><i>${i.e}</i><b>${esc(i.t)}</b><em>›</em></button>`).join('')}</div>`;}
+/* ---------- what is new: the next thing that opens ---------- */
+function homeNextOpen(){const n=cleared(),sv=ACC.sv?3:0,out=[];
+  for(const k in OB_NEED)if(hubLocked(k))out.push({at:OB_NEED[k]+sv,e:k==='coll'?'🛡️':k==='shop'?HUB_ICON.shop:HUB_ICON.trials||'🌙',n:k==='coll'?'The Army':k==='shop'?'The Shop':'Trials',go:()=>hubLockSay(k)});
+  if(!onlineOpen())out.push({at:ONLINE_AT,e:icon('door',22),n:'The Hold · one map a day',go:()=>ecoToast(`🔒 The Hold opens after stage ${ONLINE_AT}`)});
+  for(const k of TKEYS)if(!towerOpen(k))out.push({at:TOWER_UNLOCK[k],e:towerIconHTML(k,1,22),n:(TSHORT[k]||TOWERS[k].n)+' tower',go:()=>showTowerRoom(k)});
+  for(const k in SPELLS)if(SPELLS[k].at>n)out.push({at:SPELLS[k].at,e:spellSVG(k),n:SPELLS[k].n+' spell',go:()=>showSpellRoom(k)});
+  for(const c of CHAMPS)if(c.house===ACC.house&&!unlocked(null,c))out.push({at:UNLOCK_STAGE[c.tier],e:c.e||'🛡️',n:shortName(c)+' joins',go:()=>showHeroRoom(c.id)});
+  if(typeof hardOpen==='function'&&!hardOpen())out.push({at:LEVELS.length,e:DIFFS.kingsguard.e,n:'Kingsguard difficulty',go:()=>showDifficulty(false)});
+  out.sort((a,b)=>a.at-b.at);return out.find(x=>x.at>n)||null;}
+/* ---------- the pieces ---------- */
+function homeStrip(){const n=obStage(),R=myRank(),e=evAt(Date.now()),K=EVT_KIND[e.kind],left=e.active?e.t1-Date.now():e.t0-Date.now(),tk=typeof tasksReady==='function'?tasksReady():0;
+  return `<div class="hmstrip low"><button class="hpill" id="hubTro">${rankSVG(R.t,20,R.div)}<b>${trophiesOf()}</b><small>rank</small></button>
+    ${n>=2?`<button class="hpill tk ${tk?'hot':''}" id="bTasks">${icon('quests',18)}<b>Tasks</b>${tk?`<i class="dot">${tk}</i>`:''}</button>`:''}
+    ${n>=3?`<button class="hpill ev ${e.active?'on':''}" id="evBadge" data-t="${e.active?e.t1:e.t0}" data-a="${e.active?1:0}">${K.e}<b>${K.n}</b><em>${e.active?'ends in':'in'} ${evLeft(left)}</em></button>`:''}</div>`;}
+function homeGoal(){const NG=LEVELS.length,g=Object.keys(campOf()).length,se=starsEarned();
+  return `<button class="hmgoal v150" id="hmGoal"><span class="gl"><small>Road north</small><b>${g}/${NG} stages held</b></span><span class="gp"><i style="width:${Math.round(100*g/NG)}%"></i></span><span class="gs">★ ${se}/${NG*3}</span><em class="arr">›</em></button>`;}
+function homeSlots(){const sN=starChestsReady(),prog=starsEarned()%3,lN=lvlChestsReady(),L=accLevel();
+  const fr=freeChestReady(),fl=fr?0:(ACC.freeChestAt+86400000-Date.now());
+  const d=dailyOn()?(DAILY.st&&DAILY.seat===seatNo()?DAILY.st.login:null):null,dReady=!!(d&&d.can);
+  const ring=p=>`style="--p:${Math.round(p*100)}"`;
+  return `<div class="hmslots">
+    <button class="slot ${sN>0?'ready':''}" id="starChest" ${ring(sN>0?1:prog/3)}><small class="sl">Stars</small><span class="si">${chestSVG('iron')}</span><em>${sN>0?'OPEN':'★ '+prog+'/3'}</em>${sN>1?`<b class="cnt">×${sN}</b>`:''}</button>
+    ${lN>0?`<button class="slot ready" id="lvlChest" ${ring(1)}><small class="sl">Level</small><span class="si">${chestSVG(lvlChestTier((ACC.lvlChests||0)+2))}</span><em>OPEN</em>${lN>1?`<b class="cnt">×${lN}</b>`:''}</button>`
+      :`<button class="slot" id="lvlNext" ${ring(L.xp/L.need)}><small class="sl">Level</small><span class="si dim">${chestSVG(lvlChestTier(L.l+1))}</span><em>AT LV ${L.l+1}</em></button>`}
+    <button class="slot ${fr?'ready':''}" id="freeChest" ${ring(fr?1:1-fl/86400000)}><small class="sl">Free</small><span class="si">${chestSVG('wood')}</span><em data-until="${fr?0:ACC.freeChestAt+86400000}">${fr?'OPEN':fmtT(fl).str}</em></button>
+    <button class="slot ${dReady?'ready':''}" id="dailyGift" ${ring(dReady?1:1-msToMidnightUTC()/86400000)}><small class="sl">Gift</small><span class="si gift">${icon('gift',38)}</span><em data-midnight="${dReady?0:1}">${!dailyOn()?'DAILY':dReady?'CLAIM':fmtT(msToMidnightUTC()).str}</em></button></div>`;}
+/* the one button, and the quiet row under it: Map · what opens next · the champion */
+function homeBattleRow(){const c=CBY[ACC.sel],L=nextStage(),pu=CHAMP_ART[c.id+'_portrait'],tut=!!ACC.tut,st=campOf()[L.id]||0,again=st>0,nx=tut?homeNextOpen():null;
+  const rew=ECON.win(L,3,!again),can=!hubLocked('coll')&&typeof cardCan==='function'&&cardCan('c:'+c.id);
+  const big=tut?`<span class="bbi">${HUB_ICON.battle}</span><span class="bbt"><b>${again?'DEFEND AGAIN':'BATTLE'}</b><small>STAGE ${L.id} · ${esc(L.n)}</small></span>
+      <span class="bbr"><em>🪙 +${fmtN(rew)}</em><small>${again?'★'.repeat(st)+'<i>'+'★'.repeat(3-st)+'</i>':'up to ★★★'}</small></span>`
+    :`<span class="bbi">${HUB_ICON.battle}</span><span class="bbt"><b>BEGIN</b><small>YOUR FIRST LESSON</small></span>`;
+  return `<div class="battlerow v150"><button class="bbig go150 ${tut?'':'pulse'}" id="bBattle">${big}</button></div>
+    <div class="hmside">${hardOpen()?`<button class="bside" id="bDiffH"><span class="pe">${DIFFS[ACC.diff].e}</span>${DIFFS[ACC.diff].lbl}</button>`:`<button class="bside" id="bMapH"><span class="pe">🗺️</span>Map</button>`}
+    ${tut?`<button class="hmnew ${nx?'':'done'}" id="hmNew">${nx?`<small>Opens at stage ${nx.at}</small><b><span class="ni">${nx.e}</span>${esc(nx.n)}</b>`:`<small>All opened</small><b>⭐ Every tower and spell is yours</b>`}</button>`:''}
+    <button class="bside" id="bChampH">${pu?`<img src="${pu}" alt="">`:`<span class="pe">${c.e}</span>`}${shortName(c)}${can?'<i class="upb">⬆</i>':''}</button></div>`;}
+function hubHome(){const hh=HOUSES[ACC.house],n=obStage(),tut=!!ACC.tut,k=skinOf(),slots=tut&&n>=1;
+  const st=k==='a'?hmStageA():k==='c'?hmStageC():hmStageB();
+  return `${homeReadyRow(n)}
+    <div class="hmstage st-${k}" id="hmStage">${st}<div class="hmtitle"><b>${hh.seat}</b></div>${homeGoal()}</div>
+    ${homeBattleRow()}
+    ${slots?`<div class="hmslots top">${homeSlots().replace(/^<div class="hmslots">/,'').replace(/<\/div>$/,'')}</div>`:''}
+    ${tut&&n>=2?homeHold():''}
+    ${tut?homeStrip():''}
+    ${tut?'':'<div class="hint">▲ TAP BEGIN — YOUR CHAMPION WILL TEACH YOU</div>'}${ACC.refund?`<div class="hint" id="refundNote">🪙 Tower upgrades are now tower levels — ${ACC.refund} gold refunded. Army → Towers.</div>`:''}`;}
+/* one tap: the preparation sheet, or straight into the next stage (the first lesson before the tutorial) */
+function homeGo(){SFX.play('tap',80);if(!ACC.tut){startTutorial();return;}showCampaign('gates');}   /* the map card at the next stage: the deck strip, ⚔ TO BATTLE (flow150) — two taps from the home to the fight */
+{const hb0=homeBind;homeBind=function(){hb0();
+  const on=(id,f)=>{const b=document.getElementById(id);if(b)b.addEventListener('click',f);};
+  const hero=document.getElementById('hmHero');if(hero)hero.addEventListener('click',homeStrike);
+  const map=document.getElementById('hmMap');if(map)map.addEventListener('click',()=>{SFX.play('tap',60);showCampaign();});
+  on('hmNew',()=>{SFX.play('tap',60);const nx=homeNextOpen();if(nx&&nx.go)nx.go();else showCampaign();});
+  const items=homeReadyItems(obStage());
+  document.querySelectorAll('#hmReady .rdy').forEach(b=>b.addEventListener('click',()=>{SFX.play('tap',60);const i=items.find(x=>x.k===b.dataset.r);if(i)i.go();}));
+  HOME.skin=skinOf();homeStart();};}
+/* =========================== THE SHOP, MADE SIMPLE (v1.5.0) ===========================
+   One card for everything sold: the art in the middle, the price as one tag with its currency, and a button that says what will
+   happen — CLAIM / BUY in green when the player can pay, "Need N more <coin>" in grey when he cannot, UNLOCK for the locked picks.
+   The balance sits pinned at the top of the tab with what each currency buys. Sections, in order: For you today (the six deals and
+   the timer until the next six) · Chests · Gold for dragonglass · Dragonglass for Telegram Stars (the Starter pack first) · Season
+   Pass & VIP as one card. Every purchase path is the one from before (data-deal / data-unl / data-buy / data-xch / data-stars and
+   #bSeason are bound by hubShopBind + homeMovedBind; starsBuy opens the invoice) — only the drawing is new. */
+const SH_LOCK_SVG='<svg viewBox="0 0 24 24" fill="#c9d1da" stroke="#0b1a2e" stroke-width="1.4"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none"/><circle cx="12" cy="15.5" r="1.6" fill="#0b1a2e"/></svg>';
+/* what is missing for a price, as the grey button's content; '' when the player can pay */
+function shNeed(p){if(!p)return '';
+  if(p.gold){const n=p.gold-goldOf();return n>0?`<span>Need ${fmtN(n)} more ${GOLD_SVG}</span>`:'';}
+  if(p.gems){const n=p.gems-(ACC.gems||0);return n>0?`<span>Need ${n} more ${GEM_SVG}</span>`:'';}
+  return '';}
+/* the price tag: one chip, the currency drawn in it */
+function shChip(p){if(!p||(!p.gold&&!p.gems&&!p.stars))return '<span class="pchip free">FREE</span>';
+  if(p.stars)return `<span class="pchip star">⭐ ${p.stars}</span>`;
+  if(p.gold)return `<span class="pchip gold">${GOLD_SVG}${fmtN(p.gold)}</span>`;
+  return `<span class="pchip gem">${GEM_SVG}${p.gems}</span>`;}
+/* a buy button: green with the word when affordable, grey with what is missing when not */
+function shBuyBtn(attr,p,word){const need=shNeed(p);return need?`<button ${attr} disabled class="need">${need}</button>`:`<button ${attr} class="buy">${word||'BUY'}</button>`;}
+/* the one card: badge top-left (or, on a narrow card, under the art), price tag top-right, art, name, one line, button */
+function shCard(o){const badge=o.badge?`<span class="badge${o.badgeIn?' in':''}${o.badgeCls?' '+o.badgeCls:''}"${o.badgeCol?` style="background:${o.badgeCol}"`:''}>${o.badge}</span>`:'';
+  return `<div class="sitem sh ${o.cls||''}" style="--rc:${o.rc||'#4fb0ff'}">${o.badgeIn?'':badge}${o.chip||''}<span class="ch ${o.big?'':'dic'}">${o.art}</span><b>${o.name}</b><small>${o.line}</small>${o.badgeIn?badge:''}${o.btn}</div>`;}
+/* the balance, pinned: the two currencies and what each is for; a tap scrolls to where more of it is sold */
+function shBalance(){return `<div class="shbal"><button class="bal g" id="shBalG"><span class="n">${GOLD_SVG}${fmtN(goldOf())}</span><small>Gold · levels</small></button><button class="bal d" id="shBalD"><span class="n">${GEM_SVG}${fmtN(ACC.gems||0)}</span><small>Dragonglass · chests</small></button></div>`;}
+/* For you today: the open deals in two columns (the first one wide when their number is odd), the locked picks as a short row */
+function shDeals(){const D=dealsState(),deals=genDeals(),RC=typeof RAR_C!=='undefined'?RAR_C:['#8a97a8','#4fb0ff','#b47cff','#e3b661'];
+  const open=[],lock=[];
+  deals.forEach((d,i)=>{if(!D.unl[i]){lock.push(i);return;}
+    const bought=!!D.bought[i],free=!d.price||(!d.price.gold&&!d.price.gems),m=/\s*·\s*−(\d+)%/.exec(d.s||''),line=m?d.s.replace(m[0],''):(d.s||'');
+    const btn=bought?'<button disabled class="done">✔ TAKEN</button>':free?`<button data-deal="${i}" class="free">CLAIM</button>`:shBuyBtn(`data-deal="${i}"`,d.price);
+    open.push({cls:'deal'+(bought?' done':''),rc:RC[d.r]||RC[RC.length-1],badge:bought?'':free?'FREE':m?'−'+m[1]+'%':'',badgeCol:!free&&m?'#b33fb0':'',chip:free?'':shChip(d.price),art:d.ic,name:esc(d.n),line:esc(line),btn});});
+  if(open.length%2===1)open[0].cls+=' wide';
+  const lk=lock.map(i=>{const p={gems:ECON.unlock[i]};return shCard({cls:'deal lock',rc:'#5a6c85',chip:shChip(p),art:SH_LOCK_SVG,name:`Deal ${i+1}`,line:i===5?'The last pick · locked':`A ${i+1}th pick · locked`,btn:shBuyBtn(`data-unl="${i}"`,p,'UNLOCK')});}).join('');
+  const dt=fmtT(msToDeals());
+  return `<div class="hh"><h2>For you today</h2><span class="shtimer"><em>new in</em><b id="dealCd">${dt.h}:${dt.m}:${dt.s}</b></span></div>
+  <div class="shopgrid deals">${open.map(shCard).join('')}</div>${lk?`<div class="shopgrid deals locked">${lk}</div>`:''}`;}
+/* Chests: the four tiers, the rarity in its colour, what is inside as one line */
+function shChests(){const free=freeChestReady(),ft=fmtT(86400000-(Date.now()-(ACC.freeChestAt||0)));
+  const cards=['wood','iron','valyrian','dragon'].map(t=>{const T=CHEST_TIERS[t];
+    const line=`<i style="color:${T.trim};font-style:normal;font-weight:900">${T.sub}</i> · ${T.gold[0]}–${T.gold[1]} ${GOLD_SVG} · ${T.gems[0]}–${T.gems[1]} ${GEM_SVG} · ${T.cards} card stack${T.cards>1?'s':''}${T.rare?` (${T.rare} rare+)`:''}`;
+    const btn=t==='wood'?(free?'<button class="free" data-buy="wood">OPEN</button>':`<button data-buy="wood" disabled class="need"><span>Free in ${ft.str}</span></button>`):shBuyBtn(`data-buy="${t}"`,{gems:T.price});
+    return shCard({cls:'chest',big:1,rc:T.trim,badge:t==='wood'?(free?'DAILY FREE':'DAILY'):'',badgeCol:t==='wood'&&!free?'#5a6c85':'',chip:t==='wood'?'':shChip({gems:T.price}),art:chestSVG(t),name:T.n,line,btn});}).join('');
+  return `<div class="hh"><h2>Chests</h2><small>gold, dragonglass and cards</small></div><div class="shopgrid">${cards}</div>`;}
+/* Gold for dragonglass: three purses, the best rate marked */
+function shExchange(){const X=ECON.exchange,best=X.reduce((b,x,i)=>x[1]/x[0]>X[b][1]/X[b][0]?i:b,0);
+  return `<div class="hh" id="shXch"><h2>Gold for dragonglass</h2><small>${GEM_SVG} → ${GOLD_SVG}</small></div><div class="shopgrid three">${X.map(([g,gd],i)=>shCard({rc:'#e3b661',badge:i===best?'BEST VALUE':'',badgeIn:1,badgeCls:'best',chip:shChip({gems:g}),art:GOLD_SVG,name:`+${fmtN(gd)}`,line:['Purse','Chest','Hoard'][i]+' of gold',btn:shBuyBtn(`data-xch="${i}"`,{gems:g})})).join('')}</div>`;}
+/* Dragonglass for Telegram Stars: the Starter pack first when the seat still has it, then the three packs; grey with the reason when
+   this seat cannot pay (a guest, or an old Telegram) */
+function shStars(){if(ecoOn())starsShopLoad();const can=starsCan();
+  const note=can?'':`<p class="shopnote">${ecoOn()?'Open the game in an up-to-date Telegram to pay with Stars.':'Payments work on a seat signed in through Telegram — the server credits it.'}</p>`;
+  const keys=['gems_s','gems_m','gems_l'],best=keys.reduce((b,k)=>STARS_SHOP[k].gems/STARS_SHOP[k].stars>STARS_SHOP[b].gems/STARS_SHOP[b].stars?k:b,keys[0]);
+  const pack=(k,big)=>{const S=STARS_SHOP[k];const btn=can?`<button class="stbtn buy" data-stars="${k}">BUY</button>`:`<button class="stbtn" data-stars="${k}" disabled>${big?'TELEGRAM ONLY':'LOCKED'}</button>`;
+    return shCard({cls:(k==='starter'?'starter wide':'')+(can?'':' lock'),rc:k==='starter'?'#ffd54a':'#4fb0ff',badge:k==='starter'?'ONCE · BEST VALUE':k===best?'BEST VALUE':'',badgeIn:k!=='starter',badgeCls:'best',chip:shChip({stars:S.stars}),art:GEM_SVG,name:k==='starter'?'Starter pack':`+${S.gems}`,line:k==='starter'?`${S.gems} ${GEM_SVG} · ${fmtN(S.gold)} ${GOLD_SVG} · 3 Rare books`:'dragonglass',btn});};
+  const starter=ecoOn()&&STARS.starter===false?`<div class="shopgrid">${pack('starter',1)}</div>`:'';
+  return `<div class="hh" id="shStars"><h2>Dragonglass</h2><small>pay with Telegram Stars ⭐</small></div>${note}${starter}<div class="shopgrid three">${keys.map(k=>pack(k)).join('')}</div>`;}
+/* Season Pass & VIP: one card, one button (the page holds both purchases) */
+function shSeason(){const on=typeof seasonOn==='function'&&seasonOn(),P=STARS_SHOP.pass,V=STARS_SHOP.vip;
+  return `<button class="evcard live wide shseason" id="bSeason"><span class="ic">${icon('season',30)}</span><span class="tx"><b>Season Pass &amp; VIP</b><small>Pass ⭐${P.stars} · premium rewards on every tier. VIP ⭐${V.stars} · 25 ${GEM_SVG} a day for ${V.days} days${on?'':'. Needs a Telegram seat'}</small></span><span class="st">OPEN</span></button>`;}
+function shop150HTML(){return shBalance()+shDeals()+shChests()+shExchange()+shStars()+shSeason();}
+function shop150Bind(){const go=(id,sel)=>{const b=document.getElementById(id);if(b)b.addEventListener('click',()=>{SFX.play('tap',50);const t=document.querySelector(sel);if(t)t.scrollIntoView({behavior:'smooth',block:'start'});});};
+  go('shBalG','#shXch');go('shBalD','#shStars');}
 window.HOLDOR_TROOPS={TROOPS,TROOP_ROLE,TROOP_ROLES,troopDef,troopUnits,troopStats,keepRole,troopDress,allyStrike,troopMend,drawTroopBody,troopPreview,showTrain,towerStats,HOUSE_ORDER,HOUSES,build,LEVELS};
 window.HOLDOR_CLASH={CLASH,CLASH_COST,CLASH_N,CLASH_TOP,genClash,clashStart,clashStop,clashSend,clashStepB,clashBot,clashSpawnTroops,clashFinish,clashDraw,showClash,clashCardHTML,gSnap,gSwap,toWorld,w2s};
 window.HOLDOR_CL2={CL2,clashServer,cl2Load,cl2Call,clashGhostInit,clashGhostStep,clashGhostDo,clashRunLog,clashRunWaves,clashAfter,cl2FromStart,cl2PendingOpen,cl2Go,showClash,showClashLocal,setRpc:f=>{cl2Rpc=f;}};
@@ -10486,9 +10962,13 @@ window.HOLDOR_BUILD={buildName,buildCard,buildShareText};
 window.HOLDOR_SIG={SIGFX,sigStyle,heroSig};
 window.HOLDOR_FND={FND,founderTag};
 window.HOLDOR_CHAL={CHAL,chalEncode,chalDecode,chalSp,chalLink,chalFromStart,chalOpen,chalGo,chalCheck,chalName,CHAMPS,unlocked};
-window.HOLDOR_TRIALS={TRIALS,trialsAcc,trialsStart,trialsRun,trialsEnd,trialsResult,hubTrials,hubTabs,trialsInviteCard,gameOver:()=>gameOver()};
+window.HOLDOR_TRIALS={TRIALS,trialsAcc,trialsStart,trialsRun,trialsEnd,trialsResult,hubTrials,hubTabs,trialsInviteCard,trialsGate,trialsTick,trialsBtnHTML,gameOver:()=>gameOver()};
 window.HOLDOR_DECK={DECK,deckState,deckSwap,deckBody};
 window.HOLDOR_CHEST={C5,chest145SVG,chest145Open,get state(){const el=document.getElementById('cer');return el&&el._c5&&el._c5.api?el._c5.api.state():null;}};
+window.HOLDOR_HOME150={homeReadyItems,homeNextOpen,homeGo};
+window.HOLDOR_FLOW150={PREP,deckStripHTML};
+window.HOLDOR_SHOP150={shop150HTML,shNeed,shChip,shBuyBtn,shCard,hubShopV1};
+window.HOLDOR_BF150={callBtnPlace,callBtnTick,CALLP,CALL_SPOTS,openRing,closeRing,get RING(){return RING;}};
 window.HOLDOR_CARDS={cardCovered,CARD_NEED,CARD_MUL,cardRar,cardLvl,cardMax,cardNeed,cardHave,cardGold,cardName,cardOpen,cardReady,cardCan,addCards,cardLevelUp,accLevel,accXp,addXp,xpNeed,lvlChestTier,lvlChestsReady,cardPool,rollChest,stageCards,spellLvl,spellMul,showSpellRoom,showTowerRoom,migrate48,TOURS,toursOf,hubTour,startTour};
 window.HOLDOR_SEATS={seatNo,lbIsMe,lbName,lbStale,lbMine,scoreSummary,fetchLeaderboard,cachedLb};
 window.HOLDOR_BOOK={showBook,bookNew,bookDisc,bookNewCount,bookMarkRead,BOOK,trophiesOf,trophiesRow,rankOf,myRank,rankSVG,showRankSheet,RANKS,RANK_AT};

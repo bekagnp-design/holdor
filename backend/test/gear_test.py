@@ -52,6 +52,7 @@ try:
     ev("""(()=>{const H=HOLDOR;const a=H.newAccount('stark',0,'knight');a.tut=1;a.intro=1;for(let i=1;i<=5;i++)a.campaign[i]=3;a.tour=1;a.learn={chest:1,hold:1,champ:1};a.holdTut=1;a.holdIntro=1;
       H.SAVE.slots[0]=a;H.SAVE.cur=0;H.setAcc(a);H.persist();H.afterLoad();})()""")
     check('seat managed', wait("HOLDOR_ECON.ecoOn()", 12000)); settle()
+    ev("HOLDOR_DAILY.DAILY.shown=true")   # the daily calendar popup (a new seat can always claim day 1) must not cover the taps below
     check('an empty bag at the start', ev("HOLDOR_GEAR.gearItems().length") == 0 and items() == [])
 
     # ---- a won battle drops an item; the player is told ----

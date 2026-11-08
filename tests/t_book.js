@@ -103,7 +103,7 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   await tapEl('#bOk');
   ok('back on battle', await page.evaluate(() => window.HOLDOR.CLOUD.screen === 'hub:battle'), await page.evaluate(() => window.HOLDOR.CLOUD.screen + ' | ' + (document.querySelector('#card').innerText || '').slice(0, 80).replace(/\n/g, ' ')));
   if (!(await page.evaluate(() => !!document.querySelector('#hubTro')))) { console.log(JSON.stringify(R, null, 1)); console.log('ERR', errors); await page.screenshot({ path: SC + 'bk_dbg.png' }); await browser.close(); return; }
-  const tro = await txt('#hubTro'); ok('battle trophies', /60$/.test((tro || '').trim()), tro);
+  const tro = await txt('#hubTro b'); ok('battle trophies', /^60$/.test((tro || '').trim()), tro);   /* v1.5.1: the pill reads "60 · rank", the number is in <b> */
   await page.screenshot({ path: SC + 'bk_hub.png' });
   await tapEl('#hubTro');
   ok('trophy row opens sheet', /The ladder/.test(await page.evaluate(() => document.querySelector('#card').innerText)));
