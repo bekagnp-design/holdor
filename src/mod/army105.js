@@ -13,8 +13,10 @@ const ARM={stop:null,tilt:null};
 function armStop(){if(ARM.stop){ARM.stop();ARM.stop=null;}if(ARM.tilt){cancelAnimationFrame(ARM.tilt.raf);ARM.tilt=null;}}
 function armTilt(stage){const el=stage.querySelector('.acard');if(!el)return;const T={x:0,y:0,tx:0,ty:0,drag:0,t0:performance.now(),raf:0};ARM.tilt=T;
   const pt=e=>{const q=e.touches?e.touches[0]:e,b=stage.getBoundingClientRect();T.drag=1;T.tx=fClamp((q.clientX-(b.left+b.width/2))/(b.width/2),-1,1)*24;T.ty=fClamp((q.clientY-(b.top+b.height/2))/(b.height/2),-1,1)*14;};
-  stage.addEventListener('pointerdown',pt);stage.addEventListener('pointermove',e=>{if(T.drag)pt(e);});['pointerup','pointercancel','pointerleave'].forEach(n=>stage.addEventListener(n,()=>{T.drag=0;}));
-  const f=()=>{if(!stage.isConnected){return;}const t=(performance.now()-T.t0)/1000;if(!T.drag){T.tx=Math.sin(t*.9)*10;T.ty=Math.cos(t*.7)*5;}T.x+=(T.tx-T.x)*.12;T.y+=(T.ty-T.y)*.12;
+  /* v1.5.0: the card lifts while the finger holds it (a class set on the events, not per frame); no idle drift when the system asks for less motion */
+  const rm=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  stage.addEventListener('pointerdown',e=>{pt(e);el.classList.add('held');});stage.addEventListener('pointermove',e=>{if(T.drag)pt(e);});['pointerup','pointercancel','pointerleave'].forEach(n=>stage.addEventListener(n,()=>{T.drag=0;el.classList.remove('held');}));
+  const f=()=>{if(!stage.isConnected){return;}const t=(performance.now()-T.t0)/1000;if(!T.drag){T.tx=rm?0:Math.sin(t*.9)*10;T.ty=rm?0:Math.cos(t*.7)*5;}T.x+=(T.tx-T.x)*.12;T.y+=(T.ty-T.y)*.12;
     el.style.setProperty('--ry',T.x.toFixed(2)+'deg');el.style.setProperty('--rx',(-T.y).toFixed(2)+'deg');el.style.setProperty('--gx',(50+T.x*2.6).toFixed(1)+'%');el.style.setProperty('--gy',(40-T.y*3).toFixed(1)+'%');T.raf=requestAnimationFrame(f);};T.raf=requestAnimationFrame(f);}
 function armStrip(q){const s=card.querySelector(q),v=s&&s.querySelector('.view');if(s&&v)s.scrollLeft=Math.max(0,v.offsetLeft-s.clientWidth/2+v.offsetWidth/2);}
 function armPips(h,n){const k=Math.min(h,n);return `<span class="cardpips" aria-label="${h} of ${n} cards">${'<i class="on"></i>'.repeat(k)}${'<i></i>'.repeat(Math.max(0,n-k))}</span>`;}
