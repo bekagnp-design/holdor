@@ -75,7 +75,7 @@ function spellLine(k,l){const m=1+0.06*((l||spellLvl(k))-1);
 const SPELL_RC={arrows:'#e3b661',fire:'#ff9a3c',reinf:'#8fd3ff',night:'#bfe6ff',repair:'#7cff6b',jars:'#b8ffb8',beacon:'#ffb23c'};
 function showSpellRoom(k){if(typeof armStop==='function')armStop();
   k=SPELLS[k]?k:'arrows';const S=SPELLS[k],key='s:'+k,l=spellLvl(k),op=cardOpen(key),rc=SPELL_RC[k]||'#e3b661',r=cardRar(key);
-  const tiles=Object.keys(SPELLS).map(t=>{const o=cardOpen('s:'+t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-s="${t}"><span class="spi big">${spellSVG(t)}</span><span class="nm">${o?SPELLS[t].n+' · '+spellLvl(t):'After '+SPELLS[t].at}</span></button>`;}).join('');
+  const tiles=Object.keys(SPELLS).map(t=>{const o=cardOpen('s:'+t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-s="${t}"><span class="spi big">${spellSVG(t)}</span>${typeof armTileName==='function'?(o?armTileName(SPELLS[t].n,spellLvl(t)):armTileName('After '+SPELLS[t].at)):`<span class="nm">${o?SPELLS[t].n+' · '+spellLvl(t):'After '+SPELLS[t].at}</span>`}</button>`;}).join('');
   /* v1.5.0: the spell stands as a card like the champion's (frame in the spell's colour, sheen, halo); name, what it does and the level bar beside it */
   const stage=`<div class="hport scard" style="--rc:${rc};--hc:${rc}"><div class="acard"><div class="aback"></div><div class="aface"><div class="aimg sp"><span class="spi big">${spellSVG(k)}</span></div><span class="aglare"></span><span class="arar" style="color:${op?RAR_C[r]:'#8a97a8'}">${op?RAR_N[r]:'Sealed'}</span></div></div></div>`;
   const det=`<div class="hdet" style="--hc:${rc};--hc2:#1d2a3c">
@@ -88,7 +88,7 @@ function showSpellRoom(k){if(typeof armStop==='function')armStop();
   show(`<div class="topbar"><h1>✨ Spells<small>Cards from chests and gold buy levels — every level is +6% power.</small></h1><button class="back" id="bBack">✖</button></div>
   <p class="m cur">🪙 <b style="color:var(--gold)">${fmtN(goldOf())}</b> gold · 🃏 ${cardHave(key)} ${S.n} cards</p>
   <div class="hgrid strip" id="spStrip">${tiles}</div><div id="clist">${det}</div>`);
-  $('#bBack').addEventListener('click',()=>showHub('coll','spells'));if(typeof armStrip==='function')armStrip('#spStrip');
+  $('#bBack').addEventListener('click',()=>typeof armBack==='function'?armBack('spells'):showHub('coll','spells'));if(typeof armStrip==='function')armStrip('#spStrip');
   if(typeof armTilt==='function')armTilt(card.querySelector('#clist .hport'));
   card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showSpellRoom(t.dataset.s)));
   const b=card.querySelector('#clist button[data-a="sl"]');if(b)b.addEventListener('click',()=>{if(cardLevelUp(key)){SFX.play('upgrade');persist();}else SFX.play('deny');showSpellRoom(k);});

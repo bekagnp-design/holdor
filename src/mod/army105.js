@@ -21,6 +21,10 @@ function armTilt(stage){const el=stage.querySelector('.acard');if(!el)return;con
 function armStrip(q){const s=card.querySelector(q),v=s&&s.querySelector('.view');if(s&&v)s.scrollLeft=Math.max(0,v.offsetLeft-s.clientWidth/2+v.offsetWidth/2);}
 function armPips(h,n){const k=Math.min(h,n);return `<span class="cardpips" aria-label="${h} of ${n} cards">${'<i class="on"></i>'.repeat(k)}${'<i></i>'.repeat(Math.max(0,n-k))}</span>`;}
 function armWake(key){return key;}
+/* v1.5.0: a strip tile's caption — the name on one line (ellipsis), the level under it; the back arrow of a room returns to the sub-tab
+   it came from (ARM.ret, set by the deck) */
+function armTileName(n,lvl){return `<span class="nm">${n}</span>${lvl!=null?`<span class="tlv">Lv ${lvl}</span>`:''}`;}
+function armBack(sub){const r=ARM.ret;ARM.ret=null;armStop();showHub('coll',r||sub);}
 /* the one big button for a level: ready (green, pulsing), missing (grey, says what), max */
 function armLvlBtn(key,attr,l,mx){const h=cardHave(key),n=cardNeed(key),g=cardGold(key),can=cardCan(key);
   if(l>=mx)return `<button class="bigbtn max" disabled><span class="bt">★ FULLY FORGED</span></button>`;
@@ -32,7 +36,7 @@ function showHeroRoom(viewId,fod,openSk){armStop();
   const hh=HOUSES[ACC.house],list=CHAMPS.filter(c=>c.house===ACC.house);
   const c=list.find(x=>x.id===viewId)||list.find(x=>x.id===ACC.sel)||list[0],p=cprog(null,c.id),un=unlocked(null,c),ride=ACC.sel===c.id,cap=rankCap(p.lvl),r=champRar(c),st=cstar(c.id),lc=champCap(c.id),key='c:'+c.id;
   const tiles=list.map(x=>{const u=unlocked(null,x),rd=ACC.sel===x.id,v=x.id===c.id,rr=champRar(x);
-    return `<button class="htile tvt ${u?'':'lock'} ${v?'view':''} ${rd?'ride':''}" style="--rc:${RAR_C[rr]}" data-c="${x.id}">${u?portraitHTML(x,58):'<span class="pe">🔒</span>'}<span class="nm">${u?shortName(x)+' · '+cprog(null,x.id).lvl:'After '+UNLOCK_STAGE[x.tier]}</span>${u?starsHTML(cstar(x.id),'sm'):''}${rd?'<i class="rb">RIDING</i>':''}${u&&(cardCan('c:'+x.id)||(ascReady(x.id)&&list.some(f=>ascCan(x.id,f.id))))?'<span class="upb">⬆</span>':''}</button>`;}).join('');
+    return `<button class="htile tvt ${u?'':'lock'} ${v?'view':''} ${rd?'ride':''}" style="--rc:${RAR_C[rr]}" data-c="${x.id}">${u?portraitHTML(x,54):'<span class="pe">🔒</span>'}${u?armTileName(shortName(x),cprog(null,x.id).lvl):armTileName('After '+UNLOCK_STAGE[x.tier])}${u?starsHTML(cstar(x.id),'sm'):''}${rd?'<i class="rb">RIDING</i>':''}${u&&(cardCan('c:'+x.id)||(ascReady(x.id)&&list.some(f=>ascCan(x.id,f.id))))?'<span class="upb">⬆</span>':''}</button>`;}).join('');
   const art=CHAMP_ART[c.id+'_portrait'];
   const stage=`<div class="hstage"><div class="acard" style="--rc:${RAR_C[r]};--hc:${hh.col}"><div class="aback"></div><div class="aface">${un?(art?`<div class="aimg" style="background-image:url(${art})"></div>`:`<div class="aimg emoji">${c.e}</div>`):'<div class="aimg sealed">🔒</div>'}<span class="aglare"></span><span class="arar" style="color:${RAR_C[r]}">${un?RAR_N[r]:'SEALED'}</span></div><span class="asig">${crest(ACC.house,30)}</span></div></div>`;
   const name=`<div class="hname"><b>${un?esc(c.n):'Sealed champion'}</b><small>${un?`<em style="color:${RAR_C[r]}">${RAR_N[r]}</em> · ${String(TYPE_LBL[c.type]).split(',')[0]} · House ${hh.n}`:`🔒 After ${UNLOCK_STAGE[c.tier]} stages — or from the portal`}</small>${un?starsHTML(st):''}</div>`;
@@ -59,7 +63,7 @@ function showHeroRoom(viewId,fod,openSk){armStop();
   CLOUD.screen='hero';armStrip('#armStrip');armTilt(card.querySelector('.hstage'));
   const openDemo=row=>{if(ARM.stop){ARM.stop();ARM.stop=null;}const cv=row&&row.querySelector('canvas');if(cv)ARM.stop=skillDemoLoop(cv,cv.dataset.sk,c.house,c.id);};
   const o=card.querySelector('.skr.open');if(o)openDemo(o);
-  $('#bBack').addEventListener('click',()=>{armStop();showHub('coll','heroes');});
+  $('#bBack').addEventListener('click',()=>armBack('heroes'));
   card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showHeroRoom(t.dataset.c)));
   card.querySelectorAll('.skrh').forEach(h=>h.addEventListener('click',e=>{if(e.target.closest('button'))return;const row=h.parentNode,was=row.classList.contains('open');card.querySelectorAll('.skr.open').forEach(x=>x.classList.remove('open'));if(ARM.stop){ARM.stop();ARM.stop=null;}if(!was){row.classList.add('open');SFX.play('tap',50);openDemo(row);}}));
   card.querySelectorAll('[data-tog]').forEach(b=>b.addEventListener('click',()=>{const t=card.querySelector('[data-tgt="'+b.dataset.tog+'"]');if(t){t.hidden=!t.hidden;SFX.play('tap',50);}}));
@@ -83,7 +87,7 @@ function showHeroRoom(viewId,fod,openSk){armStop();
 function showTowerRoom(k){armStop();
   const open=TKEYS.filter(towerOpen);k=k&&TOWERS[k]?k:(open[0]||'watch');
   const D=TOWERS[k],L=tLvl(k),op=towerOpen(k),rc=(UGROUPS.find(g=>g[0]===k)||[])[3]||'#8a97a8';
-  const tiles=TKEYS.map(t=>{const o=towerOpen(t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-t="${t}">${towerIconHTML(t,o?Math.max(1,maxTowerLvl()):1,52)}<span class="nm">${o?TSHORT[t]+' · '+tLvl(t):'After '+TOWER_UNLOCK[t]}</span>${o&&cardCan('t:'+t)?'<span class="upb">⬆</span>':''}</button>`;}).join('');
+  const tiles=TKEYS.map(t=>{const o=towerOpen(t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-t="${t}">${towerIconHTML(t,o?Math.max(1,maxTowerLvl()):1,52)}${o?armTileName(TSHORT[t],tLvl(t)):armTileName('After '+TOWER_UNLOCK[t])}${o&&cardCan('t:'+t)?'<span class="upb">⬆</span>':''}</button>`;}).join('');
   const chips=TMILE[k].map((m,i)=>{const got=L>=T_MILE[i];return `<button class="mchip ${got?'got':''}" data-mi="${i}"><i>${m[0]}</i><b>${got?'✔':'LV '+T_MILE[i]}</b></button>`;}).join('');
   const mtxt=TMILE[k].map((m,i)=>`<p class="mtx" data-mt="${i}" hidden><b>${esc(m[1])}</b> — ${m[2]}</p>`).join('');
   const mp=typeof mstPanel==='function'?mstPanel(k):'',r=typeof cardRar==='function'?cardRar('t:'+k):0;
@@ -98,7 +102,7 @@ function showTowerRoom(k){armStop();
   <div class="hgrid strip" id="armStrip">${tiles}</div>
   <div id="clist"><div class="hdet2" style="--hc:${rc};--hc2:#1d2a3c">${head}<div class="hact">${act}</div>${det}</div></div>`);
   CLOUD.screen='tower';armStrip('#armStrip');
-  $('#bBack').addEventListener('click',()=>showHub('coll','towers'));
+  $('#bBack').addEventListener('click',()=>armBack('towers'));
   card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showTowerRoom(t.dataset.t)));
   card.querySelectorAll('.mchip').forEach(m=>m.addEventListener('click',()=>{const i=m.dataset.mi,t=card.querySelector('[data-mt="'+i+'"]'),was=t&&!t.hidden;card.querySelectorAll('.mtx').forEach(x=>x.hidden=true);if(t&&!was){t.hidden=false;SFX.play('tap',50);}}));
   const b=card.querySelector('#clist button[data-a="tl"]');if(b)b.addEventListener('click',()=>{if(cardLevelUp('t:'+k)){SFX.play('upgrade');persist();}else SFX.play('deny');showTowerRoom(k);});

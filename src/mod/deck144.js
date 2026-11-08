@@ -20,7 +20,7 @@ function deckBody(){const S=deckState(),c=CBY[ACC.sel];
   const lock=S.tlock.map(k=>deckCard('t',k,'lock')).concat(S.slock.map(k=>deckCard('s',k,'lock')));
   return `<div class="hh"><h2>Your battle deck</h2><small>tap a card to swap or level it</small></div>${ban}
     <div class="dksec"><b>Champion & spells</b><small>${S.sin.length}/3 spells</small></div>
-    <div class="deckrow">${champCard(c,{})}${S.sin.map(k=>deckCard('s',k,'in')).join('')}</div>
+    <div class="deckrow dkrow">${champCard(c,{}).replace('class="ccard ','class="ccard hero ')}${S.sin.map(k=>deckCard('s',k,'in')).join('')}</div>
     <div class="dksec"><b>Towers in battle</b><small>${S.tin.length}/${ROSTER_MAX} · tier ${ROMAN[maxTowerLvl()-1]}</small></div>
     <div class="cgrid c3">${S.tin.map(k=>deckCard('t',k,'in')).join('')}</div>
     <div class="hh dkcolh"><h2>Collection</h2><small>${col.length?'stay home · tap to bring one in':'every open card is in your deck'}</small></div>
@@ -36,19 +36,26 @@ function deckSheet(kind,k,where){const el=document.getElementById('dkSheet')||do
   const S=deckState(),others=kind==='t'?(where==='in'?S.tout:S.tin):(where==='in'?S.sout:S.sin),lvl=kind==='t'?tLvl(k):spellLvl(k);
   const line=kind==='t'?(TGUIDE[k]?TGUIDE[k].role:TOWERS[k].sub):(SPELLS[k].d);
   const swapLbl=where==='in'?'⇄ SWAP OUT':'⇄ USE IN BATTLE';
-  el.innerHTML=`<div class="dks-in"><div class="dks-h"><span class="dks-ic">${kind==='t'?towerIconHTML(k,Math.max(1,maxTowerLvl()),46):`<span class="spi">${spellSVG(k)}</span>`}</span><span><b>${esc(deckName(kind,k))}</b><small>${where==='lock'?'locked':'level '+lvl}${where==='in'?' · in your deck':where==='out'?' · in your collection':''}</small></span></div>
+  const at=kind==='t'?TOWER_UNLOCK[k]:SPELLS[k].at;
+  el.innerHTML=`<div class="dks-in"><div class="dks-h"><span class="dks-ic${where==='lock'?' lock':''}">${kind==='t'?towerIconHTML(k,Math.max(1,maxTowerLvl()),46):`<span class="spi">${spellSVG(k)}</span>`}</span><span><b>${esc(deckName(kind,k))}</b><small>${where==='lock'?'🔒 opens after stage '+at:'level '+lvl}${where==='in'?' · in your deck':where==='out'?' · in your collection':''}</small></span></div>
     <p>${esc(line)}</p>
     <div class="dks-b">${where!=='lock'&&others.length?`<button class="bigbtn lvl ready" data-dka="swap"><span class="bt">${swapLbl}</span></button>`:''}<button class="bigbtn" data-dka="info"><span class="bt">${where==='lock'?'ⓘ INFO':'⬆ LEVEL UP · INFO'}</span></button></div>
     <button class="linkbtn" data-dka="x">Close</button></div>`;
   el.classList.add('on');
   el.querySelectorAll('[data-dka]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const a=b.dataset.dka;el.classList.remove('on');
-    if(a==='info'){SFX.play('tap',60);if(kind==='t')showTowerRoom(k);else showSpellRoom(k);}
+    if(a==='info'){SFX.play('tap',60);deckRet();if(kind==='t')showTowerRoom(k);else showSpellRoom(k);}
     else if(a==='swap'){SFX.play('tap',60);Object.assign(DECK,{mode:'swap',kind,pick:k,side:where});deckRedraw();}}));
   el.onclick=e=>{if(e.target===el)el.classList.remove('on');};}
-{const hc1=hubCollection;hubCollection=function(sub){sub=sub||'deck';if(sub!=='deck'){DECK.mode=null;return hc1(sub);}
+/* v1.5.0: a room opened from the deck comes back to the deck (ARM.ret, read by armBack); every Army render forgets it */
+function deckRet(){if(typeof ARM==='object'&&ARM)ARM.ret='deck';}
+{const hc1=hubCollection;hubCollection=function(sub){sub=sub||'deck';if(typeof ARM==='object'&&ARM)ARM.ret=null;if(sub!=='deck'){DECK.mode=null;return hc1(sub);}
   const full=hc1('deck'),i=full.indexOf('<div class="hh"><h2>Battle loadout');return (i>0?full.slice(0,i):full)+deckBody();};
  const hb1=hubCollectionBind;hubCollectionBind=function(sub){hb1(sub);if((sub||'deck')!=='deck')return;
   const cn=document.getElementById('dkCancel');if(cn)cn.addEventListener('click',()=>{DECK.mode=null;SFX.play('tap',40);deckRedraw();});
+  /* v1.5.0: the banner stays above the tab bar whatever its height, and the body gets room under it so the last row is reachable */
+  const hb=document.getElementById('hubBody');if(hb)hb.classList.toggle('dkon',!!DECK.mode);
+  const ban=card.querySelector('.dkban'),tabs=card.querySelector('.hubtabs');if(ban&&tabs){const t=tabs.getBoundingClientRect().top;if(t>0&&t<innerHeight)ban.style.bottom=Math.round(innerHeight-t)+14+'px';}
+  const row=card.querySelector('.deckrow.dkrow');if(row)row.addEventListener('click',e=>{if(e.target.closest('.ccard[data-c]'))deckRet();},true);
   card.querySelectorAll('.ccard[data-dk]').forEach(b=>b.addEventListener('click',()=>{const kind=b.dataset.dk,k=b.dataset.dv,where=b.dataset.dw;
     if(DECK.mode){
       if(kind===DECK.kind&&where!==DECK.side&&where!=='lock'&&k!==DECK.pick){const a=DECK.side==='in'?DECK.pick:k,bb=DECK.side==='in'?k:DECK.pick;
