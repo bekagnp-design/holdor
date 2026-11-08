@@ -1,0 +1,272 @@
+diff --git a/src/mod/ui150.css b/src/mod/ui150.css
+new file mode 100644
+index 0000000..cc4ae13
+--- /dev/null
++++ b/src/mod/ui150.css
+@@ -0,0 +1,66 @@
++/* ===== v1.5.0 · ui150 — one system for the menus: tokens, roles, touch targets. Applied last, by role, scoped to the menus
++   (#card, #dkSheet, #ecoModal). Left alone on purpose: the battle HUD (#hud, #sheet, #clashUi, #boonOv), the films (.card.full,
++   .fs, .film), the chest scene (#cer), the preparation sheet (#prep), the result card (.card.res), the book (.bookfs, .bk*),
++   the parchment (.hdet), the bottom bar (.hubtabs), the home's BATTLE! / MAP / champion buttons (.bbig, .bside) and the chest slots. ===== */
++:root{--ok:#8be26a;--ok-deep:#3f9a3a;--ok-bd:#1f5a17;--ok-ink:#0b2a0a;
++  --gold-hi:#ffe97a;--gold-mid:#ffcf3d;--gold-deep:#f2a62c;--gold-bd:#7a4a10;--gold-ink:#2a1a05;
++  --warn:#e14b4b;--warn-deep:#8a1d1d;--lock:#8a97a8;--lock-deep:#59687b;
++  --blue-hi:#2a6fb9;--blue-deep:#1a4d8c;--blue-bd:#0b1a2e;
++  --card:#13284a;--card-bd:#0b1a2e;--quiet:rgba(255,255,255,.06);--quiet-bd:rgba(255,255,255,.16);
++  --r-sm:9px;--r-md:12px;--r-lg:16px;--tap:44px;--gap:8px}
++
++/* --- touch targets: every menu button is at least 44 px tall; rows of buttons keep 8 px between neighbours --- */
++:is(#card,#dkSheet) button:not(:where(.hubtabs button,.bbig,.bside,.slot,.hpill,.ic,.hmlink,.linkbtn,.bookfs button,.bktiers button,.bkpager button,.card.full button,.fs button,.film button,.res button)),
++#ecoModal .eb button{min-height:var(--tap)}
++:where(#card) :is(.row,.acts,.minirow,.resrow,.tvfoot,.clrow,.dbtns,.cfoot,.lvline,.skrh,.subtabs){gap:var(--gap)}
++:where(#card) .subtabs button{white-space:nowrap;padding-left:2px;padding-right:2px}
++#ecoModal .eb{gap:var(--gap)}
++:where(#card) .hmhold .hmlink{min-height:40px;display:flex;align-items:center;gap:6px}
++:where(#card) .linkbtn{min-height:40px;padding:10px 8px}
++:where(#card) .hpill{height:40px;border-radius:20px}
++:where(#card) .hmgoal{min-height:var(--tap)}
++:where(#card) :is(.topbar .back,.hback button){min-width:var(--tap);min-height:var(--tap);padding:0 14px;display:inline-flex;align-items:center;justify-content:center;gap:4px}
++:where(#card) .topbar .back{padding:0;font-size:18px;line-height:1}
++
++/* --- primary, gold: play / buy / open / go (costs something or starts something) --- */
++:where(#card,#dkSheet) :is(.btn:not(.sec):not(.nextbig):not(.danger),.sitem button:not(.free):not(.stbtn),.hmhold .hmgo.go,.qrow button.go,.playcard .go,.mapcard .go,.mapcard2 .go,.bigbtn.max,.chbar .go,.stbtn:not(:disabled),.trgo):not(:where(.res *,.hdet *,.bookfs *)),
++#ecoModal .eb button:not(.sec){background:linear-gradient(180deg,var(--gold-hi),var(--gold-mid) 45%,var(--gold-deep));border:3px solid var(--gold-bd);border-bottom-width:5px;border-radius:var(--r-md);color:var(--gold-ink);text-shadow:none;font-family:var(--f-display);font-weight:900;letter-spacing:.04em}
++:where(#card) .hmhold .hmgo.go{border-radius:var(--r-lg)}
++:where(#card) .sitem button:active{transform:translateY(2px);border-bottom-width:3px}
++
++/* --- ready, green: free / claim / level up now (costs nothing, waits for one tap) --- */
++:where(#card,#dkSheet) :is(.bigbtn.lvl.ready,.skr .skrh button.go,.sitem button.free,.qrow button.claim,.btn.ok,.btn.free,.btn.claim):not(:where(.res *,.hdet *)){background:linear-gradient(180deg,var(--ok),var(--ok-deep));border:3px solid var(--ok-bd);border-bottom-width:5px;color:var(--ok-ink);text-shadow:none;font-family:var(--f-display);font-weight:900;letter-spacing:.04em}
++:where(#card) .qrow button.claim{box-shadow:0 0 16px rgba(139,226,106,.45);border-radius:var(--r-lg)}
++:where(#card,#dkSheet) .bigbtn.lvl.ready{border-radius:var(--r-lg)}
++:where(#card) :is(.sitem .badge,.ccard .upb,.ccard .cb.ok i,.ccard.dkc .dkin,.hubtop .cur .plus,.slot.ready em){background:linear-gradient(180deg,var(--ok),var(--ok-deep));border-color:var(--ok-bd)}
++:where(#card) .slot.ready em{color:var(--ok-ink)}
++
++/* --- secondary, blue: back / navigation / the quieter of two choices --- */
++:where(#card,#dkSheet) :is(.hback button,.btn.sec:not(.danger),.bigbtn.ride:not(.on):not(:disabled),.topbar .back,.dkban button):not(:where(.res *,.hdet *)),
++#ecoModal .eb button.sec{background:linear-gradient(180deg,var(--blue-hi),var(--blue-deep));border:3px solid var(--blue-bd);border-bottom-width:5px;border-radius:var(--r-md);color:#fff;text-shadow:0 1px 0 var(--blue-bd);font-family:var(--f-display);font-weight:900;letter-spacing:.03em;box-shadow:none}
++:where(#card) .hback button{font-size:13px}
++
++/* --- quiet outline: toggles, folded sections, a button that is not ready yet, small choices in a list --- */
++:where(#card) :is(.tgl,.bigbtn.lvl.need,.bigbtn.ride.on,.bigbtn.ride:disabled,.skr .skrh button:not(.go),.ccard button,.row button,.shop .it button,.artsheet .it button,.minirow button,.champ .acts button,.sk button,.tvfoot button,.langgrid button,.tabs button:not(.on)):not(:where(.res *,.hdet *)){background:var(--quiet);border:1px solid var(--quiet-bd);border-radius:var(--r-md);font-family:var(--f-display);font-weight:700}
++:where(#card) :is(.tvfoot button,.row button,.champ .acts button,.langgrid button){color:var(--ink);font-size:13px}
++
++/* --- destructive: delete / sell / burn — a warm red outline, never a filled button --- */
++:where(#card) :is(.btn.danger,button.danger,#bYes){background:rgba(225,75,75,.12);border:2px solid var(--warn);color:#ffb4a8;text-shadow:none;font-family:var(--f-display);font-weight:900}
++
++/* --- disabled / locked: one grey, no stacked filters, no glow, no pulse --- */
++:is(#card,#dkSheet) button:disabled:not(:where(.ride,.max,.need,.hmgo,.on,.bookfs button,.bkpager button,.res button)),#ecoModal .eb button:disabled{opacity:.55;filter:grayscale(.6);box-shadow:none;animation:none;transform:none;cursor:default}
++#card :is(.lock,.locked,.sitem.lock) button:disabled{opacity:1;filter:none}
++
++/* --- gold chips (live, tag, max) share the gold --- */
++:where(#card) :is(.evcard.live .st,.ccard .tag,.ccard .cb.max i,.subtabs button.on){background:linear-gradient(180deg,var(--gold-hi),var(--gold-deep))}
++
++/* --- cards: one frame --- */
++:where(#card) .trcard{border:3px solid var(--card-bd);box-shadow:0 4px 0 var(--card-bd);border-radius:var(--r-lg)}
++
++/* --- type scale for the menus: 23 (page) / 18 (section) / 15 (card) / 13 (label) / 11 (caption) --- */
++:where(#card) :is(.card:not(.res):not(.full) h1,.topbar h1,.hname b){font:900 23px/1.1 var(--f-display);letter-spacing:.03em}
++:where(#card) :is(.hh h2,.trcard .trtx b,.mapcard h2,.mapcard2 h2,.soon h2,.playcard h2){font-size:18px}
++#ecoModal h3{font-size:18px}
++:where(#card) :is(.card h2,.tksec h3,.statbox .hd b,.slot .b .nm,.hmhold .hmtx b){font-size:15px}
++:where(#card) :is(.sitem small,.hcard small,.hpill small,.armybox small,.clcard .cltx small,.evcard.wide .tx small,.trcard .trtx small){font-size:11px}
++:where(#card) :is(.shopgrid.three .sitem small,.sitem.deal small,.rrow .pp small,.gitem small,.gpk small,.smc small,.clbots .clb small,.chm .cb small){font-size:10.5px}
+diff --git a/src/parts/98zz_ui150.py b/src/parts/98zz_ui150.py
+new file mode 100644
+index 0000000..48b476d
+--- /dev/null
++++ b/src/parts/98zz_ui150.py
+@@ -0,0 +1,6 @@
++# v1.5.0 — ui150: one system for the menus. Tokens on :root (--ok, --gold-hi, --blue-hi, --card, --r-md, --tap …), roles
++# (gold = play/buy, green = ready/free, blue = back/navigation, quiet = toggles, red outline = destructive, one grey for disabled),
++# every menu button at least 44 px with 8 px between neighbours, one type scale (23/18/15/13/11). CSS only, applied last, scoped to
++# #card / #dkSheet / #ecoModal; the battle HUD, films, the chest scene, the preparation sheet, the result card, the book, the parchment
++# and the bottom bar keep their own looks. src/mod/ui150.css
++rep("\n</style>\n</head>", "\n" + mod('ui150.css').rstrip('\n') + "\n</style>\n</head>", 1, 'ui150-css')
+diff --git a/tests/audit_ui150.js b/tests/audit_ui150.js
+new file mode 100644
+index 0000000..ee9aa55
+--- /dev/null
++++ b/tests/audit_ui150.js
+@@ -0,0 +1,47 @@
++// UI audit for v1.5.0 (ui150): opens the main menu screens at 390×844, screenshots each into .shots/ui150/<tag>_<screen>.png and
++// lists every visible menu <button> (inside #card, not the battle HUD) whose height is under 44 px. usage: node tests/audit_ui150.js before|after
++const { chromium } = require('playwright');
++const path = require('path'), fs = require('fs');
++const TAG = process.argv[2] || 'now';
++const SC = path.resolve(__dirname, '..', '.shots', 'ui150') + '/'; fs.mkdirSync(SC, { recursive: true });
++const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML || 'beta/index.html');
++const SCREENS = [
++  ['home', `H.showHub('battle')`], ['shop', `H.showHub('shop')`], ['heroes', `H.showHub('coll','heroes')`], ['towers', `H.showHub('coll','towers')`],
++  ['spells', `H.showHub('coll','spells')`], ['deck', `H.showHub('coll','deck')`], ['heroroom', `window.HOLDOR_ARMY.showHeroRoom('robb')`],
++  ['towerroom', `window.HOLDOR_ARMY.showTowerRoom('archer')`], ['spellroom', `window.HOLDOR_CARDS.showSpellRoom('arrows')`],
++  ['trials', `H.showHub('trials')`], ['tasks', `H.showHub('tasks')`], ['hold', `H.showHub('hold')`], ['events', `H.showHub('events')`], ['clan', `H.showHub('clan')`],
++  ['forge', `H.showHub('coll','heroes');setTimeout(()=>document.getElementById('bForge').click(),80)`], ['tavern', `H.showHub('coll','heroes');setTimeout(()=>document.getElementById('bTavern').click(),80)`],
++  ['city', `H.showHub('coll','heroes');setTimeout(()=>document.getElementById('bCity').click(),80)`], ['season', `H.showHub('shop');setTimeout(()=>document.getElementById('bSeason').click(),80)`],
++  ['holdmore', `H.showHub('battle');setTimeout(()=>document.getElementById('bHoldMore').click(),80)`],
++];
++(async () => {
++  const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
++  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
++  const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message));
++  await page.goto(URL); await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_HOME98 && window.HOLDOR_DECK, { timeout: 20000 }); await page.waitForTimeout(300);
++  await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tour = 99;
++    a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1, tasks: 1 }; a.learn = { chest: 1, hold: 1, champ: 1, glass: 1, keep: 1, tier2: 1, fire: 1 };
++    for (let i = 1; i <= 28; i++) a.campaign[i] = 3; a.freeChestAt = Date.now() - 3600000; a.holdTut = 1; a.holdIntro = 1; a.gold = 9000; a.gems = 160; a.sel = 'robb';
++    a.cards = { 'c:robb': 200, 'b:c': 2, 's:arrows': 9, 't:archer': 30 }; a.rv = a.rv || {}; a.ui = a.ui || {}; H.setAcc(a); H.persist(); H.showHub('battle'); });
++  await page.waitForTimeout(600);
++  const out = {};
++  for (const [name, code] of SCREENS) {
++    await page.evaluate((c) => { const H = window.HOLDOR; try { eval(c); } catch (e) { console.log('nav fail', c, e.message); } }, code);
++    await page.waitForTimeout(700);
++    const r = await page.evaluate(() => {
++      const card = document.getElementById('card'); if (!card) return { none: true };
++      const vis = (el) => { if (el.offsetWidth < 2 || el.offsetHeight < 2) return false; const cs = getComputedStyle(el); return cs.visibility !== 'hidden' && cs.display !== 'none' && +cs.opacity > 0.05 && !el.closest('[hidden]'); };
++      const btns = [...card.querySelectorAll('button')].filter(vis);
++      const desc = (b) => { const r = { height: b.offsetHeight, width: b.offsetWidth }; return { h: Math.round(r.height), w: Math.round(r.width), id: b.id || '', cls: b.className || '', tx: (b.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 28), par: (b.parentElement.className || b.parentElement.id || '').toString().slice(0, 30) }; };
++      const small = btns.filter(b => b.offsetHeight < 44).map(desc);
++      const wrap = card.firstElementChild ? card.firstElementChild.className : '';
++      return { total: btns.length, small, wrap, screen: window.HOLDOR.CLOUD.screen, scrollH: card.scrollHeight };
++    });
++    out[name] = r;
++    await page.screenshot({ path: SC + TAG + '_' + name + '.png' });
++  }
++  fs.writeFileSync(SC + TAG + '_audit.json', JSON.stringify(out, null, 1));
++  for (const [k, v] of Object.entries(out)) { console.log(`## ${k} [${v.screen}] wrap=${v.wrap} buttons=${v.total} small=${v.small ? v.small.length : '-'}`); (v.small || []).forEach(s => console.log(`   ${s.h}x${s.w} #${s.id} .${s.cls} "${s.tx}" <${s.par}>`)); }
++  if (errors.length) console.log('ERRORS', errors.join('\n'));
++  await browser.close();
++})();
+diff --git a/tests/census_ui150.js b/tests/census_ui150.js
+new file mode 100644
+index 0000000..7eb456b
+--- /dev/null
++++ b/tests/census_ui150.js
+@@ -0,0 +1,50 @@
++// Style census for v1.5.0 (ui150): opens the menu screens and counts DISTINCT computed styles per role — buttons by background
++// (gold / green / blue / grey-quiet / other), back buttons, disabled buttons, headings and captions by font-size, cards by frame.
++// usage: HOLDOR_HTML=<file> node tests/census_ui150.js
++const { chromium } = require('playwright');
++const path = require('path');
++const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML || 'beta/index.html');
++const SCREENS = [`H.showHub('battle')`, `H.showHub('shop')`, `H.showHub('coll','heroes')`, `H.showHub('coll','towers')`, `H.showHub('coll','spells')`, `H.showHub('coll','deck')`,
++  `window.HOLDOR_ARMY.showHeroRoom('robb')`, `window.HOLDOR_ARMY.showTowerRoom('archer')`, `window.HOLDOR_CARDS.showSpellRoom('arrows')`, `H.showHub('trials')`, `H.showHub('tasks')`,
++  `H.showHub('hold')`, `H.showHub('events')`, `H.showHub('clan')`, `H.showHub('coll','heroes');setTimeout(()=>document.getElementById('bCity').click(),80)`, `H.showHub('shop');setTimeout(()=>document.getElementById('bSeason').click(),80)`];
++(async () => {
++  const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
++  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true });
++  await page.goto(URL); await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_HOME98 && window.HOLDOR_DECK, { timeout: 20000 }); await page.waitForTimeout(300);
++  await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tour = 99;
++    a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1, tasks: 1 }; a.learn = { chest: 1, hold: 1, champ: 1, glass: 1, keep: 1, tier2: 1, fire: 1 };
++    for (let i = 1; i <= 28; i++) a.campaign[i] = 3; a.freeChestAt = Date.now() - 3600000; a.holdTut = 1; a.holdIntro = 1; a.gold = 9000; a.gems = 160; a.sel = 'robb';
++    a.cards = { 'c:robb': 200, 'b:c': 2, 's:arrows': 9, 't:archer': 30 }; H.setAcc(a); H.persist(); H.showHub('battle'); });
++  await page.waitForTimeout(500);
++  const acc = { gold: new Set(), green: new Set(), blue: new Set(), quiet: new Set(), other: new Set(), back: new Set(), disabled: new Set(), h1: new Set(), h2: new Set(), h3: new Set(), small: new Set(), cards: new Set(), radii: new Set() };
++  for (const code of SCREENS) {
++    await page.evaluate((c) => { const H = window.HOLDOR; try { eval(c); } catch (e) {} }, code); await page.waitForTimeout(600);
++    const r = await page.evaluate(() => {
++      const card = document.getElementById('card'); const out = { gold: [], green: [], blue: [], quiet: [], other: [], back: [], disabled: [], h1: [], h2: [], h3: [], small: [], cards: [], radii: [] };
++      const vis = (el) => el.offsetWidth > 1 && el.offsetHeight > 1 && !el.closest('[hidden]') && getComputedStyle(el).visibility !== 'hidden';
++      const rgb = (s) => (s.match(/rgba?\([^)]*\)/g) || []).map(c => c.match(/\d+(\.\d+)?/g).slice(0, 3).map(Number));
++      const hue = ([r, g, b]) => { const mx = Math.max(r, g, b), mn = Math.min(r, g, b); if (mx === mn) return -1; let h; if (mx === r) h = (g - b) / (mx - mn); else if (mx === g) h = 2 + (b - r) / (mx - mn); else h = 4 + (r - g) / (mx - mn); return ((h * 60) + 360) % 360; };
++      const sat = ([r, g, b]) => { const mx = Math.max(r, g, b), mn = Math.min(r, g, b); return mx ? (mx - mn) / mx : 0; };
++      for (const b of card.querySelectorAll('button')) {
++        if (!vis(b) || b.closest('.hubtabs') || b.classList.contains('bbig') || b.classList.contains('bside') || b.classList.contains('slot') || b.closest('.hdet')) continue;
++        const cs = getComputedStyle(b); const bg = cs.backgroundImage !== 'none' ? cs.backgroundImage : cs.backgroundColor; const key = bg + ' | ' + cs.borderTopColor + ' ' + cs.borderTopWidth + ' | ' + cs.color;
++        out.radii.push(cs.borderTopLeftRadius);
++        if (b.disabled) { out.disabled.push(cs.opacity + ' ' + cs.filter); continue; }
++        if (b.classList.contains('back') || b.id === 'hubBack' || b.id === 'bBack') { out.back.push(key + ' ' + b.offsetWidth + 'x' + b.offsetHeight); continue; }
++        const cols = rgb(bg); const main = cols.find(c => sat(c) > .25) || cols[0] || [0, 0, 0]; const h = hue(main), s = sat(main);
++        if (s < .2 || main.length === 0) out.quiet.push(key); else if (h >= 35 && h <= 60) out.gold.push(key); else if (h > 70 && h <= 160) out.green.push(key); else if (h > 190 && h <= 240) out.blue.push(key); else out.other.push(key);
++      }
++      for (const h of card.querySelectorAll('h1, .hname b, .topbar h1')) if (vis(h) && !h.closest('.res')) out.h1.push(getComputedStyle(h).fontSize + ' ' + getComputedStyle(h).fontWeight);
++      for (const h of card.querySelectorAll('h2, .trcard .trtx b, .holdhead b')) if (vis(h)) out.h2.push(getComputedStyle(h).fontSize + ' ' + getComputedStyle(h).fontWeight);
++      for (const h of card.querySelectorAll('h3, .statbox .hd b, .slot .b .nm')) if (vis(h)) out.h3.push(getComputedStyle(h).fontSize + ' ' + getComputedStyle(h).fontWeight);
++      for (const s of card.querySelectorAll('small')) if (vis(s) && !s.closest('.hubtabs')) out.small.push(getComputedStyle(s).fontSize);
++      for (const c of card.querySelectorAll('.sitem, .evcard, .clcard, .trcard, .hpanel, .hmhold, .qrow, .statbox, .ccard')) if (vis(c)) { const cs = getComputedStyle(c); out.cards.push(cs.borderTopWidth + ' ' + cs.borderTopColor + ' r' + cs.borderTopLeftRadius); }
++      return out; });
++    for (const k of Object.keys(acc)) r[k].forEach(v => acc[k].add(v));
++  }
++  const line = (k, label) => console.log(`${label}: ${acc[k].size}` + (acc[k].size && acc[k].size <= 14 ? '  ' + [...acc[k]].map(v => v.length > 120 ? v.slice(0, 120) + '…' : v).join(' ‖ ') : ''));
++  line('gold', 'gold buttons · distinct'); line('green', 'green buttons · distinct'); line('blue', 'blue buttons · distinct'); line('quiet', 'quiet/grey buttons · distinct'); line('other', 'other-colour buttons · distinct');
++  line('back', 'back buttons · distinct'); line('disabled', 'disabled buttons · distinct opacity/filter'); line('radii', 'button radii · distinct');
++  line('h1', 'h1 (page title) sizes'); line('h2', 'h2 (section) sizes'); line('h3', 'h3 (card) sizes'); line('small', 'caption sizes'); line('cards', 'card frames · distinct');
++  await browser.close();
++})();
+diff --git a/tests/t_ui150.js b/tests/t_ui150.js
+new file mode 100644
+index 0000000..1283a65
+--- /dev/null
++++ b/tests/t_ui150.js
+@@ -0,0 +1,73 @@
++// v1.5.0 — ui150: one system for the menus. Asserts: no visible menu button under 40 px tall on the home / shop / army / tasks screens
++// (and the rooms' back button is a 44 px square); the gold family (shop prices, HOLD THE DOOR, Trials START, a plain .btn) shares one
++// gradient built from --gold-hi, the green family (FREE, LEVEL UP ready) one built from --ok; the parchment .hdet keeps dark text on a
++// light ground; disabled buttons do not stack filters inside a locked card; 8 px between the Army subtabs. No page errors.
++const { chromium } = require('playwright');
++const path = require('path');
++const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML || 'beta/index.html');
++(async () => {
++  const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
++  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
++  const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message));
++  const R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
++  await page.goto(URL); await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_HOME98 && window.HOLDOR_DECK, { timeout: 20000 }); await page.waitForTimeout(300);
++  await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tour = 99;
++    a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1, tasks: 1 }; a.learn = { chest: 1, hold: 1, champ: 1, glass: 1, keep: 1, tier2: 1, fire: 1 };
++    for (let i = 1; i <= 28; i++) a.campaign[i] = 3; a.freeChestAt = Date.now() - 3600000; a.holdTut = 1; a.holdIntro = 1; a.gold = 9000; a.gems = 160; a.sel = 'robb';
++    a.cards = { 'c:robb': 200, 'b:c': 2, 's:arrows': 9 }; H.setAcc(a); H.persist(); H.showHub('battle'); });
++  await page.waitForTimeout(700);
++  const hex2rgb = (h) => { h = h.trim().replace('#', ''); return 'rgb(' + [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)).join(', ') + ')'; };
++  const small = () => page.evaluate(() => { const card = document.getElementById('card');
++    const vis = (el) => { if (el.offsetWidth < 2 || el.offsetHeight < 2) return false; const cs = getComputedStyle(el); return cs.visibility !== 'hidden' && cs.display !== 'none' && +cs.opacity > 0.05 && !el.closest('[hidden]'); };
++    return [...card.querySelectorAll('button')].filter(vis).filter(b => b.offsetHeight < 40).map(b => (b.id || b.className || '?') + ':' + b.offsetHeight); });
++  const tokens = await page.evaluate(() => { const cs = getComputedStyle(document.documentElement); return { ok: cs.getPropertyValue('--ok'), gold: cs.getPropertyValue('--gold-hi'), tap: cs.getPropertyValue('--tap'), card: cs.getPropertyValue('--card-bd') }; });
++  ok('the tokens live on :root (--ok, --gold-hi, --tap 44px, --card-bd)', /^#[0-9a-f]{6}$/i.test(tokens.ok.trim()) && /^#[0-9a-f]{6}$/i.test(tokens.gold.trim()) && tokens.tap.trim() === '44px' && tokens.card.trim().length > 3, JSON.stringify(tokens));
++  const OK_RGB = hex2rgb(tokens.ok), GOLD_RGB = hex2rgb(tokens.gold);
++  const bg = (sel) => page.evaluate((s) => { const el = document.querySelector(s); return el ? getComputedStyle(el).backgroundImage + '|' + getComputedStyle(el).color : 'none'; }, sel);
++  // ---- home
++  let sm = await small(); ok('home: no visible menu button under 40 px', !sm.length, sm.join(' '));
++  const hold = await bg('#bHold'); ok('HOLD THE DOOR is the gold family (--gold-hi in the gradient)', hold.includes(GOLD_RGB), hold.slice(0, 90));
++  const pill = await page.evaluate(() => document.querySelector('.hpill').offsetHeight); ok('the strip pills are 40 px chips', pill === 40, String(pill));
++  // ---- shop
++  await page.evaluate(() => window.HOLDOR.showHub('shop')); await page.waitForTimeout(600);
++  sm = await small(); ok('shop: no visible menu button under 40 px', !sm.length, sm.join(' '));
++  const price = await bg('.sitem button:not(.free):not(.stbtn)'), free = await bg('.sitem button.free');
++  ok('a shop price is the gold family with dark ink', price.includes(GOLD_RGB) && /rgb\(42, 26, 5\)/.test(price), price.slice(0, 120));
++  ok('the FREE deal is the green family (--ok in the gradient)', free.includes(OK_RGB), free.slice(0, 90));
++  const stacked = await page.evaluate(() => { const b = document.querySelector('.sitem.lock button:disabled'); return b ? getComputedStyle(b).opacity + '/' + getComputedStyle(b).filter : 'n/a'; });
++  ok('inside a locked deal a disabled button does not dim twice', stacked === 'n/a' || /^1\/none$/.test(stacked), stacked);
++  // ---- army: champions, towers, deck; the subtabs 44 px with 8 px between them
++  await page.evaluate(() => window.HOLDOR.showHub('coll', 'heroes')); await page.waitForTimeout(600);
++  sm = await small(); ok('army · champions: no visible menu button under 40 px', !sm.length, sm.join(' '));
++  const sub = await page.evaluate(() => { const b = [...document.querySelectorAll('.subtabs button')]; return { h: Math.min(...b.map(x => x.offsetHeight)), gap: Math.round(parseFloat(getComputedStyle(b[0].parentElement).gap)) }; });
++  ok('the Army subtabs are ≥ 44 px tall with 8 px between neighbours', sub.h >= 44 && sub.gap >= 8, JSON.stringify(sub));
++  await page.evaluate(() => window.HOLDOR.showHub('coll', 'towers')); await page.waitForTimeout(500);
++  sm = await small(); ok('army · towers: no visible menu button under 40 px', !sm.length, sm.join(' '));
++  await page.evaluate(() => window.HOLDOR.showHub('coll', 'deck')); await page.waitForTimeout(500);
++  sm = await small(); ok('army · deck: no visible menu button under 40 px', !sm.length, sm.join(' '));
++  // ---- the champion room: LEVEL UP ready is green, the back button a 44 px square
++  await page.evaluate(() => window.HOLDOR_ARMY.showHeroRoom('robb')); await page.waitForTimeout(600);
++  sm = await small(); ok('champion room: no visible menu button under 40 px', !sm.length, sm.join(' '));
++  const lv = await bg('.bigbtn.lvl.ready'); ok('LEVEL UP (ready) is the green family', lv.includes(OK_RGB), lv.slice(0, 90));
++  const back = await page.evaluate(() => { const b = document.querySelector('.topbar .back'); return [b.offsetWidth, b.offsetHeight]; });
++  ok('the room\'s back button is at least 44 × 44', back[0] >= 44 && back[1] >= 44, back.join('x'));
++  // ---- the spell room: the parchment keeps dark text on a light ground
++  await page.evaluate(() => window.HOLDOR_CARDS.showSpellRoom('arrows')); await page.waitForTimeout(600);
++  const parch = await page.evaluate(() => { const d = document.querySelector('.hdet'); if (!d) return null; const cs = getComputedStyle(d); const lum = (s) => { const m = s.match(/\d+/g) || [0, 0, 0]; return (0.299 * m[0] + 0.587 * m[1] + 0.114 * m[2]) / 255; };
++    const b = d.querySelector('b, .nm, h3'); return { ink: lum(cs.color), bold: b ? lum(getComputedStyle(b).color) : 0, bg: cs.backgroundImage + cs.backgroundColor }; });
++  ok('the parchment .hdet keeps dark text (luminance < .4) on its light ground', parch && parch.ink < 0.4 && parch.bold < 0.5 && /241, 233, 214|f1e9d6/i.test(parch.bg), JSON.stringify(parch));
++  sm = await small(); ok('spell room: no visible menu button under 40 px', !sm.length, sm.join(' '));
++  // ---- trials + tasks + clan
++  await page.evaluate(() => window.HOLDOR.showHub('trials')); await page.waitForTimeout(600);
++  const st = await bg('#bTrials'); ok('Trials START (a plain .btn) is the gold family', st.includes(GOLD_RGB), st.slice(0, 90));
++  await page.evaluate(() => window.HOLDOR.showHub('tasks')); await page.waitForTimeout(600);
++  sm = await small(); ok('tasks: no visible menu button under 40 px', !sm.length, sm.join(' '));
++  const hb = await bg('#hubBack'); ok('the hub\'s Back is the blue family (--blue-hi)', hb.includes(hex2rgb(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--blue-hi')))), hb.slice(0, 90));
++  await page.evaluate(() => window.HOLDOR.showHub('clan')); await page.waitForTimeout(600);
++  sm = await small(); ok('clan: no visible menu button under 40 px', !sm.length, sm.join(' '));
++  const chat = await bg('#bClChat'), war = await bg('#bClWar'); ok('Realm chat (.btn) is gold, Realm war (.btn.sec) is blue', chat.includes(GOLD_RGB) && !war.includes(GOLD_RGB), chat.slice(0, 60) + ' / ' + war.slice(0, 60));
++  ok('no page errors', !errors.length, errors.join(' | '));
++  for (const [k, v] of Object.entries(R)) console.log(v.startsWith('OK') ? 'OK  ' + k + (v.length > 2 ? '  ' + v.slice(3) : '') : 'FAIL ' + k + '  ' + v.slice(5));
++  await browser.close();
++  process.exit(Object.values(R).some(v => v.startsWith('FAIL')) ? 1 : 0);
++})();

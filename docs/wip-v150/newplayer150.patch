@@ -1,0 +1,371 @@
+diff --git a/src/mod/coach.css b/src/mod/coach.css
+index 0c78f82..6150582 100644
+--- a/src/mod/coach.css
++++ b/src/mod/coach.css
+@@ -1,6 +1,6 @@
+ 
+ /* tutorial & coach marks (v1.0.47) */
+-#tutSkip{position:absolute;right:8px;bottom:8px;z-index:6;background:rgba(10,18,32,.72);border:1px solid rgba(227,182,97,.55);color:#e9dfc6;border-radius:9px;padding:5px 10px;font:700 10.5px var(--f-display);letter-spacing:.06em;text-transform:uppercase}
++#tutSkip{position:absolute;right:8px;bottom:40px;z-index:6;background:rgba(10,18,32,.72);border:1px solid rgba(227,182,97,.55);color:#e9dfc6;border-radius:9px;padding:5px 10px;font:700 10.5px var(--f-display);letter-spacing:.06em;text-transform:uppercase}
+ #tutSkip[hidden]{display:none}
+ .tutnote{background:rgba(227,182,97,.14);border:1px solid var(--gold);border-radius:10px;padding:8px 10px;color:#f2e6c9;font-size:13.5px;line-height:1.35;margin:10px 0 0}
+ .tutnote b{color:#ffe08a}
+diff --git a/src/mod/coach.js b/src/mod/coach.js
+index 6adc020..3e44a0a 100644
+--- a/src/mod/coach.js
++++ b/src/mod/coach.js
+@@ -20,8 +20,10 @@ function coachLoop(){
+   COACH.raf=0;if(!COACH.on)return;COACH.raf=requestAnimationFrame(coachLoop);
+   const st=coachStep(),el=COACH.el;if(!st)return;
+   const tgt=(st.wait&&!st.wait())?null:coachFind(st),busy=!!document.querySelector('.tutm')||(!!document.querySelector('#cer')&&!$('#cer').hidden&&$('#cer').innerHTML!=='');
+-  if(!tgt||busy||performance.now()-COACH.t0<120){el.classList.add('wait');COACH.tgt=null;return;}
+-  el.classList.remove('wait');COACH.tgt=tgt;
++  if(!tgt||busy||performance.now()-COACH.t0<120){el.classList.add('wait');COACH.tgt=null;
++    /* v1.5.0: a step whose target never appears is skipped after 8 s — a tour must never wait silently for ever and block every later lesson */
++    if(!tgt&&!busy){if(!COACH.missT)COACH.missT=performance.now();else if(performance.now()-COACH.missT>8000){COACH.missT=0;coachNext();}}return;}
++  COACH.missT=0;el.classList.remove('wait');COACH.tgt=tgt;
+   const A=$('#app').getBoundingClientRect(),r=tgt.getBoundingClientRect(),pad=6;
+   let x0=Math.max(0,r.left-A.left-pad),y0=Math.max(0,r.top-A.top-pad),x1=Math.min(A.width,r.right-A.left+pad),y1=Math.min(A.height,r.bottom-A.top+pad);
+   const set=(k,css)=>{const b=el.querySelector('.cb[data-k="'+k+'"]');Object.assign(b.style,css);};
+diff --git a/src/mod/deck144.js b/src/mod/deck144.js
+index 02bd069..8cb0160 100644
+--- a/src/mod/deck144.js
++++ b/src/mod/deck144.js
+@@ -59,3 +59,12 @@ function deckSheet(kind,k,where){const el=document.getElementById('dkSheet')||do
+ /* v1.4.5: a tower or spell that is not open yet is grey in its own room too (the big picture and the demo) */
+ {const tr2=showTowerRoom;showTowerRoom=function(k){tr2(k);const kk=(card.querySelector('.htile.view')||{dataset:{}}).dataset.t||k;if(TOWERS[kk]&&!towerOpen(kk))card.querySelectorAll('#clist .tstage,#clist .dmw').forEach(e=>e.classList.add('lock'));};
+  const sr2=showSpellRoom;showSpellRoom=function(k){sr2(k);k=SPELLS[k]?k:'arrows';if(!cardOpen('s:'+k))card.querySelectorAll('#clist .hport,#clist .dmw').forEach(e=>e.classList.add('lock'));};}
++/* v1.5.0: the Army tour follows the deck. The old tour pointed at a Watchtower card with data-t, which the deck cards no longer carry (data-dk / data-dv):
++   the coach waited for it silently, for ever, and every later tour and lesson stayed blocked behind it. */
++TOURS.coll=()=>[
++  {sel:'.subtabs',text:'<b>Army</b>: your battle deck, champions, towers and spells. Each one is a card — collect copies from chests, then pay gold to raise its level.'},
++  {sel:'.deckrow .ccard[data-c]',text:'Your champion. The bar shows cards collected toward the next level; a green arrow means it is ready. Tap a champion later for skills and talents.'},
++  {sel:'.ccard[data-dk="t"][data-dv="watch"]',tap:1,text:'Towers keep a permanent level too, and the five in your deck ride into every battle. Tap the <b>Watchtower</b>.'},
++  {sel:'#dkSheet.on [data-dka="info"]',tap:1,text:'<b>LEVEL UP · INFO</b> opens the tower\'s room: its numbers, its demo and its level.'},
++  {sel:'#clist button[data-a="tl"]',tap:1,text:'When the bar is full, tap here: cards + gold = one level, +3% power. Levels 4, 8, 12 and 16 bring a bonus.',alt:'Not enough cards yet — chests fill the bar. Every level adds 3% power, and levels 4, 8, 12 and 16 bring a bonus.'},
++  {sel:'#bBack',tap:1,text:'Back to the Army.'}];
+diff --git a/src/mod/story.js b/src/mod/story.js
+index 4b1806f..20748d7 100644
+--- a/src/mod/story.js
++++ b/src/mod/story.js
+@@ -38,6 +38,7 @@ function stBeatChain(then){const b=stBeat();if(!b){then();return;}stPlay(b,()=>s
+ {const r0=showCampaignResult;showCampaignResult=function(win,stars,nu,gained){r0(win,stars,nu,gained);if(!stOn())return;
+   ['#bUp','#bMap','#bShare','#bHero','#bHard','#bDiff2'].forEach(q=>{const e=$(q);if(e)e.remove();});
+   const row=card.querySelector('.resrow');if(row&&!row.children.length)row.remove();
++  card.querySelectorAll('span').forEach(e=>{if(!/Daily Hold unlocked/.test(e.textContent))return;const t=e.previousSibling;if(t&&t.nodeType===3)t.textContent=t.textContent.replace(/\s*·\s*$/,'');e.remove();});   /* v1.5.0: the Hold is not on the home yet */
+   if(win){let bn=$('#bNext');const keep=cleared()>=3;
+     if(!bn){bn=document.createElement('button');bn.className='btn nextbig';bn.id='bNext';bn.innerHTML='<span class="nx">NEXT ▸</span>';(card.querySelector('.resrow')||card.lastElementChild||card).before(bn);}
+     const nb=bn.cloneNode(true);bn.replaceWith(nb);if(keep)nb.innerHTML='<span class="nx">ENTER THE KEEP ▸</span><small>Something is waiting inside</small>';
+diff --git a/src/mod/trials138.js b/src/mod/trials138.js
+index 1799ebb..fd5a3d0 100644
+--- a/src/mod/trials138.js
++++ b/src/mod/trials138.js
+@@ -17,7 +17,7 @@ HUB_LESSONS.trials={need:()=>obNew()&&obStage()>=5,steps:()=>[{sel:'.hubtabs but
+ function hubTabs(on){const t=[['shop','Shop'],['coll','Army'],['battle','Battle'],['trials','Trials']];
+   const dot={shop:freeChestReady()||starChestsReady()>0,coll:typeof bookNewCount==='function'&&bookNewCount()>0,battle:starChestsReady()>0||(onlineOpen()&&ACC.online.attempts>0&&!(ACC.online.runs||[]).length),trials:false};
+   const sel=HUB_HIDDEN[on]?'battle':on;
+-  return `<div class="hubtabs four">${t.map(([k,n])=>{const lk=hubLocked(k);return `<button class="${k===sel?'on':''} ${k==='battle'?'mid':''} ${lk?'lock':''}" data-tab="${k}"${lk?` data-lock="${OB_NEED[k]}"`:''}>${HUB_ICON[k]}${n}${lk?`<i class="lk">🔒 ${OB_NEED[k]}</i>`:dot[k]?'<span class="dot"></span>':''}</button>`;}).join('')}</div>`;}
++  return `<div class="hubtabs four">${t.map(([k,n])=>{const lk=hubLocked(k);return `<button class="${k===sel?'on':''} ${k==='battle'?'mid':''} ${lk?'lock':''}" data-tab="${k}"${lk?` data-lock="${OB_NEED[k]}"`:''}>${HUB_ICON[k]}${n}${lk?`<i class="lk">🔒 ${OB_NEED[k]+(ACC&&ACC.sv?3:0)}</i>`:dot[k]?'<span class="dot"></span>':''}</button>`;}).join('')}</div>`;}
+ function hubLockSay(k){SFX.play('deny');const st=OB_NEED[k]+(ACC&&ACC.sv?3:0);
+   ecoToast(`🔒 ${k==='coll'?'Army':k==='shop'?'The Shop':'Trials'} opens after stage ${st}${ACC&&!ACC.tut?' — win your first battle first':''}`);}
+ function trialsAcc(){if(!ACC.trials||typeof ACC.trials!=='object')ACC.trials={best:0,runs:0};ACC.trials.best|=0;ACC.trials.runs|=0;return ACC.trials;}
+diff --git a/src/mod/tut107.js b/src/mod/tut107.js
+index 64242b2..f08944a 100644
+--- a/src/mod/tut107.js
++++ b/src/mod/tut107.js
+@@ -23,7 +23,7 @@ function callBtnInit(){
+ function callBtnTick(){
+   const b=CALLB.el;if(!b)return;
+   const ok=typeof G!=='undefined'&&G&&(G.mode==='campaign'||G.mode==='online')&&canCall();
+-  {const sh=document.getElementById('sheet');b.hidden=!ok||G.state!=='play'||!!(sh&&sh.classList.contains('open'));}if(b.hidden)return;
++  {const sh=document.getElementById('sheet');b.hidden=!ok||G.state!=='play'||!!(sh&&sh.classList.contains('open'))||!!(typeof RING!=='undefined'&&RING);}if(b.hidden)return;   /* v1.5.0: while a ring is open the button yields — it covered the ring's lower buttons on slots near the gate */
+   b.textContent='⚔ CALL WAVE'+(G.nextIn>1?'  +'+Math.ceil(G.nextIn)+'🪙':'');
+   b.classList.toggle('want',!!(G.tut&&typeof tutWantBase==='function'&&tutWantBase()==='call'));
+ }
+diff --git a/src/parts/98j_tut.py b/src/parts/98j_tut.py
+index e9b3fee..fd3b9a1 100644
+--- a/src/parts/98j_tut.py
++++ b/src/parts/98j_tut.py
+@@ -2,3 +2,5 @@
+ i = s.find('window.HOLDOR={'); assert i > 0, 'exports anchor'
+ s = s[:i] + mod('tut107.js').rstrip('\n') + '\n' + s[i:]
+ rep("\n</style>\n</head>", "\n" + mod('tut107.css').rstrip('\n') + "\n</style>\n</head>", 1, 'tut107-css')
++# v1.5.0: the victory card of the seven-step tutorial tells only what the player did (upgrading, selling and the spells are lessons on later stages)
++rep("You built, upgraded and sold towers, called waves, led your champion and cast a spell.", "You called the wave, built a tower, led your champion and used their skill.", 1, 'tut-victory-text')
+diff --git a/tests/t_newplayer150.js b/tests/t_newplayer150.js
+new file mode 100644
+index 0000000..19d2226
+--- /dev/null
++++ b/tests/t_newplayer150.js
+@@ -0,0 +1,271 @@
++// v1.5.0: the first twenty minutes of a brand-new player, by real taps, after v1.2–v1.4.9. Title → seat → realm → house → film 0 →
++// the tutorial battle (the big CALL WAVE button, a second tower on the ring, the champion, the skill) → the rest of the fight alone →
++// Continue → film 1 → stage 1 → film 2 → stage 2 (the Dragonglass and sell lessons) → film 3 → stage 3 (the info lesson) → ENTER THE
++// KEEP → film 4 → the castle with three locked tabs and its tour → the map → stage 4 (the keep and speed lessons) → the Army opens:
++// film 5, the champion reveal, the deck → stage 5 (the pause lesson, a skill to learn before wave 3). Films and the reveal play for
++// real (window.__films) and are skipped by their button after a screenshot. Every screen goes to .shots/newplayer/; the test asserts
++// what a player must see at each step, that every button it taps is inside the screen, and that no page error happens.
++const { chromium } = require('playwright');
++const path = require('path'), fs = require('fs');
++const SC = path.resolve(__dirname, '..', '.shots', 'newplayer') + '/'; fs.mkdirSync(SC, { recursive: true }); for (const f of fs.readdirSync(SC)) if (/\.png$/.test(f)) fs.unlinkSync(SC + f);
++const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML || 'beta/index.html');
++const VW = 390, VH = 844;
++process.on('unhandledRejection', e => { console.log(JSON.stringify(global.__R || {}, null, 1)); console.log('THROW', String(e && (e.stack || e.message)).slice(0, 600)); process.exit(1); });
++(async () => {
++  const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome' });
++  const page = await browser.newPage({ viewport: { width: VW, height: VH }, deviceScaleFactor: 2, hasTouch: true });
++  const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message + ' @ ' + String(e.stack || '').split('\n').slice(1, 3).join(' | ')));
++  page.on('console', m => { if (m.type() === 'error' && !/ERR_|Failed to load|net::/.test(m.text())) errors.push('C:' + m.text().slice(0, 200)); });
++  await page.addInitScript(() => { window.__films = 1; });
++  const R = global.__R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
++  let shotN = 0; const shots = [], seen = new Set();
++  const shot = async name => { const f = String(shotN++).padStart(2, '0') + '_' + name + '.png'; await page.screenshot({ path: SC + f }); shots.push(f); };
++  const shotOnce = async name => { if (seen.has(name)) return; seen.add(name); await shot(name); };
++  const box = async sel => { const el = page.locator(sel).first(); if (!(await el.count())) return null; return el.boundingBox(); };
++  /* a real tap on an element: it must be visible and inside the screen, or it is recorded as a defect */
++  const offscreen = [];
++  const tapEl = async (sel, ms) => { const b = await box(sel); if (!b || !b.width) throw new Error('no element ' + sel);
++    const cx = b.x + b.width / 2, cy = b.y + b.height / 2; if (b.x < -1 || b.y < -1 || b.x + b.width > VW + 1 || b.y + b.height > VH + 1) offscreen.push(sel + ' ' + JSON.stringify([Math.round(b.x), Math.round(b.y), Math.round(b.width), Math.round(b.height)]));
++    await page.touchscreen.tap(Math.max(1, Math.min(VW - 1, cx)), Math.max(1, Math.min(VH - 1, cy))); await page.waitForTimeout(ms == null ? 350 : ms); };
++  const tapWorld = async (x, y, ms) => { const p = await page.evaluate(([x, y]) => { const q = document.querySelector('#stage').getBoundingClientRect(), s = window.HOLDOR_RING.w2s(x, y); return { x: q.left + s.x, y: q.top + s.y }; }, [x, y]);
++    await page.touchscreen.tap(Math.max(1, Math.min(VW - 1, p.x)), Math.max(1, Math.min(VH - 1, p.y))); await page.waitForTimeout(ms == null ? 250 : ms); };
++  const has = sel => page.evaluate(sel => { const e = document.querySelector(sel); if (!e) return false; const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(e).display !== 'none' && getComputedStyle(e).visibility !== 'hidden' && !e.hidden; }, sel);
++  const st = () => page.evaluate(() => { const H = window.HOLDOR, G = H.G, X = window.HOLDOR_TUT, s = X.TS();
++    const vis = sel => { const e = document.querySelector(sel); if (!e) return false; const r = e.getBoundingClientRect(); return r.width > 0 && getComputedStyle(e).display !== 'none' && !e.hidden; };
++    return { state: G.state, mode: G.mode, tutorial: !!G.tutorial, lvl: G.level && G.level.id, wave: G.wave, total: G.totalWaves, gold: Math.floor(G.gold), kills: G.kills, paused: G.paused, victory: !!G.victory,
++      tut: G.tut ? { i: G.tut.i, key: G.tut.key, hold: !!G.tut.hold, want: (s && s.want) || null } : null,
++      film: !!window.HOLDOR_FILM.FILM.on, rv: !!window.HOLDOR_GUIDE.RV.on, coach: X.COACH.on, scr: H.CLOUD.screen, hub: !!document.querySelector('.hubtabs'),
++      learn: !!G.learnAsk, prep: !!document.getElementById('prep'), cer: vis('#cer'), overlay: !document.getElementById('overlay').classList.contains('hidden'),
++      ring: !!window.HOLDOR_RING.state(), alive: G.enemies.filter(e => e.hp > 0).length, canCall: H.canCall(), call: vis('#bCall'), callWant: !!(document.getElementById('bCall') || {}).classList && document.getElementById('bCall').classList.contains('want'),
++      armed: G.armed || null, sheet: document.getElementById('sheet').classList.contains('open'), towers: G.map ? G.map.slots.filter(x => x.tower).length : 0 }; });
++  const sim = n => page.evaluate(n => { const H = window.HOLDOR, G = H.G; let i = 0; for (; i < n && G.state === 'play' && !G.paused && !G.learnAsk; i++) H.step(); return i; }, n);
++  const log = [], lessons = [], learned = [];
++  const flows = [];
++  /* ---------- overlays a player meets between battles ---------- */
++  const filmInfo = () => page.evaluate(() => { const F = window.HOLDOR_FILM; return { on: F.FILM.on, id: F.FIL && F.FIL.F && F.FIL.F.id, shot: F.FIL && F.FIL.si, caps: [...document.querySelectorAll('.film .fc')].map(e => e.textContent.trim()), skip: !!document.getElementById('filmSkip') }; });
++  const films = [];
++  const film = async (label) => { const f0 = await filmInfo(); if (!f0.on) return false; await page.waitForTimeout(2600); const f = await filmInfo(); films.push(f.id);
++    await shot(label + '_film_' + f.id); if (f.id === 'f0' || f.id === 'f4') { await page.waitForTimeout(3600); await shot(label + '_film_' + f.id + '_b'); }
++    ok('film ' + f.id + ' plays on a canvas with letterbox bars, a caption typed itself and the Skip button is there', f.on && f.skip && (await page.locator('.film .fbar').count()) === 2, JSON.stringify(f));
++    await tapEl('#filmSkip', 900); return true; };
++  const reveal = async (label) => { if (!(await page.evaluate(() => window.HOLDOR_GUIDE.RV.on))) return false;
++    await page.waitForTimeout(800); await shot(label + '_reveal_chest'); await page.waitForTimeout(3900);
++    const b3 = await page.evaluate(() => ({ cls: document.querySelector('.rv').className, plate: (document.querySelector('.rvplate') || {}).innerText || '', next: !!document.querySelector('.rvnext') && !document.querySelector('.rvnext').hidden }));
++    ok('the champion reveal: the chest burst and the card settled with the name, rarity and NEXT', /p2/.test(b3.cls) && /YOUR CHAMPION/.test(b3.plate) && b3.next, JSON.stringify(b3));
++    await shot(label + '_reveal_card'); await tapEl('.rvnext', 800); await shot(label + '_reveal_skill1'); await tapEl('.rvnext', 700); await tapEl('.rvnext', 700); await shot(label + '_reveal_skill3');
++    const s3 = await page.evaluate(() => ({ ult: !!document.querySelector('.rvskn em'), btn: (document.querySelector('.rvnext') || {}).textContent }));
++    ok('the third skill is the ULTIMATE and the button says DONE', s3.ult && /DONE/.test(s3.btn || ''), JSON.stringify(s3));
++    await tapEl('.rvnext', 900); await shot(label + '_reveal_last'); await tapEl('.rvcta .big', 1200); return true; };
++  const coachTour = async (label) => { const steps = []; let g = 0; while (g++ < 30) {
++      const c = await page.evaluate(() => { const C = window.HOLDOR_TUT.COACH; if (!C.on) return null; const s = C.steps[C.i], el = document.querySelector('#coach'); return { i: C.i, n: C.steps.length, tap: !!s.tap, dis: !!(C.tgt && C.tgt.disabled), shown: !!C.tgt && !el.classList.contains('wait'), txt: el.querySelector('.cbub p').textContent.slice(0, 70), sel: typeof s.sel === 'string' ? s.sel : 'fn',
++        bub: el.querySelector('.cbub').getBoundingClientRect().toJSON(), tgt: C.tgt ? C.tgt.getBoundingClientRect().toJSON() : null }; });
++      if (!c) { if (g < 5) { await page.waitForTimeout(300); continue; } break; }
++      if (!c.shown) { await page.waitForTimeout(250); continue; }
++      steps.push((c.i + 1) + '/' + c.n + ' ' + c.sel + (c.tap && !c.dis ? ' tap' : ' next') + ': ' + c.txt);
++      const inside = c.bub.y >= 0 && c.bub.y + c.bub.height <= VH && (!c.tgt || (c.tgt.y >= 0 && c.tgt.y + c.tgt.height <= VH));
++      if (!inside) offscreen.push('coach ' + c.sel + ' ' + JSON.stringify([Math.round(c.bub.y), Math.round(c.bub.height), c.tgt && Math.round(c.tgt.y)]));
++      await page.waitForTimeout(300); await shot(label + '_tour' + (c.i + 1));
++      if (c.tap && !c.dis) { await page.touchscreen.tap(c.tgt.x + c.tgt.width / 2, c.tgt.y + c.tgt.height / 2); } else await tapEl('#coach .cnext', 200);
++      await page.waitForTimeout(500); }
++    return steps; };
++  const chest = async (label) => { if (!(await has('#cer'))) return false; await shot(label + '_chest'); await tapEl('#cch', 900); await shot(label + '_chest_open'); let g = 0;
++    while (g++ < 12) { const s = await page.evaluate(() => window.HOLDOR_CHEST.state); if (!s || s.phase === 'done') break; await page.touchscreen.tap(195, 420); await page.waitForTimeout(350); }
++    await page.waitForTimeout(400); await shot(label + '_chest_done'); await tapEl('#ccol', 700); return true; };
++  /* whatever sits over the game right now: a film, the reveal, the coach, a chest, the preparation sheet — handle it; false when nothing did */
++  const overlays = async (label) => { if (await film(label)) return 'film'; if (await reveal(label)) return 'rv'; if (await chest(label)) return 'chest';
++    if (await page.evaluate(() => window.HOLDOR_TUT.COACH.on)) { const steps = await coachTour(label); flows.push(label + ' tour: ' + steps.join(' || ')); return 'coach'; }
++    if (await has('#prep')) { await shot(label + '_prepare'); await tapEl('#pGo', 600); return 'prep'; }
++    return false; };
++  /* ---------- the battle: the tutorial's wants, the lessons, then a plain player's play by taps ---------- */
++  const T = () => page.evaluate(() => { const X = window.HOLDOR_TUT, G = window.HOLDOR.G, s = X.TS(); return s ? { want: s.want || null, hint: typeof s.hint === 'function' ? s.hint() : s.hint || '' } : null; });
++  const ring = async (what, extra) => { /* open the ring on a slot and press the tutorial's button, then confirm */
++    const p = await page.evaluate(what => { const G = window.HOLDOR.G, X = window.HOLDOR_TUT; let s = null;
++      if (what === 'free') s = X.tutSlot(); else if (what === 'last') s = G.lastBuilt && G.lastBuilt.tower ? G.lastBuilt : null; else if (what === 'keep') s = G.map.slots.find(x => x.tower && window.HOLDOR.TOWERS[x.tower.type].kind === 'barracks') || null;
++      if (!s) s = G.map.slots.filter(x => x.tower).sort((a, b) => b.tower.lvl - a.tower.lvl || b.y - a.y)[0] || null; return s ? { x: s.x, y: s.y - (s.tower ? 10 : 0) } : null; }, what);
++    if (!p) return false; await page.evaluate(() => { if (window.HOLDOR_RING.state()) window.HOLDOR_RING.closeRing(); }); await tapWorld(p.x, p.y, 300);
++    if (await page.evaluate(() => !!window.HOLDOR_RING.state()) && await has('#bCall')) callOverRing.push(what);
++    const n = await page.locator('#ring .rb.tgo').count(); if (!n) { const n2 = await page.locator('#ring .rb').count(); if (!n2) return false; }
++    await tapEl(n ? '#ring .rb.tgo' : '#ring .rb', 300); if (extra) await extra();
++    if (await page.locator('#ring .rb.arm').count()) await tapEl('#ring .rb.arm', 300); return true; };
++  const enemyAt = () => page.evaluate(() => { const G = window.HOLDOR.G, H = window.HOLDOR; const en = G.enemies.filter(e => e.hp > 0 && !e.fly).map(e => H.posAt(G.map, e.prog, e.route)).filter(p => p.y > 60); if (!en.length) return null; en.sort((a, b) => b.y - a.y); return en[Math.floor(en.length / 2)]; });
++  /* a plain player's hand: build on the rings nearest the middle of the road, upgrade when rich, use the skill and the arrows */
++  const plan = () => page.evaluate(() => { const H = window.HOLDOR, G = H.G, P = window.HOLDOR_PREP; if (!G.map) return null; const R = G.map.routes[0]; const free = G.map.slots.filter(s => !s.tower), tw = G.map.slots.filter(s => s.tower);
++    const spots = [0.5, 0.66, 0.36, 0.8, 0.22, 0.58, 0.44, 0.72].map(f => H.posAt(G.map, R.total * f, 0)); const near = p => free.slice().sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
++    const avail = P.battleTowers(); const want = tw.length >= 2 && avail.includes('glass') && !tw.some(s => s.tower.type === 'glass') ? 'glass' : 'watch'; const cost = H.costOf(want);
++    let slot = null; for (const p of spots) { const s = near(p); if (s && !tw.some(t => Math.hypot(t.x - s.x, t.y - s.y) < 1)) { slot = s; break; } }
++    const up = tw.filter(s => s.tower.lvl < Math.min(5, window.HOLDOR_GEN.maxTowerLvl())).sort((a, b) => a.tower.lvl - b.tower.lvl || b.y - a.y)[0];
++    const h = G.hero; const ult = !!(h && G.heroOn && !h.dead && h.cd.ult <= 0 && G.enemies.some(e => e.hp > 0 && !e.fly && Math.hypot(H.posAt(G.map, e.prog, e.route).x - h.x, H.posAt(G.map, e.prog, e.route).y - h.y) < 120));
++    const arrows = !!(G.powerCd && G.powerCd.arrows <= 0 && H.spellOpen('arrows') && (G.slots || ['arrows'])[0] === 'arrows' && G.enemies.filter(e => e.hp > 0 && !e.fly).length >= 3);
++    return { gold: Math.floor(G.gold), build: slot && G.gold >= cost && tw.length < 7 ? { x: slot.x, y: slot.y, k: want, cost } : null, up: up && G.gold >= H.upCost(up.tower) && (tw.length >= 4 || !slot) ? { x: up.x, y: up.y - 10, cost: H.upCost(up.tower), lvl: up.tower.lvl } : null, ult, arrows, hero: h ? { x: h.x, y: h.y, on: G.heroOn } : null }; });
++  const closeRing = () => page.evaluate(() => { if (window.HOLDOR_RING.state()) window.HOLDOR_RING.closeRing(); });
++  const buildAt = async (p, k) => { await closeRing(); await tapWorld(p.x, p.y, 280); if (!(await page.evaluate(() => !!window.HOLDOR_RING.state()))) return false;
++    const bt = page.locator('#ring .rb').filter({ has: page.locator(`[data-k="${k}"]`) }); let sel = (await bt.count()) ? bt : null;
++    if (!sel) { const idx = await page.evaluate(k => { const R = window.HOLDOR_RING.state(); return R ? R.items.findIndex(it => it.act === 'build' && it.k === k) : -1; }, k); if (idx < 0) { await tapWorld(60, 700, 120); return false; } sel = page.locator('#ring .rb').nth(idx); }
++    const b = await sel.first().boundingBox(); if (!b) return false; await page.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2); await page.waitForTimeout(260);
++    if (await page.locator('#ring .rb.arm').count()) { await tapEl('#ring .rb.arm', 260); return true; } return false; };
++  const upAt = async (p) => { await closeRing(); await tapWorld(p.x, p.y, 280); if (!(await page.evaluate(() => !!window.HOLDOR_RING.state()))) return false;
++    const idx = await page.evaluate(() => { const R = window.HOLDOR_RING.state(); return R ? R.items.findIndex(it => it.act === 'up') : -1; }); if (idx < 0) { await tapWorld(60, 700, 120); return false; }
++    const b = await page.locator('#ring .rb').nth(idx).boundingBox(); if (!b) return false; await page.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2); await page.waitForTimeout(260);
++    if (await page.locator('#ring .rb.arm').count()) { await tapEl('#ring .rb.arm', 260); return true; } return false; };
++  const callMissing = [], stuck = [], callOverRing = [];
++  async function battle(label) {
++    let guard = 0, lastKey = null, lost = 0, same = 0; const steps = [];
++    while (guard++ < 1400) {
++      const s = await st();
++      if (s.state !== 'play') { if (s.state === 'over' && !s.victory && lost < 2 && await has('#bRetry')) { lost++; await page.waitForTimeout(900); await shot(label + '_lost' + lost); log.push(label + ' lost at wave ' + s.wave); await tapEl('#bRetry', 900); continue; } break; }
++      if (s.film || s.rv || s.cer) { await overlays(label); continue; }
++      if (s.learn) { await page.waitForTimeout(900); await shot(label + '_learn_w' + (s.wave + 1));
++        const L = await page.evaluate(() => ({ ids: window.HOLDOR.G.learnAsk.slice(), cards: document.querySelectorAll('#boonOv [data-learn]').length, rr: !!document.getElementById('learnRr'), why: document.querySelector('#boonOv small') && document.querySelector('#boonOv small').textContent }));
++        ok(label + ': before wave ' + (s.wave + 1) + ' the fight stops and three skills are offered with a reroll', L.cards === 3 && L.ids.length === 3 && L.rr, JSON.stringify(L));
++        await tapEl('#boonOv [data-learn="' + L.ids[1] + '"]', 500); learned.push(L.ids[1]); continue; }
++      if (s.tut) {
++        const key = s.tut.key + ':' + s.tut.i; same = key === lastKey ? same + 1 : 0;
++        if (same > 45) { stuck.push(label + ' ' + key + ' ' + (s.tut.want || '')); await shot(label + '_stuck_' + s.tut.key + s.tut.i); await page.evaluate(() => window.HOLDOR_TUT.skipTutorial()); await page.waitForTimeout(300); continue; }
++        if (key !== lastKey) { lastKey = key; if (s.tut.key !== 'tut' && s.tut.i === 0) lessons.push(label + ':' + s.tut.key); steps.push(key + (s.tut.hold ? ':hold' : ':' + (s.tut.want || 'end')));
++          await page.waitForTimeout(350); await shot(label + '_' + s.tut.key + s.tut.i + (s.tut.hold ? '_hold' : '_' + (s.tut.want || 'end').replace(':', '-'))); }
++        if (s.tut.hold) { await tapWorld(195, 470, 350); continue; }
++        const w = (s.tut.want || '').split(':')[0], arg = (s.tut.want || '').split(':')[1];
++        if (!w) { await page.waitForTimeout(700); await sim(60); continue; }
++        if (w === 'call') { if (s.call) await tapEl('#bCall', 300); else { callMissing.push(label + ' tut'); await sim(120); } continue; }
++        if (w === 'kill' || w === 'shot' || w === 'wait') { await sim(120); await page.waitForTimeout(60); continue; }
++        if (w === 'build') { await ring('free'); await page.waitForTimeout(200); continue; }
++        if (w === 'upgrade' || w === 'info') { await ring('top'); if (w === 'info') { await page.waitForTimeout(300); await shot(label + '_info_sheet'); if (await has('#sClose')) await tapEl('#sClose', 400); } continue; }
++        if (w === 'sell') { await ring('last'); continue; }
++        if (w === 'rally') { await ring('keep', async () => { const r = await page.evaluate(() => { const G = window.HOLDOR.G, H = window.HOLDOR; const R = G.map.routes[0]; return H.posAt(G.map, R.total * 0.72, 0); }); await tapWorld(r.x, r.y, 300); }); continue; }
++        if (w === 'move') { const h = await page.evaluate(() => { const g = window.HOLDOR.G.hero; return { x: g.x, y: g.y }; }); await tapWorld(Math.max(60, h.x - 70), Math.max(120, h.y - 110), 400); continue; }
++        if (w === 'ult') { await tapEl('#bUlt', 500); continue; }
++        if (w === 'power') { if (s.armed !== 'arrows') await tapEl('#bP0', 250); const e = await enemyAt(); if (e) await tapWorld(e.x, e.y, 300); else { await sim(60); await page.waitForTimeout(80); } continue; }
++        if (w === 'speed') { await tapEl('#bSpeed', 300); continue; }
++        if (w === 'pause') { await tapEl('#bPause', 500); await shot(label + '_pause_menu'); await tapEl('#pR', 400); continue; }
++        if (w === 'book') { await tapEl('#bInfo', 600); await shot(label + '_book'); await tapEl('#bOk', 400); continue; }
++        if (w === 'hodor') { const g = await page.evaluate(() => { const G = window.HOLDOR.G; const at = G.hod ? G.hod.at : 0, gi = G.map.gates.findIndex((g, i) => i !== at); return gi >= 0 ? { x: G.map.gates[gi].x, y: window.HOLDOR_GEN.GATE_Y + 10 } : null; }); if (g) await tapWorld(g.x, g.y, 300); continue; }
++        await page.waitForTimeout(300); continue;
++      }
++      if (s.paused) { await page.waitForTimeout(200); continue; }
++      /* free play */
++      if (s.alive === 0 && s.canCall) { if (s.call) await tapEl('#bCall', 150); else { callMissing.push(label + ' w' + s.wave); await page.evaluate(() => window.HOLDOR.callWave()); } }
++      const p = await plan();
++      if (p) { if (p.build) await buildAt(p.build, p.build.k); else if (p.up) await upAt(p.up);
++        if (p.ult) await tapEl('#bUlt', 120);
++        if (p.arrows) { await tapEl('#bP0', 120); const e = await enemyAt(); if (e) await tapWorld(e.x, e.y, 120); } }
++      await sim(240); await page.waitForTimeout(30);
++    }
++    log.push(label + ' steps: ' + steps.join(' '));
++    const end = await st(); await page.waitForTimeout(1300); return end; }
++  /* ---------- the caption check: every caption of every film fits its box ---------- */
++  const captionCheck = () => page.evaluate(() => { const S = window.HOLDOR_STORY.STORY, F = window.HOLDOR_FILM; const host = document.createElement('div'); host.className = 'film'; host.style.pointerEvents = 'none'; host.innerHTML = '<div class="fbar t"></div><div class="fbar b"></div><div class="fcaps"></div>'; document.getElementById('app').appendChild(host); const caps = host.querySelector('.fcaps'); const bad = []; let n = 0;
++    for (const f of S.films) for (const s of f.shots) for (const c of (s.cap || [])) { n++; caps.innerHTML = ''; const e = document.createElement('div'); e.className = 'fc k-' + c.kind; if (c.who) { const b = document.createElement('b'); b.textContent = F.fTok(c.who === 'Champion' ? '{CHAMP}' : c.who); e.appendChild(b); } const sp = document.createElement('span'); sp.textContent = F.fTok(c.text); e.appendChild(sp); caps.appendChild(e);
++      const r = sp.getBoundingClientRect(), lh = parseFloat(getComputedStyle(sp).lineHeight) || 22, lines = Math.round(r.height / lh), top = host.querySelector('.fbar.t').getBoundingClientRect().bottom, bot = host.querySelector('.fbar.b').getBoundingClientRect().top, er = e.getBoundingClientRect();
++      if (lines > 2 || er.top < top || er.bottom > bot || r.width > 342) bad.push(f.id + ' ' + c.kind + ' "' + c.text + '" lines ' + lines + ' box ' + Math.round(er.top) + '-' + Math.round(er.bottom) + ' of ' + Math.round(top) + '-' + Math.round(bot)); }
++    host.remove(); return { n, bad }; });
++  // ====================================================================================================================
++  await page.goto(URL); await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_OB && window.HOLDOR_TUT && window.HOLDOR_STORY, { timeout: 30000 }); await page.waitForTimeout(400);
++  await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
++  await page.goto(URL); await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_OB && window.HOLDOR_STORY, { timeout: 30000 }); await page.waitForTimeout(700);
++  // ---- title → seat → realm → house
++  await shot('title');
++  const t0 = await page.evaluate(() => ({ scr: window.HOLDOR.CLOUD.screen, start: !!document.getElementById('bStart'), txt: document.body.innerText.replace(/\s+/g, ' ').slice(0, 200) }));
++  await page.touchscreen.tap(195, 430); await page.waitForTimeout(700);
++  if (!(await has('.seat[data-i="0"]'))) await tapEl('#bStart', 600);
++  ok('the title opens and one tap leads to the seats', await has('.seat[data-i="0"]'), JSON.stringify(t0));
++  await shot('seats'); await tapEl('.seat[data-i="0"]', 700);
++  const realm = await page.evaluate(() => ({ pick: (document.querySelector('#bPick') || {}).textContent || '' }));
++  ok('the realm screen: one tap, "Fight for United States" preselected from the language', /Fight for United States/.test(realm.pick), JSON.stringify(realm));
++  await shot('realm'); await tapEl('#bPick', 600); await shot('house');
++  ok('the house screen shows the seven houses', (await page.locator('.hbig').count()) >= 7);
++  await tapEl('.hbig[data-h="stark"]', 1500);
++  // ---- film 0 plays for real, then the tutorial battle
++  const f0 = await filmInfo(); ok('the house chosen → film 0 "Seven Hours" begins (no menu, no battle yet)', f0.on && f0.id === 'f0' && !(await has('.hubtabs')), JSON.stringify(f0));
++  await film('f0'); await page.waitForTimeout(600);
++  const s0 = await st(); const acc0 = await page.evaluate(() => { const A = window.HOLDOR.ACC; return { sv: A.sv, f0: !!(A.film && A.film.f0), tutWon: !!A.tutWon, castle: !!A.castle }; });
++  ok('Skip → the tutorial battle begins: the story account, film 0 marked, step 0 held by the narrator', s0.state === 'play' && s0.tutorial && s0.tut && s0.tut.i === 0 && s0.tut.hold && acc0.sv === 1 && acc0.f0 && !acc0.tutWon, JSON.stringify([s0.tut, acc0]));
++  const first = await page.evaluate(() => { const G = window.HOLDOR.G; const vis = id => { const e = document.getElementById(id); return !!e && getComputedStyle(e).display !== 'none' && !e.hidden; }; return { towers: G.map.slots.filter(s => s.tower).map(s => s.tower.type + s.tower.lvl), gold: Math.round(G.gold), speed: vis('bSpeed'), info: vis('bInfo'), pause: vis('bPause'), call: vis('bCall'), hero: vis('rowHero'), text: window.HOLDOR_TUT.TS().t() }; });
++  ok('a Watchtower already stands by the door, 90 gold; before the castle only the pause button is on the HUD (speed and the book come with their lessons)', first.towers.join() === 'watch1' && first.gold === 90 && !first.speed && !first.info && first.pause, JSON.stringify(first));
++  ok('the narrator speaks in the story\'s voice', /Seven hours/.test(first.text), first.text);
++  // step 1: the big CALL WAVE button must be there, glowing, inside the screen and clear of the bottom bar
++  await tapWorld(195, 470, 500);
++  const s1 = await st(); const cb = await box('#bCall'), bar = await box('#bar'), skip = await box('#tutSkip');
++  ok('step 1 asks to call the wave: the big CALL WAVE button is shown and glows', s1.tut && s1.tut.want === 'call' && s1.call && s1.callWant, JSON.stringify([s1.tut, s1.call, s1.callWant]));
++  ok('the CALL WAVE button sits inside the screen, above the champion\'s frame and clear of the Skip button', cb && cb.y > 0 && cb.y + cb.height <= (bar ? bar.y : VH) && !(skip && cb.x < skip.x + skip.width && cb.x + cb.width > skip.x && cb.y < skip.y + skip.height && cb.y + cb.height > skip.y), JSON.stringify([cb, bar, skip]));
++  // play the tutorial by taps
++  const tutEnd = await battle('tut');
++  const tv = await page.evaluate(() => ({ h1: (document.querySelector('#card h1') || {}).innerText || '', btn: (document.getElementById('bGo') || {}).textContent || '', p: [...document.querySelectorAll('#card p')].map(p => p.textContent).join(' | '), won: !!window.HOLDOR.ACC.tutWon, tut: window.HOLDOR.ACC.tut, tutv: window.HOLDOR.ACC.tutv, coach: window.HOLDOR_TUT.COACH.on }));
++  ok('the tutorial battle is won by taps alone: the gate held, the account is marked (tut, tutv 99, tutWon), Continue', tutEnd.state === 'over' && tutEnd.victory && tv.won && tv.tut === 1 && tv.tutv === 99 && /Continue/.test(tv.btn) && !tv.coach, JSON.stringify([tutEnd.state, tutEnd.victory, tv]));
++  ok('the tutorial\'s victory card tells only what the player did (no "upgraded and sold towers", no "cast a spell": those lessons come later)', !/upgraded|sold|cast a spell/.test(tv.p), tv.p);
++  await shot('tut_victory');
++  // ---- Continue → film 1 → stage 1
++  await tapEl('#bGo', 1500); await film('after_tut'); await page.waitForTimeout(900);
++  let s = await st(); ok('Continue → film 1 → stage 1 starts at once, no menu', s.state === 'play' && s.lvl === 1 && !s.hub && !s.tutorial, JSON.stringify([s.state, s.lvl, s.hub]));
++  await shot('stage1_start');
++  const e1 = await battle('stage1');
++  const r1 = await page.evaluate(() => ({ next: (document.getElementById('bNext') || {}).textContent || '', others: ['#bUp', '#bMap', '#bShare', '#bHero', '#bHard'].filter(q => document.querySelector(q)), h1: (document.querySelector('#card h1') || {}).innerText || '' }));
++  ok('stage 1 won by taps: one NEXT button, nothing else to choose', e1.victory && /NEXT/.test(r1.next) && !r1.others.length, JSON.stringify([e1.victory, e1.wave, r1]));
++  await shot('stage1_result'); await tapEl('#bNext', 1500); await film('after_s1'); await page.waitForTimeout(900);
++  s = await st(); ok('NEXT → film 2 → stage 2', s.state === 'play' && s.lvl === 2 && !s.hub, JSON.stringify([s.state, s.lvl]));
++  const e2 = await battle('stage2');
++  ok('stage 2 won; the Dragonglass and the sell lessons ran there', e2.victory && lessons.includes('stage2:glass') && lessons.includes('stage2:sell'), JSON.stringify([e2.victory, lessons]));
++  await shot('stage2_result'); await tapEl('#bNext', 1500); await film('after_s2'); await page.waitForTimeout(900);
++  s = await st(); ok('NEXT → film 3 → stage 3', s.state === 'play' && s.lvl === 3 && !s.hub, JSON.stringify([s.state, s.lvl]));
++  const e3 = await battle('stage3');
++  const r3 = await page.evaluate(() => ({ next: (document.getElementById('bNext') || {}).textContent || '', others: ['#bUp', '#bMap', '#bShare', '#bHero'].filter(q => document.querySelector(q)), txt: document.querySelector('#card').innerText }));
++  ok('before the castle the result card does not announce the Daily Hold (the Hold card reaches the home after stage 5)', !/Daily Hold/.test(r3.txt), r3.txt.replace(/\s+/g, ' ').slice(0, 160));
++  ok('stage 3 won; the info lesson ran; the button says ENTER THE KEEP', e3.victory && lessons.includes('stage3:info') && /ENTER THE KEEP/.test(r3.next) && !r3.others.length, JSON.stringify([e3.victory, r3, lessons]));
++  await shot('stage3_result'); await tapEl('#bNext', 1500); await film('keep'); await page.waitForTimeout(1200);
++  // ---- the castle opens: three locked tabs, the home tour
++  const k = await page.evaluate(() => { const A = window.HOLDOR.ACC; return { castle: !!A.castle, f4: !!A.film.f4, hub: !!document.querySelector('.hubtabs'), scr: window.HOLDOR.CLOUD.screen, locks: [...document.querySelectorAll('.hubtabs button.lock')].map(b => b.dataset.tab + ':' + b.dataset.lock).join(), tabs: [...document.querySelectorAll('.hubtabs button')].map(b => b.textContent.trim()).join('|'), pills: [...document.querySelectorAll('.hmstrip .hpill')].map(b => b.id).join(), slots: document.querySelectorAll('.hmslots .slot').length, battle: (document.getElementById('bBattle') || {}).textContent || '', coach: window.HOLDOR_TUT.COACH.on, badges: [...document.querySelectorAll('.hubtabs button.lock')].map(b => b.dataset.tab + ':' + b.querySelector('.lk').textContent.replace(/\D/g, '')).join() }; });
++  ok('film 4 → the castle: only BATTLE is open; Army (stage 4), Shop (5) and Trials (8) locked; no chests; the rank pill only; the tour begins', k.castle && k.f4 && k.hub && k.scr === 'hub:battle' && /shop:2/.test(k.locks) && /coll:1/.test(k.locks) && /trials:5/.test(k.locks) && k.pills === 'hubTro' && k.slots === 0 && /STAGE 4/.test(k.battle), JSON.stringify(k));
++  ok('the lock badges name the stages the player will really hold: Army 4, Shop 5, Trials 8 (not 1, 2, 5)', k.badges === 'shop:5,coll:4,trials:8', k.badges);
++  await page.waitForTimeout(500); await shot('castle');
++  const tour = await coachTour('castle'); flows.push('castle tour: ' + tour.join(' || '));
++  ok('the home tour: four steps (gold, you, your road, BATTLE) and the last tap opens the map', tour.length === 4 && /BATTLE/.test(tour[3]) && (await has('#bGo')), JSON.stringify(tour));
++  await page.waitForTimeout(500); await shot('map_stage4');
++  const map4 = await page.evaluate(() => ({ gt: (document.querySelector('.playcard .gt') || {}).textContent || '', go: (document.getElementById('bGo') || {}).textContent || '' }));
++  ok('the map offers stage 4 with HOLD THE DOOR', /STAGE 4/.test(map4.gt) && /HOLD THE DOOR/.test(map4.go), JSON.stringify(map4));
++  await tapEl('#bGo', 900); if (await overlays('stage4')) await page.waitForTimeout(500);
++  s = await st(); ok('stage 4 begins from the map (no preparation sheet yet)', s.state === 'play' && s.lvl === 4, JSON.stringify([s.state, s.lvl, s.prep]));
++  const e4 = await battle('stage4');
++  ok('stage 4 won; the Watch keep (build + banner) and the speed lessons ran there', e4.victory && lessons.includes('stage4:keep') && lessons.includes('stage4:speed'), JSON.stringify([e4.victory, lessons]));
++  const r4 = await page.evaluate(() => ({ next: !!document.getElementById('bNext'), row: ['#bRetry', '#bUp', '#bMap', '#bShare'].filter(q => document.querySelector(q)).join() }));
++  ok('after the castle the result screen has NEXT and the full row (Replay, Upgrades, Map, Share)', r4.next && r4.row === '#bRetry,#bUp,#bMap,#bShare', JSON.stringify(r4));
++  await shot('stage4_result');
++  // ---- back to the castle: film 5, the champion reveal, the Army opens
++  await tapEl('#bMap', 900); await shot('map_after4'); ok('Map → the campaign map with a back arrow', await has('#bBack'));
++  await tapEl('#bBack', 1200);
++  const b5 = await filmInfo(); ok('back home: stage 4 held → film 5 "Muster" plays first', b5.on && b5.id === 'f5', JSON.stringify(b5));
++  await film('army'); await page.waitForTimeout(1000);
++  ok('after film 5 the champion reveal opens (the chest falls)', await page.evaluate(() => window.HOLDOR_GUIDE.RV.on && !!document.querySelector('.rv.p0, .rv.p1, .rv.p2')));
++  await reveal('army'); await page.waitForTimeout(900);
++  let ovl; while ((ovl = await overlays('home4'))) { await page.waitForTimeout(400); }
++  const h4 = await page.evaluate(() => ({ hub: !!document.querySelector('.hubtabs'), locks: [...document.querySelectorAll('.hubtabs button.lock')].map(b => b.dataset.tab).join(), slots: document.querySelectorAll('.hmslots .slot').length, pops: document.querySelectorAll('.hub .pop-in').length, meet: !!(window.HOLDOR.ACC.rv && window.HOLDOR.ACC.rv.meet), army: !document.querySelector('.hub.g-noarmy'), champBtn: !!document.getElementById('bChampH') }));
++  ok('LET\'S RIDE → the home with the Army and the chests open (Shop and Trials still locked)', h4.hub && h4.locks === 'shop,trials' && h4.slots === 4 && h4.meet && h4.army, JSON.stringify(h4));
++  await shot('home_army_open');
++  await tapEl('.hubtabs button[data-tab="coll"]', 900); while ((ovl = await overlays('army'))) { await page.waitForTimeout(400); }
++  ok('the Army tour runs to its end by taps (deck → Watchtower → its sheet → its room → back) and the coach lets go', !(await page.evaluate(() => window.HOLDOR_TUT.COACH.on)) && /army tour: 6\/6/.test(flows.join('\n')) && /\d\/6 #bBack tap/.test(flows.join('\n')), flows.filter(f => /^army tour/.test(f)).join(' ; ').slice(0, 400));
++  if (!(await has('.ccard.indeck'))) { await tapEl('.subtabs button[data-sub="deck"]', 800); }
++  const deck = await page.evaluate(() => ({ scr: window.HOLDOR.CLOUD.screen, h2: [...document.querySelectorAll('#hubBody h2')].map(h => h.textContent).join('|'), inDeck: document.querySelectorAll('.ccard.indeck').length, swap: !!document.querySelector('.dksec') }));
++  ok('the Army opens on the battle deck: the champion, the spells and the towers in battle', deck.scr === 'hub:coll' && /battle deck/i.test(deck.h2) && deck.inDeck >= 2, JSON.stringify(deck));
++  await shot('army_deck');
++  await tapEl('.ccard.indeck[data-dk="t"]', 700); await shot('army_deck_sheet');
++  const sheet = await page.evaluate(() => ({ on: !!document.querySelector('#dkSheet.on'), btns: [...document.querySelectorAll('#dkSheet [data-dka]')].map(b => b.textContent.trim()).join('|') }));
++  ok('a tower card opens its sheet with LEVEL UP · INFO (no swap: every open tower is in the deck)', sheet.on && /LEVEL UP/.test(sheet.btns), JSON.stringify(sheet));
++  await tapEl('#dkSheet [data-dka="x"]', 500);
++  // ---- stage 5: the pause lesson, a skill to learn before wave 3
++  await tapEl('.hubtabs button[data-tab="battle"]', 900); while ((ovl = await overlays('home5'))) { await page.waitForTimeout(400); }
++  await tapEl('#bBattle', 900); if (await overlays('map5')) await page.waitForTimeout(400);
++  ok('BATTLE! → the map at stage 5', await has('#bGo') && /STAGE 5/.test(await page.evaluate(() => (document.querySelector('.playcard .gt') || {}).textContent || '')));
++  await tapEl('#bGo', 900); while ((ovl = await overlays('stage5'))) { await page.waitForTimeout(400); }
++  s = await st(); ok('stage 5 begins', s.state === 'play' && s.lvl === 5, JSON.stringify([s.state, s.lvl]));
++  const e5 = await battle('stage5');
++  ok('stage 5: the pause lesson ran and a skill was learned before wave 3', lessons.includes('stage5:pause') && learned.length >= 1, JSON.stringify([lessons, learned, e5.victory, e5.wave]));
++  await shot('stage5_result');
++  // ---- the whole way through: no tap outside the screen, every caption fits, no page errors
++  const caps = await captionCheck();
++  ok('every film caption (' + caps.n + ') fits its box in two lines at most', caps.n > 40 && !caps.bad.length, caps.bad.join(' ; '));
++  ok('every button the player tapped was inside the screen (coach bubbles and targets too)', offscreen.length === 0, offscreen.join(' ; '));
++  ok('the CALL WAVE button was there every time a wave had to be called', callMissing.length === 0, callMissing.join(','));
++  ok('every tutorial step and lesson could be finished by taps', stuck.length === 0, stuck.join(' ; '));
++  ok('the CALL WAVE button steps aside while a tower ring is open (it covered the ring\'s lower buttons on slots near the gate)', callOverRing.length === 0, callOverRing.join(','));
++  ok('no page errors', errors.length === 0, errors.join(' | '));
++  console.log(JSON.stringify(R, null, 1)); console.log('LESSONS', JSON.stringify(lessons)); console.log('LEARNED', JSON.stringify(learned)); console.log('FILMS', JSON.stringify(films)); console.log('LOG', JSON.stringify(log, null, 1)); console.log('FLOWS', JSON.stringify(flows, null, 1)); console.log('SHOTS', shots.length, SC); console.log('ERR', JSON.stringify(errors));
++  await browser.close(); process.exit(Object.values(R).some(v => v.startsWith('FAIL')) || errors.length ? 1 : 0);
++})();

@@ -32,8 +32,11 @@ const SC = require('path').resolve(__dirname, '..', '.shots') + '/'; require('fs
   ok('a maxed spell, a covered tower: out of the pool', p.maxed && p.tower);
   ok('a champion keeps dropping (ascension uses copies)', p.champ);
   ok('30 dragon chests with every spell covered: no spell card', p.chestSpells === 0, String(p.chestSpells));
+  // a need rounds as the server's ec_card_need does (numeric, half up): Uncommon at level 45 is 45 × 0.7 = 31.5 → 32 (a double says 31.499…)
+  const nd = await page.evaluate(() => { const C = window.HOLDOR_CARDS; return [C.cardRar('c:bran'), C.cardNeed('c:bran', 45), C.cardNeed('c:bran', 44), C.cardNeed('c:bran', 46), C.cardNeed('t:keep', 7), C.cardNeed('t:weir', 10), C.cardNeed('s:fire', 4), C.cardNeed('t:watch', 1)]; });
+  ok('needs round like the server: Uncommon lv45 → 32 (not 31); lv44 31, lv46 32; keep lv7 7, weir lv10 3, fire lv4 2, watch lv1 2', JSON.stringify(nd) === JSON.stringify([1, 32, 31, 32, 7, 3, 2, 2]), JSON.stringify(nd));
   await page.evaluate(() => window.HOLDOR_CARDS.showSpellRoom('fire')); await page.waitForTimeout(300);
-  ok('a maxed spell: FULLY FORGED, no level button', await page.evaluate(() => !!document.querySelector('#clist .bigbtn.max') && !document.querySelector('#clist .bigbtn.lvl')));
+  ok('a maxed spell: FULLY FORGED, no level button, no "cards come from chests / you hold every card" caption', await page.evaluate(() => !!document.querySelector('#clist .bigbtn.max') && !document.querySelector('#clist .bigbtn.lvl') && !document.querySelector('#clist .cfrom')));
   ok('no page errors', !errors.length, errors.join(' | '));
   console.log(JSON.stringify(R, null, 1)); console.log('ERR', JSON.stringify(errors));
   await browser.close(); process.exit(Object.values(R).some(v => v.startsWith('FAIL')) || errors.length ? 1 : 0);

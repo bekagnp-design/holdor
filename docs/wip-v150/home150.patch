@@ -1,0 +1,322 @@
+diff --git a/src/mod/home150.css b/src/mod/home150.css
+new file mode 100644
+index 0000000..fb96cf6
+--- /dev/null
++++ b/src/mod/home150.css
+@@ -0,0 +1,77 @@
++/* v1.5.0: the home answers three questions — what is ready, what to do now, what is new (src/mod/home150.js).
++   One rhythm: 8 px between pieces, 12 px inside, 16 px radii; body ≥ 13 px, captions ≥ 11 px, tap targets ≥ 44 px. */
++.hubbody.battle{padding:6px 10px 10px}
++/* WHAT IS READY: gold pills on dark, only when something is */
++.hmready{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
++.hmready .rdy{flex:1 1 calc(50% - 4px);min-width:0;min-height:44px;display:flex;align-items:center;gap:8px;padding:6px 10px 6px 8px;border-radius:14px;border:2px solid #e9b949;background:linear-gradient(180deg,rgba(60,40,8,.78),rgba(28,20,6,.86));color:#ffe8a8;text-align:left;box-shadow:0 3px 0 #5a3a10,0 0 14px rgba(255,214,100,.28)}
++.hmready .rdy i{font-style:normal;font-size:20px;line-height:1;flex:0 0 24px;display:flex;align-items:center;justify-content:center;color:#8be26a}
++.hmready .rdy i svg{width:22px;height:22px;filter:drop-shadow(0 1px 0 rgba(0,0,0,.5))}
++.hmready .rdy b{flex:1;min-width:0;font-family:var(--f-display);font-size:13px;letter-spacing:.02em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 0 rgba(0,0,0,.6)}
++.hmready .rdy em{font-style:normal;font-weight:900;font-size:18px;line-height:1;opacity:.75}
++.hmready .rdy.champ,.hmready .rdy.tower{border-color:#7fd06a;color:#dfffd3;box-shadow:0 3px 0 #1e5a1c,0 0 14px rgba(120,230,100,.25)}
++.hmready .rdy.champ i,.hmready .rdy.tower i{color:#8be26a;font-weight:900}
++/* the stage: the art, the 🎨 in the corner, the road-north bar at the foot */
++.hmstage{margin:0 -2px 8px;min-height:200px}
++.hmskin{position:absolute;right:8px;top:8px;z-index:5;width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.22);background:rgba(0,0,0,.38);font-size:16px;line-height:1;padding:0;opacity:.8}
++.hmskin::before{content:'';position:absolute;inset:-5px}
++.hmgoal.v150{left:8px;right:8px;bottom:8px;min-height:40px;padding:5px 12px;gap:10px;border-radius:12px;border-color:rgba(255,255,255,.14);background:linear-gradient(90deg,rgba(0,0,0,.66),rgba(0,0,0,.42))}
++.hmgoal.v150 .gl{flex:1;min-width:0;gap:2px}.hmgoal.v150 .gl small{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9fe0ff}
++.hmgoal.v150 .gl b{font-size:13px;font-weight:700}
++.hmgoal.v150 .gp{flex:0 0 72px;height:8px;border-radius:4px}.hmgoal.v150 .gp i{border-radius:4px}
++.hmgoal.v150 .gs{font-size:12px;letter-spacing:0;color:#ffe08a;font-weight:800;white-space:nowrap}
++.hmgoal.v150 .arr{font-style:normal;font-size:16px;font-weight:900;color:#cfe6ff;opacity:.8}
++/* WHAT DO I DO NOW: one green button, straight under the art */
++.battlerow.v150{margin:0 0 8px}
++.bbig.go150{display:flex;align-items:center;gap:10px;min-height:72px;padding:8px 12px 8px 10px;text-align:left;border-radius:18px;border:3px solid #1e5a1c;border-bottom:8px solid #1e5a1c;color:#fff;letter-spacing:.04em;font-size:24px;
++  background:linear-gradient(180deg,#9aea78 0%,#5cbd4c 50%,#3f9a3a 100%);text-shadow:0 2px 0 rgba(0,0,0,.45);box-shadow:inset 0 3px 0 rgba(255,255,255,.45),0 10px 16px rgba(0,0,0,.35),0 0 24px rgba(120,230,100,.3)}
++.bbig.go150 .bbi{flex:0 0 46px;width:46px;height:46px;border-radius:12px;background:rgba(0,0,0,.26);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.15)}
++.bbig.go150 .bbi svg{width:32px;height:32px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.4))}
++.bbig.go150 .bbt{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;line-height:1}
++.bbig.go150 .bbt b{font-size:24px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
++.bbig.go150 .bbt small,.bbig.go150 .bbr small{display:block;margin:0;font-size:12px;letter-spacing:.06em;font-weight:800;color:#eaffe0;text-shadow:0 1px 0 rgba(0,0,0,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
++.bbig.go150 .bbr{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;line-height:1}
++.bbig.go150 .bbr em{font-style:normal;font-size:15px;font-weight:900;color:#fff3b0;letter-spacing:.02em}
++.bbig.go150 .bbr small{color:#ffe08a;letter-spacing:0}.bbig.go150 .bbr small i{font-style:normal;color:rgba(255,255,255,.35)}
++.bbig.go150.pulse{animation:go150Pulse 1.6s ease-in-out infinite}
++@keyframes go150Pulse{0%,100%{box-shadow:inset 0 3px 0 rgba(255,255,255,.45),0 10px 16px rgba(0,0,0,.35)}50%{box-shadow:inset 0 3px 0 rgba(255,255,255,.45),0 10px 16px rgba(0,0,0,.35),0 0 0 5px rgba(170,255,140,.5),0 0 30px rgba(120,230,100,.8)}}
++html.fxui .battlerow.v150 .fxglow{border-radius:20px;box-shadow:0 0 16px 5px rgba(140,230,110,.7),0 0 34px 10px rgba(80,180,70,.35)}
++/* the quiet row under it: Map · what opens next · the champion */
++.hmside{display:flex;gap:8px;margin:0 0 8px;align-items:stretch}
++.hmside .bside{flex:0 0 64px;height:52px;padding:3px 2px;gap:1px;line-height:1;border-radius:14px;border:2px solid rgba(255,255,255,.14);border-bottom-width:4px;background:rgba(10,24,48,.55);box-shadow:none;font-size:11px;position:relative;text-shadow:0 1px 0 rgba(0,0,0,.6)}
++.hmside .bside img{width:26px;height:26px;border-radius:8px}.hmside .bside .pe{font-size:21px;line-height:1}
++.hmside .bside .upb{position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;background:linear-gradient(180deg,#8be26a,#3f9a3a);border:2px solid #fff;color:#0b2a0a;font-style:normal;font-size:13px;line-height:18px;text-align:center;text-shadow:none;z-index:2}
++.hmnew{flex:1;min-width:0;height:52px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;padding:6px 12px;border-radius:14px;border:2px solid rgba(255,255,255,.14);border-bottom-width:4px;background:rgba(10,24,48,.55);color:#fff;text-align:left;font-family:var(--f-body)}
++.hmnew small{font-size:11px;letter-spacing:.12em;font-weight:800;color:#9fe0ff;text-transform:uppercase;line-height:1}
++.hmnew b{font-family:var(--f-display);font-size:13px;line-height:1.1;display:flex;align-items:center;gap:6px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
++.hmnew b .ni{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:0 0 auto;font-size:16px;font-family:var(--f-body)}
++.hmnew b .ni svg,.hmnew b .ni img{width:22px;height:22px}
++.hmnew.done small{color:#ffe08a}
++.hub.g-noarmy .hmside{justify-content:center}
++/* the chests: a label on each, the ready ones lit, the rest quiet */
++.hmslots.top{gap:8px;margin:0 0 8px}
++.hmslots.top .slot{aspect-ratio:auto;height:96px;padding:6px 2px 6px;justify-content:space-between}
++.slot .sl{position:relative;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#bcd3ee;line-height:1;font-family:var(--f-body)}
++.slot.ready .sl{color:#ffe08a}
++.slot:not(.ready) .si{opacity:.82}
++.slot em{font-size:11px;padding:2px 7px;letter-spacing:.03em}
++.slot .si.gift svg{width:34px;height:34px}
++/* the Hold steps back: a quiet card, a blue button */
++.hmhold{margin:0 0 8px;border-width:2px;border-color:rgba(255,255,255,.14);background:linear-gradient(90deg,rgba(29,79,138,.55),rgba(18,58,107,.55));box-shadow:0 3px 0 rgba(0,0,0,.35)}
++.hmhold .hmrow{padding:8px 10px 6px;gap:12px}.hmhold .hmtx{gap:0}
++.hmhold .hmtx b{font-size:13px;color:#dfe9f7;text-shadow:0 1px 0 rgba(0,0,0,.6)}
++.hmhold .hmtx small,.hmhold .hmtx em{font-size:11px}.hmhold .hmcd{font-size:11px}
++.hmhold .hmgo{min-width:72px;min-height:48px;padding:6px 8px;font-size:14px;border-width:2px;border-color:rgba(255,255,255,.14);background:rgba(0,0,0,.3);box-shadow:none;color:#bcd3ee}
++.hmhold .hmgo small{font-size:9.5px}
++.hmhold .hmgo.go{background:linear-gradient(180deg,#5aa0ff,#2f63c7);color:#fff;border-color:#163a7a;box-shadow:0 3px 0 #163a7a;animation:none}
++.hmhold .hmlink{min-height:32px;font-size:12px;padding:6px 12px}
++/* the strip: rank · Tasks · the event, quiet, at the bottom */
++.hmstrip.low{margin:0 0 2px;gap:8px}
++.hmstrip.low .hpill{height:36px;padding:0 12px 0 9px;border-radius:20px;background:rgba(10,24,48,.55);border:2px solid rgba(255,255,255,.14);box-shadow:none;color:#dfe9f7;font-size:12px;position:relative}
++.hmstrip.low .hpill::before{content:'';position:absolute;inset:-3px}
++.hmstrip.low .hpill b{font-size:13px}.hmstrip.low .hpill small{font-size:11px;color:#bcd3ee}.hmstrip.low .hpill em{font-size:11px}
++.hmstrip.low .hpill.hot{border-color:#e9b949}.hmstrip.low .hpill.hot b{color:#ffe08a}
++.hmstrip.low .hpill.ev.on{background:linear-gradient(90deg,#6a2f0c,#a3531a);border-color:#3a1806}
++.hubtabs.four button{font-size:11px}
++/* short phones: the button stays in the first screen */
++@media (max-height:700px){.hmstage{min-height:140px}.bbig.go150{min-height:64px}.bbig.go150 .bbt b{font-size:22px}.hmslots.top .slot{height:86px}.hmside .bside,.hmnew{height:48px}.hmstrip.low .hpill{height:34px}}
++@media (prefers-reduced-motion:reduce){.bbig.go150.pulse{animation:none}}
+diff --git a/src/mod/home150.js b/src/mod/home150.js
+new file mode 100644
+index 0000000..e2b6f3b
+--- /dev/null
++++ b/src/mod/home150.js
+@@ -0,0 +1,87 @@
++/* =========================== THE HOME ANSWERS THREE QUESTIONS (v1.5.0) ===========================
++   A tester with the phone in hand: "two gold buttons, which one?" So the first screen now answers, top to bottom:
++     WHAT IS READY  — a row of gold pills, only when something is: chests to open, gifts to claim, a champion or a tower that can
++                      level up. Nothing ready → no row.
++     WHAT DO I DO NOW — one green button straight under the stage art: BATTLE · STAGE 7 · its name · the gold it pays. One tap goes
++                      to the preparation sheet (or straight into the stage): the map stays one tap away on the Map button and the
++                      road-north bar on the art.
++     WHAT IS NEW    — a quiet pill between Map and the champion: the next thing that opens and at which stage (tower, spell,
++                      champion, the Hold, Trials, Kingsguard). Tap: its room.
++   Everything else steps back: the chests under the button with a label each (Stars · Level · Free · Gift), the Hold card in quiet
++   blue, the rank / Tasks / event pills at the bottom with lower contrast. The three looks are back behind a small 🎨 in the art's
++   corner (A hero stage · B living gate · C war map; skins.js draws them). Injected last: hubHome / homeStrip / homeSlots / homeGoal /
++   homeBattleRow / skinOf / skinNext here replace the earlier ones; homeBind is wrapped. The ids the coach and the tests know stay:
++   #bBattle, #bMapH / #bDiffH, #bChampH, #hmGoal, #hmStage, #bSkin, .hmslots .slot (#starChest #lvlChest #lvlNext #freeChest
++   #dailyGift), #hmHold / #bHold / #bHoldMore, .hmstrip (#hubTro #bTasks #evBadge). New: #hmReady .rdy[data-r], #hmNew. */
++function skinOf(){try{const u=new URLSearchParams(location.search).get('skin');if(u&&SKINS[u]&&!HOME.urlDone){HOME.urlDone=1;localStorage.setItem('holdor_skin',u);}
++  const k=localStorage.getItem('holdor_skin');return SKINS[k]?k:'b';}catch(e){return 'b';}}
++function skinNext(){const o=['a','b','c'],k=o[(o.indexOf(skinOf())+1)%3];skinSet(k);ecoToast(`${SKINS[k].e} ${SKINS[k].n} · ${o.indexOf(k)+1} / 3`,true);}
++/* ---------- what is ready ---------- */
++function homeReadyItems(n){const out=[];if(!ACC||!ACC.tut)return out;
++  if(n>=1){const d=dailyOn()?(DAILY.st&&DAILY.seat===seatNo()?DAILY.st.login:null):null;
++    const ch=Math.max(0,starChestsReady())+lvlChestsReady()+(freeChestReady()?1:0)+(d&&d.can?1:0);
++    if(ch)out.push({k:'chest',e:icon('gift',22),t:`${ch} ${ch===1?'chest':'chests'} to open`,go:()=>{const s=document.querySelector('.hmslots .slot.ready');if(s)s.click();}});}
++  if(n>=2){const tk=typeof tasksReady==='function'?tasksReady():0;if(tk)out.push({k:'task',e:icon('quests',22),t:`${tk} ${tk===1?'gift':'gifts'} to claim`,go:()=>showHub('tasks')});}
++  if(!hubLocked('coll')&&typeof cardCan==='function'){const c=CBY[ACC.sel];
++    if(c&&cardCan('c:'+c.id))out.push({k:'champ',e:'⬆',t:`${shortName(c)} can level up`,go:()=>showHeroRoom(c.id)});
++    const tw=TKEYS.filter(t=>towerOpen(t)&&cardCan('t:'+t));
++    if(tw.length)out.push({k:'tower',e:'⬆',t:tw.length===1?`${TSHORT[tw[0]]||TOWERS[tw[0]].n} can level up`:`${tw.length} towers can level up`,go:()=>showTowerRoom(tw[0])});}
++  return out;}
++function homeReadyRow(n){const it=homeReadyItems(n);if(!it.length)return '';
++  return `<div class="hmready" id="hmReady">${it.map(i=>`<button class="rdy ${i.k}" data-r="${i.k}"><i>${i.e}</i><b>${esc(i.t)}</b><em>›</em></button>`).join('')}</div>`;}
++/* ---------- what is new: the next thing that opens ---------- */
++function homeNextOpen(){const n=cleared(),sv=ACC.sv?3:0,out=[];
++  for(const k in OB_NEED)if(hubLocked(k))out.push({at:OB_NEED[k]+sv,e:k==='coll'?'🛡️':k==='shop'?HUB_ICON.shop:HUB_ICON.trials||'🌙',n:k==='coll'?'The Army':k==='shop'?'The Shop':'Trials',go:()=>hubLockSay(k)});
++  if(!onlineOpen())out.push({at:ONLINE_AT,e:icon('door',22),n:'The Hold · one map a day',go:()=>ecoToast(`🔒 The Hold opens after stage ${ONLINE_AT}`)});
++  for(const k of TKEYS)if(!towerOpen(k))out.push({at:TOWER_UNLOCK[k],e:towerIconHTML(k,1,22),n:(TSHORT[k]||TOWERS[k].n)+' tower',go:()=>showTowerRoom(k)});
++  for(const k in SPELLS)if(SPELLS[k].at>n)out.push({at:SPELLS[k].at,e:spellSVG(k),n:SPELLS[k].n+' spell',go:()=>showSpellRoom(k)});
++  for(const c of CHAMPS)if(c.house===ACC.house&&!unlocked(null,c))out.push({at:UNLOCK_STAGE[c.tier],e:c.e||'🛡️',n:shortName(c)+' joins',go:()=>showHeroRoom(c.id)});
++  if(typeof hardOpen==='function'&&!hardOpen())out.push({at:LEVELS.length,e:DIFFS.kingsguard.e,n:'Kingsguard difficulty',go:()=>showDifficulty(false)});
++  out.sort((a,b)=>a.at-b.at);return out.find(x=>x.at>n)||null;}
++/* ---------- the pieces ---------- */
++function homeStrip(){const n=obStage(),R=myRank(),e=evAt(Date.now()),K=EVT_KIND[e.kind],left=e.active?e.t1-Date.now():e.t0-Date.now(),tk=typeof tasksReady==='function'?tasksReady():0;
++  return `<div class="hmstrip low"><button class="hpill" id="hubTro">${rankSVG(R.t,20,R.div)}<b>${trophiesOf()}</b><small>rank</small></button>
++    ${n>=2?`<button class="hpill tk ${tk?'hot':''}" id="bTasks">${icon('quests',18)}<b>Tasks</b>${tk?`<i class="dot">${tk}</i>`:''}</button>`:''}
++    ${n>=3?`<button class="hpill ev ${e.active?'on':''}" id="evBadge" data-t="${e.active?e.t1:e.t0}" data-a="${e.active?1:0}">${K.e}<b>${K.n}</b><em>${e.active?'ends in':'in'} ${evLeft(left)}</em></button>`:''}</div>`;}
++function homeGoal(){const NG=LEVELS.length,g=Object.keys(campOf()).length,se=starsEarned();
++  return `<button class="hmgoal v150" id="hmGoal"><span class="gl"><small>Road north</small><b>${g}/${NG} stages held</b></span><span class="gp"><i style="width:${Math.round(100*g/NG)}%"></i></span><span class="gs">★ ${se}/${NG*3}</span><em class="arr">›</em></button>`;}
++function homeSlots(){const sN=starChestsReady(),prog=starsEarned()%3,lN=lvlChestsReady(),L=accLevel();
++  const fr=freeChestReady(),fl=fr?0:(ACC.freeChestAt+86400000-Date.now());
++  const d=dailyOn()?(DAILY.st&&DAILY.seat===seatNo()?DAILY.st.login:null):null,dReady=!!(d&&d.can);
++  const ring=p=>`style="--p:${Math.round(p*100)}"`;
++  return `<div class="hmslots">
++    <button class="slot ${sN>0?'ready':''}" id="starChest" ${ring(sN>0?1:prog/3)}><small class="sl">Stars</small><span class="si">${chestSVG('iron')}</span><em>${sN>0?'OPEN':'★ '+prog+'/3'}</em>${sN>1?`<b class="cnt">×${sN}</b>`:''}</button>
++    ${lN>0?`<button class="slot ready" id="lvlChest" ${ring(1)}><small class="sl">Level</small><span class="si">${chestSVG(lvlChestTier((ACC.lvlChests||0)+2))}</span><em>OPEN</em>${lN>1?`<b class="cnt">×${lN}</b>`:''}</button>`
++      :`<button class="slot" id="lvlNext" ${ring(L.xp/L.need)}><small class="sl">Level</small><span class="si dim">${chestSVG(lvlChestTier(L.l+1))}</span><em>AT LV ${L.l+1}</em></button>`}
++    <button class="slot ${fr?'ready':''}" id="freeChest" ${ring(fr?1:1-fl/86400000)}><small class="sl">Free</small><span class="si">${chestSVG('wood')}</span><em data-until="${fr?0:ACC.freeChestAt+86400000}">${fr?'OPEN':fmtT(fl).str}</em></button>
++    <button class="slot ${dReady?'ready':''}" id="dailyGift" ${ring(dReady?1:1-msToMidnightUTC()/86400000)}><small class="sl">Gift</small><span class="si gift">${icon('gift',38)}</span><em data-midnight="${dReady?0:1}">${!dailyOn()?'DAILY':dReady?'CLAIM':fmtT(msToMidnightUTC()).str}</em></button></div>`;}
++/* the one button, and the quiet row under it: Map · what opens next · the champion */
++function homeBattleRow(){const c=CBY[ACC.sel],L=nextStage(),pu=CHAMP_ART[c.id+'_portrait'],tut=!!ACC.tut,st=campOf()[L.id]||0,again=st>0,nx=tut?homeNextOpen():null;
++  const rew=ECON.win(L,3,!again),can=!hubLocked('coll')&&typeof cardCan==='function'&&cardCan('c:'+c.id);
++  const big=tut?`<span class="bbi">${HUB_ICON.battle}</span><span class="bbt"><b>${again?'DEFEND AGAIN':'BATTLE'}</b><small>STAGE ${L.id} · ${esc(L.n)}</small></span>
++      <span class="bbr"><em>🪙 +${fmtN(rew)}</em><small>${again?'★'.repeat(st)+'<i>'+'★'.repeat(3-st)+'</i>':'up to ★★★'}</small></span>`
++    :`<span class="bbi">${HUB_ICON.battle}</span><span class="bbt"><b>BEGIN</b><small>YOUR FIRST LESSON</small></span>`;
++  return `<div class="battlerow v150"><button class="bbig go150 ${tut?'':'pulse'}" id="bBattle">${big}</button></div>
++    <div class="hmside">${hardOpen()?`<button class="bside" id="bDiffH"><span class="pe">${DIFFS[ACC.diff].e}</span>${DIFFS[ACC.diff].lbl}</button>`:`<button class="bside" id="bMapH"><span class="pe">🗺️</span>Map</button>`}
++    ${tut?`<button class="hmnew ${nx?'':'done'}" id="hmNew">${nx?`<small>Opens at stage ${nx.at}</small><b><span class="ni">${nx.e}</span>${esc(nx.n)}</b>`:`<small>All opened</small><b>⭐ Every tower and spell is yours</b>`}</button>`:''}
++    <button class="bside" id="bChampH">${pu?`<img src="${pu}" alt="">`:`<span class="pe">${c.e}</span>`}${shortName(c)}${can?'<i class="upb">⬆</i>':''}</button></div>`;}
++function hubHome(){const hh=HOUSES[ACC.house],n=obStage(),tut=!!ACC.tut,k=skinOf(),slots=tut&&n>=1;
++  const st=k==='a'?hmStageA():k==='c'?hmStageC():hmStageB();
++  return `${homeReadyRow(n)}
++    <div class="hmstage st-${k}" id="hmStage">${st}<div class="hmtitle"><b>${hh.seat}</b></div><button class="hmskin" id="bSkin" aria-label="Change the look" title="Change the look">🎨</button>${homeGoal()}</div>
++    ${homeBattleRow()}
++    ${slots?`<div class="hmslots top">${homeSlots().replace(/^<div class="hmslots">/,'').replace(/<\/div>$/,'')}</div>`:''}
++    ${tut&&n>=2?homeHold():''}
++    ${tut?homeStrip():''}
++    ${tut?'':'<div class="hint">▲ TAP BEGIN — YOUR CHAMPION WILL TEACH YOU</div>'}${ACC.refund?`<div class="hint" id="refundNote">🪙 Tower upgrades are now tower levels — ${ACC.refund} gold refunded. Army → Towers.</div>`:''}`;}
++/* one tap: the preparation sheet, or straight into the next stage (the first lesson before the tutorial) */
++function homeGo(){SFX.play('tap',80);if(!ACC.tut){startTutorial();return;}const L=nextStage();prepGo(()=>startGame({mode:'campaign',level:L}));}
++{const hb0=homeBind;homeBind=function(){hb0();
++  const on=(id,f)=>{const b=document.getElementById(id);if(b)b.addEventListener('click',f);};
++  on('bSkin',()=>{SFX.play('swipe',40);skinNext();});
++  const hero=document.getElementById('hmHero');if(hero)hero.addEventListener('click',homeStrike);
++  const map=document.getElementById('hmMap');if(map)map.addEventListener('click',()=>{SFX.play('tap',60);showCampaign();});
++  on('hmNew',()=>{SFX.play('tap',60);const nx=homeNextOpen();if(nx&&nx.go)nx.go();else showCampaign();});
++  const items=homeReadyItems(obStage());
++  document.querySelectorAll('#hmReady .rdy').forEach(b=>b.addEventListener('click',()=>{SFX.play('tap',60);const i=items.find(x=>x.k===b.dataset.r);if(i)i.go();}));
++  HOME.skin=skinOf();homeStart();};}
+diff --git a/src/mod/onboard99.js b/src/mod/onboard99.js
+index 6a1da97..4d91905 100644
+--- a/src/mod/onboard99.js
++++ b/src/mod/onboard99.js
+@@ -38,10 +38,10 @@ function tutPrebuild(){if(!G.map||!G.tutorial)return;const R=G.map.routes[0],q=p
+ TOURS.battle=()=>{const n=obStage(),L=learnMap();if(n>=1)L.chests=1;if(n>=2)L.tasks=1;return [
+   {sel:'.hubtop .cur',wait:()=>!!$('#bBattle'),text:'<b>Gold</b> 🪙 and <b>cards</b> level up your champions, towers and spells. <b>Dragonglass</b> 💎 opens chests and buys deals. Battles pay both.'},
+   {sel:'#hubAva',text:'This is you: your champion\'s face and your <b>level</b>. Every upgrade you buy adds to it, and every level pays a chest. Tap it later for settings and the book.'},
+-  {sel:'.hmgoal',text:'Your road north: the next stage, its stars and how far you are of fifty. Tap it to open the map.'},
++  {sel:'.hmgoal',text:'Your road north: how many of the fifty stages you hold, and your stars. Tap it to open the map.'},
+   n>=1?{sel:'.hmslots',text:'Four chests: <b>stars</b> fill the first, <b>levels</b> the second, the third is <b>free</b> every day and the fourth is <b>today\'s gift</b>. Something is always on its way.'}:null,
+   n>=2?{sel:'#bTasks',text:'<b>Tasks</b>: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'}:null,
+-  {sel:'#bBattle',tap:1,text:'<b>BATTLE!</b> opens the map at your next stage. Tap it.'}];};
++  {sel:'#bBattle',tap:1,text:'<b>BATTLE</b> takes you straight to your next stage — its name and the gold it pays are on the button. Tap it.'}];};
+ /* only for accounts that began with the staged home (tutv 99): older ones had the full tour */
+ function obNew(){return !!(ACC&&ACC.tutv>=99);}
+ Object.assign(HUB_LESSONS,{
+diff --git a/src/parts/98zc_home150.py b/src/parts/98zc_home150.py
+new file mode 100644
+index 0000000..ed41e0b
+--- /dev/null
++++ b/src/parts/98zc_home150.py
+@@ -0,0 +1,12 @@
++# v1.5.0 — the home answers three questions at a glance: WHAT IS READY (a row of gold pills: chests to open, gifts to claim, a champion
++# or a tower that can level up — nothing ready, no row), WHAT DO I DO NOW (one green BATTLE · STAGE N button straight under the art,
++# with the stage's name and the gold it pays; one tap → the preparation sheet or the stage itself), WHAT IS NEW (a quiet pill: the next
++# thing that opens and at which stage). The chests get a label each, the Hold card and the rank / Tasks / event pills step back, the
++# three looks return behind a small 🎨. src/mod/home150.js + home150.css, injected last so its hubHome / homeSlots / homeGoal /
++# homeBattleRow / homeStrip / skinOf replace the earlier ones; homeBind is wrapped.
++i = s.find('window.HOLDOR={'); assert i > 0, 'exports anchor'
++s = s[:i] + mod('home150.js').rstrip('\n') + '\n' + s[i:]
++rep("\n</style>\n</head>", "\n" + mod('home150.css').rstrip('\n') + "\n</style>\n</head>", 1, 'home150-css')
++# BATTLE goes straight to the next stage (the preparation sheet first when there is something to choose); the map stays on Map
++rep("$('#bBattle').addEventListener('click',()=>{SFX.play('tap',80);if(!ACC.tut)startTutorial();else showCampaign();});",
++    "$('#bBattle').addEventListener('click',homeGo);", 1, 'battle-go')
+diff --git a/src/parts/99_exports150.py b/src/parts/99_exports150.py
+new file mode 100644
+index 0000000..8f38a60
+--- /dev/null
++++ b/src/parts/99_exports150.py
+@@ -0,0 +1,2 @@
++# v1.5.0 test hooks: the home's three answers.
++rep("window.HOLDOR={", "window.HOLDOR_HOME150={homeReadyItems,homeNextOpen,homeGo,skinOf,skinNext};\nwindow.HOLDOR={", 1, 'exports150')
+diff --git a/tests/t_home150.js b/tests/t_home150.js
+new file mode 100644
+index 0000000..a72232b
+--- /dev/null
++++ b/tests/t_home150.js
+@@ -0,0 +1,97 @@
++// v1.5.0: the home answers three questions at a glance. One green BATTLE · STAGE N button straight under the art (≥ 56 px tall, in the
++// first screen), one tap → the preparation sheet or the stage itself; a row of ready pills only when something is ready (chests to open,
++// a champion that can level up) and none when nothing is; a quiet "opens at stage N" pill; labels on the chests; the Hold card and the
++// strip stepped back; the 🎨 look switch back in the art's corner. Real taps throughout.
++const { chromium } = require('playwright');
++const path = require('path');
++const SC = path.resolve(__dirname, '..', '.shots') + '/'; require('fs').mkdirSync(SC, { recursive: true });
++const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML || 'beta/index.html');
++(async () => {
++  const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
++  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
++  const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message));
++  const R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
++  const tap = async (sel, ms) => { await page.locator(sel).first().tap({ force: true }); await page.waitForTimeout(ms == null ? 450 : ms); };
++  const scr = () => page.evaluate(() => window.HOLDOR.CLOUD.screen);
++  const box = sel => page.evaluate(s => { const e = document.querySelector(s); if (!e) return null; const r = e.getBoundingClientRect(); return { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height), b: Math.round(r.bottom), t: e.textContent.replace(/\s+/g, ' ').trim() }; }, sel);
++  // an account with n stages held; opened = star chests already opened (3 stars fill one); castle = the story's castle (the preparation sheet needs it)
++  const setup = async (o) => { await page.evaluate((o) => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; a.tut = 1; a.tour = 99; a.tutv = 99; a.castle = o.castle ? 1 : 0;
++    a.tours = { win: 1, battle: 1, coll: 1, shop: 1, hold: 1, events: 1, tasks: 1 }; a.learn = { chest: 1, hold: 1, champ: 1, glass: 1, keep: 1, tier2: 1, fire: 1, chests: 1, tasks: 1, clan: 1, trials: 1 }; a.ui = { home_army: 1, home_shop: 1, home_clan: 1, home_trials: 1 };
++    for (let i = 1; i <= o.n; i++) a.campaign[i] = 3; a.starChests = o.opened == null ? o.n : o.opened; a.lvlChests = 99; a.freeChestAt = o.free ? Date.now() - 90000000 : Date.now() - 3600000;
++    a.holdTut = 1; a.holdIntro = 1; a.gold = o.gold == null ? 900 : o.gold; a.gems = 60; if (o.cards) a.cards = o.cards; H.setAcc(a); H.showHub('battle'); }, o); await page.waitForTimeout(900); };
++  await page.goto(URL); await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_HOME150, { timeout: 20000 }); await page.waitForTimeout(300);
++  await page.evaluate(() => { try { localStorage.removeItem('holdor_skin'); } catch (e) {} });
++  // ---- nine stages, nothing ready: the one button, no ready row, the "opens at" pill
++  await setup({ n: 9, castle: 1 });
++  const b = await box('#bBattle'), st = await box('#hmStage'), nw = await box('#hmNew'), hold = await box('#bHold');
++  const look = await page.evaluate(() => ({ go: document.querySelector('#bBattle').classList.contains('go150'), bg: getComputedStyle(document.querySelector('#bBattle')).backgroundImage, holdBg: getComputedStyle(document.querySelector('#bHold')).backgroundImage,
++    ready: !!document.querySelector('#hmReady'), readySlots: document.querySelectorAll('.slot.ready').length, labels: [...document.querySelectorAll('.hmslots .slot .sl')].map(e => e.textContent), skin: !!document.querySelector('#bSkin'), goal: (document.querySelector('#hmGoal') || {}).textContent || '',
++    order: [...document.querySelectorAll('#hubBody > *')].map(e => e.id || e.className.split(' ')[0]), map: !!document.querySelector('#bMapH'), champ: !!document.querySelector('#bChampH'), strip: [...document.querySelectorAll('.hmstrip .hpill')].map(e => e.id) }));
++  ok('the primary button: BATTLE · STAGE 10 with the stage\'s name and the gold it pays, ≥ 56 px tall, straight under the art, bottom ≤ 700', !!b && /BATTLE/.test(b.t) && /STAGE 10 · /.test(b.t) && /\+\d/.test(b.t) && b.h >= 56 && b.b <= 700 && st && b.y >= st.b - 2 && b.y <= st.b + 16, JSON.stringify(b));
++  ok('it is the one green button: the Hold\'s button is blue and does not pulse', look.go && /rgb\(154, 234, 120\)|#9aea78/i.test(look.bg) && !/234, 120/.test(look.holdBg) && hold && /HOLD/.test(hold.t), look.bg.slice(0, 60) + ' | ' + look.holdBg.slice(0, 60));
++  ok('nothing ready → no ready row and no lit chest', !look.ready && look.readySlots === 0);
++  ok('every chest has a label: Stars · Level · Free · Gift', look.labels.join() === 'Stars,Level,Free,Gift', look.labels.join());
++  ok('the "opens at stage N" pill names a stage beyond the nine held', !!nw && /OPENS AT STAGE (1[0-9]|[2-9][0-9])/i.test(nw.t) && nw.h >= 44, nw && nw.t);
++  ok('the order: art → BATTLE → Map · new · champion → chests → the Hold → the strip at the bottom (rank, Tasks, event); 🎨 in the art; the road-north bar', look.order.join('>') === 'hmStage>battlerow>hmside>hmslots>hmHold>hmstrip' && look.skin && /\/50/.test(look.goal) && look.map && look.champ && look.strip.join() === 'hubTro,bTasks,evBadge', JSON.stringify(look.order) + ' ' + look.goal);
++  const tapTargets = await page.evaluate(() => [...document.querySelectorAll('#hubBody button')].filter(e => e.getBoundingClientRect().width > 0).map(e => { const r = e.getBoundingClientRect(), cs = getComputedStyle(e, '::before'); const pad = cs.content !== 'none' && cs.position === 'absolute' ? -parseFloat(cs.top || 0) * 2 : 0; return [e.id || e.className.split(' ')[0], Math.round(r.height + pad)]; }).filter(x => x[1] < 44));
++  ok('every button on the home is at least 44 px tall (or reaches 44 with its hit area)', tapTargets.length === 0, JSON.stringify(tapTargets));
++  await page.screenshot({ path: SC + 'home150_quiet.png' });
++  // ---- the "opens at" pill opens the thing's room, back returns
++  await tap('#hmNew', 700);
++  const nwScr = await scr(), nwText = await page.evaluate(() => document.querySelector('#card').innerText.slice(0, 160));
++  ok('a tap on the pill leaves the home for the room of what opens next', nwScr !== 'hub:battle' || !document.querySelector('#hmStage'), nwScr + ' ' + nwText.replace(/\n/g, ' | ').slice(0, 80));
++  await page.evaluate(() => window.HOLDOR.showHub('battle')); await page.waitForTimeout(500);
++  // ---- one tap on BATTLE opens the preparation sheet (spells to choose at nine stages), START begins stage 10
++  await tap('#bBattle', 800);
++  const prep = await page.evaluate(() => ({ sheet: !!document.querySelector('#prep .pcard'), go: !!document.querySelector('#pGo'), state: window.HOLDOR.G.state }));
++  ok('one tap on BATTLE opens the preparation sheet (no map in between)', prep.sheet && prep.go && prep.state !== 'play', JSON.stringify(prep));
++  await page.screenshot({ path: SC + 'home150_prep.png' });
++  await tap('#pGo', 1500);
++  const g = await page.evaluate(() => ({ state: window.HOLDOR.G.state, mode: window.HOLDOR.G.mode, id: window.HOLDOR.G.level && window.HOLDOR.G.level.id }));
++  ok('START begins stage 10', g.state === 'play' && g.mode === 'campaign' && g.id === 10, JSON.stringify(g));
++  await page.evaluate(() => { const H = window.HOLDOR; H.G.state = 'menu'; H.showHub('battle'); }); await page.waitForTimeout(500);
++  // ---- without the castle (nothing to choose yet) BATTLE goes straight into the stage
++  await setup({ n: 4, castle: 0 });
++  await tap('#bBattle', 1500);
++  const g2 = await page.evaluate(() => ({ state: window.HOLDOR.G.state, id: window.HOLDOR.G.level && window.HOLDOR.G.level.id, prep: !!document.querySelector('#prep') }));
++  ok('with nothing to choose, one tap on BATTLE starts stage 5 at once', g2.state === 'play' && g2.id === 5 && !g2.prep, JSON.stringify(g2));
++  await page.evaluate(() => { const H = window.HOLDOR; H.G.state = 'menu'; H.showHub('battle'); }); await page.waitForTimeout(500);
++  // ---- chests ready: the ready row says so, a tap opens the first ready chest
++  await setup({ n: 9, castle: 1, opened: 7, free: 1 });
++  const rd = await box('#hmReady .rdy');
++  const rdN = await page.evaluate(() => ({ slots: [...document.querySelectorAll('.slot.ready')].map(s => s.id), rows: document.querySelectorAll('#hmReady .rdy').length, top: document.querySelector('#hmReady').getBoundingClientRect().top < document.querySelector('#hmStage').getBoundingClientRect().top }));
++  ok('two star chests + the free one ready → the ready row on top: "3 chests to open", the star and free slots lit', !!rd && /3 chests to open/i.test(rd.t) && rd.h >= 44 && rdN.rows === 1 && rdN.slots.join() === 'starChest,freeChest' && rdN.top, JSON.stringify([rd, rdN]));
++  await page.screenshot({ path: SC + 'home150_ready.png' });
++  await tap('#hmReady .rdy', 1200);
++  const ch = await page.evaluate(() => ({ scr: window.HOLDOR.CLOUD.screen, scene: !!document.querySelector('#cbig, #cch, .chest, #chestWrap'), home: !!document.querySelector('#hmStage') }));
++  ok('a tap on the ready pill opens the chest', ch.scene || !ch.home, JSON.stringify(ch));
++  await page.evaluate(() => window.HOLDOR.showHub('battle')); await page.waitForTimeout(500);
++  // ---- a champion that can level up: a second pill, green, and ⬆ on the champion button; the pill opens the champion's room
++  const key = await page.evaluate(() => 'c:' + window.HOLDOR.ACC.sel);
++  await setup({ n: 9, castle: 1, gold: 50000, cards: { [key]: 99 } });
++  const up = await page.evaluate(() => ({ pills: [...document.querySelectorAll('#hmReady .rdy')].map(e => e.dataset.r + ':' + e.textContent.replace(/\s+/g, ' ').trim()), upb: !!document.querySelector('#bChampH .upb'), can: window.HOLDOR_HOME150.homeReadyItems(9).map(i => i.k) }));
++  ok('a champion that can level up → a "… can level up" pill and ⬆ on the champion button; nothing else is announced', up.pills.length === 1 && /^champ:.* can level up/.test(up.pills[0]) && up.upb && up.can.join() === 'champ', JSON.stringify(up));
++  await tap('#hmReady .rdy.champ', 700);
++  ok('the pill opens the champion\'s room', /LEVEL UP|RIDE|RIDING/.test(await page.evaluate(() => document.querySelector('#card').innerText)), await scr());
++  await page.evaluate(() => window.HOLDOR.showHub('battle')); await page.waitForTimeout(500);
++  // ---- the look switch: 🎨 cycles gate → map → hero → gate; the home keeps its button and its pieces in every look
++  const looks = [];
++  for (let i = 0; i < 3; i++) { await tap('#bSkin', 700); looks.push(await page.evaluate(() => ({ cls: document.querySelector('.hub').className.match(/look-[abc]/)[0], battle: !!document.querySelector('#bBattle.go150'), stage: !!document.querySelector('#hmStage'), slots: document.querySelectorAll('.hmslots .slot').length }))); }
++  ok('🎨 cycles the three looks (map, hero, gate) and every look keeps the button, the art and the chests', looks.map(l => l.cls).join() === 'look-c,look-a,look-b' && looks.every(l => l.battle && l.stage && l.slots === 4), JSON.stringify(looks));
++  // ---- a short phone: the button still sits in the first screen
++  await page.setViewportSize({ width: 360, height: 740 }); await page.evaluate(() => window.HOLDOR.showHub('battle')); await page.waitForTimeout(700);
++  const b2 = await box('#bBattle');
++  ok('on 360×740 the button is ≥ 56 px tall and ends above 600', !!b2 && b2.h >= 56 && b2.b <= 600, JSON.stringify(b2));
++  await page.screenshot({ path: SC + 'home150_short.png' });
++  await page.setViewportSize({ width: 390, height: 844 });
++  // ---- two stages held: the pill says what opens at stage 3 (the Hold); a brand-new player sees BEGIN and no pills
++  await setup({ n: 2, castle: 0 });
++  const two = await page.evaluate(() => ({ nw: (document.querySelector('#hmNew') || {}).textContent || '', battle: document.querySelector('#bBattle').textContent, ready: !!document.querySelector('#hmReady') }));
++  ok('with two stages held: BATTLE · STAGE 3, the pill says what opens at stage 3, nothing ready', /STAGE 3/.test(two.battle) && /OPENS AT STAGE 3/i.test(two.nw) && !two.ready, JSON.stringify(two));
++  await page.evaluate(() => { const H = window.HOLDOR; const a = H.newAccount('stark', 0, 'squire'); a.intro = 1; H.setAcc(a); H.showHub('battle'); }); await page.waitForTimeout(600);
++  const nw0 = await page.evaluate(() => ({ battle: document.getElementById('bBattle').textContent, hint: !!document.querySelector('.hint'), pill: !!document.querySelector('#hmNew'), ready: !!document.querySelector('#hmReady'), h: document.getElementById('bBattle').getBoundingClientRect().height }));
++  ok('a brand-new player: BEGIN · YOUR FIRST LESSON on the same big button, the hint, no pills', /BEGIN/.test(nw0.battle) && nw0.hint && !nw0.pill && !nw0.ready && nw0.h >= 56, JSON.stringify(nw0));
++  ok('no page errors', errors.length === 0, errors.join(' | '));
++  console.log(JSON.stringify(R, null, 1)); console.log('ERR', JSON.stringify(errors));
++  await browser.close(); process.exit(Object.values(R).some(v => v.startsWith('FAIL')) || errors.length ? 1 : 0);
++})();
