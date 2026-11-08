@@ -2039,6 +2039,29 @@ html.fxlite .ccard .im img,html.fxlite .ccard .im .pe{animation:none!important}
 #cer.c145.done.many .rw .rcard.sm b{font-size:8.5px}
 #cer.c145 .c5bg::after{content:'';position:absolute;left:50%;top:47%;width:380px;height:380px;margin:-190px 0 0 -190px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--tg) 38%,transparent) 0,transparent 70%);transition:top .5s cubic-bezier(.2,.8,.3,1)}
 #cer.c145.opened .c5bg::after{top:40%}
+/* chest150: under a card, the copies held against its next level; READY ⬆ when they suffice; a +100 that stood in for a stack says why */
+#cer.c145 .c5prog{position:relative;display:block;width:76%;height:14px;flex:none;border-radius:7px;background:#0c1f3a;border:2px solid #0b1a2e;box-sizing:border-box;overflow:hidden;box-shadow:inset 0 2px 3px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.08)}
+#cer.c145 .c5prog i{display:block;height:100%;background:linear-gradient(180deg,#8ff0ff,#22b3f0);transition:width .55s cubic-bezier(.2,.8,.3,1)}
+#cer.c145 .c5prog.ok i{background:linear-gradient(180deg,#a8f58a,#3fb04a)}
+#cer.c145 .c5prog.max i{background:linear-gradient(180deg,#ffe97a,#f2a62c)}
+#cer.c145 .c5prog em{position:absolute;inset:0;font-style:normal;font-family:var(--f-display);font-size:9px;font-weight:900;line-height:10px;text-align:center;color:#fff;letter-spacing:.04em;text-shadow:-1px 0 0 #0b1a2e,1px 0 0 #0b1a2e,0 -1px 0 #0b1a2e,0 1px 0 #0b1a2e}
+#cer.c145 .c5ready{position:absolute;right:7px;top:31px;background:linear-gradient(180deg,#a8f58a,#3fb04a);color:#0b2a10;font-family:var(--f-display);font-size:9px;font-weight:900;letter-spacing:.1em;padding:3px 7px;border-radius:999px;border:2px solid #0b1a2e;box-shadow:0 2px 0 rgba(0,0,0,.45),0 0 10px rgba(120,240,120,.5);transform:rotate(7deg);z-index:2;white-space:nowrap}
+#cer.c145 .c5card .c5ready{animation:c5pop .3s cubic-bezier(.2,1.6,.4,1) .62s both}
+#cer.c145 .c5f.hasp{padding-bottom:11px;gap:3px}
+#cer.c145 .c5f.hasp .c5med{width:72%}
+#cer.c145 .c5f.hasp .c5amt{font-size:21px}
+#cer.c145 .c5fill{font-family:var(--f-display);font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#ffe36e;background:rgba(0,0,0,.38);border:1px solid rgba(255,227,110,.5);border-radius:999px;padding:3px 8px;white-space:nowrap;flex:none}
+#cer.c145 .rw .rcard.sm{position:relative}
+#cer.c145 .rw .rcard.sm .c5prog,#cer.c145 .rw .rcard.sm .c5ready{display:none}
+#cer.c145.done .rw .rcard.sm .c5prog{display:block;width:100%;height:12px;margin-top:2px}
+#cer.c145.done.many .rw .rcard.sm .c5prog{height:11px;margin-top:1px}
+#cer.c145.done .rw .rcard.sm .c5prog em{font-size:8px;line-height:8px}
+#cer.c145.done .rw .rcard.sm .c5ready{display:block;top:-9px;right:-8px;font-size:7.5px;padding:2px 5px;border-width:1.5px}
+#cer.c145.done .rw .rcard.sm .rar.fl{color:#ffe36e}
+#cer.c145 .c5note{left:16px;right:16px;bottom:calc(106px + 5%);text-align:center;font-family:var(--f-display);font-size:10px;font-weight:900;letter-spacing:.03em;line-height:1.35;color:#ffe36e;text-shadow:0 2px 0 #0b1a2e,-1px 0 0 #0b1a2e,1px 0 0 #0b1a2e;opacity:0;z-index:3;pointer-events:none;transition:opacity .3s}
+#cer.c145.done.fills .c5note{opacity:1}
+#cer.c145.done.fills .rw{bottom:calc(140px + 6%)}
+@media (prefers-reduced-motion:reduce){#cer.c145 .c5prog i{transition:none}#cer.c145 .c5card .c5ready{animation:none!important}}
 /* battle-screen fixes: the spell's name stays readable while the cooldown cover drains over the icon */
 .pw .cd{z-index:0}
 .pw .l{position:relative;z-index:1}
@@ -2544,9 +2567,9 @@ function rollChest(t){const T=CHEST_TIERS[t],out=[],rnd=n=>Math.floor(Math.rando
   const gold=R?R.gold:T.gold[0]+rnd(T.gold[1]-T.gold[0]+1);if(!R)addGold(gold);out.push({k:'gold',n:'Gold',s:'+'+gold,r:0});
   const gems=R?R.gems:T.gems[0]+rnd(T.gems[1]-T.gems[0]+1);if(!R)ACC.gems+=gems;out.push({k:'gems',n:'Dragonglass',s:'+'+gems,r:0});
   if(R&&R.stacks){for(const x of R.stacks){const rr=cardRar(x.k);out.push({k:'card',key:x.k,cnt:x.n,r:rr,n:cardName(x.k),s:'+'+x.n+' card'+(x.n>1?'s':'')});}
-    for(let i=0;i<(R.fills||0);i++)out.push({k:'gold',n:'Gold',s:'+100',r:0});chestBooks(t,R,out);return out;}   /* the server rolled the stacks and already paid the empty slots */
+    for(let i=0;i<(R.fills||0);i++)out.push({k:'gold',n:'Gold',s:'+100',r:0,fill:1});chestBooks(t,R,out);return out;}   /* the server rolled the stacks and already paid the empty slots */
   const pool=cardPool(),used=new Set();
-  for(let i=0;i<T.cards;i++){const st=cardStack(pool,t,i<T.rare?Math.min(4,2+i):0,used);if(st)out.push(st);else{nf++;addGold(100);out.push({k:'gold',n:'Gold',s:'+100',r:0});}}
+  for(let i=0;i<T.cards;i++){const st=cardStack(pool,t,i<T.rare?Math.min(4,2+i):0,used);if(st)out.push(st);else{nf++;addGold(100);out.push({k:'gold',n:'Gold',s:'+100',r:0,fill:1});}}
   if(R&&nf)ecoOp({r:'chestfill',k:R.id,n:nf},{g:100*nf});
   chestBooks(t,R,out);return out;}
 /* first time a stage is held: a few cards of something you own */
@@ -3144,7 +3167,7 @@ const LANGS=[
 {f:'🇦🇪',l:'العربية',c:'United Arab Emirates'},{f:'🇺🇾',l:'Español',c:'Uruguay'},{f:'🇺🇿',l:'Oʻzbek',c:'Uzbekistan'},{f:'🇻🇺',l:'Bislama',c:'Vanuatu'},
 {f:'🇻🇪',l:'Español',c:'Venezuela'},{f:'🇻🇳',l:'Tiếng Việt',c:'Vietnam'},{f:'🇾🇪',l:'العربية',c:'Yemen'},{f:'🇿🇲',l:'English',c:'Zambia'},
 {f:'🇿🇼',l:'English · Shona',c:'Zimbabwe'}];
-const VERSION='1.5.0';
+const VERSION='1.5.1';
 const UGROUPS=[['watch','🏹','Watchtower','#d6dfe9'],['scorp','🎯','Scorpion','#e3b661'],['wild','💚','Wildfire catapult','#7cff6b'],['glass','🔷','Dragonglass spears','#8fd3ff'],['weir','🌳','Weirwood','#e14b4b'],['keep','🏰','Watch keep','#c9d2dd'],['gate','🧱','Gate and coin','#8fd3ff'],['power','✨','Spells and champion','#e3b661']];
 const UPG=[
  {id:'keen',g:'watch',s:'+12% range',e:'👁️',n:'Keen eyes',d:'Watchtowers gain +12% range.',c:1},
@@ -10683,18 +10706,26 @@ function chest145SVG(t,mode){
 /* the card back: the tier's colour, a lattice and a door in a ring */
 function c5Back(P){return `<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="${P.m1}" stroke-width="2.4"/><circle cx="30" cy="30" r="17" fill="${P.w3}" stroke="${P.m2}" stroke-width="1.4"/><path d="M22 42V28a8 8 0 0 1 16 0v14z" fill="${P.m2}" stroke="#160b04" stroke-width="1.6"/><path d="M30 20v22M22 33h16" stroke="#160b04" stroke-width="1.2"/></svg>`;}
 function c5Icon(r){return r.k==='card'?cardIcon(r.key,96):r.k==='champ'||r.k==='skill'?(CHAMP_ART[r.c.id+'_portrait']?`<img src="${CHAMP_ART[r.c.id+'_portrait']}" alt="">`:`<span style="font-size:40px">${r.c.e}</span>`):r.k==='gems'?GEM_SVG:r.k==='gold'?GOLD_SVG:r.k==='upg'?`<span style="font-size:44px">${r.u.e}</span>`:r.k==='att'?HUB_ICON.hold:STAR_SVG;}
+/* chest150: under a card stack, the copies held now against the card's next level (have/need; READY ⬆ when they suffice), the bar
+   filling as the stack lands (cardHave already counts the new copies: a guest's rollChest added them, a seat's server state came first).
+   A +100 gold with fill:1 stood in for a stack because every card is owned (v1.4.9 cardPool / ec_pool): the card says so, the grid too. */
+function c5Prog(r){if(r.k!=='card'||!r.key||!/^[cts]:/.test(r.key))return null;try{const key=r.key,h=cardHave(key),n=cardNeed(key);
+  if(!n)return{max:1,h,n:0,ready:false,w0:100,w1:100};const h0=Math.max(0,h-(r.cnt||0));
+  return{max:0,h,n,ready:cardReady(key),w0:Math.min(100,Math.round(100*h0/n)),w1:Math.min(100,Math.round(100*h/n))};}catch(e){return null;}}
+function c5ProgHTML(p,w){return p?`<span class="c5prog${p.max?' max':p.ready?' ok':''}"><i style="width:${w}%"></i><em>${p.max?'MAX':p.h+'/'+p.n}</em></span>${p.ready?'<span class="c5ready">READY ⬆</span>':''}`:'';}
+function c5Fill(r){return r.k==='gold'&&!!r.fill;}
 function chest145Open(t,done,fixed){   /* fixed: a list of rewards to show instead of rolling (previews and tests only) */
   const T=CHEST_TIERS[t]||CHEST_TIERS.wood,P=C5.P[t]||C5.P.wood,RC=RAR_C,RN=RAR_N,RM=c5Reduced();
   let el=$('#cer');if(!el){el=document.createElement('div');el.id='cer';document.getElementById('app').appendChild(el);}
   const rewards=fixed||rollChest(t);if(!fixed)persist();const N=rewards.length;
-  const S={phase:'closed',idx:-1,cur:null,timer:0,timers:[]};el._c5=S;
+  const S={phase:'closed',idx:-1,cur:null,timer:0,timers:[]},fills=rewards.filter(c5Fill).length;el._c5=S;
   el.className='c145 t-'+t+(N>6?' many':'');el.style.setProperty('--tg',P.glow);el.style.setProperty('--tbg',P.bg);
   el.innerHTML=`<div class="c5bg"><i class="c5rays"></i><i class="c5flash" id="c5fl"></i></div>
     <h2>${T.n}</h2><div class="c5sub"><b>${esc(T.sub)}</b> · ${N} reward${N>1?'s':''}</div>
     <div class="rw" id="crw"></div><div class="cbig" id="cbig"></div>
     <div class="cchest" id="cch"><div class="glow" id="cglow"></div><div class="c5beams">${[-48,-30,-14,0,14,30,48].map((a,i)=>`<i style="--a:${a}deg;--d:${i*40}ms"></i>`).join('')}</div><div class="cimg" id="cimg">${CHEST_ART[t]?chestSVG(t):chest145SVG(t,'anim')}</div><b class="c5left" id="c5left"></b></div>
     <div class="tap" id="ctap">TAP TO OPEN</div><div class="c5hint" id="c5hint">TAP FOR THE NEXT</div>
-    <button class="c5skip" id="cskip">SKIP ›</button><button class="collect" id="ccol">COLLECT</button>`;
+    <button class="c5skip" id="cskip">SKIP ›</button><div class="c5note" id="c5note"></div><button class="collect" id="ccol">COLLECT</button>`;
   const q=id=>document.getElementById(id),live=()=>el._c5===S;
   const later=(f,ms)=>{const h=setTimeout(()=>{if(live())f();},ms);S.timers.push(h);return h;};
   const clearAll=()=>{S.timers.forEach(clearTimeout);S.timers=[];};
@@ -10703,16 +10734,17 @@ function chest145Open(t,done,fixed){   /* fixed: a list of rewards to show inste
       host.appendChild(s);setTimeout(()=>s.remove(),1000);}};
   const flash=cls=>{const f=q('c5fl');if(!f)return;f.className='c5flash';void f.offsetWidth;f.className='c5flash '+(cls||'on');};
   const left=()=>{const b=q('c5left');if(!b)return;const n=N-S.idx-1;b.textContent=n>0?'×'+n:'';b.classList.toggle('on',n>0);};
-  const smHTML=r=>`<span class="im">${c5Icon(r)}</span><b>${esc(r.n)}</b><small>${esc(r.s)}</small><span class="rar">${RN[r.r]||''}</span>`;
+  const smHTML=r=>{const p=c5Prog(r);return `<span class="im">${c5Icon(r)}</span><b>${esc(r.n)}</b><small>${esc(r.s)}</small><span class="rar${c5Fill(r)?' fl':''}">${c5Fill(r)?'all owned':(RN[r.r]||'')}</span>${c5ProgHTML(p,p?p.w1:0)}`;};
   const addSm=(r,i,delay)=>{const d=document.createElement('div');d.className='rcard sm in r'+r.r;d.style.setProperty('--rc',RC[r.r]);if(delay)d.style.animationDelay=delay+'ms';d.innerHTML=smHTML(r);const w=q('crw');if(w)w.appendChild(d);};
   /* count "+320" up while the card lands */
   const countUp=(node,s)=>{const m=/^\+(\d+)$/.exec(s);if(!m||RM)return;const to=+m[1],t0=performance.now(),D=420;
     const f=now=>{if(!node.isConnected)return;const k=Math.min(1,(now-t0-C5.fly*.5)/D);node.textContent='+'+Math.round(to*Math.max(0,k));if(k<1)requestAnimationFrame(f);};node.textContent='+0';requestAnimationFrame(f);};
   const showNext=()=>{S.idx++;left();if(S.idx>=N){finish();return;}
     const r=rewards[S.idx],rr=r.r|0,big=q('cbig');if(!big)return;
-    big.innerHTML='';const c=document.createElement('div');c.className='c5card r'+rr+(rr>=3?' shine':'')+(rr>=4?' legend':'');c.style.setProperty('--rc',RC[rr]);
-    c.innerHTML=`<i class="c5burst"></i><div class="c5in"><div class="c5b">${c5Back(P)}</div><div class="c5f"><span class="c5rib">${RN[rr]||''}</span><span class="c5med">${c5Icon(r)}</span><b class="c5nm">${esc(r.n)}</b><span class="c5amt">${esc(r.s)}</span></div></div>`;
+    big.innerHTML='';const c=document.createElement('div'),p=c5Prog(r),fl=c5Fill(r);c.className='c5card r'+rr+(rr>=3?' shine':'')+(rr>=4?' legend':'');c.style.setProperty('--rc',RC[rr]);
+    c.innerHTML=`<i class="c5burst"></i><div class="c5in"><div class="c5b">${c5Back(P)}</div><div class="c5f${p||fl?' hasp':''}"><span class="c5rib">${RN[rr]||''}</span><span class="c5med">${c5Icon(r)}</span><b class="c5nm">${esc(r.n)}</b><span class="c5amt">${esc(r.s)}</span>${fl?'<small class="c5fill">All cards owned → gold</small>':c5ProgHTML(p,p&&!RM?p.w0:p?p.w1:0)}</div></div>`;
     big.appendChild(c);S.cur={r,c,i:S.idx};countUp(c.querySelector('.c5amt'),r.s);
+    if(p&&!p.max&&!RM)later(()=>{const b=c.querySelector('.c5prog i');if(b)b.style.width=p.w1+'%';},C5.fly*.9);
     try{SFX.play(rr>=4?'legend':rr>=3?'epic':'card',60);}catch(e){}
     if(rr>=3)later(()=>{flash(rr>=4?'gold':'on');sparks(big,rr>=4?34:18,'50%','45%',rr>=4?190:140,RC[rr]);if(rr>=4){el.classList.remove('quake');void el.offsetWidth;el.classList.add('quake');}},C5.fly*.75);
     S.timer=later(autoNext,C5.dwell[rr]||C5.dwell[0]);};
@@ -10726,7 +10758,8 @@ function chest145Open(t,done,fixed){   /* fixed: a list of rewards to show inste
   const advance=()=>{if(S.phase==='opening'){clearAll();burst();S.phase='show';showNext();return;}
     if(S.phase!=='show')return;clearAll();commit(true);showNext();};
   const finish=()=>{if(S.phase==='done')return;S.phase='done';clearAll();const big=q('cbig');if(big)big.innerHTML='';
-    el.classList.add('done');[...el.querySelectorAll('#crw .rcard')].forEach((d,i)=>{d.classList.remove('fin');void d.offsetWidth;d.style.animationDelay=(i*45)+'ms';d.classList.add('fin');});
+    el.classList.add('done');if(fills){el.classList.add('fills');const nt=q('c5note');if(nt)nt.textContent='Your cards are complete — the chest paid gold instead';}
+    [...el.querySelectorAll('#crw .rcard')].forEach((d,i)=>{d.classList.remove('fin');void d.offsetWidth;d.style.animationDelay=(i*45)+'ms';d.classList.add('fin');});
     const cc=q('ccol');if(cc)cc.classList.add('in');try{SFX.play('collect');}catch(e){}};
   const skip=()=>{if(S.phase==='closed'||S.phase==='done')return;clearAll();burst();commit(true);
     for(let i=S.idx+1;i<N;i++)addSm(rewards[i],i);S.idx=N-1;left();finish();};
@@ -10734,7 +10767,7 @@ function chest145Open(t,done,fixed){   /* fixed: a list of rewards to show inste
     if(S.phase==='closed'){if(tg&&tg.closest('#cch,#ctap'))open();return;}advance();};
   q('cskip').addEventListener('click',e=>{e.stopPropagation();skip();});
   q('ccol').addEventListener('click',e=>{e.stopPropagation();if(!q('ccol').classList.contains('in'))return;clearAll();el._c5=null;el.onclick=null;el.className='hidden';el.innerHTML='';done&&done();});
-  S.api={open,advance,skip,finish,rewards,state:()=>({phase:S.phase,idx:S.idx,n:N,shown:el.querySelectorAll('#crw .rcard').length})};
+  S.api={open,advance,skip,finish,rewards,state:()=>({phase:S.phase,idx:S.idx,n:N,fills,shown:el.querySelectorAll('#crw .rcard').length})};
 }
 /* battle-screen fixes.
    · The CALL WAVE button keeps off the build pads: per stage it takes the first free spot of bottom-left, bottom-right,
