@@ -6,6 +6,9 @@ const SC = __dirname + '/rv/';
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message + ' @ ' + (e.stack || '').split('\n').slice(0, 3).join(' | ')));
   page.on('console', m => { if (m.type() === 'error' && !/ERR_TUNNEL|Failed to load|net::|supabase/i.test(m.text())) errors.push('C:' + m.text()); });
+  // the deals (step 5) are keyed by the 6-hour slot and the house: pin the page's Date (setFixedTime: timers stay real), so stark's deals
+  // always hold a cards deal in an open, paid slot (slot 1 at 2026-10-16 22:00 UTC) instead of a `none` answer on most slots
+  await page.clock.setFixedTime(new Date('2026-10-16T22:00:00Z'));
   await page.goto(('file://' + require('path').resolve(__dirname, '..', process.env.HOLDOR_HTML || 'beta/index.html')));
   await page.waitForFunction(() => window.HOLDOR && window.HOLDOR_CARDS, { timeout: 20000 }); await page.waitForTimeout(300);
   const out = {};
@@ -46,8 +49,10 @@ const SC = __dirname + '/rv/';
   await page.evaluate(() => window.HOLDOR.showHub('battle')); await page.waitForTimeout(500); await page.screenshot({ path: SC + 'c_battle.png' });
   out.battle = await page.evaluate(() => ({ lvlRow: (document.querySelector('.chestrow.lvl em') || {}).textContent, ready: window.HOLDOR_CARDS.lvlChestsReady(), lvl: document.querySelector('.hubtop .lv').textContent }));
   const lc = await page.locator('#lvlChest').boundingBox(); await page.touchscreen.tap(lc.x + lc.width / 2, lc.y + lc.height / 2); await page.waitForTimeout(500);
-  await page.locator('#cch').click({ force: true }); await page.waitForTimeout(5500); await page.screenshot({ path: SC + 'c_chest.png' });
-  out.ceremony = await page.evaluate(() => ({ cards: [...document.querySelectorAll('#cer .rcard.sm')].map(c => c.textContent.replace(/\s+/g, ' ').trim()), collect: document.querySelector('#ccol').classList.contains('in') }));
+  // the lucky taps play by themselves (~3.5 s of timers), then the chest scene opens: wait for that scene, not a fixed 5.5 s, which a
+  // loaded machine overran (late timers: `#ccol` was not there yet and the read threw)
+  await page.locator('#cch').click({ force: true }); await page.waitForFunction(() => !!document.querySelector('#cer.c145 #ccol'), null, { timeout: 30000 }).catch(() => {}); await page.waitForTimeout(2000); await page.screenshot({ path: SC + 'c_chest.png' });
+  out.ceremony = await page.evaluate(() => ({ cards: [...document.querySelectorAll('#cer .rcard.sm')].map(c => c.textContent.replace(/\s+/g, ' ').trim()), collect: !!document.querySelector('#ccol.in'), scene: (document.getElementById('cer') || {}).className }));
   await page.locator('#ccol').click({ force: true }); await page.waitForTimeout(500);
   out.afterChest = await page.evaluate(() => ({ ready: window.HOLDOR_CARDS.lvlChestsReady(), claimed: window.HOLDOR.ACC.lvlChests, row: !!document.querySelector('.chestrow.lvl') }));
   // 5. deals sell cards
