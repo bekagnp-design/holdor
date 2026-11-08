@@ -86,14 +86,17 @@ function showTowerRoom(k){armStop();
   const tiles=TKEYS.map(t=>{const o=towerOpen(t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-t="${t}">${towerIconHTML(t,o?Math.max(1,maxTowerLvl()):1,52)}<span class="nm">${o?TSHORT[t]+' · '+tLvl(t):'After '+TOWER_UNLOCK[t]}</span>${o&&cardCan('t:'+t)?'<span class="upb">⬆</span>':''}</button>`;}).join('');
   const chips=TMILE[k].map((m,i)=>{const got=L>=T_MILE[i];return `<button class="mchip ${got?'got':''}" data-mi="${i}"><i>${m[0]}</i><b>${got?'✔':'LV '+T_MILE[i]}</b></button>`;}).join('');
   const mtxt=TMILE[k].map((m,i)=>`<p class="mtx" data-mt="${i}" hidden><b>${esc(m[1])}</b> — ${m[2]}</p>`).join('');
-  const mp=typeof mstPanel==='function'?mstPanel(k):'';
-  const body=op?`<div class="hlv"><b>Lv ${L}</b><em>/ ${T_MAX}</em><span class="bar"><i style="width:${Math.round(100*L/T_MAX)}%"></i></span></div>${armLvlBtn('t:'+k,'data-a="tl"',L,T_MAX)}${L>=T_MAX?mp:''}
-    <div class="nownext"><div><small>NOW</small><span>${towerLine(k,L)}</span></div>${L<T_MAX?`<div class="nx"><small>LV ${L+1}</small><span>${towerLine(k,L+1)}</span></div>`:''}</div>
-    <div class="mrow">${chips}</div>${mtxt}${L>=T_MAX?'':mp}`:`<p class="m" style="text-align:center;color:var(--gold)">🔒 Opens after stage ${TOWER_UNLOCK[k]}</p>`;
+  const mp=typeof mstPanel==='function'?mstPanel(k):'',r=typeof cardRar==='function'?cardRar('t:'+k):0;
+  /* v1.5.0: the champion room's head row — the tower on the left, name + what it does + the level bar on the right;
+     LEVEL UP alone in .hact (the demo lands right under it), then NOW / LV n, the milestones and Mastery in .tdet */
+  const head=`<div class="hhead tw r${r}" style="--rc:${RAR_C[r]}"><div class="tstage">${towerIconHTML(k,Math.max(1,maxTowerLvl()),124)}</div><div class="hinfo"><div class="hname"><b>${D.n}</b><small>${D.sub}</small></div>${op?`<div class="hlv"><b>Lv ${L}</b><em>/ ${T_MAX}</em><span class="bar"><i style="width:${Math.round(100*L/T_MAX)}%"></i></span></div>`:`<small class="hlock">🔒 Opens after stage ${TOWER_UNLOCK[k]}</small>`}</div></div>`;
+  const act=op?armLvlBtn('t:'+k,'data-a="tl"',L,T_MAX):'';
+  const det=op?`<div class="tdet">${L>=T_MAX?mp:''}<div class="nownext"><div><small>NOW</small><span>${towerLine(k,L)}</span></div>${L<T_MAX?`<div class="nx"><small>LV ${L+1}</small><span>${towerLine(k,L+1)}</span></div>`:''}</div>
+    <div class="mrow">${chips}</div>${mtxt}${L>=T_MAX?'':mp}</div>`:'';
   show(`<div class="topbar"><h1>🏰 Towers<small>tap a tower, level it up</small></h1><button class="back" id="bBack">✖</button></div>
   <p class="m cur">🪙 <b style="color:var(--gold)">${fmtN(goldOf())}</b> · 🃏 ${cardHave('t:'+k)} ${TSHORT[k]} cards</p>
   <div class="hgrid strip" id="armStrip">${tiles}</div>
-  <div id="clist"><div class="hdet2" style="--hc:${rc};--hc2:#1d2a3c"><div class="tstage">${towerIconHTML(k,Math.max(1,maxTowerLvl()),130)}</div><div class="hname"><b>${D.n}</b><small>${D.sub}</small></div><div class="hact">${body}</div></div></div>`);
+  <div id="clist"><div class="hdet2" style="--hc:${rc};--hc2:#1d2a3c">${head}<div class="hact">${act}</div>${det}</div></div>`);
   CLOUD.screen='tower';armStrip('#armStrip');
   $('#bBack').addEventListener('click',()=>showHub('coll','towers'));
   card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showTowerRoom(t.dataset.t)));

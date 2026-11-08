@@ -71,20 +71,25 @@ function spellLine(k,l){const m=1+0.06*((l||spellLvl(k))-1);
   if(k==='arrows')return `${Math.round(170*m)} damage to everything in the circle`;
   if(k==='fire')return `${Math.round(400*m)} damage + burning ${Math.round(20*m)}/s for 3 s`;
   const n=(UP('sworn')?5:3)+((l||spellLvl(k))>=S_MAX?1:0);return `${n} brothers · ${Math.round(150*m)} hp · ${Math.round(15*m)} damage each`;}
-function showSpellRoom(k){
-  k=SPELLS[k]?k:'arrows';const S=SPELLS[k],key='s:'+k,l=spellLvl(k),op=cardOpen(key),rc=k==='fire'?'#ff9a3c':k==='reinf'?'#8fd3ff':'#e3b661';
+/* each spell's colour, taken from its own effect in battle (the ring / text it draws) */
+const SPELL_RC={arrows:'#e3b661',fire:'#ff9a3c',reinf:'#8fd3ff',night:'#bfe6ff',repair:'#7cff6b',jars:'#b8ffb8',beacon:'#ffb23c'};
+function showSpellRoom(k){if(typeof armStop==='function')armStop();
+  k=SPELLS[k]?k:'arrows';const S=SPELLS[k],key='s:'+k,l=spellLvl(k),op=cardOpen(key),rc=SPELL_RC[k]||'#e3b661',r=cardRar(key);
   const tiles=Object.keys(SPELLS).map(t=>{const o=cardOpen('s:'+t);return `<button class="htile ${o?'':'lock'} ${t===k?'view':''}" data-s="${t}"><span class="spi big">${spellSVG(t)}</span><span class="nm">${o?SPELLS[t].n+' · '+spellLvl(t):'After '+SPELLS[t].at}</span></button>`;}).join('');
+  /* v1.5.0: the spell stands as a card like the champion's (frame in the spell's colour, sheen, halo); name, what it does and the level bar beside it */
+  const stage=`<div class="hport scard" style="--rc:${rc};--hc:${rc}"><div class="acard"><div class="aback"></div><div class="aface"><div class="aimg sp"><span class="spi big">${spellSVG(k)}</span></div><span class="aglare"></span><span class="arar" style="color:${op?RAR_C[r]:'#8a97a8'}">${op?RAR_N[r]:'Sealed'}</span></div></div></div>`;
   const det=`<div class="hdet" style="--hc:${rc};--hc2:#1d2a3c">
-    <div class="hdtop"><div class="hport"><span class="spi big">${spellSVG(k)}</span></div>
+    <div class="hdtop">${stage}
       <div class="hdinfo"><b>${S.n}</b><small>${S.d} · cooldown ${S.cd}s</small>
-      ${op?`<div class="hlv"><b>Lv ${l}</b><em>/ ${S_MAX}</em><span class="bar"><i style="width:${Math.round(100*l/S_MAX)}%"></i></span></div><small>+6% power per level${k==='reinf'?' · a fourth brother at level '+S_MAX:''}</small>`:`<small style="color:var(--gold)">🔒 Opens after stage ${S.at}</small>`}</div></div>
-    ${op?`<div class="hact">${typeof armLvlBtn==='function'?armLvlBtn(key,'data-a="sl"',l,S_MAX):cardLvlLine(key,'data-a="sl"')}${l<S_MAX&&cardHave(key)<cardNeed(key)?'<small class="cfrom">🎁 Cards come from chests</small>':cardCovered(key)?'<small class="cfrom done">✔ You hold every card it needs — chests stop giving it</small>':''}</div>`:''}
+      ${op?`<div class="hlv"><b>Lv ${l}</b><em>/ ${S_MAX}</em><span class="bar"><i style="width:${Math.round(100*l/S_MAX)}%"></i></span></div><small>+6% power per level${k==='reinf'?' · a fourth brother at level '+S_MAX:''}</small>`:`<small class="hlock">🔒 Opens after stage ${S.at}</small>`}</div></div>
+    <div class="hact">${op?`${typeof armLvlBtn==='function'?armLvlBtn(key,'data-a="sl"',l,S_MAX):cardLvlLine(key,'data-a="sl"')}${l<S_MAX&&cardHave(key)<cardNeed(key)?'<small class="cfrom">🎁 Cards come from chests</small>':cardCovered(key)?'<small class="cfrom done">✔ You hold every card it needs — chests stop giving it</small>':''}`:''}</div>
     ${op?`<div class="lvbox" style="margin:8px 0;font-size:12.5px;color:#f2e6c9"><b>Now</b> · ${spellLine(k,l)}${l<S_MAX?`<br><b style="color:var(--gold)">Lv ${l+1}</b> · ${spellLine(k,l+1)}`:''}</div>`:''}
     <div class="cfoot"><button data-a="arm">🛡️ Armory — one-time spell upgrades</button></div></div>`;
   show(`<div class="topbar"><h1>✨ Spells<small>Cards from chests and gold buy levels — every level is +6% power.</small></h1><button class="back" id="bBack">✖</button></div>
-  <p class="m">🪙 <b style="color:var(--gold)">${fmtN(goldOf())}</b> gold · 🃏 ${cardHave(key)} ${S.n} cards</p>
+  <p class="m cur">🪙 <b style="color:var(--gold)">${fmtN(goldOf())}</b> gold · 🃏 ${cardHave(key)} ${S.n} cards</p>
   <div class="hgrid strip" id="spStrip">${tiles}</div><div id="clist">${det}</div>`);
   $('#bBack').addEventListener('click',()=>showHub('coll','spells'));if(typeof armStrip==='function')armStrip('#spStrip');
+  if(typeof armTilt==='function')armTilt(card.querySelector('#clist .hport'));
   card.querySelectorAll('.htile').forEach(t=>t.addEventListener('click',()=>showSpellRoom(t.dataset.s)));
   const b=card.querySelector('#clist button[data-a="sl"]');if(b)b.addEventListener('click',()=>{if(cardLevelUp(key)){SFX.play('upgrade');persist();}else SFX.play('deny');showSpellRoom(k);});
   const ba=card.querySelector('#clist button[data-a="arm"]');if(ba)ba.addEventListener('click',()=>showUpgrades());
