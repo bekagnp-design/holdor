@@ -38,10 +38,10 @@ function tutPrebuild(){if(!G.map||!G.tutorial)return;const R=G.map.routes[0],q=p
 TOURS.battle=()=>{const n=obStage(),L=learnMap();if(n>=1)L.chests=1;if(n>=2)L.tasks=1;return [
   {sel:'.hubtop .cur',wait:()=>!!$('#bBattle'),text:'<b>Gold</b> 🪙 and <b>cards</b> level up your champions, towers and spells. <b>Dragonglass</b> 💎 opens chests and buys deals. Battles pay both.'},
   {sel:'#hubAva',text:'This is you: your champion\'s face and your <b>level</b>. Every upgrade you buy adds to it, and every level pays a chest. Tap it later for settings and the book.'},
-  {sel:'.hmgoal',text:'Your road north: the next stage, its stars and how far you are of fifty. Tap it to open the map.'},
+  {sel:'.hmgoal',text:'Your road north: how many of the fifty stages you hold, and your stars. Tap it to open the map.'},
   n>=1?{sel:'.hmslots',text:'Four chests: <b>stars</b> fill the first, <b>levels</b> the second, the third is <b>free</b> every day and the fourth is <b>today\'s gift</b>. Something is always on its way.'}:null,
   n>=2?{sel:'#bTasks',text:'<b>Tasks</b>: daily, weekly and monthly quests, social tasks and <b>friends</b> — every one pays a gift.'}:null,
-  {sel:'#bBattle',tap:1,text:'<b>BATTLE!</b> opens the map at your next stage. Tap it.'}];};
+  {sel:'#bBattle',tap:1,text:'<b>BATTLE</b> takes you straight to your next stage — its name and the gold it pays are on the button. Tap it.'}];};
 /* only for accounts that began with the staged home (tutv 99): older ones had the full tour */
 function obNew(){return !!(ACC&&ACC.tutv>=99);}
 Object.assign(HUB_LESSONS,{
