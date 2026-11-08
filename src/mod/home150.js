@@ -2,9 +2,8 @@
    A tester with the phone in hand: "two gold buttons, which one?" So the first screen now answers, top to bottom:
      WHAT IS READY  — a row of gold pills, only when something is: chests to open, gifts to claim, a champion or a tower that can
                       level up. Nothing ready → no row.
-     WHAT DO I DO NOW — one green button straight under the stage art: BATTLE · STAGE 7 · its name · the gold it pays. One tap goes
-                      to the preparation sheet (or straight into the stage): the map stays one tap away on the Map button and the
-                      road-north bar on the art.
+     WHAT DO I DO NOW — one green button straight under the stage art: BATTLE · STAGE 7 · its name · the gold it pays. One tap opens
+                      the map card at that stage (the deck strip and ⚔ TO BATTLE, flow150): two taps from the home to the fight.
      WHAT IS NEW    — a quiet pill between Map and the champion: the next thing that opens and at which stage (tower, spell,
                       champion, the Hold, Trials, Kingsguard). Tap: its room.
    Everything else steps back: the chests under the button with a label each (Stars · Level · Free · Gift), the Hold card in quiet
@@ -72,7 +71,7 @@ function hubHome(){const hh=HOUSES[ACC.house],n=obStage(),tut=!!ACC.tut,k=skinOf
     ${tut?homeStrip():''}
     ${tut?'':'<div class="hint">▲ TAP BEGIN — YOUR CHAMPION WILL TEACH YOU</div>'}${ACC.refund?`<div class="hint" id="refundNote">🪙 Tower upgrades are now tower levels — ${ACC.refund} gold refunded. Army → Towers.</div>`:''}`;}
 /* one tap: the preparation sheet, or straight into the next stage (the first lesson before the tutorial) */
-function homeGo(){SFX.play('tap',80);if(!ACC.tut){startTutorial();return;}const L=nextStage();prepGo(()=>startGame({mode:'campaign',level:L}));}
+function homeGo(){SFX.play('tap',80);if(!ACC.tut){startTutorial();return;}showCampaign('gates');}   /* the map card at the next stage: the deck strip, ⚔ TO BATTLE (flow150) — two taps from the home to the fight */
 {const hb0=homeBind;homeBind=function(){hb0();
   const on=(id,f)=>{const b=document.getElementById(id);if(b)b.addEventListener('click',f);};
   const hero=document.getElementById('hmHero');if(hero)hero.addEventListener('click',homeStrike);

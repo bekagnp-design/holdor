@@ -1,5 +1,5 @@
-/* v1.3.5: the build card */
-.bcard{margin:10px 0;padding:10px;border-radius:16px;background:linear-gradient(180deg,#2b2146,#171028);border:2px solid #7a4a10;text-align:center}
-.bcard .bch b{display:block;font:900 15px var(--f-display);color:#ffd54a;letter-spacing:.06em}.bcard .bch small{font-size:11px;color:#bfe6ff}
-.bcsk{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:8px}.bcs{display:flex;flex-direction:column;align-items:center;gap:2px;width:64px}.bcs small{font-size:9px;color:#d6c8f0;line-height:1.1}
-.bcard .bcshare{margin:10px auto 0;padding:6px 14px;font-size:13px}
+/* v1.3.5: the build card (flow150: compact, under the buttons) */
+.bcard{margin:10px 0 0;padding:8px 10px;border-radius:14px;background:linear-gradient(180deg,#2b2146,#171028);border:1px solid #7a4a10;text-align:left;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.bcard .bch{flex:1;min-width:140px}.bcard .bch b{display:block;font:900 13px var(--f-display);color:#ffd54a;letter-spacing:.04em}.bcard .bch small{font-size:11px;color:#bfe6ff}
+.bcsk{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px 8px}.bcs{display:flex;align-items:center;gap:4px}.bcs small{font-size:10px;color:#d6c8f0;line-height:1.1}
+.bcard .bcshare{flex:none;width:100%;margin:0;padding:10px 6px;min-height:40px;background:none;border:0;color:#bfd3ec;font:600 12px var(--f-body);text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(191,211,236,.45)}

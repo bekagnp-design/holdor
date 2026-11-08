@@ -41,20 +41,22 @@ const URL = 'file://' + path.resolve(__dirname, '..', process.env.HOLDOR_HTML ||
   const nwScr = await scr(), nwText = await page.evaluate(() => document.querySelector('#card').innerText.slice(0, 160));
   ok('a tap on the pill leaves the home for the room of what opens next', nwScr !== 'hub:battle' || !document.querySelector('#hmStage'), nwScr + ' ' + nwText.replace(/\n/g, ' | ').slice(0, 80));
   await page.evaluate(() => window.HOLDOR.showHub('battle')); await page.waitForTimeout(500);
-  // ---- one tap on BATTLE opens the preparation sheet (spells to choose at nine stages), START begins stage 10
+  // ---- one tap on BATTLE opens the map card at the next stage (deck strip + ⚔ TO BATTLE); the second tap begins stage 10
   await tap('#bBattle', 800);
-  const prep = await page.evaluate(() => ({ sheet: !!document.querySelector('#prep .pcard'), go: !!document.querySelector('#pGo'), state: window.HOLDOR.G.state }));
-  ok('one tap on BATTLE opens the preparation sheet (no map in between)', prep.sheet && prep.go && prep.state !== 'play', JSON.stringify(prep));
-  await page.screenshot({ path: SC + 'home150_prep.png' });
-  await tap('#pGo', 1500);
+  const prep = await page.evaluate(() => ({ card: !!document.querySelector('#playcard'), go: !!document.querySelector('#bGo'), h2: (document.querySelector('#playcard h2') || {}).textContent, next: window.HOLDOR.LEVELS[9].n, state: window.HOLDOR.G.state }));
+  ok('one tap on BATTLE opens the map card at the next stage with ⚔ TO BATTLE', prep.card && prep.go && prep.h2 === prep.next && prep.state !== 'play', JSON.stringify(prep));
+  await page.screenshot({ path: SC + 'home150_map.png' });
+  await tap('#bGo', 1500);
   const g = await page.evaluate(() => ({ state: window.HOLDOR.G.state, mode: window.HOLDOR.G.mode, id: window.HOLDOR.G.level && window.HOLDOR.G.level.id }));
-  ok('START begins stage 10', g.state === 'play' && g.mode === 'campaign' && g.id === 10, JSON.stringify(g));
+  ok('⚔ TO BATTLE begins stage 10 (two taps from the home)', g.state === 'play' && g.mode === 'campaign' && g.id === 10, JSON.stringify(g));
   await page.evaluate(() => { const H = window.HOLDOR; H.G.state = 'menu'; H.showHub('battle'); }); await page.waitForTimeout(500);
-  // ---- without the castle (nothing to choose yet) BATTLE goes straight into the stage
+  // ---- without the castle (nothing to choose yet): the same two taps, no deck strip on the card
   await setup({ n: 4, castle: 0 });
-  await tap('#bBattle', 1500);
+  await tap('#bBattle', 800);
+  const c2 = await page.evaluate(() => ({ card: !!document.querySelector('#playcard'), strip: !!document.querySelector('#pDeckStrip') }));
+  await tap('#bGo', 1500);
   const g2 = await page.evaluate(() => ({ state: window.HOLDOR.G.state, id: window.HOLDOR.G.level && window.HOLDOR.G.level.id, prep: !!document.querySelector('#prep') }));
-  ok('with nothing to choose, one tap on BATTLE starts stage 5 at once', g2.state === 'play' && g2.id === 5 && !g2.prep, JSON.stringify(g2));
+  ok('with nothing to choose, BATTLE → ⚔ TO BATTLE starts stage 5, no deck strip, no sheet', c2.card && !c2.strip && g2.state === 'play' && g2.id === 5 && !g2.prep, JSON.stringify([c2, g2]));
   await page.evaluate(() => { const H = window.HOLDOR; H.G.state = 'menu'; H.showHub('battle'); }); await page.waitForTimeout(500);
   // ---- chests ready: the ready row says so, a tap opens the first ready chest
   await setup({ n: 9, castle: 1, opened: 7, free: 1 });
