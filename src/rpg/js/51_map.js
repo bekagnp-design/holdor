@@ -110,7 +110,13 @@
       if (nameZ || kind === 'castle') { const nm = (p.name || p.n || p.id) + '', f2 = '600 ' + fs2 + 'px Cinzel,Georgia,serif'; c.font = f2; const w2 = c.measureText(nm).width + 6;
         let ly = s.y + sz * 1.5 + fs2 * .6; if (hits(s.x, ly, w2, fs2 + 4)) ly = s.y - sz * 1.5 - fs2 * .6; if (!hits(s.x, ly, w2, fs2 + 4)) halo(c, nm, s.x, ly, f2, '#f3e7c4'); } }
     // quest markers, gold
-    for (const m of qmarks()) { const s = toS(m.x, m.y), sz = 7 * R.clamp(z, .9, 1.4); c.save(); c.translate(s.x, s.y); c.rotate(Math.PI / 4); c.fillStyle = '#e3b661'; c.strokeStyle = 'rgba(5,9,18,.9)'; c.lineWidth = 1.5; c.beginPath(); c.rect(-sz, -sz, sz * 2, sz * 2); c.fill(); c.stroke(); c.restore(); halo(c, (m.kind === 'turnin' || m.kind === 'done') ? '?' : '!', s.x, s.y + 0.5, '900 ' + Math.round(sz * 1.6) + 'px Georgia,serif', '#2a1d05'); c.lineWidth = 1; }
+    // hundreds of offers ("!"): one per place (an 800-unit cell) with the count; objectives and turn-ins one by one
+    const QL = [], cells = {};
+    for (const m of qmarks()) { if (m.kind !== 'give') { QL.push(m); continue; } const key = Math.round(m.x / 800) + ',' + Math.round(m.y / 800);
+      const g = cells[key] || (cells[key] = { x: m.x, y: m.y, kind: 'give', n: 0 }); g.n += (m.ids && m.ids.length) || 1; }
+    for (const k in cells) QL.push(cells[k]);
+    for (const m of QL) { const s = toS(m.x, m.y), sz = 7 * R.clamp(z, .9, 1.4);
+      if (m.n > 1) halo(c, '×' + m.n, s.x + sz * 1.6, s.y - sz * .9, '800 ' + Math.round(sz * 1.3) + 'px Cinzel,Georgia,serif', '#f3e7c4', 'left'); c.save(); c.translate(s.x, s.y); c.rotate(Math.PI / 4); c.fillStyle = '#e3b661'; c.strokeStyle = 'rgba(5,9,18,.9)'; c.lineWidth = 1.5; c.beginPath(); c.rect(-sz, -sz, sz * 2, sz * 2); c.fill(); c.stroke(); c.restore(); halo(c, (m.kind === 'turnin' || m.kind === 'done') ? '?' : '!', s.x, s.y + 0.5, '900 ' + Math.round(sz * 1.6) + 'px Georgia,serif', '#2a1d05'); c.lineWidth = 1; }
     // active events, red
     for (const e of events()) { const s = toS(e.x, e.y), rr = 11 * R.clamp(z, .9, 1.4); c.beginPath(); c.arc(s.x, s.y, rr, 0, 7); c.lineWidth = 2.5; c.strokeStyle = '#e14b4b'; c.stroke(); c.beginPath(); c.arc(s.x, s.y, rr * .35, 0, 7); c.fillStyle = '#e14b4b'; c.fill(); if (e.name || e.n) halo(c, (e.name || e.n) + '', s.x, s.y - rr - 8, '700 ' + fs2 + 'px Cinzel,Georgia,serif', '#ff8a8a'); }
     // other players, small cyan dots

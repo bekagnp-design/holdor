@@ -41,7 +41,7 @@ const MAP = 'data:image/webp;base64,' + fs.readFileSync(path.join(ROOT, 'src/ass
     R.player = R.spawn({ kind: 'player', team: 0, x: castle.x + 120, y: castle.y + 320, hp: 100, hpMax: 100, name: 'Tester', lvl: 3 });
     R.cam.x = R.player.x; R.cam.y = R.player.y;
     // a neighbour on the map: the real presence module has nobody offline, so its list is replaced for this test
-    const jory = { id: 'o1', name: 'Jory', x: castle.x + 260, y: castle.y + 120, lvl: 4 };
+    const jory = { id: 'o1', name: 'Jory', x: castle.x + 260 * (R.WS || 1), y: castle.y + 120 * (R.WS || 1), lvl: 4 };   // far enough from the castle's tap circle in the 4.5× world
     if (!R.presence) R.presence = { list: () => [jory] }; else if (!(R.presence.list && R.presence.list().length)) R.presence.list = () => [jory];
     if (!R.quests) R.quests = { markers: () => [{ x: castle.x - 300, y: castle.y + 600, name: 'The missing hound' }] };
     if (!R.events) R.events = { active: () => [{ x: castle.x + 600, y: castle.y - 1000, name: 'Wight horde' }] };
@@ -60,7 +60,8 @@ const MAP = 'data:image/webp;base64,' + fs.readFileSync(path.join(ROOT, 'src/ass
   ok('the canvas is the screen size and capped at 2× DPR', cvBox && cvBox.w === 390 && cvBox.h === 844 && cvDpr <= 2.01, JSON.stringify(cvBox) + ' dpr=' + cvDpr);
   const youS = await toS(F.player.x, F.player.y);
   // the centre is the player, unless the map's edge is nearer than half a screen (then the view stops at the edge)
-  const hw = 195 / v0.k, hh = 422 / v0.k, ex = Math.min(Math.max(F.player.x, hw), 7200 - hw), ey = Math.min(Math.max(F.player.y, hh), 12288 - hh);
+  const WH = await ev(() => [R.W || 7200, R.H || 12288]);   // the world's size (R.WS made it 4.5× larger)
+  const hw = 195 / v0.k, hh = 422 / v0.k, ex = hw * 2 >= WH[0] ? WH[0] / 2 : Math.min(Math.max(F.player.x, hw), WH[0] - hw), ey = hh * 2 >= WH[1] ? WH[1] / 2 : Math.min(Math.max(F.player.y, hh), WH[1] - hh);
   ok('at open the camera centres on the player at zoom 1 (or stops at the map\'s edge)', Math.abs(v0.cx - ex) < 1 && Math.abs(v0.cy - ey) < 1 && Math.abs(v0.z - 1) < 1e-9 && (ex !== F.player.x || Math.abs(youS.x - 195) < 2) && (ey !== F.player.y || Math.abs(youS.y - 422) < 2), JSON.stringify([youS, v0, { ex, ey }]));
   ok('the legend row names you · castle · quest · players · event, inside the screen', /you/.test(o.legend) && /castle/.test(o.legend) && /quest/.test(o.legend) && /players/.test(o.legend) && /event/.test(o.legend) && (await box('.mp-legend')).b <= 844, o.legend);
   // ---- redraws only on interaction
@@ -109,7 +110,8 @@ const MAP = 'data:image/webp;base64,' + fs.readFileSync(path.join(ROOT, 'src/ass
   ok('a pinch zooms in', typeof pinchZ === 'number' && pinchZ > 1.2 && pinchZ <= 3, 'z=' + pinchZ);
   // ---- other players: a tap on the cyan dot names him
   await ev(() => { R.screens.map.zoomAt(195, 422, 1.6); const p = R.presence.list()[0]; R.screens.map.centreOn(p.x, p.y); }); await page.waitForTimeout(150);
-  await page.touchscreen.tap(195, 422); await page.waitForTimeout(300);
+  const jp = await ev(() => { const p = R.presence.list()[0]; return R.screens.map.toScreen(p.x, p.y); });   // where his dot is (the view may stop at the map's edge)
+  await page.touchscreen.tap(Math.round(jp.x), Math.round(jp.y)); await page.waitForTimeout(300);
   const tagT = await ev(() => (document.querySelector('.mp-tag') || {}).textContent || '');
   ok('a tap on another player shows his name', /Jory|\S/.test(tagT) && tagT.length > 0, tagT);
   // ---- close

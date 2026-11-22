@@ -110,7 +110,10 @@
     const pri = el('button', 'pri', 'RESUME'); pri.dataset.act = 'resume'; root.appendChild(tap(pri, () => R.ui.close()));
     const L = el('div', 'mn-list'); root.appendChild(L);
     const add = (ico, label, scr, sub) => { const b = row(ico, label, sub, () => goto(scr), R.screens[scr] ? '' : 'dim'); b.dataset.scr = scr; L.appendChild(b); };
-    add('skills', 'Skills', 'skills'); add('heroes', 'Heroes', 'heroes'); add('quests', 'Quests', 'quests'); add('ach', 'Achievements', R.screens.achievements ? 'achievements' : 'ach');
+    add('skills', 'Skills', 'skills');
+    if (R.prog && typeof R.prog.open === 'function') { let n = 0; try { n = +R.prog.unspent() || 0; } catch (e) {}   // P1's talents (25_progression.js)
+      const t = row('skills', 'Talents', n > 0 ? n + ' to spend' : null, () => { try { R.prog.open(); } catch (e) { console.error('talents', e); } }); t.dataset.row = 'talents'; L.appendChild(t); }
+    add('heroes', 'Heroes', 'heroes'); add('quests', 'Quests', 'quests'); add('ach', 'Achievements', R.screens.achievements ? 'achievements' : 'ach');
     add('hall', 'Hall of the Fallen', 'hall', (acc() && acc().hall && acc().hall.length ? acc().hall.length + ' fallen' : null));
     if (R.screens.board) add('board', 'Leaderboard', 'board');
     add('chat', 'Chat', 'chat');

@@ -25,7 +25,7 @@
   root.innerHTML =
     '<div id="hud-tl">' +
       '<div id="hud-row">' +
-        '<div id="hud-pcol"><div id="hud-port" role="button" aria-label="Hero"><canvas id="hud-face" width="56" height="56"></canvas><img id="hud-pimg" alt=""><b id="hud-lvl">1</b></div>' +
+        '<div id="hud-pcol"><div id="hud-port" role="button" aria-label="Hero"><canvas id="hud-face" width="56" height="56"></canvas><img id="hud-pimg" alt=""><b id="hud-lvl">1</b><button id="hud-tal" type="button" aria-label="Talents to spend">!</button></div>' +
           '<button id="hud-hall" type="button" title="Heroes fallen"><span class="sk">☠</span><b>0</b></button></div>' +
         '<div id="hud-bars" role="button" aria-label="Hero sheet">' +
           '<div id="hud-name"><b></b><i id="hud-title"></i></div>' +
@@ -140,7 +140,8 @@
     const TM = trackedMark();
     for (const m of qMarks()) {
       const [dx, dy] = rp(m.x - px, m.y - py), dist = Math.hypot(dx, dy), rim = c - 9, hot = !!TM && m.id === TM.id && m.x === TM.x && m.y === TM.y, r = hot ? 6 : 4.6;   // markers() builds new objects on every call
-      if (dist * k > rim) { if (!hot && !m.main) continue; const a = Math.atan2(dy, dx), x = c + Math.cos(a) * rim, y = c + Math.sin(a) * rim;
+      if (m.kind === 'give' && !hot && dist > 2500) continue;   // offers only nearby (Q1: hundreds of them); objectives / turn-ins always
+      if (dist * k > rim) { if (!hot && m.kind === 'give') continue; const a = Math.atan2(dy, dx), x = c + Math.cos(a) * rim, y = c + Math.sin(a) * rim;
         g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = '#e3b661'; g.beginPath(); g.moveTo(r + 5, 0); g.lineTo(r - 1, -4); g.lineTo(r - 1, 4); g.fill(); g.restore(); glyph(g, x, y, r, qGlyph(m), hot); }
       else glyph(g, c + dx * k, c + dy * k, r, qGlyph(m), hot);
     }
@@ -212,6 +213,7 @@
     const title = titleOf(st); if (title !== last.title) { last.title = title; E['hud-title'].textContent = title ? '· ' + title : ''; }
     const house = houseOf(st), hc = hcol(house); if (hc !== last.hc) { last.hc = hc; root.style.setProperty('--hc', hc); }
     setPortrait(st.hero, house, st.cls); drawHall();
+    let tal = false; try { tal = !!(R.prog && R.prog.hint && R.prog.hint() === '!'); } catch (e) {} E['hud-tal'].classList.toggle('on', tal);   // P1's talents: points to spend
     if (shown.gold !== (st.gold || 0)) tween('gold', st.gold || 0); if (shown.gems !== (st.gems || 0)) tween('gems', st.gems || 0);
     let town = null; try { town = R.towns && R.towns.inside && R.towns.inside(); } catch (e) {}
     E['hud-town'].classList.toggle('on', !!town); lastTown = town;
@@ -224,7 +226,9 @@
 
   /* ---- taps ---- */
   const sheet = () => { if (R.ui.cur) return; if (R.input && R.input.haptic) R.input.haptic('select'); R.bus.emit('btn', 'inv', 'hud'); };
-  E['hud-bars'].addEventListener('click', sheet); E['hud-port'].addEventListener('click', sheet);
+  E['hud-bars'].addEventListener('click', sheet); E['hud-port'].addEventListener('click', ev => { if (ev.target === E['hud-tal']) return; sheet(); });
+  E['hud-tal'].addEventListener('click', ev => { ev.stopPropagation(); if (R.ui.cur) return; try { R.prog && R.prog.open && R.prog.open(); } catch (e) { console.error('talents', e); } });
+  R.bus.on('talent', () => { acc = 0.1; });
   mm.addEventListener('click', () => { R.bus.emit('btn', 'map'); });
   E['hud-town'].addEventListener('click', () => { if (R.screens.shop) R.ui.open('shop', lastTown); else R.bus.emit('btn', 'shop', lastTown); });
   E['hud-hall'].addEventListener('click', () => { if (R.screens.hall) R.ui.open('hall'); else R.bus.emit('btn', 'hall'); });

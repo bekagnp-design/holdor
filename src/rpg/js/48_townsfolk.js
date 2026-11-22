@@ -327,8 +327,11 @@
       spd: SPD[role] * (.88 + rnd() * .24), wph: rnd() * 6, ai: { st: 'idle', t: 0, until: R.t + .5 + rnd() * 3, tx: at.x, ty: at.y, stuck: 0, home: at } });
     e.frame = (anim, t, face) => frameOf(e, anim, face);
     pl.ents.push(e); return e; }
-  const spotFor = (pl, e, near) => { const S = pl.spots; if (!S.length) return null; let s = near || S[Math.floor(rnd() * S.length)];
-    const q = randIn(pl, s.x, s.y, s.tag === 'gate' ? 18 : 26, 10); return q || { x: s.x, y: s.y }; };
+  // a free point near one of the place's spots: not within 22 units of where anyone else stands or heads (no knots of people)
+  const spotFor = (pl, e, near) => { const S = pl.spots; if (!S.length) return null; let best = null;
+    for (let t = 0; t < 5; t++) { const s = near || S[Math.floor(rnd() * S.length)], q = randIn(pl, s.x, s.y, s.tag === 'gate' ? 20 : 44, 8); if (!q) continue; best = best || q;
+      if (!pl.ents.some(o => o !== e && ((o.ai.tx - q.x) ** 2 + (o.ai.ty - q.y) ** 2 < 484 || (o.x - q.x) ** 2 + (o.y - q.y) ** 2 < 484))) return q; }
+    if (best) return best; const s = near || S[0]; return { x: s.x, y: s.y }; };
   F.spawnAt = (poiId, o) => {
     o = o || {}; if (F.places[poiId]) F.despawn(poiId);
     const p = typeof poiId === 'object' ? poiId : poiById(poiId); if (!p) return null; const pl = layout(p); F.places[p.id] = pl;
@@ -356,6 +359,7 @@
     return pl; };
   const torchOf = e => ({ z: e.bbH * .9, dx: e.bbH * .2, r: 130, col: '#ffb25a', k: 1 });
   F.despawn = poiId => { const pl = F.places[poiId]; if (!pl) return; for (const e of pl.ents) { R.remove(e); dropLook(e.look); } delete F.places[poiId]; };
+  const dropPlace = id => { delete F.places[id]; checkT = 0; };
   F.list = () => { const out = []; for (const k in F.places) for (const e of F.places[k].ents) if (!e.dead && !e.gone) out.push(e); return out; };
 
   /* ---- talk ---- */
@@ -399,8 +403,8 @@
     return a.stuck > 20 || d <= st + 2; };
   const wander = (e, pl) => { const a = e.ai; let q = null;
     if (e.role === 'child') { const mate = rnd() < .45 && pl.ents.find(o => o !== e && o.role === 'child' && !o.dead); if (mate) q = randIn(pl, mate.x, mate.y, 30, 6); if (!q) q = randIn(pl, pl.x, pl.y, pl.sr * .7, 10); }
-    else if (e.role === 'elder') q = spotFor(pl, null, rnd() < .6 ? pl.well || null : null);
-    else q = spotFor(pl);
+    else if (e.role === 'elder') q = spotFor(pl, e, rnd() < .6 ? pl.well || null : null);
+    else q = spotFor(pl, e);
     if (!q) return false; a.tx = q.x; a.ty = q.y; a.st = 'walk'; a.t = 0; a.stuck = 0; return true; };
   function think(e, pl, dt, C) {
     const a = e.ai; a.t += dt; e.anim2 = null;
@@ -449,13 +453,15 @@
   function update(dt) {
     const P = R.player; if (!P || !R.state) return;
     const t0 = performance.now();
+    if (R.world && R.world.populate === false) { for (const k in F.places) F.despawn(k); return; }   // dungeons, the intro: nobody
     if (R.t >= checkT) { checkT = R.t + .5; try { syncPlaces(P); } catch (e) { if (!F.warnS) { F.warnS = 1; console.warn('townsfolk sync', e); } } }
     let n = 0; const C = { px: P.x, py: P.y, d2: 0 };
     for (const id in F.places) { const pl = F.places[id]; if (!pl.lines) pl.lines = F.lines(pl.poi.region);
       for (let i = pl.ents.length - 1; i >= 0; i--) { const e = pl.ents[i];
         if (e.gone || e.dead) { R.remove(e); dropLook(e.look); pl.ents.splice(i, 1); continue; }
         C.d2 = (e.x - P.x) ** 2 + (e.y - P.y) ** 2; think(e, pl, dt, C); n++;
-        if (e.bub && R.t > e.bub.until) e.bub = null; } }
+        if (e.bub && R.t > e.bub.until) e.bub = null; }
+      if (!pl.ents.length) { dropPlace(id); continue; } }   // everyone removed from outside (R.clearEnts): the next check spawns the place again
     // one pair speaks every ~10 s: the nearest chatting pair within CHAT_R, the lead first, the answer 3.8 s later
     chatT -= dt;
     if (chatT <= 0) { chatT = F.CHAT_EVERY * (.85 + rnd() * .3); let best = null, bd = F.CHAT_R * F.CHAT_R;

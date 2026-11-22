@@ -84,7 +84,9 @@
 
   /* ---- ground tests: water (R.water.isWater, else the mask's blocked cells = sea / lakes / ridges), rocks (blocked cells), free ground ---- */
   const blocked = (x, y) => { const w = world(); return w && fn(w, 'blocked') ? w.blocked(x, y) : false; };
-  const isWater = (x, y) => { if (R.water && fn(R.water, 'isWater')) { try { return !!R.water.isWater(x, y); } catch (e) {} } return blocked(x, y); };
+  // 09b_water knows the real map's rivers / lakes; on any other world (tests, a swapped R.world) the blocked cells are the water
+  const isWater = (x, y) => { const real = !!(R.data && R.data.world && R.data.world.regionById);
+    if (real && R.water && fn(R.water, 'isWater')) { try { return !!R.water.isWater(x, y); } catch (e) {} } return blocked(x, y); };
   W.nearWater = (x, y, r) => { r = r || 70; if (isWater(x, y)) return true; for (let i = 0; i < 8; i++) { const a = i * TAU / 8; if (isWater(x + Math.cos(a) * r, y + Math.sin(a) * r)) return true; } return false; };
   const nearRock = (x, y, r) => { r = r || 70; for (let i = 0; i < 8; i++) { const a = i * TAU / 8; if (blocked(x + Math.cos(a) * r, y + Math.sin(a) * r)) return true; } return false; };
   const free = (x, y) => { const w = world(); if (!w) return true; if (fn(w, 'inWorld') && !w.inWorld(x, y)) return false; if (blocked(x, y)) return false; if (fn(w, 'inPoi') && w.inPoi(x, y, 110)) return false; return true; };
@@ -271,8 +273,8 @@
       const hx = down ? 31 : 29, hy = down ? by + 6 : by - 9; Lw(x, [25, by - 2, hx - 1, hy + 1], 3.5, '#8a5a33'); E(x, hx, hy, 3.6, 2.4, down ? .6 : .2, '#7a4e2b'); dot(x, hx + 1.2, hy - .6, .7, '#111');
       Lw(x, [hx - 1, hy - 2, hx - 4, hy - 9, hx - 7, hy - 8], 1, '#d9c9a8'); Lw(x, [hx - 3, hy - 7, hx - 1, hy - 11], 1, '#d9c9a8'); Lw(x, [hx + 1, hy - 2, hx + 3, hy - 9, hx + 6, hy - 8], 1, '#d9c9a8'); dot(x, 7, by - 1, 1.5, '#e8dcc8'); } },
     raven: { anims: ['idle', 'walk'], paint(x, w, h, an, fi) { const fly = an === 'walk';
-      if (!fly) { E(x, 9, 10, 5, 3.2, -.35, '#1a1a22'); dot(x, 13.5, 7, 2.6, '#1a1a22'); T(x, [15.5, 6.5, 19, 7.5, 15.5, 8.2], '#3a3a44'); Lw(x, [4.5, 11.5, 1, 14.5], 2.2, '#1a1a22'); Lw(x, [8, 13, 8, 15.5], 1, '#333'); Lw(x, [11, 12.5, 11.5, 15.5], 1, '#333'); dot(x, 14, 6.2, .6, '#9ad'); if (fi === 2) { E(x, 10, 9, 5, 2.4, -.5, '#2a2a36'); } }
-      else { const wy = [2, 7, 12][fi]; E(x, 10, 9, 4, 2.6, 0, '#1a1a22'); dot(x, 14, 8, 2, '#1a1a22'); T(x, [15.5, 7.5, 19, 8.3, 15.5, 9], '#3a3a44'); T(x, [8, 8.5, 1, wy, 4, wy + 1, 12, 9.5], '#1a1a22'); T(x, [8, 8.5, 1.5, wy + 2, 11, 10], '#24242e'); Lw(x, [6, 10, 2, 13], 1.8, '#1a1a22'); dot(x, 14.5, 7.3, .5, '#9ad'); } } },
+      if (!fly) { E(x, 9, 10, 5, 3.2, -.35, '#30323f'); dot(x, 13.5, 7, 2.6, '#30323f'); T(x, [15.5, 6.5, 19, 7.5, 15.5, 8.2], '#3a3a44'); Lw(x, [4.5, 11.5, 1, 14.5], 2.2, '#30323f'); Lw(x, [8, 13, 8, 15.5], 1, '#333'); Lw(x, [11, 12.5, 11.5, 15.5], 1, '#333'); dot(x, 14, 6.2, .6, '#9ad'); if (fi === 2) { E(x, 10, 9, 5, 2.4, -.5, '#2a2a36'); } }
+      else { const wy = [2, 7, 12][fi]; E(x, 10, 9, 4, 2.6, 0, '#30323f'); dot(x, 14, 8, 2, '#30323f'); T(x, [15.5, 7.5, 19, 8.3, 15.5, 9], '#3a3a44'); T(x, [8, 8.5, 1, wy, 4, wy + 1, 12, 9.5], '#30323f'); T(x, [8, 8.5, 1.5, wy + 2, 11, 10], '#3c3e4e'); Lw(x, [6, 10, 2, 13], 1.8, '#30323f'); dot(x, 14.5, 7.3, .5, '#9ad'); } } },
     wolf: { anims: ['idle', 'walk', 'howl'], paint(x, w, h, an, fi) { const walk = an === 'walk', howl = an === 'howl', gy = h - 1, by = gy - 9;
       legs(x, 10, gy, 3, 8, fi, 2.2, '#454b54', walk); legs(x, 24, gy, 3, 8, fi, 2.2, '#596069', walk); E(x, 17, by, 11, 5, 0, '#596069'); E(x, 17, by - 1.5, 8, 2.5, 0, '#6e7682');
       Lw(x, [6, by - 1, 1.5, by - 6 + (walk ? fi : 0)], 2.6, '#596069'); if (howl) { Lw(x, [26, by - 2, 30, by - 10], 4, '#596069'); E(x, 31, by - 11, 3, 2.2, -.9, '#596069'); T(x, [32, by - 13, 34, by - 16, 33.5, by - 12], '#454b54'); }

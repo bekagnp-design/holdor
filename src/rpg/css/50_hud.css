@@ -124,3 +124,10 @@
 #hud-town{background:linear-gradient(180deg,rgba(44,34,18,.94),rgba(10,10,12,.94));border-color:#c9a04e}
 #qtrack .qt-card{background:linear-gradient(90deg,rgba(10,10,14,.86),rgba(10,10,14,.6));border-color:rgba(201,160,78,.35)}
 #ui>.toast{background:linear-gradient(180deg,rgba(30,24,14,.94),rgba(8,9,12,.94));border:1px solid rgba(201,160,78,.45);box-shadow:0 6px 18px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,230,170,.08)}
+
+/* P1's talents: a "!" on the portrait when points wait (tap -> the talent screen); 22 px to see, 44 px to hit */
+#hud-tal{position:absolute;right:-8px;top:-8px;z-index:3;display:none;width:22px;height:22px;min-height:22px;padding:0;border-radius:50%;border:1.5px solid #1a130a;background:radial-gradient(circle at 40% 30%,#ffe7a8,#e3b661 50%,#9a6b1c);color:#1a130a;font:900 14px/19px var(--f-display);box-shadow:0 0 0 1px rgba(227,182,97,.6),0 2px 6px rgba(0,0,0,.6);pointer-events:auto;animation:hudtal 1.4s ease-in-out infinite}
+#hud-tal.on{display:block}
+#hud-tal::before{content:"";position:absolute;left:-11px;right:-11px;top:-11px;bottom:-11px}
+@keyframes hudtal{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+@media (prefers-reduced-motion:reduce){#hud-tal{animation:none}}

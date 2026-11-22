@@ -533,7 +533,7 @@
     '  float rd = texture2D(roadMap, vUv).a; if (rd > 0.02) { vec3 rdc = texture2D(dRoad, uv * 1.4).rgb * mix(vec3(1.0), vec3(0.62, 0.5, 0.36) / 0.5, 1.0 - uDetCol); splat = mix(splat, rdc * clamp(L / max(avg, 0.04), 0.8, 1.25), smoothstep(0.25, 0.75, rd)); }\n' +
     '  c = mix(c, splat, near); }\n' +
     ' else { float rf = texture2D(roadMap, vUv).a; c = mix(c, vec3(0.55, 0.45, 0.33), rf * 0.55); }\n' +
-    ' float dl = max(dot(n, sunDir), 0.0); vec3 hemi = mix(gndCol, skyCol, n.y * 0.5 + 0.5); vec3 col = c * (hemi + sunCol * dl) * tint; col *= 1.0 - fogA * f;\n' +
+    ' float dl = max(dot(n, sunDir), 0.0); vec3 hemi = mix(gndCol, skyCol, n.y * 0.5 + 0.5); vec3 col = c * (hemi + sunCol * dl) * tint; col *= 1.0 - fogA * f * 0.7 * smoothstep(900.0, 2600.0, d);\n' +
     ' float L2 = lum(col); col = mix(vec3(L2), col, 1.0 + 0.08 * uGrade); col *= mix(vec3(1.0), vec3(1.03, 1.0, 0.95), uGrade);\n' +
     ' float ff = smoothstep(fogNear, fogFar, d); col = mix(col, fogCol, ff); gl_FragColor = vec4(col, 1.0);\n' +
     ' #include <tonemapping_fragment>\n #include <colorspace_fragment>\n}';
@@ -687,7 +687,8 @@
   function spriteFor(e) {
     let s = sprites.get(e.id); if (s) return s;
     // DoubleSide so a mirrored (face -1) quad is not culled; forceSinglePass or three draws every transparent DoubleSide object twice
-    const mat = new T.SpriteMaterial({ transparent: true, alphaTest: .08, depthWrite: true, side: T.DoubleSide, forceSinglePass: true, fog: true, toneMapped: false }); const sp = new T.Sprite(mat); sp.center.set(.5, 0); sp.frustumCulled = false;
+    // no distance fog on the hero and the fighters: in a blizzard (fog near ~150) it washed the hero out to a white ghost at the camera's 420 u
+    const mat = new T.SpriteMaterial({ transparent: true, alphaTest: .08, depthWrite: true, side: T.DoubleSide, forceSinglePass: true, fog: !(e === R.player || e.kind === 'player' || e.kind === 'mob' || e.kind === 'boss'), toneMapped: false }); const sp = new T.Sprite(mat); sp.center.set(.5, 0); sp.frustumCulled = false;
     s = { sp, mat, cv: null, tv: 0, ent: e, wh: 60 }; sprites.set(e.id, s); scene.add(sp); return s;
   }
   // flat discs: shadows (one instanced mesh for every billboard) and the hero's light
@@ -899,6 +900,23 @@
     return { x: clamp(o.x + d.x * t, 0, R.W), y: clamp(o.z + d.z * t, 0, R.H), far: false }; };
   R3.pxPerUnitAt = (x, y, z) => { const a = R.w2s(x, y, z || 0), b = R.w2s(x, y, (z || 0) + 10); return a.behind || b.behind ? R.cam.z : Math.abs(a.y - b.y) / 10; };
 
+  /* ---------- the next closed gate: a soft red curtain along the region border (3D, fogged, culled) ---------- */
+  const gateTex = (() => { const c = document.createElement('canvas'); c.width = 4; c.height = 64; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 64, 0, 0); gr.addColorStop(0, 'rgba(255,255,255,.75)'); gr.addColorStop(.35, 'rgba(255,255,255,.28)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 4, 64); const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; return t; })();
+  const gateMat = new T.MeshBasicMaterial({ map: gateTex, color: 0xd8382c, transparent: true, depthWrite: false, side: T.DoubleSide, fog: true, toneMapped: false });
+  let gateMesh = null, gateKey = null;
+  function syncGate() {
+    let g = null; try { g = Rd.nextGate(); } catch (e) { g = null; } const key = g ? g.id + ':' + g.P.length + ':' + (terrain ? terrain.id : 0) : null;
+    if (key !== gateKey) { gateKey = key; if (gateMesh) { scene.remove(gateMesh); gateMesh.geometry.dispose(); gateMesh = null; }
+      if (g && g.P.length > 1 && terrain) { const P = g.P, n = P.length, seg = g.closed ? n : n - 1, pos = [], uv = [], idx = []; let d = 0;
+        for (let i = 0; i < seg; i++) { const a = P[i], b = P[(i + 1) % n], L = Math.hypot(b[0] - a[0], b[1] - a[1]), m = Math.max(1, Math.ceil(L / 150));
+          for (let k = (i ? 1 : 0); k <= m; k++) { const x = a[0] + (b[0] - a[0]) * k / m, y = a[1] + (b[1] - a[1]) * k / m, gy = groundY(clamp(x, 0, R.W), clamp(y, 0, R.H)), u = (d + L * k / m) / 300, q = pos.length / 3;
+            pos.push(x, gy - 4, y, x, gy + 130, y); uv.push(u, 0, u, 1); if (q > 0) idx.push(q - 2, q, q - 1, q - 1, q, q + 1); }
+          d += L; }
+        const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeBoundingSphere();
+        gateMesh = new T.Mesh(geo, gateMat); gateMesh.name = 'gate'; gateMesh.renderOrder = 2; scene.add(gateMesh); } }
+    if (gateMesh) gateMat.opacity = .55 + .25 * Math.sin(R.t * 2.2);
+  }
+  R3.gate = () => gateMesh;
   /* ---------- the overlay on #c ---------- */
   function overlay(ctx) {
     ctx.setTransform(R.dpr, 0, 0, R.dpr, 0, 0); ctx.clearRect(0, 0, R.vw, R.vh); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
@@ -915,10 +933,7 @@
     if (pois) for (const poi of pois) { const q = pxy(poi); if (!poi.name || Math.hypot(q.x - hx, q.y - hy) > 700) continue; const s = R.w2s(q.x, q.y, (poi.kind === 'castle' ? 240 : 110)); if (s.behind) continue;
       ctx.globalAlpha = found.has(poi.id) ? 1 : .7; Rd.label(ctx, poi.name, s.x, s.y - 14, 13, found.has(poi.id) ? '#f3e7c4' : '#c6bfae'); }
     ctx.globalAlpha = 1;
-    const g = Rd.nextGate(); if (g) { let near = false; for (const q of g.P) if (Math.hypot(q[0] - hx, q[1] - hy) < 2600 * Math.min(WS, 2)) { near = true; break; }
-      if (near) { const pulse = .5 + .5 * Math.sin(R.t * 2.2); ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.beginPath(); let up = true;
-        for (let i = 0; i <= g.P.length; i++) { if (i === g.P.length && !g.closed) break; const q = g.P[i % g.P.length], s = R.w2s(q[0], q[1], 6); if (s.behind || s.d > 3000) { up = true; continue; } if (up) ctx.moveTo(s.x, s.y); else ctx.lineTo(s.x, s.y); up = false; }
-        ctx.lineWidth = 22; ctx.strokeStyle = 'rgba(215,40,40,' + (.08 + .05 * pulse) + ')'; ctx.stroke(); ctx.lineWidth = 9; ctx.strokeStyle = 'rgba(230,60,50,' + (.2 + .08 * pulse) + ')'; ctx.stroke(); ctx.lineWidth = 2.5; ctx.strokeStyle = 'rgba(255,120,100,' + (.55 + .3 * pulse) + ')'; ctx.stroke(); ctx.restore(); } }
+    // the next closed gate is a 3D curtain (syncGate), not a line on the overlay
     if (!(R.sys.vfx && R.sys.vfx.draw)) Rd.hook('vfx', 'drawWorld', ctx);
     if (!vigEl) Rd.drawVignette(ctx);
     Rd.hook('ambience', 'drawTint', ctx);
@@ -955,7 +970,7 @@
   function frame3d(force) {
     resize(); if (!terrain) buildTerrain(); if (!camInit) updateCam();
     if (!fogTex.image.__drawn && Rd.fogCanvas) { fogTex.image.__drawn = true; refreshFog(); }
-    syncProps(); syncSprites(); occUpdate();
+    syncProps(); syncSprites(); occUpdate(); syncGate();
     renderer.render(scene, camera); const ri = renderer.info.render; R3.stats.calls = ri.calls; R3.stats.tris = ri.triangles; R3.stats.tex = renderer.info.memory.textures; R3.stats.pr = DYN.pr;
     return true;
   }

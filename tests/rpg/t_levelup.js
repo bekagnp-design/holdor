@@ -13,6 +13,8 @@ const SC = path.resolve(__dirname, '..', '..', '.shots') + '/'; fs.mkdirSync(SC,
   page.on('console', m => { if (m.type() === 'error' && !/ERR_|Failed to load|net::|telegram/i.test(m.text())) errors.push('C:' + m.text()); });
   await page.goto('file://' + path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'beta/index.html'));
   await page.waitForFunction(() => window.R && R.bus && R.screens && R.screens.levelup && R.levelup, { timeout: 20000 });
+  // the boot (90_main) loads the save once the assets are ready and would replace a state the test made before it: wait for it
+  await page.waitForFunction(() => !!R.boot, null, { timeout: 60000 }).catch(() => {});
   await page.waitForTimeout(300);
   const res = {}; let fails = 0; const ok = (k, v, info) => { res[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); if (!v) fails++; };
 

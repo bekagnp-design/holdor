@@ -26,6 +26,8 @@ const HTML = path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'bet
   });
   await page.goto('file://' + HTML + '?startapp=r_abc12');
   await page.waitForFunction(() => window.R && R.screens && R.screens.menu && R.tg, { timeout: 20000 });
+  // the boot (90_main) loads the save once the assets are ready and would replace a state the test made before it: wait for it
+  await page.waitForFunction(() => !!R.boot, null, { timeout: 60000 }).catch(() => {});
   const R = global.__R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
   const calls = () => page.evaluate(() => window.__tg.map(x => x[0]));
   const tgArgs = name => page.evaluate(n => window.__tg.filter(x => x[0] === n).map(x => x.slice(1)), name);

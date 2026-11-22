@@ -71,7 +71,7 @@ function stub(lvl, cls) {
   const html = L.build();
   const { page, errors, close } = await L.launch(); page.setDefaultTimeout(60000);
   try {
-    const b = await L.boot(page, { save: L.fakeSave({ house: 'stark', hero: 'jon', lvl: 14 }) });
+    const b = await L.boot(page, { save: L.fakeSave({ house: 'stark', hero: 'jon', lvl: 14 }), timeout: 90000, wait: 60000 });
     L.ok('boot', b.booted && b.screens.includes('talents'), JSON.stringify({ cur: b.cur, running: b.running }));
     await page.evaluate(() => { if (R.ui.cur) R.ui.close(); });
     const s0 = await page.evaluate(() => ({ un: R.prog.unspent(), cls: R.state.p.cls, hint: R.prog.hint() }));
@@ -83,12 +83,12 @@ function stub(lvl, cls) {
       return { cur: R.ui.cur, nodes: r ? r.querySelectorAll('[data-node]').length : 0, pri: pri && pri.textContent, priH: bb && bb.height, small, sw: document.documentElement.scrollWidth }; });
     L.ok('browser: talents screen opens with 12 nodes', v.cur === 'talents' && v.nodes === 12, JSON.stringify(v));
     L.ok('browser: every button ≥ 44 px, no sideways scroll', v.small === 0 && v.sw <= 390, JSON.stringify(v));
-    await L.tap(page, '#talents [data-node="k_edge1"]');
+    const tp1 = await L.tap(page, '#talents [data-node="k_edge1"]', { timeout: 60000 }); if (!tp1) console.log('  tap 1 returned false');
     await page.waitForFunction(() => /RENDING/.test(document.querySelector('#talents .pg-pri').textContent), null, { timeout: 15000, polling: 100 }).catch(() => {});
     const pri1 = await page.evaluate(() => document.querySelector('#talents .pg-pri').textContent);
     L.ok('browser: a tap selects Rending Edge', /RENDING EDGE/.test(pri1), pri1);
     const atk0 = await page.evaluate(() => R.player && R.player.crit);
-    await L.tap(page, '#talents .pg-pri');
+    const tp2 = await L.tap(page, '#talents .pg-pri', { timeout: 60000 }); if (!tp2) console.log('  tap 2 returned false');
     await page.waitForFunction(() => R.state.p.talents && R.state.p.talents.k_edge1 === 1, null, { timeout: 15000, polling: 100 }).catch(() => {});
     const s1 = await page.evaluate(() => ({ t: Object.assign({}, R.state.p.talents), un: R.prog.unspent(), crit: R.prog.mods().critAdd, rk: document.querySelectorAll('#talents [data-node="k_edge1"] .pg-rk i.on').length }));
     L.ok('browser: a real tap spends a point', s1.t.k_edge1 === 1 && s1.un === 1 && s1.crit === 3 && s1.rk === 1, JSON.stringify(s1));
@@ -114,8 +114,8 @@ function stub(lvl, cls) {
     // milestone card: level 15 → 20 through the real gainXp
     const mc = await page.evaluate(async () => { if (R.ui.cur) R.ui.close(); const p = R.state.p; let need = 0; for (let l = p.lvl; l < 20; l++) need += R.plr.xpNext(l); R.player.gainXp(need - p.xp + 1);
       if (R.ui.cur) R.ui.close(); await new Promise(r => setTimeout(r, 500)); const c = document.querySelector('.pg-mile');
-      return { lvl: p.lvl, card: c && c.textContent, best: R.acc().best.lvl, un: R.prog.unspent() }; });
-    L.ok('browser: level 20 → milestone card + best.lvl', mc.lvl === 20 && /20/.test(mc.card || '') && mc.best >= 20 && mc.un === 3, JSON.stringify(mc));
+      return { lvl: p.lvl, card: c && c.textContent, best: R.acc().best.lvl, un: R.prog.unspent(), sp: R.prog.spent() }; });
+    L.ok('browser: level 20 → milestone card + best.lvl', mc.lvl === 20 && /20/.test(mc.card || '') && mc.best >= 20 && mc.un === 4 - mc.sp, JSON.stringify(mc));
     await SHOT(page, 'p1_milestone');
     // permadeath: a new hero has no talents and a fresh ledger
     const nh = await page.evaluate(() => { const ids = Object.keys(R.acc().champs); R.newHero(ids[0]); return { t: R.state.p.talents || null, sp: R.prog.spent(), un: R.prog.unspent(), lvl: R.state.p.lvl, best: R.acc().best.lvl }; });

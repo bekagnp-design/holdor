@@ -83,6 +83,7 @@ const nb = []; for (const n of D.npcs.filter(n => n.q1)) { if (!W.poiById[n.poi]
   if (!['elder', 'innkeeper', 'farmer', 'hunter', 'merchant', 'guard', 'smith', 'board'].includes(n.role)) nb.push(n.id + ' role ' + n.role);
   const d = D.story.dialogs[n.id]; if (!(Array.isArray(d) && d[0].choices.some(c => c.close))) nb.push(n.id + ' dialog'); if (!visible(n.id)) nb.push(n.id + ' hidden'); }
 L.ok('new NPCs: real place, role from the list, a dialog with Leave, visible in the roster', !nb.length, nb.slice(0, 6).join());
+L.ok('one dialog per NPC still (t_story counts dialogs = npcs)', Object.keys(D.story.dialogs).length === D.npcs.length, Object.keys(D.story.dialogs).length + ' / ' + D.npcs.length);
 // the daily board roll: another day gives another pick, a taken bounty keeps its mob
 const b0 = boards[0], pick0 = b0.target + b0.n; let other = false; for (let d = 1; d < 8 && !other; d++) { M.roll(b0, '2030-1-' + d); other = b0.target + b0.n !== pick0; }
 L.ok('a board slot rolls another bounty on another day', other);

@@ -30,8 +30,11 @@ const L = require('./lib');
     const I = R.input.interact; return { id: ev && ev.id, wagon: !!w, near: !!(I && I.e === w), stock: ev && ev.poi && ev.poi.stock.length }; });
   L.ok('caravan: a wagon on the road with goods, INTERACT offered next to it', C.id === 'caravan' && C.wagon && C.near && C.stock > 0, JSON.stringify(C));
   let flaky = '';
+  // the horde's XP may have raised a level: the level-up popup waits for a free screen; settle it first (it is not the caravan's business)
+  await L.ev(page, () => { for (let k = 0; k < 4; k++) { if (R.ui.cur) R.ui.close(); for (let i = 0; i < 30; i++) R.step(); } if (R.ui.cur) R.ui.close(); });
   if (C.near) { await L.tap(page, '#b-interact'); await L.steps(page, 2);
     if (!(await L.waitFor(page, () => R.ui.cur != null, 6000))) { flaky = 'pill tap lost, interact sent on the bus'; await L.ev(page, () => { const I = R.input.interact; if (I && I.e) R.bus.emit('interact', I.e); }); await L.waitFor(page, () => R.ui.cur != null, 3000); } }
+  if (await L.ev(page, () => R.ui.cur === 'levelup')) { flaky += ' level-up popup closed first'; await L.ev(page, () => { R.ui.close(); const I = R.input.interact; if (I && I.e) R.bus.emit('interact', I.e); }); }
   const C2 = await L.ev(page, () => ({ cur: R.ui.cur }));
   L.ok('caravan: a tap on INTERACT opens the shop, not a dialog', C2.cur === 'shop', JSON.stringify(C2) + (flaky ? ' NOTE ' + flaky : ''));
   await L.shot(page, 'events_caravan_shop');

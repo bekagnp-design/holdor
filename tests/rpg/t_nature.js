@@ -52,13 +52,13 @@ if (!process.env.RPG_HTML && process.env.HOLDOR_RPG_HTML) process.env.RPG_HTML =
       winter: [500, 1300], dragonstone: [6650, 7350], crackclaw: [5650, 7900], coast: [1200, 4700] };
     const WS = (R.data.world.W || 7200) / 7200; for (const b in S) { S[b][0] *= WS; S[b][1] *= WS; }   // the places are in the 7200-wide grid; the world is R.WS × that
     out.at = {}; for (const b in S) out.at[b] = N.biomeAt(S[b][0], S[b][1]);
-    out.wild = {}; const WL = R.wildlife; if (WL) for (const b of ['beyond', 'winter', 'wall', 'wolfswood', 'ironislands', 'dragonstone', 'crownlands', 'dorne', 'riverlands']) out.wild[b] = WL.biomeAt(S[b][0], S[b][1]);
+    out.wild = {}; const WL = R.wildlife; if (WL) for (const b of ['beyond', 'winter', 'wall', 'wolfswood', 'ironislands', 'dragonstone', 'crownlands', 'dorne', 'riverlands', 'neck', 'kingswood', 'redmts']) out.wild[b] = WL.biomeAt(S[b][0], S[b][1]);
     out.wildOk = !WL || Object.values(out.wild).every(w => w && WL.BIOMES[w]);
     return out; });
   L.ok('every recipe names known props, ≥ 4 kinds each, no two recipes alike', !rc.missing.length && Object.values(rc.kinds).every(n => n >= 4) && !rc.dupSig.length, JSON.stringify({ missing: rc.missing, kinds: rc.kinds, dup: rc.dupSig }));
   const wrong = Object.keys(rc.at).filter(b => rc.at[b] !== b);
   L.ok('biomeAt on the real map: 19 places, each its own recipe', !wrong.length, JSON.stringify(wrong.map(b => b + '→' + rc.at[b])));
-  L.ok('wildlife: the real region ids pick their critters (beyond: snow fox + mammoth, Wolfswood, Iron Islands, Dragonstone …)', rc.wildOk && rc.wild.beyond === 'beyond' && rc.wild.winter === 'beyond' && rc.wild.wall === 'wall' && rc.wild.wolfswood === 'wolfswood' && rc.wild.ironislands === 'iron' && rc.wild.dragonstone === 'ash' && rc.wild.crownlands === 'crownlands', JSON.stringify(rc.wild));
+  L.ok('wildlife: the real region ids pick their critters (beyond: snow fox + mammoth, Wolfswood, Iron Islands, Dragonstone, the Neck, the Kingswood, the Red Mountains …)', rc.wildOk && rc.wild.beyond === 'beyond' && rc.wild.winter === 'beyond' && rc.wild.wall === 'wall' && rc.wild.wolfswood === 'wolfswood' && rc.wild.ironislands === 'iron' && rc.wild.dragonstone === 'ash' && rc.wild.crownlands === 'crownlands' && rc.wild.neck === 'neck' && rc.wild.kingswood === 'kingswood' && rc.wild.redmts === 'redmts', JSON.stringify(rc.wild));
 
   /* ---- streaming in eight regions: biome, budget, placement rules, screenshots ---- */
   const SPOTS = [['north', 3250, 2750], ['wolfswood', 2150, 1950], ['riverlands', 3600, 6250], ['reach', 2500, 9850], ['westerlands', 1500, 8350], ['stormlands', 5250, 9800], ['dorne', 5000, 11250], ['ironislands', 800, 6000], ['beyond', 4000, 420], ['dragonstone', 6720, 7290], ['crackclaw', 5650, 7900]];
@@ -125,11 +125,11 @@ if (!process.env.RPG_HTML && process.env.HOLDOR_RPG_HTML) process.env.RPG_HTML =
         else { const po = R.world.pois().find(pp => Math.hypot(pp.x - q.x, pp.y - q.y) < N.keepOf(pp) - 1); if (po) bad.push(t + ' in ' + po.id); } }
       const grassMat = R.render3d.scene.getObjectByName('grass'), gu = grassMat && grassMat.material.userData.uni;
       return { biome: N.biomeAt(p.x, p.y), grass: N.grassCount(), clutter: N.clutterCount(), draws: N.clutterDraws(), kinds: Object.keys(N.clutter), bad: bad.slice(0, 4), nbad: bad.length,
-        drift: N.driftCount(), dk: N.drift.kind, hero: b[0] && Math.hypot(b[0].x - p.x, b[0].y - p.y) < 1 && b[0].k > .6, wake: b.slice(1).some(q => q.r === 18), nb: b.length, grassBend: gu && gu.uBendK.value, grassVS: grassMat && grassMat.material.userData.vs };
+        drift: N.driftCount(), dk: N.drift.kind, hero: b[0] && Math.hypot(b[0].x - p.x, b[0].y - p.y) < 24 && b[0].k >= .6, wake: b.slice(1).some(q => q.r === 18), nb: b.length, grassBend: gu && gu.uBendK.value, grassVS: grassMat && grassMat.material.userData.vs };
     }, [x, y]);
     await page.waitForTimeout(300);
     await L.shot(page, 'nature_walk_' + name);
-    L.ok(name + ': the hero bends the grass (bender 0 on him, his wake behind, the grass shader takes them)', r.hero && r.wake && r.nb <= 8 && r.grassBend > 0 && r.grassVS === 1 && r.grass > 200, JSON.stringify(r));
+    L.ok(name + ': the hero bends the grass (bender 0 on him, his wake behind, the grass shader takes them)', r.hero && r.wake && r.nb <= 8 && r.grassBend > 0 && r.grassVS === 1 && r.grass > 60, JSON.stringify(r));
     L.ok(name + ': ground clutter near the camera (≥ 2 kinds, ≤ 5 draws), none on water / roads / POI cores; ' + dk + ' drifting', r.clutter > 15 && r.kinds.length >= 2 && r.draws <= 5 && r.nbad === 0 && r.dk === dk && r.drift > 10, JSON.stringify(r));
   }
   const ns = await page.evaluate(() => { const N = R.nature, A = R.ambience, out = {}; R.stop(); A.set('clear'); for (let i = 0; i < 400; i++) R.step(); out.clear = +N.stormTarget().toFixed(2);

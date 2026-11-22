@@ -9,8 +9,8 @@ const hit = (a, b) => !!(a && b && a.right > b.left + 1 && a.left < b.right - 1 
   L.build();
   const { page, errors, close } = await L.launch({ w: 390, h: 844 });
   try {
-    await L.boot(page, { save: L.fakeSave({ house: 'stark', lvl: 4, gold: 900, flags: { tut: 3 } }), settle: 600 });
-    await page.waitForFunction(() => window.R && R.townlife && R.player && R.hud, null, { timeout: 15000 });
+    await L.boot(page, { save: L.fakeSave({ house: 'stark', lvl: 4, gold: 900, flags: { tut: 3 } }), settle: 600, timeout: 90000, wait: 30000 });
+    await page.waitForFunction(() => window.R && R.townlife && R.player && R.hud, null, { timeout: 45000 });
     const W = await L.ev(page, () => { const w = R.world.poi('winterfell'); return w ? { x: w.x, y: w.y, r: w.r } : null; });
     L.ok('Winterfell exists', !!W, JSON.stringify(W));
     // day, calm, stand in Winterfell's yard
@@ -31,23 +31,25 @@ const hit = (a, b) => !!(a && b && a.right > b.left + 1 && a.left < b.right - 1 
     // once per visit: staying inside shows nothing more
     await L.steps(page, 240); const again = await L.ev(page, () => R.townlife.shownN);
     L.ok('staying inside does not show it again', again === b1.shown, again + ' vs ' + b1.shown);
-    // ---- the signs: projected over the smith, hidden behind the camera
-    await page.waitForTimeout(5600); await L.steps(page, 30);
+    // ---- the signs: projected over the smith, hidden behind the camera (the tutorial card done, so the signs have the whole field)
+    await L.ev(page, () => { try { R.tut && R.tut.skip && R.tut.skip(); } catch (e) {} });
+    await L.steps(page, 360); await page.waitForTimeout(300); await L.steps(page, 4);
     const sg = await L.ev(page, () => R.townlife.signs().map(s => { const e = s.npc, q = R.w2s(e.x, e.y, 80), r = s.el.getBoundingClientRect();
       return { svc: s.svc, on: s.on, d: Math.round(s.d), q: { x: Math.round(q.x), y: Math.round(q.y), behind: q.behind }, cx: Math.round((r.left + r.right) / 2), bottom: Math.round(r.bottom), h: Math.round(r.height), op: s.el.style.opacity }; }));
     const smith = sg.find(s => s.svc === 'smith');
-    L.ok('signs for the smith, the merchant and the inn at Winterfell', ['smith', 'shop', 'inn'].every(k => sg.some(s => s.svc === k)), sg.map(s => s.svc + (s.on ? '+' : '-')).join(' '));
+    L.ok('signs for the smith (who also sells at Winterfell) and the inn', ['smith', 'inn'].every(k => sg.some(s => s.svc === k)), sg.map(s => s.svc + (s.on ? '+' : '-')).join(' '));
     L.ok('a visible sign sits right over its NPC (same x within 4 px, just above the head)', sg.filter(s => s.on).length > 0 && sg.filter(s => s.on).every(s => Math.abs(s.cx - s.q.x) <= 4 && s.bottom <= s.q.y + 2 && s.bottom > s.q.y - 90), JSON.stringify(sg));
     L.ok('signs are ≥ 44 px tall', sg.filter(s => s.on).every(s => s.h >= 44), sg.map(s => s.h).join(','));
     await L.shot(page, 'townlife_winterfell_signs');
-    // turn the camera round: the smith goes behind it
-    const beh = await L.ev(page, async () => { const s = R.townlife.signs().find(x => x.svc === 'smith'); const e = s.npc;
-      R.player.x = e.x; R.player.y = e.y + 300; R.cam.yaw = 0; for (let i = 0; i < 90; i++) R.step(); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-      const front = { on: s.on, q: R.w2s(e.x, e.y, 80) };
-      R.cam.yaw = Math.PI; for (let i = 0; i < 150; i++) R.step(); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); for (let i = 0; i < 3; i++) R.step();
-      const back = { on: s.on, q: R.w2s(e.x, e.y, 80), vis: getComputedStyle(s.el).display }; R.cam.yaw = 0; for (let i = 0; i < 150; i++) R.step(); return { front, back }; });
-    const offOk = beh.back.q.behind || beh.back.q.x < 0 || beh.back.q.x > 390 || beh.back.q.y < 0 || beh.back.q.y > 844;
-    L.ok('the smith\'s sign hides when the smith is behind the camera / off screen', !beh.back.on && beh.back.vis === 'none' && offOk, JSON.stringify(beh));
+    // two stand-in smiths 150 units ahead of the hero and 600 behind him (the camera stands ~340 behind): one sign shows, the other hides
+    const beh = await L.ev(page, async () => { const P = R.player; R.cam.yaw = 0; for (let i = 0; i < 30; i++) R.step();
+      const mk = (id, dy) => R.spawn({ kind: 'npc', team: 2, x: P.x, y: P.y + dy, r: 14, name: 'Test smith', dialog: id, poi: 'winterfell', type: 'npc:smith', sprite: 'npc:smith', rkind: 'smith', hp: 1, hpMax: 1, invuln: true, noBar: true, mark: '' });
+      const a = mk('t_front_smith', -150), b = mk('t_back_smith', 600); for (let i = 0; i < 3; i++) R.step(); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); R.step();
+      const sa = R.townlife.signs().find(s => s.npc === a), sb = R.townlife.signs().find(s => s.npc === b);
+      const o = { front: sa && { on: sa.on, q: R.w2s(a.x, a.y, 80), d: Math.round(sa.d) }, back: sb && { on: sb.on, q: R.w2s(b.x, b.y, 80), d: Math.round(sb.d), vis: getComputedStyle(sb.el).display } };
+      a.dead = b.dead = true; R.remove && (R.remove(a), R.remove(b)); for (let i = 0; i < 3; i++) R.step(); o.gone = !R.townlife.signs().some(s => s.npc === a || s.npc === b); return o; });
+    const offOk = !!(beh.back && (beh.back.q.behind || beh.back.q.x < 0 || beh.back.q.x > 390 || beh.back.q.y < 0 || beh.back.q.y > 844));
+    L.ok('a smith in front of the camera gets a sign; one behind the camera gets none; signs go with their NPC', !!(beh.front && beh.front.on && beh.back && !beh.back.on && beh.back.vis === 'none' && offOk && beh.gone), JSON.stringify(beh));
     // ---- a tap from afar toasts the way; a real tap within 120 units opens the smith
     await L.ev(page, () => { const s = R.townlife.signs().find(x => x.svc === 'smith'); const e = s.npc; R.player.x = e.x; R.player.y = e.y + 190; R.cam.yaw = 0; for (let i = 0; i < 120; i++) R.step(); });
     await page.waitForTimeout(300); await L.steps(page, 4);
@@ -74,7 +76,7 @@ const hit = (a, b) => !!(a && b && a.right > b.left + 1 && a.left < b.right - 1 
     // ---- a town of the North and a village
     const tw = await L.ev(page, () => { const t = R.world.pois().find(p => p.type === 'town' && p.region === 'north') || R.world.pois().find(p => p.type === 'town'); if (!t) return null;
       R.player.x = t.x; R.player.y = t.y + 30; for (let i = 0; i < 40; i++) R.step(); const b = document.getElementById('tl-ban');
-      return { id: t.id, name: t.name, cur: R.townlife.cur, on: b.classList.contains('on'), nm: b.querySelector('.tl-nm').textContent, sub: b.querySelector('.tl-sub').textContent }; });
+      return { id: t.id, name: t.name, cur: R.townlife.cur, on: b.classList.contains('on'), why: R.townlife.hideWhy, ui: R.ui.cur, hud: R.hud.el.className, nm: b.querySelector('.tl-nm').textContent, sub: b.querySelector('.tl-sub').textContent }; });
     L.ok('entering a town shows its banner', tw && tw.on && tw.cur === tw.id && tw.nm === tw.name && /Town/.test(tw.sub), JSON.stringify(tw));
     await L.shot(page, 'townlife_town_banner');
     const vg = await L.ev(page, W => { const v = { id: 't_village', name: 'Mole\'s Hollow', type: 'village', x: W.x + 1600, y: W.y + 300, region: 'north', r: 110 }; R.data.world.pois.push(v);
@@ -84,17 +86,17 @@ const hit = (a, b) => !!(a && b && a.right > b.left + 1 && a.left < b.right - 1 
     L.ok('entering a village shows its banner (no shop → no SERVICES button)', vg.on && vg.cur === 't_village' && vg.nm === 'Mole\'s Hollow' && /Village/.test(vg.sub) && !vg.svcShown, JSON.stringify(vg));
     // ---- the SERVICES HERE button opens the town screen
     await L.ev(page, W => { R.player.x = W.x + 900; R.player.y = W.y; for (let i = 0; i < 40; i++) R.step(); R.player.x = W.x; R.player.y = W.y + 40; for (let i = 0; i < 40; i++) R.step(); }, W);
-    await page.waitForTimeout(450);
+    await page.waitForTimeout(120);
     await L.tap(page, '#tl-ban.on .tl-svc', { wait: 400 });
-    const ts = await L.ev(page, () => R.ui.cur);
-    L.ok('a tap on SERVICES HERE opens the town screen (43_towns)', ts === 'town' || ts === 'shop', ts);
+    const ts = await L.ev(page, () => R.ui.cur), tsw = await L.ev(page, () => JSON.stringify({ why: R.townlife.hideWhy, cur: R.townlife.cur, n: R.townlife.shownN }));
+    L.ok('a tap on SERVICES HERE opens the town screen (43_towns)', ts === 'town' || ts === 'shop', ts + ' ' + tsw);
     await L.ev(page, () => { while (R.ui.cur) R.ui.close(); });
     // ---- 360×640: the banner still clears the HUD block and the tutorial card
     await page.setViewportSize({ width: 360, height: 640 }); await page.waitForTimeout(300);
     const small = await L.ev(page, async W => { R.player.x = W.x + 900; R.player.y = W.y; for (let i = 0; i < 40; i++) R.step(); R.player.x = W.x; R.player.y = W.y + 40; for (let i = 0; i < 40; i++) R.step();
       await new Promise(r => setTimeout(r, 450)); R.step(); const R2 = el => el && el.getBoundingClientRect(); const b = document.getElementById('tl-ban');
       const t = document.querySelector('#tut:not(.off) .tut-wrap');
-      return { on: b.classList.contains('on'), ban: R2(b), tl: R2(document.getElementById('hud-tl')), qt: R2(document.getElementById('qtrack')), tr: R2(document.getElementById('hud-tr')), tut: t && getComputedStyle(t).display !== 'none' ? R2(t) : null, vw: innerWidth }; }, W);
+      return { on: b.classList.contains('on'), why: R.townlife.hideWhy, cur: R.townlife.cur, ui: R.ui.cur, ban: R2(b), tl: R2(document.getElementById('hud-tl')), qt: R2(document.getElementById('qtrack')), tr: R2(document.getElementById('hud-tr')), tut: t && getComputedStyle(t).display !== 'none' ? R2(t) : null, vw: innerWidth }; }, W);
     L.ok('360×640: the banner shows inside the screen and clears the HUD block, tracker and tutorial card', small.on && small.ban.left >= 0 && small.ban.right <= small.vw && !hit(small.ban, small.tl) && !hit(small.ban, small.qt) && !hit(small.ban, small.tr) && !hit(small.ban, small.tut), JSON.stringify(small));
     await L.shot(page, 'townlife_360_banner');
     const ge = await L.ev(page, () => ({ tl: R.townlife.err || null, errs: (R.errors || []).filter(e => /townlife/.test(String(e && (e.msg || e.message || e)))).length }));

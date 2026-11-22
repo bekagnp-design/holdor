@@ -92,10 +92,10 @@
     const clQ = typeof cloak === 'number' && isFinite(cloak) ? Math.round(clamp(cloak, -0.8, 0.8) * 5) / 5 : null;
     const gear = o.gear || p.gear || {}, wp = gear.weapon || null, ar = gear.armor || null;
     const fam = famOf(cls, wp), wrar = wp ? clamp(wp.rar | 0, 0, 4) : 0, arar = ar ? clamp(ar.rar | 0, 0, 4) : 0;
-    const sc = o.scale || 1, pxH = Math.max(16, Math.round(o.px || boxOf(id) * sc));
+    const box = boxOf(id), pxH = Math.max(16, Math.round(o.px || box * (o.scale || 1)));
     const hair = hairOf(id) || '';
     const key = 'HB|' + (id || '-') + '|' + cls + '|' + house + '|' + anim + '|' + fi + '|' + face + '|' + lean + '|' + (clQ == null ? 'd' : clQ) + '|' + spQ + '|' + fam + wrar + arar + '|' + pxH + '|' + hair;
-    return { key, id, cls, house, anim, fi, n, face, lean, speed: spQ, cloak: clQ, fam, wrar, arar, pxH, sc: o.px ? pxH / boxOf(id) : sc, hair };
+    return { key, id, cls, house, anim, fi, n, face, lean, speed: spQ, cloak: clQ, fam, wrar, arar, pxH, sc: pxH / box, hair };
   }
 
   /* ---- LRU ---- */
@@ -166,11 +166,11 @@
         P.arm[0].sw = i >= 2 ? -0.6 : 0.3; P.sway = [-0.05, -0.02, 0.1, 0.14][i]; P.flare = i >= 2 ? 0.3 : 0.1; P.leg[0].f = 0.3; P.leg[1].f = -0.25;
       }
     } else if (anim === 'hurt') {
-      const a = k < 0.5 ? 1 : 0.35; P.hunch = 2.6 * a; P.headDn = 2.2 * a; P.tilt = -0.07 * a; P.hipX = -1.5 * a; P.dy = 1.4 * a; P.flash = 0.45 * a; P.arm[0].sw = -0.35 * a; P.arm[1].sw = -0.35 * a; P.crouch = 0.12 * a; P.sway = 0.1 * a; P.flare = 0.25 * a;
+      const a = k < 0.5 ? 1 : 0.35; P.hunch = 2.6 * a; P.headDn = 2.2 * a; P.tilt = -0.07 * a; P.hipX = -1.5 * a; P.dy = 1.4 * a; P.flash = 0.28 * a; P.arm[0].sw = -0.35 * a; P.arm[1].sw = -0.35 * a; P.crouch = 0.12 * a; P.sway = 0.1 * a; P.flare = 0.25 * a;
     } else if (anim === 'dodge') {
       const i = Math.min(3, Math.floor(k * 4));
-      P.crouch = [0.45, 0.85, 0.85, 0.35][i]; P.sy = [0.92, 0.68, 0.7, 0.9][i]; P.rot = [0.08, 0.45, 0.95, 0.15][i] * (lean < 0 ? -1 : 1); P.fwd = [0.4, 0.9, 0.9, 0.3][i];
-      P.headDn = [2, 5, 5, 1][i]; P.arm[0].sw = 0.6; P.arm[1].sw = 0.6; P.arm[0].bend = P.arm[1].bend = 1; P.flare = [0.4, 0.9, 1, 0.5][i]; P.sway = [0.1, 0.25, 0.3, 0.12][i] * (lean < 0 ? 1 : -1);
+      P.crouch = [0.4, 0.7, 0.72, 0.3][i]; P.sy = [0.9, 0.72, 0.74, 0.9][i]; P.rot = [0.05, 0.22, 0.4, 0.08][i] * (lean < 0 ? -1 : 1); P.fwd = [0.4, 0.9, 0.9, 0.3][i];
+      P.headDn = [2, 5, 5, 1][i]; P.arm[0].sw = 0.6; P.arm[1].sw = 0.6; P.arm[0].bend = P.arm[1].bend = 1; P.flare = [0.3, 0.5, 0.55, 0.35][i]; P.sway = [0.1, 0.25, 0.3, 0.12][i] * (lean < 0 ? 1 : -1);
       P.leg[0] = { f: 0.4, l: i === 1 || i === 2 ? 0.8 : 0.2 }; P.leg[1] = { f: -0.2, l: i === 1 || i === 2 ? 0.6 : 0 };
     } else if (anim === 'die') {
       const i = Math.min(3, Math.floor(k * 4));
@@ -192,7 +192,8 @@
       sh(() => { g.moveTo(-1.2, -0.5); g.lineTo(1.2, -0.5); g.lineTo(0.7, 4.6); g.lineTo(-0.7, 4.6); g.closePath(); }, c);
       for (const s of [-1, 1]) { stroke([s * 1, -0.6, s * 3.2, -3.2, s * 3.6, -5.6], 1.1, c); stroke([s * 3.0, -3.0, s * 5.2, -3.6], 0.9, c); stroke([s * 2.2, -1.9, s * 1.6, -4.4], 0.9, c); } },
     targaryen(c) { // a spread wing with three spines
-      sh(() => { g.moveTo(-5, 3.5); g.quadraticCurveTo(-4, -4.5, 0, -5.4); g.quadraticCurveTo(4, -4.5, 5, 3.5); g.quadraticCurveTo(3.2, 1.6, 2.4, 3.8); g.quadraticCurveTo(1.2, 1.4, 0, 3.8); g.quadraticCurveTo(-1.2, 1.4, -2.4, 3.8); g.quadraticCurveTo(-3.2, 1.6, -5, 3.5); g.closePath(); }, c); },
+      sh(() => { g.moveTo(-4.8, 4.4); g.quadraticCurveTo(-3.6, -2.6, 5.4, -5.6); g.lineTo(3.8, -2.2); g.quadraticCurveTo(3.6, -0.4, 4.8, 1); g.quadraticCurveTo(2.4, 0.4, 2.2, 2.6); g.quadraticCurveTo(0.2, 1.6, -0.4, 4); g.quadraticCurveTo(-2.4, 3, -4.8, 4.4); g.closePath(); }, c);
+      for (const q of [[-4.4, 4, 4.6, -4.6], [-4.4, 4, 3.4, 0.4], [-4.4, 4, 1.2, 2.4]]) stroke(q, 0.5, mix(c, '#000', 0.45), 0.7); },
     greyjoy(c) { // a round head trailing five curling arms
       sh(() => g.ellipse(0, -2.6, 2.8, 2.6, 0, 0, TAU), c);
       for (let i = 0; i < 5; i++) { const x = (i - 2) * 1.5; curve(x * 0.6, -1, x * 1.6, 2, x * 1.2 + (i % 2 ? 1.4 : -1.4), 5.2, 0.9, c); } },
@@ -265,12 +266,12 @@
     const shY = -79 + cr + P.bob + P.hunch * -1 + fw * 5, headY = -90 + cr + P.bob + fw * 8 + P.headDn - P.hunch * 0.3;
     const turn = F.face * 2.2, hipX = P.hipX, shX = hipX * 0.4 + turn * 0.6;
     const twist = P.twist; /* + = the right shoulder comes back toward the camera: it drops a little and moves out */
-    const shL = [-14 + shX + twist * 0.8, shY + twist * 1.0], shR = [14 + shX + twist * 1.2, shY - twist * 1.0];
+    const shW = maester ? 12.6 : 13.2, shL = [-shW + shX + twist * 0.8, shY + twist * 1.0], shR = [shW + shX + twist * 1.2, shY - twist * 1.0];
     const sway = (F.cloak != null ? F.cloak : P.sway - F.lean * 0.32 - (F.lean ? 0 : 0)), flare = clamp(P.flare + (F.cloak == null ? Math.abs(F.lean) * 0.25 : 0) + F.speed * 0.1, 0, 1.2);
     /* legs */
     const legs = [0, 1].map(i => {
       const s = i ? 1 : -1, L = P.leg[i], hx0 = hipX + s * 6.2, hy0 = hipY;
-      const fx = hipX * 0.25 + s * (5.4 + P.crouch * 3), fy = -L.f * 5 - L.l * 9 - (P.prone ? 0 : 0);
+      const fx = hipX * 0.25 + s * (5.4 + P.crouch * 3), fy = -L.f * 6.5 - L.l * 11;
       const kx = (hx0 + fx) / 2 + s * (P.crouch * 5 + L.l * 1.2), ky = (hy0 + fy) / 2 + L.l * 3 - P.crouch * 2;
       return { s, hx: hx0, hy: hy0, kx, ky, fx, fy, L, far: L.f > 0.15 };
     });
@@ -288,15 +289,15 @@
       const s = i ? 1 : -1, A = P.arm[i], S = i ? shR : shL;
       if (A.set) return { s, S, E: [A.set[0][0] + shX, A.set[0][1] + cr + P.bob], H: [A.set[1][0] + shX, A.set[1][1] + cr + P.bob], far: false, set: true };
       const sw = A.sw || 0, bend = A.bend || 0, sp = A.spread || 0;
-      const E = [S[0] + s * (2 + sp * 7) - s * Math.max(0, sw) * 1.5, S[1] + 14 - Math.max(0, sw) * 3 + Math.min(0, sw) * -1.2 - sp * 4];
-      const H = [E[0] + s * (1 + sp * 8) - s * sw * 2.5 * (1 - bend * 0.4) - s * bend * 2, E[1] + 13.5 - sw * 6 - bend * (5 + Math.max(0, sw) * 6) - sp * 4];
+      const E = [S[0] + s * (0.6 + sp * 7) - s * Math.max(0, sw) * 1.8, S[1] + 14 - Math.max(0, sw) * 3 + Math.min(0, sw) * -1.2 - sp * 4];
+      const H = [E[0] + s * (0.2 + sp * 8) - s * sw * 2.2 * (1 - bend * 0.4) - s * bend * 2.4, E[1] + 13.5 - sw * 6 - bend * (5 + Math.max(0, sw) * 6) - sp * 4];
       return { s, S, E, H, far: sw > 0.3, sw };
     });
     const drawArm = A => {
       const k = A.far ? 0.92 : 1;
-      if (knight) { limb(A.S[0], A.S[1], A.E[0], A.E[1], 4.6 * k, 3.8 * k, pal.steel, { hi: 0.35 }); limb(A.E[0], A.E[1], A.H[0], A.H[1], 3.8 * k, 3.0 * k, pal.steel, { hi: 0.35 }); disc(A.E[0], A.E[1], 2.9 * k, pal.steelDk, { band: false }); }
-      else if (ranger) { limb(A.S[0], A.S[1], A.E[0], A.E[1], 4.2 * k, 3.4 * k, pal.cloth); limb(A.E[0], A.E[1], A.H[0], A.H[1], 3.4 * k, 2.8 * k, pal.leather); }
-      else { limb(A.S[0], A.S[1], A.E[0], A.E[1], 4.8 * k, 4.4 * k, pal.robe); limb(A.E[0], A.E[1], A.H[0], A.H[1], 4.4 * k, 3.6 * k, pal.robe); }
+      if (knight) { limb(A.S[0], A.S[1], A.E[0], A.E[1], 4.8 * k, 4.0 * k, pal.cloth, { hi: 0.2 }); limb(A.E[0], A.E[1], A.H[0], A.H[1], 4.0 * k, 3.2 * k, pal.steel, { hi: 0.35 }); disc(A.E[0], A.E[1], 2.6 * k, pal.steelDk, { band: false }); }
+      else if (ranger) { limb(A.S[0], A.S[1], A.E[0], A.E[1], 4.6 * k, 3.7 * k, pal.cloth); limb(A.E[0], A.E[1], A.H[0], A.H[1], 3.7 * k, 3.0 * k, pal.leather); }
+      else { limb(A.S[0], A.S[1], A.E[0], A.E[1], 5.2 * k, 4.8 * k, pal.robe); limb(A.E[0], A.E[1], A.H[0], A.H[1], 4.8 * k, 5.2 * k, pal.robe); }
       disc(A.H[0], A.H[1], 2.5 * k, knight ? pal.steelDk : pal.skin, { band: false, rim: false });
     };
     const W = P.w, R1 = arms[1], L0 = arms[0];
@@ -307,7 +308,7 @@
       if (W && W.kind === 'staffup') return weapon(F.fam, R1.H[0], R1.H[1], W.a, pal, P);
       if (W && W.kind === 'tome') return weapon('tome', L0.H[0], L0.H[1], 0, pal, P);
       if (W && W.kind === 'bowup') return;
-      if (F.fam === 'staff' || F.fam === 'rod') return weapon(F.fam, R1.H[0], R1.H[1], -1.5 + (P.arm[1].sw || 0) * 0.25, pal, P);
+      if (F.fam === 'staff' || F.fam === 'rod') return weapon(F.fam, R1.H[0], R1.H[1], -1.62 + (P.arm[1].sw || 0) * 0.08, pal, P);
       if (F.fam === 'tome') return weapon('tome', R1.H[0], R1.H[1], 0, pal, P);
       if (F.fam === 'bow') return bowHang(pal, L0.H[0], L0.H[1]);
       if (F.fam === 'xbow') return weapon('dagger', L0.H[0], L0.H[1], 1.9, pal, P);
@@ -336,8 +337,8 @@
     if (!maester) { /* the belt */ paint(() => g.rect(hipX - tw - 0.6, wy - 1.8, 2 * tw + 1.2, 3.4), pal.leatherDk, [hipX - tw, wy - 2, hipX + tw, wy + 2], { band: false });
       if (knight) { /* a scabbard hanging from the left hip, toward us */ limb(hipX - tw + 1, wy + 1, hipX - tw - 3 + sway * 3, wy + 24, 1.8, 1.5, pal.leatherDk, { rim: false }); } }
     /* 4 · the cloak / short cloak / mantle */
-    const clTop = shY - 1.5, clLen = knight ? -14 + cr * 0.6 : ranger ? -50 + cr * 0.8 : -57 + cr, hemY = clLen - flare * (knight ? 13 : 5) + P.bob * 0.3;
-    const hw = (knight ? 17.5 : ranger ? 15.5 : 16.5) + flare * (knight ? 6 : 3), hs = Math.sin(sway) * (knight ? 30 : 16);
+    const clTop = shY - 1.5, clLen = knight ? -14 + cr * 0.6 : ranger ? -50 + cr * 0.8 : -53 + cr, hemY = clLen - flare * (knight ? 13 : 5) + P.bob * 0.3;
+    const hw = (knight ? 18.5 : ranger ? 15.5 : 17) + flare * (knight ? 6 : 3), hs = Math.sin(sway) * (knight ? 30 : 16);
     const cl = [shL[0] + 1.5, clTop, shR[0] - 1.5, clTop];
     const ph = F.fi / F.n * TAU, wv = (knight ? 2.2 : 1.4) * (0.4 + flare);
     const cloakPath = () => {
@@ -350,7 +351,8 @@
     }
     paint(cloakPath, pal.cloak, [shL[0] - 6, clTop - 3, shR[0] + 8, hemY + 3], { hi: 0.3, sh: 0.6, under: 0.3, bandA: 0.16, rimA: 0.32 });
     g.save(); g.beginPath(); cloakPath(); g.clip();
-    for (let i = -2; i <= 2; i++) { const x0 = shX + i * 4.2, x1 = hipX + i * (hw / 2.6) + hs + Math.sin(ph + i) * wv * 0.6; curve(x0, clTop + 4, x0 + (x1 - x0) * 0.4 + sway * 4, (clTop + hemY) / 2, x1, hemY + 2, 1.5, pal.cloakSh, 0.42); curve(x0 + 1.6, clTop + 6, x0 + 1.6 + (x1 - x0) * 0.4 + sway * 4, (clTop + hemY) / 2, x1 + 1.8, hemY + 1, 0.9, LIGHT, 0.1); }
+    for (const i of [-1.5, 0, 1.5]) { const x0 = shX + i * 5, x1 = hipX + i * (hw / 1.9) + hs + Math.sin(ph + i) * wv * 0.6; curve(x0, clTop + 8, x0 + (x1 - x0) * 0.45 + sway * 4, (clTop + hemY) / 2 + 4, x1, hemY + 2, knight ? 3.2 : 2.2, pal.cloakSh, 0.3); curve(x0 + 2.6, clTop + 10, x0 + 2.6 + (x1 - x0) * 0.45 + sway * 4, (clTop + hemY) / 2 + 4, x1 + 3, hemY + 1, knight ? 1.8 : 1.2, LIGHT, 0.08); }
+    { const vg = g.createLinearGradient(0, clTop, 0, hemY); vg.addColorStop(0, 'rgba(255,240,220,.10)'); vg.addColorStop(0.5, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(6,4,8,.28)'); g.fillStyle = vg; g.fillRect(hipX - hw - 12, clTop - 3, 2 * hw + 24, hemY - clTop + 6); }
     const sgY = knight ? shY + 22 : ranger ? shY + 15 : shY + 12, sgX = shX + hs * (knight ? 0.28 : 0.2) + (ranger ? -3.5 : 0), sgS = knight ? 1.35 : ranger ? 0.85 : 0.95;
     sigil(F.house, sgX, sgY, sgS, sway * 0.35, pal.sig, 0.85);
     g.restore();

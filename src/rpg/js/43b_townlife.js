@@ -18,7 +18,7 @@
   const R = window.R; if (!R || !R.bus) return;
   const TL = R.townlife = R.townlife || {};
   const TYPES = TL.TYPES = { castle: 1, town: 1, village: 1, city: 1, seat: 1, hamlet: 1 };
-  const FAR = 700, NEAR = 260, LABEL_R = 200, TAP_R = 120, BAN_MS = 5200;
+  const FAR = 700, NEAR = 260, LABEL_R = 200, TAP_R = 120, BAN_S = 5.2;   // the banner stays 5.2 s of game time
   const HOUSE_COL = { stark: '#a9bdd0', lannister: '#e3b661', targaryen: '#e14b4b', greyjoy: '#d8b74a', tyrell: '#7fd06a', martell: '#f08a3c', baratheon: '#e0c14a' };
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
   const vals = m => !m ? [] : Array.isArray(m) ? m : Object.keys(m).map(k => m[k]);
@@ -58,7 +58,7 @@
     if (k === 'smith' || k === 'blacksmith' || k === 'armorer' || sv.indexOf('smith') >= 0) return 'smith';
     if (k === 'innkeeper' || k === 'innkeep' || sv.indexOf('inn') >= 0) return 'inn';
     if (k === 'merchant' || k === 'trader' || sv.indexOf('shop') >= 0) return 'shop';
-    if (k === 'captain' || (k === 'guard' && /captain|warden|commander|sergeant/i.test(String(e.fullName || e.name || '') + ' ' + String(n.role || e.role || '')))) return 'guard';
+    if (k === 'captain' || k === 'arms' || (k === 'guard' && /captain|warden|commander|sergeant/i.test(String(e.fullName || e.name || '') + ' ' + String(n.role || e.role || '')))) return 'guard';
     return null; };
   const npcEnts = () => { let L = null; try { if (R.npcs && R.npcs.list) L = R.npcs.list(); } catch (e) { L = null; }
     const out = (L || []).slice(), seen = new Set(out); for (const e of R.ents || []) if (e && !e.dead && (e.kind === 'npc' || e.kind === 'board') && !seen.has(e)) out.push(e);
@@ -116,10 +116,10 @@
     ban.classList.toggle('nosvc', !L.svc);
     if (!L.svc && parts.length) { let p = ban.querySelector('.tl-plain'); if (!p) { p = document.createElement('div'); p.className = 'tl-plain'; ban.querySelector('.tl-txt').appendChild(p); } p.textContent = parts.join(' · '); }
     else { const p = ban.querySelector('.tl-plain'); if (p) p.remove(); }
-    ban.classList.remove('on', 'out'); void ban.offsetWidth; ban.classList.add('on'); banOn = true; banT = performance.now();
+    ban.classList.remove('on', 'out'); void ban.offsetWidth; ban.classList.add('on'); banOn = true; banT = R.t || 0;
     TL.shownN = (TL.shownN || 0) + 1; TL.lastBanner = poi.id; placeBanner();
     return true; };
-  TL.hideBanner = () => { if (!ban) return; banOn = false; ban.classList.remove('on'); ban.classList.add('out'); };
+  TL.hideBanner = why => { if (!ban) return; if (banOn) TL.hideWhy = why || 'call'; banOn = false; ban.classList.remove('on'); ban.classList.add('out'); };
 
   // the message column: start at #hud-slot, then step below every visible obstacle the banner would meet
   const OBST = ['#hud-tl', '#hud-tr', '#ui>#prChat', '#bossbar', '#dgbar', '#evbar', '#tut:not(.off) .tut-wrap', '#hud-region.on', '#ctl-top'];
@@ -135,7 +135,7 @@
     const slot = document.getElementById('hud-slot'); let y = slot ? slot.getBoundingClientRect().top : 210;
     const obs = obstacles();
     for (let k = 0; k < 8; k++) { let moved = false;
-      for (const r of obs) if (r.right > x + 2 && r.left < x + w - 2 && r.bottom > y + 2 && r.top < y + hgt - 2) { y = r.bottom + 8; moved = true; }
+      for (const r of obs) if (r.right > x + 2 && r.left < x + w - 2 && r.bottom > y - 4 && r.top < y + hgt + 4) { y = r.bottom + 10; moved = true; }
       if (!moved) break; }
     const ys = Math.round(y) + 'px'; if (ban.style.top !== ys) ban.style.top = ys;
     const ws = Math.round(w) + 'px'; if (ban.style.width !== ws) ban.style.width = ws;
@@ -148,7 +148,8 @@
   TL.check = () => {
     const P = R.player; if (!P) return;
     const cur = TL.cur ? poiById(TL.cur) : null;
-    if (cur) { const c = pxy(cur); if (Math.hypot(c.x - P.x, c.y - P.y) > radius(cur) + 200) { TL.cur = null; pending = null; R.bus.emit('town:leave', cur); if (banPoi === cur) TL.hideBanner(); } }
+    if (TL.cur && !cur) { TL.cur = null; pending = null; TL.hideBanner('gone'); }   // the POI went away (a swapped world, a test)
+    if (cur) { const c = pxy(cur); if (Math.hypot(c.x - P.x, c.y - P.y) > radius(cur) + 200) { TL.cur = null; pending = null; R.bus.emit('town:leave', cur); if (banPoi === cur) TL.hideBanner('leave'); } }
     if (!TL.cur) { let best = null, bd = Infinity;
       for (const p of pois()) { if (!isTownish(p)) continue; const c = pxy(p), d = Math.hypot(c.x - P.x, c.y - P.y); if (d <= radius(p) + 30 && d < bd) { bd = d; best = p; } }
       if (best) { TL.cur = best.id; TL.visits[best.id] = (TL.visits[best.id] || 0) + 1; pending = best; R.bus.emit('town:enter', best); } }
@@ -187,7 +188,7 @@
     const P = R.player, hide = !P || screenOpen() || hudHidden() || !R.w2s;
     const keep = new Set();
     if (!hide) {
-      const now = performance.now(); if (now - obsT > 250) { obsT = now; obsCache = obstacles().concat([...document.querySelectorAll('#ctl .cb, #b-interact.on, #ctl-top')].filter(shownEl).map(el => el.getBoundingClientRect())); }
+      const now = performance.now(); if (now - obsT > 250) { obsT = now; obsCache = obstacles().concat([...document.querySelectorAll('#ctl .cb, #b-interact.on, #ctl-top')].filter(shownEl).map(el => el.getBoundingClientRect())); if (banOn && ban) obsCache.push(ban.getBoundingClientRect()); }
       const vw = R.vw || window.innerWidth, vh = R.vh || window.innerHeight;
       for (const e of npcEnts()) {
         const svc = svcOf(e); if (!svc) continue; const d = Math.hypot(e.x - P.x, e.y - P.y); if (d > FAR) continue;
@@ -235,9 +236,9 @@
   let acc = 0;
   const sys = { order: 920,
     update(dt) { try { if (!mount()) return; acc += dt; if (acc >= .25) { acc = 0; TL.check(); }
-      if (banOn) { if (screenOpen()) { TL.hideBanner(); } else if (performance.now() - banT > BAN_MS) TL.hideBanner(); }
+      if (banOn) { if (screenOpen()) { TL.hideBanner('screen:' + R.ui.cur); } else if ((R.t || 0) - banT > BAN_S) TL.hideBanner('time'); }
       placeSigns(); placeBanner(); ambience(dt); layer.classList.toggle('off', screenOpen() || hudHidden()); } catch (e) { if (!TL.err) { TL.err = String(e && e.message || e); console.warn('townlife', e); } } },
-    draw() { try { placeSigns(); } catch (e) {} } };
+    draw() { try { placeSigns(); placeBanner(); } catch (e) {} } };
   try { if (R.addSys) R.addSys('townlife', sys); else if (R.sys) R.sys.townlife = sys; } catch (e) {}
   try { R.bus.on('screen', () => { if (layer) layer.classList.toggle('off', screenOpen()); }); } catch (e) {}
 })();

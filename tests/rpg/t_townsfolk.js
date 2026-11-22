@@ -21,9 +21,9 @@ const L = require('./lib');
     for (const [id, t] of [['winterfell', 'castle'], ['lannisport', 'town'], ['sunspear', 'castle']]) {
       const p = near(id, t); if (!p) { out.errs.push('no ' + id); continue; }
       for (const k in F.places) F.despawn(k);
-      put(p.x + 40, p.y + 600); steps(40);
+      put(p.x + 40, p.y + 300); steps(40); const hp = [Math.round(P.x - p.x), Math.round(P.y - p.y)];
       const L1 = F.list().filter(e => e.poi === p.id), pr = F.places[p.id] && F.places[p.id].pr;
-      const o = out.towns[p.id] = { n: L1.length, pr, roles: {}, styles: {}, hats: {} };
+      const o = out.towns[p.id] = { n: L1.length, pr, hp, roles: {}, styles: {}, hats: {} };
       for (const e of L1) { o.roles[e.role] = (o.roles[e.role] || 0) + 1; o.styles[e.look.style] = 1; o.hats[e.look.hat || '-'] = (o.hats[e.look.hat || '-'] || 0) + 1;
         if (e.kind !== 'folk' || e.team !== 2 || !e.noLoot || !e.noBar || typeof e.frame !== 'function') out.bad.push(p.id + ':flags');
         if (Math.hypot(e.x - p.x, e.y - p.y) > pr * .9 + 2) out.bad.push(p.id + ':out:' + Math.round(Math.hypot(e.x - p.x, e.y - p.y)));
@@ -39,10 +39,10 @@ const L = require('./lib');
       const pair = F.list().find(e => e.ai.st === 'chat' && e.ai.lead); out.pair = !!pair;
       if (pair) { put(pair.x + 60, pair.y + 40); let got = null; for (let i = 0; i < 60 * 14 && !got; i++) { R.step(); const b = F.list().find(e => e.bub); if (b) got = b.bub.txt; } out.bubble = got; } }
     // per-step cost with 14 people
-    { const p = byId('winterfell'); for (const k in F.places) F.despawn(k); put(p.x, p.y + 400); steps(2); for (const k in F.places) F.despawn(k); F.spawnAt(p.id, { n: 14, night: false });
+    { const p = byId('winterfell'); for (const k in F.places) F.despawn(k); put(p.x, p.y + 400); steps(2); for (const k in F.places) F.despawn(k); const mp = F.MAX_PLACES; F.MAX_PLACES = 1; F.spawnAt(p.id, { n: 14, night: false });
       for (const pid in F.places) if (pid !== p.id) F.despawn(pid);
       const S = R.sys.townsfolk; let best = 1e9; for (let rep = 0; rep < 3; rep++) { const t0 = performance.now(); for (let i = 0; i < 600; i++) { R.t += 1 / 60; S.update(1 / 60); } best = Math.min(best, (performance.now() - t0) / 600); }
-      out.perStep = +best.toFixed(4); out.n14 = F.list().length; }
+      out.perStep = +best.toFixed(4); out.n14 = F.list().filter(e => e.poi === p.id).length; F.MAX_PLACES = mp; }
     // night: fewer, torches
     { const p = byId('winterfell'); for (const k in F.places) F.despawn(k); if (R.ambience && R.ambience.setHour) R.ambience.setHour(23); R.ambience.night = true; put(p.x + 40, p.y + 600); steps(40);
       const Ln = F.list().filter(e => e.poi === p.id); out.night = { n: Ln.length, torches: Ln.filter(e => e.torch).length, torchOk: Ln.filter(e => e.torch).every(e => e.torch.z > 30 && e.torch.r > 0) };
