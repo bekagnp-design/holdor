@@ -1,0 +1,34 @@
+/* 51_map.css — the world map screen (A26) */
+#screen[data-screen="map"]{padding:0;overflow:hidden;background:#060b14}
+.mp{position:absolute;inset:0;overflow:hidden}
+.mp canvas.mp-cv{position:absolute;left:0;top:0;touch-action:none;display:block;cursor:grab}
+.mp-top{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:max(10px,env(safe-area-inset-top)) 12px 0;pointer-events:none}
+.mp-top>*{pointer-events:auto}
+.mp-title{font:800 15px/1 var(--f-display);letter-spacing:.14em;color:#f3e7c4;text-shadow:0 1px 6px #000;background:rgba(6,11,20,.62);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:0 14px;min-height:44px;display:flex;align-items:center;gap:10px}
+.mp-title small{font:600 11.5px var(--f-body);color:var(--muted);letter-spacing:0;text-transform:none}
+.mp-x{width:44px;height:44px;min-height:44px;border-radius:50%;padding:0;font-size:20px;line-height:1;background:rgba(6,11,20,.72)}
+.mp-you{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;will-change:transform}
+.mp-you i{position:absolute;left:-11px;top:-15px;width:22px;height:28px;background:#fff;clip-path:polygon(50% 0,100% 100%,50% 74%,0 100%);filter:drop-shadow(0 0 5px rgba(255,255,255,.95)) drop-shadow(0 2px 3px rgba(0,0,0,.8));animation:mpPulse 1.1s ease-in-out infinite}
+.mp-you b{position:absolute;left:-18px;top:-18px;width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.9);animation:mpRing 1.6s ease-out infinite}
+@keyframes mpPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+@keyframes mpRing{0%{transform:scale(.45);opacity:.95}100%{transform:scale(1.9);opacity:0}}
+.mp-tag{position:absolute;transform:translate(-50%,-130%);background:rgba(6,11,20,.92);border:1px solid #58d7e8;color:#9eeaf5;font:700 12px var(--f-display);padding:6px 10px;border-radius:9px;white-space:nowrap;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.5)}
+.mp-legend{position:absolute;left:8px;right:8px;bottom:calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:space-around;align-items:center;gap:4px;background:rgba(6,11,20,.9);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:9px 6px;font:600 11.5px var(--f-body);color:#cdd8e3;pointer-events:none}
+.mp-legend span{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.mp-legend i{display:inline-block;width:12px;height:12px;flex:0 0 12px}
+.mp-legend .l-you{background:#fff;clip-path:polygon(50% 0,100% 100%,50% 74%,0 100%)}
+.mp-legend .l-castle{background:#a9bdd0;clip-path:polygon(0 0,100% 0,100% 55%,50% 100%,0 55%)}
+.mp-legend .l-quest{background:#e3b661;transform:rotate(45deg) scale(.78)}
+.mp-legend .l-players{background:#58d7e8;border-radius:50%;width:9px;height:9px;flex-basis:9px}
+.mp-legend .l-event{border:2.5px solid #e14b4b;border-radius:50%}
+.mp-me{position:absolute;right:12px;bottom:calc(64px + env(safe-area-inset-bottom));width:48px;height:48px;min-height:48px;border-radius:50%;padding:0;font-size:22px;line-height:1;background:rgba(6,11,20,.78)}
+.mp-card{position:absolute;left:8px;right:8px;bottom:calc(60px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#152236,#0b1220);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:14px 56px 14px 14px;box-shadow:0 12px 30px rgba(0,0,0,.6);animation:mpUp .22s ease-out}
+.mp-card:has(.mp-go){padding-right:14px}
+@keyframes mpUp{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.mp-card .k{font:700 11px var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-right:40px}
+.mp-card h3{margin:4px 0 4px;font:800 22px/1.1 var(--f-display);color:#f3e7c4;padding-right:40px}
+.mp-card p{margin:0 0 8px;font:15px/1.35 var(--f-body);color:#d7dfe8}
+.mp-card .d{font:700 13px var(--f-display);color:var(--gold);margin-bottom:10px}
+.mp-card .d:empty{display:none}
+.mp-card .mp-cx{position:absolute;right:8px;top:8px;width:44px;height:44px;min-height:44px;border-radius:50%;padding:0;font-size:16px;line-height:1;border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.05)}
+.mp-card .mp-go{margin-top:2px}

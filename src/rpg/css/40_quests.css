@@ -1,0 +1,54 @@
+/* quests (A18): the tracker card under the HP bar + the quest log screen */
+#qtrack-own{position:absolute;left:10px;top:calc(env(safe-area-inset-top,0px) + 96px)}
+.qt-card{display:none;align-items:center;gap:8px;min-height:44px;max-width:214px;padding:6px 10px 6px 8px;border-radius:12px;background:rgba(6,11,20,.74);border:1px solid rgba(227,182,97,.35);border-left:3px solid var(--gold);box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.qt-card.on{display:flex;animation:qtin .25s ease-out}
+.qt-card.on.hid{display:none}
+@keyframes qtin{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.qt-card[data-st=done]{border-left-color:var(--ok)}
+.qt-card[data-st=new]{border-left-color:var(--muted)}
+.qt-arrow{width:22px;height:22px;flex:none;color:var(--gold);transition:transform .15s linear,opacity .3s;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.qt-arrow svg{display:block}
+.qt-card[data-st=done] .qt-arrow{color:var(--ok)}
+.qt-card[data-st=new] .qt-arrow{color:var(--muted)}
+.qt-txt{display:flex;flex-direction:column;min-width:0}
+.qt-title{font:700 13px/1.15 var(--f-display);color:#f3e7c4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qt-line{font:600 13px/1.2 var(--f-body);color:#d7dee8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---- the log ---- */
+.ql{max-width:520px;margin:0 auto;padding-bottom:90px}
+.ql-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 12px}
+.ql-head h1{font:800 22px var(--f-display);color:var(--gold);margin:0;letter-spacing:.04em}
+.ql-tabs{display:flex;gap:6px}
+.ql-tab{min-height:44px;padding:0 14px;border-radius:999px;font-size:14px}
+.ql-tab.on{background:rgba(227,182,97,.18);border-color:var(--gold);color:#f3e7c4}
+.ql-tab i,.ql-done summary i{font-style:normal;opacity:.7;margin-left:6px}
+.ql-q{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px;margin-bottom:10px}
+.ql-q.main{border-color:rgba(227,182,97,.35)}
+.ql-q.tracked{box-shadow:0 0 0 2px rgba(227,182,97,.5)}
+.ql-q.st-done{border-color:rgba(127,208,106,.5)}
+.ql-row{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.ql-title{font:700 16px/1.2 var(--f-display);color:#f3e7c4}
+.ql-lvl{font-size:12px;color:var(--muted);white-space:nowrap}
+.ql-text{font-size:14px;line-height:1.35;color:#cfd8e3;margin:6px 0 8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ql-bar{position:relative;height:20px;border-radius:10px;background:rgba(255,255,255,.08);overflow:hidden;margin-bottom:8px}
+.ql-bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#8a6a2a,var(--gold));border-radius:10px;transition:width .3s}
+.ql-bar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 12px var(--f-display);color:#fff;text-shadow:0 1px 2px #000;letter-spacing:.02em}
+.ql-bar.done i{background:linear-gradient(90deg,#3f9a3a,#8be26a)}
+.ql-bar.new span{color:var(--muted);text-shadow:none}
+.ql-rw{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.rw{display:inline-flex;align-items:center;gap:4px;padding:3px 9px 3px 7px;border-radius:999px;background:rgba(0,0,0,.35);font:700 12px var(--f-display);color:#e9eef5}
+.rw svg{width:14px;height:14px;display:block}
+.rw.xp{color:#9fd3ff}.rw.gold{color:var(--gold)}.rw.gems{color:#b9a6ff}.rw.comp{color:#ffd0a6}
+.rw.r0{color:#b8c1cc}.rw.r1{color:#7fd06a}.rw.r2{color:#5aa5ff}.rw.r3{color:#c07cff}.rw.r4{color:var(--gold)}
+.ql-act{display:flex;gap:8px;align-items:center}
+.ql-act button{flex:1;min-height:44px;font-size:14px;letter-spacing:.04em}
+.ql-track.on{background:rgba(227,182,97,.2);border-color:var(--gold);color:#f3e7c4}
+.ql-empty{text-align:center;color:var(--muted);padding:30px 10px;font-size:15px;line-height:1.4}
+.ql-done{margin-top:6px}
+.ql-done summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font:700 14px var(--f-display);color:var(--muted);list-style:none;padding:0 4px}
+.ql-done summary::-webkit-details-marker{display:none}
+.ql-done summary::before{content:'▸';margin-right:8px;transition:transform .15s}
+.ql-done[open] summary::before{transform:rotate(90deg)}
+.ql-done .ql-q{opacity:.6;padding:8px 12px}
+.ql-done .ql-title{font-size:14px}
+.ql-close{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:520px;margin:0 auto;width:auto}

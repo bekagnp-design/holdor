@@ -1,0 +1,48 @@
+/* presence (A38): the zone chat sheet (bottom 55 %, the world keeps running above it), the floating chat button + unread badge, the leaderboard */
+#screen[data-screen="chat"]{background:transparent;padding:0;overflow:hidden;pointer-events:none}
+.prSheet{pointer-events:auto;position:absolute;left:0;right:0;bottom:0;height:55%;display:flex;flex-direction:column;background:rgba(6,11,20,.94);border-top:1px solid rgba(255,255,255,.14);border-radius:18px 18px 0 0;box-shadow:0 -12px 40px rgba(0,0,0,.5);padding:10px 12px calc(10px + env(safe-area-inset-bottom));animation:prUp .22s ease-out}
+@keyframes prUp{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.prHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.prZone{font:800 18px var(--f-display);color:var(--gold);letter-spacing:.04em}
+.prSub{font:13px var(--f-body);color:var(--muted);margin-top:1px}
+.prX{min-width:44px;min-height:44px;padding:0;border-radius:12px;font-size:16px}
+.prList{flex:1;min-height:0;overflow:auto;padding:4px 2px;-webkit-overflow-scrolling:touch}
+.prMsg{padding:5px 8px;margin:2px 0;border-radius:10px;background:rgba(255,255,255,.04);font-size:15px;line-height:1.3}
+.prMsg b{font:700 13px var(--f-display);margin-right:6px}
+.prMsg .t{font-size:11px;color:var(--muted)}
+.prMsg .b{color:#e9eef5;word-break:break-word}
+.prMsg.me{background:rgba(227,182,97,.12);border-left:3px solid var(--gold)}
+.prEmpty{color:var(--muted);text-align:center;padding:18px 8px;font-size:15px}
+.prQuick{display:flex;gap:6px;overflow-x:auto;padding:6px 0 2px;scrollbar-width:none}
+.prQuick::-webkit-scrollbar{display:none}
+.prQ{min-width:44px;min-height:44px;padding:0 10px;font-size:20px;border-radius:12px;flex:0 0 auto}
+.prQ.txt{font:800 13px var(--f-display);color:#ffd9a3;border-color:rgba(240,138,60,.6)}
+.prNote{min-height:16px;font-size:13px;color:var(--muted);padding:2px 4px}
+.prNote.err{color:#f0a0a0}
+.prRow{display:flex;gap:8px}
+.prRow input{flex:1;min-width:0;min-height:48px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#e9eef5;font:16px var(--f-body);padding:0 12px;outline:none;user-select:text;-webkit-user-select:text}
+.prRow input:focus{border-color:var(--gold)}
+.prSend{min-height:48px;min-width:84px;background:linear-gradient(180deg,#f0cf7e,#b8873a);border-color:#ffe4a8;color:#2a1a05;font-size:15px;letter-spacing:.06em}
+.prGuest{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;color:var(--muted);font-size:15px;line-height:1.4;padding:12px 18px}
+.prBig{font:800 20px var(--f-display);color:#f3e7c4;margin-bottom:8px}
+/* floating chat button, mid-right, under the HUD and above the action buttons */
+.prChat{position:absolute;right:8px;top:38%;width:46px;height:46px;padding:0;border-radius:50%;font-size:20px;background:rgba(6,11,20,.72);border-color:rgba(255,255,255,.22);z-index:5}
+.prChat.hid{display:none}
+.prChat .bd{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--bad);color:#fff;font:800 11px/20px var(--f-display);display:none;border:2px solid #060b14}
+.prChat .bd.on{display:block}
+/* leaderboard */
+.prBoardWrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;min-height:calc(100vh - 24px)}
+.prTabs{display:flex;gap:6px;margin:6px 0 8px}
+.prTab{flex:1;min-height:44px;font-size:14px;letter-spacing:.04em;color:var(--muted)}
+.prTab.on{background:rgba(227,182,97,.16);border-color:var(--gold);color:var(--gold)}
+.prBoard{flex:1;overflow:auto;border-radius:12px;background:rgba(255,255,255,.03);padding:4px}
+.prRank{display:flex;align-items:center;gap:8px;min-height:46px;padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.06);font-size:15px}
+.prRank .rk{width:28px;text-align:right;font:800 14px var(--f-display);color:var(--muted)}
+.prRank .sg{width:28px;text-align:center;font-size:18px}
+.prRank .nm{flex:1;min-width:0;display:flex;align-items:baseline;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prRank .nm small{color:var(--muted);font-size:12px}
+.prRank .nm i{font:800 10px var(--f-display);color:#0b2a0a;background:var(--ok);border-radius:6px;padding:1px 5px;letter-spacing:.06em;font-style:normal}
+.prRank .v{font:800 14px var(--f-display);color:var(--gold);white-space:nowrap}
+.prRank.me{background:rgba(127,208,106,.12);border-radius:10px;border-bottom-color:transparent}
+.prRank:nth-child(-n+3) .rk{color:var(--gold)}
+.prBack{margin-top:10px;width:100%;min-height:52px;font-size:16px;letter-spacing:.08em}

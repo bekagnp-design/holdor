@@ -1,0 +1,13 @@
+/* bosses (A09): the boss bar at the top of the screen — name, title, hp with phase ticks */
+#bossbar{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 54px);transform:translate(-50%,-10px);width:min(92vw,420px);display:none;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:5;text-align:center;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
+#bossbar.on{display:block;opacity:1;transform:translate(-50%,0)}
+#bossbar .bb-head{display:flex;align-items:baseline;justify-content:center;gap:8px;white-space:nowrap;overflow:hidden}
+#bossbar .bb-name{font:800 16px/1.1 var(--f-display);color:#f3e7c4;letter-spacing:.04em;text-shadow:0 1px 0 #000}
+#bossbar .bb-title{font:italic 12px/1.1 var(--f-body);color:#c9a8a8;overflow:hidden;text-overflow:ellipsis}
+#bossbar .bb-bar{position:relative;height:12px;margin-top:4px;border:2px solid #6b2525;border-radius:7px;background:#1a0a0a;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.7)}
+#bossbar .bb-fill{position:absolute;left:0;top:0;bottom:0;width:100%;background:linear-gradient(180deg,#f06a5a,#b3221c 55%,#7d1410);transition:width .18s ease-out;box-shadow:0 0 8px rgba(240,80,70,.6)}
+#bossbar .bb-ticks i{position:absolute;top:-2px;bottom:-2px;width:2px;margin-left:-1px;background:rgba(255,230,180,.75)}
+#bossbar .bb-hp{margin-top:3px;font:700 11px/1 var(--f-display);color:#e9c7c7;letter-spacing:.06em}
+#bossbar[data-phase="1"] .bb-fill{background:linear-gradient(180deg,#f58d3c,#c4421a 55%,#7d2410)}
+#bossbar[data-phase="2"] .bb-fill{background:linear-gradient(180deg,#ffd06a,#d4701e 55%,#7d3a10);animation:bbpulse .8s ease-in-out infinite alternate}
+@keyframes bbpulse{from{filter:brightness(1)}to{filter:brightness(1.35)}}
