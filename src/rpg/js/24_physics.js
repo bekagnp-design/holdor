@@ -24,6 +24,16 @@
      P.homeGate(regionId)      true when that region's gate is the account house's home (open);  P.wrapGate()
      P.blockedAt(x,y)          R.world.blocked, guarded
      P.ACC / P.BRAKE / P.ICE_GRIP / P.WALK_MAX / P.FALL_V / P.LAND_V / P.KILL_V   the tuning (u/s², u/s)
+     P.benders() → [{x,y,r,k}]  ≤ 8 grass / bush benders for N1's shader: the hero first (k ≥ 0.25), then the nearest moving mobs /
+                               critters within 700; r = 2 × body radius, k = speed / 170 (≤ 1.5). One reused array.
+     P.cloak(e) → {ang, flare} a spring-driven cloak / hair (H1): ang radians (+ = swings to the screen's right, ±0.7) from the
+                               acceleration in camera space and the turn rate; flare 0..1 lifts with speed. The hero also gets e.lean
+                               (−1..1, into the turn) and e.bob (units ≥ 0, a footfall bob; e.bobPh its phase 0..1).
+     Steps: the hero's footsteps push drops (they hop aside) and light corpses within 22 units, and kick up dust / leaves when
+            sprinting (R.fx.spawn('dust', …, {leaves})); a giant / mammoth / boss (mass ≥ 1.8) steps every 0.5 s and, within 520
+            units of the hero, shakes the camera slightly (≤ 4 px, ≤ one per 0.2 s).
+     Scale: nothing here assumes the world size; the mask is read through R.world.blocked (cell = size / mask.w), the collider grid
+            key holds up to 4099 × 60 units in y. A06's blocked uses a fixed 120 cell: it must read d.mask.cell (= 120·R.WS) once A07 scales.
      P.vel(e) → {x,y}          the measured velocity of the last step (u/s). P.speed(e) → |vel|
      P.massOf(e)               1 = a man; from e.mass, e.big or the mob def's big (giant 1.9, mammoth 2.2, …)
      P.freeze(e, s)            hit-stop: e.stunMicro = s (0.045 default) — physPost undoes the entity's motion while it lasts
@@ -345,7 +355,7 @@
     for (let i = 0; i < ents.length; i++) { const q = ents[i]; if (q === e) continue;
       const dx = q.x - e.x, dy = q.y - e.y; if (dx > P.STEP_PUSH_R || dx < -P.STEP_PUSH_R || dy > P.STEP_PUSH_R || dy < -P.STEP_PUSH_R) continue; const d2 = dx * dx + dy * dy; if (d2 > R2) continue;
       const d = Math.sqrt(d2) || 1, ux = d > 1e-6 ? dx / d : (e.face || 1), uy = d > 1e-6 ? dy / d : 0, k = 1 - d / P.STEP_PUSH_R;
-      if (q.kind === 'drop' && !q.dead) { q.vx = (q.vx || 0) + ux * 70 * k; q.vy = (q.vy || 0) + uy * 70 * k; if (!(q.z > 0)) q.vz = Math.max(q.vz || 0, 45 * k); q.bounces = 0; q.kicked = R.t; }
+      if (q.kind === 'drop' && !q.dead) { q.vx = (q.vx || 0) + ux * 70 * k; q.vy = (q.vy || 0) + uy * 70 * k; if (!(q.z > 0)) q.vz = Math.max(q.vz || 0, 30 + 50 * k); q.bounces = 0; q.kicked = R.t; }
       else if (q.dead && q.kind === 'mob' && !P.isBig(q)) P.impulse(q, ux * 60 * k, uy * 60 * k, { raw: true }); }
     if (e.sprint) { const sp2 = fn(R.fx, 'spawn'); if (sp2) try { sp2('dust', e.x - (e.face || 1) * 4, e.y + 3, { col: LEAF[s] || LEAF.grass, n: 2, leaves: s === 'grass' }); } catch (x) {} e.kickN = (e.kickN || 0) + 1; }
   };
@@ -497,12 +507,12 @@
     const yaw = num(R.cam && R.cam.yaw, 0), cs = Math.cos(yaw), sn = Math.sin(yaw), axS = ax * cs + ay * sn, ayS = -ax * sn + ay * cs;   /* screen space: +x right, +y down (toward the camera) */
     let turn = 0; if (sp > 25) { const hd = Math.atan2(vy, vx); if (c.head != null) { let dh = hd - c.head; while (dh > Math.PI) dh -= 2 * Math.PI; while (dh < -Math.PI) dh += 2 * Math.PI; turn = dh / dt; } c.head = hd; } else c.head = null;
     c.turn += (Math.max(-8, Math.min(8, turn)) - c.turn) * Math.min(1, dt * 10);
-    const tAng = Math.max(-0.7, Math.min(0.7, -axS * 0.00045 - c.turn * 0.06)), tFl = Math.max(0, Math.min(1, sp / 240 * 0.85 + Math.max(0, -ayS) * 0.0002));
+    const tAng = Math.max(-0.7, Math.min(0.7, -axS * 0.0003 - c.turn * 0.05)), tFl = Math.max(0, Math.min(1, sp / 240 * 0.85 + Math.max(0, -ayS) * 0.0002));
     c.va += (P.CLOAK_K * (tAng - c.ang) - P.CLOAK_DAMP * c.va) * dt; c.ang += c.va * dt;
     c.vf += (P.FLARE_K * (tFl - c.fl) - P.FLARE_DAMP * c.vf) * dt; c.fl += c.vf * dt;
     c.out.ang = Math.max(-0.7, Math.min(0.7, c.ang)); c.out.flare = Math.max(0, Math.min(1, c.fl));
     if (e === R.player) {
-      const tl = Math.max(-1, Math.min(1, c.turn * Math.min(1, sp / 170) * 0.35)); e.lean = num(e.lean, 0) + (tl - num(e.lean, 0)) * Math.min(1, dt * 8);
+      const tl = Math.max(-1, Math.min(1, c.turn * Math.min(1, sp / 170) * 0.2)); e.lean = num(e.lean, 0) + (tl - num(e.lean, 0)) * Math.min(1, dt * 8);
       e.bobPh = (num(e.bobPh, 0) + sp * dt / 46) % 1; e.bob = Math.abs(Math.sin(e.bobPh * Math.PI * 2)) * 2.6 * Math.min(1.2, sp / 170);
     }
   };

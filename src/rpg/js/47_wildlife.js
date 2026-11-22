@@ -56,7 +56,9 @@
     // the real regions of 11_world_data.js that need their own mix (every place different)
     wolfswood: ['deer', 'wolf', 'raven', 'eyes'], stormlands: ['deer', 'hare', 'frog', 'raven'], westerlands: ['hare', 'deer', 'lizard', 'raven'],
     vale: ['hare', 'raven', 'vulture', 'lizard'], iron: ['gull', 'crab', 'raven'], ash: ['gull', 'crab', 'lizard', 'raven'], wall: ['snowfox', 'raven', 'wolf'],
-    crackclaw: ['deer', 'hare', 'frog', 'raven'] };
+    crackclaw: ['deer', 'hare', 'frog', 'raven'],
+    // N1: the named places inside the regions (as 09_nature's zones): the bog of the Neck, the Kingswood, the Red Mountains' dry valleys
+    neck: ['frog', 'heron', 'raven'], kingswood: ['deer', 'hare', 'raven', 'butterfly'], redmts: ['lizard', 'vulture', 'scorpion'] };
   const EXTRA = { riverlands: [{ id: 'fish', name: 'Fish', when: 'any', note: 'jump with a splash every 6–10 s' }] };
   // the biome of a region (A07's data, any naming): beyond | north | coast | riverlands | dorne | crownlands | reach, null for no region
   const BIO = [[/beyond|always|winter|frostfang|haunted|thenn/, 'beyond'], [/north|wolfswood|barrow|gift|wall|vale|mountain|moon|snow|frost|ice|tundra/, 'north'],
@@ -69,9 +71,12 @@
     const id = String(reg.id || '').toLowerCase(); if (id && W.REGION_BIOME[id] && W.BIOMES[W.REGION_BIOME[id]]) return W.REGION_BIOME[id];
     const s = String(reg.biome || reg.id || reg.name || '').toLowerCase(); if (!s) return null;
     if (W.BIOMES[s]) return s; for (const [re, b] of BIO) if (re.test(s)) return b; return 'reach'; };
-  // the Wolfswood: the west of the Far North (around Deepwood Motte) is its own forest
+  // geography scale (R.WS): the real world is R.data.world.W wide, the thresholds below are in the 7200-wide grid
+  const geoScale = () => { const w = R.data && R.data.world, Wd = w && (w.W || (w.size && w.size[0])); return Wd > 0 && w.regionById ? Wd / 7200 : 1; };
+  // the Wolfswood: the west of the Far North (around Deepwood Motte) is its own forest; the Neck, the Kingswood and the Red Mountains too
   W.biomeAt = (x, y) => { const w = world(); if (!w || !fn(w, 'regionAt')) return null; try { const rg = w.regionAt(x, y), b = W.biomeOf(rg);
-    if (rg && rg.id === 'farnorth' && x < 3150) return 'wolfswood'; if (rg && rg.id === 'dragonstone' && x < 6000) return 'crackclaw'; return b; } catch (e) { return null; } };
+    const gs = geoScale(), id = rg && rg.id; if (id === 'farnorth' && x < 3150 * gs) return 'wolfswood'; if (id === 'dragonstone' && x < 6000 * gs) return 'crackclaw';
+    if (id === 'riverlands' && y < 5150 * gs) return 'neck'; if (id === 'crownlands' && y > 8400 * gs && x > 4300 * gs) return 'kingswood'; if (id === 'dorne' && y < 10900 * gs && x < 3900 * gs) return 'redmts'; return b; } catch (e) { return null; } };
   W.describe = biome => { const b = (biome && typeof biome === 'object') ? W.biomeOf(biome) : (W.BIOMES[biome] ? biome : W.biomeOf(biome)); if (!b) return [];
     return (W.BIOMES[b] || []).map(id => ({ id, name: S[id].name, when: S[id].when || 'any', note: S[id].note })).concat(EXTRA[b] || []); };
   W.list = () => R.ents.filter(e => e.kind === 'critter' && !e.dead && !e.prop);

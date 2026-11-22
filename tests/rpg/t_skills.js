@@ -39,6 +39,13 @@ const ROOT = path.resolve(__dirname, '..', '..'); const SC = path.join(ROOT, '.s
   ok('18 skills, unique ids and names', allIds.length === 18 && new Set(allIds).size === 18 && await page.evaluate(() => new Set(Object.values(R.data.skills).map(s => s.name)).size === Object.keys(R.data.skills).length));
   ok('kinds cover the contract', await page.evaluate(() => { const need = ['melee_aoe', 'dash_strike', 'shield', 'taunt', 'volley', 'trap', 'rain', 'fire_bolt', 'frost_nova', 'heal', 'summon_raven', 'wildfire']; const have = new Set(Object.values(R.data.skills).map(s => s.kind)); return need.every(k => have.has(k)); }));
   ok('classes: 3 with icon, svg, spread, mods', await page.evaluate(() => ['knight', 'ranger', 'maester'].every(c => { const C = R.data.classes[c]; return C && C.icon && /<svg/.test(C.svg) && C.fantasy && C.base && C.grow && typeof C.hpMul === 'number'; }) && R.data.classes.knight.hpMul === 1.2 && R.data.classes.ranger.critAdd === 0.15 && R.data.classes.maester.skillMul === 1.2 && R.data.classes.knight.arc === 110 && R.data.classes.ranger.range === 320 && R.data.classes.maester.splash === 20));
+  // 'cast'(skillId, src, {x, y, dir, kind, r}) for the 3D spell effects; three spells from level 1 with the owner's names
+  const ce = await page.evaluate(() => { const got = []; const f = (id, src, o) => got.push({ id, src: !!src && src === R.player, o }); R.bus.on('cast', f);
+    R.player.cd = {}; R.skills.setBar(0, 'm_flask'); R.state.p.cls = 'maester'; R.skills.cast(0); R.bus.off('cast', f); const g = got[0] || {};
+    const names = ['knight', 'ranger', 'maester'].map(c => Object.values(R.data.skills).filter(s => s.cls === c && !s.hero && s.unlock === 1).map(s => s.name).join('/'));
+    return { n: got.length, id: g.id, src: g.src, kind: g.o && g.o.kind, xy: !!(g.o && typeof g.o.x === 'number' && typeof g.o.y === 'number' && g.o.dir), names }; });
+  ok("'cast' carries (id, src, {x, y, dir, kind}); Wildfire Bolt is fire", ce.n === 1 && ce.id === 'm_flask' && ce.src && ce.kind === 'fire' && ce.xy, JSON.stringify(ce));
+  ok('three spells from level 1: Cleave / Shield Charge / War Cry · Volley / Snare Trap / Roll Shot · Wildfire Bolt / Frost Nova / Mend', ce.names.join(' | ') === 'Cleave/Shield Charge/War Cry | Volley/Snare Trap/Roll Shot | Wildfire Bolt/Frost Nova/Mend', ce.names.join(' | '));
   // the combat API is used when it exists; the fallback runs without it
   const hitUse = await page.evaluate(() => { const old = R.hit; let n = 0; R.hit = (s, t, d, o) => { n++; t.hp -= d; return d; }; R.player.cd = {}; R.skills.setBar(0, 'm_frost'); R.skills.cast(0); for (let i = 0; i < 10; i++) R.step(); if (old) R.hit = old; else delete R.hit; return n; });
   ok('R.hit used for damage', hitUse >= 5, 'calls=' + hitUse);

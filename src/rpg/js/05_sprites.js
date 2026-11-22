@@ -212,7 +212,7 @@
     const P = ANIM_P[an] || ANIM_P.walk, fly = !!P.fly, ghost = !!P.ghost;
     const qh = Math.max(8, Math.round(hpx * dpr / 8) * 8), r = hpx / qh;             /* frame px → css px */
     const ph = phaseOf(P, sheet, anim, t, o.walk, hW);
-    let tint = o.tint || null, tA = o.tintA == null ? 0.45 : o.tintA; if (ph.flash) { tint = '#ffffff'; tA = 0.7; }
+    let tint = o.tint || null, tA = o.tintA == null ? 0.45 : o.tintA; if (ph.flash) { tint = '#ffffff'; tA = 0.4; }
     const fr = base(ns, sheet, im, m, an, ph.an, ph.fi, qh, tint, tA, col, o.fo);
     const hover = fly ? hpx * 0.5 + Math.sin(t * 4 + seed) * 0.05 * hpx : ghost ? Math.sin(t * 2.5 + seed) * 0.06 * hpx : 0;
     let alpha = o.alpha == null ? 1 : o.alpha; if (ghost) alpha *= 0.82 + 0.18 * Math.sin(t * 3.1 + seed);
@@ -239,7 +239,7 @@
     const P = ANIM_P[an] || ANIM_P.walk, cyc = !!(P.fly || P.ghost);
     let tint = o.tint || null, tA = o.tintA == null ? 0.45 : o.tintA, ph, dk = null, dfi = 0;
     if (anim === 'die') { dk = o.death || deathKindOf(ns, key, an); dfi = Math.min(N.die - 1, Math.floor(Math.max(0, t) / (DMAX[dk] || 0.75) * N.die)); ph = { an: cyc ? 'cyc' : 'idle', fi: 0 }; }
-    else { ph = phaseOf(P, sheet, anim, t, o.walk, m.h * BIG); if (ph.flash) { tint = '#ffffff'; tA = 0.7; } }
+    else { ph = phaseOf(P, sheet, anim, t, o.walk, m.h * BIG); if (ph.flash) { tint = '#ffffff'; tA = 0.4; } }
     const k2 = 'F|' + ns + '|' + sheet + '|' + (im ? 'a' : 'p') + '|' + (dk ? 'die.' + dk : ph.an) + '|' + (dk ? dfi : ph.fi) + '|' + face + '|' + pxH + '|' + (tint ? tint + tA : '') + (o.fo && o.fo.noSwing ? '|ns' : '');
     if (o.keyOnly) return k2;
     let c = cget(k2); if (c) return c;

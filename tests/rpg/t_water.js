@@ -116,8 +116,8 @@ const path = require('path'), fs = require('fs');
   if (!process.env.T_WATER_NO_LIVE) {
     const L = require('./lib.js'); const b = await L.launch(); const pg = b.page;
     await L.boot(pg, { save: L.fakeSave({ lvl: 5 }), wait: 30000, timeout: 60000 });
-    await pg.waitForFunction(() => R.water && R.water.ready && R.water.carved > 0, null, { timeout: 20000 }).catch(() => {});
-    const q = await pg.evaluate(() => { const W = R.water, G = R.render3d, p = R.player, o = {};
+    await pg.waitForFunction(() => R.water && R.water.ready, null, { timeout: 20000 }).catch(() => {});
+    const q = await pg.evaluate(() => { const W = R.water, G = R.render3d, p = R.player, o = {}; for (let i = 0; i < 10; i++) R.step();   // a tutorial screen may hold the loop: step it
       o.mode = R.render && R.render.mode; o.ready = W.ready; o.carved = W.carved; o.inScene = !!(G && W.sea && W.sea.parent === G.scene && W.rivers && W.rivers.parent === G.scene);
       // the hero walks along the Trident: wading, shallow depth, splash rings from the physics
       const WS = R.WS || 1, tx = 3600 * WS, ty = 6500 * WS; p.x = tx; p.y = ty; p.hp = p.hpMax = 1e6; const P = R.phys; let wade = 0, maxD = 0;

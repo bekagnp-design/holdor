@@ -139,7 +139,7 @@
     // quest markers: "!" (a quest to take / a target) or "?" (a quest to hand in); outside the circle → on the rim with a pointer outward
     const TM = trackedMark();
     for (const m of qMarks()) {
-      const [dx, dy] = rp(m.x - px, m.y - py), dist = Math.hypot(dx, dy), rim = c - 9, hot = m === TM, r = hot ? 6 : 4.6;
+      const [dx, dy] = rp(m.x - px, m.y - py), dist = Math.hypot(dx, dy), rim = c - 9, hot = !!TM && m.id === TM.id && m.x === TM.x && m.y === TM.y, r = hot ? 6 : 4.6;   // markers() builds new objects on every call
       if (dist * k > rim) { if (!hot && !m.main) continue; const a = Math.atan2(dy, dx), x = c + Math.cos(a) * rim, y = c + Math.sin(a) * rim;
         g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = '#e3b661'; g.beginPath(); g.moveTo(r + 5, 0); g.lineTo(r - 1, -4); g.lineTo(r - 1, 4); g.fill(); g.restore(); glyph(g, x, y, r, qGlyph(m), hot); }
       else glyph(g, c + dx * k, c + dy * k, r, qGlyph(m), hot);

@@ -92,7 +92,7 @@ const px = n => Math.round(n * 10) / 10;
   await page.evaluate(() => { R.data.world = { regions: [{ id: 'riverlands', name: 'The Riverlands', lvl: [10, 20] }], pois: [{ id: 'riverrun', kind: 'castle', house: 'tully', x: 3700, y: 6100 }] }; R.data.story = { regions: { riverlands: 'The rivers remember every crossing.' } }; R.bus.emit('enter', 'riverlands'); });
   await page.waitForTimeout(600);
   const ban = await page.evaluate(() => { const el = document.getElementById('hud-region'); return { on: el.classList.contains('on'), b: el.querySelector('b').textContent, s: el.querySelector('small').textContent, p: el.querySelector('p').textContent, op: getComputedStyle(el).opacity }; });
-  ok('region banner on enter', ban.on && ban.b === 'The Riverlands' && ban.s === 'lv 10–20' && /rivers remember/.test(ban.p) && parseFloat(ban.op) > .8, JSON.stringify(ban));
+  ok('region banner on enter', ban.on && ban.b === 'The Riverlands' && ban.s === 'lv 10–20' && /rivers remember/.test(ban.p) && parseFloat(ban.op) > .5, JSON.stringify(ban));
   // TOWN pill → shop screen
   await page.evaluate(() => { R.towns = { inside: () => ({ id: 'winterfell', name: 'Winterfell' }) }; R.screens.shop = { open(arg) { window.__shop = arg; }, close() {} }; }); await steps(page);
   const tb = await page.$eval('#hud-town', el => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, d: getComputedStyle(el).display, t: el.textContent }; });

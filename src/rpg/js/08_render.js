@@ -713,10 +713,11 @@
     if (sp > 200 && !(e.z > 4) && R.fx && typeof R.fx.spawn === 'function' && R.t > HB.dustT) { HB.dustT = R.t + .11; try { R.fx.spawn('dust', e.x - HB.dx * 10, e.y - HB.dy * 10, { col: '#b9a37e', n: 3, r: 10 }); } catch (x) {} }
   }
   // rim light: a warm silhouette behind the hero (the frame's alpha, a flat colour), 4 % larger, so he pops from the ground
-  const rimMat = new T.SpriteMaterial({ transparent: true, depthWrite: false, color: 0xffe2b0, opacity: .55, toneMapped: false, fog: false });
+  const rimMat = new T.SpriteMaterial({ transparent: true, depthWrite: false, color: 0xffe2b0, opacity: .22, toneMapped: false, fog: false });
+  let rimHouse = null; const rimTint = () => { const h = R.state && R.state.acc && R.state.acc.house, H = R.data && R.data.houses; if (h === rimHouse) return; rimHouse = h; const c = (h && H && H[h] && H[h].col) || '#e8d2a8'; try { rimMat.color.set(c).lerp(new T.Color(1, 1, 1), .45); } catch (e) {} };
   rimMat.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n diffuseColor.rgb = diffuse;'); };
   rimMat.customProgramCacheKey = () => 'g1rim';
-  const rim = new T.Sprite(rimMat); rim.frustumCulled = false; rim.visible = false; scene.add(rim); R3.rim = rim;
+  const rim = new T.Sprite(rimMat); rim.frustumCulled = false; rim.visible = false; rim.renderOrder = -1; scene.add(rim); R3.rim = rim;
 
   const deathT = e => { try { return (R.draw && R.draw.deathTime && e.kind !== 'critter' && R.draw.deathTime(keyFor(e))) || .75; } catch (x) { return .75; } };
   function syncSprites() {
@@ -744,11 +745,13 @@
       s.sp.position.set(e.x, gy + lift, e.y);
       s.mat.opacity = a; s.mat.rotation = e.tumble && e.tumble.ang ? e.tumble.ang : e.kind === 'portal' ? R.t * 1.5 : 0;
       if (e === hero) { s.mat.rotation += -HB.lean * .14 * (.4 + .6 * HB.speed);
-        if (!e.dead && s.mat.map) { rimMat.map = s.mat.map; if (!rim.__m) { rim.__m = 1; rimMat.needsUpdate = true; } rim.center.copy(s.sp.center); rim.scale.set(w * 1.045, h * 1.03, 1); rimMat.rotation = s.mat.rotation;
-          const cp = camera.position, bx = e.x - cp.x, bz = e.y - cp.z, bl = Math.hypot(bx, bz) || 1; rim.position.set(e.x + bx / bl * 3, gy + lift - 1, e.y + bz / bl * 3); rim.visible = true; rimMat.opacity = .5 * a; } else rim.visible = false; }
+        if (!e.dead && s.mat.map) { rimMat.map = s.mat.map; if (!rim.__m) { rim.__m = 1; rimMat.needsUpdate = true; } rimTint(); rim.center.copy(s.sp.center); rim.scale.set(w * 1.025, h * 1.02, 1); rimMat.rotation = s.mat.rotation;
+          const cp = camera.position, bx = e.x - cp.x, bz = e.y - cp.z, bl = Math.hypot(bx, bz) || 1; rim.position.set(e.x + bx / bl * 3, gy + lift - 1, e.y + bz / bl * 3); rim.visible = !(R.t < (s.flUntil || 0)); rimMat.opacity = .22 * a; } else rim.visible = false; }
       // hit flash: the sprite colour above 1 whitens the frame (no blending / shader change)
-      const flash = e.flash > 0 || (e.hitT != null && R.t - e.hitT < .08);
-      if (flash) s.mat.color.setRGB(2.6, 2.4, 2.2); else if (s.flash || s.tv !== tintVer) s.mat.color.copy(tint).multiply(spriteLight);
+      const trig = (e.flash > 0 && !s.flash0) || (e.hitT != null && e.hitT !== s.hitT0 && R.t - e.hitT < .1); s.flash0 = e.flash > 0; s.hitT0 = e.hitT;
+      if (trig && R.t >= (s.flNext || 0)) { s.flUntil = R.t + .12; s.flNext = R.t + .25; }
+      const flash = R.t < (s.flUntil || 0);
+      if (flash) s.mat.color.copy(tint).multiply(spriteLight).multiplyScalar(1.45); else if (s.flash || s.tv !== tintVer) s.mat.color.copy(tint).multiply(spriteLight);
       s.flash = flash; s.tv = tintVer;
       s.sp.visible = true; ns++;
       if (e.kind !== 'drop' && e.kind !== 'portal' && e.kind !== 'trap' && !(e.dead && a < .5) && n < SH_MAX && !(e.kind === 'critter' && (e.z || 0) > 60)) {

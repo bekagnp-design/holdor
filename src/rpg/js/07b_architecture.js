@@ -279,7 +279,7 @@
     if (o.wm === 'plaster') C.add('wood', 'boxnb', { x: x + sn * (o.d / 2 + .3), y: top - 4, z: z + cs * (o.d / 2 + .3), sx: o.w, sy: 3, sz: 1.5, ry, col: 0x5a3e28, ao: false });
     const dz = o.d / 2 + .5, dx = (C.rnd() - .5) * o.w * .4, gy0 = C.gy(x, z) - 1;
     C.add('misc', 'arch', { x: x + cs * dx + sn * dz, y: gy0, z: z - sn * dx + cs * dz, sx: 9, sy: 17, sz: 1, ry, col: 0x2b1d12, ao: false });
-    windowAt(C, x + cs * (dx > 0 ? -o.w * .28 : o.w * .28) + sn * dz, top - 16, z - sn * (dx > 0 ? -o.w * .28 : o.w * .28) + cs * dz, ry, 6, 8);
+    windowAt(C, x + cs * (dx > 0 ? -o.w * .28 : o.w * .28) + sn * dz, top - 16, z - sn * (dx > 0 ? -o.w * .28 : o.w * .28) + cs * dz, ry, 8, 11);
     if (o.storey) { const ex = 3, h2 = o.storey; C.add(o.wm, 'boxnb', { x, y: top - 2, z, sx: o.w + ex, sy: h2 + 2, sz: o.d + ex, ry, col: jit(C, wc, .06), ao: false });
       C.add('wood', 'box', { x, y: top - 3, z, sx: o.w + ex + 1, sy: 3, sz: o.d + ex + 1, ry, col: 0x5a3e28, ao: false });
       windowAt(C, x + sn * (o.d / 2 + ex / 2 + .5), top + h2 * .35, z + cs * (o.d / 2 + ex / 2 + .5), ry, 6, 9); }
@@ -293,7 +293,7 @@
     const q = P(0, 4); C.add('wood', 'box', { x: q[0], y: y + 9, z: q[1], sx: 24, sy: 3, sz: 9, ry, col: 0x8a6a48, ao: false });
     for (let i = 0; i < 2; i++) { const g = P(-6 + i * 12, 4); C.add('misc', 'ico0', { x: g[0], y: y + 13, z: g[1], sx: 4, sy: 3, sz: 4, col: [0xc84030, 0xd8a030, 0x6a9a3a, 0xe8d8b0][Math.floor(C.rnd() * 4)], ao: false }); } }
   function lamp(C, x, z) { const y = C.gy(x, z) - 2; C.add('wood', 'boxnb', { x, y, z, sx: 2.2, sy: 36, sz: 2.2, col: 0x3a2c20, ao: false });
-    C.add('glow', 'box', { x, y: y + 36, z, sx: 5, sy: 7, sz: 5, col: 0xffc070, ao: false }); C.add('misc', 'cone4', { x, y: y + 43, z, sx: 4.5, sy: 4, sz: 4.5, col: 0x2a2420, ao: false }); }
+    C.add('glow', 'box', { x, y: y + 35, z, sx: 6.5, sy: 9, sz: 6.5, col: 0xffc070, ao: false }); C.add('misc', 'cone4', { x, y: y + 43, z, sx: 4.5, sy: 4, sz: 4.5, col: 0x2a2420, ao: false }); }
   function barrel(C, x, z, s) { s = s || 1; const y = C.gy(x, z) - 1; C.add('wood', 'cyl8', { x, y, z, sx: 5 * s, sy: 12 * s, sz: 5 * s, col: 0x8a6440, ao: false, uv: 'cyl' }); C.add('wood', 'cap8', { x, y: y + 11.2 * s, z, sx: 4.6 * s, sy: 1, sz: 4.6 * s, col: 0x7a5a38, ao: false }); }
   function cart(C, x, z, ry) { const cs = Math.cos(ry), sn = Math.sin(ry), y = C.gy(x, z), P = (lx, lz) => [x + cs * lx + sn * lz, z - sn * lx + cs * lz];
     C.add('wood', 'boxnb', { x, y: y + 7, z, sx: 30, sy: 8, sz: 16, ry, col: 0x7a5a38 }); for (const s of [-1, 1]) { const q = P(4, s * 9); C.add('wood', 'cyl8c', { x: q[0], y: y + 7, z: q[1], sx: 7, sy: 2, sz: 7, rx: Math.PI / 2, ry, col: 0x4a3626, ao: false }); }
@@ -724,7 +724,7 @@
     const t = (R.t || 0);
     for (let i = S.puffs.length - 1; i >= 0; i--) { const m = S.puffs[i]; if (!m.parent) continue; const b = m.userData.base, f = ((t * .22 + b.ph) % 1);
       m.position.set(b.x + Math.sin(f * 6 + b.ph * 9) * 6, b.y + f * 70, b.z); m.scale.setScalar((4 + f * 10) * (f < .8 ? 1 : (1 - f) * 5)); }
-    if (S.mats && S.mats.glow) { const A = R.ambience, k = A ? (A.nightK != null ? A.nightK : A.night ? 1 : 0) : 0, v = .16 + .95 * clamp(k, 0, 1); S.mats.glow.color.setRGB(v, v * .96, v * .9); }
+    if (S.mats && S.mats.glow) { const A = R.ambience, k = A ? (A.nightK != null ? A.nightK : A.night ? 1 : 0) : 0, v = .16 + 1.5 * clamp(k, 0, 1); S.mats.glow.color.setRGB(v, v * .96, v * .9); }
     const R3 = R.render3d; if (!R3 || !R3.scene || (R.arch && R.arch.autoWall === false)) return;
     const hm = R3.heightmap || R3.terrain || 1; if (S.hm !== hm) { S.hm = hm; if (S.wall) { R3.scene.remove(S.wall); S.wall.traverse(o => { if (o.geometry) o.geometry.dispose(); }); S.wall = null; }
       if (!R3.scene.getObjectByName('wall')) { try { S.wall = R.props.wall(); if (S.wall) R3.scene.add(S.wall); } catch (e) { S.wall = null; } } }

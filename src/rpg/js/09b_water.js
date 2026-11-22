@@ -133,18 +133,18 @@
   const T = window.THREE; let R3 = null, sea = null, rivers = null, matSea = null, matRiv = null, info = null, noise = null, infoDirty = true, riversDirty = true, lastHm = null, U = null;
   const DEF_SUN = { x: .4, y: .8, z: .45 };
   const VS = [
-    'uniform float uTime, uAmp, uSpeed, uRiver; attribute vec2 aFlow; attribute float aAcross, aDepth;',
-    'varying vec3 vW, vN; varying vec2 vFlow; varying float vAcross, vDepth;',
+    'uniform float uTime, uAmp, uSpeed, uRiver; attribute vec2 aFlow; attribute float aAcross, aDepth, aAlong;',
+    'varying vec3 vW, vN; varying vec2 vFlow; varying float vAcross, vDepth, vAlong;',
     '#include <fog_pars_vertex>',
     'void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); float amp = uAmp * (1.0 - uRiver);',
     ' float p1 = wp.x * 0.021 + wp.z * 0.013 + uTime * uSpeed * 1.3; float p2 = wp.x * -0.009 + wp.z * 0.027 + uTime * uSpeed * 0.9;',
     ' wp.y += amp * (0.6 * sin(p1) + 0.4 * sin(p2)); float c1 = cos(p1), c2 = cos(p2);',
     ' vN = normalize(vec3(-amp * (0.6 * c1 * 0.021 - 0.4 * c2 * 0.009), 1.0, -amp * (0.6 * c1 * 0.013 + 0.4 * c2 * 0.027)));',
-    ' vW = wp.xyz; vFlow = aFlow; vAcross = aAcross; vDepth = aDepth; vec4 mvPosition = viewMatrix * wp; gl_Position = projectionMatrix * mvPosition;',
+    ' vW = wp.xyz; vFlow = aFlow; vAcross = aAcross; vDepth = aDepth; vAlong = aAlong; vec4 mvPosition = viewMatrix * wp; gl_Position = projectionMatrix * mvPosition;',
     '#include <fog_vertex>', '}'].join('\n');
   const FS = [
     'uniform sampler2D uInfo, uNoise; uniform float uTime, uRiver, uAlpha, uNight, uLevel, uHScale, uHasMask, uSpeed; uniform vec3 uSun, uCamPos, uDeep, uShallow, uFoam, uLakeDeep, uLakeShallow; uniform vec2 uWorld, uOrigin;',
-    'varying vec3 vW, vN; varying vec2 vFlow; varying float vAcross, vDepth;',
+    'varying vec3 vW, vN; varying vec2 vFlow; varying float vAcross, vDepth, vAlong;',
     '#include <fog_pars_fragment>',
     'void main(){',
     ' vec4 info = texture2D(uInfo, vW.xz / uWorld); float g = mix(0.8, info.g, uHasMask); float hgt = info.r * uHScale;',
@@ -164,7 +164,7 @@
     ' float bandT = smoothstep(uLevel + 0.3, uLevel + 1.5, hgt) * (1.0 - smoothstep(uLevel + 4.0, uLevel + 6.0, hgt));',
     ' float fn = smoothstep(0.3, 0.75, n1.g * 0.6 + n2.r * 0.4 + 0.08); float foam = max(bandM, bandT) * fn * (1.0 - uRiver);',
     ' float edge = abs(vAcross) + (n2.r - 0.5) * 0.5; float riverFoam = smoothstep(0.6, 0.95, edge) * 0.3 * uRiver * step(vDepth, 0.75);',
-    ' float bank = vDepth < 0.75 ? 1.0 - smoothstep(0.45, 1.0, edge) : smoothstep(0.47, 0.58, g);',
+    ' float bank = vDepth < 0.75 ? (1.0 - smoothstep(0.45, 1.0, edge)) * (1.0 - smoothstep(0.5, 1.0, abs(vAlong))) : smoothstep(0.47, 0.58, g);',
     ' foam = max(foam, riverFoam) + bandM * fn * 0.35 * uRiver * step(0.75, vDepth);',
     ' col = mix(col, uFoam, clamp(foam * 0.75, 0.0, 1.0)); col *= 1.0 - 0.6 * uNight;',
     ' float a = mix(uAlpha * smoothstep(0.48, 0.6, g) + foam * 0.12, bank, uRiver); if (a < 0.01) discard;',   // an opaque core: overlapping river quads do not stack into a brick pattern
@@ -192,8 +192,8 @@
   }
   function buildRivers() {      // one merged geometry: oriented quads for river cells (soft banks by aAcross), cell quads for lake cells (+ one ring)
     if (!kind) return; if (rivers) { R3.scene.remove(rivers); rivers.geometry.dispose(); rivers = null; }
-    const pos = [], flow = [], across = [], depth = [], idx = []; let v = 0;
-    const quad = (pts, fx, fy, ac, dp) => { for (let i = 0; i < 4; i++) { pos.push(pts[i][0], pts[i][1], pts[i][2]); flow.push(fx, fy); across.push(ac[i]); depth.push(dp); } idx.push(v, v + 2, v + 1, v, v + 3, v + 2); v += 4; };
+    const pos = [], flow = [], across = [], depth = [], along = [], idx = []; let v = 0;
+    const quad = (pts, fx, fy, ac, dp, al) => { for (let i = 0; i < 4; i++) { pos.push(pts[i][0], pts[i][1], pts[i][2]); flow.push(fx, fy); across.push(ac[i]); depth.push(dp); along.push(al ? al[i] : 0); } idx.push(v, v + 2, v + 1, v, v + 3, v + 2); v += 4; };
     const lakeSet = new Uint8Array(N), lakeY = {}; const lakeId = new Int32Array(N).fill(-1);
     for (let k = 0; k < N; k++) { if (kind[k] !== 2) continue; const x = k % w, y = (k / w) | 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = x + dx, Y = y + dy; if (X >= 0 && Y >= 0 && X < w && Y < h && kind[Y * w + X] !== 3) lakeSet[Y * w + X] = 1; } }
     // lake surfaces: per connected lake, the 90th percentile of the ground height + 1.5 (flat)
@@ -205,11 +205,11 @@
       const x = k % w, y = (k / w) | 0, cx = (x + .5) * CS, cy = (y + .5) * CS;
       if (kind[k] === 1) { const fx = flowX[k] / 127, fy = flowY[k] / 127, L = CS * 1.15, Wd = CS * 0.62, px = -fy, py = fx; const P = [];
         for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const X = cx + fx * L * a + px * Wd * b, Y = cy + fy * L * a + py * Wd * b; P.push([X, groundY(X, Y) + 1.2, Y]); }
-        quad(P, fx, fy, [-1, -1, 1, 1], 0.5); }
+        quad(P, fx, fy, [-1, -1, 1, 1], 0.5, [-1, 1, 1, -1]); }
       else if (lakeSet[k]) { const ly = lakeY[lakeId[k]], x0 = x * CS, y0 = y * CS; quad([[x0, ly, y0], [x0 + CS, ly, y0], [x0 + CS, ly, y0 + CS], [x0, ly, y0 + CS]], 0, 0, [0, 0, 0, 0], 1); } }
     if (!v) { riversDirty = false; return; }
     const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('aFlow', new T.Float32BufferAttribute(flow, 2));
-    geo.setAttribute('aAcross', new T.Float32BufferAttribute(across, 1)); geo.setAttribute('aDepth', new T.Float32BufferAttribute(depth, 1)); geo.setIndex(idx); geo.computeBoundingSphere();
+    geo.setAttribute('aAcross', new T.Float32BufferAttribute(across, 1)); geo.setAttribute('aDepth', new T.Float32BufferAttribute(depth, 1)); geo.setAttribute('aAlong', new T.Float32BufferAttribute(along, 1)); geo.setIndex(idx); geo.computeBoundingSphere();
     rivers = new T.Mesh(geo, matRiv); rivers.name = 'water-rivers'; rivers.renderOrder = 5; rivers.frustumCulled = true; R3.scene.add(rivers); Wt.rivers = rivers; riversDirty = false;
   }
   /* the renderer's heightmap reads dark art as high ground, so the God's Eye and the river lines come out as ridges ("the dark blob
@@ -261,7 +261,7 @@
     }
     if (sea) { try { sea.parent && sea.parent.remove(sea); } catch (e) {} }
     planeFor(); const geo = new T.PlaneGeometry(PLANE, PLANE, SEG, SEG); geo.rotateX(-Math.PI / 2); const nv = geo.attributes.position.count;
-    geo.setAttribute('aFlow', new T.Float32BufferAttribute(new Float32Array(nv * 2), 2)); geo.setAttribute('aAcross', new T.Float32BufferAttribute(new Float32Array(nv), 1)); geo.setAttribute('aDepth', new T.Float32BufferAttribute(new Float32Array(nv).fill(1), 1));
+    geo.setAttribute('aFlow', new T.Float32BufferAttribute(new Float32Array(nv * 2), 2)); geo.setAttribute('aAcross', new T.Float32BufferAttribute(new Float32Array(nv), 1)); geo.setAttribute('aDepth', new T.Float32BufferAttribute(new Float32Array(nv).fill(1), 1)); geo.setAttribute('aAlong', new T.Float32BufferAttribute(new Float32Array(nv), 1));
     sea = new T.Mesh(geo, matSea); sea.name = 'water-sea'; sea.renderOrder = 10; sea.frustumCulled = false; sea.position.y = Wt.level + 2; R3.scene.add(sea); Wt.sea = sea;
     infoDirty = true; riversDirty = true; lastHm = R3.heightmap || null; Wt.stats.drawCalls = 1;
     follow();
@@ -273,7 +273,7 @@
     PLANE = need; SEG = Math.min(200, Math.max(120, Math.ceil(PLANE / 75))); Wt.planeSize = PLANE; return true; }
   function regrowPlane() { if (!sea || !R3) return; const old = PLANE; planeFor(); if (PLANE === old) return;
     const geo = new T.PlaneGeometry(PLANE, PLANE, SEG, SEG); geo.rotateX(-Math.PI / 2); const nv = geo.attributes.position.count;
-    geo.setAttribute('aFlow', new T.Float32BufferAttribute(new Float32Array(nv * 2), 2)); geo.setAttribute('aAcross', new T.Float32BufferAttribute(new Float32Array(nv), 1)); geo.setAttribute('aDepth', new T.Float32BufferAttribute(new Float32Array(nv).fill(1), 1));
+    geo.setAttribute('aFlow', new T.Float32BufferAttribute(new Float32Array(nv * 2), 2)); geo.setAttribute('aAcross', new T.Float32BufferAttribute(new Float32Array(nv), 1)); geo.setAttribute('aDepth', new T.Float32BufferAttribute(new Float32Array(nv).fill(1), 1)); geo.setAttribute('aAlong', new T.Float32BufferAttribute(new Float32Array(nv), 1));
     const g0 = sea.geometry; sea.geometry = geo; try { g0.dispose(); } catch (e) {} }
   Wt.planeFor = () => { regrowPlane(); return PLANE; };
   function follow() {

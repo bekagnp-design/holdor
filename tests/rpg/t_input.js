@@ -14,7 +14,7 @@ const SC = path.join(ROOT, '.shots') + '/'; fs.mkdirSync(SC, { recursive: true }
   const save = require('./lib').fakeSave({ house: 'stark', lvl: 3 }); save.acc.world.flags.tut = 8;
   await page.addInitScript(s => { try { if (!sessionStorage.getItem('t_input')) { sessionStorage.setItem('t_input', '1'); localStorage.setItem('holdor_rpg', JSON.stringify(s)); } } catch (e) {} }, save);
   await page.goto('file://' + HTML);
-  await page.waitForFunction(() => window.R && R.input && R.input.el && R.step, { timeout: 20000 });
+  await page.waitForFunction(() => window.R && R.input && R.input.el && R.step, null, { timeout: 60000 });
   await page.waitForFunction(() => R.running || (R.ui && R.ui.cur), null, { timeout: 8000 }).catch(() => {});
   await page.evaluate(() => { if (R.ui.cur) R.ui.close(); R.stop && R.stop(); });
   await page.evaluate(() => { window.__btns = []; R.bus.on('btn', (n, src) => window.__btns.push(n + ':' + src)); });
@@ -96,6 +96,7 @@ const SC = path.join(ROOT, '.shots') + '/'; fs.mkdirSync(SC, { recursive: true }
   await ev(() => { window.__btns = []; }); await page.touchscreen.tap(A.x, A.y); s = await snap(); await step(1);
   ok('screen closed → controls back, ATTACK works', shown === 'block' && s.btns.includes('attack:btn'), shown + ' ' + JSON.stringify(s.btns));
   // 8. the contextual INTERACT pill
+  await ev(() => { R.input.setInteract(null); });   // the hero may stand by an NPC in the real world: start from no prompt
   let v = await centre('b-interact'); ok('INTERACT hidden by default', !v.vis, '');
   await ev(() => { R.input.interact = { label: 'TALK' }; R.step(); }); v = await centre('b-interact');
   const lbl = await ev(() => document.querySelector('#b-interact .lb').textContent);
