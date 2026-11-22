@@ -5,7 +5,10 @@
 window.R = window.R || {};
 (function () {
   R.VERSION = '2.0.0';
-  R.W = 7200; R.H = 12288; R.SCALE = 6;
+  // R.WS (2026-11-22, the owner: "make the map much bigger"): the world's geography is 4.5× the art-px × 6 grid in each direction
+  // (≈ 20× the area). 11_world_data scales every coordinate of R.data.world by R.WS; distances about the hero (aggro, safe radius,
+  // spawn rings, camera, interaction, presence) stay in hero units. Saves carry `ws`; R.load rescales an older p.pos.
+  R.WS = 4.5; R.W = 7200 * R.WS; R.H = 12288 * R.WS; R.SCALE = 6 * R.WS;
   R.data = R.data || {}; R.screens = R.screens || {}; R.ents = []; R.t = 0; R.dt = 1 / 60; R.tick = 0; R.running = false; R.paused = false;
   R.cam = { x: R.W / 2, y: R.H / 2, z: 1, yaw: 0, target: null, k: 8 };
   R.errors = [];
