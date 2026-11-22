@@ -64,7 +64,7 @@
 
   /* ---- the sounds ---- */
   // names other modules use → the closest synth (ach, boss phases, dungeon doors, tutorial chime, death, event horns)
-  const ALIAS = { ach: 'quest', boss_: 'drums', boss_drums: 'drums', boss_start: 'drums', boss_phase: 'drums', boss_win: 'horn', chime: 'ui', death: 'fall', dg_door: 'door', dg_enter: 'open', dg_wave: 'drums', event: 'horn', reward: 'chest', tap: 'ui', win: 'horn', crit: 'hitCrit', click: 'ui', buy: 'coin', sell: 'coin', equip: 'ui', unlock: 'levelup', gem: 'coin', gold: 'coin', cast: 'nova', step: 'stepGrass', slash: 'swing' };
+  const ALIAS = { caw: 'crow', croak: 'splash', bark: 'howl', bleat: 'ui', cluck: 'ui', hiss: 'die', ach: 'quest', boss_: 'drums', boss_drums: 'drums', boss_start: 'drums', boss_phase: 'drums', boss_win: 'horn', chime: 'ui', death: 'fall', dg_door: 'door', dg_enter: 'open', dg_wave: 'drums', event: 'horn', reward: 'chest', tap: 'ui', win: 'horn', crit: 'hitCrit', click: 'ui', buy: 'coin', sell: 'coin', equip: 'ui', unlock: 'levelup', gem: 'coin', gold: 'coin', cast: 'nova', step: 'stepGrass', slash: 'swing' };
   const REC = {
     swing: v => hiss(v, { bp: 700, bp1: 2200, q: 1.2, dur: 0.14, a: 0.01, d: 0.08, g: 0.35 }),
     hit: v => { hiss(v, { lp: 1400, dur: 0.07, a: 0.002, d: 0.05, g: 0.5 }); tone(v, { f: 190, f1: 55, dur: 0.1, d: 0.08, g: 0.45 }); },

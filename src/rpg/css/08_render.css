@@ -1,0 +1,3 @@
+/* HOLDOR RPG — render (A05): the WebGL canvas #gl under the 2D overlay #c */
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;background:#060b14}
+#c{background:transparent}
