@@ -79,9 +79,9 @@ button:disabled{filter:grayscale(1) brightness(.75)}
 #ctl .ib .dot{position:absolute;right:-3px;top:-3px;width:10px;height:10px;border-radius:50%;background:var(--bad);display:none;border:1.5px solid #060b14}
 #ctl .ib.mark .dot{display:block}
 /* G5: narrow phones (360): the resting joystick ring moves left so it never sits under skill 1; landscape: the arc stays bottom-right */
-@media (max-width:370px){#joy-rest{left:calc(30px + env(safe-area-inset-left));bottom:calc(84px + env(safe-area-inset-bottom))}}
+html.q-w370 #joy-rest{left:calc(30px + env(safe-area-inset-left));bottom:calc(84px + env(safe-area-inset-bottom))}
 #ctl-top{gap:6px}
-@media (orientation:landscape) and (max-height:520px){#ctl-top{right:calc(98px + env(safe-area-inset-right))}}
+html.q-s #ctl-top{right:calc(98px + env(safe-area-inset-right))}
 /* dark-fantasy finish for the top row: forged plates with a bronze edge */
 #ctl .ib{background:linear-gradient(180deg,rgba(40,32,20,.9),rgba(8,10,14,.9));border:1.5px solid rgba(201,160,78,.42);color:#e9dcc0;box-shadow:0 4px 10px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,230,170,.1)}
 /* touch devices: no keyboard letters on the buttons, even after a key was pressed */
@@ -99,7 +99,7 @@ button:disabled{filter:grayscale(1) brightness(.75)}
 #ctl .ib.got .plus{animation:ctlplus .9s ease-out forwards}
 @keyframes ctlbag{0%{transform:scale(1)}35%{transform:scale(1.22) rotate(-6deg)}70%{transform:scale(.96) rotate(3deg)}100%{transform:none}}
 @keyframes ctlplus{0%{opacity:0;transform:translate(-50%,-4px)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,18px)}}
-@media (orientation:landscape) and (max-height:520px){#ctl-top{right:calc(98px + env(safe-area-inset-right))}}
+html.q-s #ctl-top{right:calc(98px + env(safe-area-inset-right))}
 @media (prefers-reduced-motion:reduce){#ctl .ib.got,#ctl .ib.got .plus{animation:none}}
 
 /* ==== css/08_render.css ==== */
@@ -110,7 +110,7 @@ button:disabled{filter:grayscale(1) brightness(.75)}
 
 /* ==== css/13_boss.css ==== */
 /* bosses (A09): the boss bar at the top of the screen — name, title, hp with phase ticks */
-#bossbar{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 54px);transform:translate(-50%,-10px);width:min(92vw,420px);display:none;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:5;text-align:center;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
+#bossbar{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 54px);transform:translate(-50%,-10px);width:min(calc(92 * var(--vw,1vw)),420px);display:none;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:5;text-align:center;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
 #bossbar.on{display:block;opacity:1;transform:translate(-50%,0)}
 #bossbar .bb-head{display:flex;align-items:baseline;justify-content:center;gap:8px;white-space:nowrap;overflow:hidden}
 #bossbar .bb-name{font:800 16px/1.1 var(--f-display);color:#f3e7c4;letter-spacing:.04em;text-shadow:0 1px 0 #000}
@@ -167,7 +167,7 @@ button:disabled{filter:grayscale(1) brightness(.75)}
 .sk-slots-l{font-size:13px;color:var(--muted);flex:none;width:52px}
 .sk-slot{flex:1;min-height:44px;font-size:14px;letter-spacing:.04em;padding:0 6px}
 .sk-slot.on{background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 85%,#fff),color-mix(in srgb,var(--acc) 70%,#000));border-color:#fff;color:#0b1220;box-shadow:0 0 12px color-mix(in srgb,var(--acc) 60%,transparent)}
-@media (max-height:700px){.sk-icon{width:44px;height:44px;font-size:24px}.sk-desc{font-size:14px}}
+html.q-h700 .sk-icon{width:44px;height:44px;font-size:24px}html.q-h700 .sk-desc{font-size:14px}
 
 /* ==== css/23_companions.css ==== */
 /* 23_companions.css — the heroes roster + the Hall of the Fallen (A14) */
@@ -223,7 +223,7 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 .hr-rown{font:800 15px var(--f-display);color:#f3e7c4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hr-rown b{color:var(--gold);margin-left:4px}
 .hr-rowk{font-size:12px;color:var(--muted);margin-top:1px}
-@media (max-height:700px){.hr-card{min-height:184px}.hr-card .hr-pt{width:80px!important;height:80px!important}}
+html.q-h700 .hr-card{min-height:184px}html.q-h700 .hr-card .hr-pt{width:80px!important;height:80px!important}
 
 /* ==== css/25_progression.css ==== */
 /* 25_progression (P1): the talents screen, the milestone card, the compact Level panel. --acc = the house colour. */
@@ -256,7 +256,7 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 .pg-bh em{font-style:normal;font:700 12px var(--f-display,Georgia,serif);color:var(--dim)}
 .pg-link{align-self:center;width:3px;height:8px;background:rgba(255,255,255,.08);border-radius:2px}
 .pg-link.on{background:color-mix(in srgb,var(--acc) 70%,transparent)}
-.pg-n{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:clamp(54px,8.6vh,78px);padding:5px 3px;border-radius:12px;
+.pg-n{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:clamp(54px,calc(8.6 * var(--vh,1vh)),78px);padding:5px 3px;border-radius:12px;
   border:1px solid rgba(255,255,255,.1);background:radial-gradient(ellipse at 50% 20%,rgba(255,255,255,.07),rgba(0,0,0,.25));color:var(--ink);font:inherit;transition:transform .12s}
 .pg-n:active{transform:scale(.96)}
 .pg-ic{display:flex;color:var(--dim)}
@@ -288,7 +288,7 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 .pg-pri{margin-top:auto;min-height:54px;border-radius:14px;border:0;font:800 15px/1.1 var(--f-display,Georgia,serif);letter-spacing:.04em;color:#140d05;
   background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 85%,#fff),var(--acc) 55%,color-mix(in srgb,var(--acc) 70%,#000));box-shadow:0 6px 20px color-mix(in srgb,var(--acc) 35%,transparent),inset 0 1px 0 rgba(255,255,255,.4)}
 .pg-pri.off{background:rgba(255,255,255,.07);color:var(--dim);box-shadow:none;border:1px solid var(--line);font-weight:700;letter-spacing:0}
-@media (max-height:700px){.pg{gap:7px}.pg-name{font-size:19px}.pg-n{min-height:54px}.pg-pts{padding:6px 10px}.pg-pts b{font-size:26px}.pg-det{padding:8px 10px}.pg-pri{min-height:48px}}
+html.q-h700 .pg{gap:7px}html.q-h700 .pg-name{font-size:19px}html.q-h700 .pg-n{min-height:54px}html.q-h700 .pg-pts{padding:6px 10px}html.q-h700 .pg-pts b{font-size:26px}html.q-h700 .pg-det{padding:8px 10px}html.q-h700 .pg-pri{min-height:48px}
 /* the milestone card (not a screen: it waits until no screen is open, then 3.2 s or a tap) */
 .pg-mile{--acc:#e3b661;position:absolute;left:0;right:0;top:18%;z-index:55;display:flex;justify-content:center;pointer-events:auto;animation:pgmile .5s cubic-bezier(.2,1.4,.4,1)}
 .pg-mile-in{min-width:220px;max-width:320px;padding:14px 22px 16px;text-align:center;border-radius:18px;border:1px solid color-mix(in srgb,var(--acc) 60%,transparent);color:#f3e7c4;
@@ -443,7 +443,7 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 /* ==== css/42_dialog.css ==== */
 /* HOLDOR RPG — the NPC dialog sheet (A20). The world stays visible above, darkened; the sheet sits at the bottom. */
 #screen.on[data-screen="dialog"]{background:linear-gradient(180deg,rgba(6,11,20,.18) 0%,rgba(6,11,20,.55) 55%,rgba(6,11,20,.85) 100%);padding:0;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
-.dlg{--role:#9aa7b4;position:relative;background:linear-gradient(180deg,#17202f 0%,#0b1220 100%);border-top:2px solid var(--role);border-radius:22px 22px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom));max-height:78vh;overflow:auto;box-shadow:0 -14px 40px rgba(0,0,0,.6);animation:dlgin .26s cubic-bezier(.2,.8,.2,1)}
+.dlg{--role:#9aa7b4;position:relative;background:linear-gradient(180deg,#17202f 0%,#0b1220 100%);border-top:2px solid var(--role);border-radius:22px 22px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom));max-height:calc(78 * var(--vh,1vh));overflow:auto;box-shadow:0 -14px 40px rgba(0,0,0,.6);animation:dlgin .26s cubic-bezier(.2,.8,.2,1)}
 .dlg::before{content:"";position:absolute;left:50%;top:6px;width:44px;height:4px;margin-left:-22px;border-radius:2px;background:rgba(255,255,255,.18)}
 @keyframes dlgin{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
 .dlg-top{display:flex;align-items:center;gap:12px;margin-top:6px}
@@ -475,13 +475,14 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 .chip.gems{color:#c79bff;border-color:rgba(199,155,255,.5)}
 .chip.item{color:#f2e6c9}
 .chip.champ{color:var(--ok);border-color:rgba(127,208,106,.5)}
-@media (max-height:700px){.dlg-txt{font-size:16px;min-height:62px}.dlg-por{width:60px;height:60px;flex-basis:60px}.dlg-name{font-size:18px}}
+html.q-h700 .dlg-txt{font-size:16px;min-height:62px}html.q-h700 .dlg-por{width:60px;height:60px;flex-basis:60px}html.q-h700 .dlg-name{font-size:18px}
 /* G7: the sheet always fits a 390×844 phone (or scrolls inside itself): compact secondary choices, a short entry slide */
-.dlg{max-height:min(78vh,calc(100% - 12px));overscroll-behavior:contain;touch-action:pan-y}
+.dlg{max-height:min(calc(78 * var(--vh,1vh)),calc(100% - 12px));overscroll-behavior:contain;touch-action:pan-y}
 @keyframes dlgin{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
 .dlg-ch{gap:6px}
 .dlg-ch button.dlg-b{min-height:46px;font-size:15px}
 .dlg-txt{min-height:56px}
+html.q-wide .dlg{width:min(720px,calc(100% - 24px));margin:0 auto;max-height:calc(100% - 24px)}
 
 /* ==== css/43_towns.css ==== */
 /* 43_towns.css — shop / inn / smith screens (A21). Everything is prefixed .tw-; the house colour arrives as --acc on .tw. */
@@ -556,7 +557,7 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 .tw-vrow b{font:800 16px var(--f-display)}
 .tw-bar{height:10px;border-radius:6px;background:rgba(0,0,0,.45);overflow:hidden}
 .tw-bar i{display:block;height:100%;background:linear-gradient(90deg,#e14b4b,#7fd06a);border-radius:6px;transition:width .4s ease-out}
-.tw-rest{min-height:64px;font-size:20px}
+.tw-rest{min-height:64px;font-size:20px;margin-bottom:12px}
 .tw-hint{margin:0 6px;text-align:center;font-size:14px;line-height:1.35;color:var(--muted)}
 /* smith */
 .tw-smith{display:flex;flex-direction:column;gap:8px;flex:1}
@@ -612,7 +613,7 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 .tl-crest .i{fill:var(--hc2);stroke:rgba(0,0,0,.35);stroke-width:1}
 .tl-crest b{position:absolute;left:0;right:0;top:10px;text-align:center;font:900 20px/1 var(--f-display,Cinzel,Georgia,serif);color:var(--hc);text-shadow:0 1px 2px #000}
 .tl-txt{min-width:0;grid-row:1}
-.tl-nm{font:800 clamp(19px,5.6vw,23px)/1.1 var(--f-display,Cinzel,Georgia,serif);color:#f2e6c9;letter-spacing:.05em;text-shadow:0 2px 8px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-nm{font:800 clamp(19px,calc(5.6 * var(--vw,1vw)),23px)/1.1 var(--f-display,Cinzel,Georgia,serif);color:#f2e6c9;letter-spacing:.05em;text-shadow:0 2px 8px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tl-sub{margin-top:3px;font:700 13px/1.2 var(--f-display,Cinzel,Georgia,serif);color:var(--hc);letter-spacing:.04em;text-shadow:0 1px 3px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tl-plain{margin-top:5px;font:italic 15px/1.25 var(--f-body,Georgia,serif);color:#d8dfe8}
 .tl-svc{grid-column:1 / -1;display:flex;align-items:center;gap:10px;min-height:44px;width:100%;padding:6px 12px;border-radius:11px;text-align:left;
@@ -643,7 +644,7 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 .tl-sign.s-guard{border-color:rgba(122,160,210,.85)} .tl-sign.s-guard::after{border-top-color:rgba(122,160,210,.85)}
 @keyframes tlbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 @media (prefers-reduced-motion:reduce){.tl-sign.tap .tl-ic{animation:none}.tl-ban.on,.tl-ban.out{transition:none}}
-@media (max-width:370px){.tl-nm{font-size:19px}.tl-list{font-size:14px}.tl-ban{padding:10px 12px 10px 10px}}
+html.q-w370 .tl-nm{font-size:19px}html.q-w370 .tl-list{font-size:14px}html.q-w370 .tl-ban{padding:10px 12px 10px 10px}
 
 /* ==== css/44_dungeons.css ==== */
 /* 44_dungeons.css (A22): the dungeon banner, the leave prompt, the entry sheet */
@@ -657,7 +658,7 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 #dgleave .h{font:800 18px var(--f-display);color:var(--gold);letter-spacing:.04em}
 #dgleave .s{font-size:14px;color:var(--muted);margin:4px 0 10px}
 #dgleave .s .t{color:#e9eef5;font-weight:700}
-.dgsheet{max-width:420px;margin:8vh auto 0;text-align:center}
+.dgsheet{max-width:420px;margin:calc(8 * var(--vh,1vh)) auto 0;text-align:center}
 .dgsheet .k{font:700 12px var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .dgsheet h2{font:800 28px var(--f-display);color:var(--gold);margin:6px 0 4px}
 .dgsheet .line{color:#cdd6e0;font-size:16px;font-style:italic;margin:0 0 16px}
@@ -675,7 +676,7 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 
 /* ==== css/45_events.css ==== */
 /* 45_events.css — the world-event banner #evbar (A23): icon · title · timer · progress; a thin time bar at the bottom; tap → direction toast */
-#evbar{position:absolute;left:50%;top:calc(14% + 48px); /* just under the core's .toast line (14%), so a tap's direction toast sits above the banner */width:min(92vw,360px);display:none;align-items:center;gap:10px;padding:8px 12px 11px;border-radius:14px;background:rgba(6,11,20,.84);border:1px solid var(--evc,#9fb6c9);box-shadow:0 8px 22px rgba(0,0,0,.45),0 0 16px rgba(255,255,255,.08);color:#f3e7c4;font-family:var(--f-display);cursor:pointer;overflow:hidden;z-index:5;transform:translateX(-50%)}
+#evbar{position:absolute;left:50%;top:calc(14% + 48px); /* just under the core's .toast line (14%), so a tap's direction toast sits above the banner */width:min(calc(92 * var(--vw,1vw)),360px);display:none;align-items:center;gap:10px;padding:8px 12px 11px;border-radius:14px;background:rgba(6,11,20,.84);border:1px solid var(--evc,#9fb6c9);box-shadow:0 8px 22px rgba(0,0,0,.45),0 0 16px rgba(255,255,255,.08);color:#f3e7c4;font-family:var(--f-display);cursor:pointer;overflow:hidden;z-index:5;transform:translateX(-50%)}
 #evbar.on{display:flex;animation:evin .3s ease-out}
 @keyframes evin{from{opacity:0;transform:translate(-50%,-10px)}to{opacity:1;transform:translate(-50%,0)}}
 #evbar::after{content:'';position:absolute;left:0;bottom:0;height:3px;width:calc(var(--k,1)*100%);background:var(--evc,#9fb6c9);transition:width .5s linear}
@@ -690,7 +691,7 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 #evbar.fail .evbar-t{color:#ffb3b3}
 #evbar.done .evbar-ico,#evbar.fail .evbar-ico{animation:none}
 @media (prefers-reduced-motion:reduce){#evbar.on{animation:none}#evbar .evbar-ico{animation:none}}
-@media (max-height:700px){#evbar{padding:6px 10px 9px}#evbar .evbar-t{font-size:14px}}
+html.q-h700 #evbar{padding:6px 10px 9px}html.q-h700 #evbar .evbar-t{font-size:14px}
 
 /* ==== css/46_achievements.css ==== */
 /* achievements (A24): the unlock card that slides in from the top, the Achievements screen (title picker + grid) */
@@ -735,7 +736,10 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 .ach-pt{font:700 12px var(--f-display);color:#b6c0cc}
 .ach-rw{font:700 12px var(--f-display);color:#8fd3ff}
 .ach-rw b{color:var(--gold)}
-@media (min-width:480px){.ach-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+html.q-w480 .ach-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+/* landscape (test 5): the card joins the HUD's middle message column instead of spanning the top (it covered the hero block, the top row and the minimap) */
+html.q-s .ach-toast{left:calc(50% - min(calc(14 * var(--vw,1vw)), 150px));right:auto;width:min(calc(28 * var(--vw,1vw)),300px);gap:8px;padding:8px 10px}
 
 /* ==== css/50_hud.css ==== */
 /* HOLDOR RPG — HUD (A25 + G5 layout). --hc = the house colour (set by 50_hud.js). Only the tappable pieces take pointer events.
@@ -823,7 +827,7 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 #hud-region{position:absolute;left:50%;top:calc(var(--st) + 214px);transform:translateX(-50%);width:min(calc(100% - 32px),360px);text-align:center;opacity:0;pointer-events:none;visibility:hidden}
 #hud-region.on{visibility:visible;animation:hudban 3.4s ease-in-out forwards}
 @keyframes hudban{0%{opacity:0}14%{opacity:1}80%{opacity:1}100%{opacity:0}}
-#hud-region b{display:block;font:800 clamp(22px,7vw,30px)/1.1 var(--f-display);color:#f2e6c9;letter-spacing:.08em;text-shadow:0 2px 10px #000,0 0 24px rgba(0,0,0,.9)}
+#hud-region b{display:block;font:800 clamp(22px,calc(7 * var(--vw,1vw)),30px)/1.1 var(--f-display);color:#f2e6c9;letter-spacing:.08em;text-shadow:0 2px 10px #000,0 0 24px rgba(0,0,0,.9)}
 #hud-region small{display:block;margin-top:4px;font:700 13px var(--f-display);color:var(--gold);letter-spacing:.06em;text-shadow:0 1px 4px #000}
 #hud-region p{margin:6px auto 0;max-width:300px;font:italic 15px/1.3 var(--f-body);color:#d8dfe8;text-shadow:0 1px 4px #000}
 #hud-region p:empty{display:none}
@@ -834,20 +838,10 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 @keyframes hudvig{0%,100%{box-shadow:inset 0 0 70px 24px rgba(180,10,10,.75)}50%{box-shadow:inset 0 0 90px 36px rgba(200,20,20,.85)}}
 
 /* narrow phones (360): a smaller block, the same columns */
-@media (max-width:370px){#hud-region b{font-size:22px}#ui>.toast{max-width:calc(100% - 140px)}}
+html.q-w370 #hud-region b{font-size:22px}html.q-w370 #ui>.toast{max-width:calc(100% - 140px)}
 /* landscape phones: the minimap goes to the corner and A02's row to its left (the button arc needs the right edge from the middle down);
    the message column sits top-centre between the hero block and the row */
-@media (orientation:landscape) and (max-height:520px){
-  #hud-tl{width:min(34vw,280px)}
-  #hud-row{width:100%;min-width:0;max-width:none}
-  #hud-tr{top:var(--st)}
-  #minimap{width:80px;height:80px}
-  #ui>#prChat{top:calc(var(--st) + 56px);right:calc(100px + var(--sr))}
-  #hud-slot,#ui>#bossbar,#ui>#evbar,#ui>#dgbar,#hud-region{top:var(--st)}
-  #ui>#bossbar,#ui>#evbar,#ui>#dgbar{width:min(30vw,300px);max-width:30vw}
-  #hud-region{width:min(30vw,300px)}
-  #ui>.toast{max-width:30vw}
-}
+html.q-s #hud-tl{width:min(calc(33 * var(--vw,1vw)),280px)}html.q-s #hud-row{width:100%;min-width:0;max-width:none}html.q-s #hud-tr{top:var(--st)}html.q-s #minimap{width:80px;height:80px}html.q-s #ui>#prChat{top:calc(var(--st) + 56px);right:calc(100px + var(--sr))}html.q-s #hud-slot,html.q-s #ui>#bossbar,html.q-s #ui>#evbar,html.q-s #ui>#dgbar,html.q-s #hud-region{top:var(--st)}html.q-s #ui>#bossbar,html.q-s #ui>#evbar,html.q-s #ui>#dgbar{width:min(calc(28 * var(--vw,1vw)),300px);max-width:calc(28 * var(--vw,1vw))}html.q-s #hud-region{width:min(calc(28 * var(--vw,1vw)),300px)}html.q-s #ui>.toast{max-width:calc(28 * var(--vw,1vw))}
 @media (prefers-reduced-motion:reduce){#hud .bar i,#hud .chip,#hud-port{animation:none!important;transition:none!important}}
 
 /* ---- dark-fantasy finish (the owner: "not a Lego game"): forged metal frames, worn gradients, soft grain, no flat toy colours ---- */
@@ -881,9 +875,15 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 #tl-ban .tl-nm{font-size:15px;line-height:1.15;letter-spacing:.03em}
 #tl-ban .tl-sub{margin-top:1px;font-size:11px;line-height:1.15}
 #tl-ban .tl-plain{margin-top:1px;font-size:11px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#tl-ban .tl-svc{grid-column:3;grid-row:1;width:auto;max-width:min(52vw,190px);min-height:44px;gap:6px;padding:4px 8px 4px 10px;border-radius:10px}
+#tl-ban .tl-svc{grid-column:3;grid-row:1;width:auto;max-width:min(calc(52 * var(--vw,1vw)),190px);min-height:44px;gap:6px;padding:4px 8px 4px 10px;border-radius:10px}
 #tl-ban .tl-list{font-size:12px;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 #tl-ban .tl-a{font-size:18px}
+
+/* landscape, test 5: the message column is the middle 28 % (the hero block ends at 33 % + 10 px, the top row starts right of 64 %);
+   on a narrow landscape phone (< 700 px) the top row reaches the middle, so the column starts under it; a short one (< 380 px) gets a 68 px minimap
+   so the potion button keeps clear of it */
+html.q-n #hud-slot,html.q-n #ui>#bossbar,html.q-n #ui>#evbar,html.q-n #ui>#dgbar,html.q-n #hud-region{top:calc(var(--st) + 64px)}
+html.q-h380 #minimap{width:68px;height:68px}
 
 /* ==== css/51_map.css ==== */
 /* 51_map.css — the world map screen (A26) */
@@ -912,6 +912,8 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 .mp-me{position:absolute;right:12px;bottom:calc(64px + env(safe-area-inset-bottom));width:48px;height:48px;min-height:48px;border-radius:50%;padding:0;font-size:22px;line-height:1;background:rgba(6,11,20,.78)}
 .mp-card{position:absolute;left:8px;right:8px;bottom:calc(60px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#152236,#0b1220);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:14px 56px 14px 14px;box-shadow:0 12px 30px rgba(0,0,0,.6);animation:mpUp .22s ease-out}
 .mp-card:has(.mp-go){padding-right:14px}
+html.q-wide .mp-card{left:auto;right:calc(8px + env(safe-area-inset-right));top:calc(max(10px,env(safe-area-inset-top)) + 58px);bottom:calc(64px + env(safe-area-inset-bottom));width:min(330px,calc(50% - 16px));overflow-y:auto;overscroll-behavior:contain}
+html.q-wide .mp-card.lft{right:auto;left:calc(8px + env(safe-area-inset-left))}
 @keyframes mpUp{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
 .mp-card .k{font:700 11px var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-right:40px}
 .mp-card h3{margin:4px 0 4px;font:800 22px/1.1 var(--f-display);color:#f3e7c4;padding-right:40px}
@@ -953,6 +955,7 @@ button.in-sec{width:100%;min-height:48px;margin-top:10px;font-size:15px;letter-s
 
 /* step 2 — houses */
 .in-houses{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+html.q-wide .in-houses{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}html.q-wide .in-house{min-height:96px;padding:8px 6px}html.q-wide .in-house .sg{font-size:30px}
 .in-house{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:126px;padding:12px 8px;border:2px solid rgba(255,255,255,.14);border-radius:16px;text-align:center;cursor:pointer;transition:transform .12s,border-color .15s,box-shadow .15s}
 .in-house:active{transform:scale(.97)}
 .in-house.sel{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold),0 0 28px rgba(227,182,97,.35)}
@@ -1010,7 +1013,7 @@ button.in-sec{width:100%;min-height:48px;margin-top:10px;font-size:15px;letter-s
 @keyframes insway{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.03)}}
 @keyframes inblink{50%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.in-logo,.in-sub,.in-rule,.in-stage .fig,.in-cap .ct{animation:none}}
-@media (max-height:700px){.in-logo{font-size:50px}.in-house{min-height:108px}.in-house .sg{font-size:34px}.in-stage .hp{width:120px;height:120px}}
+html.q-h700 .in-logo{font-size:50px}html.q-h700 .in-house{min-height:108px}html.q-h700 .in-house .sg{font-size:34px}html.q-h700 .in-stage .hp{width:120px;height:120px}
 
 /* ==== css/53_tutorial.css ==== */
 /* 53_tutorial.css (A28; layout G5): a compact coach line in the HUD's message column (top-centre, under the minimap / chat; 50_hud.js sets
@@ -1037,12 +1040,13 @@ button.in-sec{width:100%;min-height:48px;margin-top:10px;font-size:15px;letter-s
 .tut-ring.guess{opacity:.55;border-style:dashed}
 @keyframes tutin{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
 @keyframes tutpulse{0%,100%{transform:scale(1);opacity:.95}50%{transform:scale(1.1);opacity:.6}}
-@media (orientation:landscape) and (max-height:520px){.tut-wrap{width:min(36vw,360px)}.tut-txt{font-size:14px}}
+html.q-s .tut-wrap{width:min(calc(28 * var(--vw,1vw)),300px)}html.q-s .tut-txt{font-size:14px}
 @media (prefers-reduced-motion:reduce){.tut-ring,.tut-card.tut-in{animation:none}}
 /* dark-fantasy finish: a worn dark plate with a gold hairline, the house colour only as the edge accent */
 .tut-card{background:linear-gradient(180deg,rgba(30,24,14,.95),rgba(8,9,12,.95));border:1px solid rgba(201,160,78,.5);border-left:3px solid var(--hc);box-shadow:0 8px 22px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,230,170,.08)}
 .tut-card.ok{border-color:var(--ok)}
 .tut-face{box-shadow:0 0 0 1.5px #1a130a,0 0 0 2.5px rgba(201,160,78,.5)}
+html.q-s .tut-face,html.q-s .tut-card .tut-arrow{display:none}html.q-s .tut-card{padding-left:10px}html.q-s .tut-skip{padding:0 6px}
 
 /* ==== css/54_menu.css ==== */
 /* ==== menu (A29): the pause sheet + the menu button ==== */
@@ -1142,7 +1146,17 @@ button.in-sec{width:100%;min-height:48px;margin-top:10px;font-size:15px;letter-s
 .lvup .pb:disabled{filter:none;opacity:.78}
 .lvup .pb:disabled .p{color:var(--ok);font-size:14px}
 .lvup .go{margin-top:auto}
-@media (max-height:700px){.lvup{gap:8px}.lvup .hd{height:120px}.lvup .hd .n{font-size:64px}.lvup .sig{width:64px;height:64px;font-size:30px}.lvup .sig img{width:46px;height:46px}.lvup .st td{padding:7px 8px;font-size:16px}.lvup .pb{min-height:66px}}
+html.q-h700 .lvup{gap:8px}html.q-h700 .lvup .hd{height:120px}html.q-h700 .lvup .hd .n{font-size:64px}html.q-h700 .lvup .sig{width:64px;height:64px;font-size:30px}html.q-h700 .lvup .sig img{width:46px;height:46px}html.q-h700 .lvup .st td{padding:7px 8px;font-size:16px}html.q-h700 .lvup .pb{min-height:66px}
+.lvup .lv-l,.lvup .lv-r{display:contents}
+/* landscape (the game is wide since test 5): the burst, sigil and line on the left, the numbers and CONTINUE on the right */
+html.q-wide .lvup{max-width:860px;display:grid;grid-template-columns:minmax(230px,.8fr) 1.2fr;gap:0 24px;align-items:center;min-height:100%}
+html.q-wide .lvup .lv-l,html.q-wide .lvup .lv-r{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+html.q-wide .lvup .hd{height:104px}html.q-wide .lvup .hd .n{font-size:60px}html.q-wide .lvup .ring{width:150px;height:150px;margin:-75px 0 0 -75px}
+html.q-wide .lvup .st td{padding:6px 10px;font-size:16px}html.q-wide .lvup .pb{min-height:58px}html.q-wide .lvup .go{margin-top:4px}
+html.q-wide .lvup{height:100%;min-height:0}
+html.q-wide .lvup .lv-r{max-height:100%;overflow-y:auto;justify-content:flex-start;padding:2px 2px 0;overscroll-behavior:contain}
+html.q-wide .lvup .lv-r .go{position:sticky;bottom:0;flex:none;z-index:2}
+html.q-wide .lvup .sk{padding:8px}html.q-wide .lvup .sk .tx small{-webkit-line-clamp:1}
 @media (prefers-reduced-motion:reduce){.lvup,.lvup *{animation:none!important}.lvup .burst{display:none}}
 
 /* ==== css/56_death.css ==== */
@@ -1166,7 +1180,10 @@ button.in-sec{width:100%;min-height:48px;margin-top:10px;font-size:15px;letter-s
 .dth-keep{font:13px/1.35 var(--f-body);color:#6f7684;max-width:320px}
 .dth-next{margin-top:8px;max-width:340px}
 .dth-halllink{background:none;border-color:transparent;color:#9fb6c9;font:600 15px var(--f-body);min-height:44px;text-decoration:underline dotted;text-underline-offset:3px;box-shadow:none}
-@media (max-height:700px){.dth{gap:8px}.dth-title{font-size:26px}.dth-num b{font-size:19px}.dth-line{font-size:15px}}
+html.q-h700 .dth{gap:8px}html.q-h700 .dth-title{font-size:26px}html.q-h700 .dth-num b{font-size:19px}html.q-h700 .dth-line{font-size:15px}
+/* landscape: who fell and how on the left, the hall line and the next hero on the right (four rows, filled column by column) */
+html.q-wide .dth{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:repeat(4,auto);grid-auto-flow:column;align-content:center;justify-items:center;column-gap:32px;row-gap:10px;max-width:860px;margin:0 auto;padding:12px 8px}
+html.q-wide .dth-title{font-size:26px}html.q-wide .dth-next{width:100%}
 /* the hall */
 .hall{min-height:100%;display:flex;flex-direction:column;gap:12px;max-width:420px;margin:0 auto;padding-bottom:8px}
 .hall-top{display:flex;align-items:center;gap:8px;min-height:48px}
@@ -1222,7 +1239,7 @@ button.in-sec{width:100%;min-height:48px;margin-top:10px;font-size:15px;letter-s
 .prChat .bd{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--bad);color:#fff;font:800 11px/20px var(--f-display);display:none;border:2px solid #060b14}
 .prChat .bd.on{display:block}
 /* leaderboard */
-.prBoardWrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;min-height:calc(100vh - 24px)}
+.prBoardWrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;min-height:calc(calc(100 * var(--vh,1vh)) - 24px)}
 .prTabs{display:flex;gap:6px;margin:6px 0 8px}
 .prTab{flex:1;min-height:44px;font-size:14px;letter-spacing:.04em;color:var(--muted)}
 .prTab.on{background:rgba(227,182,97,.16);border-color:var(--gold);color:var(--gold)}
@@ -1838,7 +1855,25 @@ window.R = window.R || {};
   let cv = document.getElementById('c'); if (!cv) { cv = document.createElement('canvas'); cv.id = 'c'; app.prepend(cv); }
   let gl = document.getElementById('gl'); if (!gl) { gl = document.createElement('canvas'); gl.id = 'gl'; gl.style.cssText = 'position:absolute;inset:0;width:100%;height:100%'; app.insertBefore(gl, cv); }
   const ctx = cv.getContext('2d'); R.cv = cv; R.gl = gl; R.ctx = ctx; R.vw = 390; R.vh = 844; R.dpr = 1;
-  R.resize = () => { R.dpr = Math.min(1.5, window.devicePixelRatio || 1); R.vw = window.innerWidth || 390; R.vh = window.innerHeight || 844; const w = Math.round(R.vw * R.dpr), h = Math.round(R.vh * R.dpr);
+  /* ---- landscape (MR B, 2026-11-22: "a horizontal game"): the game is always laid out wide. A phone held upright gets the
+     whole #app turned 90° clockwise (turn the phone a quarter left to play); a phone held sideways needs no turn. Everything
+     inside #app (canvases, HUD, screens, even position:fixed) follows the turn; pointer coordinates go through R.pt,
+     element rectangles through R.rect, and CSS sizes use --vw / --vh (1 % of the app's width / height), never vw / vh. */
+  R.rot = false;
+  R.pt = (cx, cy) => R.rot ? { x: cy, y: (window.innerWidth || 0) - cx } : { x: cx, y: cy };
+  R.rect = el => { const b = el.getBoundingClientRect(); if (!R.rot) return b; const W = window.innerWidth || 0;
+    const r = { left: b.top, right: b.bottom, top: W - b.right, bottom: W - b.left }; r.x = r.left; r.y = r.top; r.width = r.right - r.left; r.height = r.bottom - r.top; return r; };
+  R.layout = () => { const W = window.innerWidth || 390, H = window.innerHeight || 844;
+    /* a soft keyboard shrinks the window: while a text field has focus the layout keeps its turn and size */
+    const ae = document.activeElement; if (R._lay && ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) return R._lay;
+    const rot = H > W * 1.05 && !R.noRot; R.rot = rot;
+    const aw = rot ? H : W, ah = rot ? W : H, de = document.documentElement; de.classList.toggle('rot', rot); de.classList.add('land');
+    /* the size media queries of the CSS, as classes on the app's own size (a media query sees the unturned screen) */
+    de.classList.toggle('q-s', aw > ah && ah <= 520); de.classList.toggle('q-h700', ah <= 700); de.classList.toggle('q-w370', aw <= 370); de.classList.toggle('q-w480', aw >= 480); de.classList.toggle('q-wide', aw >= 600 && aw > ah); de.classList.toggle('q-n', aw > ah && aw < 700); de.classList.toggle('q-h380', aw > ah && ah < 380);
+    de.style.setProperty('--vw', (aw / 100) + 'px'); de.style.setProperty('--vh', (ah / 100) + 'px');
+    if (app && app.style) { if (rot) app.style.cssText = 'position:fixed;left:0;top:0;right:auto;bottom:auto;width:' + aw + 'px;height:' + ah + 'px;transform-origin:0 0;transform:rotate(90deg) translateY(-100%)'; else app.style.cssText = ''; }
+    return (R._lay = { w: aw, h: ah }); };
+  R.resize = () => { R.dpr = Math.min(1.5, window.devicePixelRatio || 1); const L = R.layout(); R.vw = L.w; R.vh = L.h; const w = Math.round(R.vw * R.dpr), h = Math.round(R.vh * R.dpr);
     cv.width = w; cv.height = h; const g = R.gl || gl; if (g && (g.width !== w || g.height !== h)) { g.width = w; g.height = h; } R.camClamp(); R.bus.emit('resize', R.vw, R.vh); };
   window.addEventListener('resize', R.resize); R.resize();
   const sysErr = (s, e) => { s._errs = (s._errs || 0) + 1; if (s._errs <= 3) { console.error(s.name, e); R.err((e && e.message) || e, 'sys:' + s.name); } };
@@ -1991,14 +2026,15 @@ try{
     pr[n] = true; dn[n] = true;
     if (src === 'btn') I.haptic(HAP[n] || 'light');
     if (n === 'interact' && I.interact && typeof I.interact.fn === 'function') { try { I.interact.fn(I.interact); } catch (e) { console.error('interact', e); } }
-    if (src === 'btn' && UIB[n] && btns[n]) { const b = btns[n].getBoundingClientRect(); ghost = { t: performance.now() + 2500, l: b.left - 12, r: b.right + 12, tp: b.top - 12, b: b.bottom + 12 }; }   // the screen this opens is now under the finger: eat the click the touch makes there
+    if (src === 'btn' && UIB[n] && btns[n]) { const b = R.rect ? R.rect(btns[n]) : btns[n].getBoundingClientRect(); ghost = { t: performance.now() + 2500, l: b.left - 12, r: b.right + 12, tp: b.top - 12, b: b.bottom + 12 }; }   // the screen this opens is now under the finger: eat the click the touch makes there
     R.bus.emit('btn', n, src); return true; };
   /* a touch on a top-row button opens a screen on pointerdown; the browser then sends a 'click' to whatever is under the finger — the new
      screen (its close button, its backdrop). That click — on the button's own spot, before the next touch (2.5 s at most: a slow software-GL frame can delay it) — is swallowed once. */
   let ghost = null;
+  const P = e => (R.pt ? R.pt(e.clientX, e.clientY) : { x: e.clientX, y: e.clientY });   /* pointer → app coordinates (the app may be turned, 00_core) */
   document.addEventListener('pointerdown', () => { ghost = null; }, true);   // a new touch starts a new interaction (runs before the button's own handler)
   document.addEventListener('click', e => { const g = ghost; if (!g) return; if (performance.now() > g.t) { ghost = null; return; }
-    if (e.clientX >= g.l && e.clientX <= g.r && e.clientY >= g.tp && e.clientY <= g.b) { ghost = null; e.stopPropagation(); e.preventDefault(); } }, true);
+    const q = P(e); if (q.x >= g.l && q.x <= g.r && q.y >= g.tp && q.y <= g.b) { ghost = null; e.stopPropagation(); e.preventDefault(); } }, true);
   const release = n => { dn[n] = false; };
   for (const n in btns) {
     const el = btns[n]; el._pid = null;
@@ -2014,24 +2050,24 @@ try{
   const recompute = () => { if (jid === null) setMove(keyMove.x, keyMove.y); };
   const place = () => { joy.style.transform = 'translate(' + jx.toFixed(1) + 'px,' + jy.toFixed(1) + 'px)'; };
   const isFree = t => t === zone || t === lzone || t === ui || t === R.cv || (t && (t.id === 'c' || t.id === 'gl' || t.id === 'app'));
-  const joyStart = e => { jid = e.pointerId; jx = e.clientX; jy = e.clientY; I.active = true; place(); knob.style.transform = 'translate(0,0)'; joy.classList.add('on'); rest.classList.add('off'); setMove(0, 0); };
-  const joyMove = e => { let dx = e.clientX - jx, dy = e.clientY - jy, d = Math.hypot(dx, dy);
+  const joyStart = e => { const q = P(e); jid = e.pointerId; jx = q.x; jy = q.y; I.active = true; place(); knob.style.transform = 'translate(0,0)'; joy.classList.add('on'); rest.classList.add('off'); setMove(0, 0); };
+  const joyMove = e => { const q = P(e); let dx = q.x - jx, dy = q.y - jy, d = Math.hypot(dx, dy);
     if (d > RAD) { const k = (d - RAD) / d; jx += dx * k; jy += dy * k; dx -= dx * k; dy -= dy * k; d = RAD; place(); }   // the base follows the thumb
     knob.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px)';
     if (d < DEAD) setMove(0, 0); else { const m = Math.min(1, (d - DEAD) / (RAD - DEAD)); setMove(dx / d * m, dy / d * m); } };
   const joyEnd = () => { if (jid === null) return; jid = null; I.active = false; joy.classList.remove('on'); rest.classList.remove('off'); recompute(); };
   /* ---- camera look + pinch (right half, free touches) ---- */
   const acc = { dx: 0, dy: 0, pinch: 1 }; const looks = [];                    // accumulated between steps; published by the pre-step system
-  const lookStart = e => { looks.push({ id: e.pointerId, x: e.clientX, y: e.clientY }); };
-  const lookMove = e => { const p = looks.find(q => q.id === e.pointerId); if (!p) return;
-    if (looks.length >= 2 && (looks[0] === p || looks[1] === p)) { const o = looks[0] === p ? looks[1] : looks[0]; const d0 = Math.hypot(p.x - o.x, p.y - o.y), d1 = Math.hypot(e.clientX - o.x, e.clientY - o.y); if (d0 > 4 && d1 > 4) acc.pinch *= d1 / d0; }
-    else if (looks.length === 1) { acc.dx += e.clientX - p.x; acc.dy += e.clientY - p.y; }
-    p.x = e.clientX; p.y = e.clientY; };
+  const lookStart = e => { const q = P(e); looks.push({ id: e.pointerId, x: q.x, y: q.y }); };
+  const lookMove = e => { const p = looks.find(q => q.id === e.pointerId); if (!p) return; const q = P(e);
+    if (looks.length >= 2 && (looks[0] === p || looks[1] === p)) { const o = looks[0] === p ? looks[1] : looks[0]; const d0 = Math.hypot(p.x - o.x, p.y - o.y), d1 = Math.hypot(q.x - o.x, q.y - o.y); if (d0 > 4 && d1 > 4) acc.pinch *= d1 / d0; }
+    else if (looks.length === 1) { acc.dx += q.x - p.x; acc.dy += q.y - p.y; }
+    p.x = q.x; p.y = q.y; };
   const lookEnd = id => { const i = looks.findIndex(q => q.id === id); if (i >= 0) looks.splice(i, 1); };
   window.addEventListener('wheel', e => { if (hidden() || screenOpen()) return; acc.pinch *= Math.exp(-e.deltaY * 0.0015); }, { passive: true });
   /* ---- pointer routing ---- */
   document.addEventListener('pointerdown', e => { if (!I.enabled || hidden() || screenOpen()) return; if (e.pointerType === 'mouse' && e.button !== 0) return; if (!isFree(e.target)) return;
-    const left = e.clientX < window.innerWidth / 2;
+    const left = P(e).x < (R.vw || window.innerWidth) / 2;
     if (left) { if (jid !== null) return; e.preventDefault(); if (e.pointerType === 'mouse') { try { zone.setPointerCapture(e.pointerId); } catch (x) {} } joyStart(e); }
     else { e.preventDefault(); if (e.pointerType === 'mouse') { try { lzone.setPointerCapture(e.pointerId); } catch (x) {} } lookStart(e); } }, { passive: false });
   window.addEventListener('pointermove', e => { if (jid !== null && e.pointerId === jid) joyMove(e); else lookMove(e); });
@@ -4791,7 +4827,7 @@ try{
      A right-half drag (R.input.look.dx) and Q/E turn it (drag right = turn right), R.input.pinch zooms 300..700 (default 420), the pitch
      follows the zoom (30 deg close .. 40 deg far). Yaw / distance ease toward their targets; a value written to R.cam.yaw / R.cam.dist
      from outside (tests, cut-scenes) is taken as the new target and snapped to. */
-  R.cam.yaw = R.cam.yaw || 0; R.cam.dist = R.cam.dist || 420; R.cam.pitch = R.cam.pitch || 35 * DEG;
+  R.cam.yaw = R.cam.yaw || 0; R.cam.dist = R.cam.dist || (R.vw > R.vh * 1.3 ? 500 : 420);   /* landscape (test 5): a little further back, the wide view shows more ground */ R.cam.pitch = R.cam.pitch || 35 * DEG;
   const CAM = { yawT: R.cam.yaw, distT: R.cam.dist, yawOut: R.cam.yaw, distOut: R.cam.dist, DMIN: 300, DMAX: 700, PMIN: 30, PMAX: 40, TURN: .0065, AHEAD: .14 };
   const _la = new T.Vector3();
   R3.camCfg = CAM;
@@ -13588,16 +13624,16 @@ try{
 
   // the message column: start at #hud-slot, then step below every visible obstacle the banner would meet
   const OBST = ['#hud-tl', '#hud-tr', '#ui>#prChat', '#bossbar', '#dgbar', '#evbar', '#tut:not(.off) .tut-wrap', '#hud-region.on', '#ctl-top'];
-  const shownEl = el => { if (!el || !el.isConnected) return false; const cs = getComputedStyle(el); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) return false; const r = el.getBoundingClientRect(); return r.width > 1 && r.height > 1; };
+  const shownEl = el => { if (!el || !el.isConnected) return false; const cs = getComputedStyle(el); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) return false; const r = R.rect(el); return r.width > 1 && r.height > 1; };
   const obstacles = () => { const out = [];
-    for (const s of OBST) for (const el of document.querySelectorAll(s)) if (shownEl(el)) out.push(el.getBoundingClientRect());
-    for (const el of document.querySelectorAll('#ui>.toast, #ui>.ach-toast')) if (shownEl(el)) out.push(el.getBoundingClientRect());
+    for (const s of OBST) for (const el of document.querySelectorAll(s)) if (shownEl(el)) out.push(R.rect(el));
+    for (const el of document.querySelectorAll('#ui>.toast, #ui>.ach-toast')) if (shownEl(el)) out.push(R.rect(el));
     return out; };
   TL.obstacles = obstacles;
   const placeBanner = () => {
     if (!ban || !banOn) return;
-    const vw = window.innerWidth, w = Math.min(vw - 24, 360), x = (vw - w) / 2, hgt = ban.offsetHeight || 60;   // compact: ≤ 64 px (50_hud.css)
-    const slot = document.getElementById('hud-slot'); let y = slot ? slot.getBoundingClientRect().top : 210;
+    const vw = R.vw || window.innerWidth, w = Math.min(vw - 24, 360), x = (vw - w) / 2, hgt = ban.offsetHeight || 60;   // compact: ≤ 64 px (50_hud.css)
+    const slot = document.getElementById('hud-slot'); let y = slot ? R.rect(slot).top : 210;
     const obs = obstacles();
     for (let k = 0; k < 8; k++) { let moved = false;
       for (const r of obs) if (r.right > x + 2 && r.left < x + w - 2 && r.bottom > y - 4 && r.top < y + hgt + 4) { y = r.bottom + 10; moved = true; }
@@ -13653,7 +13689,7 @@ try{
     const P = R.player, hide = !P || screenOpen() || hudHidden() || !R.w2s;
     const keep = new Set();
     if (!hide) {
-      const now = performance.now(); if (now - obsT > 250) { obsT = now; obsCache = obstacles().concat([...document.querySelectorAll('#ctl .cb, #b-interact.on, #ctl-top')].filter(shownEl).map(el => el.getBoundingClientRect())); if (banOn && ban) obsCache.push(ban.getBoundingClientRect()); }
+      const now = performance.now(); if (now - obsT > 250) { obsT = now; obsCache = obstacles().concat([...document.querySelectorAll('#ctl .cb, #b-interact.on, #ctl-top')].filter(shownEl).map(el => R.rect(el))); if (banOn && ban) obsCache.push(R.rect(ban)); }
       const vw = R.vw || window.innerWidth, vh = R.vh || window.innerHeight;
       for (const e of npcEnts()) {
         const svc = svcOf(e); if (!svc) continue; const d = Math.hypot(e.x - P.x, e.y - P.y); if (d > FAR) continue;
@@ -15406,10 +15442,10 @@ try{
   const BARS = ['bossbar', 'dgbar', 'evbar'], GAP = 8;
   const shownEl = el => { if (!el || !el.isConnected) return false; const cs = getComputedStyle(el); return cs.display !== 'none' && cs.visibility !== 'hidden'; };
   const stack = () => {
-    const ui = root.parentNode; if (!ui) return; const top0 = E['hud-slot'].getBoundingClientRect().top; let y = top0, lead = null;
+    const ui = root.parentNode; if (!ui) return; const top0 = R.rect(E['hud-slot']).top; let y = top0, lead = null;
     for (const id of BARS) { const b = document.getElementById(id); if (!b) continue; b.removeAttribute('data-hud-yield'); }
     for (const id of BARS) { const b = document.getElementById(id); if (!b) continue;
-      if (!lead && shownEl(b)) { lead = b; if (b.style.top !== y + 'px') b.style.top = y + 'px'; y = Math.max(y, b.getBoundingClientRect().bottom + GAP); }
+      if (!lead && shownEl(b)) { lead = b; if (b.style.top !== y + 'px') b.style.top = y + 'px'; y = Math.max(y, R.rect(b).bottom + GAP); }
       else if (lead && shownEl(b)) b.setAttribute('data-hud-yield', '1'); }
     const tw = document.querySelector('#tut:not(.off) .tut-wrap');
     if (tw && shownEl(tw)) { if (tw.style.top !== y + 'px') tw.style.top = y + 'px'; y += tw.offsetHeight + GAP; }
@@ -15643,6 +15679,8 @@ try{
   const closeCard = () => { if (card) { card.remove(); card = null; } };
   const openCard = p => { closeCard(); const kind = p.kind || p.type || 'town', H = house(p.house), name = (p.name || p.n || p.id) + '';
     card = document.createElement('div'); card.className = 'mp-card'; card.dataset.poi = p.id;
+    /* landscape: the card is a side panel, on the side away from the place it describes */
+    try { if (p.x != null) { const q = toS(p.x, p.y); if (q && q.x > vw / 2) card.classList.add('lft'); } } catch (e) {}
     const kTxt = (KIND[kind] || kind) + (H ? ' · House ' + (H.n || H.name || p.house) : p.region ? ' · ' + (p.region + '').replace(/[_-]/g, ' ') : '');
     const d = R.player ? Math.hypot(R.player.x - p.x, R.player.y - p.y) : null;
     card.innerHTML = '<button class="mp-cx" aria-label="Close">✕</button><div class="k"></div><h3></h3><p></p><div class="d"></div>';
@@ -15663,7 +15701,7 @@ try{
     if (h.type === 'poi') { if (found(h.p.id)) openCard(h.p); else { closeCard(); R.ui.toast('Not yet discovered'); } }
     else if (h.type === 'player') { const s = toS(h.p.x, h.p.y); showTag((h.p.name || h.p.n || 'Player') + (h.p.lvl ? ' · Lv ' + h.p.lvl : ''), s.x, s.y - 6); }
     else if (h.type === 'quest') { const s = toS(h.p.x, h.p.y); showTag(h.p.name || h.p.title || h.p.txt || 'Quest', s.x, s.y - 8); } };
-  const pos = e => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  const pos = e => { const r = R.rect(cv), q = R.pt(e.clientX, e.clientY); return { x: q.x - r.left, y: q.y - r.top }; };
   const dist2 = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const down = e => { if (e.button != null && e.button > 0) return; e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (x) {} const p = pos(e); ptrs.set(e.pointerId, { x: p.x, y: p.y, x0: p.x, y0: p.y });
     if (ptrs.size === 1) { moved = 0; pinched = false; pinch = null; } else if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; pinch = { d: dist2(a, b) || 1, z: view.z, w: toW(mid.x, mid.y) }; pinched = true; closeCard(); hideTag(); } };
@@ -16044,7 +16082,7 @@ try{
   /* the arrow on the card points from the card toward the ring (8 directions) */
   const ARROWS = ['→', '↘', '↓', '↙', '←', '↖', '↑', '↗'];
   const pointAt = (tx, ty) => { const a = T.el && T.el.querySelector('.tut-arrow'); if (!a || !T.card) return; if (tx == null) { a.textContent = ''; return; }
-    const b = T.card.getBoundingClientRect(), cx = b.left + b.width / 2, cy = b.top + b.height / 2;
+    const b = R.rect(T.card), cx = b.left + b.width / 2, cy = b.top + b.height / 2;
     if (tx >= b.left && tx <= b.right && ty >= b.top && ty <= b.bottom) { a.textContent = ''; return; }
     const k = Math.round(Math.atan2(ty - cy, tx - cx) / (Math.PI / 4)); const ch = ARROWS[(k + 8) % 8]; if (a.textContent !== ch) a.textContent = ch; };
   const layoutRing = () => { const ring = T.ring; if (!ring) return; const st = S[T.step];
@@ -16052,7 +16090,7 @@ try{
     else if (!st || !st.ring || T.doneAt != null) pointAt(null);
     if (!st || !st.ring || st.ring === 'drop' || st.ring === 'npc' || T.doneAt != null) { ring.style.display = 'none'; return; }
     const el = findTarget(st.ring); let x, y, w, h, guess = false;
-    if (el) { const b = el.getBoundingClientRect(); if (b.width < 4 || b.height < 4) { ring.style.display = 'none'; return; } x = b.left - 8; y = b.top - 8; w = b.width + 16; h = b.height + 16; }
+    if (el) { const b = R.rect(el); if (b.width < 4 || b.height < 4) { ring.style.display = 'none'; return; } x = b.left - 8; y = b.top - 8; w = b.width + 16; h = b.height + 16; }
     else { const g = GUESS[st.ring]; if (!g) { ring.style.display = 'none'; return; } w = h = g[2]; x = g[0] * R.vw - w / 2; y = g[1] * R.vh - h / 2; guess = st.ring !== 'joy'; }
     pointAt(x + w / 2, y + h / 2);
     ring.style.display = 'block'; ring.style.left = x + 'px'; ring.style.top = y + 'px'; ring.style.width = w + 'px'; ring.style.height = h + 'px'; ring.classList.toggle('guess', guess); ring.classList.toggle('sq', Math.abs(w - h) > 12); };
@@ -16365,14 +16403,14 @@ try{
       '<button class="slot' + (i >= 0 ? ' in' : '') + '" data-slot="' + esc(s.id) + '"' + (i >= 0 ? ' disabled' : '') + '>' + (i >= 0 ? 'IN SLOT ' + (i + 1) + ' ✓' : 'PUT IN SLOT') + '</button></div>'; }).join('');
     const pb = STATS.map(k => { const add = auto ? (log[k] || 0) : 0, main = k === (MAIN[p.cls] || 'str'); return '<button class="pb' + (main ? ' main' : '') + '" data-k="' + k + '"' + (auto || pts <= 0 ? ' disabled' : '') + '><span class="k">' + SNAME[k] + '</span><span class="v">' + (p.stats[k] | 0) + '</span><span class="p">' + (auto ? (add ? '+' + add : '·') : '+') + '</span></button>'; }).join('');
     const ptsTxt = auto ? (gained ? gained + ' POINT' + (gained > 1 ? 'S' : '') + ' · BY CLASS' : 'POINTS BY CLASS') : pts + ' POINT' + (pts !== 1 ? 'S' : '') + ' TO SPEND';
-    root.innerHTML = '<div class="lvup" style="--acc:' + H.col + ';--acc2:' + H.col2 + '">' +
+    root.innerHTML = '<div class="lvup" style="--acc:' + H.col + ';--acc2:' + H.col2 + '"><div class="lv-l">' +
       '<div class="hd"><span class="ring"></span><span class="burst">' + burst() + '</span><span class="k">LEVEL UP</span><span class="n">' + pend.to + '</span></div>' +
       '<div class="sig" title="' + esc(H.n) + '">' + (H.sigil ? '<img src="' + esc(H.sigil) + '" alt="">' : '<span>' + esc(H.e) + '</span>') + '</div>' +
       '<div class="who">' + esc(p.name || 'You') + ' · ' + esc(H.n) + ' · ' + esc((p.cls || 'knight').toUpperCase()) + '</div>' +
-      (line ? '<p class="say">' + esc(line) + '</p>' : '') +
+      (line ? '<p class="say">' + esc(line) + '</p>' : '') + '</div><div class="lv-r">' +
       '<div class="st"><table>' + rows + '</table></div>' + skHtml +
       '<div class="pts"><div class="h"><span class="t">' + ptsTxt + '</span><button class="auto' + (auto ? ' on' : '') + '">AUTO</button></div><div class="g">' + pb + '</div></div>' +
-      '<button class="pri go">CONTINUE</button></div>'; };
+      '<button class="pri go">CONTINUE</button></div></div>'; };
   const onTap = ev => { const b = ev.target.closest('button'); if (!b || !root || !root.contains(b)) return;
     if (b.classList.contains('go')) { haptic('tap'); R.ui.close(); return; }
     if (b.classList.contains('auto')) { haptic('tap'); setAuto(!b.classList.contains('on')); return; }
