@@ -72,7 +72,7 @@
   };
   let btn = null;
   const syncBtn = () => { if (!btn) return; const show = !!(R.state && R.running && !R.ui.cur); btn.classList.toggle('off', !show); };
-  const mountBtn = () => { const ui = document.getElementById('ui'); if (!ui || btn) return;
+  const mountBtn = () => { const ui = document.getElementById('ui'); if (!ui || btn) return; if (document.getElementById('b-menu')) return;   // the input module's top-row MENU button (same spot) opens us through pressed('menu')
     btn = el('button', 'off', ICO.menu); btn.id = 'menuBtn'; btn.dataset.btn = 'menu'; btn.setAttribute('aria-label', 'Menu');
     btn.addEventListener('click', ev => { ev.preventDefault(); ev.stopPropagation(); R.haptic('light'); R.ui.open('menu'); });
     ui.appendChild(btn); syncBtn(); };

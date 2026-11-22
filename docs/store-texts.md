@@ -1,114 +1,133 @@
-# HOLDOR — მზა ტექსტები (ბოტი, არხები, X, პირველი პოსტები)
+# HOLDOR — ready texts (bot, channels, X, video bios)
 
-ყველა ტექსტი გამზადებულია ჩასასმელად. **რიცხვები ნამდვილია:** 50 ეტაპი, 49 ჩემპიონი, 224 ნივთი — თამაშის მონაცემიდან. ჩატი, ქვეყნების ომი და ახალი ნივთები **მხოლოდ release-ის შემდეგ** არსებობს Telegram-ში: სანამ release არ არის, ამ პუნქტებიანი ტექსტები არ გამოაქვეყნო.
-სავაჭრო ნიშნების წესი (იხ. `docs/marketing-plan.md` §2): არ ვწერთ GoT / HBO / Westeros / Hodor / პერსონაჟების სახელებს.
-ფაილები: `docs/marketing/bot_banner_640x360.png` (ბოტის სურათი), `avatar_640.png` (ავატარი ყველგან), `x_header_1500x500.png` (X-ის ჰედერი), `bot_banner_1280x720.png` (დიდი ვერსია პოსტებისთვის).
+HOLDOR v2 is an **action RPG inside Telegram**: one hero on a 3D continent, real-time combat, a boss at every region gate,
+**permadeath** — when your hero falls, the run ends and your house sends the next champion; the **Hall of the Fallen** keeps every
+death. Other players walk your map; every zone has a chat. The hook, in the owner's words: **"Every death is a story. Your house
+remembers."** Everything below is written for that game; the tower-defense texts live in git history only.
+Posts, X, video captions, reply templates and the FAQ: `docs/marketing/launch-pack-en.md`. The trailer: `docs/marketing/trailer-script-v2.md`.
 
-## 1. BotFather (შენს ჩატში BotFather-თან; ტოკენს არავის უგზავნი)
-| ბრძანება | რა ჩასვა |
+## Rules for every text (the owner's)
+- **English only.** Funny and intriguing. No quotes from the books or the show. No SAO names, art or text (SAO is a mechanics reference only).
+- **Trademark rule** (`docs/marketing-plan.md` §2, until the lawyer answers): in public text, names, hashtags and ads we do not write
+  *Game of Thrones / GoT / HBO / Westeros / Hodor*, character names or castle names. Allowed: the Wall, the North, the dead, wights,
+  giants, wildlings, "seven houses", "the realm", "your house's seat", "the continent". The heroes are "the 49 champions" — never by name,
+  even though the Hall of the Fallen shows the name in the game; a public post says "a ranger of your house", not the name.
+- **Every number is real.** The design numbers below come from `src/rpg/ARCH.md` + Addendum 2 (2026-11-22). Before you post one, check
+  it in the build (`R.data.bosses`, `R.data.champs`, `R.data.world.regions`, …). If a module shipped fewer, the post says fewer.
+- No player counts, no ratings, no "most popular", no release dates, no prizes, no money.
+
+**Facts we may state:** free, inside Telegram, nothing to install · the whole continent as 3D terrain on the phone, a third-person
+camera behind the hero (drag to look around, pinch to zoom) · one hero at a time — one of the 49 champions of the seven houses; a new
+account starts with its house's first champion · the class comes from the champion (melee → knight, ranged → ranger, mage → maester),
+6 skills each, 3 on the bar · real-time combat: joystick, strike, dodge, three skills, a potion · **permadeath**: when the hero falls the
+run ends; the Hall of the Fallen gets a line (name, level, killer, time); gold, gems, gear, level and xp die with the hero; titles,
+achievements and the world (regions discovered, gates opened, quests turned in, places found) stay with the account; the next hero is
+picked from the unlocked champions; new champions are unlocked by rescue quests and bosses · nine regions, from your house's seat to
+beyond the Wall (the last region starts at level 50) · 9 region bosses with phases and telegraphs, each one gates a region · 3 instanced
+dungeons (waves, a mini-boss, a chest) behind portals · levels 1–60 in one life · gear in 3 slots, 5 rarities, sets · a main quest chain
+plus side quests at the castles, towns and camps · other players drawn on your map with name tags · one chat per zone · day and night,
+snow in the north, rain, sand · the old wallet's gold and gems go to the first hero; the champions it had are unlocked.
+
+**Not in this version (do not claim):** companions, respawn, revive, parties, PvP, trading, guilds.
+
+**Images:** `bot_banner_*.png`, `card_*.png`, `x_header_*.png` and `shots/*.png` in `docs/marketing/` are **tower-defense
+screenshots**. Re-shoot them from the RPG build before uploading anything (`docs/marketing/tools/make_card.js` + `compose_card.js`
+take new shots; the 3D camera behind a hero at a castle with the house banner is the picture). `avatar_640.png` (the door symbol) still
+reads as a logo; keep it or redraw it, your call.
+
+## 1. BotFather (in your chat with BotFather; the token is never sent to anyone)
+| Command | What to paste |
 |---|---|
-| `/setname` | `HOLDOR — Hold the Door` |
-| `/setabouttext` (≤120) | `Free tower defense in Telegram. Build towers, lead your champion, hold the door against the dead.` (97) |
-| `/setdescription` (≤512) | იხ. §1.1 (EN, 307) — ან §1.2 (KA, 300) |
-| `/setdescriptionpic` | ატვირთე `bot_banner_640x360.png` (ზუსტად 640×360) |
-| `/setuserpic` | ატვირთე `avatar_640.png` |
-| `/setmenubutton` | ღილაკის ტექსტი: `▶ Play free` · URL: `https://bekagnp-design.github.io/holdor/` (ისევე, როგორც ახლა გაქვს) |
-| `/setcommands` | **მხოლოდ ბოტის /start მისალმების (ავტო 1) გაშვების შემდეგ:** `start - Start playing` · `play - Open the game` |
-`card_1280x720.png` / `card_640x360.png` — ბმულის ბარათი (BotFather → Mini Apps → Direct Link → Set Photo or GIF), ნამდვილი კადრებით v1.0.96-დან; თავიდან აიგება `docs/marketing/tools/make_card.js` + `compose_card.js`-ით.
-ბოტის ენის მიხედვით აღწერა: BotFather-ში ყოველ ენაზე ცალკე (`/setdescription` → აირჩიე ენა). ქართულისთვის — §1.2.
+| `/setname` | `HOLDOR` — the subtitle "Hold the Door" belonged to a game with a door. The RPG has a Wall and a Hall. Keep the pun only if you and the lawyer want it. |
+| `/setabouttext` (≤ 120) | §1.1 (114 chars) |
+| `/setdescription` (≤ 512) | §1.2 (497 chars) |
+| `/setdescriptionpic` | a new 640×360 from the RPG build (the 3D camera behind a hero, a castle with the house banner, a fight; no big portrait of a recognisable face) |
+| `/setuserpic` | `avatar_640.png` |
+| `/setmenubutton` | button text `▶ Play free` · URL `https://bekagnp-design.github.io/holdor/` (as now) |
+| `/setcommands` | `start - Start playing` · `play - Open the game` · `help - How it works` (the Edge Function `stars` answers all three) |
 
-### 1.1 Description (EN, ≤512)
+### 1.1 About (`/setabouttext`, ≤ 120)
 ```
-HOLDOR — Hold the Door ❄️
-
-The dead are at the gate. You are the last wall.
-
-⚔️ Build towers and lead a champion into battle
-🏰 50 stages, a daily Hold challenge, weekly realm wars
-🎁 Chests, gear and 49 champions to collect
-🌍 Fight for your country against players worldwide
-
-Free to play. Tap PLAY to start.
+Free action RPG inside Telegram. One hero on a 3D continent, real-time fights, permadeath. Every death is a story.
 ```
-### 1.2 Description (KA, ≤512)
+
+### 1.2 Description (`/setdescription`, ≤ 512)
 ```
-HOLDOR — დაიცავი კარი ❄️
+HOLDOR — an action RPG that lives inside Telegram
 
-მკვდრები კართან არიან. შენ ბოლო კედელი ხარ.
+No towers. No second chances. One hero, a whole continent in 3D, and things that walk straight at you.
 
-⚔️ ააშენე კოშკები და ჩემპიონს ბრძოლაში უხელმძღვანელე
-🏰 50 ეტაპი, ყოველდღიური Hold და კვირის ომი ქვეყნებს შორის
-🎁 ყუთები, აღჭურვილობა და 49 ჩემპიონი
-🌍 იბრძოლე შენი ქვეყნისთვის მსოფლიოს მოთამაშეებთან
+⚔️ Real-time combat: move, strike, dodge, three skills
+🧭 Nine regions, a boss at every gate, a Wall in the north
+💀 Permadeath: when your hero falls, your house sends the next one
+📜 The Hall of the Fallen keeps every death
+💬 Real players on your map, a chat for every zone
 
-თამაში უფასოა. დააჭირე PLAY-ს.
+Free to play. Tap PLAY. Every death is a story; your house remembers.
 ```
-**About (KA, ≤120):** `უფასო tower defense Telegram-ში. ააშენე კოშკები, ჩაუდექი სათავეში შენს ჩემპიონს და დაიცავი კარი მკვდრებისგან.` (109)
 
-### 1.3 /start მისალმება (ბოტის კოდი, `[ავტო 1]`; ახლა ბოტს ამ ბრძანებაზე პასუხი არ აქვს)
-EN (174):
+### 1.3 /start greeting — three variants (bot code; each comes with the ▶ Play free button that passes the source code)
+Pick one, or rotate them; the bot shows one per user.
+
+**A — the honest one**
 ```
-🚪 Welcome, defender!
+🗺️ Welcome to HOLDOR.
 
-The dead are at the gate and you are the last wall. Build towers, lead your champion, and hold the door.
+Somebody took down all the towers and left you one hero, a sword and a continent in 3D. The dead walk straight at you. When your hero falls, that is it for them: your house sends the next champion, and the Hall of the Fallen writes down how it went.
 
-Tap PLAY — the first battle takes two minutes.
+Tap PLAY. Level 1, your house's seat, nobody watching. Yet.
 ```
-KA:
+**B — the short one**
 ```
-🚪 კეთილი იყოს შენი მობრძანება, დამცველო!
+⚔️ HOLDOR: an action RPG inside Telegram.
 
-მკვდრები კართან არიან და შენ ბოლო კედელი ხარ. ააშენე კოშკები, უხელმძღვანელე ჩემპიონს და დაიცავი კარი.
+One hero. Nine regions. A boss at every gate. No respawn.
+Other players are already on the map. The ones with names over their heads are friendly. Probably.
 
-დააჭირე PLAY-ს — პირველი ბრძოლა ორ წუთს გრძელდება.
+Tap PLAY — nothing to install, the first fight is a minute away.
 ```
-(მისალმებას ახლავს სურათი `bot_banner_1280x720.png` და ღილაკი „▶ Play free“, რომელიც წყაროს კოდს გადასცემს.)
+**C — the intriguing one**
+```
+💀 Every death is a story. Your house remembers.
 
-## 2. Telegram არხები
-| | EN | KA |
-|---|---|---|
-| სახელი | `HOLDOR News` | `HOLDOR · ქართული` |
-| აღწერა (≤255) | `Daily Hold top-10, weekly realm war results, updates and tips for HOLDOR — the free tower defense in Telegram. Play: t.me/HoldorTDBot/play` (138) | `HOLDOR-ის სიახლეები: დღის Hold-ის ტოპ-10, ქვეყნების კვირის ომის შედეგები, რჩევები. თამაში უფასოა: t.me/HoldorTDBot/play` (119) |
-| ავატარი | `avatar_640.png` | იგივე |
-**გაწერილი ბმული არხში:** `https://t.me/HoldorTDBot/play?startapp=s_tg` (EN) და `…?startapp=s_ka` (KA).
-**პირველი (დამაგრებული) პოსტი:** §5.1.
+The further north you walk, the bigger the numbers over the monsters' heads — and the shorter the line that will be written about you.
 
-## 3. X (Twitter)
-- **სახელი:** `HOLDOR · Hold the Door` · **ავატარი:** `avatar_640.png` · **ჰედერი:** `x_header_1500x500.png`
-- **ბიო (≤160, 95):** `Free tower defense inside Telegram. Hold the door against the dead. 🚪❄️ New: weekly realm wars.`
-- **ბმული ბიოში:** `https://t.me/HoldorTDBot/play?startapp=s_x`
-- **ლოკაცია:** `Telegram` (ან ცარიელი)
-- **ჰეშტეგები (მხოლოდ ესენი):** `#towerdefense #telegramgames #miniapp #indiegame #gamedev` (არა #GameOfThrones და მსგავსი)
+HOLDOR — free, inside Telegram, nothing to download. Tap PLAY and pick a house.
+```
+
+## 2. Telegram channel and group
+| | Text |
+|---|---|
+| Channel name | `HOLDOR News` |
+| Channel description (≤ 255) | `Patch notes, boss tips, the week's best lines from the Hall of the Fallen and the real numbers behind HOLDOR — the free action RPG inside Telegram. Play: t.me/HoldorTDBot/play` (175) |
+| Group name | `HOLDOR Realm` (`@holdor_chat`) |
+| Group description (≤ 255) | `Players of HOLDOR, between heroes. Where are you on the map, which boss ate you, what should we build next. Be kind; the wights are rude enough.` (144) |
+| Avatar | `avatar_640.png` |
+| Link in the channel | `https://t.me/HoldorTDBot/play?startapp=s_tg` |
+| Pinned post | launch pack, channel post 1 (the open map) |
+
+## 3. X
+- **Name:** `HOLDOR` · **avatar:** `avatar_640.png` · **header:** re-shoot `x_header_1500x500.png` from the RPG build
+- **Bio (≤ 160):** `An action RPG that lives inside Telegram. One hero, a 3D continent, real-time fights, permadeath. Every death is a story. Free, nothing to install.` (147)
+- **Link in bio:** `https://t.me/HoldorTDBot/play?startapp=s_x1`
+- **Location:** `Telegram` (or empty)
+- **Hashtags (only these, at most two per post):** `#telegramgames #actionrpg #permadeath #indiegame #miniapp #gamedev` — never a franchise tag.
 
 ## 4. YouTube / TikTok / Instagram
-- **სახელი:** `HOLDOR` · **handle:** `@playholdor` · **ბიო:** `Free tower defense in Telegram. Hold the door against the dead. ❄️ Link ↓`
-- **ბმული:** `https://t.me/HoldorTDBot/play?startapp=s_yt1` (YouTube), `s_tt` (TikTok), `s_ig` (Instagram)
-- **კლიპის სტრუქტურა (15–25 წმ):** 0–2 წმ: ჰუკი ტიტრით („Can you hold the door?“); 2–18 წმ: ბრძოლა ან ჭედვა; 18–25 წმ: „Free in Telegram — link in bio“.
+- **Name:** `HOLDOR` · **handle:** `@playholdor` everywhere
+- **Bio:** `Free action RPG inside Telegram. One hero, a 3D continent, permadeath. Every death is a story. Link ↓` (101)
+- **Links:** `https://t.me/HoldorTDBot/play?startapp=s_yt1` (YouTube), `…s_tt1` (TikTok), `…s_ig` (Instagram)
+- **Clip shape (8–25 s, vertical):** 0–2 s a hook with a caption (a hero falls, the Hall line types in), then the fight, then
+  "Free in Telegram — link in bio". Shot list: `docs/marketing/trailer-script-v2.md`; tools in `docs/marketing/trailer/`.
 
-## 5. პირველი პოსტები (დრაფტი; გადაიკითხე შენი ხმით)
-**ჩასვი `[ ]` ადგილებში რეალური რიცხვი ბაზიდან, ან წაშალე ის წინადადება — არაფერი გამოვიგონოთ.**
+## 5. The referral line
+What a player pastes to a friend, and the text behind the menu's share button (`js/54_menu.js` fills `[place]` and `[lvl]` from the save):
+```
+I'm standing at [place], level [lvl], still alive. Come see how long that lasts: https://t.me/HoldorTDBot/play?startapp=s_fr
+```
+No reward is promised in this line, because none exists in this version. If one is added later, the line changes with it — not before.
 
-### 5.1 EN
-1. **დამაგრებული / გაშვება:** `HOLDOR is live: a free tower defense inside Telegram. The dead are at the gate. Build towers, lead a champion, hold the door. ▶ t.me/HoldorTDBot/play?startapp=s_x`
-2. **კლიპი:** `The last 10 seconds of a run. Would you hold? 🚪❄️ #towerdefense #telegramgames` + 15–25 წმ კლიპი
-3. **ნივთები:** `224 item kinds, each with its own drawing, forged with a hammer. Which one is your Legendary? ⚒️` + `item.png`
-4. **ქვეყნების ომი:** `Every week your country fights. Score = the average weekly Hold waves of its top 50 players + a bonus for players active 3+ days — so a small country can beat a big one.` + `docs/marketing/shots` ან ომის ეკრანი
-5. **რჩევა:** `Tip: [ერთი რჩევა, რომელიც შენ თვითონ გამოცადე თამაშში].` (გამოგონილ რჩევას ნუ დაწერ — მხოლოდ ისეთს, რომელიც გამართლდა)
-6. **გახსნილი დეველოპმენტი:** `We build HOLDOR in the open: new version every few days. This week: a forge scene with a real hammer.` + ჭედვის კლიპი
-7. **კითხვა:** `Which should we build next: private chat with friends, or more champions? 👇`
-8. **სკივრი:** `Chests can climb a tier: tap for luck, and a wooden chest may open as a Dragon chest. 🎁` + სკივრის კლიპი
-9. **ტოპ-10 შაბლონი:** `Today's Hold top-10 ⚔️ 1. [name] [waves] 2. … Can you beat it? ▶ t.me/HoldorTDBot/play?startapp=s_x` (მონაცემი: `leaderboard.today`)
-10. **ომის შედეგის შაბლონი:** `This week's realm war: [country] wins with [score] points ([players] players). Next week starts Monday. 🏆` (მონაცემი: `realm_war`)
-
-### 5.2 KA
-1. `HOLDOR უკვე თამაშდება: უფასო tower defense Telegram-ში. მკვდრები კართან არიან. ააშენე კოშკები, უხელმძღვანელე ჩემპიონს და დაიცავი კარი. ▶ t.me/HoldorTDBot/play?startapp=s_ka`
-2. `ბრძოლის ბოლო 10 წამი. შენ გაუძლებდი? 🚪❄️` + კლიპი
-3. `224 სახეობის ნივთი — თითოს თავისი ნახატი აქვს და ჩაქუჩით იჭედება. რომელია შენი Legendary? ⚒️`
-4. `ყოველ კვირას შენი ქვეყანა იბრძვის. ქულა = ტოპ-50 მოთამაშის საშუალო Hold-ის ტალღები + ბონუსი მათთვის, ვინც 3+ დღე ითამაშა. პატარა ქვეყანაც შეიძლება დიდს აჯობოს.`
-5. `რას დავამატოთ შემდეგ: მეგობრებთან პირადი ჩატი თუ მეტი ჩემპიონი? 👇`
-
-## 6. პასუხები ხშირ კითხვებზე (არხის კომენტარებში)
-- **„უფასოა?“** — დიახ. ყიდვა ნებაყოფლობითია და ძალას PvP-ში არ ყიდის.
-- **„რა სახელია?“** — HOLDOR. (სახელის შესახებ იურისტის პასუხამდე სხვას ნუ დაწერ.)
-- **„ტელეფონზე სად ვითამაშო?“** — Telegram-ში ბოტის ღილაკი ▶ Play; ბმული: `t.me/HoldorTDBot/play`.
-- **„ფულს ვიღებ თამაშით?“** — არა; HOLDOR Coin არ არის გაყიდვაში, დაპირებას ნუ დაწერ.
+## 6. Tracking links (one code per channel, so `v_sources` shows where players come from)
+`s_tg` channel · `s_x1` X · `s_tt1` TikTok · `s_yt1` YouTube · `s_ig` Instagram · `s_dm1` DMs · `s_tgen` Telegram groups · `s_fr` friends.
+The source view takes any `s_<code>`; the RPG login (`js/70_net.js`) must still pass `startapp` to the `login` RPC — confirm in
+`v_sources` that the first click shows up before you spend a day posting.

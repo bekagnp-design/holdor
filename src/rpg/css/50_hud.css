@@ -1,0 +1,80 @@
+/* HOLDOR RPG — HUD (A25). --hc = the house colour (set by 50_hud.js). Only the tappable pieces take pointer events. */
+#hud{position:absolute;inset:0;pointer-events:none;--hc:#a9bdd0;--st:max(8px,env(safe-area-inset-top));font-family:var(--f-body);color:#e9eef5;transition:opacity .18s ease;z-index:5}
+#hud.hide{opacity:0;visibility:hidden}
+#hud-tl,#hud-tr,#hud-tc,#hud-chips,#hud-region,#hud-vig,#qtrack,#bossbar,#evbar,#dgbar{pointer-events:none}
+#hud #hud-bars,#hud #minimap,#hud #hud-town,#hud #hud-hall,#hud #qtrack>*,#hud #bossbar>*,#hud #evbar>*,#hud #dgbar>*{pointer-events:auto}
+
+/* top-left column: portrait row → slots → town → quest tracker */
+#hud-tl{position:absolute;top:var(--st);left:10px;width:calc(100% - 146px);max-width:300px;display:flex;flex-direction:column;gap:6px}
+#hud-row{display:flex;align-items:flex-start;gap:8px;min-height:60px}
+#hud-pcol{display:flex;flex-direction:column;align-items:center;gap:9px;flex:0 0 56px;width:56px}
+#hud-port{position:relative;width:56px;height:56px;flex:0 0 56px;border-radius:50%;border:2.5px solid var(--hc);background:#0b1220;box-shadow:0 2px 10px rgba(0,0,0,.6),0 0 0 2px rgba(0,0,0,.5)}
+#hud-face,#hud-pimg,#hud-port .pdraw{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;display:block;object-fit:cover}
+#hud-pimg{display:none;background:#0b1220}
+#hud-pimg.on{display:block}
+#hud-port .pdraw{z-index:1}
+/* the fallen chip: small, but its hit area is 44 px */
+#hud-hall{position:relative;display:none;align-items:center;gap:3px;height:20px;min-height:20px;padding:0 7px;border-radius:10px;border:1px solid rgba(255,255,255,.22);background:rgba(6,11,20,.85);color:#d8dfe8;font:800 11px/18px var(--f-display);box-shadow:0 1px 4px rgba(0,0,0,.5)}
+#hud-hall.on{display:inline-flex}
+#hud-hall::before{content:"";position:absolute;left:-10px;right:-10px;top:-12px;bottom:-12px}
+#hud-hall .sk{font-size:12px;line-height:1;color:#f2e6c9}
+#hud-lvl{position:absolute;right:-6px;bottom:-5px;min-width:22px;height:22px;padding:0 5px;border-radius:11px;background:#0b1220;border:1.5px solid var(--gold);color:var(--gold);font:800 12px/19px var(--f-display);text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.6)}
+#hud-port.lvup{animation:hudlvup 1.2s ease-out}
+#hud-port.lvup::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:3px solid var(--gold);animation:hudring 1.2s ease-out forwards}
+@keyframes hudlvup{0%{transform:scale(1)}30%{transform:scale(1.22);box-shadow:0 0 22px var(--gold)}100%{transform:scale(1)}}
+@keyframes hudring{0%{opacity:1;transform:scale(.9)}100%{opacity:0;transform:scale(1.9)}}
+#hud-bars{flex:1 1 auto;min-width:0;min-height:48px;padding-top:4px;display:flex;flex-direction:column;gap:3px}
+#hud .bar{position:relative;width:100%;border-radius:7px;background:rgba(6,11,20,.78);border:1px solid rgba(255,255,255,.16);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+#hud .bar i{position:absolute;left:0;top:0;bottom:0;display:block;border-radius:6px}
+#hud-hp{height:16px}
+#hud-hp .ghost{background:rgba(255,160,150,.55);transition:width .7s ease-out}
+#hud-hp .fill{background:linear-gradient(180deg,#ff6d6d,#c91f1f 60%,#8f1414);transition:width .15s ease-out}
+#hud-hp.low .fill{animation:hudlow .9s ease-in-out infinite}
+@keyframes hudlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.5)}}
+#hud-hpn{position:absolute;inset:0;text-align:center;font:800 11px/14px var(--f-display);color:#fff;text-shadow:0 1px 2px #000;opacity:0;transition:opacity .15s}
+#hud-hp.nums #hud-hpn{opacity:1}
+#hud-xp{height:6px;border-radius:4px}
+#hud-xp .fill{background:linear-gradient(90deg,#b98a2e,var(--gold));transition:width .25s ease-out}
+#hud-lvtxt{font:700 12px/14px var(--f-display);color:var(--gold);text-shadow:0 1px 2px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hud-title{font:italic 12px/14px var(--f-body);color:var(--muted);text-shadow:0 1px 2px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* reserved slots (A09 boss bar, A23 event banner, A22 dungeon bar, A18 quest tracker): empty = no height */
+#hud-tc{display:flex;flex-direction:column;gap:4px;align-items:stretch;text-align:center}
+#hud-tc:empty,#bossbar:empty,#evbar:empty,#dgbar:empty,#qtrack:empty{display:none}
+#qtrack{max-width:100%}
+
+/* TOWN pill */
+#hud-town{display:none;align-self:flex-start;align-items:center;gap:4px;min-height:44px;padding:0 14px 0 12px;border-radius:22px;border:1.5px solid var(--gold);background:rgba(6,11,20,.85);color:var(--gold);font:800 13px var(--f-display);letter-spacing:.06em;box-shadow:0 3px 10px rgba(0,0,0,.5)}
+#hud-town.on{display:inline-flex}
+#hud-town .n{color:#f2e6c9;letter-spacing:0;font-weight:600;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hud-town .a{font-size:18px;line-height:1;margin-left:2px}
+
+/* top-right: chips, minimap under them; the right column below stays free for A02's icon buttons */
+#hud-tr{position:absolute;top:calc(var(--st) + 52px);right:10px;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+#hud-chips{display:flex;gap:6px}
+#hud .chip{display:flex;align-items:center;gap:5px;height:28px;padding:0 9px 0 6px;border-radius:14px;background:rgba(6,11,20,.82);border:1px solid rgba(255,255,255,.18);box-shadow:0 2px 6px rgba(0,0,0,.5);font:800 13px var(--f-display);color:#f3e7c4}
+#hud .chip i{width:14px;height:14px;border-radius:50%;flex:0 0 14px;box-shadow:inset 0 -2px 3px rgba(0,0,0,.45),0 0 4px rgba(0,0,0,.4)}
+#hud .chip.gold i{background:radial-gradient(circle at 35% 30%,#fff1b8,var(--gold) 45%,#8a5d12)}
+#hud .chip.gem i{background:radial-gradient(circle at 35% 30%,#d9f6ff,#4fd8e8 40%,#14657a);border-radius:3px;transform:rotate(45deg) scale(.82)}
+#hud .chip.gold b{color:var(--gold)}
+#hud .chip.gem b{color:#8fe9f5}
+#hud .chip.bump{animation:hudbump .5s ease-out}
+@keyframes hudbump{0%{transform:scale(1)}35%{transform:scale(1.14)}100%{transform:scale(1)}}
+#minimap{width:96px;height:96px;border-radius:50%;background:#0a1320;box-shadow:0 3px 12px rgba(0,0,0,.6),0 0 0 2px rgba(0,0,0,.5);display:block}
+
+/* region banner */
+#hud-region{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);width:min(86vw,360px);text-align:center;opacity:0;pointer-events:none}
+#hud-region.on{animation:hudban 3.4s ease-in-out forwards}
+@keyframes hudban{0%{opacity:0;transform:translate(-50%,-44%)}14%{opacity:1;transform:translate(-50%,-50%)}80%{opacity:1}100%{opacity:0}}
+#hud-region b{display:block;font:800 clamp(22px,7vw,30px)/1.1 var(--f-display);color:#f2e6c9;letter-spacing:.08em;text-shadow:0 2px 10px #000,0 0 24px rgba(0,0,0,.9)}
+#hud-region small{display:block;margin-top:4px;font:700 13px var(--f-display);color:var(--gold);letter-spacing:.06em;text-shadow:0 1px 4px #000}
+#hud-region p{margin:8px auto 0;max-width:300px;font:italic 15px/1.3 var(--f-body);color:#d8dfe8;text-shadow:0 1px 4px #000}
+#hud-region p:empty{display:none}
+
+/* low-hp vignette */
+#hud-vig{position:absolute;inset:0;opacity:0;box-shadow:inset 0 0 70px 24px rgba(180,10,10,.75);transition:opacity .3s}
+#hud-vig.on{animation:hudvig 1.1s ease-in-out infinite}
+@keyframes hudvig{0%,100%{box-shadow:inset 0 0 70px 24px rgba(180,10,10,.75)}50%{box-shadow:inset 0 0 90px 36px rgba(200,20,20,.85)}}
+
+@media (max-width:370px){#hud-tl{width:calc(100% - 138px)}#hud .chip{padding:0 7px 0 5px;font-size:12px}#hud-region b{font-size:22px}}
+@media (prefers-reduced-motion:reduce){#hud .bar i,#hud .chip,#hud-port{animation:none!important;transition:none!important}}

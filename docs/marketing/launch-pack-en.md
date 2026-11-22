@@ -1,176 +1,285 @@
-# HOLDOR launch pack (English only)
+# HOLDOR v2 launch pack (English only)
 
-Goal: 100 real players, no more. The hook that is true and strong: the first 100 players get a **Founder #N** badge.
-Facts we may state: 7 houses, 49 champions, 8 towers, 7 spells, 50 stages, free in Telegram, champions learn skills mid-battle, builds can be shared, Founder #N for the first hundred.
-Do not state: player counts, ratings, "most popular", release dates, anything about prizes or money.
+The game: an action RPG inside Telegram. One hero — one of the 49 champions of the seven houses — on a whole continent in 3D, with a
+third-person camera behind the shoulder. Real-time combat (move, strike, dodge, three skills). Nine regions, a boss at every region gate,
+three instanced dungeons. **Permadeath:** when the hero falls, the run ends, the Hall of the Fallen writes a line (name, level, killer,
+time) and your house sends the next champion. Gold, gems, gear and level die with the hero; the world you opened, your titles and
+achievements stay. Other players walk your map; every zone has a chat. Free, nothing to install.
 
-Tracking links (one code per channel, so `v_sources` shows where players come from):
+The hook (the owner's words): **Every death is a story. Your house remembers.**
+
+Rules, allowed words, the facts list and the images note: `docs/store-texts.md` (top). Short form: English, funny, intriguing; no book or
+show quotes; no franchise words, character or castle names (the heroes are "champions", never named in a post); every number real and
+checked in the build; no player counts, awards, dates, prizes or money. Not in this version, so never claimed: companions, respawn, revive,
+parties, PvP, trading, guilds. The source of every claim here is `src/rpg/ARCH.md` + Addendum 2 — if a module shipped less, the post says less.
+
+Tracking links (one code per channel; `v_sources` shows where players come from — confirm the first click lands before posting a day's worth):
+- Channel: `https://t.me/HoldorTDBot/play?startapp=s_tg`
 - X: `https://t.me/HoldorTDBot/play?startapp=s_x1`
-- TikTok: `https://t.me/HoldorTDBot/play?startapp=s_tt1`
-- DMs: `https://t.me/HoldorTDBot/play?startapp=s_dm1`
-- Telegram groups: `https://t.me/HoldorTDBot/play?startapp=s_tgen`
+- TikTok / Shorts / Reels: `…?startapp=s_tt1` / `s_yt1` / `s_ig` (link in bio)
+- Telegram groups: `…?startapp=s_tgen` · DMs: `…?startapp=s_dm1` · friends (the referral line): `…?startapp=s_fr`
 
-Note: `docs/marketing-plan.md` / `docs/store-texts.md` still list the older codes (`s_x`, `s_tt`, `s_tg`, `s_fr`). The codes above (`s_x1`, `s_tt1`, `s_dm1`, `s_tgen`) are the ones requested for this pack; the source view takes any `s_<code>`, but confirm in `v_sources` that the first click shows up.
-
-Video files (`docs/marketing/trailer/`, mp4 not committed): `holdor_tiktok_8s.mp4` (720x1280, 8 s), `holdor_x_square_20s.mp4` (1080x1080, 20 s), `holdor_trailer_20s.mp4` (720x1280, 20 s).
+Video (`docs/marketing/trailer-script-v2.md`): `holdor_rpg_trailer_20s.mp4` (720×1280), `holdor_rpg_square_20s.mp4` (1080×1080), `holdor_rpg_tiktok_8s.mp4` (720×1280).
 
 ---
 
-## (a) 12 X posts (each <= 270 chars including the link)
+## (a) 8 channel posts — launch week, one per day (link: `s_tg`)
 
-1. The Door was safe. Everyone said so.
-Then the dead showed up.
-HOLDOR: a free tower defense inside Telegram. 50 stages, 7 houses, one very tired guard.
-https://t.me/HoldorTDBot/play?startapp=s_x1
+Post in the evening of the audience's time zone. Each post: one picture or clip from the real build, one link. Answer every comment.
 
-2. My champion learned a new skill in the middle of the fight.
-My guard learned nothing.
-Both are doing their best.
+### Day 1 — the open map (pinned)
+```
+HOLDOR v2 is live, and the towers are gone.
+
+What is there instead: a whole continent in 3D, on your phone, inside Telegram. Nine regions, roads, castles flying your house's banner, camps, shrines, three dungeons and a Wall. The camera sits behind your hero's shoulder — drag to look around, pinch to step back.
+
+You start at your house's seat, level 1, one hero. The fog hides every place you have not walked to yet; the map remembers every place you have — longer than your hero will.
+
+Move with one thumb, strike with the other. Dodge when the ground draws a circle.
+
+Free, inside Telegram, nothing to install:
+https://t.me/HoldorTDBot/play?startapp=s_tg
+```
+Attach: the 20 s trailer, or the 3D view of a castle with the banner and the hero in front of it.
+
+### Day 2 — the first boss
+```
+Every region ends in a boss. The boss ends in you. Permanently, the first few times.
+
+Here is the trick, free of charge: a boss draws its hit on the ground before it lands. The circle is not decoration. Leave the circle. Then hit the thing that drew it.
+
+Nine bosses, nine gates. No boss, no next region — not for gold, not for gems, not for asking nicely. But a gate you open stays open for your house, whoever you send through it next.
+
+Which one wrote your hero's last line? Tell us below; we will pretend to be surprised.
+https://t.me/HoldorTDBot/play?startapp=s_tg
+```
+Attach: a 10 s clip — telegraph circle, dodge out, the hit back, the boss bar dropping.
+
+### Day 3 — the Hall of the Fallen
+```
+Every death is a story. Your house remembers.
+
+When your hero falls, the run is over. No respawn, no shrine, no walking back. The Hall of the Fallen gets one more line — name, level, what killed them, when — and your house sends the next champion.
+
+What dies with the hero: gold, gems, gear, level. What stays with you: every region discovered, every gate opened, every quest turned in, every place found, every title. The map remembers. The hero does not.
+
+Your house starts with one champion. The others are out there — in rescue quests and behind bosses. 49 in all, across seven houses. Nobody meets them all on the first try.
+
+Read your Hall. Then post the line you are proudest of.
+https://t.me/HoldorTDBot/play?startapp=s_tg
+```
+Attach: the Hall of the Fallen screen from your own account (real lines only). Players may name their champions in comments; the post does not.
+
+### Day 4 — the zone chat: you are not alone
+```
+You are not alone out there.
+
+That figure on the ridge with a name over its head is a player. The one without a name is a wight. Check in that order; you only get one hero at a time.
+
+Every zone has its own chat. Ask where the shrine is, say where you are standing, warn people about the thing by the river. Nobody sees your Telegram handle — only the name you chose and your house colour.
+
+Open the map: everyone in your zone is on it.
+https://t.me/HoldorTDBot/play?startapp=s_tg
+```
+Attach: the map screen with two real players on it (your two accounts; never a painted tag), or the chat panel with your own message.
+Keep true: the name tag and the chat show the chosen name only (`js/71_presence.js`, `backend/holdor_v40.sql`). If that changes, this post changes first.
+
+### Day 5 — dungeons
+```
+Three dungeons. Each one is yours alone.
+
+A portal on the map, waves of things that resent you, a mini-boss who resents you professionally, and a chest at the end that does not. No other player walks into your copy; the footprints are all yours. So is the exit, if you reach it.
+
+Bring potions. Bring a plan. Bring a will.
+
+Found all three portals? The fog hides them until you walk there.
+https://t.me/HoldorTDBot/play?startapp=s_tg
+```
+Attach: portal → inside → chest, 10 s.
+
+### Day 6 — the Wall
+```
+The further north you walk, the bigger the numbers over the monsters' heads.
+
+Near your house's seat they are small and polite. By the Wall they stop being numbers you like. Past it the snow does not stop, the levels start at 50, and the last region waits for the houses that got through the other eight.
+
+This is where Halls of the Fallen get long. Nobody has to go. Everybody will.
+
+How far north did your hero get? Screenshot the map.
+https://t.me/HoldorTDBot/play?startapp=s_tg
+```
+Attach: snow, dark tint, the Wall on the 3D terrain.
+
+### Day 7 — player spotlight (template)
+```
+Player of the week: [name]
+
+Heroes fallen: [hall] · best level in one life: [best_lvl] · most kills in one life: [best_kills] · bosses down: [bosses] · places found: [found] · title: "[title]"
+
+Last line in their Hall: "a [class] of their house · level [lvl] · killed by [killer]"
+
+[One sentence about what they did — something you saw in the data or they told you themselves.]
+
+Want a line of your own? Walk north.
+https://t.me/HoldorTDBot/play?startapp=s_tg
+```
+Data: `rpg_saves` → `acc.hall` (its length; the last entry's `lvl` and `killer`), `acc.best.lvl`, `acc.best.kills`, the sum of `acc.world.bosses`,
+the length of `acc.world.found`, `acc.title`; `[class]` from the fallen champion's type (knight / ranger / maester).
+Rules: a number you did not read from the table is not posted; ask the player before naming them; the champion's name and the house stay
+out of the post until the lawyer answers (`docs/marketing-plan.md` §2).
+
+### Day 8 — what's next (template)
+```
+Week one is done. Here is what changes next.
+
+[version]: [one line per change — real, from docs/build-backlog.md]
+
+We build in the open: every version gets one line here, including the ones that go wrong. What do you want first — [option A] or [option B]? Vote below.
+https://t.me/HoldorTDBot/play?startapp=s_tg
+```
+The options are two real items from `docs/roadmap.md`. No dates.
+
+---
+
+## (b) 10 X posts (each ≤ 240 chars with the link; at most two hashtags; link: `s_x1`)
+
+1.
+```
+We removed the towers. All of them. It is now you, one hero, a continent in 3D and things that walk straight at you. When the hero falls, your house sends the next one.
 HOLDOR, free in Telegram:
 https://t.me/HoldorTDBot/play?startapp=s_x1
-
-3. The first 100 players get a "Founder #N" badge.
-Not 101. Not "almost 100". We are counting.
-HOLDOR, a tower defense that lives in Telegram:
-https://t.me/HoldorTDBot/play?startapp=s_x1
-
-4. Set things on fire. Responsibly.
-8 towers, 7 spells, a wall of the dead.
-(Responsibly is optional.)
+```
+2.
+```
+Every region ends in a boss. The boss draws a circle on the ground before it hits. Standing in the circle is a choice. There is no respawn, so choose.
 HOLDOR, free in Telegram:
 https://t.me/HoldorTDBot/play?startapp=s_x1
-
-5. 49 champions. 7 houses. Zero of them can stop the dead by being popular.
-You build the defence instead.
-HOLDOR on Telegram, no install:
+```
+3.
+```
+Every death is a story. Your house remembers.
+The Hall of the Fallen keeps one line per hero: name, level, what killed them. Yours will not say "old age".
+HOLDOR, free in Telegram:
 https://t.me/HoldorTDBot/play?startapp=s_x1
-
-6. Hot take: the best part of a tower defense is the moment your hero picks a new skill with 40 enemies on screen and a prayer.
-HOLDOR does that every few waves.
+```
+4.
+```
+The figure on the hill with a name over its head is another player. The one without a name is a wight. Check in that order; you get one hero at a time.
+HOLDOR: https://t.me/HoldorTDBot/play?startapp=s_x1
+#telegramgames #actionrpg
+```
+5.
+```
+Three classes, decided by the champion you send. The knight hits things. The ranger shoots things. The maester reads things at them until they fall over. All three dodge.
+HOLDOR: https://t.me/HoldorTDBot/play?startapp=s_x1
+```
+6.
+```
+No app store. No download. One link, a Telegram chat, and a continent in 3D that does not fit on one screen or in one evening.
+HOLDOR: https://t.me/HoldorTDBot/play?startapp=s_x1
+#indiegame #miniapp
+```
+7.
+```
+The further north you walk, the bigger the numbers over the monsters' heads, and the shorter the line that will be written about you.
+HOLDOR, an action RPG in Telegram, free:
 https://t.me/HoldorTDBot/play?startapp=s_x1
-
-7. Someone has to hold the Door.
-It was supposed to be someone else.
-Free tower defense in Telegram, 50 stages, and a Founder #N badge for the first 100 players.
+```
+8.
+```
+What dies with your hero: gold, gems, gear, level. What stays: every gate you opened, every place you found, every title. The map remembers. The hero does not.
+HOLDOR, free: https://t.me/HoldorTDBot/play?startapp=s_x1
+```
+9.
+```
+Played the old HOLDOR? Your gold, gems and champions are waiting for your first hero. Your towers are not. We looked everywhere.
+Action RPG now, still free:
 https://t.me/HoldorTDBot/play?startapp=s_x1
-
-8. Name your build. Share it. Let your friends say it would not work.
-HOLDOR lets you send your tower build to anyone, which is the nicest way to start an argument.
+```
+10.
+```
+Three dungeons, each one yours alone. Waves, a mini-boss, a chest, and an exit you reach on the first try or not at all.
+HOLDOR — free, inside Telegram, no install:
 https://t.me/HoldorTDBot/play?startapp=s_x1
-
-9. Do you need an app store for a tower defense? No.
-Do you need 40 GB? No.
-You need a Telegram chat and one link.
-HOLDOR, 50 stages, free:
-https://t.me/HoldorTDBot/play?startapp=s_x1
-
-10. A small game with a big wall and a bigger problem.
-The dead are coming. The walls are stone. The plan is "towers and fire".
-Join the first 100 and get Founder #N.
-https://t.me/HoldorTDBot/play?startapp=s_x1
-
-11. Reply with the tower you would build first.
-I will tell you what the dead think of it.
-(HOLDOR has 8 towers. Yes, I have opinions.)
-https://t.me/HoldorTDBot/play?startapp=s_x1
-
-12. We are looking for exactly 100 testers.
-Free, in Telegram, takes 10 seconds to start.
-Reward: a Founder #N badge, and the right to say "I was there before the Door fell".
-https://t.me/HoldorTDBot/play?startapp=s_x1
-
-Attach: posts 1, 4, 7, 12 the 20 s square video; posts 2, 6 a 10 s clip cut from it; the rest a screenshot of the build card.
+#telegramgames #permadeath
+```
+Attach: 1, 7 the 20 s square video; 2, 10 a 10 s cut (the boss, the dungeon); 3, 8 the Hall of the Fallen screen (your own, real lines); 4 the map screen; the rest a real screenshot.
 
 ---
 
-## (b) 6 TikTok captions + hashtags (video: `holdor_tiktok_8s.mp4`)
+## (c) 3 short-video captions (TikTok / Shorts / Reels; video `holdor_rpg_tiktok_8s.mp4`; link in bio)
 
-1. Everyone said the Door was safe. Everyone was wrong. Free tower defense in Telegram, link in bio. #towerdefense #telegramgames #gameoftheday #indiegame #fantasy
-2. My hero learns skills mid-fight. My guard learns nothing. Relatable? #towerdefense #gaming #mobilegames #indiedev #strategygames
-3. POV: you built 8 towers and the dead still want in. First 100 players get Founder #N. Link in bio. #towerdefense #telegram #mobilegame #fantasygames #foundersbadge
-4. Set things on fire. Responsibly. No download, it runs inside Telegram. #towerdefense #nodownload #telegrambot #gamingtiktok #fantasy
-5. 7 houses. 49 champions. One door. Which house are you defending with? Comment it. #towerdefense #houses #strategy #indiegame #mobilegaming
-6. We are counting the first 100 players. Yes, really. Founder #N badge, free game, link in bio. #indiegame #towerdefense #telegramgames #newgame #gamers
-
-Bio link for TikTok: `https://t.me/HoldorTDBot/play?startapp=s_tt1`
+1. `They took the towers away and left me one hero and a continent in 3D. The hero is no longer with us. Free inside Telegram, link in bio. #actionrpg #telegramgames #permadeath #indiegame #mobilegames`
+2. `POV: the boss draws a circle, you are standing in it, and there is no respawn. Nine bosses, nine gates. Link in bio. #actionrpg #bossfight #telegramgames #permadeath #indiegame`
+3. `Every death is a story. Your house remembers. The Hall of the Fallen, inside a free Telegram RPG. Link in bio. #actionrpg #telegramgames #permadeath #indiegame #mobilegames`
 
 ---
 
-## (c) 10 DM templates for testers (link: `s_dm1`)
+## (d) 6 reply templates for comments
 
-Use the person's name, send one at a time, never to someone who has not talked to you before. If they do not answer, do not follow up twice.
-
-**Tone A: friendly and short**
-
-1. Hi NAME! I made a small tower defense that runs inside Telegram. Could you play the first stage and tell me where you got stuck? Takes 5 minutes: https://t.me/HoldorTDBot/play?startapp=s_dm1
-2. NAME, favour please: play 1 stage of my game, then tell me the first thing that confused you. The first 100 players get a "Founder #N" badge, so you would get one too. https://t.me/HoldorTDBot/play?startapp=s_dm1
-3. Hey NAME. I need honest eyes on a free game I built. No install, it opens in Telegram. Tell me if it is boring in the first minute: https://t.me/HoldorTDBot/play?startapp=s_dm1
-
-**Tone B: funny**
-
-4. NAME, the dead are at the Door and I have exactly one guard. Could you help? (It is a tower defense in Telegram. Please say yes.) https://t.me/HoldorTDBot/play?startapp=s_dm1
-5. I built a game where your hero learns skills in the middle of a fight, and I need someone to confirm it is not just me who finds that fun. 5 minutes of your life: https://t.me/HoldorTDBot/play?startapp=s_dm1
-6. Founder #N badges are being handed out to the first 100 players. I would like one of them to be you, because you will be honest about what is bad. https://t.me/HoldorTDBot/play?startapp=s_dm1
-
-**Tone C: direct, for gamers**
-
-7. Tower defense fan? I would like your take on mine: 8 towers, 7 spells, 50 stages, runs in Telegram, free. Play stage 1 to 3 and tell me what feels off. https://t.me/HoldorTDBot/play?startapp=s_dm1
-8. I am looking for 100 testers, not more. You get a Founder #N badge, I get your honest feedback. Deal? https://t.me/HoldorTDBot/play?startapp=s_dm1
-9. Two questions after you play: where did you stop, and what would make you come back tomorrow? That is all I need. https://t.me/HoldorTDBot/play?startapp=s_dm1
-10. If you like Kingdom Rush-style games: this is a free one inside Telegram with a Game of Thrones-flavoured mood and champions that level up mid-battle. Tell me what you think: https://t.me/HoldorTDBot/play?startapp=s_dm1
+1. **"Is it free?"**
+   `Yes. Free to play, nothing to install, it opens inside Telegram. Gems drop from bosses, chests and quests — and they die with your hero, so no, nobody is selling you power.`
+2. **"Which class should I pick?"**
+   `You do not pick a class, you pick a champion: melee ones fight as knights, ranged as rangers, mages as maesters. The knight hits things, the ranger prefers the monster over there, the maester reads at it until it falls over. All three dodge — the dodge is the real class.`
+3. **"The boss killed me five times."**
+   `It draws a circle before it hits. Be elsewhere when the circle fills, then hit back. A gate you open stays open for your house, so the next hero never meets the boss you already beat. Which one wrote the line? We keep a list of grudges.`
+4. **"Found a bug / it crashed."**
+   `Thank you — that is the most useful comment under this post. Reply with your phone model, what you were doing and what the screen showed, and it goes into the next version.`
+5. **"Can I play with my friends?"**
+   `Yes: you share the map. Open it, find their name, walk over — or fast-travel to a castle you have both found. Every zone has a chat to say where you stand. No party system in this version; standing next to each other and hitting the same giant works fine.`
+6. **"Permadeath? Seriously?"**
+   `Seriously. When the hero falls the run ends and the Hall of the Fallen writes it down: name, level, killer, time. You keep the world — the gates, the places, the titles — and your house sends the next champion. It is the point, not the punishment.`
 
 ---
 
-## (d) 8 Telegram group posts (each <= 400 chars; link: `s_tgen`)
-
-Rules: read the group rules first, ask an admin before posting, post once per group, answer replies, never repost.
-
-1. (mobile games group)
-Made a tower defense that runs inside Telegram, no install. Your champion learns skills mid-fight, 8 towers, 7 spells, 50 stages, free. The first 100 players get a "Founder #N" badge, so I am looking for honest feedback, not praise.
-https://t.me/HoldorTDBot/play?startapp=s_tgen
-
-2. (tower defense group)
-TD fans: a small free one for Telegram. 7 houses, 49 champions, 8 towers. What is different: the hero picks a new skill between waves, and you can share your build with a friend. Founder #N badge for the first 100 players. Tell me where it breaks.
-https://t.me/HoldorTDBot/play?startapp=s_tgen
-
-3. (Game of Thrones fans)
-Winter mood, no spoilers: a free tower defense in Telegram where the dead come for the Door and you pick a house to hold it. 49 champions, 50 stages. First 100 players get "Founder #N". Which house would you choose?
-https://t.me/HoldorTDBot/play?startapp=s_tgen
-
-4. (indie dev group)
-Showing a free tower defense that runs as a Telegram Mini App. I am looking for exactly 100 first players; each gets a "Founder #N" badge. I would value notes on the first 5 minutes more than anything else.
-https://t.me/HoldorTDBot/play?startapp=s_tgen
-
-5. (casual / time-killer group)
-A game for the 10 minutes between things: open the link, hold the Door for a few waves, close it. Free, in Telegram, 50 stages. The first 100 players get a Founder #N badge.
-https://t.me/HoldorTDBot/play?startapp=s_tgen
-
-6. (strategy group)
-Question for strategy people: is 8 towers, 7 spells and a hero who learns skills mid-battle enough depth for a 5-minute tower defense? Free to try in Telegram. Founder #N badge for the first 100 players.
-https://t.me/HoldorTDBot/play?startapp=s_tgen
-
-7. (fantasy / books group)
-Small thing I built: a fantasy tower defense with 7 houses and 49 champions, free inside Telegram. The dead are at the Door, you decide who stands in front of it. First 100 players get a Founder #N badge.
-https://t.me/HoldorTDBot/play?startapp=s_tgen
-
-8. (friends / general chat)
-Friends: I would love 5 minutes of your time. It is a free tower defense in Telegram, nothing to install. Play one stage and tell me honestly what you think. First 100 players get Founder #N.
-https://t.me/HoldorTDBot/play?startapp=s_tgen
+## (e) The referral line (source: `docs/store-texts.md` §5)
+```
+I'm standing at [place], level [lvl], still alive. Come see how long that lasts: https://t.me/HoldorTDBot/play?startapp=s_fr
+```
+No reward is promised, because none exists in this version.
 
 ---
 
-## (e) 7-day posting schedule
+## (f) FAQ — 10 questions, paste-ready (channel pinned comment, group rules, bot /help)
 
-Times are local time of the target audience (evening, when people play on the phone). Every day: answer every reply within a few hours. Check `v_sources` each evening and write the number of players next to each channel before planning the next day.
+1. **Is it free?**
+   Yes. Free to play, nothing to install. Gems drop from bosses, chests and quests; the gem shop sells convenience, not a key to the next region — and gems die with the hero like everything else in the pocket.
+2. **Is it Telegram only?**
+   Yes — it is a Telegram Mini App. Open `t.me/HoldorTDBot/play` in Telegram and tap Play. No app store, no download. It is built for a phone; in a desktop browser the keyboard works too (WASD or arrows to move, J strike, K dodge, 1–2–3 skills, E interact).
+3. **What data do you keep?**
+   What Telegram hands every Mini App at login: your Telegram id, first name and username. Plus your house, your save (the hero, level, gear, position, quests, the Hall of the Fallen) and the messages you write in the zone chat. No phone number, no contacts, no card numbers — Telegram handles payments, we never see them. Other players see the name you chose and your house colour, nothing else.
+4. **Is it pay-to-win?**
+   No. Every region is gated by its boss, and a boss checks your timing, level and gear, not your wallet. Gems come from bosses, chests and quests, nothing in the shop opens a gate, and whatever you carry dies with the hero.
+5. **I played the tower defense. What carried over?**
+   Your gold and gems go to your first hero, and the champions you had unlocked are unlocked as heroes — imported once, at your first login. Towers, stage stars and Hold records do not carry over; there is nothing left to attach them to. The enemies, the seven houses and the 49 champions are the same people — you now play the champion instead of placing them.
+6. **How do I find my friends on the map?**
+   Open the map: every player in your zone is a dot with a name. Say where you stand in the zone chat, agree on a castle, walk — or fast-travel if you have both found that castle. The share button in the menu sends a friend a link that opens the game.
+7. **What happens when I die?**
+   The run ends. The Hall of the Fallen writes one line — name, level, what killed you, when — and you pick the next hero from the champions you have unlocked. Gold, gems, gear, level and xp are gone with the hero. The world stays: every region discovered, every gate opened, every quest turned in, every place found, every title and achievement.
+8. **Which hero should I pick?**
+   The class comes with the champion: melee ones fight as knights (strength, take hits, hit back), ranged as rangers (agility, from a distance), mages as maesters (intellect, spells). Each class has six skills and three slots on the bar. Every hero dodges, and the dodge makes you untouchable for a moment — learn it before anything else. New champions are unlocked by rescue quests and by bosses.
+9. **How big is it?**
+   A whole continent in 3D, nine regions, from your house's seat to beyond the Wall. Levels 1 to 60 in one life; the last region starts at level 50. Nine bosses, three dungeons, a main quest chain and side quests at the castles, towns and camps.
+10. **Can we play together? Is there PvP?**
+   You share the map and the zone chat with everyone in your region, so you can stand next to a friend and fight the same horde. There is no party system and no PvP in this version. If that changes, this answer changes.
 
-| Day | X | TikTok | Telegram groups | DMs |
+---
+
+## (g) Launch week, day by day
+
+Evening of the audience's time zone. Every day: answer every reply within a few hours; in the evening read `rpg_saves` (how many new
+players, how long their first hero lived, where it stopped) and write the number next to the channel in your notes before planning the next day.
+
+| Day | Channel (`s_tg`) | X (`s_x1`) | Short video (`s_tt1`) | DMs / groups |
 |---|---|---|---|---|
-| 1 | Post 1 + 8 s video, 19:00 | Caption 1, 8 s video, 20:00 | none (read the rules of 4 groups) | 5 DMs to close friends (templates 1, 2, 3) |
-| 2 | Post 3 (Founder hook) + square video | none | Post 1 in one mobile-games group | 5 DMs (4, 5, 6) |
-| 3 | Post 2 + screenshot | Caption 2, same video re-cut with a new first second | Post 3 in one GoT group | 5 DMs (7, 8) |
-| 4 | Post 11 (reply bait) at 19:00; reply to everyone | Caption 3 | Post 2 in one tower defense group | 5 DMs (9, 10) |
-| 5 | Post 4 + 20 s video | Caption 4 | Post 5 in one casual group | follow up only with those who played, ask the 2 questions |
-| 6 | Post 6 and post 8 (share-your-build) | Caption 5 | Post 7 in one fantasy group | thank everyone who played, ask for one friend each |
-| 7 | Post 12 ("exactly 100 testers"), then post the real count of Founder badges given so far | Caption 6 | Post 4 or 8 in one more group | final round; stop sending when 100 are reached |
+| 1 | Post 1, the open map + the 20 s trailer; pin it | X 1 + the square video | Caption 1, the 8 s cut | 5 DMs to close friends: the referral line, by hand |
+| 2 | Post 2, the first boss + the boss clip | X 2 + the boss cut | — | one Telegram group (ask the admin first) |
+| 3 | Post 3, the Hall of the Fallen (your own real lines) | X 3 + the Hall screen | Caption 3 | 5 DMs |
+| 4 | Post 4, the zone chat | X 4 + the map screen | — | one group |
+| 5 | Post 5, dungeons + clip | X 5 and X 6 | Caption 2, re-cut with a new first second | 5 DMs |
+| 6 | Post 6, the Wall | X 7 + screenshot | — | ask the players who answered for one friend each |
+| 7 | Post 7, spotlight (real numbers only, the player asked first) | X 8 and X 9 | — | one group |
+| 8 | Post 8, what's next + the vote | X 10 + the dungeon cut | — | thank everyone |
 
-Stop rule: when the Founder numbers reach 100, change the message everywhere to "the Founder badges are gone, the game stays free" and stop recruiting.
+Stop rule: if most first heroes fall before the first boss and the players do not send a second one, the week pauses, the game gets fixed,
+and the next post is about the fix.
