@@ -19,7 +19,7 @@ const SAVE = { v: 2, acc: { house: 'stark', champs: { jon: { unlocked: 1, runs: 
   wallet: { imported: false }, opts: { sfx: 0, haptic: 0, lang: 'en' } };
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+  const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message + ' @ ' + (e.stack || '').split('\n').slice(0, 2).join(' | ')));
   page.on('console', m => { if (m.type() === 'error' && !/ERR_|Failed to load|net::|telegram/i.test(m.text())) errors.push('C:' + m.text()); });
   await page.addInitScript(s => { try { localStorage.setItem('holdor_rpg', JSON.stringify(s)); } catch (e) {} }, SAVE);

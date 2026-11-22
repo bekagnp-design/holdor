@@ -1,5 +1,5 @@
 /* bosses (A09): the boss bar at the top of the screen — name, title, hp with phase ticks */
-#bossbar{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 54px);transform:translate(-50%,-10px);width:min(92vw,420px);display:none;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:5;text-align:center;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
+#bossbar{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 54px);transform:translate(-50%,-10px);width:min(calc(92 * var(--vw,1vw)),420px);display:none;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:5;text-align:center;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
 #bossbar.on{display:block;opacity:1;transform:translate(-50%,0)}
 #bossbar .bb-head{display:flex;align-items:baseline;justify-content:center;gap:8px;white-space:nowrap;overflow:hidden}
 #bossbar .bb-name{font:800 16px/1.1 var(--f-display);color:#f3e7c4;letter-spacing:.04em;text-shadow:0 1px 0 #000}

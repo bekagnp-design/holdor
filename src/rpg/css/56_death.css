@@ -18,7 +18,10 @@
 .dth-keep{font:13px/1.35 var(--f-body);color:#6f7684;max-width:320px}
 .dth-next{margin-top:8px;max-width:340px}
 .dth-halllink{background:none;border-color:transparent;color:#9fb6c9;font:600 15px var(--f-body);min-height:44px;text-decoration:underline dotted;text-underline-offset:3px;box-shadow:none}
-@media (max-height:700px){.dth{gap:8px}.dth-title{font-size:26px}.dth-num b{font-size:19px}.dth-line{font-size:15px}}
+html.q-h700 .dth{gap:8px}html.q-h700 .dth-title{font-size:26px}html.q-h700 .dth-num b{font-size:19px}html.q-h700 .dth-line{font-size:15px}
+/* landscape: who fell and how on the left, the hall line and the next hero on the right (four rows, filled column by column) */
+html.q-wide .dth{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:repeat(4,auto);grid-auto-flow:column;align-content:center;justify-items:center;column-gap:32px;row-gap:10px;max-width:860px;margin:0 auto;padding:12px 8px}
+html.q-wide .dth-title{font-size:26px}html.q-wide .dth-next{width:100%}
 /* the hall */
 .hall{min-height:100%;display:flex;flex-direction:column;gap:12px;max-width:420px;margin:0 auto;padding-bottom:8px}
 .hall-top{display:flex;align-items:center;gap:8px;min-height:48px}

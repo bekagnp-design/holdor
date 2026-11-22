@@ -86,7 +86,7 @@ for (const f of fails.slice(0, 40)) console.log('"FAIL', f);
   execSync('python3 ' + path.join(ROOT, 'src/build_rpg.py') + ' ' + out, { stdio: 'inherit' });
   const { chromium } = require('playwright');
   const b = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome' });
-  const pg = await b.newPage({ viewport: { width: 390, height: 844 } }); const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  const pg = await b.newPage({ viewport: { width: 844, height: 390 } }); const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.goto('file://' + out); await pg.waitForFunction(() => window.R && R.data && R.data.quests && R.story, null, { timeout: 15000 });
   const r = await pg.evaluate(() => { const q = R.story.resolve('m03', 'greyjoy'); return { npcs: R.data.npcs.length, quests: R.data.quests.length, main: R.data.story.main.length, dialogs: Object.keys(R.data.story.dialogs).length, giver: q.giver, hero: q.reward.hero, done: q.text.done, pro: R.story.prologue('stark')[3] }; });
   const pf = [];

@@ -1,5 +1,5 @@
 /* 45_events.css — the world-event banner #evbar (A23): icon · title · timer · progress; a thin time bar at the bottom; tap → direction toast */
-#evbar{position:absolute;left:50%;top:calc(14% + 48px); /* just under the core's .toast line (14%), so a tap's direction toast sits above the banner */width:min(92vw,360px);display:none;align-items:center;gap:10px;padding:8px 12px 11px;border-radius:14px;background:rgba(6,11,20,.84);border:1px solid var(--evc,#9fb6c9);box-shadow:0 8px 22px rgba(0,0,0,.45),0 0 16px rgba(255,255,255,.08);color:#f3e7c4;font-family:var(--f-display);cursor:pointer;overflow:hidden;z-index:5;transform:translateX(-50%)}
+#evbar{position:absolute;left:50%;top:calc(14% + 48px); /* just under the core's .toast line (14%), so a tap's direction toast sits above the banner */width:min(calc(92 * var(--vw,1vw)),360px);display:none;align-items:center;gap:10px;padding:8px 12px 11px;border-radius:14px;background:rgba(6,11,20,.84);border:1px solid var(--evc,#9fb6c9);box-shadow:0 8px 22px rgba(0,0,0,.45),0 0 16px rgba(255,255,255,.08);color:#f3e7c4;font-family:var(--f-display);cursor:pointer;overflow:hidden;z-index:5;transform:translateX(-50%)}
 #evbar.on{display:flex;animation:evin .3s ease-out}
 @keyframes evin{from{opacity:0;transform:translate(-50%,-10px)}to{opacity:1;transform:translate(-50%,0)}}
 #evbar::after{content:'';position:absolute;left:0;bottom:0;height:3px;width:calc(var(--k,1)*100%);background:var(--evc,#9fb6c9);transition:width .5s linear}
@@ -14,4 +14,4 @@
 #evbar.fail .evbar-t{color:#ffb3b3}
 #evbar.done .evbar-ico,#evbar.fail .evbar-ico{animation:none}
 @media (prefers-reduced-motion:reduce){#evbar.on{animation:none}#evbar .evbar-ico{animation:none}}
-@media (max-height:700px){#evbar{padding:6px 10px 9px}#evbar .evbar-t{font-size:14px}}
+html.q-h700 #evbar{padding:6px 10px 9px}html.q-h700 #evbar .evbar-t{font-size:14px}

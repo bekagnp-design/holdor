@@ -12,7 +12,7 @@ const HTML = process.env.HOLDOR_HTML ? path.resolve(process.env.HOLDOR_HTML) : p
   const RES = {}; let bad = 0; const ok = (k, v, info) => { RES[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); if (!v) bad++; };
   const shot = n => page.screenshot({ path: SC + 'rpg_intro_' + n + '.png' });
   const boot = async (clear) => { // one page for the whole suite: under file:// Chromium keeps localStorage per page, but it survives a reload
-    if (!page) { page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+    if (!page) { page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
       page.on('pageerror', e => errors.push('PE:' + e.message + ' @ ' + (e.stack || '').split('\n').slice(0, 2).join(' | ')));
       page.on('console', m => { if (m.type() === 'error' && !/ERR_|Failed to load|net::/.test(m.text()) && /intro|screen:|boot|netload|\bload\b/i.test(m.text())) errors.push('C:' + m.text()); });   // other modules' errors are their suites' business
       await page.goto('file://' + HTML); }

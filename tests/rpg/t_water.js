@@ -8,7 +8,7 @@ const path = require('path'), fs = require('fs');
   const root = path.resolve(__dirname, '..', '..');
   const b64 = fs.readFileSync(path.join(root, 'src/assets/westeros_1200.webp')).toString('base64');
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const page = await browser.newPage({ viewport: { width: 844, height: 390 } });
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message)); page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push('CE:' + m.text()); });
   await page.goto('file://' + path.resolve(root, process.env.RPG_HTML || 'beta/index.html'));
   await page.waitForFunction(() => window.R && R.water && R.sys.water && window.THREE, { timeout: 20000 });

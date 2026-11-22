@@ -6,7 +6,7 @@ const { chromium } = require('playwright');
 const path = require('path');
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const page = await browser.newPage({ viewport: { width: 844, height: 390 } });
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message));
   await page.goto('file://' + path.resolve(__dirname, '..', '..', process.env.RPG_HTML || 'beta/index.html'));
   await page.waitForFunction(() => window.R && R.ambience && R.sys.ambience, { timeout: 20000 });

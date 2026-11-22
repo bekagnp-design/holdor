@@ -177,10 +177,10 @@
   const BARS = ['bossbar', 'dgbar', 'evbar'], GAP = 8;
   const shownEl = el => { if (!el || !el.isConnected) return false; const cs = getComputedStyle(el); return cs.display !== 'none' && cs.visibility !== 'hidden'; };
   const stack = () => {
-    const ui = root.parentNode; if (!ui) return; const top0 = E['hud-slot'].getBoundingClientRect().top; let y = top0, lead = null;
+    const ui = root.parentNode; if (!ui) return; const top0 = R.rect(E['hud-slot']).top; let y = top0, lead = null;
     for (const id of BARS) { const b = document.getElementById(id); if (!b) continue; b.removeAttribute('data-hud-yield'); }
     for (const id of BARS) { const b = document.getElementById(id); if (!b) continue;
-      if (!lead && shownEl(b)) { lead = b; if (b.style.top !== y + 'px') b.style.top = y + 'px'; y = Math.max(y, b.getBoundingClientRect().bottom + GAP); }
+      if (!lead && shownEl(b)) { lead = b; if (b.style.top !== y + 'px') b.style.top = y + 'px'; y = Math.max(y, R.rect(b).bottom + GAP); }
       else if (lead && shownEl(b)) b.setAttribute('data-hud-yield', '1'); }
     const tw = document.querySelector('#tut:not(.off) .tut-wrap');
     if (tw && shownEl(tw)) { if (tw.style.top !== y + 'px') tw.style.top = y + 'px'; y += tw.offsetHeight + GAP; }

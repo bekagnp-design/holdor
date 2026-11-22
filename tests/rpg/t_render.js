@@ -58,7 +58,7 @@ const FRAMES = (n) => `(() => {
 })()`;
 
 async function run(label, args, n) {
-  const b = await chromium.launch({ executablePath: EXE, args }); const pg = await b.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  const b = await chromium.launch({ executablePath: EXE, args }); const pg = await b.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1 });
   const errs = []; pg.on('pageerror', e => errs.push('PE ' + e.message)); pg.on('console', m => { if (m.type() === 'error' && !noise(m.text())) errs.push('CE ' + m.text()); });
   await pg.goto('file://' + HTML); await pg.waitForFunction(() => window.R && R.render && R.sys.render, null, { timeout: 15000 });
   const mode = await pg.evaluate(SETUP(30)); const r = await pg.evaluate(FRAMES(n));
@@ -104,8 +104,8 @@ async function run(label, args, n) {
   ok(r.roundTrip < 6, 's2w(w2s(hero)) returns to the hero (' + r.roundTrip.toFixed(2) + ' u off)');
   ok(r.behind === true, 'a point behind the camera is flagged');
   ok(r.cam1.x > r.cam0.x + 20, 'the camera follows the hero east (' + Math.round(r.cam0.x) + ' → ' + Math.round(r.cam1.x) + ')');
-  ok(r.cam1.z > 1 && r.cam1.z < 4, 'R.cam.z = px per unit at the hero (' + r.cam1.z.toFixed(2) + ')');
-  ok(r.cam1.dist === 420 && r.cam1.yaw === 0, 'camera defaults: dist 420, yaw 0');
+  ok(r.cam1.z > 0.6 && r.cam1.z < 4, 'R.cam.z = px per unit at the hero (' + r.cam1.z.toFixed(2) + '; landscape 844×390: about 0.9)');
+  ok(r.cam1.dist === 500 && r.cam1.yaw === 0, 'camera defaults: dist 500 on a wide screen (420 when tall), yaw 0');
   const cc = r.camCtl || {};
   ok(cc.dYaw > .4 && cc.dYaw < .9, 'a real right-half touch drag of 100 px turns the camera right (yaw +' + (cc.dYaw || 0).toFixed(2) + ')');
   ok(cc.pinch && cc.pinch[1] < cc.pinch[0] - 40, 'a real two-finger pinch (fingers apart) zooms in: dist ' + (cc.pinch && cc.pinch.map(Math.round).join(' → ')));
@@ -114,7 +114,7 @@ async function run(label, args, n) {
   ok(cc.hHero === 64 && cc.hMob > 40 && cc.hMob < 56 && cc.hBoss <= 2 * cc.hMob + 4, 'billboard heights: hero ' + cc.hHero + ', axe ' + cc.hMob + ', boss ' + cc.hBoss + ' (<= 2 x mob); hero quad ' + JSON.stringify(cc.heroBB));
   const SOFT = /swiftshader|llvmpipe|software/i.test(r.gl || '');
   ok(r.median < (SOFT ? 1200 : 25), (SOFT ? '[software GL shared by 9 agents: sanity bound 1200] ' : '') + 'render median ' + r.median + ' ms (< 25; p90 ' + r.p90 + '; whole frame with every module ' + r.medianAll + ' ms) with ' + r.sprites + ' billboards, ' + r.calls + ' draw calls, art=' + r.art + ', gl=' + r.gl);
-  ok(r.calls <= 120, 'draw calls ' + r.calls + ' ≤ 120 (A43 nature: up to 12 per chunk; billboards 1 each)');
+  ok(r.calls <= 150, 'draw calls ' + r.calls + ' ≤ 150 (A43 nature: up to 12 per chunk; billboards 1 each; the landscape view is wider than the old portrait one, budget 120 → 150)');
   ok(r.sprites >= 20 && r.props >= 3, 'billboards ' + r.sprites + ' (in the view frustum) and props ' + r.props + ' are in the scene');
   ok(r.hm && r.hm.canvas && r.hm.w > 100 && r.hm.h > 100 && r.hm.scale > 0 && r.hm.scale <= 100, 'R.render3d.heightmap {canvas ' + (r.hm && r.hm.w + 'x' + r.hm.h) + ', ' + (r.hm && r.hm.scale.toFixed(1)) + ' u per vertex (<= 100)}');
   ok(typeof r.gy === 'number' && r.gy > 0 && r.gy < 300 && r.seaHero === false && r.seaFrac > .01 && r.seaFrac < .75, 'groundY(hero) = ' + (r.gy && r.gy.toFixed(1)) + ' on land; sea covers ' + Math.round(r.seaFrac * 100) + '% of the grid');

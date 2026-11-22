@@ -5,7 +5,7 @@ const { chromium } = require('playwright'); const path = require('path'), fs = r
 const ROOT = path.resolve(__dirname, '..', '..'); const SC = path.join(ROOT, '.shots') + '/'; fs.mkdirSync(SC, { recursive: true });
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+  const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message + ' @ ' + (e.stack || '').split('\n').slice(0, 2).join(' | ')));
   page.on('console', m => { if (m.type() === 'error' && !/ERR_|Failed to load|net::|telegram/.test(m.text())) errors.push('C:' + m.text()); });
   await page.goto('file://' + path.resolve(ROOT, process.env.HOLDOR_HTML || 'beta/index.html'));

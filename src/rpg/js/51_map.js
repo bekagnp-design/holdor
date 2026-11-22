@@ -131,6 +131,8 @@
   const closeCard = () => { if (card) { card.remove(); card = null; } };
   const openCard = p => { closeCard(); const kind = p.kind || p.type || 'town', H = house(p.house), name = (p.name || p.n || p.id) + '';
     card = document.createElement('div'); card.className = 'mp-card'; card.dataset.poi = p.id;
+    /* landscape: the card is a side panel, on the side away from the place it describes */
+    try { if (p.x != null) { const q = toS(p.x, p.y); if (q && q.x > vw / 2) card.classList.add('lft'); } } catch (e) {}
     const kTxt = (KIND[kind] || kind) + (H ? ' · House ' + (H.n || H.name || p.house) : p.region ? ' · ' + (p.region + '').replace(/[_-]/g, ' ') : '');
     const d = R.player ? Math.hypot(R.player.x - p.x, R.player.y - p.y) : null;
     card.innerHTML = '<button class="mp-cx" aria-label="Close">✕</button><div class="k"></div><h3></h3><p></p><div class="d"></div>';
@@ -151,7 +153,7 @@
     if (h.type === 'poi') { if (found(h.p.id)) openCard(h.p); else { closeCard(); R.ui.toast('Not yet discovered'); } }
     else if (h.type === 'player') { const s = toS(h.p.x, h.p.y); showTag((h.p.name || h.p.n || 'Player') + (h.p.lvl ? ' · Lv ' + h.p.lvl : ''), s.x, s.y - 6); }
     else if (h.type === 'quest') { const s = toS(h.p.x, h.p.y); showTag(h.p.name || h.p.title || h.p.txt || 'Quest', s.x, s.y - 8); } };
-  const pos = e => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  const pos = e => { const r = R.rect(cv), q = R.pt(e.clientX, e.clientY); return { x: q.x - r.left, y: q.y - r.top }; };
   const dist2 = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const down = e => { if (e.button != null && e.button > 0) return; e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (x) {} const p = pos(e); ptrs.set(e.pointerId, { x: p.x, y: p.y, x0: p.x, y0: p.y });
     if (ptrs.size === 1) { moved = 0; pinched = false; pinch = null; } else if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; pinch = { d: dist2(a, b) || 1, z: view.z, w: toW(mid.x, mid.y) }; pinched = true; closeCard(); hideTag(); } };

@@ -40,4 +40,7 @@
 .ach-pt{font:700 12px var(--f-display);color:#b6c0cc}
 .ach-rw{font:700 12px var(--f-display);color:#8fd3ff}
 .ach-rw b{color:var(--gold)}
-@media (min-width:480px){.ach-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+html.q-w480 .ach-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+/* landscape (test 5): the card joins the HUD's middle message column instead of spanning the top (it covered the hero block, the top row and the minimap) */
+html.q-s .ach-toast{left:calc(50% - min(calc(14 * var(--vw,1vw)), 150px));right:auto;width:min(calc(28 * var(--vw,1vw)),300px);gap:8px;padding:8px 10px}

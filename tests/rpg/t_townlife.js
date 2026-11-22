@@ -1,26 +1,31 @@
 // HOLDOR RPG — town life (C1): the entry banner once per visit (Winterfell, a town, a village), the service signs over the NPCs
 // (projected at the right NPC, hidden behind the camera / off screen), a real tap on the smith's sign within 120 units opens the smith,
-// a tap from afar toasts the way; nothing overlaps the HUD's top-left block, the tutorial card or the quest tracker; 390×844 and 360×640.
+// a tap from afar toasts the way; nothing overlaps the HUD's top-left block, the tutorial card or the quest tracker; the landscape phone:
+// 844×390 and 640×360, and an upright 390×844 phone (the app turned 90°, R.rot). Rectangles are read in app coordinates (R.rect), like R.w2s.
 // run: python3 src/build_rpg.py /tmp/c1.html && RPG_HTML=/tmp/c1.html RPG_NOBUILD=1 CHROMIUM_PATH=... node tests/rpg/t_townlife.js
 'use strict';
 const L = require('./lib');
+const RECT = 'window.__rr = el => el && (R.rect ? R.rect(el) : el.getBoundingClientRect());';   // app-coordinate rectangles (R.w2s space)
 const hit = (a, b) => !!(a && b && a.right > b.left + 1 && a.left < b.right - 1 && a.bottom > b.top + 1 && a.top < b.bottom - 1);
 (async () => {
   L.build();
-  const { page, errors, close } = await L.launch({ w: 390, h: 844 });
+  const { page, errors, close } = await L.launch({ w: 844, h: 390 });
   try {
     await L.boot(page, { save: L.fakeSave({ house: 'stark', lvl: 4, gold: 900, flags: { tut: 3 } }), settle: 600, timeout: 90000, wait: 30000 });
     await page.waitForFunction(() => window.R && R.townlife && R.player && R.hud, null, { timeout: 45000 });
+    await page.evaluate(RECT);
+    const lay = await L.ev(page, () => ({ vw: R.vw, vh: R.vh, rot: !!R.rot, dist: R.cam.dist }));
+    L.ok('844×390: the app is laid out wide, not turned', lay.vw === 844 && lay.vh === 390 && !lay.rot, JSON.stringify(lay));
     const W = await L.ev(page, () => { const w = R.world.poi('winterfell'); return w ? { x: w.x, y: w.y, r: w.r } : null; });
     L.ok('Winterfell exists', !!W, JSON.stringify(W));
     // day, calm, stand in Winterfell's yard
     await L.ev(page, W => { try { R.ambience && R.ambience.setHour && R.ambience.setHour(11); } catch (e) {} R.player.x = W.x; R.player.y = W.y + 40; R.townlife.cur = null; }, W);
     await L.steps(page, 60); await page.waitForTimeout(400);
-    const b1 = await L.ev(page, () => { const b = document.getElementById('tl-ban'), r = b && b.getBoundingClientRect(); const R2 = el => el && el.getBoundingClientRect();
+    const b1 = await L.ev(page, () => { const b = document.getElementById('tl-ban'), r = b && __rr(b); const R2 = __rr;
       return { on: !!(b && b.classList.contains('on')), nm: b && b.querySelector('.tl-nm').textContent, sub: b && b.querySelector('.tl-sub').textContent, list: b && b.querySelector('.tl-list').textContent,
         hc: b && b.style.getPropertyValue('--hc'), cur: R.townlife.cur, shown: R.townlife.shownN || 0, ban: r && { left: r.left, right: r.right, top: r.top, bottom: r.bottom },
         tl: R2(document.getElementById('hud-tl')), qt: R2(document.getElementById('qtrack')), tut: (() => { const t = document.querySelector('#tut:not(.off) .tut-wrap'); return t && getComputedStyle(t).display !== 'none' ? R2(t) : null; })(),
-        tr: R2(document.getElementById('hud-tr')), btnH: b && b.querySelector('.tl-svc').getBoundingClientRect().height,
+        tr: R2(document.getElementById('hud-tr')), btnH: b && __rr(b.querySelector('.tl-svc')).height,
         toasts: [...document.querySelectorAll('#ui>.toast')].map(R2) }; });
     L.ok('entering Winterfell shows the banner: name, seat of House Stark, Smith · Inn · Market', b1.on && b1.nm === 'Winterfell' && /Stark/.test(b1.sub) && /Smith/.test(b1.list) && /Inn/.test(b1.list) && /Market/.test(b1.list), JSON.stringify([b1.nm, b1.sub, b1.list, b1.cur]));
     L.ok('the banner wears the house colour', /#a9bdd0/i.test(b1.hc), b1.hc);
@@ -34,7 +39,7 @@ const hit = (a, b) => !!(a && b && a.right > b.left + 1 && a.left < b.right - 1 
     // ---- the signs: projected over the smith, hidden behind the camera (the tutorial card done, so the signs have the whole field)
     await L.ev(page, () => { try { R.tut && R.tut.skip && R.tut.skip(); } catch (e) {} });
     await L.steps(page, 360); await page.waitForTimeout(300); await L.steps(page, 4);
-    const sg = await L.ev(page, () => R.townlife.signs().map(s => { const e = s.npc, q = R.w2s(e.x, e.y, 80), r = s.el.getBoundingClientRect();
+    const sg = await L.ev(page, () => R.townlife.signs().map(s => { const e = s.npc, q = R.w2s(e.x, e.y, 80), r = __rr(s.el);
       return { svc: s.svc, on: s.on, d: Math.round(s.d), q: { x: Math.round(q.x), y: Math.round(q.y), behind: q.behind }, cx: Math.round((r.left + r.right) / 2), bottom: Math.round(r.bottom), h: Math.round(r.height), op: s.el.style.opacity }; }));
     const smith = sg.find(s => s.svc === 'smith');
     L.ok('signs for the smith (who also sells at Winterfell) and the inn', ['smith', 'inn'].every(k => sg.some(s => s.svc === k)), sg.map(s => s.svc + (s.on ? '+' : '-')).join(' '));
@@ -42,14 +47,14 @@ const hit = (a, b) => !!(a && b && a.right > b.left + 1 && a.left < b.right - 1 
     L.ok('signs are ≥ 44 px tall', sg.filter(s => s.on).every(s => s.h >= 44), sg.map(s => s.h).join(','));
     await page.waitForTimeout(800); await L.steps(page, 2);
     await L.shot(page, 'townlife_winterfell_signs');
-    // two stand-in smiths 150 units ahead of the hero and 600 behind him (the camera stands ~340 behind): one sign shows, the other hides
+    // two stand-in smiths 150 units ahead of the hero and 600 behind him (the wide camera stands ~410 behind on the ground, dist 500): one sign shows, the other hides
     const beh = await L.ev(page, async () => { const P = R.player; R.cam.yaw = 0; for (let i = 0; i < 30; i++) R.step();
       const mk = (id, dy) => R.spawn({ kind: 'npc', team: 2, x: P.x, y: P.y + dy, r: 14, name: 'Test smith', dialog: id, poi: 'winterfell', type: 'npc:smith', sprite: 'npc:smith', rkind: 'smith', hp: 1, hpMax: 1, invuln: true, noBar: true, mark: '' });
       const a = mk('t_front_smith', -150), b = mk('t_back_smith', 600); for (let i = 0; i < 3; i++) R.step(); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); R.step();
       const sa = R.townlife.signs().find(s => s.npc === a), sb = R.townlife.signs().find(s => s.npc === b);
       const o = { front: sa && { on: sa.on, q: R.w2s(a.x, a.y, 80), d: Math.round(sa.d) }, back: sb && { on: sb.on, q: R.w2s(b.x, b.y, 80), d: Math.round(sb.d), vis: getComputedStyle(sb.el).display } };
-      a.dead = b.dead = true; R.remove && (R.remove(a), R.remove(b)); for (let i = 0; i < 3; i++) R.step(); o.gone = !R.townlife.signs().some(s => s.npc === a || s.npc === b); return o; });
-    const offOk = !!(beh.back && (beh.back.q.behind || beh.back.q.x < 0 || beh.back.q.x > 390 || beh.back.q.y < 0 || beh.back.q.y > 844));
+      a.dead = b.dead = true; R.remove && (R.remove(a), R.remove(b)); for (let i = 0; i < 3; i++) R.step(); o.gone = !R.townlife.signs().some(s => s.npc === a || s.npc === b); o.vw = R.vw; o.vh = R.vh; return o; });
+    const offOk = !!(beh.back && (beh.back.q.behind || beh.back.q.x < 0 || beh.back.q.x > beh.vw || beh.back.q.y < 0 || beh.back.q.y > beh.vh));
     L.ok('a smith in front of the camera gets a sign; one behind the camera gets none; signs go with their NPC', !!(beh.front && beh.front.on && beh.back && !beh.back.on && beh.back.vis === 'none' && offOk && beh.gone), JSON.stringify(beh));
     // ---- a tap from afar toasts the way; a real tap within 120 units opens the smith
     await L.ev(page, () => { const s = R.townlife.signs().find(x => x.svc === 'smith'); const e = s.npc; R.player.x = e.x; R.player.y = e.y + 190; R.cam.yaw = 0; for (let i = 0; i < 120; i++) R.step(); });
@@ -92,16 +97,28 @@ const hit = (a, b) => !!(a && b && a.right > b.left + 1 && a.left < b.right - 1 
     const ts = await L.ev(page, () => R.ui.cur), tsw = await L.ev(page, () => JSON.stringify({ why: R.townlife.hideWhy, cur: R.townlife.cur, n: R.townlife.shownN }));
     L.ok('a tap on SERVICES HERE opens the town screen (43_towns)', ts === 'town' || ts === 'shop', ts + ' ' + tsw);
     await L.ev(page, () => { while (R.ui.cur) R.ui.close(); });
-    // ---- 360×640: the banner still clears the HUD block and the tutorial card
-    await page.setViewportSize({ width: 360, height: 640 }); await page.waitForTimeout(300);
+    // ---- 640×360: the banner still clears the HUD block and the tutorial card
+    await page.setViewportSize({ width: 640, height: 360 }); await page.waitForTimeout(300);
     const small = await L.ev(page, async W => { R.player.x = W.x + 900; R.player.y = W.y; for (let i = 0; i < 40; i++) R.step(); R.player.x = W.x; R.player.y = W.y + 40; for (let i = 0; i < 40; i++) R.step();
-      await new Promise(r => setTimeout(r, 450)); R.step(); const R2 = el => el && el.getBoundingClientRect(); const b = document.getElementById('tl-ban');
+      await new Promise(r => setTimeout(r, 450)); R.step(); const R2 = __rr; const b = document.getElementById('tl-ban');
       const t = document.querySelector('#tut:not(.off) .tut-wrap');
-      return { on: b.classList.contains('on'), why: R.townlife.hideWhy, cur: R.townlife.cur, ui: R.ui.cur, ban: R2(b), tl: R2(document.getElementById('hud-tl')), qt: R2(document.getElementById('qtrack')), tr: R2(document.getElementById('hud-tr')), tut: t && getComputedStyle(t).display !== 'none' ? R2(t) : null, vw: innerWidth }; }, W);
-    const sgEdge = await L.ev(page, () => R.townlife.signs().filter(s => s.on).map(s => { const r = s.el.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.right)]; }));
-    L.ok('360×640: every shown sign is wholly on screen', sgEdge.every(([a, b]) => a >= 0 && b <= 360), JSON.stringify(sgEdge));
-    L.ok('360×640: the banner shows inside the screen and clears the HUD block, tracker and tutorial card', small.on && small.ban.left >= 0 && small.ban.right <= small.vw && !hit(small.ban, small.tl) && !hit(small.ban, small.qt) && !hit(small.ban, small.tr) && !hit(small.ban, small.tut), JSON.stringify(small));
-    await L.shot(page, 'townlife_360_banner');
+      return { on: b.classList.contains('on'), why: R.townlife.hideWhy, cur: R.townlife.cur, ui: R.ui.cur, ban: R2(b), tl: R2(document.getElementById('hud-tl')), qt: R2(document.getElementById('qtrack')), tr: R2(document.getElementById('hud-tr')), tut: t && getComputedStyle(t).display !== 'none' ? R2(t) : null, vw: R.vw, vh: R.vh, rot: !!R.rot }; }, W);
+    const sgEdge = await L.ev(page, () => R.townlife.signs().filter(s => s.on).map(s => { const r = __rr(s.el); return [Math.round(r.left), Math.round(r.right)]; }));
+    L.ok('640×360: the app is 640×360, not turned; every shown sign is wholly on screen', small.vw === 640 && small.vh === 360 && !small.rot && sgEdge.every(([a, b]) => a >= 0 && b <= 640), JSON.stringify({ vw: small.vw, vh: small.vh, rot: small.rot, sgEdge }));
+    L.ok('640×360: the banner shows inside the screen and clears the HUD block, tracker and tutorial card', small.on && small.ban.left >= 0 && small.ban.right <= small.vw && !hit(small.ban, small.tl) && !hit(small.ban, small.qt) && !hit(small.ban, small.tr) && !hit(small.ban, small.tut), JSON.stringify(small));
+    await L.shot(page, 'townlife_640x360_banner');
+    // ---- an upright 390×844 phone: the app turns 90° (R.rot, 844×390 inside); the signs still sit over their NPCs and a real tap still opens the smith
+    await page.setViewportSize({ width: 390, height: 844 }); await page.waitForTimeout(300);
+    await L.ev(page, () => { const s = R.townlife.signs().find(x => x.svc === 'smith'); const e = s.npc; R.player.x = e.x; R.player.y = e.y + 70; R.cam.yaw = 0; for (let i = 0; i < 90; i++) R.step(); });
+    await page.waitForTimeout(300); await L.steps(page, 4);
+    const up = await L.ev(page, () => ({ rot: !!R.rot, vw: R.vw, vh: R.vh, signs: R.townlife.signs().filter(s => s.on).map(s => { const e = s.npc, q = R.w2s(e.x, e.y, 80), r = __rr(s.el), v = s.el.getBoundingClientRect();
+      return { svc: s.svc, q: { x: Math.round(q.x), y: Math.round(q.y) }, cx: Math.round((r.left + r.right) / 2), bottom: Math.round(r.bottom), vp: [Math.round(v.left), Math.round(v.top), Math.round(v.right), Math.round(v.bottom)] }; }) }));
+    L.ok('390×844 upright: the app is turned (844×390 inside) and every shown sign sits over its NPC and inside the screen', up.rot && up.vw === 844 && up.vh === 390 && up.signs.length > 0 &&
+      up.signs.every(s => Math.abs(s.cx - s.q.x) <= 4 && s.bottom <= s.q.y + 2 && s.bottom > s.q.y - 90 && s.vp[0] >= 0 && s.vp[1] >= 0 && s.vp[2] <= 390 && s.vp[3] <= 844), JSON.stringify(up));
+    await L.shot(page, 'townlife_upright_signs');
+    const upTap = await L.tap(page, '.tl-sign.s-smith.on', { wait: 500 }); const upCur = await L.ev(page, () => R.ui.cur);
+    L.ok('390×844 upright: a real tap on the turned smith sign opens the smith screen', upTap && upCur === 'smith', JSON.stringify({ upTap, upCur }));
+    await L.ev(page, () => { while (R.ui.cur) R.ui.close(); });
     const ge = await L.ev(page, () => ({ tl: R.townlife.err || null, errs: (R.errors || []).filter(e => /townlife/.test(String(e && (e.msg || e.message || e)))).length }));
     L.ok('no townlife errors', !ge.tl && !ge.errs && !errors.some(e => /townlife|43b/.test(e)), JSON.stringify(ge) + ' ' + errors.slice(0, 3).join(' | '));
   } catch (e) { L.ok('suite ran', false, e && e.stack); }

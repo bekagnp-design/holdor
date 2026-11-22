@@ -88,7 +88,7 @@ const load = () => {
     try {
       const { chromium } = require('playwright');
       const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-      const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+      const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
       page.on('pageerror', e => errors.push('PE:' + e.message)); page.on('console', m => { if (m.type() === 'error' && !/ERR_|Failed to load|net::|telegram/.test(m.text())) errors.push('C:' + m.text()); });
       await page.goto('file://' + path.resolve(html));
       await page.waitForFunction(() => window.R && R.champs && R.data && R.data.champs, { timeout: 20000 });

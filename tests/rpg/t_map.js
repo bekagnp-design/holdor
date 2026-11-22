@@ -11,7 +11,7 @@ const URL = 'file://' + path.resolve(ROOT, process.env.HOLDOR_HTML || 'beta/inde
 const MAP = 'data:image/webp;base64,' + fs.readFileSync(path.join(ROOT, 'src/assets/westeros_1200.webp')).toString('base64');
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+  const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message)); page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push('CE:' + m.text().slice(0, 160)); }); // the Telegram SDK include fails offline: not a code error
   const out = {}; const ok = (k, v, info) => { out[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
   const ev = (fn, arg) => page.evaluate(fn, arg);
@@ -57,28 +57,30 @@ const MAP = 'data:image/webp;base64,' + fs.readFileSync(path.join(ROOT, 'src/ass
   ok('it draws the art (not blank): many colours in the canvas', (await colours()) > 40 && F.hasMap, 'colours=' + await colours() + ' hasMap=' + F.hasMap);
   const cvBox = await box('#screen canvas.mp-cv'), v0 = await view();
   const cvDpr = await ev(() => { const cv = R.screens.map.canvas(); return cv.width / cv.getBoundingClientRect().width; });
-  ok('the canvas is the screen size and capped at 2× DPR', cvBox && cvBox.w === 390 && cvBox.h === 844 && cvDpr <= 2.01, JSON.stringify(cvBox) + ' dpr=' + cvDpr);
+  ok('the canvas is the (landscape) screen size and capped at 2× DPR', cvBox && cvBox.w === 844 && cvBox.h === 390 && cvDpr <= 2.01, JSON.stringify(cvBox) + ' dpr=' + cvDpr);
   const youS = await toS(F.player.x, F.player.y);
   // the centre is the player, unless the map's edge is nearer than half a screen (then the view stops at the edge)
   const WH = await ev(() => [R.W || 7200, R.H || 12288]);   // the world's size (R.WS made it 4.5× larger)
-  const hw = 195 / v0.k, hh = 422 / v0.k, ex = hw * 2 >= WH[0] ? WH[0] / 2 : Math.min(Math.max(F.player.x, hw), WH[0] - hw), ey = hh * 2 >= WH[1] ? WH[1] / 2 : Math.min(Math.max(F.player.y, hh), WH[1] - hh);
-  ok('at open the camera centres on the player at zoom 1 (or stops at the map\'s edge)', Math.abs(v0.cx - ex) < 1 && Math.abs(v0.cy - ey) < 1 && Math.abs(v0.z - 1) < 1e-9 && (ex !== F.player.x || Math.abs(youS.x - 195) < 2) && (ey !== F.player.y || Math.abs(youS.y - 422) < 2), JSON.stringify([youS, v0, { ex, ey }]));
-  ok('the legend row names you · castle · quest · players · event, inside the screen', /you/.test(o.legend) && /castle/.test(o.legend) && /quest/.test(o.legend) && /players/.test(o.legend) && /event/.test(o.legend) && (await box('.mp-legend')).b <= 844, o.legend);
+  const hw = 422 / v0.k, hh = 195 / v0.k, ex = hw * 2 >= WH[0] ? WH[0] / 2 : Math.min(Math.max(F.player.x, hw), WH[0] - hw), ey = hh * 2 >= WH[1] ? WH[1] / 2 : Math.min(Math.max(F.player.y, hh), WH[1] - hh);
+  ok('at open the camera centres on the player at zoom 1 (or stops at the map\'s edge)', Math.abs(v0.cx - ex) < 1 && Math.abs(v0.cy - ey) < 1 && Math.abs(v0.z - 1) < 1e-9 && (ex !== F.player.x || Math.abs(youS.x - 422) < 2) && (ey !== F.player.y || Math.abs(youS.y - 195) < 2), JSON.stringify([youS, v0, { ex, ey }]));
+  ok('the legend row names you · castle · quest · players · event, inside the screen', /you/.test(o.legend) && /castle/.test(o.legend) && /quest/.test(o.legend) && /players/.test(o.legend) && /event/.test(o.legend) && (await box('.mp-legend')).b <= 390, o.legend);
   // ---- redraws only on interaction
   const d0 = await ev(() => R.screens.map.draws); await page.waitForTimeout(700); const d1 = await ev(() => R.screens.map.draws);
   ok('idle for 700 ms: no redraw', d1 === d0, d0 + ' → ' + d1);
-  // ---- pan: one finger drag moves the view by the drag distance (at 2×, away from the map's edges)
-  await ev(() => R.screens.map.zoomAt(195, 422, 2)); await page.waitForTimeout(200);
+  // ---- pan: one finger drag moves the view by the drag distance (at 2.5×, away from the map's edges: in landscape the whole width
+  //      fits at 1× and leaves only ±35 px of sideways travel at 2×)
+  await ev(() => R.screens.map.zoomAt(422, 195, 2.5)); await page.waitForTimeout(200);
   const vp = await view(), h0 = await sample();
-  await page.mouse.move(195, 500); await page.mouse.down(); await page.mouse.move(235, 560, { steps: 8 }); await page.mouse.up(); await page.waitForTimeout(250);
+  await page.mouse.move(422, 180); await page.mouse.down(); await page.mouse.move(462, 240, { steps: 8 }); await page.mouse.up(); await page.waitForTimeout(250);
   const v1 = await view(), h1 = await sample(), d2 = await ev(() => R.screens.map.draws);
   ok('pan: the view centre moves by 40 × 60 px (in world units) and the canvas changes', Math.abs((vp.cx - v1.cx) * v1.k - 40) < 1.5 && Math.abs((vp.cy - v1.cy) * v1.k - 60) < 1.5 && h1 !== h0 && d2 > d1, JSON.stringify({ dx: (vp.cx - v1.cx) * v1.k, dy: (vp.cy - v1.cy) * v1.k, changed: h1 !== h0, draws: d2 - d1 }));
   // ---- tap a found castle → the card with FAST TRAVEL (free)
-  await ev(c => R.screens.map.centreOn(c.x, c.y), F.castle); await ev(() => R.screens.map.zoomAt(195, 422, 1.6)); await page.waitForTimeout(150);
+  await ev(c => R.screens.map.centreOn(c.x, c.y), F.castle); await ev(() => R.screens.map.zoomAt(422, 195, 1.6)); await page.waitForTimeout(150);
   const cs = await toS(F.castle.x, F.castle.y);
   await page.touchscreen.tap(cs.x, cs.y); await page.waitForTimeout(450);
   const card = await box('.mp-card'), h3 = await box('.mp-card h3'), go = await box('.mp-card .mp-go'), dist = await box('.mp-card .d');
-  ok('the card: the castle\'s name, a distance line, one primary FAST TRAVEL (free) button ≥ 44 px, in the lower half', !!card && h3 && h3.t === F.castle.name && go && /FAST TRAVEL \(free\)/.test(go.t) && go.h >= 44 && !go.dis && card.y > 422 && dist && /away/.test(dist.t) && /on foot/.test(dist.t), JSON.stringify({ card, h3: h3 && h3.t, go: go && go.t, dist: dist && dist.t }));
+  const covers = !!card && cs.x >= card.x && cs.x <= card.x + card.w && cs.y >= card.y && cs.y <= card.b;   // landscape: the card must leave the tapped castle visible
+  ok('the card: the castle\'s name, a distance line, one primary FAST TRAVEL (free) button ≥ 44 px, not covering the tapped castle', !!card && h3 && h3.t === F.castle.name && go && /FAST TRAVEL \(free\)/.test(go.t) && go.h >= 44 && !go.dis && !covers && card.b <= 390 && dist && /away/.test(dist.t) && /on foot/.test(dist.t), JSON.stringify({ card, castleAt: { x: Math.round(cs.x), y: Math.round(cs.y) }, covers, h3: h3 && h3.t, go: go && go.t, dist: dist && dist.t }));
   const prim = await ev(() => document.querySelectorAll('#screen button.pri').length);
   ok('one primary button on the screen', prim === 1, 'pri=' + prim);
   await page.screenshot({ path: SC + 'rpg_map.png' });
@@ -95,21 +97,22 @@ const MAP = 'data:image/webp;base64,' + fs.readFileSync(path.join(ROOT, 'src/ass
   const un = await ev(() => ({ card: !!document.querySelector('.mp-card'), toast: [...document.querySelectorAll('.toast')].map(t => t.textContent).join('|'), cur: R.ui.cur }));
   ok('a tap on an unfound POI toasts "Not yet discovered" and opens no card', !un.card && /Not yet discovered/.test(un.toast) && un.cur === 'map', JSON.stringify(un));
   // ---- the overview at 0.5×: the whole map on the screen (fog over the second region, the gate chain); then zoom checks
-  await ev(() => R.screens.map.zoomAt(195, 422, 0.5)); await page.waitForTimeout(300);
+  await ev(() => R.screens.map.zoomAt(422, 195, 0.5)); await page.waitForTimeout(300);
   const ov = await view();
-  ok('at 0.5× the whole map fits the screen', ov.z === 0.5 && 7200 * ov.k <= 390 + 1 && 12288 * ov.k <= 844 + 1 && (await colours()) > 40, JSON.stringify({ w: 7200 * ov.k, h: 12288 * ov.k }));
+  ok('at 0.5× the whole map fits the screen', ov.z === 0.5 && WH[0] * ov.k <= 844 + 1 && WH[1] * ov.k <= 390 + 1 && (await colours()) > 40, JSON.stringify({ w: WH[0] * ov.k, h: WH[1] * ov.k }));
   await page.screenshot({ path: SC + 'rpg_map_overview.png' });
   // ---- zoom: double-tap doubles, the API clamps to 0.5–3, a pinch (CDP touch gesture) zooms in
-  await ev(() => R.screens.map.zoomAt(195, 422, 1)); await page.waitForTimeout(600);
-  await page.touchscreen.tap(195, 300); await page.waitForTimeout(80); await page.touchscreen.tap(196, 301); await page.waitForTimeout(250);
+  await ev(() => R.screens.map.zoomAt(422, 195, 1)); await page.waitForTimeout(600);
+  await page.touchscreen.tap(422, 160); await page.waitForTimeout(80); await page.touchscreen.tap(423, 161); await page.waitForTimeout(250);
   const vz = await view();
   ok('double-tap zooms to 2×', Math.abs(vz.z - 2) < 0.01, 'z=' + vz.z);
-  const cl = await ev(() => { R.screens.map.zoomAt(195, 422, 10); const a = R.screens.map.view().z; R.screens.map.zoomAt(195, 422, 0.01); const b = R.screens.map.view().z; R.screens.map.zoomAt(195, 422, 1); return [a, b]; });
+  const cl = await ev(() => { R.screens.map.zoomAt(422, 195, 10); const a = R.screens.map.view().z; R.screens.map.zoomAt(422, 195, 0.01); const b = R.screens.map.view().z; R.screens.map.zoomAt(422, 195, 1); return [a, b]; });
   ok('zoom clamps to 3× and 0.5×', cl[0] === 3 && cl[1] === 0.5, JSON.stringify(cl));
-  let pinchZ = null; try { const cdp = await page.context().newCDPSession(page); await cdp.send('Input.synthesizePinchGesture', { x: 195, y: 500, scaleFactor: 1.8, relativeSpeed: 400 }); await page.waitForTimeout(300); pinchZ = (await view()).z; } catch (e) { pinchZ = 'n/a ' + e.message.slice(0, 60); }
+  let pinchZ = null; try { const cdp = await page.context().newCDPSession(page); await cdp.send('Input.synthesizePinchGesture', { x: 422, y: 230, scaleFactor: 1.8, relativeSpeed: 400 }); await page.waitForTimeout(300); pinchZ = (await view()).z; } catch (e) { pinchZ = 'n/a ' + e.message.slice(0, 200); }
   ok('a pinch zooms in', typeof pinchZ === 'number' && pinchZ > 1.2 && pinchZ <= 3, 'z=' + pinchZ);
-  // ---- other players: a tap on the cyan dot names him
-  await ev(() => { R.screens.map.zoomAt(195, 422, 1.6); const p = R.presence.list()[0]; R.screens.map.centreOn(p.x, p.y); }); await page.waitForTimeout(150);
+  // ---- other players: a tap on the cyan dot names him (at 3×: the landscape fit shows ~1.7× more world per pixel than the portrait one did,
+  //      so 1.6× put a village's tap circle over his dot; 3× gives him the same pixel spacing the portrait 1.6× had)
+  await ev(() => { R.screens.map.zoomAt(422, 195, 3); const p = R.presence.list()[0]; R.screens.map.centreOn(p.x, p.y); }); await page.waitForTimeout(150);
   const jp = await ev(() => { const p = R.presence.list()[0]; return R.screens.map.toScreen(p.x, p.y); });   // where his dot is (the view may stop at the map's edge)
   await page.touchscreen.tap(Math.round(jp.x), Math.round(jp.y)); await page.waitForTimeout(300);
   const tagT = await ev(() => (document.querySelector('.mp-tag') || {}).textContent || '');

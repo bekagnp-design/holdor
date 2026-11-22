@@ -36,7 +36,7 @@ async function launch(o = {}) {
   const { chromium } = require('playwright');
   // the world renders in WebGL (three.js into #gl, #c is the 2D overlay): software GL so headless Chromium draws it
   const browser = await chromium.launch({ executablePath: fs.existsSync(CHROME) ? CHROME : undefined, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
-  const ctx = await browser.newContext({ viewport: { width: o.w || 390, height: o.h || 844 }, deviceScaleFactor: 2, hasTouch: true, locale: 'en-US' });
+  const ctx = await browser.newContext({ viewport: { width: o.w || 844, height: o.h || 390 }, deviceScaleFactor: 2, hasTouch: true, locale: 'en-US' });
   const page = await ctx.newPage();
   await page.route(/telegram\.org/, r => r.abort());   // the Telegram SDK include: the proxy blocks it and it slows the load
   const errors = [], cerrs = [];
@@ -100,7 +100,7 @@ async function tap(page, sel, o = {}) {
 }
 /* a thumb lands on the left half (o.x / o.y, default 30% / 62% of the viewport) and drags by dx, dy over ms; the touch stays down → await the returned release() */
 async function joystick(page, dx, dy, ms = 250, o = {}) {
-  const vp = page.viewportSize() || { width: 390, height: 844 };
+  const vp = page.viewportSize() || { width: 844, height: 390 };
   const x0 = o.x != null ? o.x : Math.round(vp.width * 0.3), y0 = o.y != null ? o.y : Math.round(vp.height * 0.62), id = o.id || 1;
   await rawTouch(page, 'touchStart', [pt(x0, y0, id)]);
   const n = Math.max(3, Math.round(ms / 30));

@@ -1,13 +1,16 @@
 // tests/rpg/t_sky.js — G12: the sky and the atmosphere (src/rpg/js/09e_sky.js).
 // The dome / ridge ring / aurora / shafts sit in R.render3d.scene; the dome is camera-relative (it follows the camera); the colours at the top
 // of #gl (sky only, the camera tilted up to 15°) differ as expected at noon / dusk / night / rain / snow; the ring's profile follows the land;
-// the 3D aurora shows beyond the Wall at night only; no errors; cost per frame with and without the sky; screenshots at 390×844.
+// the 3D aurora shows beyond the Wall at night only; no errors; cost per frame with and without the sky; screenshots on the landscape phone (844×390).
+// Landscape: fov 50° on a wide frame, so at the lowest camera pitch (15°, the game's clamp) the top rows of #gl look ~7–10° above the horizon
+// (portrait looked ~13–16° up); topColor reports the elevation of the rows it reads.
 //   python3 src/build_rpg.py beta/index.html && CHROMIUM_PATH=… node tests/rpg/t_sky.js      (RPG_HTML=… RPG_NOBUILD=1 to test another build)
 // Screenshots: .shots/rpg/sky_*.png
 'use strict';
 const L = require('./lib');
 const { ok, skip } = L;
 
+// in the 7200-wide grid of the old map; scaled to the world (R.WS × that) after boot, so 'north' is the North, not beyond the Wall
 const PLACES = {
   reach: { x: 2300, y: 9300 }, dorne: { x: 3970, y: 11200 }, north: { x: 3300, y: 3300 }, river: { x: 2540, y: 7450 }, beyond: { x: 3700, y: 300 }
 };
@@ -20,6 +23,9 @@ const PLACES = {
   try { b = await L.boot(page, { save: L.fakeSave({ house: 'tyrell', hero: 'jon', lvl: 30 }) }); } catch (e) { ok('boot', false, e.message); await close(); return L.report(); }
   await E(() => { if (R.ui && R.ui.cur) R.ui.close(); });
   await L.steps(page, 10);
+  const lay = await E(() => ({ vw: R.vw, vh: R.vh, rot: !!R.rot, ws: (R.data.world && R.data.world.W || 7200) / 7200 }));
+  for (const k in PLACES) { PLACES[k].x *= lay.ws; PLACES[k].y *= lay.ws; }
+  ok('the landscape phone: the app is 844×390, not turned', lay.vw === 844 && lay.vh === 390 && !lay.rot, JSON.stringify(lay));
   const base = await E(() => ({ sky: !!R.sky, sys: !!(R.sys.sky), order: R.sys.sky && R.sys.sky.order, r3: !!(R.render3d && R.render3d.scene), why: R.sky && R.sky.why, mode: R.render && R.render.mode }));
   if (!base.r3) { skip('the sky in the 3D scene', 'no R.render3d (' + base.mode + ')'); ok('R.sky exists without WebGL and does not throw', base.sky, JSON.stringify(base)); await close(); return L.report(); }
   ok('system sky (order 895, before the renderer\'s 900)', base.sys && base.order === 895 && base.order < 900, JSON.stringify(base));
@@ -42,7 +48,9 @@ const PLACES = {
     const gl = G.renderer.getContext(), W = gl.drawingBufferWidth, H = gl.drawingBufferHeight, px = new Uint8Array(4), acc = [0, 0, 0]; let n = 0;
     for (let i = 0; i < 12; i++) for (const fy of [.985, .96, .93]) { gl.readPixels(Math.floor((i + .5) / 12 * W), Math.floor(fy * H), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); acc[0] += px[0]; acc[1] += px[1]; acc[2] += px[2]; n++; }
     for (const o of hid) o.visible = true;
-    const c = acc.map(v => Math.round(v / n)); return { r: c[0], g: c[1], b: c[2], sum: c[0] + c[1] + c[2], sat: Math.max(...c) - Math.min(...c) };
+    // the elevation (degrees above the horizontal) the read rows look at, centre column
+    const cam = G.camera, elev = fy => { const v = new THREE.Vector3(0, 2 * fy - 1, .5).unproject(cam).sub(cam.position).normalize(); return +(Math.asin(v.y) * 180 / Math.PI).toFixed(1); };
+    const c = acc.map(v => Math.round(v / n)); return { r: c[0], g: c[1], b: c[2], sum: c[0] + c[1] + c[2], sat: Math.max(...c) - Math.min(...c), el: [elev(.93), elev(.985)] };
   }, onlySky);
 
   /* ---- 1. attached + follows the camera ---- */
@@ -70,6 +78,7 @@ const PLACES = {
   const rain = await setScene(Object.assign({ h: 12, w: 'rain', pitch: 15 }, PLACES.river)).then(() => topColor(true));
   const snow = await setScene(Object.assign({ h: 12, w: 'snow', pitch: 15 }, PLACES.north)).then(() => topColor(true));
   const C = { noon, dusk, night, rain, snow }; console.log('  info top-of-#gl colours ' + JSON.stringify(C));
+  ok('landscape frame at pitch 15°: the read rows are sky, above the horizon (> 3°)', [noon, dusk, night, rain, snow].every(c => c.el[0] > 3), JSON.stringify([noon, dusk, night, rain, snow].map(c => c.el)));
   ok('noon: a blue sky (b > r + 40, bright)', noon.b > noon.r + 40 && noon.sum > 330, JSON.stringify(noon));
   ok('dusk toward the sun: warm (r > b)', dusk.r > dusk.b + 10, JSON.stringify(dusk));
   ok('night: dark navy (sum < 120, b ≥ r)', night.sum < 120 && night.b >= night.r, JSON.stringify(night));
@@ -103,7 +112,7 @@ const PLACES = {
   // software GL shades the dome's sky pixels on a CPU shared by several agents: there the bound is 40 % (12 % on a GPU)
   ok('cost: the sky adds < 12 % (40 % on software GL) or < 6 ms to a frame, its update < 0.5 ms', (cost.on - cost.off < 6 || cost.on < cost.off * (/SwiftShader|llvmpipe|software/i.test(cost.gl || '') ? 1.4 : 1.12)) && cost.skyUpdateMs < .5, JSON.stringify(cost));
 
-  /* ---- 5. screenshots (390×844, the HUD hidden so the sky shows; the camera tilted up to 15° except the first) ---- */
+  /* ---- 5. screenshots (844×390 landscape, the HUD hidden so the sky shows; the camera tilted up to 15° except the first) ---- */
   const shots = [['sky_noon_reach_game', { h: 12, w: 'clear' }, 'reach'], ['sky_noon_reach', { h: 12, w: 'clear', pitch: 15 }, 'reach'], ['sky_dusk_dorne', { h: 19.2, w: 'heat', pitch: 15, sunYaw: true }, 'dorne'],
     ['sky_night_north_stars', { h: 23.5, w: 'clear', pitch: 15, yaw: Math.PI, no2d: 1 }, 'north'], ['sky_rain_riverlands', { h: 13, w: 'rain', pitch: 15 }, 'river'],
     ['sky_beyond_wall_aurora', { h: 23.5, w: 'clear', pitch: 15, yaw: Math.PI / 2, no2d: 1 }, 'beyond'], ['sky_beyond_wall_aurora_game', { h: 23.5, w: 'clear', yaw: Math.PI / 2 }, 'beyond']];

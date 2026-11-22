@@ -144,9 +144,13 @@ if (!process.env.RPG_HTML && process.env.HOLDOR_RPG_HTML) process.env.RPG_HTML =
   }
   const ns = await page.evaluate(() => { const N = R.nature, A = R.ambience, out = {}; R.stop(); A.set('clear'); for (let i = 0; i < 400; i++) R.step(); out.clear = +N.stormTarget().toFixed(2);
     A.set('rain'); for (let i = 0; i < 400; i++) R.step(); out.rain = +N.storm().toFixed(2); out.rainT = +N.stormTarget().toFixed(2); A.set('auto');
-    // a mob walking next to the hero becomes a bender
-    const p = R.player, m = R.ents.find(e => e.kind === 'mob' && !e.dead) || null; if (m) { m.x = p.x + 60; m.y = p.y; m.vx = 50; } R.step();
+    // a mob walking past the hero, 60 units to his side, becomes a bender. It really walks (2 units a step = 120 u/s, 8 steps): 24_physics
+    // measures e.vel from the displacement, and a mob just teleported in has vel 0 — a standing mob gets a slot only when fewer than
+    // 8 moving bodies within 700 fill the list (beyond the Wall there are often more)
+    const p = R.player, m = R.ents.find(e => e.kind === 'mob' && !e.dead) || null;
+    if (m) { m.x = p.x + 60; m.y = p.y - 8; R.step(); for (let i = 0; i < 8; i++) { m.x = p.x + 60; m.y += 2; m.vx = 0; m.vy = 120; R.step(); } } else R.step();
     out.mob = m ? N.benders().some(b => Math.abs(b.x - m.x) < 6 && Math.abs(b.y - m.y) < 6) : null;
+    if (m) out.mobInfo = { type: m.type, dx: Math.round(m.x - p.x), sp: Math.round(R.phys && R.phys.speed ? R.phys.speed(m) : -1), nb: N.benders().length };
     // the world corners at the new scale: chunks build there without errors, keys stay integral
     const W = R.data.world.W || R.W, H = R.data.world.H || R.H, ch = N.build(Math.floor(W * .98 / N.CHUNK), Math.floor(H * .98 / N.CHUNK), 0); out.corner = !!ch && ch.key === Math.floor(W * .98 / N.CHUNK) + ',' + Math.floor(H * .98 / N.CHUNK);
     out.W = W; out.H = H; return out; });

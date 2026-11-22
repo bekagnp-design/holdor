@@ -68,14 +68,15 @@
     pr[n] = true; dn[n] = true;
     if (src === 'btn') I.haptic(HAP[n] || 'light');
     if (n === 'interact' && I.interact && typeof I.interact.fn === 'function') { try { I.interact.fn(I.interact); } catch (e) { console.error('interact', e); } }
-    if (src === 'btn' && UIB[n] && btns[n]) { const b = btns[n].getBoundingClientRect(); ghost = { t: performance.now() + 2500, l: b.left - 12, r: b.right + 12, tp: b.top - 12, b: b.bottom + 12 }; }   // the screen this opens is now under the finger: eat the click the touch makes there
+    if (src === 'btn' && UIB[n] && btns[n]) { const b = R.rect ? R.rect(btns[n]) : btns[n].getBoundingClientRect(); ghost = { t: performance.now() + 2500, l: b.left - 12, r: b.right + 12, tp: b.top - 12, b: b.bottom + 12 }; }   // the screen this opens is now under the finger: eat the click the touch makes there
     R.bus.emit('btn', n, src); return true; };
   /* a touch on a top-row button opens a screen on pointerdown; the browser then sends a 'click' to whatever is under the finger — the new
      screen (its close button, its backdrop). That click — on the button's own spot, before the next touch (2.5 s at most: a slow software-GL frame can delay it) — is swallowed once. */
   let ghost = null;
+  const P = e => (R.pt ? R.pt(e.clientX, e.clientY) : { x: e.clientX, y: e.clientY });   /* pointer → app coordinates (the app may be turned, 00_core) */
   document.addEventListener('pointerdown', () => { ghost = null; }, true);   // a new touch starts a new interaction (runs before the button's own handler)
   document.addEventListener('click', e => { const g = ghost; if (!g) return; if (performance.now() > g.t) { ghost = null; return; }
-    if (e.clientX >= g.l && e.clientX <= g.r && e.clientY >= g.tp && e.clientY <= g.b) { ghost = null; e.stopPropagation(); e.preventDefault(); } }, true);
+    const q = P(e); if (q.x >= g.l && q.x <= g.r && q.y >= g.tp && q.y <= g.b) { ghost = null; e.stopPropagation(); e.preventDefault(); } }, true);
   const release = n => { dn[n] = false; };
   for (const n in btns) {
     const el = btns[n]; el._pid = null;
@@ -91,24 +92,24 @@
   const recompute = () => { if (jid === null) setMove(keyMove.x, keyMove.y); };
   const place = () => { joy.style.transform = 'translate(' + jx.toFixed(1) + 'px,' + jy.toFixed(1) + 'px)'; };
   const isFree = t => t === zone || t === lzone || t === ui || t === R.cv || (t && (t.id === 'c' || t.id === 'gl' || t.id === 'app'));
-  const joyStart = e => { jid = e.pointerId; jx = e.clientX; jy = e.clientY; I.active = true; place(); knob.style.transform = 'translate(0,0)'; joy.classList.add('on'); rest.classList.add('off'); setMove(0, 0); };
-  const joyMove = e => { let dx = e.clientX - jx, dy = e.clientY - jy, d = Math.hypot(dx, dy);
+  const joyStart = e => { const q = P(e); jid = e.pointerId; jx = q.x; jy = q.y; I.active = true; place(); knob.style.transform = 'translate(0,0)'; joy.classList.add('on'); rest.classList.add('off'); setMove(0, 0); };
+  const joyMove = e => { const q = P(e); let dx = q.x - jx, dy = q.y - jy, d = Math.hypot(dx, dy);
     if (d > RAD) { const k = (d - RAD) / d; jx += dx * k; jy += dy * k; dx -= dx * k; dy -= dy * k; d = RAD; place(); }   // the base follows the thumb
     knob.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px)';
     if (d < DEAD) setMove(0, 0); else { const m = Math.min(1, (d - DEAD) / (RAD - DEAD)); setMove(dx / d * m, dy / d * m); } };
   const joyEnd = () => { if (jid === null) return; jid = null; I.active = false; joy.classList.remove('on'); rest.classList.remove('off'); recompute(); };
   /* ---- camera look + pinch (right half, free touches) ---- */
   const acc = { dx: 0, dy: 0, pinch: 1 }; const looks = [];                    // accumulated between steps; published by the pre-step system
-  const lookStart = e => { looks.push({ id: e.pointerId, x: e.clientX, y: e.clientY }); };
-  const lookMove = e => { const p = looks.find(q => q.id === e.pointerId); if (!p) return;
-    if (looks.length >= 2 && (looks[0] === p || looks[1] === p)) { const o = looks[0] === p ? looks[1] : looks[0]; const d0 = Math.hypot(p.x - o.x, p.y - o.y), d1 = Math.hypot(e.clientX - o.x, e.clientY - o.y); if (d0 > 4 && d1 > 4) acc.pinch *= d1 / d0; }
-    else if (looks.length === 1) { acc.dx += e.clientX - p.x; acc.dy += e.clientY - p.y; }
-    p.x = e.clientX; p.y = e.clientY; };
+  const lookStart = e => { const q = P(e); looks.push({ id: e.pointerId, x: q.x, y: q.y }); };
+  const lookMove = e => { const p = looks.find(q => q.id === e.pointerId); if (!p) return; const q = P(e);
+    if (looks.length >= 2 && (looks[0] === p || looks[1] === p)) { const o = looks[0] === p ? looks[1] : looks[0]; const d0 = Math.hypot(p.x - o.x, p.y - o.y), d1 = Math.hypot(q.x - o.x, q.y - o.y); if (d0 > 4 && d1 > 4) acc.pinch *= d1 / d0; }
+    else if (looks.length === 1) { acc.dx += q.x - p.x; acc.dy += q.y - p.y; }
+    p.x = q.x; p.y = q.y; };
   const lookEnd = id => { const i = looks.findIndex(q => q.id === id); if (i >= 0) looks.splice(i, 1); };
   window.addEventListener('wheel', e => { if (hidden() || screenOpen()) return; acc.pinch *= Math.exp(-e.deltaY * 0.0015); }, { passive: true });
   /* ---- pointer routing ---- */
   document.addEventListener('pointerdown', e => { if (!I.enabled || hidden() || screenOpen()) return; if (e.pointerType === 'mouse' && e.button !== 0) return; if (!isFree(e.target)) return;
-    const left = e.clientX < window.innerWidth / 2;
+    const left = P(e).x < (R.vw || window.innerWidth) / 2;
     if (left) { if (jid !== null) return; e.preventDefault(); if (e.pointerType === 'mouse') { try { zone.setPointerCapture(e.pointerId); } catch (x) {} } joyStart(e); }
     else { e.preventDefault(); if (e.pointerType === 'mouse') { try { lzone.setPointerCapture(e.pointerId); } catch (x) {} } lookStart(e); } }, { passive: false });
   window.addEventListener('pointermove', e => { if (jid !== null && e.pointerId === jid) joyMove(e); else lookMove(e); });

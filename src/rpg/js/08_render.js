@@ -820,7 +820,7 @@
      A right-half drag (R.input.look.dx) and Q/E turn it (drag right = turn right), R.input.pinch zooms 300..700 (default 420), the pitch
      follows the zoom (30 deg close .. 40 deg far). Yaw / distance ease toward their targets; a value written to R.cam.yaw / R.cam.dist
      from outside (tests, cut-scenes) is taken as the new target and snapped to. */
-  R.cam.yaw = R.cam.yaw || 0; R.cam.dist = R.cam.dist || 420; R.cam.pitch = R.cam.pitch || 35 * DEG;
+  R.cam.yaw = R.cam.yaw || 0; R.cam.dist = R.cam.dist || (R.vw > R.vh * 1.3 ? 500 : 420);   /* landscape (test 5): a little further back, the wide view shows more ground */ R.cam.pitch = R.cam.pitch || 35 * DEG;
   const CAM = { yawT: R.cam.yaw, distT: R.cam.dist, yawOut: R.cam.yaw, distOut: R.cam.dist, DMIN: 300, DMAX: 700, PMIN: 30, PMAX: 40, TURN: .0065, AHEAD: .14 };
   const _la = new T.Vector3();
   R3.camCfg = CAM;

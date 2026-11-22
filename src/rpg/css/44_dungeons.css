@@ -9,7 +9,7 @@
 #dgleave .h{font:800 18px var(--f-display);color:var(--gold);letter-spacing:.04em}
 #dgleave .s{font-size:14px;color:var(--muted);margin:4px 0 10px}
 #dgleave .s .t{color:#e9eef5;font-weight:700}
-.dgsheet{max-width:420px;margin:8vh auto 0;text-align:center}
+.dgsheet{max-width:420px;margin:calc(8 * var(--vh,1vh)) auto 0;text-align:center}
 .dgsheet .k{font:700 12px var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .dgsheet h2{font:800 28px var(--f-display);color:var(--gold);margin:6px 0 4px}
 .dgsheet .line{color:#cdd6e0;font-size:16px;font-style:italic;margin:0 0 16px}

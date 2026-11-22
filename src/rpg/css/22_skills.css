@@ -41,4 +41,4 @@
 .sk-slots-l{font-size:13px;color:var(--muted);flex:none;width:52px}
 .sk-slot{flex:1;min-height:44px;font-size:14px;letter-spacing:.04em;padding:0 6px}
 .sk-slot.on{background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 85%,#fff),color-mix(in srgb,var(--acc) 70%,#000));border-color:#fff;color:#0b1220;box-shadow:0 0 12px color-mix(in srgb,var(--acc) 60%,transparent)}
-@media (max-height:700px){.sk-icon{width:44px;height:44px;font-size:24px}.sk-desc{font-size:14px}}
+html.q-h700 .sk-icon{width:44px;height:44px;font-size:24px}html.q-h700 .sk-desc{font-size:14px}

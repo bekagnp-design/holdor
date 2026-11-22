@@ -10,7 +10,7 @@ const ok = (c, name, info) => { console.log((c ? 'OK   ' : 'FAIL ') + name + (in
 const near = (a, b) => Math.abs(a - b) < 1e-6;
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, args: ['--autoplay-policy=no-user-gesture-required'] });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+  const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
   const errors = [];
   page.on('pageerror', e => errors.push('PE:' + e.message));
   page.on('console', m => { if (m.type() === 'error' && !/ERR_TUNNEL|Failed to load|net::|telegram/i.test(m.text()) && !/^items\.roll /.test(m.text())) errors.push('C:' + m.text()); });   // items.roll: 30_items throws on some drop kinds (reported to its owner; 32_loot falls back)
@@ -129,8 +129,8 @@ const near = (a, b) => Math.abs(a - b) < 1e-6;
   ok(steps.snow === 'stepSnow' && steps.wet === 'stepWet' && steps.sand === 'stepSand' && steps.stone === 'stepStone' && steps.grass === 'stepGrass' && steps.none === 'stepGrass', 'footstep: one sound per surface for the player', steps);
   ok(steps.far === null && steps.near === 'stepSnow' && steps.second === null, 'footstep: others only within 300 units, one per 120 ms', { far: steps.far, near: steps.near, second: steps.second });
 
-  // 9. a real tap on a <button> plays the ui tick
-  await page.evaluate(() => { if (R.player) R.player.hp = R.player.hpMax = 1e9; try { if (R.ui && R.ui.cur) R.ui.close(); } catch (e) {} const b = document.createElement('button'); b.id = 'tsfxb'; b.textContent = 'TAP'; b.style.cssText = 'position:fixed;left:100px;top:600px;width:140px;height:56px;z-index:2147483647'; document.body.appendChild(b); R.sfx.last = null; });
+  // 9. a real tap on a <button> plays the ui tick (the test's own button sits inside the 390-px-tall landscape viewport)
+  await page.evaluate(() => { if (R.player) R.player.hp = R.player.hpMax = 1e9; try { if (R.ui && R.ui.cur) R.ui.close(); } catch (e) {} const b = document.createElement('button'); b.id = 'tsfxb'; b.textContent = 'TAP'; b.style.cssText = 'position:fixed;left:100px;top:200px;width:140px;height:56px;z-index:2147483647'; document.body.appendChild(b); R.sfx.last = null; });
   await page.waitForTimeout(150); await page.tap('#tsfxb'); await page.waitForTimeout(60);
   const tap = await page.evaluate(() => { const l = R.sfx.last; document.getElementById('tsfxb').remove(); return l; });
   ok(tap === 'ui', 'a tap on a <button> plays the ui tick', tap);

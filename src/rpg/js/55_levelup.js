@@ -100,14 +100,14 @@
       '<button class="slot' + (i >= 0 ? ' in' : '') + '" data-slot="' + esc(s.id) + '"' + (i >= 0 ? ' disabled' : '') + '>' + (i >= 0 ? 'IN SLOT ' + (i + 1) + ' ✓' : 'PUT IN SLOT') + '</button></div>'; }).join('');
     const pb = STATS.map(k => { const add = auto ? (log[k] || 0) : 0, main = k === (MAIN[p.cls] || 'str'); return '<button class="pb' + (main ? ' main' : '') + '" data-k="' + k + '"' + (auto || pts <= 0 ? ' disabled' : '') + '><span class="k">' + SNAME[k] + '</span><span class="v">' + (p.stats[k] | 0) + '</span><span class="p">' + (auto ? (add ? '+' + add : '·') : '+') + '</span></button>'; }).join('');
     const ptsTxt = auto ? (gained ? gained + ' POINT' + (gained > 1 ? 'S' : '') + ' · BY CLASS' : 'POINTS BY CLASS') : pts + ' POINT' + (pts !== 1 ? 'S' : '') + ' TO SPEND';
-    root.innerHTML = '<div class="lvup" style="--acc:' + H.col + ';--acc2:' + H.col2 + '">' +
+    root.innerHTML = '<div class="lvup" style="--acc:' + H.col + ';--acc2:' + H.col2 + '"><div class="lv-l">' +
       '<div class="hd"><span class="ring"></span><span class="burst">' + burst() + '</span><span class="k">LEVEL UP</span><span class="n">' + pend.to + '</span></div>' +
       '<div class="sig" title="' + esc(H.n) + '">' + (H.sigil ? '<img src="' + esc(H.sigil) + '" alt="">' : '<span>' + esc(H.e) + '</span>') + '</div>' +
       '<div class="who">' + esc(p.name || 'You') + ' · ' + esc(H.n) + ' · ' + esc((p.cls || 'knight').toUpperCase()) + '</div>' +
-      (line ? '<p class="say">' + esc(line) + '</p>' : '') +
+      (line ? '<p class="say">' + esc(line) + '</p>' : '') + '</div><div class="lv-r">' +
       '<div class="st"><table>' + rows + '</table></div>' + skHtml +
       '<div class="pts"><div class="h"><span class="t">' + ptsTxt + '</span><button class="auto' + (auto ? ' on' : '') + '">AUTO</button></div><div class="g">' + pb + '</div></div>' +
-      '<button class="pri go">CONTINUE</button></div>'; };
+      '<button class="pri go">CONTINUE</button></div></div>'; };
   const onTap = ev => { const b = ev.target.closest('button'); if (!b || !root || !root.contains(b)) return;
     if (b.classList.contains('go')) { haptic('tap'); R.ui.close(); return; }
     if (b.classList.contains('auto')) { haptic('tap'); setAuto(!b.classList.contains('on')); return; }

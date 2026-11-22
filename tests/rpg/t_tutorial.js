@@ -5,7 +5,7 @@ const path = require('path');
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
   const errors = []; const RES = {}; const ok = (k, v, info) => { RES[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
-  const p = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true });
+  const p = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1, hasTouch: true });
   p.on('pageerror', e => errors.push('PE:' + e.message));
   await p.goto('file://' + path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'beta/index.html'));
   await p.waitForFunction(() => window.R && R.sys && R.sys.tutorial && R.tut, { timeout: 20000 }); await p.waitForTimeout(300);

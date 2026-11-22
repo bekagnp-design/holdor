@@ -161,3 +161,15 @@ waits for `R.assets.ready` (A04's loader) then calls `R.ui.open('intro')` for a 
    `R.acc()` and keeps `R.state.p.flags` as an alias object of `acc.world.flags` so existing code keeps working).
 3. The old wallet import gives the FIRST hero its gold/gems and unlocks the champions it had.
 4. Open-source code may be copied only under MIT/BSD/Apache licences (three.js and its examples are MIT) with the licence header kept.
+
+## Addendum 3 (owner's decision, 2026-11-22, test 5) — the game is horizontal
+- The app is always laid out **wide**. `R.layout()` (00_core): a portrait window turns the whole `#app` 90° clockwise with a CSS
+  transform (`R.rot = true`; the player turns the phone a quarter to the left), a landscape window needs no turn. `R.vw` / `R.vh` are
+  always the app's own size (a 390×844 phone held upright → 844×390).
+- Pointer coordinates go through `R.pt(clientX, clientY)`, element rectangles through `R.rect(el)` (both in app coordinates); never
+  compare `clientX` / `getBoundingClientRect()` with `R.w2s` or `R.vw` directly.
+- CSS never uses `vw` / `vh`: use `calc(N * var(--vw))` / `var(--vh)` (1 % of the app). A size media query sees the unturned screen, so
+  use the classes on `<html>` instead: `q-s` (landscape, app height ≤ 520), `q-h700`, `q-w370`, `q-w480`, `q-wide` (app width ≥ 600 and
+  wider than tall). `position: fixed` inside `#app` follows the turn.
+- A focused text field keeps the layout while a soft keyboard shrinks the window. Tests run at 844×390 (lib.js); `t_landscape.js`
+  covers the turned mode.

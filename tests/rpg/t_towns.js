@@ -1,4 +1,4 @@
-// HOLDOR RPG — towns (A21): the shop, the inn and the smith on a 390×844 phone with real taps.
+// HOLDOR RPG — towns (A21): the shop, the inn and the smith on a landscape 844×390 phone with real taps.
 // The shop shows 6 items of the day; buying a potion takes gold and adds to potions.hp; what the hero cannot afford says "Need N more";
 // SELL sells one item and offers "sell all Commons"; the inn's REST heals to full, clears ailments and takes 20 × lvl/5 gold (free under 5);
 // the smith's UPGRADE raises the item (+1, lvl) and takes mats + gold; REFORGE takes 30 gems and changes the secondary stat.
@@ -8,7 +8,7 @@ const SC = path.resolve(__dirname, '..', '..', '.shots') + '/'; fs.mkdirSync(SC,
 const HTML = path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'beta/index.html');
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+  const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message)); page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push('CE:' + m.text()); });   // the Telegram SDK include may not load offline
   await page.goto('file://' + HTML); await page.waitForFunction(() => window.R && R.towns && R.screens.shop && R.screens.inn && R.screens.smith, { timeout: 20000 });
   const out = []; let bad = 0; const ok = (name, v, info) => { if (!v) bad++; out.push((v ? 'OK   ' : 'FAIL ') + name + (info ? '  [' + info + ']' : '')); };
@@ -31,12 +31,18 @@ const HTML = path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'bet
     const small = [...document.querySelectorAll('#screen *')].filter(e => e.children.length === 0 && e.textContent.trim() && !e.closest('svg')).map(e => parseFloat(getComputedStyle(e).fontSize)).filter(x => x < 13).length;
     return { n: cards.length, stock: R.towns.stock(window.__poi).length, stats: cards.map(c => (c.querySelector('.tw-st') || {}).textContent || ''), chips: cards.filter(c => c.querySelector('.tw-chip')).length,
       buys: cards.map(c => (c.querySelector('[data-buy]') || {}).textContent || ''), pots: document.querySelectorAll('.tw-card.pot').length, prem: [...document.querySelectorAll('.tw-card.prem b')].map(b => b.textContent),
-      bal: (document.querySelector('.tw-bal') || {}).textContent, fits: scr.scrollHeight <= vh + 1, sh: scr.scrollHeight, short: btns.filter(h => h < 44).length, small, tabs: [...document.querySelectorAll('.tw-tabs button')].map(b => b.textContent) }; });
+      bal: (document.querySelector('.tw-bal') || {}).textContent, sh: scr.scrollHeight, short: btns.filter(h => h < 44).length, small,
+      // landscape (390 px tall): the shop scrolls, but the first glance (scrollTop 0) holds the back arrow, the balance, the three tabs, BUY/SELL and the first item's BUY
+      glance: (() => { scr.scrollTop = 0; const vw = window.innerWidth, out = {}; for (const [k, sel] of [['back', '.tw-back'], ['bal', '.tw-bal'], ['tabs', '.tw-tabs'], ['seg', '.tw-seg'], ['buy0', '[data-buy="g:0"]']]) { const e = document.querySelector(sel), r = e && e.getBoundingClientRect(); out[k] = !!r && r.width > 0 && r.top >= 0 && r.bottom <= vh + 1 && r.left >= 0 && r.right <= vw + 1 ? 1 : (r ? [Math.round(r.top), Math.round(r.bottom)] : 0); } return out; })(),
+      scrolls: /auto|scroll/.test(getComputedStyle(scr).overflowY) && scr.scrollHeight > scr.clientHeight,
+      last: (() => { const c = document.querySelectorAll('#screen .tw-card'), e = c[c.length - 1]; if (!e) return 0; scr.scrollTop = scr.scrollHeight; const r = e.getBoundingClientRect(), ok = r.bottom <= vh + 1 && r.top >= 0; scr.scrollTop = 0; return ok ? 1 : [Math.round(r.top), Math.round(r.bottom)]; })(),
+      side: Math.max(document.documentElement.scrollWidth - window.innerWidth, scr.scrollWidth - scr.clientWidth), tabs: [...document.querySelectorAll('.tw-tabs button')].map(b => b.textContent) }; });
   ok('6 gear items of the day, each with the main stat vs the equipped one and a price chip', shop.n === 6 && shop.stock === 6 && shop.chips === 6 && shop.stats.every(s => (/(ATK|DEF|HP|SPD|CRIT) \d+/.test(s) && /[▲▼=]/.test(s)) || /^(Heals|Restores|Material)/.test(s)), shop.n + ' · ' + JSON.stringify(shop.stats) + ' chips ' + shop.chips + ' stock ' + shop.stock);   // a potion in the stock says what it does (G7)
   ok('every item is affordable for a hero with 5000 gold: green BUY', shop.buys.every(t => /^BUY/.test(t)), JSON.stringify(shop.buys));
   ok('two potion cards and the premium row (Rare chest, Legendary roll, +10 bag slots)', shop.pots === 2 && shop.prem.join('|') === 'Rare chest|Legendary roll|+10 bag slots', shop.pots + ' · ' + shop.prem.join('|'));
   ok('the balance row shows gold and gems', /5k|5000/.test(shop.bal) && /500/.test(shop.bal), shop.bal);
-  ok('the whole shop fits one 844-px glance, no button under 44 px, no text under 13 px', shop.fits && shop.short === 0 && shop.small === 0, `h ${shop.sh} short ${shop.short} small ${shop.small}`);
+  ok('landscape glance: back, balance, the 3 tabs, BUY/SELL and the first BUY on screen without scrolling', Object.values(shop.glance).every(v => v === 1), JSON.stringify(shop.glance));
+  ok('the rest scrolls vertically (the last card reachable), no sideways scroll, no button under 44 px, no text under 13 px', (shop.sh <= 391 || shop.scrolls) && shop.last === 1 && shop.side <= 1 && shop.short === 0 && shop.small === 0, `h ${shop.sh} scrolls ${shop.scrolls} last ${JSON.stringify(shop.last)} side ${shop.side} short ${shop.short} small ${shop.small}`);
   ok('the three town tabs SHOP · INN · SMITH', shop.tabs.join() === 'SHOP,INN,SMITH', shop.tabs.join());
   await page.screenshot({ path: SC + 'rpg_shop.png' });
   // ---- buy a potion with a real tap

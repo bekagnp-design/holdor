@@ -11,7 +11,7 @@ let fails = 0;
 const chk = (ok, what) => { console.log((ok ? 'OK   ' : 'FAIL ') + what); if (!ok) fails++; };
 (async () => {
   const b = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome' });
-  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const pg = await b.newPage({ viewport: { width: 844, height: 390 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   const t0 = Date.now();
   await pg.goto('file://' + OUT);

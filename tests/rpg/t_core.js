@@ -14,10 +14,10 @@ const { ok } = L;
     /* ================= A: fresh boot → the intro; the inline loader gives way ================= */
     const b = await L.boot(p, { save: null, settle: 700 });
     const a0 = await E(() => ({ v: R.VERSION, boot: R.boot, cur: R.ui.cur, player: !!R.player, hero: R.state && R.state.p && R.state.p.hero, loader: !!document.getElementById('boot'),
-      gl: document.querySelectorAll('canvas#gl').length === 1 && !!(document.getElementById('gl').compareDocumentPosition(document.getElementById('c')) & Node.DOCUMENT_POSITION_FOLLOWING), vw: R.vw, vh: R.vh }));
+      gl: document.querySelectorAll('canvas#gl').length === 1 && !!(document.getElementById('gl').compareDocumentPosition(document.getElementById('c')) & Node.DOCUMENT_POSITION_FOLLOWING), vw: R.vw, vh: R.vh, rot: R.rot }));
     ok('R.VERSION 2.0.0', a0.v === '2.0.0', a0.v);
     ok('fresh boot: the intro opens (R.boot intro), no hero yet, the inline loader is gone', b.booted && a0.boot === 'intro' && a0.cur === 'intro' && !a0.hero && !a0.loader, JSON.stringify(a0));
-    ok('one #gl canvas, under (before) #c; viewport 390×844', a0.gl && a0.vw === 390 && a0.vh === 844, JSON.stringify(a0));
+    ok('one #gl canvas, under (before) #c; the landscape app 844×390 (no turn on a landscape window)', a0.gl && a0.vw === 844 && a0.vh === 390 && a0.rot === false, JSON.stringify(a0));
     const first = await E(() => ({ core: ['stark', 'lannister', 'baratheon', 'targaryen', 'greyjoy', 'tyrell', 'martell'].map(h => R.firstChamp(h)),
       a10: R.champs && R.champs.first ? ['stark', 'lannister', 'martell'].map(h => R.champs.first(h)) : null, heroes: R.heroes ? ['stark', 'lannister', 'martell'].map(h => R.heroes.starter(h)) : null,
       intro: R.intro && R.intro.starter ? ['stark', 'lannister', 'martell'].map(h => R.intro.starter(h)) : null, ns: Object.keys(R.newState('tyrell').acc.champs) }));
@@ -146,6 +146,7 @@ const { ok } = L;
     const why = await E(() => R.player ? null : (window.__nullWhy || "no clearEnts")); if (why) console.log('  info R.player was cleared by: ' + why);
     await E(() => { R.run(); if (!R.player) R.enterWorld(); R.player.x = 4321; R.player.y = 8765; R.save(true); });
     await L.boot(p, { settle: 400 });
+    await L.waitFor(p, () => !!(window.R && R.player), 8000);   // a loaded machine (software GL) can run the world's entry a frame after R.running
     const re = await E(() => ({ boot: R.boot, x: R.player.x, y: R.player.y, hero: R.state.p.hero, running: R.running, cur: R.ui.cur, alias: R.state.p.flags === R.state.acc.world.flags && R.state.p.flags.keepMe === 1 }));
     ok('reload: the living hero enters the world at his saved position, aliases live', re.boot === 'world' && Math.abs(re.x - 4321) < 40 && Math.abs(re.y - 8765) < 40 && re.hero === 'sansa' && re.running && re.cur === null && re.alias, JSON.stringify(re));
 

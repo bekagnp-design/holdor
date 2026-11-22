@@ -51,4 +51,4 @@ button.pri.hr-ride{min-height:58px;font-size:19px}
 .hr-rown{font:800 15px var(--f-display);color:#f3e7c4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hr-rown b{color:var(--gold);margin-left:4px}
 .hr-rowk{font-size:12px;color:var(--muted);margin-top:1px}
-@media (max-height:700px){.hr-card{min-height:184px}.hr-card .hr-pt{width:80px!important;height:80px!important}}
+html.q-h700 .hr-card{min-height:184px}html.q-h700 .hr-card .hr-pt{width:80px!important;height:80px!important}

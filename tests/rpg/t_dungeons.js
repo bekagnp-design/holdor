@@ -10,7 +10,7 @@ const { chromium } = require('playwright'); const fs = require('fs'), path = req
   // Build quirk guard: if the modules were inlined into the external telegram <script src> (ignored by browsers), move them into the inline script.
   if (/telegram-web-app\.js">\s*\/\* ====/.test(html)) { let moved = ''; html = html.replace(/(<script src="[^"]*telegram-web-app\.js">)([\s\S]*?)(<\/script>)/, (m, a, b, c) => { moved = b; return a + c; });
     html = html.replace("'use strict';", "'use strict';\n" + moved); file = path.join(os.tmpdir(), 'holdor_rpg_dg_test.html'); fs.writeFileSync(file, html); console.log('NOTE build inlined js into the telegram script tag; a patched copy is used:', file); }
-  const p = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true });
+  const p = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1, hasTouch: true });
   p.on('pageerror', e => errors.push('PE:' + e.message)); p.on('console', m => { if (m.type() === 'error' && !/ERR_|Failed to load/.test(m.text())) errors.push('CE:' + m.text()); });
   await p.goto('file://' + file); await p.waitForFunction(() => window.R && R.dungeons && R.sys.dungeons, { timeout: 15000 });
   // Fakes for the modules the other agents own (only when absent) + a player and a state when the core/boot did not make them.
