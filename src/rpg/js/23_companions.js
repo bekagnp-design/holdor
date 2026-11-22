@@ -10,6 +10,8 @@
    Soft dependencies: R.data.champs (A10: name, house, type, unlock), A_CHAMP.list / A_CHAMP.art[id+'_portrait'] (A04), R.draw.portrait (A03),
    R.newHero + R.acc (A01), R.data.world.regions (A07), R.data.houses. Each has a fallback. */
 (function () {
+  // A_CHAMP is a top-level const of the assets (not a window property): read it by name
+  const AC = () => { try { return typeof A_CHAMP !== 'undefined' ? A_CHAMP : window.A_CHAMP; } catch (e) { return window.A_CHAMP; } };
   if (!window.R) return;
   const HCOL = { stark: '#a9bdd0', lannister: '#e3b661', baratheon: '#e0c14a', targaryen: '#e14b4b', greyjoy: '#d8b74a', tyrell: '#7fd06a', martell: '#f08a3c' };
   const HNAME = { stark: 'Stark', lannister: 'Lannister', baratheon: 'Baratheon', targaryen: 'Targaryen', greyjoy: 'Greyjoy', tyrell: 'Tyrell', martell: 'Martell' };
@@ -52,7 +54,8 @@
   const unlock = (id, why) => { const a = acc(); const c = champ(id); if (!a || !c) return false; const was = isUnlocked(id); a.champs[id] = Object.assign(a.champs[id] || { runs: 0 }, { unlocked: 1 }); if (was) return false;
     if (why !== 'start' && why !== 'import') { toast(c.name + ' joins your house', colOf(c.house)); sfx('unlock', 0.7); } R.bus.emit('hero', id, why); R.save(); if (R.ui && R.ui.cur === 'heroes') render(document.getElementById('screen')); return true; };
   const current = () => { const p = R.state && R.state.p; if (!p) return null; return p.hero || (p.name && champ(p.name) ? p.name : null); };
-  const alive = () => !!(R.state && R.state.p && R.state.p.hero && !R.state.p.dead && !(R.player && R.player.dead));
+  const ended = () => { const a = acc(), p = R.state && R.state.p; if (!a || !p) return false; const l = a.hall[a.hall.length - 1]; return !!(l && l.id === p.hero && (l.at || 0) >= (p.created || 0)); };   // this run is in the Hall
+  const alive = () => !!(R.state && R.state.p && R.state.p.hero && !R.state.p.dead && !(R.player && R.player.dead) && !ended());
   const runsOf = id => { const a = acc(); if (!a) return 0; let n = 0; for (const h of a.hall) if (h.id === id) n++; return n + (alive() && current() === id ? 1 : 0); };
   const best = () => { const a = acc(); if (!a) return { lvl: 0, runs: 0 }; let lvl = a.best.lvl | 0; for (const h of a.hall) if ((h.lvl | 0) > lvl) lvl = h.lvl | 0; return { lvl, runs: a.hall.length + (alive() ? 1 : 0), kills: a.best.kills | 0 }; };
   const bestOf = id => { const a = acc(); if (!a) return 0; let b = (a.champs[id] && a.champs[id].best) | 0; for (const h of a.hall) if (h.id === id && h.lvl > b) b = h.lvl; return b; };
@@ -69,12 +72,13 @@
   /* ---- a portrait element: R.draw.portrait → A_CHAMP art → the initial in the house colour ---- */
   const portrait = (id, size) => { size = size || 96; const c = champ(id) || { name: id, house: 'stark' }; let el = null;
     if (R.draw && typeof R.draw.portrait === 'function') { try { const r = R.draw.portrait(id, size); if (r && r.nodeType) el = r; else if (typeof r === 'string') { el = new Image(); el.src = r; } } catch (e) { el = null; } }
-    if (!el) { const A = window.A_CHAMP; const u = A && ((A.art && A.art[id + '_portrait']) || A[id + '_portrait'] || (A.portraits && A.portraits[id])); if (typeof u === 'string') { el = new Image(); el.src = u; el.alt = c.name; } }
+    if (!el) { const A = AC(); const u = A && ((A.art && A.art[id + '_portrait']) || A[id + '_portrait'] || (A.portraits && A.portraits[id])); if (typeof u === 'string') { el = new Image(); el.src = u; el.alt = c.name; } }
     if (!el) { el = document.createElement('div'); el.className = 'hr-ini'; el.textContent = (c.name || id)[0]; el.style.color = colOf(c.house); }
     el.classList.add('hr-pt'); el.style.width = el.style.height = size + 'px'; if (el.tagName === 'IMG') { el.width = el.height = size; el.draggable = false; } return el; };
 
   /* ---- ride: runs++ then R.newHero (A01) or the minimal fallback ---- */
   const ride = id => { const a = acc(); const c = champ(id); if (!a || !c || !isUnlocked(id)) return false; let ok = false;   // R.newHero counts the run
+    if (alive()) { toast('Your hero still lives', '#9fb6c9'); return false; }   // a living hero is never wiped: the next one rides only after a fall
     if (typeof R.newHero === 'function') { try { R.newHero(id); ok = true; } catch (e) { console.error('newHero', e); } }
     if (!ok) { const s = R.newState ? R.newState() : { p: {} }; const p = s.p || {}; Object.assign(p, { hero: id, name: c.name, cls: clsOf(c.type).toLowerCase(), house: a.house, lvl: 1, xp: 0, hp: 0, gold: 0, gems: 0, pos: null, created: Date.now(), played: 0 }); R.state.p = p; if (R.player) { R.player.dead = false; R.player.hp = R.player.hpMax; R.player.anim = 'idle'; } }
     R.save(); sfx('ui', 0.5); toast('You ride as ' + c.name, colOf(c.house)); R.bus.emit('ride', id); if (R.ui && R.ui.cur === 'heroes') R.ui.close(); return true; };
@@ -83,7 +87,7 @@
   let sel = null, after = null;
   const fmtAgo = t => { const d = Math.max(0, Date.now() - t), m = Math.floor(d / 6e4), h = Math.floor(m / 60), dd = Math.floor(h / 24); return dd ? dd + 'd ago' : h ? h + 'h ago' : m ? m + 'm ago' : 'just now'; };
   const render = el => { el = el || document.getElementById('screen'); if (!el || !R.state) return; const a = acc(); ensureStarter(); const h = a.house; const rows = list(h); const hc = colOf(h);
-    if (!sel || !rows.some(r => r.id === sel && r.unlocked)) { const cur = rows.find(r => r.current && r.unlocked && !(after && after.id === r.id)); sel = (cur || rows.find(r => r.unlocked) || {}).id || null; }
+    if (!sel || !rows.some(r => r.id === sel && r.unlocked)) { const cur = rows.find(r => r.current && r.unlocked && !(after && after.id === r.id)); sel = (cur || (after && rows.find(r => r.unlocked && r.id !== after.id)) || rows.find(r => r.unlocked) || {}).id || null; }   /* after a death: the first OTHER unlocked champion */
     const w = document.createElement('div'); w.className = 'hr-wrap'; w.style.setProperty('--hc', hc);
     const fromMenu = !after && !!current() && !(R.player && R.player.dead);
     w.innerHTML = '<div class="hr-head">' + (fromMenu ? '<button class="hr-back" data-act="back" aria-label="Back">‹</button>' : '<span class="hr-back ghost"></span>') + '<h2>' + (after ? 'The next hero' : 'Your heroes') + '</h2><span class="hr-house">House ' + esc(HNAME[h] || h) + '</span></div>';
@@ -96,7 +100,10 @@
       card.insertAdjacentHTML('beforeend', '<div class="hr-n">' + esc(r.name) + '</div><div class="hr-c">' + esc(r.cls) + ' · <i style="color:' + r.rarCol + '">' + esc(r.rar) + '</i></div>' +
         (r.unlocked ? '<div class="hr-st"><span>runs <b>' + r.runs + '</b></span><span>best <b>' + (r.best ? 'Lv ' + r.best : '—') + '</b></span></div>' : '<div class="hr-lk"><span class="hr-lki">🔒</span>' + esc(r.unlockText) + '</div>') + (r.current && !after ? '<div class="hr-tag">RIDING</div>' : ''));
       grid.appendChild(card); } w.appendChild(grid);
-    const foot = document.createElement('div'); foot.className = 'hr-foot'; const sc = rows.find(r => r.id === sel); const b = document.createElement('button'); b.className = 'pri hr-ride'; b.dataset.act = 'ride'; b.disabled = !sc; b.textContent = sc ? 'RIDE AS ' + sc.name.toUpperCase() : 'NO HERO UNLOCKED'; foot.appendChild(b);
+    const foot = document.createElement('div'); foot.className = 'hr-foot'; const sc = rows.find(r => r.id === sel); const b = document.createElement('button'); b.className = 'pri hr-ride'; b.dataset.act = 'ride'; b.disabled = !sc;
+    const again = !!(sc && after && after.id === sc.id), lives = alive(); b.textContent = lives ? 'YOUR HERO STILL LIVES' : sc ? (again ? 'RIDE AGAIN AS ' : 'RIDE AS ') + sc.name.toUpperCase() : 'NO HERO UNLOCKED'; if (lives) b.disabled = true;
+    if (again && !lives) { const nl = document.createElement('div'); nl.className = 'hr-hint hr-again'; nl.textContent = 'A new life: ' + sc.name + ' starts again at level 1 at the seat. The Hall keeps the fallen.'; foot.appendChild(nl); }
+    foot.appendChild(b);
     const hb = document.createElement('button'); hb.className = 'hr-hall'; hb.dataset.act = 'hall'; const B = best(); hb.textContent = 'Hall of the Fallen · ' + a.hall.length + (a.hall.length === 1 ? ' line' : ' lines') + (B.lvl ? ' · best Lv ' + B.lvl : ''); foot.appendChild(hb); w.appendChild(foot);
     el.innerHTML = ''; el.appendChild(w); };
   const bind = el => { if (el.__hr) return; el.__hr = true; el.addEventListener('click', ev => { const cur = R.ui && R.ui.cur; if (cur !== 'heroes' && cur !== 'hall') return; const b = ev.target.closest('[data-act]'); const card = ev.target.closest('.hr-card');

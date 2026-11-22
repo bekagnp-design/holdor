@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
 const path = require('path'), fs = require('fs');
 const ROOT = path.resolve(__dirname, '..', '..');
 const SC = path.join(ROOT, '.shots') + '/'; fs.mkdirSync(SC, { recursive: true });
-const URL = 'file://' + path.join(ROOT, process.env.HOLDOR_HTML || 'beta/index.html');
+const URL = 'file://' + path.resolve(ROOT, process.env.HOLDOR_HTML || 'beta/index.html');
 const MAP = 'data:image/webp;base64,' + fs.readFileSync(path.join(ROOT, 'src/assets/westeros_1200.webp')).toString('base64');
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
@@ -24,7 +24,7 @@ const MAP = 'data:image/webp;base64,' + fs.readFileSync(path.join(ROOT, 'src/ass
   await page.goto(URL); await page.waitForFunction(() => window.R && R.screens && R.screens.map, { timeout: 20000 }); await page.waitForTimeout(200);
   // ---- setup: a save, a world (faked when the data module is absent), a player near a found castle, the map art, fake neighbours
   const F = await ev(async MAP => {
-    R.running = false; if (R.stop) R.stop(); R.state = R.newState();
+    R.running = false; if (R.stop) R.stop(); for (let i = 0; i < 4 && R.ui.cur; i++) R.ui.close(); R.state = R.newState();
     if (!R.data.world) R.data.world = {
       regions: [{ id: 'north', name: 'The North', lvl: [1, 8], biome: 'snow', poly: [[600, 600], [6600, 600], [6600, 5400], [600, 5400]] }, { id: 'riverlands', name: 'The Riverlands', lvl: [8, 16], biome: 'green', poly: [[600, 5400], [6600, 5400], [6600, 8400], [600, 8400]] }],
       pois: [{ id: 'winterfell', name: 'Winterfell', kind: 'castle', house: 'stark', x: 3600, y: 3600, region: 'north' }, { id: 'castle_black', name: 'Castle Black', kind: 'castle', x: 3900, y: 1500, region: 'north' },
@@ -40,7 +40,9 @@ const MAP = 'data:image/webp;base64,' + fs.readFileSync(path.join(ROOT, 'src/ass
     for (const e of R.ents.slice()) if (e.kind === 'player') R.remove(e);
     R.player = R.spawn({ kind: 'player', team: 0, x: castle.x + 120, y: castle.y + 320, hp: 100, hpMax: 100, name: 'Tester', lvl: 3 });
     R.cam.x = R.player.x; R.cam.y = R.player.y;
-    if (!R.presence) R.presence = { list: () => [{ id: 'o1', name: 'Jory', x: castle.x + 260, y: castle.y + 120, lvl: 4 }] };
+    // a neighbour on the map: the real presence module has nobody offline, so its list is replaced for this test
+    const jory = { id: 'o1', name: 'Jory', x: castle.x + 260, y: castle.y + 120, lvl: 4 };
+    if (!R.presence) R.presence = { list: () => [jory] }; else if (!(R.presence.list && R.presence.list().length)) R.presence.list = () => [jory];
     if (!R.quests) R.quests = { markers: () => [{ x: castle.x - 300, y: castle.y + 600, name: 'The missing hound' }] };
     if (!R.events) R.events = { active: () => [{ x: castle.x + 600, y: castle.y - 1000, name: 'Wight horde' }] };
     await new Promise(res => { const im = new Image(); im.onload = () => { R.assets = R.assets || {}; R.assets.map = im; res(); }; im.onerror = () => res(); im.src = MAP; });

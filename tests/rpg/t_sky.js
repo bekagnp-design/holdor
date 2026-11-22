@@ -9,7 +9,7 @@ const L = require('./lib');
 const { ok, skip } = L;
 
 const PLACES = {
-  reach: { x: 2300, y: 9300 }, dorne: { x: 3970, y: 11200 }, north: { x: 2950, y: 2650 }, river: { x: 2540, y: 7450 }, beyond: { x: 3700, y: 300 }
+  reach: { x: 2300, y: 9300 }, dorne: { x: 3970, y: 11200 }, north: { x: 3300, y: 3300 }, river: { x: 2540, y: 7450 }, beyond: { x: 3700, y: 300 }
 };
 
 (async () => {
@@ -48,10 +48,15 @@ const PLACES = {
   /* ---- 1. attached + follows the camera ---- */
   await setScene(Object.assign({ h: 12, w: 'clear', pitch: 15 }, PLACES.reach));
   const att = await E(() => { const S = R.sky, sc = R.render3d.scene; let inScene = false; S.dome.traverseAncestors(a => { if (a === sc) inScene = true; });
-    return { ready: S.ready, inScene, ring: !!S.ring && S.ring.parent === S.root, aur: !!S.aurora, shafts: !!S.shafts, dome: S.dome.name, mat: S.dome.material.type, depthWrite: S.dome.material.depthWrite, fog: S.dome.material.fog, order: S.dome.renderOrder, attach: S.stats.attach, rr: S.uniforms.uRr.value, far: R.render3d.camera.far }; });
+    return { ready: S.ready, inScene, ring: !!S.ring && S.ring.parent === S.root, aur: !!S.auroraMesh, shafts: !!S.shafts, dome: S.dome.name, mat: S.dome.material.type, depthWrite: S.dome.material.depthWrite, fog: S.dome.material.fog, order: S.dome.renderOrder, attach: S.stats.attach, rr: S.uniforms.uRr.value, far: R.render3d.camera.far }; });
   ok('the dome, the ridge ring, the aurora and the shafts are in R.render3d.scene', att.ready && att.inScene && att.ring && att.aur && att.shafts, JSON.stringify(att));
   ok('the dome: depthWrite off, fog off, drawn after the opaques (renderOrder 9999)', att.depthWrite === false && att.fog === false && att.order === 9999, JSON.stringify(att));
   ok('the ring sits just inside the far plane', att.rr > att.far * .85 && att.rr < att.far, att.rr + ' / ' + att.far);
+  // the far plane moves with the fog (G1: fog far × 1.06, every frame): the dome is drawn at the far depth, never clipped; the ring follows
+  const f0 = await E(() => { const G = R.render3d, f0 = G.camera.far; G.camera.far = 900; G.camera.updateProjectionMatrix(); R.sys.sky.update(1 / 60); return f0; });
+  const farTop = await topColor(true);
+  const farMv = await E(f0 => { const G = R.render3d, rr = R.sky.uniforms.uRr.value, far = G.camera.far; G.camera.far = f0; G.camera.updateProjectionMatrix(); R.sys.sky.update(1 / 60); return { rr, far }; }, f0);
+  ok('with camera.far = 900 the sky is still drawn (blue at the top) and the ring moves in (< 900)', farMv.far === 900 && farMv.rr < 900 && farTop.b > farTop.r + 30, JSON.stringify({ farMv, farTop }));
   const noon = await topColor(true);
   await setScene(Object.assign({ h: 12, w: 'clear', pitch: 15 }, { x: PLACES.reach.x + 2600, y: PLACES.reach.y - 3000 }));
   const moved = await topColor(true);
@@ -76,8 +81,8 @@ const PLACES = {
   ok('the dome below the horizon = the colour the terrain fades to', Math.abs(hz.sky[0] - hz.terrain[0]) + Math.abs(hz.sky[1] - hz.terrain[1]) + Math.abs(hz.sky[2] - hz.terrain[2]) < .02, JSON.stringify(hz));
   const prof = await E(() => { const p = R.sky.ring.geometry.attributes.position.array, n = p.length / 3; let lo = 1, hi = -1; for (let i = 1; i < n; i += 2) { const y = p[i * 3 + 1]; if (y < lo) lo = y; if (y > hi) hi = y; } return { lo: +lo.toFixed(4), hi: +hi.toFixed(4), ms: R.sky.stats.profile }; });
   ok('the ridge profile varies around the camera (land / sea)', prof.hi - prof.lo > .01, JSON.stringify(prof));
-  const aurNoon = await E(() => R.sky.aurora3d);
-  const aurB = await setScene(Object.assign({ h: 23.5, w: 'clear' }, PLACES.beyond)); const aurNight = await E(() => ({ on: R.sky.aurora3d, k: R.sky.uniforms.uAur.value, vis: R.sky.aurora.visible }));
+  const aurNoon = await E(() => R.sky.aurora);
+  const aurB = await setScene(Object.assign({ h: 23.5, w: 'clear' }, PLACES.beyond)); const aurNight = await E(() => ({ on: R.sky.aurora === true && R.sky.aurora3d, k: R.sky.uniforms.uAur.value, vis: R.sky.auroraMesh.visible }));
   ok('the 3D aurora: beyond the Wall at night, not at noon in the Reach', !aurNoon && aurNight.on && aurNight.vis && aurNight.k > .3, JSON.stringify({ aurNoon, aurNight, region: aurB.region, k: aurB.auroraK }));
 
   /* ---- 4. cost: the render system's draw (+ a 1-px readPixels = a full GPU sync) with and without the sky, default camera ---- */
@@ -89,7 +94,7 @@ const PLACES = {
     // one mesh alone: the others hidden right before the render (the sky's update sets visibility every step)
     const sb = G.scene.onBeforeRender; G.scene.onBeforeRender = function () { sb.apply(this, arguments); for (const n in parts) if (parts[n].__skip) parts[n].visible = false; };
     run(5); const on1 = run(16); S.setOn(false); const off1 = run(16); S.setOn(true); const on2 = run(16); S.setOn(false); const off2 = run(16); S.setOn(true);
-    const per = {}; for (const k in parts) { only(k); per[k] = run(12); } for (const n in parts) parts[n].__skip = false; G.scene.onBeforeRender = sb;
+    const per = {}; for (const k in parts) { only(k); per[k] = run(12); } for (const n in parts) parts[n].__skip = false; G.scene.onBeforeRender = sb; S.dome.visible = S.ring.visible = true;
     let sysMs = 0; for (let i = 0; i < 20; i++) { R.step(); sysMs += S.stats.ms; }
     return { on: Math.min(on1, on2), off: Math.min(off1, off2), per, shafts: S.shafts.visible, skyUpdateMs: +(sysMs / 20).toFixed(3), calls: G.stats.calls, gl: G.glName };
   });

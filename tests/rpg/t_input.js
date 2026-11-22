@@ -126,6 +126,11 @@ const SC = path.join(ROOT, '.shots') + '/'; fs.mkdirSync(SC, { recursive: true }
   await ev(() => { window.__btns = []; }); for (const id of ['b-map', 'b-inv', 'b-menu']) { await ev(() => { if (R.ui.cur) R.ui.close(); }); const c = await centre(id); await page.touchscreen.tap(c.x, c.y); await page.waitForTimeout(60); }
   await ev(() => { if (R.ui.cur) R.ui.close(); });
   s = await snap(); ok('top row taps → map inv menu', JSON.stringify(s.btns) === JSON.stringify(['map:btn', 'inv:btn', 'menu:btn']), JSON.stringify(s.btns));
+  // the screen a top-row button opens is under the finger: the tap's own click (touch) and the mouse's click must not close it again
+  for (const how of ['tap', 'mouse']) { await ev(() => { for (let i = 0; i < 3 && R.ui.cur; i++) R.ui.close(); }); await page.waitForTimeout(700); const c = await centre('b-menu');
+    if (how === 'tap') await page.touchscreen.tap(c.x, c.y); else await page.mouse.click(c.x, c.y);
+    await page.waitForTimeout(350); const cur = await ev(() => R.ui.cur); ok('menu by ' + how + ' stays open (no ghost click on its ✕)', cur === 'menu', String(cur)); }
+  await ev(() => { for (let i = 0; i < 3 && R.ui.cur; i++) R.ui.close(); });
   // screenshot with the joystick held and a cooldown running
   await ev(() => { R.input.setCooldown(2, 0.6); R.input.setPotions(3); R.input.setSkill(0, { label: 'Slash' }); R.input.setSkill(1, { label: 'Shield' }); R.input.setSkill(2, { label: 'Rally' }); R.input.interact = { label: 'TALK' }; R.step(); });
   await touch('touchStart', [{ x: 110, y: 640, id: 9 }]); await touch('touchMove', [{ x: 140, y: 620, id: 9 }]); await page.waitForTimeout(80);

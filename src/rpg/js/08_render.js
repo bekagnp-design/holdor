@@ -12,7 +12,7 @@
    R.render.visible(margin) → {x0, y0, x1, y1} world rect; R.render.fogCanvas; R.render.stats {last, hist, median()}. */
 (function () {
   const Rd = {}; R.render = Rd;
-  const FOG_K = 8, FOG_A = 0.55, FOG_HOLE = 420, CULL = 120, LOOK = 40, CAM_K = 0.12;
+  const WS = R.WS || 1, FOG_K = 8 * WS, FOG_A = 0.55, FOG_HOLE = 420 * WS, CULL = 120, LOOK = 40, CAM_K = 0.12;
   const RAR = ['#cfcfcf', '#7fd06a', '#5aa5ff', '#c060ff', '#ffb347'];
   const HOUSE_COL = { stark: '#a9bdd0', lannister: '#d12b2b', baratheon: '#e3b661', targaryen: '#b1121b', tyrell: '#5fa84a',
     martell: '#e07b2a', greyjoy: '#2e5f7a', arryn: '#6fa7d8', tully: '#3f7fb0', bolton: '#c75b7a', night: '#30343a', wildling: '#7a5a3a' };
@@ -386,7 +386,8 @@
   function glOK() { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; } }
   if (!T) { Rd.why = 'no THREE'; return; }
   if (!glOK()) { Rd.why = 'no WebGL'; return; }
-  const DEG = Math.PI / 180, SEG_X = 180, SEG_Y = 300, NX = SEG_X + 1, NY = SEG_Y + 1, H_MAX = 260, CULL_D = 1600, PROP_D = 2600, PROP_N = 8;
+  // the grid: ~90 world units per vertex on the 4.5x map (360 x 600 cells, 30 x 30-cell tiles, frustum-culled); heights x HS so ranges read as mountains at hero scale
+  const WS = R.WS || 1, HS = WS > 1 ? 2.5 : 1, DEG = Math.PI / 180, SEG_X = WS > 1 ? 360 : 180, SEG_Y = WS > 1 ? 600 : 300, NX = SEG_X + 1, NY = SEG_Y + 1, H_MAX = 260 * HS, CULL_D = 1600, PROP_D = 2600 * Math.min(WS, 2), PROP_N = 8;
   const clamp = R.clamp, lerp = R.lerp;
   const pxy = Rd.pxy, pts = Rd.pts, rid = Rd.rid;
 
@@ -412,12 +413,12 @@
   let vigEl = null; try { vigEl = document.createElement('div'); vigEl.id = 'glvig'; R.cv.parentNode.insertBefore(vigEl, R.cv); } catch (e) { vigEl = null; }
 
   /* ---------- heights ---------- */
-  let hts = new Float32Array(NX * NY), seaMask = new Uint8Array(NX * NY), terrainHasArt = false, seaFromWater = false;
+  let hts = new Float32Array(NX * NY), seaMask = new Uint8Array(NX * NY), wetMask = new Uint8Array(NX * NY), terrainHasArt = false, seaFromWater = false;
   const waterReady = () => { const W = R.water; return !!(W && typeof W.kindAt === 'function' && (W.ready === undefined || W.ready)); };
   const RIDGES = [ // world units: the Frostfangs, the mountains west of the North, the Mountains of the Moon (the Vale), the Westerlands hills, the Red Mountains
     { x: 3180, y: 1620, rx: 760, ry: 950, h: 240 }, { x: 2280, y: 3720, rx: 320, ry: 640, h: 150 }, { x: 4980, y: 6000, rx: 440, ry: 680, h: 200 },
     { x: 2640, y: 7080, rx: 320, ry: 520, h: 90 }, { x: 3840, y: 10200, rx: 1150, ry: 280, h: 160 }];
-  function ridgeH(x, y) { let h = 0; for (const r of RIDGES) { const d = ((x - r.x) / r.rx) ** 2 + ((y - r.y) / r.ry) ** 2; if (d < 1) { const f = 1 - d; h = Math.max(h, r.h * f * f * (.7 + .3 * Math.sin(x * .011) * Math.sin(y * .013))); } } return h; }
+  function ridgeH(x, y) { x /= WS; y /= WS; let h = 0; for (const r of RIDGES) { const d = ((x - r.x) / r.rx) ** 2 + ((y - r.y) / r.ry) ** 2; if (d < 1) { const f = 1 - d; h = Math.max(h, HS * r.h * f * f * (.7 + .3 * Math.sin(x * .011) * Math.sin(y * .013))); } } return h; }
   const drawable = im => { if (!im) return null; im = im.img || im.image || im.canvas || im; const w = im.naturalWidth || im.width; if (!w || im.complete === false) return null; return im; };
   function buildHeights(img) {
     let px = null;
@@ -428,31 +429,42 @@
       if (px) { const r = px[k * 4], g = px[k * 4 + 1], b = px[k * 4 + 2], lum = (r * .3 + g * .59 + b * .11) / 255;
         // the art's sea is dark and olive (about 56-70, 55-61, 25-31): dark, blue well under red and green
         sea = WA ? false : lum < .3 && b < r - 15 && b < g - 15 && Math.abs(r - g) < 22;
-        if (!sea) h = 20 + 40 * clamp((.7 - lum) * 2.2, 0, 1); }
-      else { sea = blk ? !!R.world.blocked(x, y) : (x < 300 || x > R.W - 300 || y < 200 || y > R.H - 200); h = 30 + 10 * Math.sin(x * .0021) * Math.cos(y * .0017); }
-      if (WA) { try { sea = WA.kindAt(x, y) === 'sea'; } catch (e) {} if (sea) h = 0; else if (h == null) h = 30; }
-      if (sea) h = 0; else h += ridgeH(x, y) + 5 * Math.sin(x * .004) * Math.cos(y * .003);
+        if (!sea) h = 20 + 40 * HS * clamp((.7 - lum) * 2.2, 0, 1); }
+      else { sea = blk ? !!R.world.blocked(x, y) : (x < 300 * WS || x > R.W - 300 * WS || y < 200 * WS || y > R.H - 200 * WS); h = 30 + 10 * Math.sin(x / WS * .0021) * Math.cos(y / WS * .0017); }
+      wetMask[k] = 0;
+      if (WA) { let kd = null, dp = 0; try { kd = WA.kindAt(x, y); dp = typeof WA.depth === 'function' ? +WA.depth(x, y) || 0 : (kd ? 1 : 0); } catch (e) {} sea = kd === 'sea';
+        if (!sea && kd && dp > 0) wetMask[k] = kd === 'lake' ? 2 : 1; if (sea) h = 0; else if (h == null) h = 30; }
+      if (sea) h = 0; else h += ridgeH(x, y) + 5 * Math.sin(x / WS * .004) * Math.cos(y / WS * .003);
       hts[k] = h; seaMask[k] = sea ? 1 : 0;
     }
-    smoothHeights();
+    smoothHeights(); bumps();
+    // lakes and rivers: below the banks (a lake 22 u, a river 14 u, scaled by A44's depth), never under the sea floor
+    if (WA) for (let k = 0; k < NX * NY; k++) { const w = wetMask[k]; if (!w) continue; const x = (k % NX) / SEG_X * R.W, y = Math.floor(k / NX) / SEG_Y * R.H; let dp = 1; try { dp = clamp(+WA.depth(x, y) || 1, .3, 1); } catch (e) {} hts[k] = Math.max(1, hts[k] - (w === 2 ? 22 : 14) * dp); }
     // the height canvas (grey = height / H_MAX) for the water / nature agents
     const hc = R3.heightmap && R3.heightmap.canvas || document.createElement('canvas'); hc.width = NX; hc.height = NY;
     const hg = hc.getContext('2d'), id = hg.createImageData(NX, NY), d = id.data;
     for (let k = 0; k < NX * NY; k++) { const v = Math.round(clamp(hts[k] / H_MAX, 0, 1) * 255); d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = seaMask[k] ? 0 : 255; }
     hg.putImageData(id, 0, 0);
-    R3.heightmap = { canvas: hc, w: NX, h: NY, scale: R.W / SEG_X, max: H_MAX, data: hts, sea: seaMask };
+    R3.heightmap = { canvas: hc, w: NX, h: NY, scale: R.W / SEG_X, max: H_MAX, data: hts, sea: seaMask, wet: wetMask };
   }
   function smoothHeights() {
     for (let pass = 0; pass < 3; pass++) { const o = hts.slice();
       for (let j = 1; j < NY - 1; j++) for (let i = 1; i < NX - 1; i++) { const k = j * NX + i; if (seaMask[k]) continue;
         const a = (o[k] * 4 + o[k - 1] + o[k + 1] + o[k - NX] + o[k + NX] + (o[k - NX - 1] + o[k - NX + 1] + o[k + NX - 1] + o[k + NX + 1]) * .5) / 10; hts[k] = Math.max(4, a); } }
   }
+  // value-noise fBm: 1100 u hills (+-26) and 380 u bumps (+-9), less on water banks and on low ground by the sea
+  const hh = (i, j) => { let h = Math.imul(i | 0, 374761393) + Math.imul(j | 0, 668265263); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+  function vnoise(x, y) { const i = Math.floor(x), j = Math.floor(y), u = x - i, v = y - j, a = hh(i, j), b = hh(i + 1, j), c = hh(i, j + 1), d = hh(i + 1, j + 1), su = u * u * (3 - 2 * u), sv = v * v * (3 - 2 * v); return (a + (b - a) * su) + ((c + (d - c) * su) - (a + (b - a) * su)) * sv; }
+  R3.fbm = (x, y) => (vnoise(x / 1100, y / 1100) - .5) * 52 + (vnoise(x / 380 + 17, y / 380 + 31) - .5) * 18;
+  function bumps() { if (WS <= 1) return; for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) { const k = j * NX + i; if (seaMask[k] || wetMask[k]) continue; const x = i / SEG_X * R.W, y = j / SEG_Y * R.H, f = clamp((hts[k] - 8) / 30, 0, 1);
+      hts[k] = Math.max(4, hts[k] + R3.fbm(x, y) * f); } }
   function groundY(x, y) {
     const fx = clamp(x / R.W * SEG_X, 0, SEG_X - 1e-6), fy = clamp(y / R.H * SEG_Y, 0, SEG_Y - 1e-6);
     const i = fx | 0, j = fy | 0, u = fx - i, v = fy - j, k = j * NX + i;
     return (hts[k] * (1 - u) + hts[k + 1] * u) * (1 - v) + (hts[k + NX] * (1 - u) + hts[k + NX + 1] * u) * v;
   }
-  R3.groundY = groundY; R3.seaAt = (x, y) => !!seaMask[clamp(Math.round(y / R.H * SEG_Y), 0, SEG_Y) * NX + clamp(Math.round(x / R.W * SEG_X), 0, SEG_X)];
+  R3.groundY = groundY; R3.seaAt = (x, y) => { if (waterReady()) { try { return R.water.kindAt(x, y) === 'sea'; } catch (e) {} } return seaMaskAt(x, y); };
+  const seaMaskAt = (x, y) => !!seaMask[clamp(Math.round(y / R.H * SEG_Y), 0, SEG_Y) * NX + clamp(Math.round(x / R.W * SEG_X), 0, SEG_X)];
   R3.biomeAt = (x, y) => { try { if (R.world && R.world.regionAt) { const r = R.world.regionAt(x, y); if (r && r.biome) return r.biome; if (typeof r === 'string') { const rg = (R.data.world.regions || []).find(q => rid(q) === r); if (rg && rg.biome) return rg.biome; } } } catch (e) {} return 'reach'; };
 
   /* ---------- the terrain texture: map art + roads + biome tints + shoreline + snow + grain ---------- */
@@ -471,21 +483,25 @@
       g.beginPath(); P.forEach((q, i) => i ? g.lineTo(q[0] * kx, q[1] * ky) : g.moveTo(q[0] * kx, q[1] * ky)); g.closePath(); g.fillStyle = 'rgba(' + t[0] + ',' + t[1] + ',' + t[2] + ',' + t[3] + ')'; g.fill(); }
     if (!tinted) { const ell = (x, y, rx, ry, t) => { const gr = g.createRadialGradient(x * kx, y * ky, 0, x * kx, y * ky, 1); g.save(); g.translate(x * kx, y * ky); g.scale(rx * kx, ry * ky); g.translate(-x * kx, -y * ky);
         gr.addColorStop(0, 'rgba(' + t[0] + ',' + t[1] + ',' + t[2] + ',' + t[3] + ')'); gr.addColorStop(1, 'rgba(' + t[0] + ',' + t[1] + ',' + t[2] + ',0)'); g.fillStyle = gr; g.fillRect(x * kx - 1, y * ky - 1, 2, 2); g.restore(); };
-      ell(3840, 10800, 2600, 900, BIOME_TINT.desert); ell(1900, 6700, 700, 600, BIOME_TINT.iron); ell(2500, 8800, 1500, 1500, BIOME_TINT.reach); ell(4300, 8500, 1200, 1000, BIOME_TINT.stormlands); ell(3600, 4200, 2400, 1600, BIOME_TINT.north); }
+      ell(3840 * WS, 10800 * WS, 2600 * WS, 900 * WS, BIOME_TINT.desert); ell(1900 * WS, 6700 * WS, 700 * WS, 600 * WS, BIOME_TINT.iron); ell(2500 * WS, 8800 * WS, 1500 * WS, 1500 * WS, BIOME_TINT.reach); ell(4300 * WS, 8500 * WS, 1200 * WS, 1000 * WS, BIOME_TINT.stormlands); ell(3600 * WS, 4200 * WS, 2400 * WS, 1600 * WS, BIOME_TINT.north); }
     // soft shoreline: the land mask blurred by up-scaling, kept only over the sea
     const sm = document.createElement('canvas'); sm.width = NX; sm.height = NY; const sg = sm.getContext('2d'), sid = sg.createImageData(NX, NY);
     for (let k = 0; k < NX * NY; k++) { sid.data[k * 4] = 240; sid.data[k * 4 + 1] = 226; sid.data[k * 4 + 2] = 190; sid.data[k * 4 + 3] = seaMask[k] ? 0 : 255; } sg.putImageData(sid, 0, 0);
     const sh = document.createElement('canvas'); sh.width = TW; sh.height = TH; const shg = sh.getContext('2d'); shg.imageSmoothingEnabled = true; shg.drawImage(sm, 0, 0, TW, TH);
     for (let k = 0; k < NX * NY; k++) sid.data[k * 4 + 3] = seaMask[k] ? 255 : 0; sg.putImageData(sid, 0, 0); shg.globalCompositeOperation = 'destination-in'; shg.imageSmoothingEnabled = false; shg.drawImage(sm, 0, 0, TW, TH);
     g.globalAlpha = .5; g.drawImage(sh, 0, 0); g.globalAlpha = 1;
+    // the road mask for the shader (alpha), stroked ~70 world units wide with a soft verge
+    { const rc = roadCv || (roadCv = document.createElement('canvas')); rc.width = TW; rc.height = TH; const rg = rc.getContext('2d'); rg.clearRect(0, 0, TW, TH); const rs = R.data.world && R.data.world.roads;
+      if (rs) { rg.lineCap = 'round'; rg.lineJoin = 'round'; const rp = () => { rg.beginPath(); for (const rd of rs) { const P = pts(rd); if (!P) continue; P.forEach((q, i) => i ? rg.lineTo(q[0] * kx, q[1] * ky) : rg.moveTo(q[0] * kx, q[1] * ky)); } };
+        rp(); rg.lineWidth = 130 / R.W * TW + 1.5; rg.strokeStyle = 'rgba(0,0,0,.45)'; rg.stroke(); rp(); rg.lineWidth = 70 / R.W * TW + .8; rg.strokeStyle = '#000'; rg.stroke(); } }
     // roads as sand lines
     const roads = R.data.world && R.data.world.roads;
     if (roads) { g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
       const path = () => { g.beginPath(); for (const rd of roads) { const P = pts(rd); if (!P) continue; P.forEach((q, i) => i ? g.lineTo(q[0] * kx, q[1] * ky) : g.moveTo(q[0] * kx, q[1] * ky)); } };
       path(); g.lineWidth = 5; g.strokeStyle = 'rgba(70,46,24,.35)'; g.stroke(); path(); g.lineWidth = 2.6; g.strokeStyle = 'rgba(236,210,156,.95)'; g.setLineDash([7, 5]); g.stroke(); g.restore(); }
     // snow: north of the Wall and on the peaks
-    const sn = g.createLinearGradient(0, 0, 0, 2600 * ky); sn.addColorStop(0, 'rgba(240,244,250,.62)'); sn.addColorStop(.7, 'rgba(240,244,250,.35)'); sn.addColorStop(1, 'rgba(240,244,250,0)'); g.fillStyle = sn; g.fillRect(0, 0, TW, 2600 * ky);
-    for (let k = 0; k < NX * NY; k++) { sid.data[k * 4] = 242; sid.data[k * 4 + 1] = 246; sid.data[k * 4 + 2] = 252; sid.data[k * 4 + 3] = Math.round(clamp((hts[k] - 140) / 70, 0, 1) * 220); } sg.putImageData(sid, 0, 0);
+    const sn = g.createLinearGradient(0, 0, 0, 2600 * WS * ky); sn.addColorStop(0, 'rgba(240,244,250,.62)'); sn.addColorStop(.7, 'rgba(240,244,250,.35)'); sn.addColorStop(1, 'rgba(240,244,250,0)'); g.fillStyle = sn; g.fillRect(0, 0, TW, 2600 * WS * ky);
+    for (let k = 0; k < NX * NY; k++) { sid.data[k * 4] = 242; sid.data[k * 4 + 1] = 246; sid.data[k * 4 + 2] = 252; sid.data[k * 4 + 3] = Math.round(clamp((hts[k] - 140 * HS) / (70 * HS), 0, 1) * 220); } sg.putImageData(sid, 0, 0);
     g.imageSmoothingEnabled = true; g.drawImage(sm, 0, 0, TW, TH);
     // detail grain
     const nc = document.createElement('canvas'); nc.width = nc.height = 128; const ng = nc.getContext('2d'), nid = ng.createImageData(128, 128); let s = 11;
@@ -495,23 +511,28 @@
   }
 
   /* ---------- the terrain mesh ---------- */
-  let terrain = null, mapTex = null, fogTex = null, fogCv = null;
+  let terrain = null, mapTex = null, fogTex = null, fogCv = null, roadCv = null, roadTex = null;
   const VS = 'varying vec2 vUv; varying vec3 vN; varying vec3 vW;\nvoid main(){ vUv = uv; vN = normalize(mat3(modelMatrix) * normal); vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }';
   const FS = 'uniform sampler2D map; uniform sampler2D fogMap; uniform float fogA; uniform vec3 sunDir; uniform vec3 sunCol; uniform vec3 skyCol; uniform vec3 gndCol; uniform vec3 tint; uniform vec3 fogCol; uniform float fogNear; uniform float fogFar;\n' +
-    'uniform sampler2D dGrass; uniform sampler2D dSand; uniform sampler2D dSnow; uniform sampler2D dRock; uniform vec4 dAvg; uniform float uDet; uniform float uDetCol; uniform float uDetK; uniform float uGrade;\n' +
+    'uniform sampler2D dGrass; uniform sampler2D dSand; uniform sampler2D dSnow; uniform sampler2D dRock; uniform vec4 dAvg; uniform float uDet; uniform float uDetCol; uniform float uDetK; uniform float uGrade; uniform float uHS; uniform float uWS; uniform sampler2D roadMap; uniform sampler2D dRoad;\n' +
     'varying vec2 vUv; varying vec3 vN; varying vec3 vW;\n' +
     'float lum(vec3 c){ return dot(c, vec3(0.299, 0.587, 0.114)); }\n' +
-    'void main(){ vec3 c = texture2D(map, vUv).rgb; float f = texture2D(fogMap, vUv).a; vec3 n = normalize(vN); float d = distance(vW, cameraPosition);\n' +
-    ' float near = uDet * (1.0 - smoothstep(260.0, 950.0, d));\n' +
-    ' if (near > 0.001) { vec2 uv = vW.xz * uDetK; vec3 g = texture2D(dGrass, uv).rgb, sa = texture2D(dSand, uv * 1.3).rgb, sn = texture2D(dSnow, uv * 0.8).rgb, rk = texture2D(dRock, uv * 0.7).rgb;\n' +
-    '  float L = lum(c), sat = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));\n' +
-    '  float wSnow = clamp(smoothstep(0.55, 0.75, L) * (1.0 - smoothstep(0.08, 0.2, sat)) + smoothstep(150.0, 190.0, vW.y) + (1.0 - smoothstep(1800.0, 2700.0, vW.z)) * 0.8, 0.0, 1.0);\n' +
-    '  float wSand = clamp(smoothstep(0.06, 0.16, c.r - c.b) * smoothstep(0.32, 0.5, L) * smoothstep(0.0, 0.08, c.r - c.g + 0.04), 0.0, 1.0) * (1.0 - wSnow);\n' +
-    '  float wRock = clamp(smoothstep(0.22, 0.45, 1.0 - n.y) + smoothstep(110.0, 160.0, vW.y) * 0.7, 0.0, 1.0) * (1.0 - wSnow * 0.7);\n' +
+    // the map painting only as a blurred tint (mip bias: no lettering, no stage shields); near the camera a tiled splat of R.tex grounds,
+    // chosen by that tint (snow / sand / grass), the slope and the height (rock), with a macro brightness pass against visible tiling
+    'void main(){ vec3 lo = texture2D(map, vUv, 5.0).rgb; vec3 c = texture2D(map, vUv, 2.5).rgb; float f = texture2D(fogMap, vUv).a; vec3 n = normalize(vN); float d = distance(vW, cameraPosition);\n' +
+    ' float near = uDet * (1.0 - smoothstep(520.0, 1200.0, d));\n' +
+    ' if (near > 0.001) { vec2 uv = vW.xz * uDetK; vec3 g = texture2D(dGrass, uv).rgb, sa = texture2D(dSand, uv * 1.3).rgb, sn = texture2D(dSnow, uv * 0.8).rgb, rk = texture2D(dRock, uv * 0.7).rgb, g2 = texture2D(dGrass, uv * 0.11 + 0.37).rgb;\n' +
+    '  float L = lum(lo), sat = max(lo.r, max(lo.g, lo.b)) - min(lo.r, min(lo.g, lo.b));\n' +
+    '  float wSnow = clamp(smoothstep(0.5, 0.7, L) * (1.0 - smoothstep(0.08, 0.2, sat)) + smoothstep(150.0 * uHS, 190.0 * uHS, vW.y) + (1.0 - smoothstep(1800.0 * uWS, 2700.0 * uWS, vW.z)) * 0.8, 0.0, 1.0);\n' +
+    '  float wSand = clamp(smoothstep(0.05, 0.14, lo.r - lo.b) * smoothstep(0.3, 0.46, L) * smoothstep(0.0, 0.08, lo.r - lo.g + 0.04), 0.0, 1.0) * (1.0 - wSnow);\n' +
+    '  float wRock = clamp(smoothstep(0.22, 0.45, 1.0 - n.y) + smoothstep(110.0 * uHS, 160.0 * uHS, vW.y) * 0.7, 0.0, 1.0) * (1.0 - wSnow * 0.7);\n' +
     '  float wGrass = max(0.0, 1.0 - wSnow - wSand - wRock);\n' +
     '  float ws = wGrass + wSand + wSnow + wRock + 1e-4; vec3 det = (g * wGrass + sa * wSand + sn * wSnow + rk * wRock) / ws; float avg = dot(dAvg, vec4(wGrass, wSand, wSnow, wRock)) / ws;\n' +
-    '  vec3 modc = c * clamp(lum(det) / max(avg, 0.04), 0.35, 1.8); vec3 hue = det * (L / max(lum(det), 0.04));\n' +
-    '  c = mix(c, mix(modc, hue, uDetCol * 0.4), near); }\n' +
+    '  vec3 hueT = lo / max(L, 0.04); float macro = clamp(lum(g2) / max(dAvg.x, 0.04), 0.8, 1.2);\n' +
+    '  vec3 splat = det * mix(vec3(1.0), hueT, mix(1.0, 0.3, uDetCol)) * macro * clamp(L / max(avg, 0.04), 0.6, 1.4);\n' +
+    '  float rd = texture2D(roadMap, vUv).a; if (rd > 0.02) { vec3 rdc = texture2D(dRoad, uv * 1.4).rgb * mix(vec3(1.0), vec3(0.62, 0.5, 0.36) / 0.5, 1.0 - uDetCol); splat = mix(splat, rdc * clamp(L / max(avg, 0.04), 0.8, 1.25), smoothstep(0.25, 0.75, rd)); }\n' +
+    '  c = mix(c, splat, near); }\n' +
+    ' else { float rf = texture2D(roadMap, vUv).a; c = mix(c, vec3(0.55, 0.45, 0.33), rf * 0.55); }\n' +
     ' float dl = max(dot(n, sunDir), 0.0); vec3 hemi = mix(gndCol, skyCol, n.y * 0.5 + 0.5); vec3 col = c * (hemi + sunCol * dl) * tint; col *= 1.0 - fogA * f;\n' +
     ' float L2 = lum(col); col = mix(vec3(L2), col, 1.0 + 0.08 * uGrade); col *= mix(vec3(1.0), vec3(1.03, 1.0, 0.95), uGrade);\n' +
     ' float ff = smoothstep(fogNear, fogFar, d); col = mix(col, fogCol, ff); gl_FragColor = vec4(col, 1.0);\n' +
@@ -524,7 +545,7 @@
     g.putImageData(id, 0, 0); const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.colorSpace = T.SRGBColorSpace; return t; })();
   const U = { map: { value: null }, fogMap: { value: null }, fogA: { value: 0.55 }, sunDir: { value: new T.Vector3(.4, .8, .45).normalize() }, sunCol: { value: new T.Color(0.55, 0.52, 0.46) },
     skyCol: { value: new T.Color(0.62, 0.64, 0.68) }, gndCol: { value: new T.Color(0.34, 0.3, 0.26) }, tint: { value: new T.Color(1, 1, 1) }, fogCol: { value: new T.Color(0x9fb0c4) }, fogNear: { value: 500 }, fogFar: { value: 1500 },
-    dGrass: { value: noiseTex }, dSand: { value: noiseTex }, dSnow: { value: noiseTex }, dRock: { value: noiseTex }, dAvg: { value: new T.Vector4(.21, .21, .21, .21) }, uDet: { value: 1 }, uDetCol: { value: 0 }, uDetK: { value: 1 / 90 }, uGrade: { value: 1 } };
+    dGrass: { value: noiseTex }, dSand: { value: noiseTex }, dSnow: { value: noiseTex }, dRock: { value: noiseTex }, dAvg: { value: new T.Vector4(.21, .21, .21, .21) }, uDet: { value: 1 }, uDetCol: { value: 0 }, uDetK: { value: 1 / 90 }, uGrade: { value: 1 }, uHS: { value: HS }, uWS: { value: WS }, roadMap: { value: null }, dRoad: { value: noiseTex } };
   const terrainMat = new T.ShaderMaterial({ uniforms: U, vertexShader: VS, fragmentShader: FS, side: T.DoubleSide });
   // the terrain is one height grid cut into 30×30-cell tiles (6 × 10 meshes, one material): three frustum-culls the tiles,
   // and the camera's far plane follows the fog, so a frame draws ~10 % of the 108k triangles
@@ -546,7 +567,8 @@
       const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.BufferAttribute(pos, 3)); geo.setAttribute('normal', new T.BufferAttribute(no, 3)); geo.setAttribute('uv', new T.BufferAttribute(uv, 2)); geo.setIndex(new T.BufferAttribute(idx, 1)); geo.computeBoundingSphere();
       const m = new T.Mesh(geo, terrainMat); m.name = 'tile'; terrain.add(m); tiles.push(m);
     }
-    if (mapTex) mapTex.dispose(); mapTex = new T.CanvasTexture(texCanvas(img)); mapTex.colorSpace = T.SRGBColorSpace; mapTex.anisotropy = R3.software ? 1 : Math.min(2, renderer.capabilities.getMaxAnisotropy()); mapTex.wrapS = mapTex.wrapT = T.ClampToEdgeWrapping; U.map.value = mapTex;
+    if (mapTex) mapTex.dispose(); mapTex = new T.CanvasTexture(texCanvas(img));
+    if (roadTex) roadTex.dispose(); if (roadCv) { roadTex = new T.CanvasTexture(roadCv); roadTex.wrapS = roadTex.wrapT = T.ClampToEdgeWrapping; U.roadMap.value = roadTex; } mapTex.colorSpace = T.SRGBColorSpace; mapTex.anisotropy = R3.software ? 1 : Math.min(2, renderer.capabilities.getMaxAnisotropy()); mapTex.wrapS = mapTex.wrapT = T.ClampToEdgeWrapping; U.map.value = mapTex;
     if (!fogTex) { fogCv = document.createElement('canvas'); fogCv.width = 512; fogCv.height = 1024; fogTex = new T.CanvasTexture(fogCv); fogTex.minFilter = T.LinearFilter; fogTex.generateMipmaps = false; U.fogMap.value = fogTex; }
     scene.add(terrain); R3.terrain = terrain; R3.terrainTiles = tiles; attachDetail();
     for (const p of props.values()) placeProp(p);
@@ -561,6 +583,7 @@
     const get = (n, alt) => { try { return X.get(n) || (alt && X.get(alt)) || null; } catch (e) { return null; } };
     const g = get('grass'), sa = get('sand'), sn = get('snow'), rk = get('rock'); if (!g || !sa || !sn || !rk) return false;
     for (const t of [g, sa, sn, rk]) if (t.wrapS !== T.RepeatWrapping) { t.wrapS = t.wrapT = T.RepeatWrapping; t.needsUpdate = true; }
+    const rdT = get('dirt_road', 'mud'); if (rdT) { if (rdT.wrapS !== T.RepeatWrapping) { rdT.wrapS = rdT.wrapT = T.RepeatWrapping; rdT.needsUpdate = true; } U.dRoad.value = rdT; }
     U.dGrass.value = g; U.dSand.value = sa; U.dSnow.value = sn; U.dRock.value = rk; U.dAvg.value.set(texAvg(X, 'grass'), texAvg(X, 'sand'), texAvg(X, 'snow'), texAvg(X, 'rock')); U.uDetCol.value = 1;
     detailOn = true; R3.detail = true; return true; }
   R3.attachDetail = attachDetail;
@@ -645,6 +668,9 @@
   function frameFor(e, wh) {
     if (e.kind === 'drop') return dropFrame(e); if (e.kind === 'portal') return portalFrame(); if (e.kind === 'trap') return trapFrame();
     let cv = null; const anim = e.anim || 'idle', t = e.animT || 0, face = e.face || 1;
+    if (e === R.player && HB.back && D_().heroBack) { try { const st = R.state || {}, p = st.p || {}, acc = st.acc || {};
+        const o = { hero: p.hero || champId(e), cls: p.cls, house: acc.house || p.house, face, lean: HB.lean, speed: HB.speed, cloak: R.phys && typeof R.phys.cloak === 'function' ? R.phys.cloak(e) : undefined, e };
+        const b = D_().heroBack(anim, t, o); if (b && b.width > 0 && b.meta && b.meta.h > 0) return b; } catch (x) { if (!warned.hb) { warned.hb = 1; console.warn('render: heroBack', x); } } }
     if (typeof e.frame === 'function') { try { cv = e.frame(anim, t, face, { e }); } catch (x) { if (!warned.ef) { warned.ef = 1; console.warn('render: e.frame', x); } } }
     const D = D_();
     if (!cv) { try {
@@ -674,9 +700,28 @@
   const _m = new T.Matrix4(), _q = new T.Quaternion(), _p = new T.Vector3(), _s = new T.Vector3(), _f = new T.Frustum(), _pm = new T.Matrix4(), _sph = new T.Sphere();
   const stOn = v => !!v && (typeof v !== 'number' || v > 0);
   const NOBB = { proj: 1, fx: 1, decal: 1 };
+  // the hero's heading (velocity, else the last one, else his facing), its turn rate -> lean, speed 0..1, and whether we see his back
+  const HB = { dx: 0, dy: -1, ang: 0, lean: 0, speed: 0, back: false, dustT: 0, t: -1 };
+  R3.heroView = HB;
+  function heroTrack(e) {
+    if (HB.t === R.t) return; const dt = HB.t < 0 ? 1 / 60 : Math.max(1 / 240, R.t - HB.t); HB.t = R.t;
+    const vx = e.vx || 0, vy = e.vy || 0, sp = Math.hypot(vx, vy); if (sp > 15) { HB.dx = vx / sp; HB.dy = vy / sp; } else if (HB.t === 0) { HB.dx = e.face < 0 ? -1 : 1; HB.dy = 0; }
+    const ang = Math.atan2(HB.dy, HB.dx); let da = ang - HB.ang; da = Math.atan2(Math.sin(da), Math.cos(da)); HB.ang = ang;
+    HB.lean = lerp(HB.lean, clamp(da / dt * .35, -1, 1), .15); HB.speed = clamp(sp / 240, 0, 1);
+    const f = R.cam.fwd || { x: 0, y: -1 }, dot = HB.dx * f.x + HB.dy * f.y; HB.back = HB.back ? dot > .42 : dot > .5;
+    // dust when sprinting
+    if (sp > 200 && !(e.z > 4) && R.fx && typeof R.fx.spawn === 'function' && R.t > HB.dustT) { HB.dustT = R.t + .11; try { R.fx.spawn('dust', e.x - HB.dx * 10, e.y - HB.dy * 10, { col: '#b9a37e', n: 3, r: 10 }); } catch (x) {} }
+  }
+  // rim light: a warm silhouette behind the hero (the frame's alpha, a flat colour), 4 % larger, so he pops from the ground
+  const rimMat = new T.SpriteMaterial({ transparent: true, depthWrite: false, color: 0xffe2b0, opacity: .55, toneMapped: false, fog: false });
+  rimMat.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n diffuseColor.rgb = diffuse;'); };
+  rimMat.customProgramCacheKey = () => 'g1rim';
+  const rim = new T.Sprite(rimMat); rim.frustumCulled = false; rim.visible = false; scene.add(rim); R3.rim = rim;
+
   const deathT = e => { try { return (R.draw && R.draw.deathTime && e.kind !== 'critter' && R.draw.deathTime(keyFor(e))) || .75; } catch (x) { return .75; } };
   function syncSprites() {
     const hero = R.player, hx = hero ? hero.x : R.cam.x, hy = hero ? hero.y : R.cam.y; let n = 0, ns = 0; const seen = new Set();
+    if (hero) heroTrack(hero); else rim.visible = false;
     _pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); _f.setFromProjectionMatrix(_pm);
     for (const e of R.ents) {
       if (!e || NOBB[e.kind] || e.hidden || e.noDraw) continue;
@@ -698,6 +743,9 @@
       const lift = (e.z || 0) + (e.kind === 'drop' ? 8 + Math.sin(R.t * 3 + e.id) * 3 : e.kind === 'portal' ? 46 : e.kind === 'trap' ? 2 : 0);
       s.sp.position.set(e.x, gy + lift, e.y);
       s.mat.opacity = a; s.mat.rotation = e.tumble && e.tumble.ang ? e.tumble.ang : e.kind === 'portal' ? R.t * 1.5 : 0;
+      if (e === hero) { s.mat.rotation += -HB.lean * .14 * (.4 + .6 * HB.speed);
+        if (!e.dead && s.mat.map) { rimMat.map = s.mat.map; if (!rim.__m) { rim.__m = 1; rimMat.needsUpdate = true; } rim.center.copy(s.sp.center); rim.scale.set(w * 1.045, h * 1.03, 1); rimMat.rotation = s.mat.rotation;
+          const cp = camera.position, bx = e.x - cp.x, bz = e.y - cp.z, bl = Math.hypot(bx, bz) || 1; rim.position.set(e.x + bx / bl * 3, gy + lift - 1, e.y + bz / bl * 3); rim.visible = true; rimMat.opacity = .5 * a; } else rim.visible = false; }
       // hit flash: the sprite colour above 1 whitens the frame (no blending / shader change)
       const flash = e.flash > 0 || (e.hitT != null && R.t - e.hitT < .08);
       if (flash) s.mat.color.setRGB(2.6, 2.4, 2.2); else if (s.flash || s.tv !== tintVer) s.mat.color.copy(tint).multiply(spriteLight);
@@ -705,7 +753,8 @@
       s.sp.visible = true; ns++;
       if (e.kind !== 'drop' && e.kind !== 'portal' && e.kind !== 'trap' && !(e.dead && a < .5) && n < SH_MAX && !(e.kind === 'critter' && (e.z || 0) > 60)) {
         const r = Math.max((e.r || 12) * 1.15, Math.min(w * .3, wh * .45)), sa = e.z > 0 ? Math.max(.3, 1 - e.z / 120) : 1;
-        _p.set(e.x, gy + 1.5, e.y); _s.set(r * 2.2 * sa, 1, r * 1.5 * sa); _m.compose(_p, _q, _s); shadows.setMatrixAt(n++, _m); }
+        _p.set(e.x, gy + 1.5, e.y); _s.set(r * 2.2 * sa, 1, r * 1.5 * sa); _m.compose(_p, _q, _s); shadows.setMatrixAt(n++, _m);
+        if ((e === hero || e.kind === 'boss') && n < SH_MAX) { _p.y += .2; _s.set(r * 1.1, 1, r * .7); _m.compose(_p, _q, _s); shadows.setMatrixAt(n++, _m); } }
     }
     shadows.count = n; shadows.instanceMatrix.needsUpdate = true;
     for (const [id, s] of sprites) if (!seen.has(id)) { if (!s.ent.dead && R.ents.indexOf(s.ent) >= 0) { s.sp.visible = false; continue; } scene.remove(s.sp); s.mat.dispose(); sprites.delete(id); }
@@ -806,9 +855,9 @@
     ' return (i<0.5?0.0:i<1.5?8.0:i<2.5?2.0:i<3.5?10.0:i<4.5?12.0:i<5.5?4.0:i<6.5?14.0:i<7.5?6.0:i<8.5?3.0:i<9.5?11.0:i<10.5?1.0:i<11.5?9.0:i<12.5?15.0:i<13.5?7.0:i<14.5?13.0:5.0) / 16.0 + 0.03; }\n' +
     'void occTest(){ if (uOccP.w < 0.5) return; vec2 n = vOccC.xy / vOccC.w; float dz = vOccC.w;\n' +
     ' vec2 d = vec2((n.x - uOccP.x) * uOccR.z / uOccR.x, (n.y - uOccP.y) / uOccR.y); float r = length(d);\n' +
-    ' float k = (1.0 - smoothstep(0.62, 1.0, r)) * step(dz, uOccP.z - 18.0) * 1.04;\n' +
-    ' k = max(k, 1.0 - smoothstep(70.0, 130.0, dz));\n' +
-    ' float hd = distance(vOccW.xz, uOccH.xz); k = max(k, (1.0 - smoothstep(uOccH.w * 0.7, uOccH.w, hd)) * step(uOccH.y + 6.0, vOccW.y) * step(dz, uOccP.z + 40.0));\n' +
+    ' float k = (1.0 - smoothstep(0.86, 1.0, r)) * step(dz, uOccP.z - 18.0) * 1.04;\n' +
+    ' k = max(k, 1.0 - smoothstep(96.0, 116.0, dz));\n' +
+    ' float hd = distance(vOccW.xz, uOccH.xz); k = max(k, (1.0 - smoothstep(uOccH.w * 0.88, uOccH.w, hd)) * step(uOccH.y + 6.0, vOccW.y) * step(dz, uOccP.z + 40.0));\n' +
     ' if (k > 0.0 && k >= occB(gl_FragCoord.xy)) discard; }\n';
   const MAIN = /void\s+main\s*\(\s*\)\s*\{/;
   function occPatch(m) {
@@ -863,7 +912,7 @@
     if (pois) for (const poi of pois) { const q = pxy(poi); if (!poi.name || Math.hypot(q.x - hx, q.y - hy) > 700) continue; const s = R.w2s(q.x, q.y, (poi.kind === 'castle' ? 240 : 110)); if (s.behind) continue;
       ctx.globalAlpha = found.has(poi.id) ? 1 : .7; Rd.label(ctx, poi.name, s.x, s.y - 14, 13, found.has(poi.id) ? '#f3e7c4' : '#c6bfae'); }
     ctx.globalAlpha = 1;
-    const g = Rd.nextGate(); if (g) { let near = false; for (const q of g.P) if (Math.hypot(q[0] - hx, q[1] - hy) < 2600) { near = true; break; }
+    const g = Rd.nextGate(); if (g) { let near = false; for (const q of g.P) if (Math.hypot(q[0] - hx, q[1] - hy) < 2600 * Math.min(WS, 2)) { near = true; break; }
       if (near) { const pulse = .5 + .5 * Math.sin(R.t * 2.2); ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.beginPath(); let up = true;
         for (let i = 0; i <= g.P.length; i++) { if (i === g.P.length && !g.closed) break; const q = g.P[i % g.P.length], s = R.w2s(q[0], q[1], 6); if (s.behind || s.d > 3000) { up = true; continue; } if (up) ctx.moveTo(s.x, s.y); else ctx.lineTo(s.x, s.y); up = false; }
         ctx.lineWidth = 22; ctx.strokeStyle = 'rgba(215,40,40,' + (.08 + .05 * pulse) + ')'; ctx.stroke(); ctx.lineWidth = 9; ctx.strokeStyle = 'rgba(230,60,50,' + (.2 + .08 * pulse) + ')'; ctx.stroke(); ctx.lineWidth = 2.5; ctx.strokeStyle = 'rgba(255,120,100,' + (.55 + .3 * pulse) + ')'; ctx.stroke(); ctx.restore(); } }
@@ -895,6 +944,8 @@
     const d = DYN.last ? now - DYN.last : 16; DYN.last = now; if (d > 250) return; // a hidden tab or a pause, not a slow frame
     DYN.sum += d; DYN.n++; if (DYN.n < 45) return; const avg = DYN.sum / DYN.n; DYN.sum = DYN.n = 0; DYN.avg = avg;
     if (avg > 24 && DYN.pr > DYN.MIN) { prApply(DYN.pr - .15); DYN.good = 0; }
+    // still slow at the lowest resolution on a real GPU: drop the terrain's detail splat (8 -> 3 texture reads per pixel); software GL keeps it (tests, QA shots)
+    else if (avg > 30 && !R3.software && U.uDet.value > 0) { U.uDet.value = 0; R3.stats.lowDetail = true; }
     else if (avg < 15) { if (++DYN.good >= 5 && DYN.pr < prCap()) { prApply(DYN.pr + .15); DYN.good = 0; } } else DYN.good = 0;
   }
   // the 3D frame alone (no overlay): also R3.render() / draw() / frame() for tests

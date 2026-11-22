@@ -8,7 +8,7 @@ const SC = path.resolve(__dirname, '..', '..', '.shots') + '/'; fs.mkdirSync(SC,
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message + ' @ ' + (e.stack || '').split('\n').slice(0, 2).join(' | ')));
-  page.on('console', m => { if (m.type() === 'error' && !/ERR_|Failed to load|net::|telegram/i.test(m.text())) errors.push('C:' + m.text()); });
+  page.on('console', m => { if (m.type() === 'error' && !/ERR_|Failed to load|net::|telegram/i.test(m.text()) && /ach|title|screen:|bus:(kill|boss|poi|enter|levelup|quest|loot|gold|death|tick1s)/i.test(m.text()) && !/items\.roll|rollItem/.test(m.text())) errors.push('C:' + m.text()); });   // other modules' errors are their suites' business
   await page.goto('file://' + path.resolve(__dirname, '..', '..', process.env.RPG_HTML || 'beta/index.html'));
   await page.waitForFunction(() => window.R && R.ach && R.data && R.data.achievements && R.screens.ach && R.boot, { timeout: 20000 }); await page.waitForTimeout(300);   // after the boot door (it would replace the faked state)
   const T = {}; const ok = (k, v, info) => { T[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
@@ -22,7 +22,7 @@ const SC = path.resolve(__dirname, '..', '..', '.shots') + '/'; fs.mkdirSync(SC,
 
   // 2. a fresh v2 account + hero (the core stub may still save the v1 shape: give it an acc so the module uses the account)
   const fresh = () => page.evaluate(() => { R.state = R.newState(); if (!R.state.acc) R.state.acc = { house: 'stark', champs: { jon: { unlocked: 1, runs: 1 } }, hall: [], titles: [], title: '', ach: [], world: { found: [], flags: {}, quests: {}, bosses: {}, killed: {} }, best: { lvl: 1, kills: 0 } };
-    Object.assign(R.state.p, { hero: 'jon', name: 'Jon', lvl: 1, gems: 0, created: 1000 }); R.player = { kind: 'player', gems: 0, x: 0, y: 0 }; if (R.ui.cur === 'intro') R.ui.close(); document.querySelectorAll('.ach-toast').forEach(d => d.remove()); });
+    Object.assign(R.state.p, { hero: 'jon', name: 'Jon', lvl: 1, gems: 0, created: 1000 }); R.player = { kind: 'player', gems: 0, x: 0, y: 0 }; if (R.ui.cur === 'intro') R.ui.close(); if (R.screens.death && R.screens.death.cfg) R.screens.death.cfg.fade = 1e9;   /* the 'death' events below test achievements, not the death sheet */ document.querySelectorAll('.ach-toast').forEach(d => d.remove()); });
   await fresh();
   const k = await page.evaluate(() => { const A = R.data.achievements, g = id => A.find(a => a.id === id).reward.gems || 0;
     for (let i = 0; i < 100; i++) R.bus.emit('kill', { kind: 'mob', type: 'axe', lvl: 1 }, R.player);

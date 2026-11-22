@@ -61,7 +61,7 @@ const SAVE = { v: 2, acc: { house: 'stark', champs: { jon: { unlocked: 1, runs: 
   const priceTxt = await page.evaluate(() => document.querySelector('.inv .sheet .sell').textContent), price = +(priceTxt.replace(/[^0-9]/g, ''));
   ok('mat sheet: SELL only', price > 0 && await page.evaluate(() => document.querySelector('.inv .sheet button.eq') == null && document.querySelector('.inv .sheet button.use') == null), priceTxt);
   await page.tap('.inv .sheet .sell'); await page.waitForTimeout(200);
-  s = await P(); ok('SELL adds gold', s.gold === 250 + price && !s.inv.includes('m0') && s.inv.length === 10, 'gold ' + s.gold + ' price ' + price);
+  s = await P(); ok('SELL adds gold', s.gold === 250 + price && !s.inv.includes('m0') && s.inv.length === 10, 'gold ' + s.gold + ' price ' + price + ' inv ' + s.inv.join(','));
   ok('gold shown in the toolbar', await page.evaluate(g => document.querySelector('.inv .tb .gold').textContent.replace(/[^0-9]/g, '') === String(g), s.gold));
   // 6. a potion: USE is the primary button
   await page.tap('.inv .ic[data-id="p0"]'); await page.waitForTimeout(200);

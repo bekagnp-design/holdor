@@ -17,7 +17,7 @@ const HOUSES = ['stark', 'lannister', 'baratheon', 'targaryen', 'greyjoy', 'tyre
   const ok = (k, v, info) => { out[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); if (!v) fails++; };
 
   const r = await page.evaluate(({ ED_KEYS, HOUSES }) => {
-    const w = R.data.world, res = {};
+    const w = R.data.world, res = {}, WS = w.WS || R.WS || 1; res.S = WS;
     const dist2seg = (p, a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], L = dx * dx + dy * dy || 1; let t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L; t = Math.max(0, Math.min(1, t)); return Math.hypot(p[0] - a[0] - dx * t, p[1] - a[1] - dy * t); };
     const dist2road = (p, rd) => { let m = 1e9; for (let i = 1; i < rd.length; i++) m = Math.min(m, dist2seg(p, rd[i - 1], rd[i])); return m; };
     const rows = w.mask.rows; res.dims = { W: w.W, H: w.H, size: w.size, MW: w.mask.w, MH: w.mask.h, CELL: w.mask.cell, rows: rows.length, cols: rows.map(r => r.length), chars: [...new Set(rows.join(''))].join('') };
@@ -27,7 +27,7 @@ const HOUSES = ['stark', 'lannister', 'baratheon', 'targaryen', 'greyjoy', 'tyre
     for (const rg of w.regions) {
       const P = rg.poly; const A = Math.abs(w.polyArea(P));
       if (!Array.isArray(P) || P.length < 3) res.badRegions.push(rg.id + ': poly');
-      if (A < 300000) res.badRegions.push(rg.id + ': area ' + Math.round(A));
+      if (A < 300000 * WS * WS) res.badRegions.push(rg.id + ': area ' + Math.round(A));
       if (P.some(p => !(p[0] >= 0 && p[0] <= w.W && p[1] >= 0 && p[1] <= w.H))) res.badRegions.push(rg.id + ': point outside world');
       if (P[0][0] === P[P.length - 1][0] && P[0][1] === P[P.length - 1][1]) res.badRegions.push(rg.id + ': repeats first point');
       if (!(rg.lvl && rg.lvl[0] >= 1 && rg.lvl[1] >= rg.lvl[0] && rg.lvl[1] <= 60)) res.badRegions.push(rg.id + ': lvl');
@@ -67,7 +67,13 @@ const HOUSES = ['stark', 'lannister', 'baratheon', 'targaryen', 'greyjoy', 'tyre
     res.neck = w.gateFor('north', 'lannister') && w.gateFor('north', 'lannister').boss === 'boss_neck' && !w.gateFor('north', 'stark') && w.poiById.moat_cailin.region === 'riverlands';
     res.wallGate = w.gateFor('wall', 'stark') && w.gateFor('wall', 'stark').boss === 'boss_north' && w.gateFor('beyond', 'stark') && w.gateFor('beyond', 'stark').boss === 'boss_wall' && w.gateFor('winter', 'stark') && w.gateFor('winter', 'stark').boss === 'boss_beyond';
     // mask: the sea around Westeros is blocked, the seats are not, the frozen north is open
-    res.maskSamples = { sunsetSea: w.blocked(300, 7000), narrowSea: w.blocked(6900, 6000), summerSea: w.blocked(3600, 12200), godsEye: w.blocked(4080, 7440), valeRidge: w.blocked(5000, 5600), frozenBay: w.blocked(1200, 800), fist: w.blocked(2500, 300) };
+    const b = (x, y) => w.blocked(x * WS, y * WS);   // the samples are on the authored 7200 × 12288 grid
+    res.maskSamples = { sunsetSea: b(300, 7000), narrowSea: b(6900, 6000), summerSea: b(3600, 12200), godsEye: b(4080, 7440), valeRidge: b(5000, 5600), frozenBay: b(1200, 800), fist: b(2500, 300) };
+    // the bigger map's new places (R.WS): villages, farms, inns, watchtowers, fishing hamlets, ruins, each with its people
+    const NEW = w.pois.filter(p => p.village); res.places2 = { n: NEW.length, types: [...new Set(NEW.map(p => p.type))].sort(), regions: new Set(NEW.map(p => p.region)).size,
+      people: NEW.filter(p => p.type === 'village' || p.type === 'inn').every(p => p.npcs.length >= 2 && p.npcs.length <= 3),
+      roles: [...new Set(NEW.flatMap(p => p.npcs.map(id => w.npcs[id].role)))].sort(), names: new Set(w.pois.map(p => p.name)).size === w.pois.length,
+      seatR: w.poiById.winterfell.r, gap: (() => { let m = 1e9; for (const p of NEW) for (const q of w.pois) if (q !== p) m = Math.min(m, Math.hypot(p.x - q.x, p.y - q.y)); return Math.round(m); })() };
     res.blockedShare = Math.round(100 * rows.join('').split('#').length / (w.mask.w * w.mask.h));
     res.npcs = { n: Object.keys(w.npcs).length, ok: Object.values(w.npcs).every(n => n.id && n.name && n.role && w.poiById[n.poi] && w.poiById[n.poi].npcs.indexOf(n.id) >= 0) };
     res.a09pois = ['kingswood', 'old_wyk', 'princes_pass', 'bloody_gate', 'moat_cailin', 'queenscrown', 'nightfort', 'fist_of_first_men', 'heart_of_winter'].filter(id => !w.poiById[id]);
@@ -75,10 +81,12 @@ const HOUSES = ['stark', 'lannister', 'baratheon', 'targaryen', 'greyjoy', 'tyre
   }, { ED_KEYS, HOUSES });
 
   ok('no page errors', !errors.length, errors.join(' | '));
-  ok('world 7200x12288, mask 60x102 of # and .', r.dims.W === 7200 && r.dims.H === 12288 && r.dims.size[0] === 7200 && r.dims.size[1] === 12288 && r.dims.MW === 60 && r.dims.MH === 102 && r.dims.CELL === 120 && r.dims.rows === 102 && r.dims.cols.every(c => c === 60) && /^[#.]+$/.test(r.dims.chars), JSON.stringify(r.dims.chars));
+  ok('world (7200x12288) x R.WS, mask 60x102 of # and . with cell 120 x R.WS', r.dims.W === 7200 * r.S && r.dims.H === 12288 * r.S && r.dims.size[0] === 7200 * r.S && r.dims.size[1] === 12288 * r.S && r.dims.MW === 60 && r.dims.MH === 102 && r.dims.CELL === 120 * r.S && r.dims.rows === 102 && r.dims.cols.every(c => c === 60) && /^[#.]+$/.test(r.dims.chars), JSON.stringify(r.dims.chars));
   ok('regions >= 9 (' + r.nRegions + ') all valid', r.nRegions >= 9 && !r.badRegions.length, r.badRegions.join('; '));
   ok('spawn table for every region (' + r.nSpawns + '), A06 shape', r.nSpawns === r.nRegions && r.spawnsArray);
   ok('npcs (' + r.npcs.n + ') each at a POI that lists it', r.npcs.n >= 100 && r.npcs.ok);
+  ok('the bigger map: ' + r.places2.n + ' new places (village/farm/inn/tower/ruin) in ' + r.places2.regions + ' regions, villages / inns with 2-3 people, unique names, ≥ 1100 apart',
+    (r.S === 1 || (r.places2.n >= 50 && r.places2.regions >= 10 && JSON.stringify(r.places2.types) === '["farm","inn","ruin","tower","village"]' && r.places2.people && r.places2.names && r.places2.gap >= 1000 && r.places2.seatR === 240)), JSON.stringify(r.places2));
   ok('the POIs A09 anchors bosses to exist', !r.a09pois.length, r.a09pois.join(','));
   ok('POIs >= 45 (' + r.nPois + ') inside their region and walkable', r.nPois >= 45 && !r.badPois.length, r.badPois.join('; '));
   ok('20+ castles/towns (' + r.places + '), camps (' + r.camps + '), 6+ shrines (' + r.shrines + ')', r.places >= 20 && r.camps >= 8 && r.shrines >= 6, JSON.stringify(r.types));

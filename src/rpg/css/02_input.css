@@ -53,3 +53,20 @@
 @media (orientation:landscape) and (max-height:520px){#ctl-top{right:calc(98px + env(safe-area-inset-right))}}
 /* dark-fantasy finish for the top row: forged plates with a bronze edge */
 #ctl .ib{background:linear-gradient(180deg,rgba(40,32,20,.9),rgba(8,10,14,.9));border:1.5px solid rgba(201,160,78,.42);color:#e9dcc0;box-shadow:0 4px 10px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,230,170,.1)}
+/* touch devices: no keyboard letters on the buttons, even after a key was pressed */
+@media (hover:none) and (pointer:coarse){#ctl.kb .cb .kh{display:none}}
+
+/* G5 round 2: the top row carries words (Map · Bag · Menu); the bag shows its item count and bounces with "+1" when something goes in */
+#ctl-top{gap:6px}
+#ctl .ib{width:48px;height:48px;flex-direction:column;gap:1px}
+#ctl .ib svg{width:20px;height:20px}
+#ctl .ib .lbl{font:700 12px/12px var(--f-body);letter-spacing:.02em;color:#e9dcc0;pointer-events:none}
+#ctl .ib .cnt{position:absolute;right:-6px;top:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:linear-gradient(180deg,#e3b661,#9a6b1c);color:#160f04;font:800 12px/20px var(--f-display);text-align:center;box-shadow:0 0 0 1.5px #1a130a,0 2px 4px rgba(0,0,0,.6);display:none;pointer-events:none}
+#ctl .ib .cnt.on{display:block}
+#ctl .ib .plus{position:absolute;left:50%;top:100%;transform:translate(-50%,0);font:800 14px var(--f-display);color:#ffe7a8;text-shadow:0 1px 3px #000;opacity:0;pointer-events:none;white-space:nowrap}
+#ctl .ib.got{animation:ctlbag .5s cubic-bezier(.3,1.6,.5,1)}
+#ctl .ib.got .plus{animation:ctlplus .9s ease-out forwards}
+@keyframes ctlbag{0%{transform:scale(1)}35%{transform:scale(1.22) rotate(-6deg)}70%{transform:scale(.96) rotate(3deg)}100%{transform:none}}
+@keyframes ctlplus{0%{opacity:0;transform:translate(-50%,-4px)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,18px)}}
+@media (orientation:landscape) and (max-height:520px){#ctl-top{right:calc(98px + env(safe-area-inset-right))}}
+@media (prefers-reduced-motion:reduce){#ctl .ib.got,#ctl .ib.got .plus{animation:none}}

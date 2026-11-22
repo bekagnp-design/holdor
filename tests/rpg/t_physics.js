@@ -203,28 +203,29 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
   ok(b1.region === 'north' && b1.gated && b1.open && b1.wrapped, 'Winterfell lies in the gated North; for a Stark it counts as open (home gate)', b1);
   ok(b1.dx > 120 && b1.dx < 180 && Math.abs(b1.dy) < 8 && b1.maxJump < 6, 'stick right 60 steps at Winterfell: x moves 120–180, |y| < 8, no step jumps > 6 units', { dx: +b1.dx.toFixed(1), dy: +b1.dy.toFixed(1), jump: +b1.maxJump.toFixed(2) });
 
-  /* 10b. R.hit is wrapped once: A12's wrapper sits on ours and neither re-wraps the other (the integrated build grew the chain by 2
-          per step: 84 → 9460 by t = 79 s, then "Maximum call stack size exceeded" and no damage at all). 6000 steps = 100 game-s. */
-  const hd = await pg.evaluate(() => { const depth = () => { let d = 0, f = R.hit; while (f && d < 100000) { d++; f = f.orig; } return d; };
-    const p = R.player, inv0 = p.inv; p.inv = 1e9; const d0 = depth(); for (let i = 0; i < 6000; i++) { R.step(); if (p.dead || p.hp <= 0) { p.dead = false; p.hp = p.hpMax; } }
-    p.inv = inv0; p.hp = p.hpMax; const d1 = depth(); let phys = 0; for (let f = R.hit; f; f = f.orig) if (f.__phys) phys++;
-    let works = null; try { const m = R.spawnMob('axe', p.x + 30, p.y, 1); m.ai = Object.assign(m.ai || {}, { off: true }); const h0 = m.hp; R.hit(p, m, 5, {}); works = m.hp < h0; R.remove(m); } catch (e) { works = 'threw ' + e.message; }
-    return { d0, d1, phys, works, t: +R.t.toFixed(1), errs: (R.errors || []).slice(-3).map(String) }; });
-  ok(hd.d1 === hd.d0 && hd.d1 <= 4 && hd.phys === 1, 'the R.hit chain does not grow over 6000 steps (≤ 4 deep), physics wraps it once', hd);
-  ok(hd.works === true, 'R.hit still deals damage after 100 game-s', hd.works);
-
   /* helpers in the page: flat ground, a clean spot, the hero's speed per step */
   await pg.evaluate(() => {
-    window.__g0 = R.render3d && R.render3d.groundY; window.__flat = () => { if (R.render3d) R.render3d.groundY = () => 0; };
-    window.__unflat = () => { if (R.render3d && window.__g0) R.render3d.groundY = window.__g0; };
+    /* __flat: level ground and no A43 obstacles in A06's slide (they stream in as the hero moves); __unflat puts both back */
+    window.__g0 = R.render3d && R.render3d.groundY; window.__xb = undefined;
+    window.__flat = () => { if (R.render3d) R.render3d.groundY = () => 0; if (R.world && window.__xb === undefined) { window.__xb = R.world.extraBlocked || null; R.world.extraBlocked = null; }
+      if (R.nature && !window.__nb) { window.__nb = R.nature.blockedAt; R.nature.blockedAt = () => false; } };
+    window.__unflat = () => { if (R.render3d && window.__g0) R.render3d.groundY = window.__g0; if (window.__xb !== undefined) { R.world.extraBlocked = window.__xb; window.__xb = undefined; }
+      if (window.__nb) { R.nature.blockedAt = window.__nb; window.__nb = null; } };
     window.__clear = () => { for (let i = R.ents.length - 1; i >= 0; i--) { const e = R.ents[i]; if (e !== R.player && e.kind !== 'npc' && e.kind !== 'portal') R.remove(e); } R.world.populate = false; };
-    window.__put = (x, y) => { R.input.move = { x: 0, y: 0 }; const p = R.player; p.x = x; p.y = y; p.prev = { x, y }; if (p.walk) { p.walk.x = 0; p.walk.y = 0; } p.imp = { x: 0, y: 0 }; p.z = 0; p.vz = 0; p.air = false; p.gy = null; p.status = {}; p.atkT = 0; p.dodgeT = 0; p.combatT = -99; };
+    window.__put = (x, y) => { R.input.move = { x: 0, y: 0 }; const p = R.player; p.x = x; p.y = y; p.prev = { x, y }; if (p.walk) { p.walk.x = 0; p.walk.y = 0; } p.imp = { x: 0, y: 0 }; p.z = 0; p.vz = 0; p.air = false; p.gy = null; p.status = {}; p.atkT = 0; p.dodgeT = 0; p.combatT = -99; p.moveT = 0; p.sprint = false; };
     window.__hold = (mx, my, n) => { const p = R.player, sp = []; R.input.move = { x: mx, y: my }; for (let i = 0; i < n; i++) { const x = p.x, y = p.y; R.step(); sp.push(Math.hypot(p.x - x, p.y - y) * 60); } return sp; };
     window.__free = () => { R.input.move = { x: 0, y: 0 }; };
     /* a free open spot: 400×400 units with no mask cell, no POI, no collider, no water */
-    window.__spot = () => { for (let y = 6500; y < 9500; y += 200) for (let x = 1500; x < 6000; x += 200) { let okk = true;
+    /* a free open spot: 400×400 units with no mask cell, no POI, no water, and a clear ±500 line east–west (A06's obstacles, A43's rocks
+       around it once its chunks are built) */
+    window.__spot = () => { const cands = [];
+      for (let y = 6500; y < 9500 && cands.length < 12; y += 200) for (let x = 1500; x < 6000 && cands.length < 12; x += 200) { let okk = true;
         for (let yy = y - 200; yy <= y + 200 && okk; yy += 50) for (let xx = x - 200; xx <= x + 200 && okk; xx += 50) if (R.world.blocked(xx, yy) || (R.water && R.water.depth(xx, yy) > 0) || R.world.poiAt(xx, yy, 200)) okk = false;
-        if (okk) return { x, y }; } return { x: 3000, y: 6000 }; };
+        if (okk) cands.push({ x, y }); }
+      const clear = c => { for (let xx = c.x - 500; xx <= c.x + 500; xx += 8) { if (R.world.blocked(xx, c.y) || (R.water && R.water.depth(xx, c.y) > 0)) return false;
+          if (R.world.obstacleAt && R.world.obstacleAt(xx, c.y, 16)) return false; if (R.nature && R.nature.blockedAt && R.nature.blockedAt(xx, c.y, 16)) return false; } return true; };
+      for (const c of cands) { window.__put(c.x, c.y); for (let i = 0; i < 30; i++) R.step(); if (clear(c)) return c; }
+      return cands[0] || { x: 3000, y: 6000 }; };
     window.__clear(); const s = window.__spot(); window.__S = s; window.__put(s.x, s.y); R.phys.extra.length = 0; R.phys.natureCols = false;   /* A43's trees off for the exact numbers; part 15 turns them back on */
   });
 
@@ -236,20 +237,20 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
     __put(__S.x, __S.y); __hold(1, 0, 30); const rev = __hold(-1, 0, 30); const vx = []; // the signed x velocity after the reversal
     __put(__S.x, __S.y); __hold(1, 0, 30); const rx = []; R.input.move = { x: -1, y: 0 }; for (let i = 0; i < 20; i++) { const x = p.x; R.step(); rx.push((p.x - x) * 60); }
     const flipAt = rx.findIndex(v => v < -150);
-    __put(__S.x, __S.y); const spr = __hold(1, 0, 130); __free(); for (let i = 0; i < 20; i++) R.step();
+    __put(__S.x, __S.y); const spr = __hold(1, 0, 130); window.__sprTr = spr.filter((_, i) => i % 10 === 0).map(v => Math.round(v)).join(',') + ' x' + Math.round(p.x - __S.x) + ' st ' + JSON.stringify(p.status) + ' sprint ' + p.sprint + ' anim ' + p.anim + ' atk ' + p.attacking() + ' dead ' + p.dead + ' cur ' + (R.ui && R.ui.cur); __free(); for (let i = 0; i < 20; i++) R.step();
     __unflat();
-    return { spd: p.spd, a3: acc[2], a5: acc[4], a8: acc[7], a12: acc[11], full: acc[29], stopAt, skid, flipAt, sprint: spr.slice(-10).reduce((a, b) => a + b, 0) / 10, sprintFlag: p.sprint, walk: !!p.walk };
+    return { spd: p.spd, a3: acc[2], a5: acc[4], a8: acc[7], a12: acc[11], full: acc[29], stopAt, skid, flipAt, sprint: spr.slice(-10).reduce((a, b) => a + b, 0) / 10, sprintFlag: p.sprint, walk: !!p.walk, tr: window.__sprTr };
   });
   ok(w.walk && w.a3 > 40 && w.a3 < 150 && w.a8 >= w.spd * 0.95, "acceleration: ~0.05 s → 40–150 u/s, by 0.13 s ≥ 95 % of full speed (full in ~0.12 s)", { a3: Math.round(w.a3), a5: Math.round(w.a5), a8: Math.round(w.a8) });
   ok(Math.abs(w.full - w.spd) < 2, 'cruise speed stays the hero\'s speed (e.spd, ~170 u/s) on flat ground', { v: Math.round(w.full), spd: w.spd });
   ok(w.stopAt >= 3 && w.stopAt <= 8 && w.skid > 3 && w.skid < 14, 'braking: stopped within ~0.1 s, skids 3–14 units', { steps: w.stopAt, skid: +w.skid.toFixed(1) });
   ok(w.flipAt >= 8 && w.flipAt <= 18, 'a reversal carries momentum: −150 u/s reached after 0.13–0.3 s', w.flipAt);
-  ok(Math.abs(w.sprint - w.spd * 240 / 170) < 4, 'sprint after 1.5 s of running: spd × 240/170 (ramped by the same weight)', { v: Math.round(w.sprint), want: Math.round(w.spd * 240 / 170) });
+  ok(Math.abs(w.sprint - w.spd * 240 / 170) < 4, 'sprint after 1.5 s of running: spd × 240/170 (ramped by the same weight)', { v: Math.round(w.sprint), want: Math.round(w.spd * 240 / 170), tr: w.sprint < 100 ? w.tr : undefined });
 
   /* 12. slopes, water and ice under the real player module */
   const sl = await pg.evaluate(() => {
     const p = R.player, S = __S, res = {};
-    R.render3d.groundY = (x, y) => (x - S.x) * 0.45; __put(S.x, S.y); const up = __hold(1, 0, 40).slice(-10).reduce((a, b) => a + b, 0) / 10; __free(); for (let i = 0; i < 10; i++) R.step();
+    __flat(); R.render3d.groundY = (x, y) => (x - S.x) * 0.45; __put(S.x, S.y); const up = __hold(1, 0, 40).slice(-10).reduce((a, b) => a + b, 0) / 10; __free(); for (let i = 0; i < 10; i++) R.step();
     __put(S.x, S.y); const dn = __hold(-1, 0, 40).slice(-10).reduce((a, b) => a + b, 0) / 10; __free(); for (let i = 0; i < 10; i++) R.step();
     R.render3d.groundY = (x, y) => (x > S.x + 30 ? (x - S.x - 30) * 2.2 : 0); __put(S.x, S.y); __hold(1, 0, 60); const wallX = p.x - S.x; __free(); for (let i = 0; i < 10; i++) R.step();
     __flat(); const W0 = R.water; const dfake = { depth: () => 0.5, isWater: () => true, kindAt: () => 'river' }; R.water = Object.assign(Object.create(W0 || {}), dfake);
@@ -338,6 +339,11 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
   ok(bl.none || bl.inside === 0, 'shoved at a blocked cell at 900 u/s, a mob never ends a step inside it', bl);
   ok(bl.none || (bl.was && bl.out && bl.jump < 3), 'a mob spawned inside the mask walks out (≤ 2.5 units per step, no teleport)', bl);
 
+  /* 16b. mobs can move at all: A11's C.moveEnt (with physics' guarded fallback while A06's slide has 5 parameters) moves a mob by (10, 0) */
+  const mv = await pg.evaluate(() => { __clear(); __flat(); const S = __S, m = R.spawnMob('axe', S.x + 200, S.y, 3); m.ai = Object.assign(m.ai || {}, { off: true });
+    const x0 = m.x; R.combat.moveEnt(m, 10, 0); const d = m.x - x0; R.remove(m); __unflat(); return { d, fix: !!R.combat.moveEnt.physFix, arity: R.world.slide.length }; });
+  ok(Math.abs(mv.d - 10) < 0.01, 'R.combat.moveEnt(mob, 10, 0) moves it 10 units', mv);
+
   /* 17. a crowd around the hero settles without jitter */
   const cr = await pg.evaluate(() => {
     __clear(); __flat(); const p = R.player, S = __S; __put(S.x, S.y); p.hp = p.hpMax = 1e9; p.inv = 1e9;
@@ -354,7 +360,7 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
 
   /* 18. landing: running off a 40-unit ledge → airborne (e.z), lands, camera kick, 'landed' event */
   const ld = await pg.evaluate(() => {
-    __clear(); const p = R.player, S = __S; R.render3d.groundY = (x, y) => (x < S.x + 40 ? 40 : 0); __put(S.x, S.y); R.step();
+    __clear(); __flat(); const p = R.player, S = __S; R.render3d.groundY = (x, y) => (x < S.x + 40 ? 40 : 0); __put(S.x, S.y); R.step();
     const sh0 = R.fx && R.fx.shake, kicks = []; if (R.fx) R.fx.shake = (px, s) => { kicks.push(px); try { sh0 && sh0(px, s); } catch (e) {} };
     let lv = null; const h = (e, v) => { if (e === p) lv = v; }; R.bus.on('landed', h);
     let zMax = 0; R.input.move = { x: 1, y: 0 }; for (let i = 0; i < 70; i++) { R.step(); zMax = Math.max(zMax, p.z || 0); } __free(); for (let i = 0; i < 10; i++) R.step();
@@ -407,6 +413,16 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
     const a = A.get(), b = B.get(); const out = { avg: best, med: a.med + b.med, worst: Math.max(a.worst, b.worst), movers: R.phys.stats.movers, critters: crit, mobs, cols: R.phys.colliderCount }; __clear(); return out;
   });
   ok(bu.avg < 0.3 && bu.mobs >= 30, '40 mobs + 15 critters + the hero over 600 real steps: physics < 0.3 ms per step (least disturbed of 12 batches of 50)', { avg: +bu.avg.toFixed(4), med: +bu.med.toFixed(4), worst: +bu.worst.toFixed(2), mobs: bu.mobs, critters: bu.critters, cols: bu.cols });
+
+  /* 22. R.hit is wrapped once: A12's wrapper sits on ours and neither re-wraps the other (the integrated build grew the chain by 2
+          per step: 84 → 9460 by t = 79 s, then "Maximum call stack size exceeded" and no damage at all). 6000 steps = 100 game-s. */
+  const hd = await pg.evaluate(() => { const depth = () => { let d = 0, f = R.hit; while (f && d < 100000) { d++; f = f.orig; } return d; };
+    __clear(); const p = R.player, inv0 = p.inv; p.inv = 1e9; p.hp = p.hpMax = 1e9; const d0 = depth(); for (let i = 0; i < 6000; i++) { R.step(); if (p.dead || p.hp <= 0) { p.dead = false; p.hp = p.hpMax; } }
+    p.inv = inv0; p.hp = p.hpMax; const d1 = depth(); let phys = 0; for (let f = R.hit; f; f = f.orig) if (f.__phys) phys++;
+    let works = null; try { const m = R.spawnMob('axe', p.x + 30, p.y, 1); m.ai = Object.assign(m.ai || {}, { off: true }); const h0 = m.hp; R.hit(p, m, 5, {}); works = m.hp < h0; R.remove(m); } catch (e) { works = 'threw ' + e.message; }
+    return { d0, d1, phys, works, t: +R.t.toFixed(1), errs: (R.errors || []).slice(-3).map(String), cur: R.ui && R.ui.cur, same: R.player === p }; });
+  ok(hd.d1 === hd.d0 && hd.d1 <= 4 && hd.phys === 1, 'the R.hit chain does not grow over 6000 steps (≤ 4 deep), physics wraps it once', hd);
+  ok(hd.works === true, 'R.hit still deals damage after 100 game-s', hd.works);
 
   ok(G.errors.length === 0, 'no page errors (part 2)', G.errors.slice(0, 5));
   await G.close();

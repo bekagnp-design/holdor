@@ -85,7 +85,12 @@ const path = require('path');
     // the 5-argument slide (21_player): slide(x, y, nx, ny, r) → {x, y}, stopped by the wall column
     out.slide5 = [Wd.slide(1100, 600, 1110, 604, 14), Wd.slide(1180, 600, 1260, 600, 14)].map(q => [Math.round(q.x), Math.round(q.y)]);
     // population: at the camp (1200 units from the seat), let the system fill the land
-    put(1800, 1800); for (const m of R.ents.slice()) if (m.kind === 'mob') R.remove(m);
+    // 1200 units from the seat: a gentle batch (5–8 mobs, levels 1–2), and nothing at all while a dungeon is active
+    put(1800, 1800); for (const m of R.ents.slice()) if (m.kind === 'mob') R.remove(m); R.rng(9); Wd.populateNow(R.rng);
+    { const E = R.ents.filter(m => m.kind === 'mob' && !m.dead); out.easy = { n: E.length, lv: [...new Set(E.map(m => m.lvl))].sort() }; }
+    { const dg0 = R.dungeons; R.dungeons = Object.assign({}, dg0 || {}, { active: { id: 'test' } }); Wd.populate = true; for (const m of R.ents.slice()) if (m.kind === 'mob') R.remove(m);
+      const lg = log.length; put(600, 400); steps(60); out.dgQuiet = { mobs: R.ents.filter(m => m.kind === 'mob').length, ev: log.length - lg }; R.dungeons = dg0; Wd.populate = false; put(1800, 1800); steps(40); }
+    put(2250, 2250); for (const m of R.ents.slice()) if (m.kind === 'mob') R.remove(m);   // 1720 units from the seat: the full band
     Wd.populate = true; steps(5);
     const mobs = () => R.ents.filter(m => m.kind === 'mob' && !m.dead);
     const m1 = mobs(); out.pop1 = { n: m1.length, bad: m1.filter(m => { const d = Math.hypot(m.x - pl.x, m.y - pl.y); return d < 150 || d > 700 || Wd.blocked(m.x, m.y) || Wd.inPoi(m.x, m.y, 150); }).length, types: [...new Set(m1.map(m => m.type))].sort(), lvls: [...new Set(m1.map(m => m.lvl))].sort(), ambient: m1.filter(m => m.ambient).length };
@@ -119,6 +124,8 @@ const path = require('path');
   ok('gate toast names the region and the boss by its display name', /The way into The North is held by The Night King .* defeat it first/.test(r.toast) && !r.toastRaw, r.toast);
   ok('open gate: enter(north) fires, the player stays', Math.abs(r.openY - 1180) < 12 && r.openLog.includes('enter:north') && r.cur2 === 'north', JSON.stringify([r.openY, r.cur2]));
   ok('first placement inside a closed region: accepted where it stands', JSON.stringify(r.first) === '[900,700,"north"]', JSON.stringify(r.first));
+  ok('1200 units from the seat: 5–8 mobs, levels 1–2', r.easy.n >= 5 && r.easy.n <= 8 && r.easy.lv.every(l => l <= 2), JSON.stringify(r.easy));
+  ok('a dungeon is active: no enter / poi events, no ambient spawns', r.dgQuiet.mobs === 0 && r.dgQuiet.ev === 0, JSON.stringify(r.dgQuiet));
   ok('the seat stays calm: no ambient mob within 600 units of it', r.seatCalm === 0, String(r.seatCalm));
   ok('the home region is never gated for its own house (and still is for another)', r.homeOpen === true && r.otherClosed === true, JSON.stringify([r.homeOpen, r.otherClosed]));
   ok('slide(x, y, nx, ny, r) → {x, y}: free move, stopped before the wall', JSON.stringify(r.slide5[0]) === '[1110,604]' && r.slide5[1][0] < 1200, JSON.stringify(r.slide5));

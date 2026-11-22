@@ -34,7 +34,7 @@ const ROOT = path.resolve(__dirname, '..', '..'); const SC = path.join(ROOT, '.s
       ok('cast ' + id + ' (' + r.kind + ')', !r.threw && r.first && !r.second && r.cdLeft > 0 && Math.abs(r.cdLeft - r.cd) < 0.05 && (!needDmg || r.dmg > 0) && healed && shielded && r.v === 5 && r.text.length > 10,
         (r.threw ? 'threw ' + r.threw + ' ' : '') + 'dmg=' + r.dmg + ' cd=' + r.cdLeft.toFixed(1) + '/' + r.cd + ' second=' + r.second + (r.kind === 'heal' ? ' hp=' + r.hp : '') + (r.kind === 'shield' ? ' shield=' + r.shield : ''));
     }
-    const unl = await page.evaluate(() => R.skills.list().map(s => s.unlock).join(',')); ok(cls + ' unlock levels', unl === '1,4,8,14,22,32', unl);
+    const unl = await page.evaluate(() => R.skills.list().map(s => s.unlock).join(',')); ok(cls + ' unlock levels', unl === '1,1,1,8,14,22', unl);
   }
   ok('18 skills, unique ids and names', allIds.length === 18 && new Set(allIds).size === 18 && await page.evaluate(() => new Set(Object.values(R.data.skills).map(s => s.name)).size === Object.keys(R.data.skills).length));
   ok('kinds cover the contract', await page.evaluate(() => { const need = ['melee_aoe', 'dash_strike', 'shield', 'taunt', 'volley', 'trap', 'rain', 'fire_bolt', 'frost_nova', 'heal', 'summon_raven', 'wildfire']; const have = new Set(Object.values(R.data.skills).map(s => s.kind)); return need.every(k => have.has(k)); }));
@@ -47,12 +47,12 @@ const ROOT = path.resolve(__dirname, '..', '..'); const SC = path.join(ROOT, '.s
   // rank-ups: level 5 knight = 4 points; a point raises the numbers; no point → false; cap 5
   await scene('knight', 5);
   const rk = await page.evaluate(() => { const p = R.state.p; const o = { pts0: R.skills.points(), r0: R.skills.rank('k_cleave'), v0: R.skills.val('k_cleave') }; o.up = R.skills.rankUp('k_cleave'); o.pts1 = p.spts; o.r1 = p.skills.k_cleave; o.v1 = R.skills.val('k_cleave'); o.d1 = R.skills.desc('k_cleave');
-    o.locked = R.skills.rankUp('k_lunge'); R.skills.rankUp('k_cleave'); R.skills.rankUp('k_cleave'); R.skills.rankUp('k_cleave'); o.pts2 = p.spts; o.r2 = p.skills.k_cleave; o.capped = R.skills.rankUp('k_cleave'); o.zero = R.skills.rankUp('k_shield'); return o; });
+    o.locked = R.skills.rankUp('k_shield');   /* Raised Shield opens at 8 */ R.skills.rankUp('k_cleave'); R.skills.rankUp('k_cleave'); R.skills.rankUp('k_cleave'); o.pts2 = p.spts; o.r2 = p.skills.k_cleave; o.capped = R.skills.rankUp('k_cleave'); o.zero = R.skills.rankUp('k_lunge'); return o; });
   ok('rank up spends a point and raises numbers', rk.pts0 === 4 && rk.r0 === 1 && rk.v0 === 150 && rk.up && rk.pts1 === 3 && rk.r1 === 2 && rk.v1 === 175 && /175%/.test(rk.d1), JSON.stringify(rk));
   ok('rank up refused: locked / capped / no points', rk.locked === false && rk.r2 === 5 && rk.pts2 === 0 && rk.capped === false && rk.zero === false, JSON.stringify(rk));
   // autoBar
   const ab = await page.evaluate(() => { const p = R.state.p; p.lvl = 8; p.bar = [null, null, null]; const ch = R.skills.autoBar(); const a = p.bar.slice(); p.lvl = 1; R.skills.sync(); const b = p.bar.slice(); return { ch, a, b }; });
-  ok('autoBar fills with the lowest unlocked', ab.ch && ab.a.join(',') === 'k_cleave,k_shield,k_lunge' && ab.b.join(',') === 'k_cleave,,', JSON.stringify(ab));
+  ok('autoBar fills with the lowest unlocked (three spells from level 1)', ab.ch && ab.a.join(',') === 'k_cleave,k_lunge,k_taunt' && ab.b.join(',') === 'k_cleave,k_lunge,k_taunt', JSON.stringify(ab));
   // the skill screen: opens, 6 cards, a tap puts a skill into slot 2, RANK UP by tap, targets ≥ 44 px
   await scene('knight', 9);
   await page.evaluate(() => R.ui.open('skills')); await page.waitForTimeout(150);
@@ -60,7 +60,7 @@ const ROOT = path.resolve(__dirname, '..', '..'); const SC = path.join(ROOT, '.s
   const pts = await page.$eval('.sk-pts b', b => b.textContent); ok('points pill shows 8', pts === '8', pts);
   const slotBtn = await page.$('.sk-card[data-id="k_shield"] .sk-slot[data-slot="1"]'); const bb = await slotBtn.boundingBox();
   await page.tap('.sk-card[data-id="k_shield"] .sk-slot[data-slot="1"]'); await page.waitForTimeout(120);
-  const bar = await page.evaluate(() => R.state.p.bar.slice()); ok('tap puts Shield of the Watch into slot 2', bar[1] === 'k_shield', bar.join(','));
+  const bar = await page.evaluate(() => R.state.p.bar.slice()); ok('tap puts Raised Shield into slot 2', bar[1] === 'k_shield', bar.join(','));
   ok('slot button ≥ 44 px', bb && bb.height >= 44 && bb.width >= 44, JSON.stringify(bb));
   const onCount = await page.$$eval('.sk-card[data-id="k_shield"] .sk-slot.on', b => b.length); ok('chosen slot highlighted once', onCount === 1, '' + onCount);
   await page.screenshot({ path: SC + 'rpg_skills.png' });
@@ -81,7 +81,7 @@ const ROOT = path.resolve(__dirname, '..', '..'); const SC = path.join(ROOT, '.s
     const o = { at5: R.skills.list().length, bar5: p.bar.slice() }; p.lvl = 6; R.skills.sync(); o.at6 = R.skills.list().length; o.bar6 = p.bar.slice(); o.sk = R.data.skills.sig_jon && { name: R.data.skills.sig_jon.name, unlock: R.data.skills.sig_jon.unlock, kind: R.data.skills.sig_jon.kind };
     R.player.cd = {}; const b = R.ents.filter(e => e.kind === 'mob').reduce((a, e) => a + e.hp, 0); o.cast = R.skills.cast(2); for (let i = 0; i < 10; i++) R.step(); o.dmg = b - R.ents.filter(e => e.kind === 'mob').reduce((a, e) => a + e.hp, 0); o.pts = R.skills.points();
     R.ui.open('skills'); o.cards = document.querySelectorAll('.sk-card').length; o.sigCard = !!document.querySelector('.sk-card.sig[data-id="sig_jon"]'); R.ui.close(); if (had) R.data.champs = had; else delete R.data.champs; delete p.hero; return o; });
-  ok('signature: 4th skill at level 6 in slot 3, casts, shown', sig.at5 === 7 && sig.bar5.join(',') === 'k_cleave,k_shield,' && sig.at6 === 7 && sig.bar6[2] === 'sig_jon' && sig.sk && sig.sk.name === 'Longclaw Sweep' && sig.sk.unlock === 6 && sig.sk.kind === 'melee_aoe' && sig.cast && sig.dmg > 0 && sig.pts === 5 && sig.cards === 7 && sig.sigCard, JSON.stringify(sig));
+  ok('signature: 4th skill at level 6 in slot 3, casts, shown', sig.at5 === 7 && sig.bar5.join(',') === 'k_cleave,k_lunge,k_taunt' && sig.at6 === 7 && sig.bar6[2] === 'sig_jon' && sig.sk && sig.sk.name === 'Longclaw Sweep' && sig.sk.unlock === 6 && sig.sk.kind === 'melee_aoe' && sig.cast && sig.dmg > 0 && sig.pts === 5 && sig.cards === 7 && sig.sigCard, JSON.stringify(sig));
   ok('no page errors', errors.length === 0, errors.slice(0, 3).join(' || '));
   for (const k in out) console.log(out[k].startsWith('OK') ? 'OK   ' + k + (out[k].length > 2 ? '  ' + out[k].slice(3) : '') : 'FAIL ' + k + '  ' + out[k].slice(5));
   await browser.close(); console.log(fails ? fails + ' FAIL' : 'ALL OK'); process.exit(fails ? 1 : 0);

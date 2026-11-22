@@ -77,9 +77,16 @@
   S[0].check = () => { const p = R.player; T.moved += Math.hypot(p.x - T.lx, p.y - T.ly); T.lx = p.x; T.ly = p.y; if (T.moved >= MOVE) T.done(); };
   S[0].need = () => !!R.input;
 
-  S[1].enter = () => { T.kills = 0; T.mobs = R.ents.filter(e => e.tut && !e.dead); const p = R.player;
-    for (let k = T.mobs.length; k < 3; k++) { const a = -Math.PI / 2 + (k - 1) * 0.45; let x = p.x + Math.cos(a) * 200, y = p.y + Math.sin(a) * 200;
-      try { if (R.world && R.world.blocked && R.world.blocked(x, y)) { x = p.x - Math.cos(a) * 200; y = p.y - Math.sin(a) * 200; } } catch (e) {}
+  /* the three wights: in front of the hero (the camera's forward on the ground), on walkable ground, outside a seat's / town's safe radius
+     (inside the walls they could not reach him); the nearest ring of 200 → 560 units where all three fit, turning toward the sides first */
+  const freeAt = (x, y) => { const W = R.world; try { if (W && W.inWorld && !W.inWorld(x, y)) return false; if (W && W.blocked && W.blocked(x, y)) return false; if (W && W.inPoi && W.inPoi(x, y, 260)) return false; } catch (e) {} return true; };
+  const wightSpots = p => { const yaw = (R.cam && R.cam.yaw) || 0, fwd = R.cam && R.cam.yaw != null ? Math.atan2(-Math.cos(yaw), -Math.sin(yaw)) : -Math.PI / 2;
+    for (const d of [200, 260, 340, 440, 560]) for (const turn of [0, 0.6, -0.6, 1.2, -1.2, 1.9, -1.9, Math.PI]) {
+      const pts = [-1, 0, 1].map(k => { const a = fwd + turn + k * 0.45; return { x: p.x + Math.cos(a) * d, y: p.y + Math.sin(a) * d }; });
+      if (pts.every(q => freeAt(q.x, q.y))) return pts; }
+    return [-1, 0, 1].map(k => { const a = fwd + k * 0.45; return { x: p.x + Math.cos(a) * 200, y: p.y + Math.sin(a) * 200 }; }); };
+  S[1].enter = () => { T.kills = 0; T.mobs = R.ents.filter(e => e.tut && !e.dead); const p = R.player; const spots = wightSpots(p);
+    for (let k = T.mobs.length; k < 3; k++) { const x = spots[k].x, y = spots[k].y;
       let m = null; try { m = R.spawnMob ? R.spawnMob('axe', x, y, 1) : R.spawn({ kind: 'mob', type: 'axe', name: 'Wight', x, y, lvl: 1, hp: 24, hpMax: 24, atk: 4, def: 0, spd: 70, team: 1, r: 14 }); } catch (e) { m = null; }
       if (m && typeof m === 'object') { m.tut = 1; T.mobs.push(m); } } };
   S[1].on = { kill: m => { if (!T.mobs.length || T.mobs.indexOf(m) >= 0) T.kills++; if (T.kills >= 3) T.done(); } };

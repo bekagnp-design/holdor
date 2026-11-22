@@ -133,15 +133,15 @@
     pine_s: { h: 44, sway: 1.1, mk: () => merge([pt(cyl(2, 3.2, 14, 5), TRUNK), pt(cone(16, 30, 6), snowTip(0x1a4226, 0x2e6c3a, .75), { m: M(0, 12), rough: 1.4 })]) },
     birch: { h: 56, sway: 1.3, mk: () => merge([pt(cyl(2.2, 3.4, 42, 6), [0xd8d4ca, 0xf2efe6]), pt(cyl(3.5, 3.5, 1.6, 6), 0x2a2826, { m: M(0, 9) }), pt(cyl(3.2, 3.2, 1.4, 6), 0x2a2826, { m: M(0, 19) }), pt(cyl(2.9, 2.9, 1.2, 6), 0x2a2826, { m: M(0, 30) }), pt(ico(10, 0), [0x8a7a2a, 0xe0c45a], { m: M(0, 44), rough: 3 }), pt(ico(7, 0), [0x8a7a2a, 0xe8cc60], { m: M(5, 37, 3), rough: 2.4 })]) },
     heather: { h: 10, sway: .6, mk: () => merge([pt(ico(7, 0), [0x4a4a3a, 0x8a5a9a], { m: M(0, 2, 0, 0, 0, 0, 1.2, .5, 1.2), rough: 2.5 }), pt(ico(6, 0), [0x4a5a3a, 0x9a62a8], { m: M(7, 1.5, 3, 0, .7, 0, 1.1, .45, 1.1), rough: 2 }), pt(ico(5, 0), [0x4a5a3a, 0x7a4e8a], { m: M(-6, 1.2, 4, 0, 1.4, 0, 1.1, .5, 1.1), rough: 2 })]) },
-    boulder: { h: 0, obst: 11, mk: () => merge([pt(ico(10, 2), [0x5a5c58, 0x8a8c84], { m: M(0, 5, 0, 0, 0, 0, 1.25, .85, 1), rough: 2.6, smooth: true })]) },
-    drift: { h: 0, mk: () => merge([pt(ico(14, 2), [0xd8e2ea, 0xffffff], { m: M(0, 0, 0, 0, 0, 0, 1.7, .32, 1), rough: 1.6, ao: .12, smooth: true })]) },
+    boulder: { h: 0, tx: 'rock', obst: 11, mk: () => merge([pt(ico(10, 2), [0x5a5c58, 0x8a8c84], { m: M(0, 5, 0, 0, 0, 0, 1.25, .85, 1), rough: 2.6, smooth: true })]) },
+    drift: { h: 0, tx: 'snow', mk: () => merge([pt(ico(14, 2), [0xd8e2ea, 0xffffff], { m: M(0, 0, 0, 0, 0, 0, 1.7, .32, 1), rough: 1.6, ao: .12, smooth: true })]) },
     deadtree: { h: 50, sway: .3, mk: () => merge([pt(cyl(2.6, 5, 46, 6), GREY, { rough: .8 }), pt(cyl(1.2, 2.4, 22, 4), GREY, { m: M(0, 30, 0, 0, 0, -.9) }), pt(cyl(1, 2, 18, 4), GREY, { m: M(0, 38, 0, .8, 0, .7) }), pt(cyl(.8, 1.6, 12, 4), GREY, { m: M(0, 22, 0, -.6, 0, 1.1) })]) },
     /* the Wall / beyond */
     blackpine: { h: 80, sway: .8, obst: 6, mk: () => merge([pt(cyl(2.8, 5, 36, 6), [0x1a1410, 0x3a2e24]), pt(cone(19, 38, 7), snowTip(0x0e1a12, 0x1c3220, .85), { m: M(0, 22), rough: 1.6 }), pt(cone(13, 34, 7), snowTip(0x101e14, 0x203826, .8), { m: M(0, 44), rough: 1.3 }), pt(cone(7, 24, 6), snowTip(0x12201a, 0x243c2a, .7), { m: M(0, 62) })]) },
-    iceshard: { h: 0, shiny: { specular: 0xffffff, shininess: 160, opacity: .82 }, mk: () => merge([pt(oct(5), [0x9ad0f0, 0xe8f8ff], { m: M(0, 12, 0, 0, 0, .12, 1, 3.2, 1), ao: .1 }), pt(oct(3.2), [0x9ad0f0, 0xe8f8ff], { m: M(5, 7, 3, .2, .8, -.25, 1, 2.6, 1), ao: .1 }), pt(oct(2.4), [0x9ad0f0, 0xe8f8ff], { m: M(-4, 5, -2, -.15, .4, .3, 1, 2.2, 1), ao: .1 })]) },
+    iceshard: { h: 0, tx: 'ice', shiny: { specular: 0xffffff, shininess: 160, opacity: .82 }, mk: () => merge([pt(oct(5), [0x9ad0f0, 0xe8f8ff], { m: M(0, 12, 0, 0, 0, .12, 1, 3.2, 1), ao: .1 }), pt(oct(3.2), [0x9ad0f0, 0xe8f8ff], { m: M(5, 7, 3, .2, .8, -.25, 1, 2.6, 1), ao: .1 }), pt(oct(2.4), [0x9ad0f0, 0xe8f8ff], { m: M(-4, 5, -2, -.15, .4, .3, 1, 2.2, 1), ao: .1 })]) },
     pond: { h: 0, flat: true, shiny: { specular: 0xffffff, shininess: 220, opacity: .9 }, mk: () => merge([pt(disc(30, 12), [0xa8d0e8, 0xcfe8f6], { m: M(0, .6), rough: 4, ry: 0, ao: 0 })]) },
     weirwood: { h: 70, sway: .6, obst: 9, mk: () => merge([pt(cyl(4.5, 8, 38, 7), WHITE, { rough: 1 }), pt(cyl(1.6, 2.6, 16, 4), WHITE, { m: M(0, 26, 0, 0, 0, -1) }), pt(cyl(1.6, 2.6, 16, 4), WHITE, { m: M(0, 28, 0, .9, 0, .8) }), pt(ico(20, 1), [0x8a1820, 0xd83a3a], { m: M(0, 48, 0, 0, 0, 0, 1.3, .9, 1.3), rough: 4 }), pt(ico(11, 0), [0x8a1820, 0xe04848], { m: M(10, 40, -6), rough: 3 })]) },
-    boulder_snow: { h: 0, obst: 11, mk: () => merge([pt(ico(10, 2), yy => yy > .62 ? _c.c.setHex(0xe6eef4) : _c.c.lerpColors(_a.c.setHex(0x4a4d4e), _b.c.setHex(0x80858a), yy / .62), { m: M(0, 5, 0, 0, 0, 0, 1.25, .85, 1), rough: 2.4, smooth: true })]) },
+    boulder_snow: { h: 0, tx: 'rock', obst: 11, mk: () => merge([pt(ico(10, 2), yy => yy > .62 ? _c.c.setHex(0xe6eef4) : _c.c.lerpColors(_a.c.setHex(0x4a4d4e), _b.c.setHex(0x80858a), yy / .62), { m: M(0, 5, 0, 0, 0, 0, 1.25, .85, 1), rough: 2.4, smooth: true })]) },
     /* riverlands */
     willow: { h: 64, sway: 1.5, obst: 6, ds: true, mk: () => merge([pt(cyl(3.6, 6.5, 36, 6), BARK, { rough: 1 }), pt(cone(24, 30, 8), [0x6a8a3a, 0x9ab85a], { m: M(0, 38), rough: 2 }), pt(cone(18, 26, 7), [0x6a8a3a, 0xa0c060], { m: M(9, 40, 4), rough: 2 }), pt(cone(16, 24, 7), [0x6a8a3a, 0x9ab85a], { m: M(-9, 42, -5), rough: 2 }), pt(cyl(25, 22, 30, 10, true), [0x9ab85a, 0x6a8a3a], { m: M(0, 12), rough: 2.4, ao: .05 })]) },
     reed: { h: 36, sway: 2.2, ds: true, mk: () => merge([pt(quad(3, 36, 2), [0x5a7a2a, 0xc8b860], { up: true }), pt(quad(3, 32, 2), [0x5a7a2a, 0xd0c070], { m: M(3, 0, 2, 0, 1.1, .1), up: true }), pt(quad(2.6, 30, 2), [0x5a7a2a, 0xb8a850], { m: M(-3, 0, 1, 0, 2.2, -.1), up: true }), pt(oct(1.6), 0x5a3a2a, { m: M(0, 35, 0, 0, 0, 0, 1, 2.2, 1) })]) },
@@ -151,7 +151,7 @@
     bush: { h: 12, sway: .7, mk: () => merge([pt(ico(9, 0), [0x2c5226, 0x5a9040], { m: M(0, 3, 0, 0, 0, 0, 1.25, .75, 1.25), rough: 3.5 }), pt(ico(6, 0), [0x2c5226, 0x62984a], { m: M(8, 2, 4, 0, 0, 0, 1.1, .7, 1.1), rough: 2.5 })]) },
     /* vale */
     fir: { h: 80, sway: .7, obst: 5, mk: () => merge([pt(cyl(2.6, 4.6, 26, 6), TRUNK), pt(cone(15, 26, 6), [0x1e4a2c, 0x2e6a3c], { m: M(0, 14), rough: 1.2 }), pt(cone(12, 24, 6), [0x204c2e, 0x30703e], { m: M(0, 30), rough: 1 }), pt(cone(9, 22, 6), [0x22502f, 0x327440], { m: M(0, 46), rough: 1 }), pt(cone(5.5, 18, 6), snowTip(0x24522f, 0x347842, .6), { m: M(0, 62) })]) },
-    spire: { h: 0, obst: 16, mk: () => merge([pt(cone(15, 112, 6), [0x5e636c, 0x9ca3ac], { rough: 5, ry: .2 }), pt(cone(9, 60, 5), [0x5e636c, 0x8e959e], { m: M(12, 0, 6, 0, .6, -.15), rough: 3 }), pt(cone(7, 40, 5), [0x5e636c, 0x8e959e], { m: M(-10, 0, -5, .1, 1.3, .18), rough: 2.5 })]) },
+    spire: { h: 0, tx: 'rock', obst: 16, mk: () => merge([pt(cone(15, 112, 8), [0x5e636c, 0x9ca3ac], { rough: 4, ry: .2, smooth: true }), pt(cone(9, 60, 5), [0x5e636c, 0x8e959e], { m: M(12, 0, 6, 0, .6, -.15), rough: 3 }), pt(cone(7, 40, 5), [0x5e636c, 0x8e959e], { m: M(-10, 0, -5, .1, 1.3, .18), rough: 2.5 })]) },
     flower: { h: 9, sway: 1.4, ds: true, mk: () => crossQuads(5, 9, 3, split(0x4a7a2e, 0xb8c4ff, .62), split(0x4a7a2e, 0xd8e0ff, .62)) },
     shrub: { h: 10, sway: .6, mk: () => merge([pt(ico(8, 0), [0x3a5a30, 0x6a8a4a], { m: M(0, 2, 0, 0, 0, 0, 1.3, .65, 1.3), rough: 3 })]) },
     /* reach */
@@ -172,32 +172,32 @@
     gorse: { h: 10, sway: .6, mk: () => merge([pt(ico(8, 0), [0x203a1e, 0x4a6a34], { m: M(0, 2, 0, 0, 0, 0, 1.3, .7, 1.3), rough: 3.2 })].concat(dots([[5, 7, 3], [-6, 6, 2], [1, 8, -6]], 1.3, 0xe8d030))) },
     /* westerlands */
     goldtree: { h: 66, sway: 1, obst: 6, mk: () => merge([pt(cyl(3.8, 6, 32, 6), BARK, { rough: 1 }), pt(ico(20, 1), [0xa86a18, 0xf0c848], { m: M(0, 46), rough: 4 }), pt(ico(12, 0), [0xa86a18, 0xf8d050], { m: M(13, 38, 5), rough: 3 })]) },
-    outcrop: { h: 0, obst: 20, mk: () => merge([pt(ico(14, 2), [0x5e3626, 0x9a6448], { m: M(0, 10, 0, .1, 0, -.15, 1, 1.7, .85), rough: 4, smooth: true }), pt(ico(10, 2), [0x5e3626, 0x8e5a40], { m: M(13, 6, 5, -.1, .7, .3, 1, 1.4, .9), rough: 3, smooth: true }), pt(ico(8, 1), [0x5a3828, 0x845a44], { m: M(-11, 4, -6, .2, 1.4, -.2, 1, 1.2, 1), rough: 2.5, smooth: true })]) },
+    outcrop: { h: 0, tx: 'rock', obst: 20, mk: () => merge([pt(ico(14, 2), [0x5e3626, 0x9a6448], { m: M(0, 10, 0, .1, 0, -.15, 1, 1.7, .85), rough: 4, smooth: true }), pt(ico(10, 2), [0x5e3626, 0x8e5a40], { m: M(13, 6, 5, -.1, .7, .3, 1, 1.4, .9), rough: 3, smooth: true }), pt(ico(8, 1), [0x5a3828, 0x845a44], { m: M(-11, 4, -6, .2, 1.4, -.2, 1, 1.2, 1), rough: 2.5, smooth: true })]) },
     glint: { h: 0, glow: true, mk: () => merge([pt(oct(2.2), [0xd0a020, 0xfff0a0], { ao: 0, jit: .2 })]) },
     /* dorne */
     palm: { h: 62, sway: 1.6, obst: 4, ds: true, mk: () => { const p = [pt(cyl(2.8, 5, 54, 5), [0x6a4e30, 0xa88a60], { rough: 1 })];
       for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2; p.push(pt(quad(9, 30, 2), [0x3a7a2e, 0x7ab848], { m: M(Math.cos(a) * 3, 54, Math.sin(a) * 3, 0, -a, 0).multiply(M(0, 0, 0, 1.15 + (k % 2) * .2, 0, 0)) })); }
       p.push(pt(oct(2.6), 0x8a5a30, { m: M(0, 53) })); return merge(p); } },
     cactus: { h: 0, mk: () => merge([pt(cyl(5, 6, 34, 7), CACT, { rough: .8 }), pt(cyl(3, 3, 11, 5), CACT, { m: M(5, 18, 0, 0, 0, -Math.PI / 2) }), pt(cyl(2.8, 3, 14, 5), CACT, { m: M(14, 18, 0) }), pt(cyl(2.6, 2.6, 8, 5), CACT, { m: M(-5, 22, 0, 0, 0, Math.PI / 2) }), pt(cyl(2.4, 2.6, 10, 5), CACT, { m: M(-12, 22, 0) }), pt(oct(1.6), 0xf0b0c0, { m: M(0, 34.5), ao: 0 })]) },
-    pillar: { h: 0, obst: 12, mk: () => merge([pt(cyl(8, 12, 70, 6), SAND, { rough: 3, ry: .3 }), pt(ico(10, 0), [0x8a3a22, 0xc06a40], { m: M(0, 70, 0, 0, 0, 0, 1.2, .5, 1.2), rough: 2 }), pt(cyl(5, 7, 28, 5), [0x8a3a22, 0xc87046], { m: M(13, 0, 4, 0, .5, 0), rough: 2 })]) },
-    dune: { h: 0, mk: () => merge([pt(ico(60, 2), [0xc8a66a, 0xe8d0a0], { m: M(0, 0, 0, 0, 0, 0, 1, .16, .7), rough: 3, ao: .08, smooth: true })]) },
+    pillar: { h: 0, tx: 'sand_red', obst: 12, mk: () => merge([pt(cyl(8, 12, 70, 9), SAND, { rough: 2.4, ry: .3, smooth: true }), pt(ico(10, 0), [0x8a3a22, 0xc06a40], { m: M(0, 70, 0, 0, 0, 0, 1.2, .5, 1.2), rough: 2 }), pt(cyl(5, 7, 28, 5), [0x8a3a22, 0xc87046], { m: M(13, 0, 4, 0, .5, 0), rough: 2 })]) },
+    dune: { h: 0, tx: 'sand', mk: () => merge([pt(ico(60, 2), [0xc8a66a, 0xe8d0a0], { m: M(0, 0, 0, 0, 0, 0, 1, .16, .7), rough: 3, ao: .08, smooth: true })]) },
     drygrass: { h: 14, sway: 1.8, ds: true, mk: () => crossQuads(10, 14, 2, [0x9a7a3a, 0xe8d088], [0x9a7a3a, 0xe0c880], true) },
     /* iron islands / coast */
-    wetrock: { h: 0, obst: 13, shiny: { specular: 0x6a747c, shininess: 60 }, mk: () => merge([pt(ico(13, 2), [0x22262a, 0x484e54], { m: M(0, 5, 0, 0, 0, 0, 1.3, .6, 1), rough: 3, smooth: true }), pt(ico(7, 1), [0x22262a, 0x40464c], { m: M(11, 3, 6, 0, 0, 0, 1.2, .6, 1), rough: 2, smooth: true })]) },
+    wetrock: { h: 0, tx: 'rock_dark', obst: 13, shiny: { specular: 0x6a747c, shininess: 60 }, mk: () => merge([pt(ico(13, 2), [0x4a5258, 0x7a848a], { m: M(0, 5, 0, 0, 0, 0, 1.3, .6, 1), rough: 3, smooth: true }), pt(ico(7, 1), [0x4a5258, 0x727c82], { m: M(11, 3, 6, 0, 0, 0, 1.2, .6, 1), rough: 2, smooth: true })]) },
     driftwood: { h: 0, mk: () => merge([pt(cyl(2.4, 4, 42, 5), DRIFT, { m: M(0, 3, 0, 0, 0, Math.PI / 2 - .08), rough: 1 }), pt(cyl(1.2, 2, 14, 4), DRIFT, { m: M(-10, 4, 0, .5, 0, -.9) })]) },
-    seastack: { h: 0, obst: 18, mk: () => merge([pt(cyl(9, 17, 92, 7), [0x1e2226, 0x4a5058], { rough: 4, ry: .2 }), pt(ico(10, 0), [0x2a2e32, 0x5a6068], { m: M(0, 92, 0, 0, 0, 0, 1.1, .6, 1.1), rough: 3 }), pt(ico(2.2, 0), 0xf4f4f4, { m: M(3, 98, 2), ao: 0 }), pt(ico(2, 0), 0xf4f4f4, { m: M(-4, 97, -2), ao: 0 }), pt(oct(2.4), 0xe8ecee, { m: M(6, 50, 9, 0, 0, 0, 1, .3, 1), ao: 0 })]) },
+    seastack: { h: 0, tx: 'rock_dark', obst: 18, mk: () => merge([pt(cyl(9, 17, 92, 9), [0x4a5056, 0x7a8288], { rough: 3.4, ry: .2, smooth: true }), pt(ico(10, 0), [0x2a2e32, 0x5a6068], { m: M(0, 92, 0, 0, 0, 0, 1.1, .6, 1.1), rough: 3 }), pt(ico(2.2, 0), 0xf4f4f4, { m: M(3, 98, 2), ao: 0 }), pt(ico(2, 0), 0xf4f4f4, { m: M(-4, 97, -2), ao: 0 }), pt(oct(2.4), 0xe8ecee, { m: M(6, 50, 9, 0, 0, 0, 1, .3, 1), ao: 0 })]) },
     perch: { h: 28, sway: .2, mk: () => merge([pt(cyl(1.4, 2, 26, 5), [0x4a3a2a, 0x7a6a56], { m: M(0, 0, 0, 0, 0, .08) }), pt(ico(3, 0), 0xf4f4f4, { m: M(2, 28, 0, 0, 0, 0, 1.3, 1, .9), ao: .05 }), pt(ico(1.8, 0), 0xf4f4f4, { m: M(4.6, 30.5, 0), ao: .05 }), pt(oct(.9), 0xe0a020, { m: M(6.3, 30.3, 0, 0, 0, 0, 1.4, .6, .6), ao: 0 }), pt(quad(3, 4, 1), 0x3a3a3a, { m: M(2, 29, 1.2, 0, 0, 1.1), ao: 0 })]) },
     seagrass: { h: 14, sway: 1.8, ds: true, mk: () => crossQuads(10, 14, 2, [0x4a6a4a, 0x9ab08a], [0x4a6a4a, 0xa0b890]) },
     /* G2: the details that make each place its own */
-    menhir: { h: 0, obst: 9, mk: () => merge([pt(box(12, 46, 7, 1, 3, 1), [0x4a4c4a, 0x8a8e88], { rough: 2.2, ry: .4 }), pt(box(6, 3, 4), [0x3a5a32, 0x5a7a46], { m: M(2, 44, 0, .2, .3, .1), ao: 0 })]) },
+    menhir: { h: 0, tx: 'rock', obst: 9, mk: () => merge([pt(box(12, 46, 7, 1, 3, 1), [0x4a4c4a, 0x8a8e88], { rough: 2.2, ry: .4 }), pt(box(6, 3, 4), [0x3a5a32, 0x5a7a46], { m: M(2, 44, 0, .2, .3, .1), ao: 0 })]) },
     firdark: { h: 96, sway: .6, obst: 6, mk: () => merge([pt(cyl(2.8, 5, 30, 6), [0x22180f, 0x3e2c1c]), pt(cone(17, 30, 7), [0x0c2214, 0x173a22], { m: M(0, 16), rough: 1.3 }), pt(cone(14, 28, 7), [0x0e2616, 0x1a4026], { m: M(0, 34), rough: 1.1 }), pt(cone(10, 26, 6), [0x10281a, 0x1c4428], { m: M(0, 52), rough: 1 }), pt(cone(6, 22, 6), [0x122c1a, 0x1e482a], { m: M(0, 70) })]) },
     fern: { h: 8, sway: 1.2, ds: true, mk: () => crossQuads(12, 8, 2, [0x1e3a1a, 0x3e6a30], [0x1e3a1a, 0x46723a], true) },
     mushroom: { h: 0, mk: () => merge([pt(cyl(.9, 1.2, 4, 5), 0xe8e0d0, { ao: .05 }), pt(cone(3, 2.4, 7), [0x8a2a1a, 0xc8402a], { m: M(0, 4) }), pt(cyl(.7, .9, 3, 5), 0xe8e0d0, { m: M(4, 0, 2), ao: .05 }), pt(cone(2.2, 1.8, 6), [0x8a2a1a, 0xc8402a], { m: M(4, 3, 2) })]) },
     vine: { h: 14, sway: .5, mk: () => merge([pt(box(1.4, 16, 1.4), [0x4a3420, 0x6a4c30]), pt(box(30, .8, .8), 0x5a4a3a, { m: M(0, 13) }), pt(ico(5, 0), [0x2e5a22, 0x5a8a3a], { m: M(-9, 10, 0, 0, 0, 0, 1.3, 1, .8), rough: 1.8 }), pt(ico(5, 0), [0x2e5a22, 0x5a8a3a], { m: M(0, 11, 0, 0, 0, 0, 1.3, 1, .8), rough: 1.8 }), pt(ico(5, 0), [0x2e5a22, 0x5a8a3a], { m: M(9, 10, 0, 0, 0, 0, 1.3, 1, .8), rough: 1.8 })].concat(dots([[-8, 7, 3], [1, 8, 3], [8, 7, 3], [-3, 7, -3]], 1.5, 0x5a2a6a))) },
     sunflower: { h: 20, sway: 1.2, ds: true, mk: () => merge([pt(cyl(.6, .8, 18, 4), 0x4a6a2a), pt(cyl(3.4, 3.4, .8, 8), 0xf0c020, { m: M(0, 18, .6, Math.PI / 2 - .3, 0, 0), ao: 0 }), pt(cyl(1.6, 1.6, 1, 8), 0x4a2a10, { m: M(0, 18.2, 1.1, Math.PI / 2 - .3, 0, 0), ao: 0 })]) },
-    scree: { h: 0, mk: () => merge([pt(ico(4, 1), [0x6a6e72, 0x9aa0a4], { m: M(0, 1.5, 0, 0, 0, 0, 1.3, .6, 1), rough: 1.2 }), pt(ico(3, 0), [0x6a6e72, 0xa0a6aa], { m: M(7, 1, 3, 0, 0, 0, 1.2, .6, 1), rough: 1 }), pt(ico(2.4, 0), [0x6a6e72, 0x9aa0a4], { m: M(-6, 1, 4), rough: .8 }), pt(ico(3.2, 0), [0x5e6266, 0x8e9498], { m: M(3, 1, -7, 0, 0, 0, 1.2, .5, 1), rough: 1 }), pt(ico(2, 0), [0x6a6e72, 0x9aa0a4], { m: M(-4, .8, -5) })]) },
+    scree: { h: 0, tx: 'rock', mk: () => merge([pt(ico(4, 1), [0x6a6e72, 0x9aa0a4], { m: M(0, 1.5, 0, 0, 0, 0, 1.3, .6, 1), rough: 1.2 }), pt(ico(3, 0), [0x6a6e72, 0xa0a6aa], { m: M(7, 1, 3, 0, 0, 0, 1.2, .6, 1), rough: 1 }), pt(ico(2.4, 0), [0x6a6e72, 0x9aa0a4], { m: M(-6, 1, 4), rough: .8 }), pt(ico(3.2, 0), [0x5e6266, 0x8e9498], { m: M(3, 1, -7, 0, 0, 0, 1.2, .5, 1), rough: 1 }), pt(ico(2, 0), [0x6a6e72, 0x9aa0a4], { m: M(-4, .8, -5) })]) },
     scrub: { h: 9, sway: .8, mk: () => merge([pt(ico(6, 0), [0x6a5a30, 0xa89a58], { m: M(0, 2, 0, 0, 0, 0, 1.3, .7, 1.3), rough: 3 }), pt(ico(4, 0), [0x6a5a30, 0xb0a060], { m: M(6, 1.5, 3), rough: 2 }), pt(cyl(.4, .6, 9, 3), 0x5a4a30, { m: M(-4, 0, -3, .3, 0, .4) })]) },
-    basalt: { h: 0, obst: 12, mk: () => merge([pt(cyl(6, 6.5, 34, 6), [0x141214, 0x3a3436], { rough: .6, ry: 0 }), pt(cyl(5, 5.5, 24, 6), [0x141214, 0x342e30], { m: M(10, 0, 4), rough: .5, ry: 0 }), pt(cyl(5.5, 6, 16, 6), [0x141214, 0x302a2c], { m: M(-8, 0, 6), rough: .5, ry: 0 }), pt(cyl(4.5, 5, 28, 6), [0x141214, 0x3a3436], { m: M(2, 0, -9), rough: .5, ry: 0 })]) },
+    basalt: { h: 0, tx: 'rock_dark', obst: 12, mk: () => merge([pt(cyl(6, 6.5, 34, 6), [0x141214, 0x3a3436], { rough: .6, ry: 0 }), pt(cyl(5, 5.5, 24, 6), [0x141214, 0x342e30], { m: M(10, 0, 4), rough: .5, ry: 0 }), pt(cyl(5.5, 6, 16, 6), [0x141214, 0x302a2c], { m: M(-8, 0, 6), rough: .5, ry: 0 }), pt(cyl(4.5, 5, 28, 6), [0x141214, 0x3a3436], { m: M(2, 0, -9), rough: .5, ry: 0 })]) },
     ashtree: { h: 46, sway: .2, mk: () => merge([pt(cyl(2.4, 4.6, 42, 6), [0x0e0c0c, 0x2a2422], { rough: .8 }), pt(cyl(1, 2, 18, 4), [0x0e0c0c, 0x2a2422], { m: M(0, 28, 0, 0, 0, -1) }), pt(cyl(.9, 1.8, 15, 4), [0x0e0c0c, 0x2a2422], { m: M(0, 34, 0, .9, 0, .8) }), pt(oct(1.2), 0xff6a20, { m: M(1.5, 12, 2.5), ao: 0 })]) },
     embers: { h: 0, glow: true, mk: () => merge([pt(disc(5, 6), [0x8a2a0a, 0xff7a2a], { m: M(0, .6), ao: 0, jit: .3 }), pt(oct(1.2), 0xffb050, { m: M(2, 1.4, 1), ao: 0 }), pt(oct(1), 0xffd070, { m: M(-2, 1.2, -1), ao: 0 })]) },
     bogpool: { h: 0, flat: true, shiny: { specular: 0x9aa890, shininess: 120, opacity: .85 }, mk: () => merge([pt(disc(22, 10), [0x2a3a26, 0x3e5236], { m: M(0, .5, 0, 0, 0, 0, 1.4, 1, 1), rough: 4, ry: 0, ao: 0 })]) },
@@ -266,12 +266,12 @@
       { t: 'pool', n: 12, lod: 0, s: [.8, 1.8] }, { t: 'gorse', n: 30, lod: 0 }],
       say: ['Wind-bent trees and broken stumps. Rain is coming.', 'Pools from the last storm. The sky hangs low.'] },
     westerlands: { wind: 1, ground: 0x8a7a4a, grass: [.7, .8, .4], props: [
-      { t: 'oak', n: 30, clump: .4, off: 11 }, { t: 'autumnoak', n: 14, clump: .5, off: 30 }, { t: 'goldtree', n: 8 }, { t: 'outcrop', n: 9, s: [.8, 1.5], tilt: .1 }, { t: 'boulder', n: 8, tint: [1, .78, .66] },
+      { t: 'oak', n: 30, clump: .4, off: 11 }, { t: 'autumnoak', n: 14, clump: .5, off: 30, tint: [1.3, .82, .5] }, { t: 'goldtree', n: 8, tint: [1.25, 1.05, .55] }, { t: 'outcrop', n: 9, s: [.8, 1.5], tilt: .1 }, { t: 'boulder', n: 8, tint: [1, .78, .66] },
       { t: 'scree', n: 20, lod: 0, tint: [1, .75, .6] },
       { t: 'glint', n: 3, lod: 0, place: 'anchor', of: 'outcrop', r: 12, dy: [8, 26], s: [.8, 1.4] }, { t: 'bush', n: 18, lod: 0 }],
       say: ['Gold-leafed trees over red rock. Ore glints in the stone.', 'Outcrops and old mine mouths. Hills roll west.'] },
     dorne: { wind: 1, ground: 0xd8b878, grass: [1, .9, .55], props: [
-      { t: 'palm', n: 22, place: 'water', r: 90, s: [.8, 1.25] }, { t: 'palm', n: 8 }, { t: 'pillar', n: 6, s: [.7, 1.4] }, { t: 'dune', n: 3, s: [.7, 1.2], yaw: [0, .4] }, { t: 'cactus', n: 24, s: [.6, 1.2] },
+      { t: 'palm', n: 22, place: 'water', r: 90, s: [.8, 1.25] }, { t: 'palm', n: 8 }, { t: 'pillar', n: 6, s: [.7, 1.4] }, { t: 'cactus', n: 24, s: [.6, 1.2] },
       { t: 'drygrass', n: 50, lod: 0, clump: .3, off: 12 }, { t: 'scrub', n: 30, lod: 0 }],
       say: ['Palms and red sandstone. Heat shimmers on the dunes.', 'Cacti and dry grass. Sand in everything.'] },
     redmts: { wind: 1.2, ground: 0xb06a40, grass: [1, .78, .5], grassK: .3, props: [
@@ -308,7 +308,7 @@
     bush: ['shrub', 30, 1.3, 2], shrub: ['shrub', 26, 1.3, 2], rose: ['shrub', 28, 1.2, 2], gorse: ['gorse', 28, 1.3, 2], heather: ['heather', 18, 1.6, 2],
     reed: ['reeds', 42, .6, 2], cattail: ['reeds', 46, .6, 2], fern: ['fern', 22, 1.3, 2], wheat: ['grass_tall', 26, 1, 2], drygrass: ['grass_tall', 22, 1.1, 2], seagrass: ['grass_tall', 20, 1.1, 2],
     flower: ['flowers_blue', 16, 1.2, 2], poppy: ['flowers_red', 16, 1.2, 2], sunflower: ['flowers_yellow', 34, .7, 2], vine: ['vines', 32, 1.4, 2], cactus: ['cactus_scrub', 44, .8, 2],
-    scrub: ['cactus_scrub', 24, 1.3, 2], mushroom: ['mushroom', 9, 1.2, 2], tuft: ['grass_tuft', 16, 1.3, 1] };
+    scrub: ['cactus_scrub', 24, 1.3, 2], mushroom: ['mushroom', 9, 1.2, 2], tuft: ['grass_tuft', 16, 1.3, 1], stump: ['stump', 18, 1.2, 2], hedge: ['shrub', 24, 2.2, 2] };
   N.impostors = true;
   const impOn = type => N.impostors !== false && !!IMP[type];
   const texApi = () => { const T = R.tex; return T && typeof T.treeTex === 'function' ? T : null; };
@@ -424,9 +424,17 @@
     if (grass) { if (grass.parent) grass.parent.remove(grass); try { grass.dispose(); } catch (e) {} grass = null; } grassAt = null; N.refresh(); };
 
   /* ---------- geometry / material caches ---------- */
+  function addUV(g, S) { const p = g.attributes.position, nr = g.attributes.normal, n = p.count, uv = new Float32Array(n * 2);
+    for (let i = 0; i + 2 < n; i += 3) { let ax = 0, ay = 0, az = 0; for (let k = 0; k < 3; k++) { ax += Math.abs(nr.getX(i + k)); ay += Math.abs(nr.getY(i + k)); az += Math.abs(nr.getZ(i + k)); }
+      for (let k = 0; k < 3; k++) { const v = i + k, x = p.getX(v), y = p.getY(v), z = p.getZ(v); let u, w; if (ay >= ax && ay >= az) { u = x; w = z; } else if (ax >= az) { u = z; w = y; } else { u = x; w = y; } uv[v * 2] = u / S; uv[v * 2 + 1] = w / S; } }
+    g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); }
+  // a stone / sand / snow texture from 09c_textures on top of the vertex colours, brightened by the texture's mean so the tint stays
+  function texMap(m, name) { const T = R.tex; if (!T || typeof T.get !== 'function') return; let t = null; try { t = T.get(name); } catch (e) { t = null; } if (!t) return;
+    m.map = t; let k = 1.7; try { const a = typeof T.avg === 'function' ? T.avg(name) : null; if (a && /^#[0-9a-f]{6}$/i.test(a)) { const n = parseInt(a.slice(1), 16), L = ((n >> 16 & 255) * .3 + (n >> 8 & 255) * .59 + (n & 255) * .11) / 255; k = Math.min(2.4, Math.max(1, .62 / Math.max(.15, L))); } } catch (e) {}
+    m.color.setScalar(k); m.needsUpdate = true; }
   const geoFor = (type, biome) => { if (impOn(type)) return impGeo(type, biome || 'reach'); if (GEO[type]) return GEO[type]; grng = mkRng(hs(type)); let g = null;
     if (type === 'tree' && R.props && R.props.tree) { try { const m = R.props.tree(GEO._treeBiome || 'reach'); g = m && m.geometry; } catch (e) { g = null; } }
-    if (!g) g = PROPS[type].mk(); g.userData.tris = g.attributes.position.count / 3; return GEO[type] = g; };
+    if (!g) g = PROPS[type].mk(); if (PROPS[type] && PROPS[type].tx) addUV(g, 36); g.userData.tris = g.attributes.position.count / 3; return GEO[type] = g; };
   const SHADER = (bill) => `vec3 transformed = vec3(position);
 #ifdef USE_INSTANCING
   vec3 iPos = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
@@ -447,6 +455,7 @@ ${bill ? `  vec2 dC = cameraPosition.xz - iPos.xz; float aB = atan(dC.x, dC.y); 
     if (P.glow) m = new THREE.MeshBasicMaterial({ vertexColors: true });
     else if (P.shiny) m = new THREE.MeshPhongMaterial({ vertexColors: true, specular: P.shiny.specular || 0xffffff, shininess: P.shiny.shininess || 100, transparent: P.shiny.opacity != null, opacity: P.shiny.opacity == null ? 1 : P.shiny.opacity, side: P.ds ? THREE.DoubleSide : THREE.FrontSide, depthWrite: P.shiny.opacity == null });
     else m = new THREE.MeshLambertMaterial({ vertexColors: true, side: P.ds ? THREE.DoubleSide : THREE.FrontSide });
+    if (P.tx && !P.glow) texMap(m, P.tx);
     const sway = (P.sway || 0) * (B.wind || 1), spin = P.spin || 0;
     if (sway || P.bill || spin) {
       const bill = !!P.bill, uni = { uSway: { value: sway }, uFreq: { value: .9 + .9 * (B.wind || 1) }, uH: { value: Math.max(1, P.h || 1) }, uSpin: { value: spin }, uHub: { value: new THREE.Vector2(P.hub ? P.hub[0] : 0, P.hub ? P.hub[1] : 1e9) } };

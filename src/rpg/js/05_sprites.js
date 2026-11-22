@@ -66,7 +66,16 @@
   const cmetaOf = name => { const a = AC(); return (a && a.meta && a.meta[name]) || CMETA0; };
   const known = key => { const a = AE(); return !!(CFG0[key] || (a && ((a.cfg && a.cfg[key]) || (a.art && a.art[key])))); };
   /* a mob type that is not a sprite key may name its sprite in R.data.mobs[type].sprite */
-  const resolve = key => { if (known(key)) return key; const M = R.data && R.data.mobs && R.data.mobs[key]; return M && M.sprite && known(M.sprite) ? M.sprite : key; };
+  /* a mob type with no sheet of its own borrows the nearest painted one by its name (bandit → the axeman, bandit_archer → the archer, …), so
+     no humanoid shows as the grey placeholder; a mob of R.data.mobs that matches nothing walks as the swordsman */
+  const GUESS = [[/archer|bow|hunter|ranger|slinger/, 'archer'], [/spear|pike|lance/, 'spear'], [/shield|guard|knight|soldier|sworn|watch/, 'shield'], [/berserk|savage|frenz/, 'berserk'],
+    [/necro|mage|priest|witch|shaman|sorcer|warlock|cultist/, 'necro'], [/chief|captain|lord|warlord|champion/, 'chief'], [/thenn|clans|tribe/, 'thenn'], [/wolf/, 'wolf'], [/hound|dog|jackal/, 'hound'], [/bear/, 'bear'],
+    [/boar|pig/, 'boar'], [/spider/, 'spider'], [/crawl|rat|leech/, 'crawler'], [/wight|dead|crypt|skelet|corpse|drown/, 'crypt'], [/shade|ghost|wraith|spirit/, 'wraith'], [/giant/, 'giant'],
+    [/rider|horse|mounted/, 'rider'], [/raven|crow/, 'raven'], [/bat/, 'bat'], [/eagle|hawk/, 'eagle'], [/cat|lion/, 'cat'], [/bandit|outlaw|raider|thug|brigand|sellsword|pirate|reaver|wildling|axe|smuggler/, 'axe'], [/sword|blade|duel/, 'sword']];
+  const guessed = {};
+  const guess = key => { if (key in guessed) return guessed[key]; const k = String(key).toLowerCase(); let v = null; for (const [re, g] of GUESS) if (re.test(k) && known(g)) { v = g; break; } return guessed[key] = v; };
+  const resolve = key => { if (known(key)) return key; const M = R.data && R.data.mobs && R.data.mobs[key]; if (M && M.sprite && known(M.sprite)) return M.sprite;
+    const g = guess(key) || (M && M.sprite && guess(M.sprite)); if (g) return g; return M ? 'sword' : key; };
   const hash = s => { let h = 7; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); };
   const colFor = key => PAL[hash(key) % PAL.length];
   const houseCol = () => { const h = R.state && R.state.p && R.state.p.house, H = R.data && R.data.houses; return (h && H && H[h] && H[h].col) || '#a9bdd0'; };

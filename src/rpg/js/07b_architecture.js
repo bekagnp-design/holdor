@@ -27,9 +27,9 @@
       g.fillStyle = mort; g.fillRect(0, 0, TS, TS); h.fillStyle = grey(30); h.fillRect(0, 0, TS, TS);
       for (let y = 0; y < TS; y += rh) { let x = -Math.floor(rnd() * wmax); while (x < TS) { const w = Math.round(wmin + rnd() * (wmax - wmin)); both(x + gap, y + gap, w - gap, rh - gap, base(rnd), 150 + rnd() * 90); x += w; } }
     }
-    if (name === 'stone_wall') blocks(16, 18, 40, r => hsl(30 + r() * 20, 6 + r() * 6, 52 + r() * 16), 2, '#5b5853');
-    else if (name === 'stone_dark') blocks(21, 16, 34, r => hsl(220 + r() * 30, 4 + r() * 5, 26 + r() * 12), 2, '#17181b');
-    else if (name === 'sand_red') blocks(16, 24, 48, r => hsl(26 + r() * 10, 38 + r() * 14, 58 + r() * 12), 1, '#8a6446');
+    if (name === 'stone_wall') blocks(16, 18, 40, r => hsl(30 + r() * 20, 6 + r() * 6, 62 + r() * 16), 2, '#77736c');
+    else if (name === 'stone_dark') blocks(21, 16, 34, r => hsl(220 + r() * 30, 4 + r() * 5, 36 + r() * 14), 2, '#24252a');
+    else if (name === 'sand_red') blocks(16, 24, 48, r => hsl(30 + r() * 10, 30 + r() * 12, 68 + r() * 10), 1, '#a88664');
     else if (name === 'plaster') { g.fillStyle = '#d9d0bd'; g.fillRect(0, 0, TS, TS); h.fillStyle = grey(140); h.fillRect(0, 0, TS, TS);
       for (let i = 0; i < 90; i++) { const x = rnd() * TS, y = rnd() * TS, r = 3 + rnd() * 14; g.fillStyle = 'rgba(' + (120 + rnd() * 60 | 0) + ',' + (105 + rnd() * 50 | 0) + ',80,' + (.04 + rnd() * .07) + ')'; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); h.fillStyle = 'rgba(255,255,255,.08)'; h.beginPath(); h.arc(x, y, r, 0, TAU); h.fill(); } }
     else if (name === 'wood_planks') { const pw = 16; for (let x = 0; x < TS; x += pw) { const l = 28 + rnd() * 14; both(x, 0, pw, TS, hsl(26 + rnd() * 8, 34 + rnd() * 12, l), 170 + rnd() * 50);
@@ -75,15 +75,20 @@
     return { map, nrm };
   }
   /* key: [texture, world units per repeat, roughness] */
-  const MDEF = { stone: ['stone_wall', 84, .92], dark: ['stone_dark', 96, .9], plaster: ['plaster', 70, .95], wood: ['wood_planks', 46, .88], red: ['roof_tiles_red', 52, .8],
-    slate: ['roof_slate', 50, .7], thatch: ['roof_thatch', 60, 1], sand: ['sand_red', 84, .95], ice: ['ice', 190, .28], misc: [null, 64, .85] };
+  const MDEF = { stone: ['stone_wall', 84, .92], plaster: ['plaster', 70, .95], wood: ['wood_planks', 46, .88], red: ['roof_tiles_red', 52, .8],
+    slate: ['roof_slate', 50, .7], thatch: ['roof_thatch', 60, 1], glow: [null, 64, 1], ice: ['ice', 190, .28], misc: [null, 64, .85] };
+  function leafMat() {
+    if (S.leaf !== undefined) return S.leaf; S.leaf = null;
+    try { if (R.tex && typeof R.tex.treeTex === 'function') { const t = asTex(R.tex.treeTex('weirwood'), true); if (t) { t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; S.leaf = new THREE.MeshStandardMaterial({ map: t, vertexColors: true, alphaTest: .5, transparent: false, side: THREE.DoubleSide, roughness: .9 }); S.leaf.name = 'arch:leaf'; mats().leaf = S.leaf; MDEF.leaf = [null, 1, .9]; } } } catch (e) { S.leaf = null; }
+    return S.leaf;
+  }
   function mats() {
     if (S.mats) return S.mats; const M = {};
     for (const k in MDEF) { const d = MDEF[k], o = { vertexColors: true, roughness: d[2], metalness: 0 };
       if (d[0]) { const t = texOf(d[0]); if (t.map) o.map = t.map; if (t.nrm) { o.normalMap = t.nrm; o.normalScale = new THREE.Vector2(.85, .85); } }
       if (k === 'ice') { o.transparent = true; o.emissive = new THREE.Color(0x10243a); o.roughness = .3; }
       if (k === 'misc') o.side = THREE.DoubleSide;
-      M[k] = new THREE.MeshStandardMaterial(o); M[k].name = 'arch:' + k; }
+      M[k] = k === 'glow' ? new THREE.MeshBasicMaterial({ vertexColors: true, color: new THREE.Color(.16, .16, .16) }) : new THREE.MeshStandardMaterial(o); M[k].name = 'arch:' + k; }
     return S.mats = M;
   }
 
@@ -106,11 +111,12 @@
       g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new T.Float32BufferAttribute(N, 3)); g.setIndex(I);
       if (n === 4) g.rotateY(Math.PI / 4); }
     else if (k === 'dome') g = new T.SphereGeometry(1, 12, 5, 0, TAU, 0, Math.PI / 2);
-    else if (k === 'onion') { const pts = []; for (let i = 0; i <= 7; i++) { const t = i / 7; pts.push(new T.Vector2(Math.max(.001, Math.sin(t * Math.PI * .92) * (1 - t * .35) * 1.05), t)); } g = new T.LatheGeometry(pts, 12); }
+    else if (k === 'onion') { const pts = []; for (let i = 0; i <= 5; i++) { const t = i / 5; pts.push(new T.Vector2(Math.max(.001, Math.sin(t * Math.PI * .92) * (1 - t * .35) * 1.05), t)); } g = new T.LatheGeometry(pts, 12); }
     else if (k === 'gable') { g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute([
         -.5, 0, -.5, .5, 1, 0, .5, 0, -.5, -.5, 0, -.5, -.5, 1, 0, .5, 1, 0, .5, 0, .5, -.5, 1, 0, -.5, 0, .5, .5, 0, .5, .5, 1, 0, -.5, 1, 0,
         -.5, 0, .5, -.5, 1, 0, -.5, 0, -.5, .5, 0, -.5, .5, 1, 0, .5, 0, .5], 3)); g.computeVertexNormals(); }
     else if (k === 'arch') { const s = new T.Shape(); s.moveTo(-.5, 0); s.lineTo(.5, 0); s.lineTo(.5, .5); s.absarc(0, .5, .5, 0, Math.PI, false); s.lineTo(-.5, 0); g = new T.ShapeGeometry(s, 4); }
+    else if (k === 'spandrel') { const s = new T.Shape(); s.moveTo(-.5, 0); s.lineTo(-.5, .5); s.lineTo(.5, .5); s.lineTo(.5, 0); s.absarc(0, 0, .5, 0, Math.PI, false); g = new T.ShapeGeometry(s, 5); }
     else if (k === 'plane') { g = new T.PlaneGeometry(1, 1); g.translate(0, .5, 0); }
     else if (k === 'ico0' || k === 'ico1') { g = weld(new T.IcosahedronGeometry(1, k === 'ico0' ? 0 : 1)); }
     else if (/^rock[A-D]$/.test(k) || k === 'rockS') { const s = k.charCodeAt(4) * 1.7; g = weld(new T.IcosahedronGeometry(1, k === 'rockS' ? 1 : 2)); const p = g.attributes.position;
@@ -153,17 +159,18 @@
     C.hi = (x, z, e) => Math.max(C.gy(x, z), C.gy(x - e, z - e), C.gy(x + e, z - e), C.gy(x - e, z + e), C.gy(x + e, z + e));
     C.sea = -g0;
     /* o: {x,y,z, sx,sy,sz, ry,rx,rz, col, a, uv:'box'|'cyl', ao} */
-    C.add = (m, k, o) => { (B[m] = B[m] || []).push({ g: typeof k === 'string' ? geo(k) : k, o, cyl: o.uv === 'cyl' || (o.uv == null && /^(cyl|cone|dome|onion|stack|tent)/.test(typeof k === 'string' ? k : '')), u0: rnd(), v0: rnd() }); };
+    C.add = (m, k, o) => { if (m === 'dark') { m = 'stone'; o = Object.assign({}, o, { col: mulHex(o.col == null ? 0xffffff : o.col, 0x9a9ca2), us: typeof k === 'string' && /^(rock|stack)/.test(k) ? 3 : o.us }); }
+      if (m === 'sand') { m = 'stone'; o = Object.assign({}, o, { col: mulHex(o.col == null ? 0xffffff : o.col, 0xffd6a0) }); } (B[m] = B[m] || []).push({ g: typeof k === 'string' ? geo(k) : k, o, cyl: o.uv === 'cyl' || (o.uv == null && /^(cyl|cone|dome|onion|stack|tent)/.test(typeof k === 'string' ? k : '')), u0: rnd(), v0: rnd() }); };
     C.finish = () => {
       const M = mats(), q = _q(), e = new THREE.Euler(), v = _v(), n = _v(), col = new THREE.Color();
       for (const m in B) {
-        const parts = B[m], alpha = m === 'ice', ts = MDEF[m][1]; let nv = 0, ni = 0;
+        const parts = B[m], alpha = m === 'ice', ts0 = MDEF[m][1]; let nv = 0, ni = 0;
         for (const p of parts) { nv += p.g.attributes.position.count; ni += p.g.index ? p.g.index.count : p.g.attributes.position.count; }
         const P = new Float32Array(nv * 3), N = new Float32Array(nv * 3), U = new Float32Array(nv * 2), CC = new Float32Array(nv * (alpha ? 4 : 3)), I = new (nv > 65535 ? Uint32Array : Uint16Array)(ni); let ov = 0, oi = 0;
         for (const p of parts) {
           const o = p.o, g = p.g, pos = g.attributes.position, nor = g.attributes.normal, sx = o.sx == null ? 1 : o.sx, sy = o.sy == null ? 1 : o.sy, sz = o.sz == null ? 1 : o.sz;
           q.setFromEuler(e.set(o.rx || 0, o.ry || 0, o.rz || 0, 'YXZ')); col.set(o.col == null ? 0xffffff : o.col); const a = o.a == null ? 1 : o.a, ao = o.ao !== false, rr = (sx + sz) / 2;
-          const reps = Math.max(1, Math.round(TAU * rr / ts));
+          const ts = ts0 * (o.us || 1), reps = Math.max(1, Math.round(TAU * rr / ts));
           for (let i = 0; i < pos.count; i++) {
             const x0 = pos.getX(i), y0 = pos.getY(i), z0 = pos.getZ(i), px = x0 * sx, py = y0 * sy, pz = z0 * sz; n.set(nor.getX(i) / sx, nor.getY(i) / sy, nor.getZ(i) / sz).normalize();
             let u, w; if (p.cyl) { u = (Math.atan2(z0, x0) / TAU + .5) * reps; w = (py + Math.hypot(px, pz) * .35) / ts; }
@@ -171,7 +178,7 @@
             const j = (ov + i); U[j * 2] = u + p.u0; U[j * 2 + 1] = w + p.v0;
             v.set(px, py, pz).applyQuaternion(q); n.applyQuaternion(q);
             P[j * 3] = v.x + (o.x || 0); P[j * 3 + 1] = v.y + (o.y || 0); P[j * 3 + 2] = v.z + (o.z || 0); N[j * 3] = n.x; N[j * 3 + 1] = n.y; N[j * 3 + 2] = n.z;
-            const k = ao ? .7 + .3 * clamp(py / Math.min(36, Math.max(6, sy * .5)), 0, 1) : 1, cs = alpha ? 4 : 3;
+            const k = (ao ? .76 + .24 * clamp(py / Math.min(36, Math.max(6, sy * .5)), 0, 1) : 1) * (alpha ? 1 : 1.22), cs = alpha ? 4 : 3;
             CC[j * cs] = col.r * k; CC[j * cs + 1] = col.g * k; CC[j * cs + 2] = col.b * k; if (alpha) CC[j * 4 + 3] = a;
           }
           if (g.index) { const ix = g.index.array; for (let i = 0; i < ix.length; i++) I[oi + i] = ix[i] + ov; oi += ix.length; } else { for (let i = 0; i < pos.count; i++) I[oi + i] = ov + i; oi += pos.count; }
@@ -184,6 +191,7 @@
     };
     return C;
   }
+  const mulHex = (a, b) => (((a >> 16 & 255) * (b >> 16 & 255) / 255) << 16) | (((a >> 8 & 255) * (b >> 8 & 255) / 255) << 8) | ((a & 255) * (b & 255) / 255);
   /* jittered colour */
   const jit = (C, hex, k) => { const c = new THREE.Color(hex), f = 1 + ((C.rnd() - .5) * (k == null ? .12 : k)); return c.multiplyScalar(f).getHex(); };
 
@@ -214,7 +222,8 @@
         gatehouse(C, mx, mz, Math.atan2(-(q[1] - p[1]), q[0] - p[0]) + (out > 0 ? 0 : Math.PI), o); }
       else wallRun(C, p[0], p[1], q[0], q[1], oo); }
   }
-  function windowAt(C, x, y, z, ry, w, h, col) { C.add('misc', 'arch', { x: x, y, z: z, sx: w, sy: h, sz: 1, ry, col: col || 0x15110e, ao: false }); }
+  /* a window: lit ones (no colour given, 70 %) are in the glow material — dark by day, warm at night */
+  function windowAt(C, x, y, z, ry, w, h, col) { const lit = col == null && C.rnd() < .7; C.add(lit ? 'glow' : 'misc', 'arch', { x: x, y, z: z, sx: w, sy: h, sz: 1, ry, col: lit ? 0xffb060 : col || 0x15110e, ao: false }); }
   /* a tower: o {r, h, kind 'round'|'square', roof 'cone'|'tall'|'pyr'|'cren'|'dome'|'onion'|'none', mat, col, rm, rc, win, fin, trim} */
   function tower(C, x, z, o) {
     const r = o.r, lo = C.lo(x, z, r) - 12, top = C.hi(x, z, r * .6) + o.h, H = top - lo, round = o.kind !== 'square', mat = o.mat || C.pal.wall, col = jit(C, o.col || C.pal.wc, .1);
@@ -240,12 +249,12 @@
   }
   function gatehouse(C, x, z, ry, o) {
     const gw = o.gw || 40, h = o.h + 16, t = o.t * 1.5, mat = o.mat || C.pal.wall, col = o.col || C.pal.wc, lo = C.lo(x, z, gw * .6) - 12, top = C.hi(x, z, gw * .5) + h, cs = Math.cos(ry), sn = Math.sin(ry);
-    C.add(mat, 'boxnb', { x, y: lo, z, sx: gw + 22, sy: top - lo, sz: t, ry, col: jit(C, col) });
+    const oh = Math.min(o.h * .8, gw * 1.15), gy0 = C.gy(x, z) - 2; void lo;
+    C.add(mat, 'box', { x, y: gy0 + oh, z, sx: gw + 22, sy: top - gy0 - oh, sz: t, ry, col: jit(C, col) });
     merlonsAlong(C, x - cs * (gw / 2 + 11), z + sn * (gw / 2 + 11), x + cs * (gw / 2 + 11), z - sn * (gw / 2 + 11), top, { mat, col, t, out: 1, mg: 16 });
-    const fx = x + sn * (t / 2 + .6), fz = z + cs * (t / 2 + .6), gy0 = C.gy(x, z) - 2;
-    C.add('misc', 'arch', { x: fx, y: gy0, z: fz, sx: gw * .7, sy: Math.min(o.h * .8, gw * 1.15), sz: 1, ry, col: 0x0d0b0a, ao: false });
-    C.add('wood', 'arch', { x: fx + sn * .5, y: gy0 + (Math.min(o.h * .8, gw * 1.15)) * .62, z: fz + cs * .5, sx: gw * .7, sy: 6, sz: 1, ry, col: 0x6a5038, ao: false });
-    for (const s of [-1, 1]) { const tx = x + cs * s * (gw / 2 + 14), tz = z - sn * s * (gw / 2 + 14); tower(C, tx, tz, { r: o.gtr || 15, h: h + 18, kind: o.gkind || 'square', roof: o.groof || 'cren', ry, mat, col, win: 1, wa: ry, rm: o.rm, rc: o.rc, trim: o.trim, trimMat: o.trimMat }); }
+    C.add('wood', 'plane', { x: x + sn * (t / 2 - 3), y: gy0 + oh - 8, z: z + cs * (t / 2 - 3), sx: gw, sy: 8, sz: 1, ry, col: 0x5a4632, ao: false });
+    for (const k of [1, -1]) C.add(mat, 'spandrel', { x: x + sn * k * (t / 2 + .4), y: gy0 + oh - gw * .5, z: z + cs * k * (t / 2 + .4), sx: gw + 1, sy: gw, sz: 1, ry: k > 0 ? ry : ry + Math.PI, col, ao: false });
+    for (const s of [-1, 1]) { const tx = x + cs * s * (gw / 2 + 14), tz = z - sn * s * (gw / 2 + 14); if (s > 0 && C.poi.house && !C.bannered) { C.bannered = 1; banner(C, tx, tz, C.hi(tx, tz, 10) + h + 18, ry, C.poi.house); } tower(C, tx, tz, { r: o.gtr || 15, h: h + 18, kind: o.gkind || 'square', roof: o.groof || 'cren', ry, mat, col, win: 1, wa: ry, rm: o.rm, rc: o.rc, trim: o.trim, trimMat: o.trimMat }); }
   }
   /* a keep: o {w, d, h, mat, col, roof 'gable'|'pyr'|'cren', rm, rc, ry, rows} */
   function keep(C, x, z, o) {
@@ -265,13 +274,93 @@
   function house(C, x, z, o) {
     const ry = o.ry || 0, cs = Math.cos(ry), sn = Math.sin(ry), e = Math.max(o.w, o.d) / 2, lo = C.lo(x, z, e) - 8, top = C.hi(x, z, e * .7) + o.h, wc = jit(C, o.wc, .14);
     C.add(o.wm, 'boxnb', { x, y: lo, z, sx: o.w, sy: top - lo, sz: o.d, ry, col: wc });
-    const rh = o.d * (.5 + C.rnd() * .25); C.add(o.rm, 'gable', { x, y: top - 1, z, sx: o.w + 8, sy: rh, sz: o.d + 9, ry, col: jit(C, o.rc, .12) });
+    const rh = o.d * (.5 + C.rnd() * .25), rt = top + (o.storey || 0); C.add(o.rm, 'gable', { x, y: rt - 1, z, sx: o.w + 8, sy: rh, sz: o.d + 9, ry, col: jit(C, o.rc, .12) });
     if (o.wm === 'plaster') for (const s of [-1, 1]) C.add('wood', 'boxnb', { x: x + cs * s * (o.w / 2 - 1) + sn * (o.d / 2), y: lo, z: z - sn * s * (o.w / 2 - 1) + cs * (o.d / 2), sx: 3.2, sy: top - lo, sz: 3.2, ry, col: 0x6a4a30, ao: false });
     if (o.wm === 'plaster') C.add('wood', 'boxnb', { x: x + sn * (o.d / 2 + .3), y: top - 4, z: z + cs * (o.d / 2 + .3), sx: o.w, sy: 3, sz: 1.5, ry, col: 0x5a3e28, ao: false });
     const dz = o.d / 2 + .5, dx = (C.rnd() - .5) * o.w * .4, gy0 = C.gy(x, z) - 1;
     C.add('misc', 'arch', { x: x + cs * dx + sn * dz, y: gy0, z: z - sn * dx + cs * dz, sx: 9, sy: 17, sz: 1, ry, col: 0x2b1d12, ao: false });
-    windowAt(C, x + cs * (dx > 0 ? -o.w * .28 : o.w * .28) + sn * dz, top - 16, z - sn * (dx > 0 ? -o.w * .28 : o.w * .28) + cs * dz, ry, 6, 8, 0x3a2a18);
-    if (o.chim !== false) { const cx = x + cs * (o.w * .3) - sn * (o.d * .15), cz = z - sn * (o.w * .3) - cs * (o.d * .15); C.add('stone', 'boxnb', { x: cx, y: top, z: cz, sx: 6, sy: rh * .8 + 6, sz: 6, ry, col: 0xb0a89c, ao: false }); }
+    windowAt(C, x + cs * (dx > 0 ? -o.w * .28 : o.w * .28) + sn * dz, top - 16, z - sn * (dx > 0 ? -o.w * .28 : o.w * .28) + cs * dz, ry, 6, 8);
+    if (o.storey) { const ex = 3, h2 = o.storey; C.add(o.wm, 'boxnb', { x, y: top - 2, z, sx: o.w + ex, sy: h2 + 2, sz: o.d + ex, ry, col: jit(C, wc, .06), ao: false });
+      C.add('wood', 'box', { x, y: top - 3, z, sx: o.w + ex + 1, sy: 3, sz: o.d + ex + 1, ry, col: 0x5a3e28, ao: false });
+      windowAt(C, x + sn * (o.d / 2 + ex / 2 + .5), top + h2 * .35, z + cs * (o.d / 2 + ex / 2 + .5), ry, 6, 9); }
+    if (o.chim !== false) { const cx = x + cs * (o.w * .3) - sn * (o.d * .15), cz = z - sn * (o.w * .3) - cs * (o.d * .15); C.add('stone', 'boxnb', { x: cx, y: rt, z: cz, sx: 6, sy: rh * .8 + 6, sz: 6, ry, col: 0xb0a89c, ao: false }); }
+  }
+  /* ---------- town furniture ---------- */
+  const STALL = [0xb8483a, 0x3a6aa0, 0xc8a040, 0x5a8a3a, 0x8a3a6a];
+  function stall(C, x, z, ry) { const cs = Math.cos(ry), sn = Math.sin(ry), y = C.gy(x, z) - 2, P = (lx, lz) => [x + cs * lx + sn * lz, z - sn * lx + cs * lz];
+    for (const [lx, lz] of [[-12, -8], [12, -8], [-12, 8], [12, 8]]) { const q = P(lx, lz); C.add('wood', 'boxnb', { x: q[0], y, z: q[1], sx: 2, sy: 24, sz: 2, ry, col: 0x6a4a30, ao: false }); }
+    C.add('misc', 'gable', { x, y: y + 23, z, sx: 32, sy: 7, sz: 22, ry, col: STALL[Math.floor(C.rnd() * 5)], ao: false });
+    const q = P(0, 4); C.add('wood', 'box', { x: q[0], y: y + 9, z: q[1], sx: 24, sy: 3, sz: 9, ry, col: 0x8a6a48, ao: false });
+    for (let i = 0; i < 2; i++) { const g = P(-6 + i * 12, 4); C.add('misc', 'ico0', { x: g[0], y: y + 13, z: g[1], sx: 4, sy: 3, sz: 4, col: [0xc84030, 0xd8a030, 0x6a9a3a, 0xe8d8b0][Math.floor(C.rnd() * 4)], ao: false }); } }
+  function lamp(C, x, z) { const y = C.gy(x, z) - 2; C.add('wood', 'boxnb', { x, y, z, sx: 2.2, sy: 36, sz: 2.2, col: 0x3a2c20, ao: false });
+    C.add('glow', 'box', { x, y: y + 36, z, sx: 5, sy: 7, sz: 5, col: 0xffc070, ao: false }); C.add('misc', 'cone4', { x, y: y + 43, z, sx: 4.5, sy: 4, sz: 4.5, col: 0x2a2420, ao: false }); }
+  function barrel(C, x, z, s) { s = s || 1; const y = C.gy(x, z) - 1; C.add('wood', 'cyl8', { x, y, z, sx: 5 * s, sy: 12 * s, sz: 5 * s, col: 0x8a6440, ao: false, uv: 'cyl' }); C.add('wood', 'cap8', { x, y: y + 11.2 * s, z, sx: 4.6 * s, sy: 1, sz: 4.6 * s, col: 0x7a5a38, ao: false }); }
+  function cart(C, x, z, ry) { const cs = Math.cos(ry), sn = Math.sin(ry), y = C.gy(x, z), P = (lx, lz) => [x + cs * lx + sn * lz, z - sn * lx + cs * lz];
+    C.add('wood', 'boxnb', { x, y: y + 7, z, sx: 30, sy: 8, sz: 16, ry, col: 0x7a5a38 }); for (const s of [-1, 1]) { const q = P(4, s * 9); C.add('wood', 'cyl8c', { x: q[0], y: y + 7, z: q[1], sx: 7, sy: 2, sz: 7, rx: Math.PI / 2, ry, col: 0x4a3626, ao: false }); }
+    const h = P(-24, 0); C.add('wood', 'box', { x: h[0], y: y + 6, z: h[1], sx: 20, sy: 1.6, sz: 8, ry, col: 0x6a4a30, ao: false });
+    if (C.rnd() < .6) { const q = P(2, 0); C.add('thatch', 'ico0', { x: q[0], y: y + 15, z: q[1], sx: 13, sy: 6, sz: 7, ry, col: 0xe8d8a8, ao: false, uv: 'box' }); } }
+  function fenceRun(C, x0, z0, x1, z1) { const L = Math.hypot(x1 - x0, z1 - z0), n = Math.max(2, Math.round(L / 18)), ry = Math.atan2(-(z1 - z0), x1 - x0);
+    for (let i = 0; i <= n; i++) { const x = x0 + (x1 - x0) * i / n, z = z0 + (z1 - z0) * i / n; C.add('wood', 'boxnb', { x, y: C.gy(x, z) - 3, z, sx: 2, sy: 15, sz: 2, col: 0x7a5a3a, ao: false }); }
+    const mx = (x0 + x1) / 2, mz = (z0 + z1) / 2; for (const y of [6, 11]) C.add('wood', 'box', { x: mx, y: C.gy(mx, mz) + y, z: mz, sx: L, sy: 1.6, sz: 1.2, ry, col: 0x8a6a48, ao: false }); }
+  function signAt(C, x, z, y, ry) { const cs = Math.cos(ry), sn = Math.sin(ry); C.add('wood', 'box', { x: x + sn * 6, y, z: z + cs * 6, sx: 1.4, sy: 1.4, sz: 12, ry, col: 0x3a2c20, ao: false });
+    C.add('misc', 'plane', { x: x + sn * 9 + cs * 0, y: y - 12, z: z + cs * 9, sx: 1, sy: 10, sz: 12, ry: ry + Math.PI / 2, col: [0x8a3a2a, 0x2a4a6a, 0x6a5a2a][Math.floor(C.rnd() * 3)], ao: false }); }
+  function well(C, x, z) { const wy = C.gy(x, z) - 4; C.add('stone', 'cyl8', { x, y: wy, z, sx: 12, sy: 14, sz: 12, col: 0xc0b8ac }); C.add('misc', 'cap8', { x, y: wy + 12, z, sx: 10, sy: 1, sz: 10, col: 0x101820, ao: false });
+    for (const s of [-1, 1]) C.add('wood', 'boxnb', { x: x + s * 10, y: wy + 10, z, sx: 2.5, sy: 22, sz: 2.5, col: 0x6a4a30, ao: false });
+    C.add(C.pal.hr, 'gable', { x, y: wy + 30, z, sx: 26, sy: 9, sz: 20, col: 0xe0d0b0, ao: false }); }
+  function sept(C, x, z) { const top = tower(C, x, z, { r: 24, h: 34, roof: 'cone', mat: 'plaster', col: 0xf2ece0, rm: 'slate', rc: 0xb8c0c8, win: 2, fin: 0xf0f0ff }); C.add('ice', 'ico0', { x, y: top + 50, z, sx: 4, sy: 7, sz: 4, col: 0xf8fbff, a: .8, ao: false }); }
+  function haystack(C, x, z, s) { const y = C.gy(x, z) - 2; C.add('thatch', 'cyl8', { x, y, z, sx: 11 * s, sy: 12 * s, sz: 11 * s, col: 0xf0dca0 }); C.add('thatch', 'cone8', { x, y: y + 12 * s, z, sx: 12 * s, sy: 12 * s, sz: 12 * s, col: 0xf0dca0, ao: false }); }
+  function field(C, x, z, w, d, col) { const y = C.gy(x, z) + 1; for (let i = 0; i < 6; i++) C.add('misc', 'box', { x: x - w / 2 + (i + .5) * w / 6, y: y - 2, z, sx: w / 10, sy: 4, sz: d * .9, col: jit(C, col, .15), ao: false });
+    fenceRun(C, x - w / 2, z - d / 2, x + w / 2, z - d / 2); fenceRun(C, x - w / 2, z + d / 2, x + w / 2, z + d / 2); fenceRun(C, x - w / 2, z - d / 2, x - w / 2, z + d / 2); }
+  /* house materials by region: walls, roofs */
+  function houseKit(C) { const r = String(C.poi.region || ''), rnd = C.rnd, p = C.pal;
+    const roof = COLD.test(r) ? (rnd() < .5 ? 'thatch' : 'slate') : /river|reach|neck/.test(r) ? (rnd() < .6 ? 'thatch' : 'red') : DRY.test(r) ? 'red' : (rnd() < .7 ? 'red' : 'slate');
+    const wm = rnd() < .55 ? (COLD.test(r) ? 'wood' : 'plaster') : rnd() < .5 ? 'stone' : p.house;
+    return { wm, wc: wm === 'stone' ? 0xd8d2c8 : wm === 'wood' ? 0xc8b49a : p.hc, rm: roof, rc: roof === 'thatch' ? 0xe8d8b8 : roof === 'slate' ? 0xd0d8e0 : 0xffffff }; }
+  /* house banners: a pole, a swallow-tailed cloth and an original sigil drawn as shapes (no emoji, no texture) */
+  const HB = { stark: [0xd6dbe0, 0x46525e], lannister: [0x8a1c1c, 0xe0b040], baratheon: [0xe2c244, 0x1e1e1a], targaryen: [0x1c1a1a, 0xc83030],
+    greyjoy: [0x1c2228, 0xd8b84a], tyrell: [0x4e8a3a, 0xeacb48], martell: [0xe07a30, 0xb82a20] };
+  function sigilShapes(house) {
+    const T = THREE, P = pts => { const s = new T.Shape(); pts.forEach((p, i) => i ? s.lineTo(p[0], p[1]) : s.moveTo(p[0], p[1])); s.closePath(); return s; };
+    const circle = (x, y, r) => { const s = new T.Shape(); s.absarc(x, y, r, 0, TAU, false); return s; }, out = [];
+    if (house === 'stark') out.push(P([[-.4, .5], [-.22, .58], [-.14, .78], [-.04, .64], [.06, .66], [.16, .84], [.2, .6], [.32, .48], [.3, .28], [.14, .18], [.02, .26], [-.1, .4], [-.38, .42]]));
+    else if (house === 'lannister') { const m = []; for (let i = 0; i < 24; i++) { const a = i / 24 * TAU, r = i % 2 ? .25 : .36; m.push([Math.sin(a) * r, .55 + Math.cos(a) * r]); } out.push(P(m));
+      const f = new T.Path(); f.absarc(0, .53, .15, 0, TAU, true); out[0].holes.push(f); out.push(P([[-.1, .62], [.1, .62], [.07, .44], [0, .38], [-.07, .44]])); }
+    else if (house === 'baratheon') { const half = [[0, .2], [.08, .3], [.1, .5], [.14, .56], [.28, .66], [.36, .86], [.3, .87], [.24, .72], [.2, .8], [.15, .79], [.18, .68], [.08, .6], [0, .6]];
+      out.push(P(half.concat(half.slice().reverse().map(p => [-p[0], p[1]])))); }
+    else if (house === 'targaryen') out.push(P([[-.42, .86], [-.16, .62], [-.02, .7], [.06, .9], [.2, .86], [.1, .74], [.14, .62], [.42, .86], [.26, .44], [.08, .38], [.14, .22], [-.2, .14], [-.04, .3], [-.22, .42]]));
+    else if (house === 'greyjoy') { out.push(circle(0, .66, .14)); for (let k = 0; k < 6; k++) { const x0 = -.15 + k * .06, dir = k < 3 ? -1 : 1, L = [], Rr = [];
+        for (let i = 0; i <= 6; i++) { const t = i / 6, x = x0 + dir * Math.sin(t * Math.PI * 1.3) * .14 * t, y = .56 - t * .42, w = .035 * (1 - t) + .008; L.push([x - w, y]); Rr.push([x + w, y]); }
+        out.push(P(L.concat(Rr.reverse()))); } }
+    else if (house === 'tyrell') { for (let i = 0; i < 5; i++) { const a = i / 5 * TAU; out.push(circle(Math.sin(a) * .1, .62 + Math.cos(a) * .1, .1)); } out.push(circle(0, .62, .08));
+      out.push(P([[-.02, .5], [.02, .5], [.03, .15], [-.03, .15]]), P([[.02, .34], [.2, .42], [.12, .3]]), P([[-.02, .28], [-.2, .34], [-.1, .22]])); }
+    else if (house === 'martell') { out.push(circle(0, .56, .16)); for (let i = 0; i < 12; i++) { const a = i / 12 * TAU, b = a + .13, c = a - .13; out.push(P([[Math.sin(b) * .17, .56 + Math.cos(b) * .17], [Math.sin(a) * .3, .56 + Math.cos(a) * .3], [Math.sin(c) * .17, .56 + Math.cos(c) * .17]])); } }
+    else out.push(circle(0, .55, .2));
+    return out;
+  }
+  function banner(C, x, z, y, ry, house) {
+    const hb = HB[house] || [0x8a96a2, 0x2a3038], key = 'sig:' + house, ss = (S.geo[key] = S.geo[key] || new THREE.ShapeGeometry(sigilShapes(house), 6));
+    if (!S.geo.swallow) { const s = new THREE.Shape(); s.moveTo(-.5, 0); s.lineTo(-.5, 1); s.lineTo(.5, 1); s.lineTo(.5, 0); s.lineTo(0, .14); s.closePath(); S.geo.swallow = new THREE.ShapeGeometry(s, 1); }
+    const cs = Math.cos(ry), sn = Math.sin(ry), W = 26, H = 40, top = y + 62;
+    C.add('wood', 'cyl6', { x, y, z, sx: 1.4, sy: 66, sz: 1.4, col: 0x5a4030, ao: false });
+    C.add('wood', 'box', { x, y: top - 2, z, sx: W + 6, sy: 2, sz: 2, ry, col: 0x5a4030, ao: false });
+    const fx = x + sn * 2, fz = z + cs * 2;
+    C.add('misc', S.geo.swallow, { x: fx, y: top - H - 2, z: fz, sx: W, sy: H, sz: 1, ry, col: hb[0], ao: false });
+    if (house === 'martell') C.add('misc', 'plane', { x: fx + sn * .6, y: top - H + 1, z: fz + cs * .6, sx: 2, sy: H - 4, sz: 1, ry, rz: .7, col: 0xe8d060, ao: false });
+    C.add('misc', ss, { x: fx + sn * .5, y: top - H + 2, z: fz + cs * .5, sx: W * .95, sy: H * .95, sz: 1, ry, col: hb[1], ao: false });
+    C.add('misc', ss, { x: fx - sn * .5, y: top - H + 2, z: fz - cs * .5, sx: -W * .95, sy: H * .95, sz: 1, ry, col: hb[1], ao: false });
+  }
+  /* a Dorne house: sandstone / plaster block, flat roof with a parapet, an arched door, a striped awning, a dome on the big one */
+  function dorneHouse(C, x, z, o) {
+    const ry = o.ry || 0, cs = Math.cos(ry), sn = Math.sin(ry), e = Math.max(o.w, o.d) / 2, lo = C.lo(x, z, e) - 8, top = C.hi(x, z, e * .7) + o.h, wm = C.rnd() < .5 ? 'plaster' : 'sand', wc = jit(C, wm === 'plaster' ? 0xfbf0dc : 0xffe8c8, .08);
+    const L = (lx, lz) => [x + cs * lx + sn * lz, z - sn * lx + cs * lz];
+    C.add(wm, 'boxnb', { x, y: lo, z, sx: o.w, sy: top - lo, sz: o.d, ry, col: wc });
+    C.add(wm, 'box', { x, y: top - 3, z, sx: o.w + 3, sy: 3, sz: o.d + 3, ry, col: jit(C, wc, .06), ao: false });
+    for (const [lx, lz, w, d] of [[0, o.d / 2, o.w + 3, 2.4], [0, -o.d / 2, o.w + 3, 2.4], [o.w / 2, 0, 2.4, o.d], [-o.w / 2, 0, 2.4, o.d]]) { const p = L(lx, lz); C.add(wm, 'boxnb', { x: p[0], y: top, z: p[1], sx: w, sy: 6, sz: d, ry, col: wc, ao: false }); }
+    const dx = (C.rnd() - .5) * o.w * .3, gy0 = C.gy(x, z) - 1, dp = L(dx, o.d / 2 + .5);
+    C.add('misc', 'arch', { x: dp[0], y: gy0, z: dp[1], sx: 10, sy: 19, sz: 1, ry, col: 0x3a2418, ao: false });
+    for (const k of [-1, 1]) { const wp = L(k * o.w * .3 + (k > 0 ? 0 : 0), o.d / 2 + .5); if (Math.abs(k * o.w * .3 - dx) > 10) windowAt(C, wp[0], top - 17, wp[1], ry, 6, 10, 0x2a1a10); }
+    const ap = L(dx, o.d / 2 + 6); C.add('misc', 'plane', { x: ap[0], y: gy0 + 21, z: ap[1], sx: 20, sy: 13, sz: 1, ry, rx: -1.05, col: [0xc8502a, 0x2a6a8a, 0xd8a838, 0x8a3a5a][Math.floor(C.rnd() * 4)], ao: false });
+    if (o.dome) { const dr = Math.min(o.w, o.d) * .36; C.add('plaster', 'cyl14s', { x, y: top - 2, z, sx: dr, sy: 8, sz: dr, col: wc, ao: false }); C.add('red', 'dome', { x, y: top + 5, z, sx: dr, sy: dr * .9, sz: dr, col: 0xffc890, ao: false, uv: 'box' }); }
   }
   function bush(C, x, z, s, col, k) { C.add('misc', k || 'ico0', { x, y: C.gy(x, z) + s * .35, z, sx: s * (1 + C.rnd() * .3), sy: s * .75, sz: s * (1 + C.rnd() * .3), ry: C.rnd() * 3, col: jit(C, col, .2), ao: false }); }
   function rock(C, x, z, s, mat, col, k) { const g0 = C.lo(x, z, s * .5); C.add(mat || 'dark', k || 'rockS', { x, y: g0 - s * .1, z, sx: s * (1 + C.rnd() * .4), sy: s * (.6 + C.rnd() * .5), sz: s * (1 + C.rnd() * .4), ry: C.rnd() * 6, col: jit(C, col || 0x9a9894, .15), ao: false, uv: 'box' }); }
@@ -283,10 +372,13 @@
   function weirwood(C, x, z, s, icy) {
     const y = C.gy(x, z) - 4;
     C.add('misc', 'cyl8', { x, y, z, sx: 9 * s, sy: 62 * s, sz: 9 * s, col: 0xe6e0d4 });
-    for (let i = 0; i < 4; i++) { const a = i / 4 * TAU + C.rnd(); C.add('misc', 'cone8', { x: x + Math.cos(a) * 3 * s, y: y + (44 + i * 6) * s, z: z + Math.sin(a) * 3 * s, sx: 3 * s, sy: 34 * s, sz: 3 * s, rz: Math.cos(a) * .9, rx: -Math.sin(a) * .9, col: 0xdcd6ca, ao: false }); }
-    for (let i = 0; i < 4; i++) { const a = i / 4 * TAU + .5; C.add('misc', 'cone8', { x: x + Math.cos(a) * 8 * s, y: y, z: z + Math.sin(a) * 8 * s, sx: 4 * s, sy: 14 * s, sz: 4 * s, rz: Math.cos(a) * 1.1, rx: -Math.sin(a) * 1.1, col: 0xd8d0c2, ao: false }); }
-    const lc = icy ? 0xb03038 : 0x9c1c24;
-    for (const [dx, dy, dz, r] of [[0, 84, 0, 30], [-22, 72, 8, 20], [21, 76, -6, 22], [4, 70, 18, 18]]) C.add('misc', 'ico1', { x: x + dx * s, y: y + dy * s, z: z + dz * s, sx: r * s * 1.1, sy: r * s * .8, sz: r * s, ry: C.rnd() * 3, col: jit(C, lc, .2), ao: false });
+    for (let i = 0; i < (s < .6 ? 2 : 4); i++) { const a = i / 4 * TAU + C.rnd(); C.add('misc', 'cone8', { x: x + Math.cos(a) * 3 * s, y: y + (44 + i * 6) * s, z: z + Math.sin(a) * 3 * s, sx: 3 * s, sy: 34 * s, sz: 3 * s, rz: Math.cos(a) * .9, rx: -Math.sin(a) * .9, col: 0xdcd6ca, ao: false }); }
+    const lite = s < .6;
+    for (let i = 0; i < (lite ? 0 : 4); i++) { const a = i / 4 * TAU + .5; C.add('misc', 'cone8', { x: x + Math.cos(a) * 8 * s, y: y, z: z + Math.sin(a) * 8 * s, sx: 4 * s, sy: 14 * s, sz: 4 * s, rz: Math.cos(a) * 1.1, rx: -Math.sin(a) * 1.1, col: 0xd8d0c2, ao: false }); }
+    const lc = icy ? 0xb03038 : 0x9c1c24, lm = leafMat();
+    if (lm) { C.leaf = 1; for (let i = 0; i < 3; i++) C.add('leaf', 'plane', { x, y: y + 52 * s, z, sx: 92 * s, sy: 62 * s, sz: 1, ry: i / 3 * Math.PI + .3, col: icy ? 0xffeef0 : 0xffffff, ao: false });
+      C.add('leaf', 'plane', { x, y: y + 80 * s, z, sx: 80 * s, sy: 70 * s, sz: 1, rx: -Math.PI / 2, col: 0xffffff, ao: false }); }
+    else for (const [dx, dy, dz, r] of (lite ? [[0, 82, 0, 32], [-18, 72, 6, 22]] : [[0, 84, 0, 30], [-22, 72, 8, 20], [21, 76, -6, 22], [4, 70, 18, 18]])) C.add('misc', lite ? 'ico0' : 'ico1', { x: x + dx * s, y: y + dy * s, z: z + dz * s, sx: r * s * 1.1, sy: r * s * .8, sz: r * s, ry: C.rnd() * 3, col: jit(C, lc, .2), ao: false });
     C.add('misc', 'arch', { x, y: y + 30 * s, z: z + 9.4 * s, sx: 8 * s, sy: 13 * s, sz: 1, col: 0x6a1016, ao: false });
     if (icy) C.add('ice', 'cyl8', { x, y, z, sx: 11.5 * s, sy: 58 * s, sz: 11.5 * s, col: 0xdff2ff, a: .45, ao: false });
   }
@@ -295,22 +387,22 @@
   /* ---------- the seven seats (and King's Landing) ---------- */
   const SEATS = {
     winterfell(C) {   /* grey granite, a double curtain with many towers, the great keep, the broken tower, the glass gardens, steam vents */
-      const g = 0xc4c8ce, w = { mat: 'stone', col: g, t: 16, mg: 24 };
-      loop(C, [[-185, -165], [185, -165], [185, 165], [-185, 165]], Object.assign({ h: 46, gate: true, gw: 40, rc: 0xd8dee6 }, w));
-      loop(C, [[-125, -120], [125, -120], [125, 110], [-125, 110]], Object.assign({ h: 74 }, w));
-      for (const [x, z] of [[-185, -165], [185, -165], [185, 165], [-185, 165]]) tower(C, x, z, { r: 18, h: 66, kind: 'square', roof: 'cren', mat: 'stone', col: g });
-      const T = [[-125, -120, 22, 120, 'cone'], [125, -120, 20, 104, 'cone'], [125, 110, 22, 96, 'cone'], [-125, 110, 20, 112, 'tall'], [0, -120, 16, 92, 'cren'], [-125, -5, 15, 88, 'cone'], [125, -5, 15, 84, 'cren']];
+      const g = 0xc4c8ce, w = { mat: 'stone', col: g, t: 16 };
+      loop(C, [[-200, -170], [200, -170], [200, 250], [-200, 250]], Object.assign({ h: 46, gate: true, gw: 44, rc: 0xd8dee6, mg: 58 }, w));
+      loop(C, [[-130, -125], [130, -125], [130, 40], [-130, 40]], Object.assign({ h: 74, mg: 50, gate: true, gw: 36, gtr: 13 }, w));
+      for (const [x, z] of [[-200, -170], [200, -170], [200, 250], [-200, 250]]) tower(C, x, z, { r: 18, h: 66, kind: 'square', roof: 'cren', mat: 'stone', col: g, win: 1 });
+      const T = [[-130, -125, 22, 120, 'cone'], [130, -125, 20, 104, 'cone'], [130, 40, 22, 96, 'cone'], [-130, 40, 20, 112, 'tall'], [0, -125, 16, 92, 'cren'], [-130, -45, 15, 88, 'cone']];
       for (const t of T) tower(C, t[0], t[1], { r: t[2], h: t[3] + C.rnd() * 14, roof: t[4], mat: 'stone', col: g, rm: 'slate', rc: 0xc8d2dc, win: 2 });
-      tower(C, 70, -75, { r: 17, h: 150, roof: 'none', mat: 'stone', col: 0xb4b8be, win: 3 });   /* the broken tower: no roof, jagged top */
-      for (let i = 0; i < 5; i++) { const a = i / 5 * TAU; C.add('stone', 'boxnb', { x: 70 + Math.sin(a) * 17, y: C.hi(70, -75, 10) + 150 - 2, z: -75 + Math.cos(a) * 17, sx: 10, sy: 6 + C.rnd() * 14, sz: 6, ry: a, col: 0xb4b8be, ao: false }); }
-      keep(C, -40, -30, { w: 110, d: 70, h: 96, mat: 'stone', col: 0xb8bcc2, rm: 'slate', rc: 0xc8d2dc });
+      tower(C, 70, -90, { r: 17, h: 150, roof: 'none', mat: 'stone', col: 0xb4b8be, win: 3 });   /* the broken tower: no roof, jagged top */
+      for (let i = 0; i < 5; i++) { const a = i / 5 * TAU; C.add('stone', 'boxnb', { x: 70 + Math.sin(a) * 17, y: C.hi(70, -90, 10) + 150 - 2, z: -90 + Math.cos(a) * 17, sx: 10, sy: 6 + C.rnd() * 14, sz: 6, ry: a, col: 0xb4b8be, ao: false }); }
+      keep(C, -50, -62, { w: 110, d: 66, h: 96, mat: 'stone', col: 0xb8bcc2, rm: 'slate', rc: 0xc8d2dc });
       /* the glass gardens: a long low hall under a glass roof */
-      const gx = 72, gz = 40, glo = C.lo(gx, gz, 40) - 8, gtop = C.hi(gx, gz, 30) + 24;
+      const gx = 76, gz = -12, glo = C.lo(gx, gz, 40) - 8, gtop = C.hi(gx, gz, 30) + 24;
       C.add('stone', 'boxnb', { x: gx, y: glo, z: gz, sx: 70, sy: gtop - glo, sz: 44, col: 0xb0b4ba });
       C.add('ice', 'gable', { x: gx, y: gtop, z: gz, sx: 74, sy: 22, sz: 48, col: 0xbfe8d8, a: .62, ao: false });
       for (let i = 0; i < 5; i++) C.add('misc', 'boxnb', { x: gx - 32 + i * 16, y: gtop, z: gz, sx: 1.6, sy: 22, sz: 48, col: 0x2c3236, ao: false });
       for (let i = 0; i < 5; i++) bush(C, gx - 26 + i * 13, gz + 5, 7, 0x4f7d3a);
-      puffs(C, gx, gz, gtop + 8, 3); puffs(C, -150, 140, C.gy(-150, 140) + 10, 2);
+      puffs(C, gx, gz, gtop + 8, 3); puffs(C, -150, 170, C.gy(-150, 170) + 10, 2);
       C.grp.userData.radius = 260;
     },
     casterly(C) {     /* a huge rock with the fortress cut into it, gold-trimmed towers, carved windows, a gate at the foot */
@@ -319,46 +411,45 @@
       C.add('dark', 'rockB', { x: -190, y: base, z: rz + 40, sx: 120, sy: 150, sz: 110, ry: 1.2, col: 0xae967e, uv: 'box', ao: false });
       C.add('dark', 'rockC', { x: 180, y: base, z: rz + 20, sx: 130, sy: 180, sz: 110, ry: 2.2, col: 0xb49c84, uv: 'box', ao: false });
       const gold = 0xd8b048, stone = 0xe6d2b0;
-      for (const [x, z, r, h] of [[-120, 40, 17, 150], [-50, 95, 14, 120], [70, 90, 16, 165], [140, 45, 15, 130], [10, 10, 20, 250], [-150, -20, 13, 200]])
+      for (const [x, z, r, h] of [[-130, 40, 17, 150], [-62, 22, 14, 120], [72, 18, 16, 165], [140, 45, 15, 130], [10, -20, 20, 250], [-150, -30, 13, 200]])
         tower(C, x, z, { r, h, roof: 'cone', mat: 'stone', col: stone, rm: 'red', rc: 0xd07060, trim: gold, trimMat: 'misc', fin: gold, win: 3 });
       const g0 = C.gy; for (const [x, z, up, w, h] of [[-70, 30, 40, 80, 60], [80, 25, 80, 70, 56], [0, -5, 150, 90, 60], [-120, 20, 100, 50, 50]]) { C.gy = () => base + up;
         keep(C, x, z, { w, d: 44, h, mat: 'stone', col: 0xe2cca8, roof: 'cren', rows: 2 }); } C.gy = g0;
-      loop(C, [[-150, 110], [-60, 150], [60, 150], [150, 110], [100, 60], [-100, 60]], { mat: 'stone', col: stone, h: 44, t: 14, gate: true, gw: 40, trim: gold, trimMat: 'misc', rm: 'red', rc: 0xd07060 });
+      loop(C, [[-175, 230], [-60, 262], [60, 262], [175, 230], [150, 50], [-150, 50]], { mat: 'stone', col: stone, h: 44, t: 14, gate: true, gw: 40, trim: gold, trimMat: 'misc', rm: 'red', rc: 0xd07060 });
       C.grp.userData.radius = 280;
     },
     highgarden(C) {   /* pale stone on a hill: three tiered rings, slender towers with green-copper roofs, rose hedges */
       const pale = 0xf6f1e6, roofc = 0x9cc4a8, base = C.lo(0, 0, 160);
-      C.add('thatch', 'dome', { x: 0, y: base - 40, z: 0, sx: 260, sy: 80, sz: 240, col: 0x7c9a50, ao: false, uv: 'box' });
-      const ring = (r, h, y0, n, cren) => { const pts = []; for (let i = 0; i < n; i++) { const a = (i + .5) / n * TAU; pts.push([Math.sin(a) * r, Math.cos(a) * r]); }
-        const gyo = C.gy; C.gy = (x, z) => gyo(x, z) + y0 * (1.3 - Math.hypot(x, z) / 300); loop(C, pts, { mat: 'stone', col: pale, h, t: 12, gate: r > 190, gw: 36, cren, mg: 26, rm: 'slate', rc: roofc }); C.gy = gyo; return pts; };
-      const r1 = ring(205, 30, 0, 9, true), r2 = ring(140, 38, 26, 8, true), r3 = ring(80, 40, 52, 6, false);
+      C.add('thatch', 'dome', { x: 0, y: base - 40, z: -60, sx: 330, sy: 80, sz: 320, col: 0x7c9a50, ao: false, uv: 'box' });
+      const ring = (r, h, y0, n, cren) => { const pts = []; for (let i = 0; i < n; i++) { const a = (i + .5) / n * TAU; pts.push([Math.sin(a) * r, Math.cos(a) * r - 60]); }
+        const gyo = C.gy; C.gy = (x, z) => gyo(x, z) + y0 * (1.3 - Math.hypot(x, z + 60) / 300); loop(C, pts, { mat: 'stone', col: pale, h, t: 12, gate: r > 200, gw: 36, cren, mg: r > 190 ? 46 : 52, rm: 'slate', rc: roofc }); C.gy = gyo; return pts; };
+      const r1 = ring(290, 30, 0, 9, true), r2 = ring(150, 38, 26, 8, true), r3 = ring(84, 40, 52, 6, false); void r3;
       for (const p of r1.filter((p, i) => i % 3 === 1)) tower(C, p[0], p[1], { r: 13, h: 62, mat: 'stone', col: pale, rm: 'slate', rc: roofc, roof: 'cone', win: 1 });
-      for (const p of r2.filter((p, i) => i % 2 === 0)) tower(C, p[0], p[1], { r: 12, h: 100, mat: 'stone', col: pale, rm: 'slate', rc: roofc, roof: 'tall', win: 1 });
+      for (const p of r2.filter((p, i) => i % 3 === 0)) tower(C, p[0], p[1], { r: 12, h: 100, mat: 'stone', col: pale, rm: 'slate', rc: roofc, roof: 'tall', win: 1 });
       const kg = C.gy; C.gy = (x, z) => 50 + kg(x, z);
-      keep(C, 0, -5, { w: 80, d: 60, h: 92, mat: 'stone', col: 0xf2ecde, rm: 'slate', rc: roofc });
-      for (const [x, z, h] of [[-38, -32, 170], [40, -30, 150], [36, 26, 130], [-36, 24, 140]]) tower(C, x, z, { r: 11, h, mat: 'stone', col: pale, rm: 'slate', rc: roofc, roof: 'tall', fin: 0xd8b048, win: 2 });
+      keep(C, 0, -70, { w: 80, d: 56, h: 92, mat: 'stone', col: 0xf2ecde, rm: 'slate', rc: roofc });
+      for (const [x, z, h] of [[-38, -96, 170], [40, -94, 150], [36, -42, 130], [-36, -44, 140]]) tower(C, x, z, { r: 11, h, mat: 'stone', col: pale, rm: 'slate', rc: roofc, roof: 'tall', fin: 0xd8b048, win: 2 });
       C.gy = kg;
-      for (let i = 0; i < 16; i++) { const a = i / 16 * TAU + .1; if (Math.abs(Math.sin(a)) < .2 && Math.cos(a) > 0) continue; const x = Math.sin(a) * 232, z = Math.cos(a) * 232;
-        C.add('misc', 'ico0', { x, y: C.gy(x, z) + 2, z, sx: 30, sy: 11, sz: 11, ry: a + Math.PI / 2, col: jit(C, 0x2f5a28, .15), ao: false });
-        C.add('misc', 'ico0', { x: x + Math.cos(a) * 6, y: C.gy(x, z) + 12, z: z - Math.sin(a) * 6, sx: 4, sy: 3.5, sz: 4, col: i % 3 ? 0xc8203a : 0xf0d040, ao: false }); }
+      for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + .4; if (Math.abs(Math.sin(a)) < .2 && Math.cos(a) > 0) continue; const x = Math.sin(a) * 315, z = Math.cos(a) * 315 - 60;
+        C.add('misc', 'ico0', { x, y: C.gy(x, z) + 2, z, sx: 40, sy: 12, sz: 12, ry: a + Math.PI / 2, col: jit(C, 0x2f5a28, .15), ao: false });
+        if (i % 2 === 0) C.add('misc', 'ico0', { x: x + Math.cos(a) * 6, y: C.gy(x, z) + 12, z: z - Math.sin(a) * 6, sx: 4, sy: 3.5, sz: 4, col: i % 3 ? 0xc8203a : 0xf0d040, ao: false }); }
       C.grp.userData.radius = 260;
     },
     sunspear(C) {     /* sandstone: winding walls with rounded tops, domes on drums, the tall slender spear tower, palms, flat-roofed houses */
       const sand = 0xf2d6b0, gold = 0xe0a040;
-      loop(C, [[-190, 120], [-130, 170], [10, 150], [140, 175], [200, 90], [170, -60], [60, -120], [-120, -110], [-200, -30]], { mat: 'sand', col: sand, h: 40, t: 14, cren: false, round: true, gate: true, gw: 40, gkind: 'round', groof: 'dome', rm: 'sand', rc: 0xf6dcb8 });
+      loop(C, [[-210, 200], [-120, 255], [0, 250], [130, 262], [215, 160], [180, -60], [60, -125], [-120, -115], [-215, -30]], { mat: 'sand', col: sand, h: 40, t: 14, cren: false, round: true, gate: true, gw: 40, gkind: 'round', groof: 'dome', rm: 'sand', rc: 0xf6dcb8 });
       tower(C, 30, -30, { r: 13, h: 260, mat: 'sand', col: 0xf4dcb6, roof: 'dome', rm: 'misc', rc: gold, fin: gold, win: 4, seg: 14 });
       for (const [x, z, r, h] of [[-70, -10, 40, 46], [90, 50, 28, 40], [-110, 70, 22, 30]]) { const top = tower(C, x, z, { r, h, mat: 'sand', col: 0xf0d8b4, roof: 'none', win: 2 });
-        C.add('misc', 'onion', { x, y: top - 2, z, sx: r * .98, sy: r * 1.45, sz: r * .98, col: x < 0 ? gold : 0xe8c890, ao: false }); C.add('misc', 'cone8', { x, y: top + r * 1.4, z, sx: 2, sy: 18, sz: 2, col: gold, ao: false }); }
-      for (let i = 0; i < 7; i++) { const x = -150 + C.rnd() * 300, z = -60 + C.rnd() * 160; if (Math.hypot(x - 30, z + 30) < 50 || Math.hypot(x + 70, z + 10) < 60) continue; const w = 28 + C.rnd() * 20, d = 24 + C.rnd() * 16, h = 22 + C.rnd() * 16, lo = C.lo(x, z, w / 2) - 8;
-        C.add('plaster', 'box', { x, y: lo, z, sx: w, sy: h + C.gy(x, z) - lo, sz: d, ry: C.rnd() * .3, col: jit(C, 0xf4e4c8, .1) }); windowAt(C, x, C.gy(x, z) + h * .45, z + d / 2 + .6, 0, 6, 10, 0x2a1a10); }
-      for (const [x, z] of [[-150, 200], [-40, 195], [90, 200], [210, 140], [-230, 40], [230, -20], [160, 0]]) palm(C, x, z, 70 + C.rnd() * 30);
+        C.add(x < 0 ? 'red' : 'plaster', 'onion', { x, y: top - 2, z, sx: r * .98, sy: r * 1.45, sz: r * .98, col: x < 0 ? 0xffc890 : 0xfff4e4, ao: false, uv: 'box' }); C.add('misc', 'cone8', { x, y: top + r * 1.4, z, sx: 2, sy: 18, sz: 2, col: gold, ao: false }); }
+      for (let i = 0; i < 5; i++) { const x = -150 + C.rnd() * 300, z = -60 + C.rnd() * 160; if (Math.hypot(x - 30, z + 30) < 50 || Math.hypot(x + 70, z + 10) < 60 || Math.hypot(x, z - 160) < 100) continue; dorneHouse(C, x, z, { w: 30 + C.rnd() * 18, d: 26 + C.rnd() * 14, h: 22 + C.rnd() * 14, ry: (C.rnd() - .5) * .3, dome: false }); }
+      for (const [x, z] of [[-150, 200], [-95, 215], [105, 215], [175, 130], [-245, 40], [245, -20], [160, 0]]) palm(C, x, z, 70 + C.rnd() * 30);
       C.grp.userData.radius = 260;
     },
     pyke(C) {         /* dark towers on sea stacks, joined by bridges */
-      const dk = 0x8a9098, sea = Math.min(C.sea, -10), stacks = [[0, -40, 62, 120], [-150, 30, 40, 85], [140, -10, 44, 100], [60, 120, 34, 60], [-60, -170, 30, 95]];
+      const dk = 0x8a9098, sea = Math.min(C.sea, -10), stacks = [[0, -40, 62, 120], [-150, 30, 40, 85], [140, -10, 44, 100], [115, 150, 34, 60], [-60, -170, 30, 95]];
       const tops = [];
       stacks.forEach(([x, z, r, h], i) => { C.gy = C.gyBase; const y0 = Math.min(sea - 30, C.lo(x, z, r) - 20), top = Math.max(C.hi(x, z, r * .5), 0) + h;
-        C.add('dark', 'stack', { x, y: y0, z, sx: r, sy: top - y0, sz: r * (.9 + C.rnd() * .2), ry: C.rnd() * 6, col: jit(C, 0x7c7e80, .1), ao: false });
+        C.add('dark', 'stack', { x, y: y0, z, sx: r, sy: top - y0, sz: r * (.9 + C.rnd() * .2), ry: C.rnd() * 6, col: jit(C, 0xa8a49e, .1), ao: false });
         C.add('dark', 'cap14', { x, y: top, z, sx: r * .82, sy: 1, sz: r * .82, col: 0x6a6c6a, ao: false });
         C.gy = () => top;
         const th = i === 0 ? 120 : 70 + C.rnd() * 40; tower(C, x, z, { r: r * (i === 0 ? .55 : .5), h: th, kind: i === 3 ? 'square' : 'round', roof: i === 0 ? 'tall' : i % 2 ? 'cone' : 'cren', mat: 'dark', col: dk, rm: 'slate', rc: 0x8a96a2, win: 2 });
@@ -372,27 +463,27 @@
       C.grp.userData.radius = 240;
     },
     stormsend(C) {    /* one massive smooth drum tower, a round curtain wall, a gatehouse */
-      const st = 0xb8b6ae, top = tower(C, 0, -20, { r: 105, h: 210, seg: 24, roof: 'cren', mat: 'stone', col: st, win: 0 });
-      for (let i = 0; i < 9; i++) { const a = -1.1 + i / 8 * 2.2, y = C.gy(0, -20) + 60 + (i % 3) * 48; windowAt(C, Math.sin(a) * 107, y, -20 + Math.cos(a) * 107, a, 4, 14); }
-      C.add('stone', 'cyl24', { x: 0, y: top - 34, z: -20, sx: 113, sy: 10, sz: 113, col: 0xa8a69e, ao: false });
-      const pts = []; for (let i = 0; i < 12; i++) { const a = (i + .5) / 12 * TAU; pts.push([Math.sin(a) * 190, -20 + Math.cos(a) * 180]); }
+      const st = 0xb8b6ae, top = tower(C, 0, -60, { r: 100, h: 210, seg: 24, roof: 'cren', mat: 'stone', col: st, win: 0 });
+      for (let i = 0; i < 9; i++) { const a = -1.1 + i / 8 * 2.2, y = C.gy(0, -60) + 60 + (i % 3) * 48; windowAt(C, Math.sin(a) * 102, y, -60 + Math.cos(a) * 102, a, 4, 14); }
+      C.add('stone', 'cyl24', { x: 0, y: top - 34, z: -60, sx: 108, sy: 10, sz: 108, col: 0xa8a69e, ao: false });
+      const pts = []; for (let i = 0; i < 12; i++) { const a = (i + .5) / 12 * TAU; pts.push([Math.sin(a) * 220, -30 + Math.cos(a) * 252]); }
       loop(C, pts, { mat: 'stone', col: 0xb4b2aa, h: 56, t: 18, gate: true, gw: 42, mg: 26, gkind: 'round', groof: 'cren' });
-      for (const p of pts.filter((p, i) => i % 3 === 0)) tower(C, p[0], p[1], { r: 18, h: 78, roof: 'cren', mat: 'stone', col: st, win: 1 });
+      for (const p of pts.filter((p, i) => i % 3 === 1)) tower(C, p[0], p[1], { r: 18, h: 78, roof: 'cren', mat: 'stone', col: st, win: 1 });
       C.grp.userData.radius = 240;
     },
     dragonstone(C) {  /* black stone, the stone drum keep, spiky towers, carved dragons crouched on the walls */
       const bk = 0x5a5a5e, w = { mat: 'dark', col: bk, t: 16, mg: 22 };
-      loop(C, [[-180, -140], [-60, -185], [120, -170], [190, -40], [160, 130], [0, 170], [-170, 110]], Object.assign({ h: 58, gate: true, gw: 40, groof: 'tall', gkind: 'round', rm: 'dark', rc: 0x4a4a4e }, w));
+      loop(C, [[-180, -140], [-60, -185], [120, -170], [195, -40], [175, 170], [60, 238], [-60, 238], [-185, 170]], Object.assign({ h: 58, gate: true, gw: 40, groof: 'tall', gkind: 'round', rm: 'dark', rc: 0x4a4a4e }, w));
       const dt = tower(C, -10, -30, { r: 58, h: 150, seg: 24, roof: 'cren', mat: 'dark', col: 0x626266, win: 4 });
-      for (const [x, z, r, h] of [[-180, -140, 20, 110], [120, -170, 18, 120], [190, -40, 19, 100], [160, 130, 20, 116], [-170, 110, 18, 104], [60, 40, 15, 150]])
+      for (const [x, z, r, h] of [[-180, -140, 20, 110], [120, -170, 18, 120], [195, -40, 19, 100], [175, 170, 20, 116], [-185, 170, 18, 104], [90, 10, 15, 150]])
         tower(C, x, z, { r, h, roof: 'tall', mat: 'dark', col: bk, rm: 'dark', rc: 0x3e3e42, win: 2 });
       const dragon = (x, z, y, ry, s) => { const c = 0x6a686a, cs = Math.cos(ry), sn = Math.sin(ry), f = (lx, lz) => [x + cs * lx + sn * lz, z - sn * lx + cs * lz];
-        C.add('dark', 'ico1', { x, y: y + 6 * s, z, sx: 9 * s, sy: 7 * s, sz: 14 * s, ry, col: c, ao: false, uv: 'box' });
+        C.add('dark', 'ico0', { x, y: y + 6 * s, z, sx: 9 * s, sy: 7 * s, sz: 14 * s, ry, col: c, ao: false, uv: 'box' });
         let p = f(0, 14 * s); C.add('dark', 'cone8', { x: p[0], y: y + 8 * s, z: p[1], sx: 4 * s, sy: 16 * s, sz: 4 * s, ry, rx: .9, col: c, ao: false });
         p = f(0, 25 * s); C.add('dark', 'ico0', { x: p[0], y: y + 18 * s, z: p[1], sx: 4.5 * s, sy: 4 * s, sz: 7 * s, ry, col: c, ao: false });
         for (const sd of [-1, 1]) { p = f(sd * 8 * s, -2 * s); C.add('dark', 'cone4', { x: p[0], y: y + 8 * s, z: p[1], sx: 2 * s, sy: 22 * s, sz: 10 * s, ry, rz: -sd * 1.0, col: 0x5a585a, ao: false }); }
         p = f(0, -14 * s); C.add('dark', 'cone8', { x: p[0], y: y + 4 * s, z: p[1], sx: 3 * s, sy: 18 * s, sz: 3 * s, ry, rx: -1.3, col: c, ao: false }); };
-      const wp = [[-120, -162], [30, -178], [175, 45], [80, 150], [-85, 140], [-175, -15]];
+      const wp = [[-120, -162], [30, -178], [185, 65], [118, 204], [-122, 204], [-183, 15]];
       for (const [x, z] of wp) { const ang = Math.atan2(x, z); dragon(x * 1.02, z * 1.02, C.hi(x, z, 10) + 60, ang, 1.1); }
       dragon(-10, 28, C.gy(-10, -30) + 156, 0, 1.6);
       C.grp.userData.radius = 260; return dt;
@@ -400,22 +491,22 @@
     kingslanding(C) { /* a red-roofed city on three hills, the Red Keep on the highest, a great sept dome */
       const hills = [[-150, -120, 130, 70], [150, -90, 110, 50], [0, 120, 120, 40]];
       for (const [x, z, r, h] of hills) C.add('thatch', 'dome', { x, y: C.lo(x, z, r * .5) - 24, z, sx: r * 1.5, sy: h + 24, sz: r * 1.3, col: 0x8c9a60, ao: false, uv: 'box' });
-      const hillY = (x, z) => { let y = C.gy(x, z); for (const [hx, hz, r, h] of hills) { const d = Math.hypot((x - hx) / (r * 1.5), (z - hz) / (r * 1.3)); if (d < 1) y = Math.max(y, C.gy(hx, hz) - 24 + (h + 24) * Math.sqrt(1 - d * d)); } return y; };
-      const gyo = C.gy; C.gy = hillY;
+      const gyo = C.gy, hillY = (x, z) => { let y = gyo(x, z); for (const [hx, hz, r, h] of hills) { const d = Math.hypot((x - hx) / (r * 1.5), (z - hz) / (r * 1.3)); if (d < 1) y = Math.max(y, gyo(hx, hz) - 24 + (h + 24) * Math.sqrt(1 - d * d) - 4); } return y; };
+      C.gy = hillY;
       const red = 0xc87a62;
-      loop(C, [[-235, -195], [-60, -230], [90, -200], [245, -150], [255, 60], [150, 225], [-110, 230], [-250, 80]], { mat: 'stone', col: 0xd8c8b4, h: 40, t: 14, gate: true, gw: 40, mg: 30, rm: 'red', rc: 0xe8e0d8 });
+      loop(C, [[-235, -195], [-60, -230], [90, -200], [245, -150], [255, 60], [150, 225], [-110, 230], [-250, 80]], { mat: 'stone', col: 0xd8c8b4, h: 40, t: 14, gate: true, gw: 40, mg: 64, rm: 'red', rc: 0xe8e0d8 });
       /* the Red Keep */
       const kx = -150, kz = -120;
-      loop(C, [[kx - 70, kz - 55], [kx + 70, kz - 55], [kx + 70, kz + 55], [kx - 70, kz + 55]], { mat: 'stone', col: red, h: 46, t: 14, mg: 22, gate: true, gw: 30, rm: 'red', rc: 0xf0e0d8 });
+      loop(C, [[kx - 70, kz - 55], [kx + 70, kz - 55], [kx + 70, kz + 55], [kx - 70, kz + 55]], { mat: 'stone', col: red, h: 46, t: 14, mg: 32, gate: false, gw: 30, rm: 'red', rc: 0xf0e0d8 });
       for (const [x, z, r, h] of [[kx - 70, kz - 55, 16, 80], [kx + 70, kz - 55, 16, 86], [kx + 70, kz + 55, 15, 70], [kx - 70, kz + 55, 15, 76]]) tower(C, x, z, { r, h, roof: 'cone', mat: 'stone', col: red, rm: 'red', rc: 0xe8d8d0, win: 1 });
       keep(C, kx - 5, kz - 10, { w: 70, d: 50, h: 70, mat: 'stone', col: 0xbe6a54, rm: 'red', rc: 0xf0e0d8 });
       tower(C, kx + 35, kz - 20, { r: 14, h: 120, roof: 'cone', mat: 'stone', col: red, rm: 'red', rc: 0xe8d8d0, fin: 0xd8b048 });
       /* the great sept on the second hill */
       const sx = 150, sz = -90, st = tower(C, sx, sz, { r: 34, h: 44, roof: 'none', mat: 'plaster', col: 0xf6f2ea, win: 3 });
       C.add('misc', 'dome', { x: sx, y: st - 2, z: sz, sx: 36, sy: 34, sz: 36, col: 0xf2ecde, ao: false });
-      for (let i = 0; i < 7; i++) { const a = i / 7 * TAU; tower(C, sx + Math.sin(a) * 44, sz + Math.cos(a) * 44, { r: 6, h: 70, roof: 'tall', mat: 'plaster', col: 0xf6f2ea, rm: 'red', rc: 0xf0e8e0, win: 0 }); }
+      for (let i = 0; i < 7; i++) { const a = i / 7 * TAU, x = sx + Math.sin(a) * 42, z = sz + Math.cos(a) * 42, y = C.lo(x, z, 6) - 8; C.add('plaster', 'cyl8', { x, y, z, sx: 6, sy: st - y + 26, sz: 6, col: 0xf6f2ea }); C.add('slate', 'cone8', { x, y: st + 26, z, sx: 7.5, sy: 26, sz: 7.5, col: 0xe8ecf0 }); }
       /* houses */
-      for (let i = 0; i < 22; i++) { const a = C.rnd() * TAU, d = 50 + C.rnd() * 180, x = Math.cos(a) * d, z = Math.sin(a) * d * .9 + 30; if (Math.hypot(x - kx, z - kz) < 95 || Math.hypot(x - sx, z - sz) < 70) continue;
+      for (let i = 0; i < 13; i++) { const a = C.rnd() * TAU, d = 50 + C.rnd() * 180, x = Math.cos(a) * d, z = Math.sin(a) * d * .9 + 30; if (Math.hypot(x - kx, z - kz) < 95 || Math.hypot(x - sx, z - sz) < 70 || Math.hypot(x, z - 160) < 95) continue;
         house(C, x, z, { w: 30 + C.rnd() * 16, d: 24 + C.rnd() * 10, h: 22 + C.rnd() * 14, wm: 'plaster', wc: 0xf4e8d4, rm: 'red', rc: 0xffffff, ry: Math.round(a / (Math.PI / 2)) * Math.PI / 2 + (C.rnd() - .5) * .3, chim: C.rnd() < .4 }); }
       C.gy = gyo; C.grp.userData.radius = 280;
     }
@@ -425,40 +516,121 @@
   /* ---------- generic builders ---------- */
   const B = {
     castle(C) {
-      const p = C.pal, rnd = C.rnd, n = 4 + Math.floor(rnd() * 3), R0 = 110 + rnd() * 50, pts = [];
-      for (let i = 0; i < n; i++) { const a = (i + .5) / n * TAU + (rnd() - .5) * .3, r = R0 * (.85 + rnd() * .3); pts.push([Math.sin(a) * r * 1.1, Math.cos(a) * r]); }
+      const p = C.pal, rnd = C.rnd, n = 4 + Math.floor(rnd() * 3), R0 = 140 + rnd() * 35, pts = [];
+      for (let i = 0; i < n; i++) { const a = (i + .5) / n * TAU + (rnd() - .5) * .3, r = R0 * (.92 + rnd() * .18); pts.push([Math.sin(a) * r * 1.05, Math.cos(a) * r + 30]); }
       const h = 42 + rnd() * 20, wood = /deepwood/.test(C.poi.id || '');
-      if (wood) { for (let i = 0; i < pts.length; i++) { const a = pts[i], b = pts[(i + 1) % n], L = Math.hypot(b[0] - a[0], b[1] - a[1]), k = Math.floor(L / 9);
+      if (wood) { for (let i = 0; i < pts.length; i++) { const a = pts[i], b = pts[(i + 1) % n], L = Math.hypot(b[0] - a[0], b[1] - a[1]), k = Math.floor(L / 13);
           for (let j = 0; j < k; j++) { const f = (j + .5) / k, x = a[0] + (b[0] - a[0]) * f, z = a[1] + (b[1] - a[1]) * f; C.add('wood', 'cone6', { x, y: C.gy(x, z) - 6, z, sx: 5, sy: 48 + rnd() * 8, sz: 5, col: 0x9a7a58, uv: 'cyl' }); } } }
-      else loop(C, pts, { mat: p.wall, col: p.wc, h, t: 14, gate: true, gw: 38, mg: 24, rm: p.roof, rc: p.rc, gkind: rnd() < .5 ? 'round' : 'square' });
-      const nt = 2 + Math.floor(rnd() * 3);
+      else loop(C, pts, { mat: p.wall, col: p.wc, h, t: 14, gate: true, gw: 38, mg: 50, rm: p.roof, rc: p.rc, gkind: rnd() < .5 ? 'round' : 'square' });
+      const nt = 2 + Math.floor(rnd() * 2.5);
       for (let i = 0; i < nt; i++) { const q = pts[(i * 2 + 1) % n]; tower(C, q[0], q[1], { r: 14 + rnd() * 8, h: h + 30 + rnd() * 50, kind: rnd() < .65 ? 'round' : 'square', roof: ['cone', 'tall', 'cren', 'pyr'][Math.floor(rnd() * 4)], rm: p.roof, rc: p.rc, win: 2 }); }
-      if (rnd() < .5) keep(C, (rnd() - .5) * 30, -20 + (rnd() - .5) * 20, { w: 60 + rnd() * 30, d: 46 + rnd() * 20, h: 70 + rnd() * 40, roof: rnd() < .6 ? 'gable' : 'cren', rm: p.roof, rc: p.rc });
-      else { tower(C, (rnd() - .5) * 30, -20, { r: 30 + rnd() * 12, h: 90 + rnd() * 50, kind: rnd() < .5 ? 'round' : 'square', roof: rnd() < .5 ? 'cren' : 'cone', rm: p.roof, rc: p.rc, win: 3 }); }
-      if (p.snow) for (let i = 0; i < 4; i++) rock(C, (rnd() - .5) * 360, (rnd() - .5) * 360, 12 + rnd() * 10, 'stone', 0xf0f4f8);
+      if (rnd() < .5) keep(C, (rnd() - .5) * 30, -55 + (rnd() - .5) * 20, { w: 60 + rnd() * 30, d: 46 + rnd() * 20, h: 70 + rnd() * 40, roof: rnd() < .6 ? 'gable' : 'cren', rm: p.roof, rc: p.rc });
+      else { tower(C, (rnd() - .5) * 30, -60, { r: 30 + rnd() * 12, h: 90 + rnd() * 50, kind: rnd() < .5 ? 'round' : 'square', roof: rnd() < .5 ? 'cren' : 'cone', rm: p.roof, rc: p.rc, win: 3 }); }
+      if (p.snow) for (let i = 0; i < 4; i++) rock(C, (rnd() - .5) * 360, (rnd() - .5) * 360, 12 + rnd() * 10, 'misc', 0xf0f4f8, 'ico0');
       C.grp.userData.radius = R0 * 1.4;
     },
     town(C) {
       if (/kingslanding/.test(C.poi.id || '')) return SEATS.kingslanding(C);
-      const p = C.pal, rnd = C.rnd, n = 4 + Math.floor(rnd() * 5);
-      for (let i = 0; i < n; i++) { const a = (i / n) * TAU + rnd() * .5, d = 70 + rnd() * 60, x = Math.cos(a) * d, z = Math.sin(a) * d;
-        house(C, x, z, { w: 36 + rnd() * 22, d: 28 + rnd() * 12, h: 24 + rnd() * 12, wm: rnd() < .7 ? p.house : 'stone', wc: p.hc, rm: p.hr, rc: p.hr === 'thatch' ? 0xe8d8b8 : 0xffffff, ry: -a + Math.PI / 2 + (rnd() - .5) * .3 }); }
-      /* the well */
-      const wy = C.gy(0, 0) - 4; C.add('stone', 'cyl8', { x: 0, y: wy, z: 0, sx: 12, sy: 14, sz: 12, col: 0xc0b8ac }); C.add('misc', 'cap8', { x: 0, y: wy + 12, z: 0, sx: 10, sy: 1, sz: 10, col: 0x101820, ao: false });
-      for (const s of [-1, 1]) C.add('wood', 'boxnb', { x: s * 10, y: wy + 10, z: 0, sx: 2.5, sy: 22, sz: 2.5, col: 0x6a4a30, ao: false });
-      C.add(p.hr, 'gable', { x: 0, y: wy + 30, z: 0, sx: 26, sy: 9, sz: 20, col: 0xe0d0b0, ao: false });
-      /* fences */
-      const fa = rnd() * TAU, fx = Math.cos(fa) * 40, fz = Math.sin(fa) * 40;
-      for (let i = 0; i < 6; i++) { const x = fx + (i - 2.5) * 12, z = fz + 26; C.add('wood', 'boxnb', { x, y: C.gy(x, z) - 3, z, sx: 2, sy: 15, sz: 2, col: 0x7a5a3a, ao: false }); }
-      for (const y of [6, 11]) C.add('wood', 'box', { x: fx, y: C.gy(fx, fz + 26) + y, z: fz + 26, sx: 64, sy: 1.6, sz: 1.2, col: 0x8a6a48, ao: false });
-      /* the market stall */
-      const sx = -30 + rnd() * 10, sz = 34 + rnd() * 10, sy = C.gy(sx, sz) - 2;
-      for (const [dx, dz] of [[-12, -8], [12, -8], [-12, 8], [12, 8]]) C.add('wood', 'boxnb', { x: sx + dx, y: sy, z: sz + dz, sx: 2, sy: 24, sz: 2, col: 0x6a4a30, ao: false });
-      C.add('misc', 'gable', { x: sx, y: sy + 23, z: sz, sx: 30, sy: 8, sz: 22, col: [0xb8483a, 0x3a6aa0, 0xc8a040][Math.floor(rnd() * 3)], ao: false });
-      C.add('wood', 'box', { x: sx, y: sy + 9, z: sz + 4, sx: 24, sy: 3, sz: 10, col: 0x8a6a48, ao: false });
-      for (let i = 0; i < 3; i++) C.add('misc', 'ico0', { x: sx - 8 + i * 8, y: sy + 13, z: sz + 4, sx: 3.5, sy: 3, sz: 3.5, col: [0xc84030, 0xd8a030, 0x6a9a3a][i], ao: false });
-      if (p.snow) for (let i = 0; i < 3; i++) rock(C, (rnd() - .5) * 280, (rnd() - .5) * 280, 10 + rnd() * 8, 'stone', 0xf0f4f8);
-      C.grp.userData.radius = 170;
+      const rnd = C.rnd, dry = DRY.test(String(C.poi.region || '')), TR = clamp((C.poi.r || 200) * 1.05, 190, 300), SQ = 72, SW = 26;
+      /* streets: 3–4 straight lanes out of the market square; houses face them, the square and the lanes stay open */
+      const ns = 3 + (rnd() < .5 ? 1 : 0), a0 = rnd() * TAU, streets = []; for (let i = 0; i < ns; i++) streets.push(a0 + i * TAU / ns + (rnd() - .5) * .3);
+      let nh = 0; const MAXH = 18 + Math.floor(rnd() * 3), placed = [];
+      const ok = (x, z, e) => placed.every(q => Math.hypot(q[0] - x, q[1] - z) > q[2] + e) && Math.hypot(x, z) > SQ + e - 4;
+      const put = (x, z, ry, big) => { const k = houseKit(C), w = 30 + rnd() * 16 + (big ? 10 : 0), d = 26 + rnd() * 8, e = Math.max(w, d) / 2 + 3; if (!ok(x, z, e)) return false; placed.push([x, z, e]);
+        if (dry) dorneHouse(C, x, z, { w, d, h: 24 + rnd() * 12, ry, dome: big && rnd() < .5 }); else house(C, x, z, { w, d, h: 22 + rnd() * 8, storey: rnd() < .4 ? 16 + rnd() * 6 : 0, wm: k.wm, wc: k.wc, rm: k.rm, rc: k.rc, ry, chim: rnd() < .7 });
+        nh++; return true; };
+      for (const sa of streets) { const ux = Math.sin(sa), uz = Math.cos(sa), nx = Math.cos(sa), nz = -Math.sin(sa);
+        for (let d = SQ + 34; d < TR && nh < MAXH; d += 44 + rnd() * 10) for (const sd of [-1, 1]) { if (nh >= MAXH) break; const off = SW + 18 + rnd() * 6, x = ux * d + nx * sd * off, z = uz * d + nz * sd * off;
+          put(x, z, Math.atan2(-sd * nx, -sd * nz) + (rnd() - .5) * .12, false); if (rnd() < .25) { const lx = ux * d + nx * sd * (SW - 4), lz = uz * d + nz * sd * (SW - 4); lamp(C, lx, lz); } }
+        const lx = ux * (SQ + 20) + nx * (SW - 2), lz = uz * (SQ + 20) + nz * (SW - 2); lamp(C, lx, lz); }
+      /* a ring of houses round the square, between the streets, facing it */
+      for (let i = 0; i < ns && nh < MAXH + 2; i++) { const b = streets[i] + Math.PI / ns, r = SQ + 30; put(Math.sin(b) * r, Math.cos(b) * r, b + Math.PI + (rnd() - .5) * .1, true); }
+      /* the market: stalls on the square's rim, a well off-centre, barrels, a cart; the centre stays clear */
+      const ms = 4 + Math.floor(rnd() * 2); for (let i = 0; i < ms; i++) { const b = streets[0] + (i + .5) * TAU / ms + .35, r = SQ - 20; if (streets.some(sa => Math.abs(Math.atan2(Math.sin(b - sa), Math.cos(b - sa))) < .3)) continue; stall(C, Math.sin(b) * r, Math.cos(b) * r, b + Math.PI); }
+      const wb = streets[0] + Math.PI / ns * .9; if (dry) palm(C, Math.sin(wb) * 38, Math.cos(wb) * 38, 70); else well(C, Math.sin(wb) * 40, Math.cos(wb) * 40);
+      for (let i = 0; i < 5; i++) { const b = rnd() * TAU, r = SQ - 6 + rnd() * 8; barrel(C, Math.sin(b) * r, Math.cos(b) * r, .9 + rnd() * .3); }
+      { const b = streets[1] + .25, r = SQ + 6; cart(C, Math.sin(b) * r, Math.cos(b) * r, b + Math.PI / 2); }
+      /* a small sept (or a weirwood in the North) at the end of a street; fences round a garden; signboards */
+      { const sa = streets[ns - 1] + Math.PI / ns, r = TR * .82; if (COLD.test(String(C.poi.region || ''))) weirwood(C, Math.sin(sa) * r, Math.cos(sa) * r, .5, false); else sept(C, Math.sin(sa) * r, Math.cos(sa) * r); }
+      for (let i = 0; i < 2; i++) { const sa = streets[i] + Math.PI / ns, r = TR * (.55 + rnd() * .2), x = Math.sin(sa) * r, z = Math.cos(sa) * r; fenceRun(C, x - 30, z - 20, x + 30, z - 20); fenceRun(C, x - 30, z - 20, x - 30, z + 20); }
+      for (let i = 0; i < Math.min(4, placed.length); i++) { const q = placed[i * 2 % placed.length], ang = Math.atan2(-q[0], -q[1]); signAt(C, q[0] - Math.sin(ang) * (q[2] - 8), q[1] - Math.cos(ang) * (q[2] - 8), C.gy(q[0], q[1]) + 30, ang); }
+      if (C.pal.snow) for (let i = 0; i < 3; i++) rock(C, (rnd() - .5) * TR * 2, (rnd() - .5) * TR * 2, 10 + rnd() * 8, 'misc', 0xf0f4f8, 'ico0');
+      C.grp.userData.radius = TR + 40; C.grp.userData.streets = streets; C.grp.userData.square = SQ;
+    },
+    village(C) {
+      const rnd = C.rnd, dry = DRY.test(String(C.poi.region || '')), n = 4 + Math.floor(rnd() * 5), placed = [];
+      for (let i = 0; i < n; i++) { const a = i / n * TAU + rnd() * .4, d = 70 + rnd() * 50, x = Math.sin(a) * d, z = Math.cos(a) * d, k = houseKit(C);
+        if (placed.some(q => Math.hypot(q[0] - x, q[1] - z) < 46)) continue; placed.push([x, z]);
+        if (dry) dorneHouse(C, x, z, { w: 28 + rnd() * 12, d: 24 + rnd() * 8, h: 20 + rnd() * 8, ry: a + Math.PI }); else house(C, x, z, { w: 30 + rnd() * 14, d: 24 + rnd() * 8, h: 20 + rnd() * 8, wm: k.wm, wc: k.wc, rm: k.rm === 'red' && rnd() < .5 ? 'thatch' : k.rm, rc: 0xe8d8b8, ry: a + Math.PI, chim: rnd() < .6 }); }
+      well(C, 18, -10); lamp(C, -20, 22); barrel(C, 30, 20); barrel(C, 36, 16, .8);
+      const fa = rnd() * TAU, fx = Math.sin(fa) * 190, fz = Math.cos(fa) * 190; field(C, fx, fz, 110, 70, COLD.test(String(C.poi.region || '')) ? 0x8a9a5a : 0xc8b050);
+      haystack(C, fx + 70, fz + 10, 1);
+      C.grp.userData.radius = 240;
+    },
+    farm(C) {
+      const rnd = C.rnd, k = houseKit(C);
+      house(C, -40, 10, { w: 44, d: 30, h: 24, storey: 14, wm: k.wm, wc: k.wc, rm: k.rm, rc: k.rc, ry: (rnd() - .5) * .2 });
+      /* the barn: a big timber hall, a wide door, a hay loft */
+      const bx = 60, bz = -20, lo = C.lo(bx, bz, 40) - 8, top = C.hi(bx, bz, 30) + 40;
+      C.add('wood', 'boxnb', { x: bx, y: lo, z: bz, sx: 70, sy: top - lo, sz: 50, col: 0xa0583a });
+      C.add(k.rm === 'red' ? 'thatch' : k.rm, 'gable', { x: bx, y: top - 1, z: bz, sx: 78, sy: 30, sz: 58, col: 0xe0d0b0 });
+      C.add('misc', 'plane', { x: bx, y: C.gy(bx, bz) - 1, z: bz + 25.6, sx: 26, sy: 30, sz: 1, col: 0x2a1c12, ao: false });
+      C.add('wood', 'plane', { x: bx, y: top - 16, z: bz + 25.6, sx: 12, sy: 10, sz: 1, col: 0x6a4a30, ao: false });
+      field(C, -20, 140, 150, 80, 0xc8b050); field(C, 160, 120, 90, 90, 0x7a9a4a);
+      for (let i = 0; i < 3; i++) haystack(C, 120 + i * 26, -80 + rnd() * 20, .9 + rnd() * .3);
+      cart(C, 10, 60, .4); barrel(C, -70, 40); barrel(C, -64, 46, .8);
+      fenceRun(C, -90, -60, 20, -60);
+      C.grp.userData.radius = 220;
+    },
+    inn(C) {
+      const rnd = C.rnd, k = houseKit(C), x = 0, z = -30, w = 70, d = 44, lo = C.lo(x, z, 40) - 8, g1 = C.hi(x, z, 30) + 30;
+      /* two storeys: stone below, a jettied timber-framed floor above, a big roof, two chimneys, the hanging sign */
+      C.add('stone', 'boxnb', { x, y: lo, z, sx: w, sy: g1 - lo, sz: d, col: 0xd0c8b8 });
+      C.add('wood', 'box', { x, y: g1 - 3, z, sx: w + 7, sy: 4, sz: d + 7, col: 0x5a3e28, ao: false });
+      C.add('plaster', 'boxnb', { x, y: g1, z, sx: w + 6, sy: 28, sz: d + 6, col: 0xf4ead6, ao: false });
+      for (let i = 0; i < 5; i++) C.add('wood', 'boxnb', { x: x - (w + 6) / 2 + i * (w + 6) / 4, y: g1, z: z + (d + 6) / 2 + .4, sx: 3, sy: 28, sz: 1.5, col: 0x5a3e28, ao: false });
+      C.add(k.rm, 'gable', { x, y: g1 + 27, z, sx: w + 14, sy: 30, sz: d + 14, col: k.rc });
+      for (const s of [-1, 1]) C.add('stone', 'boxnb', { x: x + s * 26, y: g1 + 30, z: z - 6, sx: 8, sy: 30, sz: 8, col: 0xb0a89c, ao: false });
+      for (let i = 0; i < 4; i++) windowAt(C, x - 27 + i * 18, g1 + 9, z + (d + 6) / 2 + .8, 0, 7, 10);
+      for (const i of [0, 3]) windowAt(C, x - 27 + i * 18, lo + 14 + (C.gy(x, z) - lo), z + d / 2 + .6, 0, 7, 11);
+      C.add('misc', 'arch', { x, y: C.gy(x, z) - 1, z: z + d / 2 + .6, sx: 12, sy: 20, sz: 1, col: 0x2b1d12, ao: false });
+      signAt(C, x + 16, z + d / 2, g1 + 4, 0);
+      /* the stable: an open lean-to with hay, a trough */
+      const sx = 72, sz = 10, sy = C.gy(sx, sz) - 2;
+      for (const [lx, lz] of [[-20, -14], [20, -14], [-20, 14], [20, 14]]) C.add('wood', 'boxnb', { x: sx + lx, y: sy, z: sz + lz, sx: 3, sy: lz < 0 ? 30 : 22, sz: 3, col: 0x6a4a30, ao: false });
+      C.add('thatch', 'box', { x: sx, y: sy + 25, z: sz, sx: 48, sy: 2.5, sz: 36, rx: .22, col: 0xe8d8b0, ao: false });
+      C.add('wood', 'boxnb', { x: sx, y: sy, z: sz - 15, sx: 40, sy: 16, sz: 2, col: 0x7a5a38 });
+      C.add('thatch', 'ico0', { x: sx - 8, y: sy + 4, z: sz - 4, sx: 10, sy: 6, sz: 8, col: 0xf0dca0, ao: false, uv: 'box' });
+      C.add('wood', 'boxnb', { x: sx, y: sy, z: sz + 24, sx: 24, sy: 6, sz: 6, col: 0x6a4a30, ao: false });
+      lamp(C, -30, 22); lamp(C, 40, 26); barrel(C, -44, 6); barrel(C, -48, 13, .8); barrel(C, -40, 14, .9); cart(C, -70, 40, 1.2);
+      fenceRun(C, 50, 40, 100, 40);
+      C.grp.userData.radius = 150;
+    },
+    tower(C) {
+      const st = jit(C, C.pal.wc, .1), top = tower(C, 0, 0, { r: 24, h: 150 + C.rnd() * 30, roof: 'cren', mat: C.pal.wall === 'sand' ? 'sand' : 'stone', col: st, win: 3 });
+      /* the brazier: a bowl on the roof with a fire that glows at night */
+      C.add('misc', 'cyl8', { x: 0, y: top - 2, z: 0, sx: 4, sy: 8, sz: 4, col: 0x2a2420, ao: false });
+      C.add('misc', 'cone8', { x: 0, y: top + 16, z: 0, sx: 12, sy: -10, sz: 12, col: 0x3a3028, ao: false });
+      C.add('glow', 'cone8', { x: 0, y: top + 12, z: 0, sx: 7, sy: 18, sz: 7, col: 0xffa040, ao: false });
+      C.add('ice', 'cone8', { x: 1, y: top + 12, z: 1, sx: 4, sy: 26, sz: 4, col: 0xffe070, a: .7, ao: false });
+      C.add('misc', 'arch', { x: 0, y: C.gy(0, 24) - 1, z: 25.4, sx: 12, sy: 22, sz: 1, col: 0x1a120c, ao: false });
+      for (let i = 0; i < 4; i++) { const a = C.rnd() * TAU, d = 50 + C.rnd() * 40; rock(C, Math.sin(a) * d, Math.cos(a) * d, 10 + C.rnd() * 10, 'stone', 0xa8a49c); }
+      barrel(C, 34, 14); C.grp.userData.radius = 90;
+    },
+    ruin(C) {
+      const rnd = C.rnd, mats = C.pal.wall === 'sand' ? 'sand' : 'stone', moss = 0xa0ae84, n = 5 + Math.floor(rnd() * 3);
+      /* broken walls with jagged tops along a lost square, a tower stump, fallen blocks, moss */
+      const pts = [[-110, -90], [110, -90], [110, 90], [-110, 90]];
+      for (let i = 0; i < 4; i++) { const a = pts[i], b = pts[(i + 1) % 4]; for (let j = 0; j < 4; j++) { if (rnd() < .3) continue; const f0 = j / 4, f1 = (j + 1) / 4, x0 = a[0] + (b[0] - a[0]) * f0, z0 = a[1] + (b[1] - a[1]) * f0, x1 = a[0] + (b[0] - a[0]) * f1, z1 = a[1] + (b[1] - a[1]) * f1;
+          const mx = (x0 + x1) / 2, mz = (z0 + z1) / 2, L = Math.hypot(x1 - x0, z1 - z0), h = 14 + rnd() * 44, lo = C.lo(mx, mz, 20) - 10;
+          C.add(mats, 'boxnb', { x: mx, y: lo, z: mz, sx: L - 4, sy: C.gy(mx, mz) - lo + h, sz: 14, ry: Math.atan2(-(z1 - z0), x1 - x0) + (rnd() - .5) * .06, rz: (rnd() - .5) * .05, col: jit(C, rnd() < .4 ? moss : 0xc8c2b6, .12) });
+          for (let k = 0; k < 2; k++) C.add(mats, 'box', { x: mx + (rnd() - .5) * L * .6, y: C.gy(mx, mz) + h - 2, z: mz + (rnd() - .5) * 4, sx: 8 + rnd() * 8, sy: 4 + rnd() * 10, sz: 12, ry: Math.atan2(-(z1 - z0), x1 - x0), col: jit(C, 0xc0bab0, .1), ao: false }); } }
+      const tt = tower(C, 110, -90, { r: 22, h: 60 + rnd() * 30, roof: 'none', mat: mats, col: 0xb8b2a6, win: 1 });
+      for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; C.add(mats, 'boxnb', { x: 110 + Math.sin(a) * 22, y: tt - 3, z: -90 + Math.cos(a) * 22, sx: 12, sy: 3 + rnd() * 16, sz: 7, ry: a, col: 0xb8b2a6, ao: false }); }
+      for (let i = 0; i < n; i++) { const x = (rnd() - .5) * 240, z = (rnd() - .5) * 200; C.add(mats, 'box', { x, y: C.gy(x, z) - 3, z, sx: 10 + rnd() * 14, sy: 7 + rnd() * 6, sz: 8 + rnd() * 10, ry: rnd() * 3, rx: (rnd() - .5) * .5, rz: (rnd() - .5) * .5, col: jit(C, rnd() < .5 ? moss : 0xc0bab0, .1) });
+        C.add('misc', 'ico0', { x: x + 3, y: C.gy(x, z) + 4, z, sx: 6 + rnd() * 5, sy: 2.5, sz: 5 + rnd() * 4, col: jit(C, 0x5a7a3a, .2), ao: false }); }
+      for (let i = 0; i < 4; i++) bush(C, (rnd() - .5) * 260, (rnd() - .5) * 220, 9 + rnd() * 6, 0x4e6e36);
+      C.grp.userData.radius = 180;
     },
     camp(C) {
       const rnd = C.rnd, cloth = [0xc9b18a, 0x9a8a6a, 0x8a6a4a, 0xb0a080], dead = C.poi.camp === 'wight', iron = C.poi.camp === 'ironborn';
@@ -512,7 +684,7 @@
     }
   };
 
-  function typeOf(poi) { const t = String(poi.type || poi.kind || ''); return B[t] ? t : /seat|castle|keep|hold|fort/i.test(t) ? 'castle' : /town|village|city|port/i.test(t) ? 'town' : /camp/i.test(t) ? 'camp' : /dungeon|portal|crypt|cave/i.test(t) ? 'dungeon' : /shrine|weirwood|godswood|sept/i.test(t) ? 'shrine' : /lair/i.test(t) ? 'lair' : null; }
+  function typeOf(poi) { const t = String(poi.type || poi.kind || ''); return B[t] ? t : /seat|castle|keep|hold|fort/i.test(t) ? 'castle' : /village|hamlet/i.test(t) ? 'village' : /farm/i.test(t) ? 'farm' : /inn|tavern/i.test(t) ? 'inn' : /tower|watch/i.test(t) ? 'tower' : /ruin/i.test(t) ? 'ruin' : /town|city|port/i.test(t) ? 'town' : /camp/i.test(t) ? 'camp' : /dungeon|portal|crypt|cave/i.test(t) ? 'dungeon' : /shrine|weirwood|godswood|sept/i.test(t) ? 'shrine' : /lair/i.test(t) ? 'lair' : null; }
   function seatKey(poi) { const id = String(poi.id || '').toLowerCase(); if (SEATS[id] && id !== 'kingslanding') return id; if (poi.seat && poi.house && SEATS[poi.house]) return poi.house; return null; }
   function build(poi) {
     if (!has() || !poi) return null; if (R.arch && R.arch.off) return null;
@@ -529,7 +701,7 @@
 
   /* ---------- the Wall: ice along R.data.world.wall.pts, cracked, snow on top, in world coordinates ---------- */
   function wall() {
-    if (!has()) return null; const d = (R.data && R.data.world && R.data.world.wall) || {};
+    if (!has() || (R.arch && R.arch.off)) return null; const d = (R.data && R.data.world && R.data.world.wall) || {};
     const pts = d.pts && d.pts.length > 1 ? d.pts : [[d.x0 != null ? d.x0 : 1200, d.y != null ? d.y : 2600], [d.x1 != null ? d.x1 : 6000, d.y != null ? d.y : 2600]];
     const R3 = R.render3d, gfn = R3 && R3.groundY ? R3.groundY : () => 0, h = d.h || 320, t = d.t || 80, grp = new THREE.Group(); grp.name = 'wall'; grp.userData.world = true; let tr = 0;
     const W = R.W || 7200, H = R.H || 12288, gy = (x, y) => gfn(clamp(x, 0, W), clamp(y, 0, H));
@@ -552,8 +724,9 @@
     const t = (R.t || 0);
     for (let i = S.puffs.length - 1; i >= 0; i--) { const m = S.puffs[i]; if (!m.parent) continue; const b = m.userData.base, f = ((t * .22 + b.ph) % 1);
       m.position.set(b.x + Math.sin(f * 6 + b.ph * 9) * 6, b.y + f * 70, b.z); m.scale.setScalar((4 + f * 10) * (f < .8 ? 1 : (1 - f) * 5)); }
+    if (S.mats && S.mats.glow) { const A = R.ambience, k = A ? (A.nightK != null ? A.nightK : A.night ? 1 : 0) : 0, v = .16 + .95 * clamp(k, 0, 1); S.mats.glow.color.setRGB(v, v * .96, v * .9); }
     const R3 = R.render3d; if (!R3 || !R3.scene || (R.arch && R.arch.autoWall === false)) return;
-    if (S.hm !== R3.heightmap) { S.hm = R3.heightmap; if (S.wall) { R3.scene.remove(S.wall); S.wall.traverse(o => { if (o.geometry) o.geometry.dispose(); }); S.wall = null; }
+    const hm = R3.heightmap || R3.terrain || 1; if (S.hm !== hm) { S.hm = hm; if (S.wall) { R3.scene.remove(S.wall); S.wall.traverse(o => { if (o.geometry) o.geometry.dispose(); }); S.wall = null; }
       if (!R3.scene.getObjectByName('wall')) { try { S.wall = R.props.wall(); if (S.wall) R3.scene.add(S.wall); } catch (e) { S.wall = null; } } }
   }
 

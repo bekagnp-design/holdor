@@ -43,8 +43,10 @@ const px = n => Math.round(n * 10) / 10;
   await setup(page);
   ok('hud visible with a player and no screen', (await style(page, '#hud', 'visibility')) === 'visible');
   ok('hp bar 30%', near(await width(page, '#hud-hp .fill'), 30), await width(page, '#hud-hp .fill'));
-  ok('xp text', (await text(page, '#hud-lvtxt')) === 'Lv 12 · 340/1,484', await text(page, '#hud-lvtxt'));
-  ok('xp bar', near(await width(page, '#hud-xp .fill'), 22.9), await width(page, '#hud-xp .fill'));
+  // the xp to the next level: the player module's own curve (R.plr.xpNext), the one it levels on
+  const need12 = await page.evaluate(() => R.plr && R.plr.xpNext ? R.plr.xpNext(12) : 80 + 45 * 12 + 6 * 144), f12 = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  ok('xp text', (await text(page, '#hud-lvtxt')) === 'Lv 12 · 340/' + f12(need12), await text(page, '#hud-lvtxt'));
+  ok('xp bar', near(await width(page, '#hud-xp .fill'), 34000 / need12), await width(page, '#hud-xp .fill'));
   ok('level badge', (await text(page, '#hud-lvl')) === '12');
   ok('name + title', (await text(page, '#hud-name b')) === 'Bran' && (await text(page, '#hud-title')) === '· Squire of Winterfell', await text(page, '#hud-name'));
   ok('house colour ring', /169, 189, 208/.test(await style(page, '#hud-port', 'borderColor')), await style(page, '#hud-port', 'borderColor'));
@@ -57,7 +59,7 @@ const px = n => Math.round(n * 10) / 10;
   await page.evaluate(() => { R.player.hp = 600; }); await steps(page);
   ok('hp bar 60% after change + steps', near(await width(page, '#hud-hp .fill'), 60), await width(page, '#hud-hp .fill'));
   await page.evaluate(() => { R.state.p.xp = 1000; }); await steps(page);
-  ok('xp follows the save', (await text(page, '#hud-lvtxt')) === 'Lv 12 · 1,000/1,484' && near(await width(page, '#hud-xp .fill'), 67.4), await text(page, '#hud-lvtxt') + ' ' + await width(page, '#hud-xp .fill'));
+  ok('xp follows the save', (await text(page, '#hud-lvtxt')) === 'Lv 12 · 1,000/' + f12(need12) && near(await width(page, '#hud-xp .fill'), Math.min(100, 100000 / need12)), await text(page, '#hud-lvtxt') + ' ' + await width(page, '#hud-xp .fill'));
   // the HP numbers are always shown; a tap on the block opens the hero sheet
   const b0 = await page.$eval('#hud-bars', el => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; });
   ok('hero block tap target ≥ 44', b0.h >= 44, JSON.stringify(b0));

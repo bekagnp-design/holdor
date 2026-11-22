@@ -138,7 +138,7 @@
     return c.n; };
   const value = a => { const p = P(), n = N(); if (!p || !n) return 0; const c = a.cond, k = c.key, W = WORLD(), H = HALL();
     switch (c.ev) {
-      case 'kill': return k === 'run' ? Math.max(RUN().kills | 0, BEST().kills | 0) : Math.max(n.kills, sumVals(W.killed));
+      case 'kill': return k === 'run' ? (RUN().kills | 0) : Math.max(n.kills, sumVals(W.killed));   /* "in one run": this hero's kills (acc.best.kills is the boards' best run) */
       case 'boss': return k === 'all' ? count(n.bossK, keys(W.bosses)).size : Math.max(n.bossN, sumVals(W.bosses));
       case 'poi': { const F = foundSet(); if (k === 'seat') { const S = seatPois(); let m = 0; F.forEach(x => { if (S.has(x)) m++; }); return Math.min(m, 7); } return F.size; }
       case 'enter': return k === 'wall' ? (n.wall || n.beyond ? 1 : 0) : k === 'beyond' ? (n.beyond ? 1 : 0) : count(n.reg, []).size;

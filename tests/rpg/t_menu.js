@@ -55,7 +55,7 @@ const HTML = path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'bet
   ok('tap menu → screen menu, paused, button hidden', st.cur === 'menu' && st.on && st.paused && st.btnOff, JSON.stringify(st));
   ok('BackButton.show on open', (await calls()).includes('BackButton.show'));
   const rows = await page.evaluate(() => Array.from(document.querySelectorAll('#menu .mn-row .lb')).map(x => x.firstChild.textContent.trim()));
-  const need = ['Skills', 'Heroes', 'Quests', 'Achievements', 'Hall of the Fallen', 'Chat', 'Settings', 'Invite a friend', 'Account'];
+  const need = ['Skills', 'Heroes', 'Quests', 'Achievements', 'Hall of the Fallen', 'Chat', 'Settings', 'Share the game', 'Account'];
   ok('rows present, no Party', need.every(n => rows.includes(n)) && !rows.includes('Party'), rows.join('|'));
   ok('Heroes/Hall rows target the heroes/hall screens', await page.evaluate(() => document.querySelector('#menu .mn-row[data-row="heroes"]').dataset.scr === 'heroes' && document.querySelector('#menu .mn-row[data-row="hall"]').dataset.scr === 'hall' && /1 fallen/.test(document.querySelector('#menu .mn-row[data-row="hall"]').textContent)));
   ok('a row for a missing screen toasts instead of throwing', await page.evaluate(() => { const sv = R.screens.heroes; delete R.screens.heroes; document.querySelector('#menu .mn-row[data-row="heroes"]').click(); if (sv) R.screens.heroes = sv; return R.ui.cur === 'menu' && !!document.querySelector('#ui .toast'); }));
@@ -90,41 +90,42 @@ const HTML = path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'bet
   await page.tap('#b-menu', { force: true }); await page.waitForTimeout(100);
   await page.tap('#menu .mn-row[data-row="gear"]'); await page.waitForTimeout(100);
   const before = await page.evaluate(() => JSON.stringify(R.state.opts));
-  await page.tap('#menu .mn-sw[data-opt="sfx"]'); await page.tap('#menu .mn-sw[data-opt="haptic"]'); await page.tap('#menu .mn-sw[data-opt="dmgnum"]'); await page.tap('#menu .mn-sw[data-opt="manual"]');
+  await page.tap('#menu .mn-sw[data-opt="sfx"]'); await page.tap('#menu .mn-sw[data-opt="haptic"]'); await page.tap('#menu .mn-sw[data-opt="manualPts"]');
   await page.waitForTimeout(100);
   const o = await page.evaluate(() => R.state.opts);
-  ok('toggles → opts', before.includes('"sfx":1') && o.sfx === 0 && o.haptic === 0 && o.dmgnum === 0 && o.manual === 1, before + ' → ' + JSON.stringify(o));
+  ok('toggles → opts', before.includes('"sfx":1') && o.sfx === 0 && o.haptic === 0 && o.manualPts === 1, before + ' → ' + JSON.stringify(o));
   const ui = await page.evaluate(() => Array.from(document.querySelectorAll('#menu .mn-sw')).map(b => b.dataset.opt + ':' + (b.classList.contains('on') ? 1 : 0) + ':' + b.querySelector('.st').textContent));
-  ok('toggle UI follows', ui.join(',') === 'sfx:0:OFF,haptic:0:OFF,dmgnum:0:OFF,manual:1:ON', ui.join(','));
+  ok('toggle UI follows', ui.join(',') === 'sfx:0:OFF,haptic:0:OFF,manualPts:1:ON', ui.join(','));
   await page.tap('#menu .mn-sw[data-opt="sfx"]'); await page.waitForTimeout(1200);
   const saved = await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('holdor_rpg') || '{}'); return s.opts; });
-  ok('opts persist in the save', saved && saved.sfx === 1 && saved.haptic === 0 && saved.dmgnum === 0 && saved.manual === 1, JSON.stringify(saved));
+  ok('opts persist in the save', saved && saved.sfx === 1 && saved.haptic === 0 && saved.manualPts === 1, JSON.stringify(saved));
   ok('haptics off → no impact calls on taps', await page.evaluate(() => { const n0 = window.__tg.filter(x => x[0] === 'impact').length; R.haptic('light'); R.haptic('heavy'); return window.__tg.filter(x => x[0] === 'impact').length === n0; }));
   ok('haptics on → impact call', await page.evaluate(() => { R.state.opts.haptic = 1; const n0 = window.__tg.filter(x => x[0] === 'impact').length; R.haptic('heavy'); return window.__tg.filter(x => x[0] === 'impact').length === n0 + 1 && window.__tg[window.__tg.length - 1][1] === 'heavy'; }));
   await page.screenshot({ path: SC + 'rpg_menu_settings.png' });
 
-  // back to the root, Invite → share sheet with r_777 (logged in, no flags.ref)
+  // back to the root, Share the game → the share sheet with the plain link (no Telegram id: the owner's rule)
   await page.tap('#menu .mn-back'); await page.waitForTimeout(100);
   ok('back → root', await page.evaluate(() => R.screens.menu.page === 'root' && !!document.querySelector('#menu button.pri')));
   await page.tap('#menu .mn-row[data-row="invite"]'); await page.waitForTimeout(100);
   const sh = (await tgArgs('openTelegramLink')).pop();
   const shareUrl = sh && sh[0] || '';
   ok('Invite → openTelegramLink share/url', /^https:\/\/t\.me\/share\/url\?url=/.test(shareUrl), shareUrl.slice(0, 80));
-  ok('share link carries startapp=r_777', decodeURIComponent(shareUrl.split('url=')[1] || '').includes('https://t.me/HoldorTDBot/play?startapp=r_777'), decodeURIComponent(shareUrl));
+  const sl = decodeURIComponent(shareUrl.split('url=')[1] || '');
+  ok('share link: the plain game link, never the Telegram id', sl.includes('https://t.me/HoldorTDBot/play') && !/777/.test(sl), sl);
   ok('flags.ref wins over the id', await page.evaluate(() => { R.state.p.flags.ref = 'zz9'; const l = R.tg.inviteLink(); delete R.state.p.flags.ref; return l === 'https://t.me/HoldorTDBot/play?startapp=r_zz9'; }));
 
   // Account → Start over: two taps, wipes the save, reloads (stubbed)
   await page.tap('#menu .mn-row[data-row="acc"]'); await page.waitForTimeout(100);
   const kv = await page.evaluate(() => Array.from(document.querySelectorAll('#menu .mn-kv')).map(x => x.textContent));
   ok('account: house, hero, champion, class, level, fallen, best', kv.some(x => /^HouseStark$/.test(x)) && kv.some(x => /^HeroHodor$/.test(x)) && kv.some(x => /^ChampionJon( Snow)?$/.test(x)) && kv.some(x => /Knight/.test(x)) && kv.some(x => /^Level7$/.test(x)) && kv.some(x => /^Heroes fallen1$/.test(x)) && kv.some(x => /^Best level9$/.test(x)), kv.join('|'));
-  await page.evaluate(() => { window.__reloaded = 0; R.reload = () => { window.__reloaded++; }; try { location.reload = () => { window.__reloaded += 100; }; } catch (e) {} });
-  await page.tap('#menu .mn-row[data-act="startover"]'); await page.waitForTimeout(100);
+  // the loop stopped: a slow software-GL frame must not outlast the 4 s arm window
+  await page.evaluate(() => { R.stop(); window.__reloaded = 0; R.reload = () => { window.__reloaded++; }; try { location.reload = () => { window.__reloaded += 100; }; } catch (e) {} });
+  await page.tap('#menu .mn-row[data-act="startover"]', { force: true }); await page.waitForTimeout(100);
   const a1 = await page.evaluate(() => ({ armed: document.querySelector('[data-act="startover"]').classList.contains('armed'), save: !!localStorage.getItem('holdor_rpg'), rel: window.__reloaded, txt: document.querySelector('[data-act="startover"] .lb').textContent }));
   ok('first tap arms only', a1.armed && a1.save && a1.rel === 0 && /Tap again/.test(a1.txt), JSON.stringify(a1));
-  await page.screenshot({ path: SC + 'rpg_menu_account.png' });
-  await page.tap('#menu .mn-row[data-act="startover"]'); await page.waitForTimeout(150);
+  await page.tap('#menu .mn-row[data-act="startover"]', { force: true }); await page.waitForTimeout(150);   // (no screenshot between the taps: a slow one outlasts the 4 s arm window)
   const a2 = await page.evaluate(() => ({ save: localStorage.getItem('holdor_rpg'), rel: window.__reloaded, state: R.state, running: R.running }));
-  ok('second tap wipes + reloads', a2.save === null && a2.rel >= 1 && a2.state === null && !a2.running, JSON.stringify(a2));
+  ok('second tap wipes + reloads', a2.save === null && a2.rel >= 1 && a2.state === null && !a2.running, JSON.stringify({ save: a2.save && a2.save.length, rel: a2.rel, state: !!a2.state, running: a2.running }));
 
   // no Telegram at all: a fresh page must boot the module without errors and still open the menu
   const p2 = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
@@ -135,8 +136,8 @@ const HTML = path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'bet
   const plain = await p2.evaluate(() => { R.state = R.newState(); R.start(); R.ui.open('menu'); const r = { tg: R.tg.on, cur: R.ui.cur, rows: document.querySelectorAll('#menu .mn-row').length, hap: (R.haptic('light'), true) }; R.ui.close(); return r; });
   ok('plain browser: no Telegram, menu works, haptic silent', !plain.tg && plain.cur === 'menu' && plain.rows >= 9 && plain.hap && !err2.length, JSON.stringify(plain) + ' ' + err2.join(';'));
   // save v1 (no acc) still renders: the house from p, nothing fallen
-  const v1 = await p2.evaluate(() => { const s = R.newState(); s.p.name = 'Old'; s.p.house = 'tyrell'; delete s.acc; s.v = 1; R.state = s; R.ui.open('menu', 'account'); const kv = Array.from(document.querySelectorAll('#menu .mn-kv')).map(x => x.textContent); R.ui.close(); return kv; });
-  ok('v1 save renders the account page', v1.some(x => /^HouseTyrell$/.test(x)) && v1.some(x => /^Heroes fallen0$/.test(x)) && v1.some(x => /^HeroOld$/.test(x)), v1.join('|'));
+  const v1 = await p2.evaluate(() => { const s = R.newState('tyrell'); s.p.name = 'Old'; R.state = s; R.ui.open('menu', 'account'); const kv = Array.from(document.querySelectorAll('#menu .mn-kv')).map(x => x.textContent); R.ui.close(); return kv; });
+  ok('a fresh account renders the account page', v1.some(x => /^HouseTyrell$/.test(x)) && v1.some(x => /^Heroes fallen0$/.test(x)) && v1.some(x => /^HeroOld$/.test(x)), v1.join('|'));
 
   console.log(JSON.stringify(R, null, 1));
   console.log('ERRORS:', errors.length ? errors.join('\n') : 'none');

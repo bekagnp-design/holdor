@@ -14,7 +14,7 @@
   D.bosses = [
     { id: 'boss_kingswood', name: 'Varrik Hollowcrown', title: 'Wight Chieftain of the Kingswood', sprite: 'chief', lvl: 10, region: 'crownlands', poi: 'kingswood', x: 4824, y: 8356, scale: 1.9, spd: 115,
       adds: ['crypt', 'skin'], phases: PH(['slam', 'summon'], ['slam', 'summon', 'roar'], ['slam', 'roar', 'summon']), gate: 'riverlands' },
-    { id: 'boss_iron', name: 'Dagmer Saltjaw', title: 'The Drowned Captain', sprite: 'skin', lvl: 12, region: 'iron_islands', poi: 'old_wyk', x: 1440, y: 6144, scale: 2.2, spd: 105,
+    { id: 'boss_iron', name: 'Dagmer Saltjaw', title: 'The Drowned Captain', sprite: 'skin', lvl: 12, region: 'ironislands', poi: 'old_wyk', x: 1440, y: 6144, scale: 2.2, spd: 105,
       adds: ['crypt', 'crawler'], phases: PH(['volley', 'charge'], ['volley', 'charge', 'summon'], ['charge', 'summon', 'volley']), gate: 'riverlands' },
     { id: 'boss_dorne', name: 'Oryn Sandscar', title: 'Warlord of the Red Mountains', sprite: 'outrider', lvl: 14, region: 'dorne', poi: 'princes_pass', x: 4320, y: 10322, scale: 1.8, spd: 150,
       adds: ['spear', 'archer'], phases: PH(['charge', 'volley'], ['charge', 'volley', 'heal'], ['charge', 'heal', 'volley']), gate: 'reach' },
@@ -62,7 +62,7 @@
   /* movement: the world's slide when present (it keeps entities out of sea and mountains), else its blocked test, else free */
   const moveTo = (e, nx, ny) => {
     const W = R.world;
-    if (W && W.slide) { if (W.slide.length <= 3) { W.slide(e, nx - e.x, ny - e.y); return; } const p = W.slide(e, nx, ny); if (p && typeof p.x === 'number') { e.x = p.x; e.y = p.y; } return; }   // 10_world: slide(e, dx, dy)
+    if (W && W.slide) { W.slide(e, nx - e.x, ny - e.y); return; }   // 10_world's entity form: slide(e, dx, dy) moves e by a DELTA in place
     if (W && W.blocked) { if (!W.blocked(nx, ny)) { e.x = nx; e.y = ny; } else if (!W.blocked(nx, e.y)) e.x = nx; else if (!W.blocked(e.x, ny)) e.y = ny; return; }
     e.x = nx; e.y = ny;
   };

@@ -9,11 +9,17 @@ const { chromium } = require('playwright'); const path = require('path');
   p.on('pageerror', e => errors.push('PE:' + e.message)); p.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push('CE:' + m.text()); });   // the Telegram SDK include is not reachable offline
   await p.goto('file://' + path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'beta/index.html'));
   await p.waitForFunction(() => window.R && R.plr && R.sys && R.sys.player, { timeout: 20000 });
+  /* 0. the whole build for 6000 steps (100 game s): R.hit is wrapped once — 21_player and 24_physics must not re-wrap each other
+     every step (the chain grew ~2 a step until R.hit overflowed the stack) — and it still deals damage */
+  const wrapRun = await p.evaluate(() => { const d0 = R.plr.hitDepth(); const t0 = performance.now(); let err = null; try { for (let i = 0; i < 6000; i++) R.step(); } catch (x) { err = x.message; }
+    const depth = R.plr.hitDepth(); let works = null; try { const m = R.spawn({ kind: 'mob', type: 'axe', team: 1, x: 10, y: 10, hp: 1000, hpMax: 1000, def: 0, r: 14 }); const pl = { kind: 'npc', team: 0, atk: 10, x: 0, y: 0 }; R.hit(pl, m, 50); works = m.hp < 1000; R.remove(m); } catch (x) { works = 'threw ' + x.message; }
+    return { d0, depth, works, err, ms: Math.round(performance.now() - t0) }; });
+  ok('6000 steps of the whole build: R.hit wrapped at most 4 deep and still deals damage', !wrapRun.err && wrapRun.depth <= 4 && wrapRun.works === true, JSON.stringify(wrapRun));
   const r = await p.evaluate(() => {
     const out = {}; const got = {}; const step = n => { for (let i = 0; i < (n || 1); i++) R.step(); };
     for (const n of ['hit', 'levelup', 'xp', 'death', 'gold', 'gems', 'refused', 'interact', 'dodge', 'attack', 'kill', 'respawn']) R.bus.on(n, (...a) => (got[n] = got[n] || []).push(a));
     const press = (name, n) => { R.input.pressed = k => k === name; step(1); R.input.pressed = () => false; if (n) step(n - 1); };
-    R.stop(); R.running = false; while (R.ui && R.ui.cur) R.ui.close();
+    R.stop(); R.running = false; while (R.ui && R.ui.cur) R.ui.close(); R.t = 0;   /* timings below are in steps: start the clock clean after the long run */
     /* the integrated build runs ~30 systems: keep the player's and combat's own, so the joystick module, the world's gates and population
        and the physics layer do not move the test hero */
     R.sysList = R.sysList.filter(s => ['player', 'combat', 'ai', 'proj'].includes(s.name)); if (R.phys) R.phys.off = true;
@@ -48,7 +54,7 @@ const { chromium } = require('playwright'); const path = require('path');
     const m2 = R.spawn({ kind: 'mob', type: 'walker', name: 'White Walker', x: e.x + 900, y: e.y, r: 16, team: 1, hp: 100, hpMax: 100, lvl: 5 });
     R.hit = (src, tgt, d) => { tgt.hp -= d; return d; }; step(1);
     step(60); R.input.move = { x: 0, y: 1 }; y0 = e.y; press('dodge'); R.input.move = { x: 0, y: 0 }; out.invOn = e.inv > R.t; out.dodging = e.dodging();
-    const hpBefore = e.hp; out.hitWhileInv = R.hit(m2, e, 50); out.hpAfterInv = e.hp === hpBefore; out.dodgeAgain = R.plr.dodge(e, 0, 0);
+    const hpBefore = e.hp; const hw = R.hit(m2, e, 50); out.hitWhileInv = hw && typeof hw === 'object' ? (hw.blocked ? 0 : hw.dmg) : hw; out.hwBlocked = !!(hw && hw.blocked); out.hpAfterInv = e.hp === hpBefore; out.dodgeAgain = R.plr.dodge(e, 0, 0);
     step(21); out.dodgeDist = +(e.y - y0).toFixed(1); step(4); out.invOffLater = e.inv <= R.t; out.cdBlocks = R.plr.dodge(e, 0, 0) === false;
     step(10); const hp1 = e.hp; out.hitAfterInv = R.hit(m2, e, 10) === 10 && Math.round(hp1 - e.hp) === 10 && e.lastHitBy === m2;
     /* xp / levels */
@@ -62,6 +68,9 @@ const { chromium } = require('playwright'); const path = require('path');
     /* potion: 40 % over 2 s, cooldown 8 s */
     e.combatT = R.t; e.hp = Math.round(e.hpMax * 0.3); const hp0 = e.hp; press('potion'); out.potUsed = S.p.potions.hp === 1; step(120); out.potHeal = +(e.hp - hp0).toFixed(1); out.potExp = +(e.hpMax * 0.4).toFixed(1);
     e.hp = Math.round(e.hpMax * 0.3); press('potion'); out.potCd = S.p.potions.hp === 1;
+    /* regeneration (the owner): nothing during combat; 3 s after the last hit given or taken, 4 % of hpMax a second, with a soft +N */
+    e.healT = 0; e.combatT = R.t; e.hp = Math.round(e.hpMax * 0.5); let rg = 0; const rf = (x, n) => { rg += n; }; R.bus.on('regen', rf); const h0 = e.hp; step(60); out.regenIn = Math.round(e.hp - h0);
+    step(150); const h1 = e.hp; step(60); out.regen1s = +((e.hp - h1) / e.hpMax).toFixed(4); out.regenEv = rg; R.bus.off('regen', rf); e.hp = e.hpMax;
     /* interaction */
     const npc = R.spawn({ kind: 'npc', type: 'maester', name: 'Maester Aemon', x: e.x + 50, y: e.y, r: 14, team: 2, hp: 1 }); step(7); out.interactSet = !!(R.input.interact && R.input.interact.e === npc && R.input.interact.label === 'TALK');
     press('interact'); out.interactEv = !!(got.interact && got.interact[0][0] === npc); npc.x += 500; step(7); out.interactGone = R.input.interact === null;
@@ -103,6 +112,7 @@ const { chromium } = require('playwright'); const path = require('path');
   ok('manual points: +3 to spend, spend one', r.manual && r.spend);
   ok('two levels in one gain, acc.best.lvl follows', r.twoLevels && r.bestLvl === 6, r.bestLvl);
   ok('potion heals 40 % over 2 s, the second waits for the cooldown', r.potUsed && near(r.potHeal, r.potExp, 3) && r.potCd, JSON.stringify([r.potHeal, r.potExp]));
+  ok('regeneration: none in combat, 4 %/s from 3 s after the last hit, regen events', r.regenIn === 0 && Math.abs(r.regen1s - 0.04) < 0.004 && r.regenEv > 0, JSON.stringify([r.regenIn, r.regen1s, r.regenEv]));
   ok('interact target within 70 units, interact event, cleared when gone', r.interactSet && r.interactEv && r.interactGone);
   ok('gold refused when short, added with events, gems', r.goldRefuse && r.goldAdd && r.gems, JSON.stringify([r.goldRefuse, r.goldAdd, r.gems, r.goldDbg]));
   ok('gold toast', toasts.some(t => t.includes('+25 gold')) && toasts.some(t => t.includes('+3 gems')), JSON.stringify(toasts));

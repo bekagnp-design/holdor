@@ -221,7 +221,7 @@ window.R = window.R || {};
   const takeMat = (short, n) => { const I = inv(); if (!I) return false; const s = findStack(I, 'mt_' + short); if (!s || s.n < n) return false; return remove(s, n); };
   const potions = () => { const I = inv() || []; const o = {}; for (const x of I) if (x.kind === 'potion') o[x.base] = x.n; return o; };
   const usePotion = key => { const I = inv(); if (!I) return 0; const s = findStack(I, key || 'p_hp_s') || I.find(x => x.kind === 'potion'); if (!s) return 0; const h = s.heal || 0.35; remove(s, 1); return h; };
-  const sell = (it, n) => { const I = inv(); if (!I || I.indexOf(it) < 0) return 0; const q = stackable(it.kind) ? Math.min(n || it.n, it.n) : 1; const g = sellPrice(it) * q; remove(it, q); addGold(g); return g; };
+  const sell = (it, n) => { const I = inv(); if (!I || I.indexOf(it) < 0) return 0; const have = Math.max(1, it.n | 0); const q = stackable(it.kind) ? Math.max(1, Math.min(n || have, have)) : 1; const g = sellPrice(it) * q; remove(it, q); addGold(g); return g; };
   const canEquip = it => {
     const p = P(); if (!p) return { ok: false, why: 'nostate' };
     if (!it || !['weapon', 'armor', 'trinket'].includes(it.kind)) return { ok: false, why: 'kind' };
@@ -330,14 +330,17 @@ window.R = window.R || {};
   const statLine = (s, v) => (v > 0 ? '+' : '') + v + (PCT[s] ? '%' : '') + ' ' + LABEL[s];
   const statsText = it => Object.keys(it.stats || {}).map(s => statLine(s, it.stats[s])).join(' · ');
   // a short card: name, rarity · kind · level, class, stats, set, sell price — readable in one glance
-  const tooltip = it => {
+  // cur (optional): the piece in the same slot — each stat then shows its difference (+n green .dup / −n red .ddn)
+  const tooltip = (it, cur) => {
     const col = rarCol(it.rar); const b = B[it.base] || {}; const S = it.set && SETS[it.set];
     let h = '<div class="itm-tip" style="display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:12px;border:1px solid ' + col + '88;background:rgba(6,11,20,.96);min-width:180px">';
     h += '<div style="font:700 15px var(--f-display);color:' + col + '">' + fullName(it) + '</div>';
     h += '<div style="font-size:12px;color:#9fb6c9">' + rarName(it.rar) + ' · ' + it.kind[0].toUpperCase() + it.kind.slice(1) + (it.kind === 'potion' || it.kind === 'mat' ? '' : ' · Lv ' + it.lvl) + (it.cls ? ' · ' + it.cls[0].toUpperCase() + it.cls.slice(1) : '') + '</div>';
     if (it.kind === 'potion') h += '<div style="color:#7fd06a">Heals ' + Math.round((it.heal || b.heal || 0) * 100) + '% HP</div>';
     else if (it.kind === 'mat') h += '<div style="color:#9fb6c9">Smith material</div>';
-    else for (const s in it.stats) h += '<div style="color:#e9eef5">' + statLine(s, it.stats[s]) + '</div>';
+    else { const cs = cur && cur !== it && cur.stats ? cur.stats : null; const keys = Object.keys(it.stats || {}); if (cs) for (const k of Object.keys(cs)) if (!keys.includes(k)) keys.push(k);
+      for (const s of keys) { const v = (it.stats && it.stats[s]) || 0, d = cs ? Math.round((v - (cs[s] || 0)) * 10) / 10 : 0;
+        h += '<div style="color:#e9eef5">' + statLine(s, v) + (d ? ' <em class="' + (d > 0 ? 'dup' : 'ddn') + '" style="font-style:normal;color:' + (d > 0 ? '#7fd06a' : '#e14b4b') + '">' + (d > 0 ? '+' : '−') + Math.abs(d) + '</em>' : '') + '</div>'; } }
     if (S) { const n = setBonus().sets.find(x => x.id === it.set); h += '<div style="color:' + S.col + ';font-size:12px">' + S.name + ' (' + ((n && n.n) || 0) + '/3)</div>'; }
     h += '<div style="font-size:12px;color:#e3b661">Sell ' + sellPrice(it) + (it.n > 1 ? ' each' : '') + ' gold</div></div>';
     return h;

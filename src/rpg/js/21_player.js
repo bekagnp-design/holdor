@@ -18,7 +18,7 @@
      status.stun / status.slow are until-times in game seconds (like cd and inv). */
 (function () {
   const SPD = 170, SPRINT = 240, SPRINT_AFTER = 1.5, ATK_T = 0.3, COMBO_W = 0.7, DODGE_T = 0.35, DODGE_D = 170, DODGE_INV = 0.4, DODGE_CD = 1.2,
-    POT_CD = 8, POT_T = 2, POT_HEAL = 0.4, COMBAT_T = 5, REGEN = 0.01, NEXT_T = 4, INTERACT_R = 70, AUTOFACE_R = 90, LVL_MAX = 60, KNOCK3 = 28, LUNGE = 44;   // the third swing's knockback stays inside the next swing's reach
+    POT_CD = 8, POT_T = 2, POT_HEAL = 0.4, COMBAT_T = 3, REGEN = 0.04, NEXT_T = 4, INTERACT_R = 70, AUTOFACE_R = 90, LVL_MAX = 60, KNOCK3 = 28, LUNGE = 44;   // the third swing's knockback stays inside the next swing's reach
   const DEF = {
     knight: { kind: 'melee', arc: 110, range: 60, mult: 1.0, main: 'str', hpK: 1.2, auto: { str: 2, vit: 1 } },
     ranger: { kind: 'ranged', range: 320, mult: 0.8, arrows: 2, main: 'agi', critB: 15, auto: { agi: 2, vit: 1 } },
@@ -50,6 +50,7 @@
   P.clsName = () => { const p = st(); if (!p) return 'knight'; const c = P.clsOf(p.hero); if (c) p.cls = c; return DEF[p.cls] ? p.cls : 'knight'; };
   P.cls = () => { const c = P.clsName(); const d = DEF[c]; const D = R.data.classes && R.data.classes[c];
     if (!D) return d; const o = Object.assign({}, d, D.basic || D.attack || {}); if (D.main && STATS.includes(D.main)) o.main = D.main; if (D.auto) o.auto = D.auto; return o; };
+  P.mods = () => { try { if (R.prog && typeof R.prog.mods === 'function') { const m = R.prog.mods(); if (m && typeof m === 'object') return m; } } catch (e) {} return {}; };
   P.heroStats = (hero, lvl) => { try { if (hero && R.champs && typeof R.champs.statsAt === 'function') { const s = R.champs.statsAt(hero, lvl); if (s && typeof s === 'object') return s; } } catch (e) {} return null; };
   P.xpNext = L => { L = R.clamp(num(L, 1), 1, LVL_MAX); const B = R.data.balance; if (B && typeof B.xp === 'function') { try { const v = B.xp(L); if (num(v, 0) > 0) return Math.round(v); } catch (e) {} } return 80 + 45 * L + 6 * L * L; };
   const pois = () => { const W = R.data.world; const ps = W && W.pois; if (!ps) return []; return Array.isArray(ps) ? ps : Object.keys(ps).map(k => Object.assign({ id: k }, ps[k])); };
@@ -82,7 +83,7 @@
     const e = R.spawn({ kind: 'player', x: pos.x, y: pos.y, r: 14, team: 0, name: p.name || 'You', lvl: num(p.lvl, 1), type: p.hero || p.cls, hp: 1, hpMax: 1 });
     R.player = e; return P.ensure(); };
   P.ensure = () => { const p = st(); if (!p) return null; const e = R.player; if (!e || e.kind !== 'player') return P.make();
-    if (!e.recalc) { P.attach(e); recalc(e); e.hp = p.hp > 0 ? Math.min(p.hp, e.hpMax) : e.hpMax; if (!R.ents.includes(e)) R.ents.push(e); }
+    if (!e.recalc) { P.attach(e); recalc(e); e.hp = p.hp > 0 && p.hpV === 2 ? Math.min(p.hp, e.hpMax) : e.hpMax; p.hpV = 2; if (!R.ents.includes(e)) R.ents.push(e); }   // hpV 2: p.hp was written by this module; a fresh hero starts full
     return e; };
   R.makePlayer = R.makePlayer || P.make;
 
@@ -91,7 +92,8 @@
     for (const k of Object.keys(g)) { let it = g[k]; if (typeof it === 'string' && Array.isArray(p.inv)) it = p.inv.find(q => q && q.id === it); const s = it && it.stats; if (!s) continue; for (const q of Object.keys(o)) o[q] += num(s[q], 0); }
     return o; };
   function recalc(e) {
-    const p = st(); if (!p) return e; const C = P.cls(); const S = p.stats || (p.stats = { str: 5, agi: 5, int: 5, vit: 5 }); const L = p.lvl = R.clamp(num(p.lvl, 1), 1, LVL_MAX); const g = P.gearStats();
+    const p = st(); if (!p) return e; const a0 = acc(); if (!p.house && a0 && a0.house) p.house = a0.house;   // every reader of R.state.p.house gets the account's house
+    const C = P.cls(); const S = p.stats || (p.stats = { str: 5, agi: 5, int: 5, vit: 5 }); const L = p.lvl = R.clamp(num(p.lvl, 1), 1, LVL_MAX); const g = P.gearStats();
     const H = P.heroStats(p.hero, L) || {}; const vit = num(S.vit, 5), main = num(S[C.main || 'str'], 5);
     // the champion line (R.champs.statsAt) is an ABSOLUTE stat line at level L (role × rarity × the reference player): it scales the
     // formula instead of adding to it, so the champion's flavour and the hero's stat points both count; spd is absolute (165/155/150)
@@ -105,6 +107,10 @@
     let power = 1 + 0.012 * num(S.int, 5) + g.power / 100 + num(H.power, 0) / 100; if (C.powK) power *= C.powK;
     e.hpMax = Math.max(1, Math.round(hpMax)); e.atk = Math.round(((10 + 2 * L + 1.5 * main) * kAtk + g.atk + (refOk ? 0 : num(H.atk, 0))) * 10) / 10; e.def = Math.round(((4 + 1.2 * L + 0.6 * vit) * kDef + g.def + (refOk ? 0 : num(H.def, 0))) * 10) / 10;
     e.crit = Math.round((5 + 0.25 * num(S.agi, 5) + g.crit + num(H.crit, 0) + (C.critB || 0)) * 10) / 10; e.power = Math.round(power * 1000) / 1000; e.spd = (H.spd > 0 ? H.spd : SPD) + g.spd;
+    /* talents (25_progression, P1): R.prog.mods() → {hpPct, atkPct, defPct, critAdd, spdAdd, regenPct} */
+    const M = P.mods(); const pc = k => 1 + num(M[k], 0) / 100;
+    e.hpMax = Math.max(1, Math.round(e.hpMax * pc('hpPct'))); e.atk = Math.round(e.atk * pc('atkPct') * 10) / 10; e.def = Math.round(e.def * pc('defPct') * 10) / 10;
+    e.crit = Math.round((e.crit + num(M.critAdd, 0)) * 10) / 10; e.spd += num(M.spdAdd, 0); e.regenK = REGEN + num(M.regenPct, 0) / 100;
     e.lvl = L; e.name = p.name || e.name || 'You'; e.hero = p.hero || null; e.type = p.hero || p.cls; e.cls = p.cls; e.main = C.main || 'str';
     if (num(e.hp, NaN) !== e.hp) e.hp = e.hpMax; e.hp = Math.min(e.hp, e.hpMax);
     R.bus.emit('stats', e); return e;
@@ -186,7 +192,7 @@
   P.dodge = (e, mx, my) => {
     if (e.dead || R.t < e.dodgeCd || e.dodging() || e.stunned()) return false;
     let dx = num(mx, 0), dy = num(my, 0), L = Math.hypot(dx, dy); if (L < 0.08) { dx = e.face || 1; dy = 0; L = 1; } dx /= L; dy /= L;
-    const v = DODGE_D / DODGE_T; e.dvx = dx * v; e.dvy = dy * v; e.dodgeT = R.t + DODGE_T; e.inv = Math.max(num(e.inv, 0), R.t + DODGE_INV); e.dodgeCd = R.t + DODGE_CD; e.atkT = R.t; e.atkBuf = false;
+    const v = DODGE_D / DODGE_T; e.dvx = dx * v; e.dvy = dy * v; e.dodgeLeft = DODGE_D; e.dodgeT = R.t + DODGE_T; e.inv = Math.max(num(e.inv, 0), R.t + DODGE_INV); e.dodgeCd = R.t + DODGE_CD; e.atkT = R.t; e.atkBuf = false;
     if (Math.abs(dx) > 0.15) e.face = dx < 0 ? -1 : 1; e.anim = 'walk'; e.animT = 0;
     sfx('dodge'); fx('dash', e.x, e.y, { dir: { x: dx, y: dy } }); hap('light'); R.bus.emit('dodge', e); return true;
   };
@@ -204,9 +210,13 @@
     const key = n + ':' + Math.round(frac * 40); if (!force && key === potKey) return; potKey = key; try { I.setPotions(n, frac); } catch (x) {} }
 
   /* ---- i-frames: a dodging (or dead) player takes nothing, whatever calls R.hit; the hitter is remembered for the Hall ---- */
-  function wrapHit() { const h = R.hit; if (typeof h !== 'function' || h.plrWrap) return;
-    const w = function (src, tgt, d, o) { if (tgt && tgt.kind === 'player') { if (tgt.dead) return 0; if (num(tgt.inv, 0) > R.t) { fnum(tgt.x, tgt.y - 30, 'DODGE', '#9fb6c9'); return 0; } tgt.combatT = R.t; if (src) tgt.lastHitBy = src; if (!(R.t < tgt.atkT)) tgt.hurtT = R.t + 0.2; } return h.apply(this, arguments); };
-    w.plrWrap = true; w.orig = h; R.hit = w; }
+  /* wrap exactly once: when any function down the .orig chain is ours, someone (24_physics) wrapped after us — leave it, never re-wrap
+     (re-wrapping each step made the chain grow until R.hit overflowed the stack) */
+  const hasPlrWrap = h => { for (let f = h, n = 0; typeof f === 'function' && n < 64; f = f.orig || f.__orig || f.inner, n++) if (f.plrWrap) return true; return false; };
+  P.hitDepth = () => { let n = 0; for (let f = R.hit; typeof f === 'function' && n < 100000; f = f.orig || f.__orig || f.inner) n++; return n; };
+  function wrapHit() { const h = R.hit; if (typeof h !== 'function' || h === wrapHit.last || hasPlrWrap(h)) return;
+    const w = function (src, tgt, d, o) { if (tgt && tgt.kind === 'player') { if (tgt.dead) return 0; if (num(tgt.inv, 0) > R.t && !(o && o.dot)) { fnum(tgt.x, tgt.y - 30, 'DODGE', '#9fb6c9'); return { src, tgt, dmg: 0, crit: false, kind: (o && o.kind) || 'phys', blocked: true, absorbed: 0, killed: false, valueOf() { return 0; } }; } /* projectiles pass a dodging hero */ tgt.combatT = R.t; if (src) tgt.lastHitBy = src; if (!(R.t < tgt.atkT)) tgt.hurtT = R.t + 0.2; } return h.apply(this, arguments); };
+    w.plrWrap = true; w.orig = h; R.hit = w; wrapHit.last = w; }
 
   /* ---- permadeath: the run ends, the Hall of the Fallen gets a line, the next hero is chosen ---- */
   const nameOf = s => { if (!s) return 'the cold'; if (s.name) return s.name; const M = R.data.mobs && s.type && R.data.mobs[s.type]; return (M && M.name) || s.type || (s.kind === 'boss' ? 'a boss' : 'the cold'); };
@@ -237,7 +247,7 @@
   /* ---- movement ---- */
   function moveTo(e, nx, ny) {
     nx = R.clamp(nx, 0, R.W); ny = R.clamp(ny, 0, R.H); const W = R.world;
-    if (W && typeof W.slide === 'function') { try { if (W.slide.length <= 3) { W.slide(e, nx - e.x, ny - e.y); return; } const q = W.slide(e.x, e.y, nx, ny, e.r); if (isPt(q)) { e.x = q.x; e.y = q.y; return; } } catch (x) {} }
+    if (W && typeof W.slide === 'function') { try { W.slide(e, nx - e.x, ny - e.y); return; } catch (x) {} }   // the entity form: slide(e, dx, dy) moves e in place
     if (W && typeof W.blocked === 'function') { try { if (!W.blocked(nx, ny)) { e.x = nx; e.y = ny; } else if (!W.blocked(nx, e.y)) e.x = nx; else if (!W.blocked(e.x, ny)) e.y = ny; return; } catch (x) {} }
     e.x = nx; e.y = ny;
   }
@@ -246,10 +256,12 @@
   function update(dt) {
     const p = st(); if (!p) return; const e = P.ensure(); if (!e) return; wrapHit(); if (!e.hgDone) { e.hgDone = 1; P.homeGate(); }
     if ((e.hp <= 0 || e.dead) && !e.deathT) return die(e);
-    if (e.dead) { if (e.nextT && R.t >= e.nextT) { e.nextT = 0; if (typeof R.newHero === 'function') { try { R.newHero(P.nextHero()); } catch (x) { console.error('newHero', x); } } } return; }
+    if (e.dead) { if (e.nextT && R.t >= e.nextT - 1e-6) { e.nextT = 0; if (typeof R.newHero === 'function') { try { R.newHero(P.nextHero()); } catch (x) { console.error('newHero', x); } } } return; }
     const I = inp(); const screen = !!(R.ui && R.ui.cur);
     if (e.healT > R.t) e.hp = Math.min(e.hpMax, e.hp + e.healRate * dt);
-    else if (!e.inCombat() && e.hp < e.hpMax) e.hp = Math.min(e.hpMax, e.hp + e.hpMax * REGEN * dt);
+    else if (!e.inCombat() && e.hp < e.hpMax) { const b = e.hp; e.hp = Math.min(e.hpMax, e.hp + e.hpMax * num(e.regenK, REGEN) * dt); e.regen = true; e.regenAcc = num(e.regenAcc, 0) + (e.hp - b);
+      if (R.t - num(e.regenT, -9) >= 1 || e.hp >= e.hpMax) { e.regenT = R.t; const n = Math.round(e.regenAcc); e.regenAcc -= n; if (n > 0) { fnum(e.x, e.y - 34, '+' + n, 'rgba(127,208,106,.85)'); R.bus.emit('regen', e, n); } } }
+    else { e.regen = false; e.regenAcc = 0; e.regenT = R.t; }   // regeneration stops at once in combat (e.regen: the renderer's soft glow)
     potionUi(e, p);
     const stun = e.stunned(); const mv = (I.move && !screen && !stun) ? I.move : null;
     let mx = 0, my = 0, len = 0;
@@ -262,7 +274,7 @@
       for (let i = 0; i < 3; i++) if (pressed('skill' + (i + 1)) && R.skills && typeof R.skills.cast === 'function') { try { R.skills.cast(i); } catch (x) { console.error('skill', i, x); } }
       if (pressed('interact') && I.interact && I.interact.e) { sfx('ui'); R.bus.emit('interact', I.interact.e); }
     }
-    if (e.dodging()) { moveTo(e, e.x + e.dvx * dt, e.y + e.dvy * dt); e.anim = 'walk'; e.moveT = 0; }
+    if (e.dodging() && num(e.dodgeLeft, 0) > 0) { const v = Math.hypot(e.dvx, e.dvy) || 1, s = Math.min(v * dt, e.dodgeLeft); e.dodgeLeft -= s; moveTo(e, e.x + e.dvx / v * s, e.y + e.dvy / v * s); e.anim = 'walk'; e.moveT = 0; }   // the roll covers exactly DODGE_D
     else if (len > 0 && !e.attacking() && !stun && !screen) {
       e.moveT += dt; e.sprint = !e.inCombat() && (down('sprint') || e.moveT >= SPRINT_AFTER);
       const slow = num(e.status.slow, 0) > R.t ? 0.5 : 1, sp = (e.sprint ? e.spd * SPRINT / SPD : e.spd) * slow * len;
@@ -285,5 +297,6 @@
     const B = R.data.balance; let xp = num(m.xp, 0); if (!xp && B && typeof B.mobXp === 'function') { try { xp = num(B.mobXp(m), 0); } catch (x) {} }
     if (!xp) xp = Math.round(m.kind === 'boss' ? 60 + 20 * num(m.lvl, 1) : 6 + 3 * num(m.lvl, 1));
     const w = world(); w.killed = w.killed || {}; if (m.type) w.killed[m.type] = num(w.killed[m.type], 0) + 1; gainXp(e, xp, m); });
+  for (const ev of ['gear', 'equip', 'unequip', 'talent']) R.bus.on(ev, () => { const e = R.player; if (e && e.recalc && !e.dead) { try { e.recalc(); } catch (x) {} } });   // auto-equip on pickup, the smith, the bag
   R.bus.on('tick1s', () => { const e = R.player, p = st(); if (e && p && e.recalc && !e.dead) p.hp = Math.round(e.hp); });
 })();

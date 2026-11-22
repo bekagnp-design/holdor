@@ -50,7 +50,8 @@
     if (/bad session/.test(msg)) { N.token = null; N.on = false; N.tried = false; loginP = null; N.offUntil = Date.now() + 5000; setTimeout(() => N.login(), 5000); emit('net', false); }
     else if (N.fails >= 3 && N.on) { N.on = false; N.offUntil = Date.now() + N.cfg.offMs; setTimeout(() => N.resume(), N.cfg.offMs); emit('net', false); }
   }
-  N.resume = () => { N.offUntil = 0; N.fails = 0; if (!N.token) { N.tried = false; loginP = null; return N.login(); } if (!N.on) { N.on = true; emit('net', true); } retryWait = 5000; if (N.dirty) N.save(true); return P(true); };   // back on: the dirty state goes out at once
+  N.resume = () => { N.offUntil = 0; N.fails = 0; if (!N.token) { N.tried = false; loginP = null; return N.login(); } if (!N.on) { N.on = true; emit('net', true); } retryWait = 5000;
+    if (!N.loaded) { return N.load().then(r => { if (r) { try { N.wallet.import(); } catch (e) {} } if (N.dirty) N.save(true); return !!r; }); } if (N.dirty) N.save(true); return P(true); };   // back on: the dirty state goes out at once
   /* R.net.rpc(name, params, opt): resolves the result, or null on any failure (R.net.err has the text); opt.throw → rejects instead.
      Offline (guest or after three failures) it resolves null without touching the network. */
   N.rpc = async (name, params, opt) => {
@@ -82,33 +83,48 @@
 
   /* ---- save / load ---- */
   let sig = '', saveT = 0, retryWait = 5000;
-  const hash = st => { let s; try { s = JSON.stringify(st, (k, v) => k === 'saved' ? undefined : v); } catch (e) { return 'x' + Math.random(); } let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return s.length + ':' + (h >>> 0); };
+  const hash = st => { let s; try { s = JSON.stringify(st, (k, v) => k === 'saved' || k === 'sync' ? undefined : v); } catch (e) { return 'x' + Math.random(); } let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return s.length + ':' + (h >>> 0); };
   const mark = () => { if (!R.state) return false; const h = hash(R.state); if (h === sig) return N.dirty; sig = h; R.state.saved = Date.now(); N.dirty = true; return true; };  // only a real change bumps the stamp
   const fresh = st => { if (!st || !st.p) return true; const a = st.acc || {}, w = a.world || {};   // an untouched new save: level 1, nothing played, no world progress, no fallen heroes
     return (st.p.played || 0) < 30 && (st.p.lvl || 1) <= 1 && !(st.p.xp > 0) && !Object.keys(w.quests || st.p.quests || {}).length && !((w.found || st.p.found || []).length) && !((a.hall || []).length); };
+  /* sync rule: state.saved = last touched (core stamps it on every save); state.sync = the server's 'saved' this state was last pulled from
+     or pushed as. The server wins when it moved past our sync (another device, or a load that came late); nothing is pushed before one
+     rpg_load succeeded (N.loaded) — a failed first load retries with backoff 5 s … 60 s and on resume, the state stays dirty meanwhile. */
+  let loadWait = 5000, loadT = 0;
+  const retryLoad = () => { if (loadT || N.loaded || !N.token) return; loadT = setTimeout(() => { loadT = 0; if (N.loaded) return; if (!N.on) return retryLoad();
+    N.load().then(r => { if (r) { try { N.wallet.import(); } catch (e) {} } }, () => retryLoad()); }, loadWait); loadWait = Math.min(60000, loadWait * 2); };
+  const takeServer = srv => {
+    let ok = false; if (typeof R.load === 'function') { try { ok = R.load(JSON.parse(JSON.stringify(srv))); } catch (e) { ok = false; } }   // core migrates + fills + installs the p.* aliases, emits 'load'
+    if (!ok) { R.state = srv; emit('load', srv); }
+    R.state.sync = +srv.saved || 0; store(R.state);
+    N.pulled = true; N.dirty = false; sig = hash(R.state); emit('netload', R.state);                                                   // the boot re-routes (world / heroes / intro)
+  };
   N.load = async () => {
-    if (!N.on) return null;
+    if (!N.on) { retryLoad(); return null; }
     if (!R.state && R.load) { try { R.load(); } catch (e) {} }
-    const r = await N.rpc('rpg_load', { token: N.token, seat: N.seat }); if (!r) return null;
+    const r = await N.rpc('rpg_load', { token: N.token, seat: N.seat }); if (!r) { retryLoad(); return null; }
+    N.loaded = true; loadWait = 5000;
     if (r.wallet) N.wal = r.wallet;
     const srv = r.state && r.state.p ? r.state : null, loc = R.state && R.state.p ? R.state : null;
-    if (srv && (!loc || (srv.saved || 0) > (loc.saved || 0) || (fresh(loc) && !fresh(srv)))) {   // the server is newer (or local is an untouched new save): take it
-      store(srv); let ok = false; if (typeof R.load === 'function') { try { ok = R.load(JSON.parse(JSON.stringify(srv))); } catch (e) { ok = false; } }   // core migrates + fills + installs the p.* aliases, emits 'load'
-      if (!ok) { R.state = srv; emit('load', srv); }
-      N.pulled = true; N.dirty = false; sig = hash(R.state); emit('netload', R.state);                                                   // the boot re-routes (world / heroes / intro)
-    } else if (loc && (!srv || (loc.saved || 0) > (srv.saved || 0))) {                           // local is newer: push it
-      sig = ''; mark(); await push(false);
-    } else if (loc) sig = hash(loc);
+    const srvT = srv ? (+srv.saved || 0) : 0, base = loc ? (+loc.sync || 0) : 0;
+    if (srv && (!loc || srvT > base || (fresh(loc) && !fresh(srv)))) takeServer(srv);                // the server moved past what this device last synced
+    else if (loc) { if (!srv || (+loc.saved || 0) > srvT) { sig = ''; mark(); await push(false); } else { sig = hash(loc); N.dirty = false; } }   // local is the newer copy of the same line
     return r;
   };
   async function push(keep) {
     if (!N.on || !N.dirty || !R.state || N.busy) return false;
+    if (!N.loaded) { retryLoad(); return false; }                     // never over a server save we have not seen; stays dirty
     N.busy = true; N.dirty = false;
     const st = R.state; st.saved = Date.now(); sig = hash(st);
     let len = 0; try { len = JSON.stringify(st).length; } catch (e) {}
-    const r = await N.rpc('rpg_save', { token: N.token, seat: N.seat, state: st }, { keepalive: !!keep && len < 60000, timeout: keep ? 5000 : N.cfg.timeout });
+    const o = { keepalive: !!keep && len < 60000, timeout: keep ? 5000 : N.cfg.timeout };
+    let r = null, viaIf = false;
+    if (!N.noIf) { viaIf = true; try { r = await post('rpg_save_if', { token: N.token, seat: N.seat, state: st, base: +st.sync || 0 }, o); N.fails = 0; N.err = null; }   // refuses when the server moved on
+      catch (e) { const m = String((e && e.message) || e); if (/could not find|does not exist|no rpc|PGRST202|http 404/i.test(m)) { N.noIf = true; viaIf = false; } else { fail('rpg_save_if', e); r = null; } } }
+    if (!viaIf) r = await N.rpc('rpg_save', { token: N.token, seat: N.seat, state: st }, o);
     N.busy = false;
-    if (r && r.ok !== false) {
+    if (r && r.stale) { const srv = r.state && r.state.p ? r.state : null; if (srv) takeServer(srv); else { N.loaded = false; retryLoad(); } return false; }   // a newer server save: pull it, never re-push blindly
+    if (r && r.ok !== false) { st.sync = st.saved;
       N.savedAt = Date.now(); N.saves++; retryWait = 5000; if (R.state === st) store(st); emit('netsave', r);
       if (N.dirty && N.on && !saveT) saveT = setTimeout(() => { saveT = 0; push(false); }, N.cfg.saveMs);
       return true;
@@ -134,7 +150,7 @@
   /* ---- the old wallet rides over once ---- */
   let importing = false;
   N.wallet = { import: async () => {
-    if (!N.on || !R.state || !R.state.p || !R.state.p.hero || R.state.p.dead || importing) return false;   // only into a living hero (the intro's blank hero waits)
+    if (!N.on || !N.loaded || !R.state || !R.state.p || !R.state.p.hero || R.state.p.dead || importing) return false;   // only into a living hero (the intro's blank hero waits)
     const w = R.state.wallet = R.state.wallet || { imported: false };
     if (w.imported) return false;
     importing = true;
@@ -157,7 +173,7 @@
       p.gold = (p.gold || 0) + gold; p.gems = (p.gems || 0) + gems;
       Object.assign(w, { imported: true, gold0: gold, gems0: gems, champs0: n, at: Date.now() });
       N.imported = { gold, gems, champs: n };
-      if (gold || gems || n) { try { R.ui && R.ui.toast && R.ui.toast('Your gold, dragonglass and ' + n + ' champion' + (n === 1 ? '' : 's') + ' rode with you', '#e3b661'); } catch (e) {} }
+      if (gold || gems || n) { N.toast = 'Your gold, dragonglass and ' + n + ' champion' + (n === 1 ? '' : 's') + ' rode with you'; try { R.ui && R.ui.toast && R.ui.toast('Your gold, dragonglass and ' + n + ' champion' + (n === 1 ? '' : 's') + ' rode with you', '#e3b661'); } catch (e) {} }
       emit('wallet', N.imported);
       store(R.state);
       await N.save(true);
@@ -196,6 +212,9 @@
       }
       return C.msgs;
     } };
+  // report / block one message of the zone chat (backend v40b: rpg_chat_report, rpg_chat_block) → true when the server took it
+  C.report = async (id, reason) => { if (!N.on || id == null || id === '') return false; const r = await N.rpc('rpg_chat_report', { token: N.token, msg: +id, reason: String(reason || 'player report').slice(0, 80) }); return !!(r && r.ok !== false); };
+  C.block = async id => { if (!N.on || id == null || id === '') return false; const r = await N.rpc('rpg_chat_block', { token: N.token, msg: +id }); if (r && r.ok !== false) { C.msgs = C.msgs.filter(m => String(m.id) !== String(id)); return true; } return false; };
   R.bus.on('screen', name => { C.open = name === 'chat'; if (C.open) { C.unread = 0; if (N.on) C.list(); } });
 
   /* ---- boards ---- */

@@ -13,12 +13,14 @@ const path = require('path'), fs = require('fs');
   await page.goto('file://' + path.resolve(root, process.env.RPG_HTML || 'beta/index.html'));
   await page.waitForFunction(() => window.R && R.water && R.sys.water && window.THREE, { timeout: 20000 });
   const r = await page.evaluate(async (b64) => {
-    const out = {}, W = R.water, T = THREE, S = 6;
+    const out = {}, W = R.water, T = THREE, S = R.SCALE || 6, WS = R.WS || 1;   // art px → world units (6 × R.WS)
     const img = new Image(); img.src = 'data:image/webp;base64,' + b64; await img.decode();
-    out.cellsBefore = W.ready;
+    out.cellsBefore = W.ready; out.W = R.W;
     const cells = W.build(img); out.cells = cells; out.buildMs = W.stats.buildMs; out.ready = W.ready; out.dims = [W.w, W.h, W.CS];
     // ---- the physics API (art px × 6 = world units)
-    const narrow = [1100 * S, 1350 * S], winterfell = [2950, 2450], riverrun = [2540, 7250], kl = [833 * S, 1353 * S], trident = [600 * S, 1075 * S], sunset = [60 * S, 700 * S], bite = [980 * S, 640 * S];
+    const poi = id => { const q = (R.data.world.pois || []).find(o => o.id === id); return q ? [q.x, q.y] : [0, 0]; };
+    // the art is the truth for water: places in art px × R.SCALE (the world data may move POIs)
+    const narrow = [1100 * S, 1350 * S], winterfell = [2950 / 6 * S, 2450 / 6 * S], riverrun = [2540 / 6 * S, 7250 / 6 * S], kl = [833 * S, 1353 * S], trident = [600 * S, 1075 * S], sunset = [60 * S, 700 * S], bite = [980 * S, 640 * S];
     out.narrowSea = [W.isWater(...narrow), W.depth(...narrow), W.kindAt(...narrow)];
     out.winterfell = [W.isWater(...winterfell), W.depth(...winterfell), W.kindAt(...winterfell)];
     out.riverrun = [W.isWater(...riverrun), W.kindAt(...riverrun)]; out.kl = [W.isWater(...kl), W.kindAt(...kl)];
@@ -32,11 +34,11 @@ const path = require('path'), fs = require('fs');
     let nl = 0, nt = 0; for (let y = 1232; y < 1278; y += 4) for (let x = 672; x < 702; x += 4) { nt++; if (W.kindAt(x * S, y * S) === 'lake') nl++; }
     out.godsEye = { lake: nl, total: nt, depth: W.depth(686 * S, 1254 * S) };
     // the shoreline east of King's Landing: points in the water, unit normals pointing to land
-    const sp = W.shorePoints(5220, 8118, 400); out.shore = { n: sp.length, water: sp.filter(p => W.isWater(p.x, p.y)).length, unit: sp.filter(p => Math.abs(Math.hypot(p.nx, p.ny) - 1) < .01).length,
+    const sp = W.shorePoints(870 * S, 1353 * S, 400 * WS); out.shore = { n: sp.length, water: sp.filter(p => W.isWater(p.x, p.y)).length, unit: sp.filter(p => Math.abs(Math.hypot(p.nx, p.ny) - 1) < .01).length,
       landward: sp.filter(p => !W.isWater(p.x + p.nx * W.CS * 1.5, p.y + p.ny * W.CS * 1.5)).length, kinds: [...new Set(sp.map(p => p.kind))] };
-    out.shoreDist = [W.shoreDist(...narrow), W.shoreDist(...winterfell), W.shoreDist(5220, 8118)];
+    out.shoreDist = [W.shoreDist(...narrow), W.shoreDist(...winterfell), W.shoreDist(870 * S, 1353 * S)];
     out.shallow = [...new Set(sp.map(p => W.depth(p.x, p.y)))];   // the first cell off the shore is wading depth
-    out.outside = [W.isWater(-10, 5), W.isWater(7300, 100), W.depth(1e9, 1e9), W.kindAt(NaN, 1)];
+    out.outside = [W.isWater(-10, 5), W.isWater(R.W + 100, 100), W.depth(1e9, 1e9), W.kindAt(NaN, 1)];
     out.bigSeas = cells.sea > 40000 && cells.sea < 90000;
     // ---- the 3D: a fake R.render3d with a real THREE scene (no A05 renderer in this build)
     const glc = document.createElement('canvas'); glc.id = 'glt'; glc.width = 390; glc.height = 844; glc.style.cssText = 'position:fixed;left:0;top:0;width:390px;height:844px;z-index:50'; document.body.appendChild(glc);
@@ -44,18 +46,18 @@ const path = require('path'), fs = require('fs');
     const scene = new T.Scene(); scene.fog = new T.Fog(0x9fb0c4, 900, 2600);
     const camera = new T.PerspectiveCamera(60, 390 / 844, 20, 9000);
     const tex = new T.Texture(img); tex.needsUpdate = true; tex.minFilter = T.LinearFilter;
-    const ground = new T.Mesh(new T.PlaneGeometry(7200, 12288), new T.MeshBasicMaterial({ map: tex })); ground.rotateX(-Math.PI / 2); ground.position.set(3600, 0, 6144); scene.add(ground);
+    const ground = new T.Mesh(new T.PlaneGeometry(R.W, R.H), new T.MeshBasicMaterial({ map: tex })); ground.rotateX(-Math.PI / 2); ground.position.set(R.W / 2, 0, R.H / 2); scene.add(ground);
     const groundY = (x, y) => (W.depth(x, y) >= 1 ? 0 : 24) + (W.depth(x, y) >= 1 ? 0 : Math.max(0, 6 - Math.abs(W.shoreDist(x, y)) * 3));
     R.render3d = { scene, camera, renderer, groundY, heightmap: { fake: true } };
     R.bus.emit('render3d', R.render3d);
     out.attached = !!(W.sea && W.sea.parent === scene); out.uniforms = !!W.uniforms;
     const place = (px, py, pz, tx, ty, tz) => { camera.position.set(px, py, pz); camera.lookAt(tx, ty, tz); camera.updateMatrixWorld(true); };
-    place(1140 * S, 230, 1360 * S, 1030 * S, 0, 1350 * S);
+    const V1 = [1030 * S + 660, 230, 1350 * S + 60, 1030 * S, 0, 1350 * S]; place(...V1);
     const t0 = W.uniforms.uTime.value; for (let i = 0; i < 30; i++) R.step(); out.dTime = W.uniforms.uTime.value - t0;
     out.rivers = !!(W.rivers && W.rivers.parent === scene); out.riverVerts = W.rivers ? W.rivers.geometry.attributes.position.count : 0;
     out.seaPos = [W.sea.position.x, W.sea.position.y, W.sea.position.z]; out.hasMask = W.uniforms.uHasMask.value; out.drawCallsStat = W.stats.drawCalls;
     // the plane follows the camera in 1200-unit steps
-    place(2500, 230, 3000, 2000, 0, 2500); R.step(); out.seaPos2 = [W.sea.position.x, W.sea.position.z]; place(1140 * S, 230, 1360 * S, 1030 * S, 0, 1350 * S); R.step();
+    place(2500, 230, 3000, 2000, 0, 2500); R.step(); out.seaPos2 = [W.sea.position.x, W.sea.position.z]; place(...V1); R.step(); out.seaWant = [Math.round(V1[0] / 1200) * 1200, Math.round(V1[2] / 1200) * 1200]; out.plane = W.planeSize;
     // render + pixels
     // other live modules (nature, props) also answer 'render3d' and add to this scene: count the water's own draw calls with them hidden
     const others = scene.children.filter(o => o !== W.sea && o !== W.rivers && o !== ground && o.visible); others.forEach(o => o.visible = false);
@@ -71,7 +73,7 @@ const path = require('path'), fs = require('fs');
     // timing: 20 renders (SwiftShader, informational)
     let tt = performance.now(); for (let i = 0; i < 10; i++) { R.step(); renderer.render(scene, camera); } out.renderMs = (performance.now() - tt) / 10;
     // view 2: the Trident and the God's Eye from the south-west
-    place(560 * S, 320, 1130 * S, 620 * S, 0, 1070 * S); R.step(); renderer.render(scene, camera); const view2 = grab(); out.px2 = stat(view2.d); out.calls2 = renderer.info.render.calls;
+    place(620 * S - 360, 320, 1070 * S + 360, 620 * S, 0, 1070 * S); R.step(); renderer.render(scene, camera); const view2 = grab(); out.px2 = stat(view2.d); out.calls2 = renderer.info.render.calls;
     place(690 * S - 300, 260, 1254 * S + 420, 690 * S, 0, 1254 * S); R.step(); renderer.render(scene, camera); const view3 = grab(); out.px3 = stat(view3.d);
     // the picture: three views stacked + the mask
     glc.style.display = 'none'; const box = document.createElement('div'); box.style.cssText = 'position:fixed;left:0;top:0;width:390px;height:844px;background:#000;z-index:60;display:grid;grid-template-rows:1fr 1fr 1fr'; document.body.appendChild(box);
@@ -84,7 +86,7 @@ const path = require('path'), fs = require('fs');
   fs.mkdirSync(path.join(root, '.shots'), { recursive: true });
   await page.screenshot({ path: path.join(root, '.shots/rpg_water.png') });
   const fails = []; const ok = (c, m) => { if (!c) fails.push(m); };
-  ok(r.ready && r.dims[0] === 300 && r.dims[1] === 512 && r.dims[2] === 24, 'mask built 300×512 cells of 24 units: ' + JSON.stringify(r.dims));
+  ok(r.ready && r.dims[0] === 300 && r.dims[1] === 512 && Math.abs(r.dims[2] - r.W / 300) < 1e-9, 'mask built 300×512 cells of R.W / 300 units: ' + JSON.stringify(r.dims));
   ok(r.bigSeas, 'the sea covers a plausible share of the map: ' + JSON.stringify(r.cells));
   ok(r.narrowSea[0] === true && r.narrowSea[1] === 1 && r.narrowSea[2] === 'sea', 'Narrow Sea east of King\'s Landing is sea: ' + JSON.stringify(r.narrowSea));
   ok(r.sunset === 'sea' && r.bite === 'sea', 'Sunset Sea + the Bite are sea: ' + JSON.stringify([r.sunset, r.bite]));
@@ -100,7 +102,7 @@ const path = require('path'), fs = require('fs');
   ok(r.attached && r.uniforms && r.hasMask === 1, 'sea plane attached to the fake scene with the mask texture: ' + JSON.stringify([r.attached, r.uniforms, r.hasMask]));
   ok(Math.abs(r.dTime - 0.5) < 1e-6, 'uTime advances 0.5 s over 30 steps: ' + r.dTime);
   ok(r.rivers && r.riverVerts >= 4 * 80, 'rivers + lake mesh built: ' + JSON.stringify([r.rivers, r.riverVerts]));
-  ok(r.seaPos[0] === 7200 && r.seaPos[2] === 8400 && r.seaPos[1] === 2 && r.seaPos2[0] === 2400 && r.seaPos2[1] === 3600, 'the plane follows the camera in 1200-unit steps at height 2: ' + JSON.stringify([r.seaPos, r.seaPos2]));
+  ok(r.seaPos[0] === r.seaWant[0] && r.seaPos[2] === r.seaWant[1] && r.seaPos[1] === 2 && r.seaPos2[0] === 2400 && r.seaPos2[1] === 3600 && r.plane >= 7200, 'the plane follows the camera in 1200-unit steps at height 2, ≥ 7200 wide: ' + JSON.stringify([r.seaPos, r.seaWant, r.seaPos2, r.plane]));
   ok(r.calls - 1 <= 4 && r.drawCallsStat <= 4, 'draw calls (minus the test ground): ' + JSON.stringify([r.calls, r.drawCallsStat]));
   ok(r.px1.non > r.px1.of * 0.5 && r.px1.blue > r.pxNoWater.blue + 2000, 'the sea renders teal pixels the bare map does not: ' + JSON.stringify([r.px1, r.pxNoWater]));
   ok(r.px2.blue > 200 && r.px3.blue > 300, 'the Trident + the God\'s Eye render water pixels: ' + JSON.stringify([r.px2, r.px3]));
@@ -117,15 +119,16 @@ const path = require('path'), fs = require('fs');
     await pg.waitForFunction(() => R.water && R.water.ready && R.water.carved > 0, null, { timeout: 20000 }).catch(() => {});
     const q = await pg.evaluate(() => { const W = R.water, G = R.render3d, p = R.player, o = {};
       o.mode = R.render && R.render.mode; o.ready = W.ready; o.carved = W.carved; o.inScene = !!(G && W.sea && W.sea.parent === G.scene && W.rivers && W.rivers.parent === G.scene);
-      o.seaFloor = G ? +G.groundY(1100 * 6, 1350 * 6).toFixed(1) : null; o.seaY = W.sea ? W.sea.position.y : null;
       // the hero walks along the Trident: wading, shallow depth, splash rings from the physics
-      p.x = 3600; p.y = 6500; p.hp = p.hpMax = 1e6; const P = R.phys; let wade = 0, maxD = 0;
-      for (let i = 0; i < 90; i++) { p.x = 3600 + (i % 30); p.y = 6500; p.vx = 60; R.step(); if (p.wading) wade++; maxD = Math.max(maxD, p.depth || 0); }
-      o.wade = wade; o.depthHere = W.depth(3600, 6500); o.maxD = maxD; o.physDepth = P && P.depthAt ? P.depthAt(3600, 6500) : null;
-      p.x = 3852; p.y = 4250; R.cam.yaw = Math.PI; if (R.render.snapCam) R.render.snapCam(); for (let i = 0; i < 30; i++) { R.step(); p.x = 3852; p.y = 4250; }
+      const WS = R.WS || 1, tx = 3600 * WS, ty = 6500 * WS; p.x = tx; p.y = ty; p.hp = p.hpMax = 1e6; const P = R.phys; let wade = 0, maxD = 0;
+      for (let i = 0; i < 90; i++) { p.x = tx + (i % 30); p.y = ty; p.vx = 60; R.step(); if (p.wading) wade++; maxD = Math.max(maxD, p.depth || 0); }
+      const S = R.SCALE || 6; o.seaFloor = G ? +G.groundY(1100 * S, 1350 * S).toFixed(1) : null; o.seaY = W.sea ? W.sea.position.y : null;   // after steps: a terrain rebuild is re-carved on the next water update
+      o.wade = wade; o.depthHere = W.depth(tx, ty); o.maxD = maxD; o.physDepth = P && P.depthAt ? P.depthAt(tx, ty) : null; o.plane = W.planeSize; o.fogFar = G && G.scene.fog ? G.scene.fog.far : null;
+      p.x = 3852 * WS; p.y = 4250 * WS; R.cam.yaw = Math.PI; if (R.render.snapCam) R.render.snapCam(); for (let i = 0; i < 30; i++) { R.step(); p.x = 3852 * WS; p.y = 4250 * WS; }
       return o; });
     await pg.waitForTimeout(300); await L.shot(pg, 'rpg_water_live');
     const errs = b.errors.slice(); await b.close();
+    ok(q.plane >= 2 * (q.fogFar || 0) * 1.25, 'live: the sea plane reaches past the fog: ' + JSON.stringify([q.plane, q.fogFar]));
     ok(q.mode === '3d' && q.ready && q.inScene, 'live: the sea + river meshes are in the renderer\'s scene: ' + JSON.stringify([q.mode, q.ready, q.inScene]));
     ok(q.carved > 1000 && q.seaFloor < q.seaY, 'live: the terrain is carved under the sea plane (the art\'s olive sea no longer a plateau): ' + JSON.stringify([q.carved, q.seaFloor, q.seaY]));
     ok(q.depthHere === 0.5 && q.physDepth === 0.5, 'live: the Trident is wading depth for the physics: ' + JSON.stringify([q.depthHere, q.physDepth, q.wade, q.maxD]));

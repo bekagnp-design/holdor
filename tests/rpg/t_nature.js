@@ -11,13 +11,14 @@ if (!process.env.RPG_HTML && process.env.HOLDOR_RPG_HTML) process.env.RPG_HTML =
 (async () => {
   L.build();
   const { page, errors, cerrs, close } = await L.launch();
+  page.setDefaultNavigationTimeout(180000); page.setDefaultTimeout(90000);   // 9 agents on 4 cores: be patient
   const toasts = [];
   await page.exposeFunction('__g2toast', t => toasts.push(String(t)));
   /* ---- a calm start at three house seats: 20 game seconds with no input → the hero untouched, nothing within 400 units ---- */
   const START = [['lannister', 'casterly', 'westerlands'], ['martell', 'sunspear', 'dorne'], ['stark', 'winterfell', 'north']];
   for (const [house, seat, region] of START) {
     toasts.length = 0;
-    const b = await L.boot(page, { save: L.fakeSave({ house }), wait: 10000 });
+    const b = await L.boot(page, { save: L.fakeSave({ house }), wait: 30000, timeout: 90000 });   // a loaded CI box: the 5 MB page can take > 15 s
     L.ok(house + ': booted into the world (3D)', b.running && b.player, JSON.stringify({ running: b.running, cur: b.cur }));
     await page.evaluate(() => { const o = R.ui.toast; R.ui.toast = function (t, c) { window.__g2toast(t); return o && o.apply(R.ui, arguments); }; });
     await page.waitForTimeout(400);

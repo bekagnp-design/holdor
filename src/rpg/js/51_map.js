@@ -40,7 +40,7 @@
   const players = () => safe(R.presence, 'list').filter(p => p && num(p.x) && num(p.y) && p !== R.player && !p.me);
   const qmarks = () => safe(R.quests, 'markers').filter(m => m && num(m.x) && num(m.y));
   const events = () => safe(R.events, 'active').filter(e => e && num(e.x) && num(e.y));
-  const mapImg = () => { const m = (R.assets && R.assets.map) || window.A_MAP || null; if (!m) return null;
+  const mapImg = () => { const m = (R.assets && (R.assets.mapClean || R.assets.map)) || window.A_MAP || null;   // mapClean: the art without the old stage shields, when G1 provides it if (!m) return null;
     if (typeof m === 'string') { if (m !== imgSrc) { imgSrc = m; img = new Image(); img.onload = () => redraw(); img.src = m; } return img && img.complete && img.naturalWidth ? img : null; }
     if (m.naturalWidth === 0 && typeof m.addEventListener === 'function') { if (!m._mpHook) { m._mpHook = 1; m.addEventListener('load', () => redraw(), { once: true }); } return null; }
     return (m.naturalWidth || m.width) ? m : null; };
@@ -110,7 +110,7 @@
       if (nameZ || kind === 'castle') { const nm = (p.name || p.n || p.id) + '', f2 = '600 ' + fs2 + 'px Cinzel,Georgia,serif'; c.font = f2; const w2 = c.measureText(nm).width + 6;
         let ly = s.y + sz * 1.5 + fs2 * .6; if (hits(s.x, ly, w2, fs2 + 4)) ly = s.y - sz * 1.5 - fs2 * .6; if (!hits(s.x, ly, w2, fs2 + 4)) halo(c, nm, s.x, ly, f2, '#f3e7c4'); } }
     // quest markers, gold
-    for (const m of qmarks()) { const s = toS(m.x, m.y), sz = 7 * R.clamp(z, .9, 1.4); c.save(); c.translate(s.x, s.y); c.rotate(Math.PI / 4); c.fillStyle = '#e3b661'; c.strokeStyle = 'rgba(5,9,18,.9)'; c.lineWidth = 1.5; c.beginPath(); c.rect(-sz, -sz, sz * 2, sz * 2); c.fill(); c.stroke(); c.restore(); halo(c, '!', s.x, s.y + 0.5, '900 ' + Math.round(sz * 1.6) + 'px Georgia,serif', '#2a1d05'); c.lineWidth = 1; }
+    for (const m of qmarks()) { const s = toS(m.x, m.y), sz = 7 * R.clamp(z, .9, 1.4); c.save(); c.translate(s.x, s.y); c.rotate(Math.PI / 4); c.fillStyle = '#e3b661'; c.strokeStyle = 'rgba(5,9,18,.9)'; c.lineWidth = 1.5; c.beginPath(); c.rect(-sz, -sz, sz * 2, sz * 2); c.fill(); c.stroke(); c.restore(); halo(c, (m.kind === 'turnin' || m.kind === 'done') ? '?' : '!', s.x, s.y + 0.5, '900 ' + Math.round(sz * 1.6) + 'px Georgia,serif', '#2a1d05'); c.lineWidth = 1; }
     // active events, red
     for (const e of events()) { const s = toS(e.x, e.y), rr = 11 * R.clamp(z, .9, 1.4); c.beginPath(); c.arc(s.x, s.y, rr, 0, 7); c.lineWidth = 2.5; c.strokeStyle = '#e14b4b'; c.stroke(); c.beginPath(); c.arc(s.x, s.y, rr * .35, 0, 7); c.fillStyle = '#e14b4b'; c.fill(); if (e.name || e.n) halo(c, (e.name || e.n) + '', s.x, s.y - rr - 8, '700 ' + fs2 + 'px Cinzel,Georgia,serif', '#ff8a8a'); }
     // other players, small cyan dots

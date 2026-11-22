@@ -131,7 +131,7 @@ window.R = window.R || {};
   R.blankHero = hero => ({ hero: hero || null, name: '', cls: 'knight', lvl: 1, xp: 0, hp: 0, gold: 0, gems: 0, pos: null, stats: { str: 5, agi: 5, int: 5, vit: 5 }, pts: 0, skills: {}, spts: 0, bar: [null, null, null], gear: {}, inv: [], potions: { hp: 3 }, dead: false, created: Date.now(), played: 0 });
   // newState(house) → a fresh account of that house with its first champion unlocked and an empty hero (no p.hero yet: the intro / R.newHero fills it)
   R.newState = house => { house = house || 'stark'; const first = R.firstChamp(house); const champs = {}; if (first) champs[first] = { unlocked: 1, runs: 0 };
-    return R.alias({ v: 2, acc: { house, champs, hall: [], titles: [], title: '', ach: [], world: { found: [], flags: {}, quests: {}, bosses: {}, killed: {} }, best: { lvl: 0, kills: 0 } },
+    return R.alias({ v: 2, ws: R.WS, acc: { house, champs, hall: [], titles: [], title: '', ach: [], world: { found: [], flags: {}, quests: {}, bosses: {}, killed: {} }, best: { lvl: 0, kills: 0 } },
       p: R.blankHero(), wallet: { imported: false }, opts: { sfx: 1, haptic: 1, lang: 'en' } }); };
   R.acc = () => R.state ? R.state.acc : null;
   // p.flags / found / quests / bosses / killed → acc.world.*, p.ach / p.title → acc.*: non-enumerable accessors (not serialised), re-installed by load
@@ -145,16 +145,22 @@ window.R = window.R || {};
   const migrate = s => { if (s.acc && s.v >= 2) return s; const p = s.p, n = R.newState(p.house || 'stark'); s.acc = s.acc || n.acc;
     for (const k in ALIAS) { if (Object.prototype.hasOwnProperty.call(p, k)) { const d = Object.getOwnPropertyDescriptor(p, k); if (d && 'value' in d) { const path = ALIAS[k]; let o = s.acc; for (let i = 0; i < path.length - 1; i++) o = o[path[i]]; o[path[path.length - 1]] = d.value; } delete p[k]; } }
     if (p.hero === undefined) p.hero = null; delete p.house; delete p.comps; delete p.champs; s.v = 2; return s; };
+  // a save from another world scale (no `ws` = the old 1×: the test-1 players) has its positions moved to R.WS: p.pos, and any {x,y} kept in acc.world.flags
+  const rescale = s => { const ws0 = +s.ws > 0 ? +s.ws : 1, k = R.WS / ws0; if (Math.abs(k - 1) > 1e-9) {
+      const mv = o => { if (o && typeof o === 'object' && isFinite(o.x) && isFinite(o.y)) { o.x = Math.round(o.x * k); o.y = Math.round(o.y * k); } };
+      if (s.p) mv(s.p.pos); const f = s.acc && s.acc.world && s.acc.world.flags; if (f) for (const key in f) mv(f[key]); }
+    s.ws = R.WS; return s; };
+  R.rescaleSave = rescale;
   let saveT = 0;
   // R.save() debounced 0.8 s; R.save(true) at once. Writes the hero's pos + hp + dead into the save, localStorage, 'save' event, R.net.save when logged in.
   R.save = now => { if (!R.state) return false; if (!now) { if (!saveT) saveT = setTimeout(() => { saveT = 0; R.save(true); }, 800); return true; }
     if (saveT) { clearTimeout(saveT); saveT = 0; }
     const P = R.player, p = R.state.p; if (P && p) { p.pos = { x: Math.round(P.x), y: Math.round(P.y) }; p.dead = !!P.dead; if (!P.dead) p.hp = Math.round(P.hp); }
-    R.state.saved = Date.now();   // the save's time: R.net keeps the newer of local / server by it
+    R.state.saved = Date.now(); R.state.ws = R.WS;   // the save's time (R.net keeps the newer) + the world scale its positions are in: R.net keeps the newer of local / server by it
     try { localStorage.setItem(R.KEY, JSON.stringify(R.state)); } catch (e) {}
     R.bus.emit('save', R.state); if (R.net && R.net.on && R.net.save) { try { R.net.save(); } catch (e) { R.err(e.message, 'net.save'); } } return true; };
   // load(raw?) → true when a save was found (localStorage, or the object given); v1 saves migrate, missing keys fill from defaults, the p.* aliases are installed
-  R.load = raw => { try { const s = raw || JSON.parse(localStorage.getItem(R.KEY) || 'null'); if (s && isObj(s) && isObj(s.p)) { migrate(s); const def = R.newState(s.acc.house), had = isObj(s.acc.champs) && Object.keys(s.acc.champs).some(k => s.acc.champs[k] && s.acc.champs[k].unlocked);
+  R.load = raw => { try { const s = raw || JSON.parse(localStorage.getItem(R.KEY) || 'null'); if (s && isObj(s) && isObj(s.p)) { migrate(s); rescale(s); const def = R.newState(s.acc.house), had = isObj(s.acc.champs) && Object.keys(s.acc.champs).some(k => s.acc.champs[k] && s.acc.champs[k].unlocked);
       if (had) def.acc.champs = {};   // an account keeps exactly the champions it unlocked (no free starter on every load)
       fill(s, def); R.state = R.alias(s); R.bus.emit('load', R.state); return true; } } catch (e) { R.err((e && e.message) || e, 'load'); } return false; };
   R.reset = () => { try { localStorage.removeItem(R.KEY); } catch (e) {} R.state = null; };
@@ -189,7 +195,7 @@ window.R = window.R || {};
   let cv = document.getElementById('c'); if (!cv) { cv = document.createElement('canvas'); cv.id = 'c'; app.prepend(cv); }
   let gl = document.getElementById('gl'); if (!gl) { gl = document.createElement('canvas'); gl.id = 'gl'; gl.style.cssText = 'position:absolute;inset:0;width:100%;height:100%'; app.insertBefore(gl, cv); }
   const ctx = cv.getContext('2d'); R.cv = cv; R.gl = gl; R.ctx = ctx; R.vw = 390; R.vh = 844; R.dpr = 1;
-  R.resize = () => { R.dpr = Math.min(2, window.devicePixelRatio || 1); R.vw = window.innerWidth || 390; R.vh = window.innerHeight || 844; const w = Math.round(R.vw * R.dpr), h = Math.round(R.vh * R.dpr);
+  R.resize = () => { R.dpr = Math.min(1.5, window.devicePixelRatio || 1); R.vw = window.innerWidth || 390; R.vh = window.innerHeight || 844; const w = Math.round(R.vw * R.dpr), h = Math.round(R.vh * R.dpr);
     cv.width = w; cv.height = h; const g = R.gl || gl; if (g && (g.width !== w || g.height !== h)) { g.width = w; g.height = h; } R.camClamp(); R.bus.emit('resize', R.vw, R.vh); };
   window.addEventListener('resize', R.resize); R.resize();
   const sysErr = (s, e) => { s._errs = (s._errs || 0) + 1; if (s._errs <= 3) { console.error(s.name, e); R.err((e && e.message) || e, 'sys:' + s.name); } };
@@ -220,9 +226,19 @@ window.R = window.R || {};
     const HS = R.data.houses && R.data.houses[house], seat = HS && HS.seat;
     if (seat) { if (typeof seat === 'object' && seat.x != null) return { x: seat.x, y: seat.y }; if (pois) { const s = String(seat).toLowerCase(), q = pois.find(q => String(q.id).toLowerCase() === s || String(q.name).toLowerCase() === s); if (q) return { x: q.x, y: q.y }; } }
     return { x: R.W / 2, y: R.H / 2 }; };
+  // spawnPoint(house) → where a new life stands: the open courtyard south of the seat (the seat POI's centre + (poi.r or 160) + 40 toward the south),
+  // on a walkable cell, not on an NPC; else further out / around; else the seat itself
+  R.spawnPoint = house => { const h = R.homePos(house), W = R.data.world, ps = W && W.pois ? (Array.isArray(W.pois) ? W.pois : Object.keys(W.pois).map(k => W.pois[k])) : [];
+    let poi = null, bd = 450 * 450; for (const q of ps) { if (!q || !isFinite(q.x) || !isFinite(q.y)) continue; const d = (q.x - h.x) ** 2 + (q.y - h.y) ** 2; if (d < bd) { bd = d; poi = q; } }
+    const c = poi ? { x: poi.x, y: poi.y } : h, r = (poi && +poi.r > 0 ? +poi.r : 160);
+    const blk = (x, y) => { try { return !!(R.world && typeof R.world.blocked === 'function' && R.world.blocked(x, y)); } catch (e) { return false; } };
+    const npc = (x, y) => R.ents.some(e => e.kind === 'npc' && !e.dead && (e.x - x) ** 2 + (e.y - y) ** 2 < 46 * 46);
+    for (const dist of [r + 40, r + 90, r + 150, r + 230]) for (const a of [0, 0.3, -0.3, 0.65, -0.65, 1.1, -1.1, 1.6, -1.6, 2.4, -2.4, 3.1416]) {
+      const x = c.x + Math.sin(a) * dist, y = c.y + Math.cos(a) * dist; if (x < 20 || y < 20 || x > R.W - 20 || y > R.H - 20) continue; if (!blk(x, y) && !npc(x, y)) return { x: Math.round(x), y: Math.round(y) }; }
+    return h; };
   // makePlayer(x?, y?) → the hero entity (kind 'player', type = champion id, team 0, r 16, keep) from R.state.p; replaces an earlier one; a dead save makes a dead hero
   R.makePlayer = (x, y) => { if (!R.state) R.state = R.newState(); const p = R.state.p; const st = R.statsFor(p);
-    if (x == null) { const pos = p.pos && isFinite(p.pos.x) && isFinite(p.pos.y) ? p.pos : R.homePos(); x = pos.x; y = pos.y; }
+    if (x == null) { const pos = p.pos && isFinite(p.pos.x) && isFinite(p.pos.y) ? p.pos : R.spawnPoint(); x = pos.x; y = pos.y; }
     if (R.player) R.remove(R.player);
     const dead = !!p.dead;
     const e = R.spawn({ kind: 'player', team: 0, r: 16, x, y, face: 1, name: p.name || (p.hero ? R.champInfo(p.hero).name : 'Hero'), lvl: p.lvl || 1, cls: p.cls, hero: p.hero, type: p.hero || p.cls, house: R.state.acc.house,
@@ -234,11 +250,12 @@ window.R = window.R || {};
   // newHero(champId?) → the hero entity: a fresh level-1 hero of that champion (name from the roster, class from its type), at the house seat, all entities cleared, in the world; emits 'hero'(id)
   R.newHero = id => { if (!R.state) R.state = R.newState(); const s = R.state, a = s.acc; id = id || R.firstChamp(a.house);
     const info = R.champInfo(id); const c = a.champs[id] = a.champs[id] || { unlocked: 1, runs: 0 }; c.unlocked = 1; c.runs = (c.runs | 0) + 1;
-    const p = R.blankHero(id); p.name = info.name; p.cls = R.clsOf(id); const pos = R.homePos(a.house); p.pos = { x: pos.x, y: pos.y };
+    const p = R.blankHero(id); p.name = info.name; p.cls = R.clsOf(id); let pos = R.spawnPoint(a.house); p.pos = { x: pos.x, y: pos.y };
     s.p = p; R.alias(s); R.clearEnts(); R.bus.emit('hero', id);
     const e = R.enterWorld();
-    // the new life starts at the house seat, never where the last one fell: full hp, 3 s of grace, no enemy within 600 units of the seat
-    e.x = pos.x; e.y = pos.y; e.vx = e.vy = 0; e.hp = e.hpMax; e.inv = Math.max(e.inv || 0, R.t + 3); e.graceT = R.t + 3; R.camSnap();
+    // the new life starts in the seat's courtyard, never where the last one fell: full hp, 3 s of grace, facing north, no enemy within 600 units
+    pos = R.spawnPoint(a.house);   // again, now that the seat's NPCs stand in the world
+    e.x = pos.x; e.y = pos.y; e.face = 1; if (R.cam) R.cam.yaw = 0; e.vx = e.vy = 0; e.hp = e.hpMax; e.inv = Math.max(e.inv || 0, R.t + 3); e.graceT = R.t + 3; R.camSnap();
     for (const m of R.ents.slice()) if (m !== e && (m.kind === 'mob' || m.kind === 'boss') && !m.keep && (m.x - pos.x) ** 2 + (m.y - pos.y) ** 2 < 600 * 600) R.remove(m);
     R.ward = { x: pos.x, y: pos.y, r: R.WARD_R, until: R.t + R.WARD_T };   // the seat's ward: no enemy comes within WARD_R of the new hero's start for WARD_T s
     R.save(true); return e; };
@@ -250,7 +267,7 @@ window.R = window.R || {};
   // enterWorld(): the hero at p.pos or the house seat, camera snapped, loop running, no screen open; emits 'start'(player)
   R.enterWorld = () => { if (!R.state) R.state = R.newState(); if (R.ui.cur) R.ui.close(); R.resize();
     const e = R.makePlayer();
-    if (R.world && R.world.blocked && R.world.blocked(e.x, e.y)) { const h = R.homePos(); e.x = h.x; e.y = h.y; }
+    if (R.world && R.world.blocked && R.world.blocked(e.x, e.y)) { const h = R.spawnPoint(); e.x = h.x; e.y = h.y; }
     R.camSnap(); R.run(); R.bus.emit('start', e); R.save(); return e; };
   // respawnAt(x, y): the hero stands up at x,y with full hp and clean status (a revive); emits 'respawn'(player); saves at once
   R.respawnAt = (x, y) => { const e = R.player || R.makePlayer(x, y); if (!R.ents.includes(e)) R.ents.push(e);
