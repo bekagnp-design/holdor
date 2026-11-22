@@ -46,6 +46,11 @@
     if (!L || !L.length) L = LINES;
     return L[(Math.max(1, n) - 1) % L.length];
   }
+  // the story's death lines carry {name} {lvl} {killer} {house} {region}: filled from the record (no braces ever reach the screen)
+  function fillLine(t, d) { const H = R.data.houses && R.state && R.state.acc && R.data.houses[R.state.acc.house];
+    let reg = ''; try { const g = R.world && R.world.regionAt && R.player ? R.world.regionAt(R.player.x, R.player.y) : null; reg = g ? (typeof g === 'string' ? g : (g.name || g.n || g.id || '')) : ''; } catch (e) {}
+    const v = { name: d.name, lvl: d.lvl, level: d.lvl, killer: d.killer || 'the cold', house: (H && (H.n || H.name)) || '', region: reg || 'the road', hero: d.name };
+    return String(t).replace(/\{(\w+)\}/g, (m, k) => v[k] != null && v[k] !== '' ? String(v[k]) : '').replace(/\s{2,}/g, ' ').trim(); }
   // the run's kills: the player module's own count when it keeps one, else the count kept here from the 'kill' events
   R.bus.on('kill', e => { const p = P(); if (!p || !e || (e.kind !== 'mob' && e.kind !== 'boss') || (R.player && R.player.dead)) return; p.runKills = (p.runKills || 0) + 1; if (e.kind === 'boss') p.runBosses = (p.runBosses || 0) + 1; });
   // one record per death, whoever asks first (the 'death' event or A12 opening the screen)
@@ -132,7 +137,7 @@
       const nums = h('div', 'dth-nums');
       [['Level', fmt(d.lvl)], ['Kills', fmt(d.kills)], ['Time', fmtTime(d.played)], ['Bosses', fmt(d.bosses)]].forEach(([k, v]) => { const t = h('div', 'dth-num'); t.appendChild(h('b', null, v)); t.appendChild(h('span', null, k)); nums.appendChild(t); });
       w.appendChild(nums);
-      w.appendChild(h('div', 'dth-line', storyLine(d.n)));
+      w.appendChild(h('div', 'dth-line', fillLine(storyLine(d.n), d)));
       if (d.entry) { const hl = h('div', 'dth-hall'); hl.appendChild(h('div', 'dth-epi', epitaph(d.entry))); hl.appendChild(h('small', null, 'Hall of the Fallen · ' + fmtDate(d.entry.at))); w.appendChild(hl); }
       w.appendChild(h('div', 'dth-keep', 'Gold, gear and levels go with the fallen. Titles and the world you uncovered stay.'));
       const btn = h('button', 'pri dth-next', 'CHOOSE THE NEXT HERO'); btn.addEventListener('click', chooseNext); w.appendChild(btn);
@@ -202,7 +207,7 @@
   // closed from outside (Telegram's back button) while the hero still lies there: the death sheet comes back, or — after a reload, with no
   // death record in memory — the heroes screen (the dead hero must not be left lying in the world with nothing to choose)
   R.bus.on('screen', n => {
-    if (n != null) return;
+    if (n != null) { if (n !== 'death') fadeOut(); return; }   // another screen (heroes, hall, …) is never covered by the grey fade
     const deadHero = () => !!(R.player && R.player.dead === true && R.running);
     if (!stillDead() && !deadHero()) return;
     clearTimeout(reopenT); reopenT = setTimeout(() => { reopenT = 0; if (R.ui.cur != null) return;

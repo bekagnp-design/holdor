@@ -6,13 +6,13 @@
    holes filled). Rivers get a flow direction (the local principal axis, signed toward the sea).
    API (R.water):
      ready (bool), build(img?) → cells|null      builds the mask from an Image/canvas (default R.assets.map); emits 'water'
-     isWater(x,y) → bool                          depth(x,y) → 0 land, 0.5 river, 1 sea / lake      kindAt(x,y) → 'sea'|'lake'|'river'|null
+     isWater(x,y) → bool                          depth(x,y) → 0 land, 0.5 river / shallows, 0.75, 1 open sea / lake      kindAt(x,y) → 'sea'|'lake'|'river'|null
      flowAt(x,y) → {x,y} unit vector | null       the river's flow at a river cell
      shorePoints(x,y,r) → [{x,y,nx,ny,kind}]      shoreline cell centres within r, (nx,ny) pointing to the land (for A46's wet sand + gulls)
      shoreDist(x,y) → cells to the nearest shore  (signed: + in water, − on land, ±6 max)
      level (sea level, 0), CS (24), w, h, kind (Uint8Array: 0 land 1 river 2 lake 3 sea), cells {sea,lake,river}
      debugCanvas(k) → canvas of the mask at k px per cell
-   3D (when R.render3d exists / 'render3d' fires, THREE present): one sea plane 4800×4800 (120² segments) at level + 2 that
+   3D (when R.render3d exists / 'render3d' fires, THREE present): one sea plane 7200×7200 (120² segments) at level + 2 that
    follows the camera in 1200-unit steps, a custom ShaderMaterial (two sine waves 3–6 units, storm-driven; colour by the
    shore field; sun glint from R.render3d.uniforms.sunDir / R.ambience.sunDir; alpha .85; foam from the shore field and the
    terrain band 0.3–6 above sea level; fog from the scene) and one merged mesh for rivers + lakes at the terrain height
@@ -20,7 +20,7 @@
    uniforms: R.water.uniforms (uTime, uAmp, uSpeed, uStorm, uNight, uSun, uCamPos …); setStorm(k) overrides the weather. */
 (function () {
   const Wt = R.water = R.water || {};
-  const CS = 24, PLANE = 4800, SNAP = 1200, SEG = 120, RAMP = 6;
+  const CS = 24, PLANE = 7200, SNAP = 1200, SEG = 120, RAMP = 6;   // the plane's edge stays ≥ 3000 units out, past the clear-day fog (2600)
   Wt.CS = CS; Wt.level = 0; Wt.ready = false; Wt.w = 0; Wt.h = 0; Wt.kind = null; Wt.cells = { sea: 0, lake: 0, river: 0 };
   Wt.stats = { buildMs: 0, drawCalls: 0 };
   let w = 0, h = 0, N = 0, kind = null, shore = null, flowX = null, flowY = null, shoreList = [], buckets = null, BK = 10, bw = 0, bh = 0;
@@ -114,7 +114,8 @@
     return Wt.cells;
   };
   Wt.kindAt = (x, y) => { const k = cellOf(x, y); return k < 0 ? null : KIND[kind[k]]; };
-  Wt.depth = (x, y) => { const k = cellOf(x, y); return k < 0 ? 0 : DEPTH[kind[k]]; };
+  // shallows: the first sea / lake cell off the shore is 0.5 deep (wading), the second 0.75, then 1 — rivers are 0.5 all across
+  Wt.depth = (x, y) => { const k = cellOf(x, y); if (k < 0) return 0; const q = kind[k]; if (q < 2) return DEPTH[q]; const sd = shore ? shore[k] : RAMP; return sd >= 3 ? 1 : sd === 2 ? 0.75 : 0.5; };
   Wt.isWater = (x, y) => Wt.depth(x, y) > 0;
   Wt.shoreDist = (x, y) => { const k = cellOf(x, y); return k < 0 ? -RAMP : shore[k]; };
   Wt.flowAt = (x, y) => { const k = cellOf(x, y); if (k < 0 || kind[k] !== 1) return null; return { x: flowX[k] / 127, y: flowY[k] / 127 }; };
@@ -141,7 +142,7 @@
     ' vW = wp.xyz; vFlow = aFlow; vAcross = aAcross; vDepth = aDepth; vec4 mvPosition = viewMatrix * wp; gl_Position = projectionMatrix * mvPosition;',
     '#include <fog_vertex>', '}'].join('\n');
   const FS = [
-    'uniform sampler2D uInfo, uNoise; uniform float uTime, uRiver, uAlpha, uNight, uLevel, uHScale, uHasMask, uSpeed; uniform vec3 uSun, uCamPos, uDeep, uShallow, uFoam; uniform vec2 uWorld, uOrigin;',
+    'uniform sampler2D uInfo, uNoise; uniform float uTime, uRiver, uAlpha, uNight, uLevel, uHScale, uHasMask, uSpeed; uniform vec3 uSun, uCamPos, uDeep, uShallow, uFoam, uLakeDeep, uLakeShallow; uniform vec2 uWorld, uOrigin;',
     'varying vec3 vW, vN; varying vec2 vFlow; varying float vAcross, vDepth;',
     '#include <fog_pars_fragment>',
     'void main(){',
@@ -152,19 +153,20 @@
     ' float rip = n1.r * 0.6 + n2.g * 0.4;',
     ' vec3 N = normalize(vN + vec3((n1.r - 0.5) * 0.5, 0.0, (n2.g - 0.5) * 0.5) * mix(1.0, 0.6, uRiver));',
     ' float camD = length(uCamPos - vW); float near = mix(1.0 - smoothstep(200.0, 900.0, camD), 1.0 - smoothstep(0.5, 0.85, g), uHasMask);',
-    ' vec3 col = mix(uDeep, uShallow, clamp(near * 0.85 + (rip - 0.5) * 0.25, 0.0, 1.0));',
+    ' float isLake = uRiver * step(0.75, vDepth); vec3 cD = mix(uDeep, uLakeDeep, isLake), cS = mix(uShallow, uLakeShallow, isLake);',
+    ' vec3 col = mix(cD, cS, clamp(near * 0.85 + (rip - 0.5) * 0.2, 0.0, 1.0));',
     ' vec3 V = normalize(uCamPos - vW); vec3 Hh = normalize(uSun + V); float ndh = max(dot(N, Hh), 0.0);',
-    ' float spec = pow(ndh, 140.0) * 1.1 + pow(ndh, 10.0) * 0.12; float fr = pow(1.0 - max(dot(N, V), 0.0), 3.0);',
-    ' col = mix(col, vec3(0.46, 0.56, 0.66), fr * 0.35); col += spec * (1.0 - 0.75 * uNight) * vec3(1.0, 0.95, 0.85);',
+    ' float spec = pow(ndh, 90.0) * 0.7 + pow(ndh, 8.0) * 0.08; float fr = pow(1.0 - max(dot(N, V), 0.0), 3.0);',
+    ' col = mix(col, vec3(0.50, 0.58, 0.62), fr * (0.3 + 0.15 * uRiver)); col += spec * (1.0 - 0.75 * uNight) * vec3(1.0, 0.95, 0.85);',
     ' float roll = 0.55 + 0.45 * sin(uTime * 1.6 + g * 60.0);',
     ' float bandM = smoothstep(0.44, 0.5, g) * (1.0 - smoothstep(0.5, 0.63, g)) * roll;',
     ' float bandT = smoothstep(uLevel + 0.3, uLevel + 1.5, hgt) * (1.0 - smoothstep(uLevel + 4.0, uLevel + 6.0, hgt));',
     ' float fn = smoothstep(0.3, 0.75, n1.g * 0.6 + n2.r * 0.4 + 0.08); float foam = max(bandM, bandT) * fn * (1.0 - uRiver);',
     ' float edge = abs(vAcross) + (n2.r - 0.5) * 0.5; float riverFoam = smoothstep(0.6, 0.95, edge) * 0.3 * uRiver * step(vDepth, 0.75);',
-    ' if (uRiver > 0.5) { if (vDepth < 0.75) { if (edge > 0.98) discard; } else if (g < 0.49) discard; }',
+    ' float bank = vDepth < 0.75 ? 1.0 - smoothstep(0.45, 1.0, edge) : smoothstep(0.47, 0.58, g);',
     ' foam = max(foam, riverFoam) + bandM * fn * 0.35 * uRiver * step(0.75, vDepth);',
-    ' col = mix(col, uFoam, clamp(foam, 0.0, 1.0)); col *= 1.0 - 0.6 * uNight;',
-    ' float a = mix(uAlpha * smoothstep(0.46, 0.54, g) + foam * 0.15, 1.0, uRiver);',
+    ' col = mix(col, uFoam, clamp(foam * 0.75, 0.0, 1.0)); col *= 1.0 - 0.6 * uNight;',
+    ' float a = mix(uAlpha * smoothstep(0.48, 0.6, g) + foam * 0.12, bank * 0.92, uRiver); if (a < 0.01) discard;',
     ' gl_FragColor = vec4(col, clamp(a, 0.0, 1.0));',
     '#include <fog_fragment>', '}'].join('\n');
   function makeNoise() {
@@ -247,13 +249,13 @@
       noise = makeNoise();
       U = T.UniformsUtils.merge([T.UniformsLib.fog, { uInfo: { value: null }, uNoise: { value: null }, uTime: { value: 0 }, uAmp: { value: 3 }, uSpeed: { value: 1 }, uStorm: { value: 0 }, uRiver: { value: 0 }, uAlpha: { value: 0.85 }, uNight: { value: 0 },
         uLevel: { value: Wt.level }, uHScale: { value: 64 }, uHasMask: { value: 0 }, uSun: { value: new T.Vector3(DEF_SUN.x, DEF_SUN.y, DEF_SUN.z).normalize() }, uCamPos: { value: new T.Vector3() },
-        uDeep: { value: new T.Color(0.02, 0.13, 0.19) }, uShallow: { value: new T.Color(0.13, 0.42, 0.44) }, uFoam: { value: new T.Color(0.86, 0.92, 0.94) }, uWorld: { value: new T.Vector2(R.W || 7200, R.H || 12288) }, uOrigin: { value: new T.Vector2() } }]);
+        uDeep: { value: new T.Color(0.035, 0.14, 0.17) }, uShallow: { value: new T.Color(0.12, 0.30, 0.27) }, uFoam: { value: new T.Color(0.78, 0.82, 0.78) }, uLakeDeep: { value: new T.Color(0.05, 0.13, 0.11) }, uLakeShallow: { value: new T.Color(0.11, 0.21, 0.16) }, uWorld: { value: new T.Vector2(R.W || 7200, R.H || 12288) }, uOrigin: { value: new T.Vector2() } }]);
       U.uNoise.value = noise; U.uInfo.value = new T.DataTexture(new Uint8Array([0, 204, 255, 255]), 1, 1, T.RGBAFormat); U.uInfo.value.needsUpdate = true;
       Wt.uniforms = U;
       matSea = new T.ShaderMaterial({ uniforms: U, vertexShader: VS, fragmentShader: FS, transparent: true, depthWrite: false, fog: true, side: T.DoubleSide });
       // the rivers share every uniform object but uRiver / uOrigin / the colours
-      const UR = Object.assign({}, U, { uRiver: { value: 1 }, uOrigin: { value: new T.Vector2() }, uDeep: { value: new T.Color(0.05, 0.19, 0.27) }, uShallow: { value: new T.Color(0.12, 0.31, 0.38) }, uAlpha: { value: 1 } });
-      matRiv = new T.ShaderMaterial({ uniforms: UR, vertexShader: VS, fragmentShader: FS, transparent: false, fog: true, side: T.DoubleSide });
+      const UR = Object.assign({}, U, { uRiver: { value: 1 }, uOrigin: { value: new T.Vector2() }, uDeep: { value: new T.Color(0.08, 0.15, 0.14) }, uShallow: { value: new T.Color(0.17, 0.23, 0.18) }, uAlpha: { value: 1 } });
+      matRiv = new T.ShaderMaterial({ uniforms: UR, vertexShader: VS, fragmentShader: FS, transparent: true, depthWrite: false, fog: true, side: T.DoubleSide });
       Wt.matSea = matSea; Wt.matRiv = matRiv;
     }
     if (sea) { try { sea.parent && sea.parent.remove(sea); } catch (e) {} }

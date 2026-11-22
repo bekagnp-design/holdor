@@ -9,13 +9,17 @@ let fails = 0;
 const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (extra != null ? '  ' + JSON.stringify(extra) : '')); if (!c) fails++; };
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   const errors = []; page.on('pageerror', e => errors.push(e.message));
   await page.goto('file://' + file);
   await page.waitForFunction(() => window.R && R.loot && R.spawn, { timeout: 15000 });
 
   /* fake world: a player, a save, a mob type with a full drop table; R.items faked only if A15's module is absent */
   const setup = await page.evaluate(() => {
+    /* the integrated build runs ~30 systems: keep the loot system (+ combat's), so the physics layer, the world's population and the
+       player's own interact scan (21_player) do not move the drops or overwrite R.input.interact */
+    R.sysList = R.sysList.filter(s => ['loot', 'combat', 'proj'].includes(s.name)); if (R.phys) R.phys.off = true; while (R.ui && R.ui.cur) R.ui.close();
+    if (R.world) R.world.blocked = () => false;   /* the test's coordinates are not all on land in the real mask */
     R.rng(42); R.state = R.newState(); R.state.p.gold = 0; R.state.p.gems = 0; R.state.p.inv = []; R.state.p.gear = {}; R.state.p.potions = { hp: 0, mana: 0 };
     R.ents.length = 0; R.running = false; R.paused = false;
     R.player = R.spawn({ kind: 'player', x: 1000, y: 1000, r: 14, team: 0, hp: 200, lvl: 3, name: 'Tester' });

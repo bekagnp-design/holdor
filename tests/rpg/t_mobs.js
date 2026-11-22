@@ -1,5 +1,5 @@
 // t_mobs.js — R.data.mobs (src/rpg/js/12_mobs.js): every old enemy is a mob with a real sprite, stats grow with the level,
-// a same-level common dies in 4–7 reference hits and hits for ~8 % of the player's hp, elites ×3 / bosses ×12, pick() honours weights.
+// a same-level common dies in 4–7 reference hits and hits for ~6 % of the player's hp (×0.7 at level 1), elites ×3 / bosses ×12, pick() honours weights.
 // Part 1 runs in Node with a fake window (no browser needed). Part 2 opens the built RPG page in Chromium and spawns a mob through the core.
 // usage: node tests/rpg/t_mobs.js            RPG_HTML=<built page> to point part 2 at a page; otherwise beta/index.html when it is an RPG build,
 //        otherwise `python3 src/build_rpg.py .shots/rpg_mobs.html` when the build script exists, otherwise part 2 is skipped (SKIP line, not a failure).
@@ -62,8 +62,9 @@ const hitsBad = [];
 for (const k of commons) for (const L of CHECK) { const h = R.mobs.hitsToKill(k, L); if (h < 4 || h > 7) hitsBad.push(k + '@' + L + '=' + h); }
 ok(!hitsBad.length, 'every common (' + commons.length + ' keys) dies in 4–7 reference hits at levels ' + CHECK.join('/'), hitsBad);
 const pctBad = [];
-for (const L of CHECK) for (const k of ['axe', 'bandit', 'crawler']) { const s = R.mobs.statsAt(k, L); if (s.hitPct < 7 || s.hitPct > 9) pctBad.push(k + '@' + L + '=' + s.hitPct); }
-ok(!pctBad.length, 'a plain melee hit takes 7–9 % of the reference player\'s hp at every checked level', pctBad);
+for (const L of CHECK) for (const k of ['axe', 'bandit', 'crawler']) { const s = R.mobs.statsAt(k, L), want = 100 * R.mobs.hitPctAt(L); if (Math.abs(s.hitPct - want) > 1) pctBad.push(k + '@' + L + '=' + s.hitPct + ' (want ' + want.toFixed(1) + ')'); }
+ok(!pctBad.length, 'a plain melee hit takes ~6 % of the reference player\'s hp (4.2 % at level 1, the gentle start) at every checked level', pctBad);
+ok(Math.abs(R.mobs.hitPctAt(1) - 0.042) < 0.001 && R.mobs.hitPctAt(8) === 0.06 && R.mobs.hitPctAt(60) === 0.06, 'hit share ramps ×0.7 → ×1 over levels 1–8');
 // "×3 hp" is effective: an elite takes 3× the reference hits of a common (its raw hp is also shaped by its def multiplier),
 // "×1.5 atk" is the share of the player's hp one hit takes (the formula is super-linear in atk, so raw atk is ×1.35)
 const eliteBad = [];

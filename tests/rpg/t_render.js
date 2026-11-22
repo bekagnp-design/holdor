@@ -38,8 +38,8 @@ const FRAMES = (n) => `(() => {
     return { dark, mean: Math.round(sum / 64 / 3), hash: Array.from(px).join(',') }; };
   // the overlay's middle row: in 3D it must stay mostly transparent (the vignette only darkens the edges), in 2D it is opaque
   const sample2d = () => { const d = ctx.getImageData(0, cv.height >> 1, cv.width, 1).data; let s = 0, n = 0, t = 0; for (let i = 0; i < d.length; i += 4) { s = (s * 31 + d[i] + d[i + 1] + d[i + 2] + d[i + 3]) >>> 0; if (!d[i + 3]) n++; if (d[i + 3] < 250) t++; } return { hash: s, clear: n, translucent: t, w: cv.width }; };
+  if (R.ui && R.ui.cur) R.ui.close(); R.paused = false; R.step();
   const cam0 = { x: R.cam.x, y: R.cam.y }, one = new Uint8Array(4), all = [];
-  if (R.ui && R.ui.cur) R.ui.close(); R.paused = false;
   // the render system alone (with a readPixels = a full GPU sync, so the time includes the rasterisation), then every other system's draw
   for (let i = 0; i < ${n}; i++) { R.player.x += 170 / 60; R.step(); const t0 = performance.now(); ctx.setTransform(R.dpr, 0, 0, R.dpr, 0, 0); R.sys.render.draw(ctx); if (glctx) glctx.readPixels(1, 1, 1, 1, glctx.RGBA, glctx.UNSIGNED_BYTE, one); const t1 = performance.now();
     for (const s of R.sysList) if (s.draw && s !== R.sys.render) { try { s.draw(ctx); } catch (e) {} } times.push(t1 - t0); all.push(performance.now() - t0);
@@ -60,6 +60,18 @@ async function run(label, args, n) {
   const errs = []; pg.on('pageerror', e => errs.push('PE ' + e.message)); pg.on('console', m => { if (m.type() === 'error' && !noise(m.text())) errs.push('CE ' + m.text()); });
   await pg.goto('file://' + HTML); await pg.waitForFunction(() => window.R && R.render && R.sys.render, null, { timeout: 15000 });
   const mode = await pg.evaluate(SETUP(30)); const r = await pg.evaluate(FRAMES(n));
+  const y0 = await pg.evaluate(() => { if (R.ui && R.ui.cur) R.ui.close(); R.paused = false; return R.cam.yaw; });
+  await pg.mouse.move(250, 300); await pg.mouse.down(); for (let i = 1; i <= 5; i++) await pg.mouse.move(250 + i * 20, 300); await pg.mouse.up();
+  const y1 = await pg.evaluate(() => { for (let i = 0; i < 30; i++) R.step(); return R.cam.yaw; });
+  const d0 = await pg.evaluate(() => R.cam.dist); await pg.mouse.move(250, 300); await pg.mouse.wheel(0, -200);
+  const d1 = await pg.evaluate(() => { for (let i = 0; i < 40; i++) R.step(); return R.cam.dist; });
+  for (let i = 0; i < 6; i++) await pg.mouse.wheel(0, -400); const dMin = await pg.evaluate(() => { for (let i = 0; i < 60; i++) R.step(); return R.cam.dist; });
+  for (let i = 0; i < 8; i++) await pg.mouse.wheel(0, 400); const dMax = await pg.evaluate(() => { for (let i = 0; i < 60; i++) R.step(); return R.cam.dist; });
+  r.camCtl = await pg.evaluate(([y0, y1, d0, d1, dMin, dMax]) => { if (!R.render3d) return null; const C = R.cam, out = { dYaw: y1 - y0, dDist: d1 - d0, minDist: dMin, maxDist: dMax };
+    C.yaw = Math.PI / 2; C.dist = 420; R.step(); R.drawAll(); const cam = R.render3d.camera.position, p = R.player; out.fwdX = p.x - cam.x; out.fwdZ = Math.abs(p.y - cam.z);
+    out.camDir = R.plr && R.plr.camDir ? R.plr.camDir(0, -1) : null; C.yaw = 0; R.step();
+    const H = R.render3d.heightOf; out.hHero = H(R.player); const boss = R.ents.find(e => e.kind === 'boss'), mob = R.ents.find(e => e.kind === 'mob' && e.type === 'axe'); out.hBoss = boss && H(boss); out.hMob = mob && H(mob);
+    const sp = R.render3d.sprites.get(R.player.id); out.heroBB = sp ? { w: +sp.sp.scale.x.toFixed(1), h: +sp.sp.scale.y.toFixed(1), cy: +sp.sp.center.y.toFixed(3) } : null; return out; }, [y0, y1, d0, d1, dMin, dMax]);
   r.render3dEvent = await pg.evaluate(() => { let got = false; R.bus.on('render3d', () => { got = true; }); R.drawAll(); return got || !R.render3d || 'fired-before'; });
   return { b, pg, errs, mode, r };
 }
@@ -79,9 +91,15 @@ async function run(label, args, n) {
   ok(r.cam1.x > r.cam0.x + 20, 'the camera follows the hero east (' + Math.round(r.cam0.x) + ' → ' + Math.round(r.cam1.x) + ')');
   ok(r.cam1.z > 1 && r.cam1.z < 4, 'R.cam.z = px per unit at the hero (' + r.cam1.z.toFixed(2) + ')');
   ok(r.cam1.dist === 420 && r.cam1.yaw === 0, 'camera defaults: dist 420, yaw 0');
-  ok(r.median < 25, 'render median ' + r.median + ' ms (< 25; p90 ' + r.p90 + '; whole frame with every module ' + r.medianAll + ' ms) with ' + r.sprites + ' billboards, ' + r.calls + ' draw calls, art=' + r.art + ', gl=' + r.gl);
-  ok(r.calls <= 80, 'draw calls ' + r.calls + ' ≤ 80');
-  ok(r.sprites >= 31 && r.props >= 3, 'billboards ' + r.sprites + ' and props ' + r.props + ' are in the scene');
+  const cc = r.camCtl || {};
+  ok(cc.dYaw > .4 && cc.dYaw < .9, 'a right-half drag of 100 px turns the camera right (yaw +' + (cc.dYaw || 0).toFixed(2) + ')');
+  ok(cc.minDist >= 299 && cc.minDist < 320 && cc.maxDist > 680 && cc.maxDist <= 701, 'pinch / wheel zooms within 300..700 (' + Math.round(cc.minDist) + '..' + Math.round(cc.maxDist) + ')');
+  ok(cc.fwdX > 200 && cc.fwdZ < 60 && (!cc.camDir || cc.camDir.x > .99), 'yaw 90 deg: the camera looks east and stick-up moves east (camera ' + Math.round(cc.fwdX) + ' u west of the hero; camDir ' + JSON.stringify(cc.camDir) + ')');
+  ok(cc.hHero === 64 && cc.hMob > 40 && cc.hMob < 56 && cc.hBoss <= 2 * cc.hMob + 4, 'billboard heights: hero ' + cc.hHero + ', axe ' + cc.hMob + ', boss ' + cc.hBoss + ' (<= 2 x mob); hero quad ' + JSON.stringify(cc.heroBB));
+  const SOFT = /swiftshader|llvmpipe|software/i.test(r.gl || '');
+  ok(r.median < (SOFT ? 400 : 25), (SOFT ? '[software GL: sanity bound 400] ' : '') + 'render median ' + r.median + ' ms (< 25; p90 ' + r.p90 + '; whole frame with every module ' + r.medianAll + ' ms) with ' + r.sprites + ' billboards, ' + r.calls + ' draw calls, art=' + r.art + ', gl=' + r.gl);
+  ok(r.calls <= 120, 'draw calls ' + r.calls + ' ≤ 120 (A43 nature: up to 12 per chunk; billboards 1 each)');
+  ok(r.sprites >= 20 && r.props >= 3, 'billboards ' + r.sprites + ' (in the view frustum) and props ' + r.props + ' are in the scene');
   ok(r.hm && r.hm.canvas && r.hm.w === 181 && r.hm.h === 301 && Math.abs(r.hm.scale - 40) < .1, 'R.render3d.heightmap {canvas 181x301, scale 40}');
   ok(typeof r.gy === 'number' && r.gy > 0 && r.gy < 300 && r.seaHero === false && r.seaFrac > .05 && r.seaFrac < .75, 'groundY(hero) = ' + (r.gy && r.gy.toFixed(1)) + ' on land; sea covers ' + Math.round(r.seaFrac * 100) + '% of the grid');
   ok(typeof r.biome === 'string' && r.biome.length > 0, 'biomeAt gives a biome (' + r.biome + '; reach without R.world)');

@@ -20,10 +20,13 @@ const px = n => Math.round(n * 10) / 10;
   // a fake save (v2 shape: acc + the current hero) and a fake player; 7 steps = 0.117 s ≥ one HUD refresh
   const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVQIW2P8z8DwHwyBgAHMAIsAAHFVCg5RB8AjAAAAAElFTkSuQmCC';
   const setup = (page, o) => page.evaluate(([o, PNG]) => {
-    R.stop && R.stop(); R.ui.cur && R.ui.close(); R.ents.length = 0;
-    const s = R.newState(); Object.assign(s.p, { name: 'Bran', hero: 'jon', house: 'stark', cls: 'knight', lvl: 12, xp: 340, gold: 1200, gems: 7, title: 'Squire of Winterfell' }, o || {});
-    s.acc = { house: 'stark', hall: [{ id: 'robb', lvl: 4 }, { id: 'arya', lvl: 9 }], champs: {}, world: { found: [], flags: {}, quests: {}, bosses: {}, killed: {} } };
-    R.state = s; window.A_CHAMP = { art: { jon_portrait: PNG } };
+    R.stop && R.stop(); for (let i = 0; i < 4 && R.ui.cur; i++) R.ui.close(); R.ents.length = 0;
+    // the HUD alone: only its system runs on R.step (the player / quest / world systems would rewrite hp, markers and the save under the test)
+    R.sysList = R.sysList.filter(x => x === R.sys.hud); R.data.world = { regions: [], pois: [] }; R.quests = { markers: () => [] }; R.towns = null;
+    document.querySelectorAll('#ui>.toast').forEach(t => t.remove()); const tw = document.getElementById('tut'); if (tw) tw.remove();
+    const s = R.newState(); Object.assign(s.p, { name: 'Bran', hero: 'jon', house: 'stark', cls: 'knight', lvl: 12, xp: 340, gold: 1200, gems: 7, }, o || {});
+    s.acc = Object.assign(s.acc || {}, { house: 'stark', hall: [{ id: 'robb', lvl: 4 }, { id: 'arya', lvl: 9 }], titles: [], title: 'Squire of Winterfell', ach: [], champs: {}, world: { found: [], flags: { tut: 8 }, quests: {}, bosses: {}, killed: {} } });
+    R.state = s; window.A_CHAMP = { art: { jon_portrait: PNG } }; if (R.draw) R.draw.portrait = null; R.hud.resetPortrait && R.hud.resetPortrait();
     R.player = R.spawn({ kind: 'player', x: 3600, y: 6000, team: 0, hp: 300, hpMax: 1000, name: 'Bran', lvl: 12 }); R.cam.x = 3600; R.cam.y = 6000;
     for (let i = 0; i < 7; i++) R.step();
   }, [o || {}, PNG]);
@@ -43,9 +46,10 @@ const px = n => Math.round(n * 10) / 10;
   ok('xp text', (await text(page, '#hud-lvtxt')) === 'Lv 12 · 340/1,484', await text(page, '#hud-lvtxt'));
   ok('xp bar', near(await width(page, '#hud-xp .fill'), 22.9), await width(page, '#hud-xp .fill'));
   ok('level badge', (await text(page, '#hud-lvl')) === '12');
-  ok('title', (await text(page, '#hud-title')) === 'Squire of Winterfell');
+  ok('name + title', (await text(page, '#hud-name b')) === 'Bran' && (await text(page, '#hud-title')) === '· Squire of Winterfell', await text(page, '#hud-name'));
   ok('house colour ring', /169, 189, 208/.test(await style(page, '#hud-port', 'borderColor')), await style(page, '#hud-port', 'borderColor'));
-  ok('portrait from the champion art', (await page.evaluate(() => { const i = document.getElementById('hud-pimg'); return i.classList.contains('on') && /^data:image\/png/.test(i.src) && getComputedStyle(i).display === 'block'; })));
+  const pi = await page.evaluate(() => { const i = document.getElementById('hud-pimg'); return { on: i.classList.contains('on'), src: (i.src || '').slice(0, 30), d: getComputedStyle(i).display, pd: !!document.querySelector('#hud-port .pdraw') }; });
+  ok('portrait from the champion art', (pi.on && /^data:image\//.test(pi.src) && pi.d === 'block') || pi.pd, JSON.stringify(pi));
   ok('fallen chip ☠ 2', (await text(page, '#hud-hall')) === '☠2' && /flex/.test(await style(page, '#hud-hall', 'display')), await text(page, '#hud-hall') + ' ' + await style(page, '#hud-hall', 'display'));
   ok('gold chip 1,200', (await text(page, '#hud-gold')) === '1,200', await text(page, '#hud-gold'));
   ok('gem chip 7', (await text(page, '#hud-gems')) === '7');
@@ -54,13 +58,13 @@ const px = n => Math.round(n * 10) / 10;
   ok('hp bar 60% after change + steps', near(await width(page, '#hud-hp .fill'), 60), await width(page, '#hud-hp .fill'));
   await page.evaluate(() => { R.state.p.xp = 1000; }); await steps(page);
   ok('xp follows the save', (await text(page, '#hud-lvtxt')) === 'Lv 12 · 1,000/1,484' && near(await width(page, '#hud-xp .fill'), 67.4), await text(page, '#hud-lvtxt') + ' ' + await width(page, '#hud-xp .fill'));
-  // numbers on tap
+  // the HP numbers are always shown; a tap on the block opens the hero sheet
   const b0 = await page.$eval('#hud-bars', el => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; });
-  ok('hp bar tap target ≥ 44', b0.h >= 44, JSON.stringify(b0));
-  await page.tap('#hud-bars'); await page.waitForTimeout(250);
-  ok('hp numbers on tap', (await text(page, '#hud-hpn')) === '600 / 1,000' && parseFloat(await style(page, '#hud-hpn', 'opacity')) > .9, await text(page, '#hud-hpn') + ' op=' + await style(page, '#hud-hpn', 'opacity'));
-  await page.tap('#hud-bars'); await steps(page); await page.waitForTimeout(250);
-  ok('second tap hides the numbers again', (await style(page, '#hud-hpn', 'opacity')) === '0', await style(page, '#hud-hpn', 'opacity'));
+  ok('hero block tap target ≥ 44', b0.h >= 44, JSON.stringify(b0));
+  ok('hp numbers always shown', (await text(page, '#hud-hpn')) === '600 / 1,000' && parseFloat(await style(page, '#hud-hpn', 'opacity')) > .9, await text(page, '#hud-hpn') + ' op=' + await style(page, '#hud-hpn', 'opacity'));
+  await page.evaluate(() => { window.__btn0 = []; R.bus.on('btn', w => window.__btn0.push(w)); }); await page.tap('#hud-bars', { force: true }); await page.waitForTimeout(150);
+  ok('tap on the hero block → btn inv (the hero sheet)', (await page.evaluate(() => window.__btn0.join())) === 'inv', await page.evaluate(() => window.__btn0.join()));
+  await page.evaluate(() => { for (let i = 0; i < 3 && R.ui.cur; i++) R.ui.close(); });
   // gold event → count-up to the new value
   await page.evaluate(() => { R.state.p.gold = 1500; R.bus.emit('gold', 300); });
   const bump = await page.evaluate(() => document.querySelector('#hud-chips .gold').classList.contains('bump'));
@@ -77,20 +81,21 @@ const px = n => Math.round(n * 10) / 10;
   await page.evaluate(() => { const cv = document.createElement('canvas'); cv.width = 1200; cv.height = 2048; const g = cv.getContext('2d'); g.fillStyle = '#1f8a3a'; g.fillRect(0, 0, 1200, 2048); R.assets = Object.assign(R.assets || {}, { map: cv }); }); await steps(page); const m3 = await mmPixels(page);
   ok('minimap: the map art around the player is drawn', m3.green > 3000, JSON.stringify(m3));
   // minimap tap → btn map
-  await page.evaluate(() => { window.__btn = []; R.bus.on('btn', (w, a) => window.__btn.push(w)); }); await page.tap('#minimap');
-  ok('minimap tap emits btn map', (await page.evaluate(() => window.__btn.join())) === 'map');
+  await page.evaluate(() => { window.__btn = []; R.bus.on('btn', (w, a) => window.__btn.push(w)); }); await page.tap('#minimap', { force: true });
+  const mt = await page.evaluate(() => { const r = document.getElementById('minimap').getBoundingClientRect(), e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return { b: window.__btn.join(), cur: R.ui.cur, top: e && (e.id || e.className), hud: document.getElementById('hud').className }; }); await page.evaluate(() => { for (let i = 0; i < 3 && R.ui.cur; i++) R.ui.close(); });
+  ok('minimap tap emits btn map (the map opens)', /^map/.test(mt.b), JSON.stringify(mt));
   const mb = await page.$eval('#minimap', el => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; });
-  ok('minimap 96 px, top-right, under the chips', mb.w === 96 && mb.h === 96 && mb.x + mb.w <= 390 && mb.y > 30, JSON.stringify(mb));
+  ok('minimap 96 px, top-right, under the top row', mb.w === 96 && mb.h === 96 && mb.x + mb.w <= 390 && mb.y > 30, JSON.stringify(mb));
   // region banner
   await page.evaluate(() => { R.data.world = { regions: [{ id: 'riverlands', name: 'The Riverlands', lvl: [10, 20] }], pois: [{ id: 'riverrun', kind: 'castle', house: 'tully', x: 3700, y: 6100 }] }; R.data.story = { regions: { riverlands: 'The rivers remember every crossing.' } }; R.bus.emit('enter', 'riverlands'); });
   await page.waitForTimeout(600);
   const ban = await page.evaluate(() => { const el = document.getElementById('hud-region'); return { on: el.classList.contains('on'), b: el.querySelector('b').textContent, s: el.querySelector('small').textContent, p: el.querySelector('p').textContent, op: getComputedStyle(el).opacity }; });
-  ok('region banner on enter', ban.on && ban.b === 'The Riverlands' && ban.s === 'The Riverlands · lv 10–20' && /rivers remember/.test(ban.p) && parseFloat(ban.op) > .8, JSON.stringify(ban));
+  ok('region banner on enter', ban.on && ban.b === 'The Riverlands' && ban.s === 'lv 10–20' && /rivers remember/.test(ban.p) && parseFloat(ban.op) > .8, JSON.stringify(ban));
   // TOWN pill → shop screen
   await page.evaluate(() => { R.towns = { inside: () => ({ id: 'winterfell', name: 'Winterfell' }) }; R.screens.shop = { open(arg) { window.__shop = arg; }, close() {} }; }); await steps(page);
   const tb = await page.$eval('#hud-town', el => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, d: getComputedStyle(el).display, t: el.textContent }; });
   ok('TOWN pill shows with the name, ≥ 44 px', /flex/.test(tb.d) && tb.h >= 44 && /TOWN/.test(tb.t) && /Winterfell/.test(tb.t), JSON.stringify(tb));
-  await page.tap('#hud-town'); await page.waitForTimeout(250);
+  await page.tap('#hud-town', { force: true }); await page.waitForTimeout(250);
   const sh = await page.evaluate(() => ({ cur: R.ui.cur, arg: window.__shop && window.__shop.name, hid: getComputedStyle(document.getElementById('hud')).visibility }));
   ok('TOWN tap opens the shop screen and the HUD hides', sh.cur === 'shop' && sh.arg === 'Winterfell' && sh.hid === 'hidden', JSON.stringify(sh));
   await page.evaluate(() => R.ui.close()); await page.waitForTimeout(250);
@@ -102,10 +107,10 @@ const px = n => Math.round(n * 10) / 10;
   ok('HUD hidden while any screen is open', (await style(page, '#hud', 'visibility')) === 'hidden');
   await page.evaluate(() => R.ui.close()); await page.waitForTimeout(250);
   // fallen chip tap → hall
-  await page.evaluate(() => { R.screens.hall = { open() { window.__hall = 1; }, close() {} }; }); await page.tap('#hud-hall'); await page.waitForTimeout(100);
+  await page.evaluate(() => { R.screens.hall = { open() { window.__hall = 1; }, close() {} }; }); await page.tap('#hud-hall', { force: true }); await page.waitForTimeout(100);
   ok('fallen chip tap opens the hall', (await page.evaluate(() => R.ui.cur === 'hall' && window.__hall === 1)));
   await page.evaluate(() => R.ui.close()); await page.waitForTimeout(250);
-  ok('no fallen chip without acc', (await page.evaluate(() => { const a = R.state.acc; delete R.state.acc; for (let i = 0; i < 7; i++) R.step(); const d = getComputedStyle(document.getElementById('hud-hall')).display; R.state.acc = a; return d; })) === 'none');
+  ok('no fallen chip while nobody has fallen', (await page.evaluate(() => { const h = R.state.acc.hall; R.state.acc.hall = []; for (let i = 0; i < 7; i++) R.step(); const d = getComputedStyle(document.getElementById('hud-hall')).display; R.state.acc.hall = h; for (let i = 0; i < 7; i++) R.step(); return d; })) === 'none');
   // low hp vignette
   await page.evaluate(() => { R.player.hp = 200; }); await steps(page);
   const vg = await page.evaluate(() => { const v = document.getElementById('hud-vig'); return { op: parseFloat(v.style.opacity), on: v.classList.contains('on'), low: document.getElementById('hud-hp').classList.contains('low') }; });
@@ -126,8 +131,23 @@ const px = n => Math.round(n * 10) / 10;
       if (r.left < 0 || r.top < 0 || r.right > w + .5 || r.bottom > h + .5) bad.push('out:' + (el.id || el.className));
       if (r.left < w / 2 && r.bottom > h * .55) bad.push('joy:' + (el.id || el.className));
       if (r.right > w - 160 && r.bottom > h - 160) bad.push('btns:' + (el.id || el.className)); }
-    const tl = document.getElementById('hud-tl').getBoundingClientRect(), tr = document.getElementById('hud-tr').getBoundingClientRect();
-    if (tl.right > tr.left) bad.push('overlap tl/tr ' + Math.round(tl.right) + '>' + Math.round(tr.left)); return { bad, n: seen.length, tlRight: Math.round(tl.right), trLeft: Math.round(tr.left) }; }, [w, h]);
+    const tl = document.getElementById('hud-row').getBoundingClientRect(), tr = document.getElementById('hud-tr').getBoundingClientRect();
+    if (tl.right > tr.left) bad.push('overlap tl/tr ' + Math.round(tl.right) + '>' + Math.round(tr.left));
+    // nothing of the HUD on A02's top row (map · bag · menu) or on the chat button
+    const hit = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+    for (const id of ['ctl-top', 'prChat']) { const o = document.getElementById(id); if (!o || getComputedStyle(o).display === 'none') continue; const ob = o.getBoundingClientRect();
+      for (const el of document.querySelectorAll('#hud *')) { if (el.id === 'hud-vig' || el.id === 'hud-region' || el.id === 'hud-slot' || el.id === 'hud-tl') continue; const r = el.getBoundingClientRect(); if (!r.width || !r.height || getComputedStyle(el).visibility === 'hidden') continue; if (hit(r, ob)) bad.push(id + ':' + (el.id || el.className)); } }
+    return { bad, n: seen.length, tlRight: Math.round(tl.right), trLeft: Math.round(tr.left) }; }, [w, h]);
+  // the message column: a bar, toasts and the region title stacked, none over another or over the HUD blocks
+  const column = async page => page.evaluate(() => {
+    if (!document.getElementById('bossbar')) { const b = document.createElement('div'); b.id = 'bossbar'; b.className = 'on'; b.style.cssText = 'display:block;height:40px;width:300px;position:absolute;left:50%;transform:translateX(-50%)'; document.getElementById('ui').appendChild(b); }
+    else document.getElementById('bossbar').classList.add('on');
+    R.ui.toast('Quest complete'); R.ui.toast('New quest: The long road north'); R.hud.banner('riverlands'); for (let i = 0; i < 7; i++) R.step(); R.hud.stack();
+    const els = [document.getElementById('bossbar'), document.getElementById('hud-region'), ...document.querySelectorAll('#ui>.toast'), document.getElementById('hud-row'), document.getElementById('qtrack'), document.getElementById('hud-tr'), document.getElementById('ctl-top'), document.getElementById('prChat')].filter(Boolean);
+    const rs = els.map(e => { const r = e.getBoundingClientRect(); return { id: e.id || e.className, l: r.left, r: r.right, t: r.top, b: r.bottom }; }).filter(r => r.r > r.l && r.b > r.t);
+    const over = []; for (let i = 0; i < rs.length; i++) for (let j = i + 1; j < rs.length; j++) { const a = rs[i], b = rs[j]; if (a.l < b.r - 1 && a.r > b.l + 1 && a.t < b.b - 1 && a.b > b.t + 1) over.push(a.id + '/' + b.id); }
+    document.getElementById('bossbar').classList.remove('on'); return { over, n: rs.length }; });
+  const c1 = await column(page); ok('390×844: bar, region title and toasts stack without overlapping each other or the HUD', !c1.over.length && c1.n >= 8, JSON.stringify(c1));
   const g1 = await geo(page, 390, 844);
   ok('390×844: HUD inside the view, clear of the joystick zone and the button column', !g1.bad.length && g1.n > 8, JSON.stringify(g1));
   // the screenshot: banner + mobs + town + 25 % hp
@@ -139,8 +159,9 @@ const px = n => Math.round(n * 10) / 10;
   await p2.evaluate(() => { R.towns = { inside: () => ({ id: 'winterfell', name: 'Winterfell' }) }; R.spawn({ kind: 'mob', type: 'axe', x: 3800, y: 6000, hp: 30 }); for (let i = 0; i < 7; i++) R.step(); });
   const g2 = await geo(p2, 360, 740);
   ok('360×740: HUD inside the view, clear of the joystick zone and the button column', !g2.bad.length && g2.n > 8, JSON.stringify(g2));
+  const c2 = await column(p2); ok('360×740: the message column stacks without overlaps', !c2.over.length && c2.n >= 8, JSON.stringify(c2));
   const fonts = await p2.evaluate(() => { const o = {}; for (const id of ['hud-lvtxt', 'hud-title', 'hud-gold', 'hud-lvl']) o[id] = parseFloat(getComputedStyle(document.getElementById(id)).fontSize); return o; });
-  ok('360×740: text ≥ 11 px', Object.values(fonts).every(f => f >= 11), JSON.stringify(fonts));
+  ok('360×740: text ≥ 12 px', Object.values(fonts).every(f => f >= 12), JSON.stringify(fonts));
   await p2.screenshot({ path: SC + 'rpg_hud_360.png' }); await p2.close();
   await browser.close();
   for (const k in out) console.log(k + ': ' + out[k]);

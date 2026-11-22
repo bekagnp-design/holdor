@@ -4,7 +4,7 @@
      reference player at level L (no gear; the knight's auto points: +1.5 str, +1 vit per level):
        atk = 10 + 2L + 1.5·str      hp = 120 + 18L + 6·vit      def = 4 + 1.2L + 0.6·vit
      dmg(atk, def) = atk² / (atk + def)   — R.data.balance.dmg(atk, def) replaces it when A39 defines one; R.hit (A11) should use the same.
-     a common mob dies in 4.8 × hm reference hits (hm 0.85–1.3 → 4–7 hits) and one of its hits takes 8 % × am of the player's hp;
+     a common mob dies in 4.8 × hm reference hits (hm 0.85–1.3 → 4–7 hits) and one of its hits takes 6 % × am of the player's hp (×0.7 at level 1 → ×1 at 8);
      elite ×3 hp ×1.5 atk; brute ×2–2.4 hp ×1.6–2 atk with slow swings; boss (lord, king, dragon — A09's keys) ×12 hp ×2 atk.
    A compounding "×1.18 per level" cannot hold against the player's linear curve (1.18^59 ≈ 17 000), so `scale` on each mob
    is the REAL hp/atk growth from level 1 to 2 (≈1.17 / ≈1.16); it tapers with the player's curve. statsAt() is the authority.
@@ -17,7 +17,9 @@
 */
 (function () {
   const R = window.R = window.R || {}; R.data = R.data || {};
-  const HITS = 4.8, HIT_PCT = 0.08;                     // reference hits to kill a common (hm 1), its hit as a share of the player's hp
+  const HITS = 4.8, HIT_PCT = 0.06;                     // reference hits to kill a common (hm 1), its hit as a share of the player's hp
+  // the first levels are gentler (one skill, no armour, a tutorial pack of three): ×0.7 at level 1 → ×1 at level 8 (docs/rpg-balance.md rule 3)
+  const hitPctAt = L => HIT_PCT * (L >= 8 ? 1 : 0.7 + 0.3 * (Math.max(1, L) - 1) / 7);
   const round1 = v => Math.round(v * 10) / 10, round2 = v => Math.round(v * 100) / 100;
   const bal = () => R.data.balance || null;
 
@@ -149,7 +151,7 @@
     const L = Math.max(1, Math.min(99, Math.round(+lvl || 1))), P = ref(L);
     const def = P.def * m.dm, hitDmg = dmg(P.atk, def);
     const hp = Math.max(1, Math.round(HITS * hitDmg * m.hm));
-    const atk = Math.max(1, Math.round(atkFor(HIT_PCT * P.hp * m.am, P.def)));
+    const atk = Math.max(1, Math.round(atkFor(hitPctAt(L) * P.hp * m.am, P.def)));
     return { key, lvl: L, hp, atk, def: round1(def), spd: m.spd, r: m.r, aggro: m.aggro, range: m.range, atkCd: m.atkCd, xp: xpAt(L, m.xm), gold: goldAt(L, m.gm), drops: m.drops,
       role: m.role, tier: m.tier, traits: m.traits, p: m.p, res: m.res, hits: Math.ceil(hp / hitDmg), hitPct: round1(dmg(atk, P.def) / P.hp * 100) };
   };
@@ -188,5 +190,5 @@
     return out.join('\n'); };
 
   R.data.mobs = M; R.data.mobList = LIST; R.data.mobTraits = TRAITS;
-  R.mobs = { ref, dmg, statsAt, pick, list, forLevel, tierFor, tableFor, tableForTier, make, spawn, hitsToKill, describe, table, TIERS, ROLE, TRAITS, HITS, HIT_PCT, keys: LIST.map(m => m.key) };
+  R.mobs = { ref, dmg, statsAt, pick, list, forLevel, tierFor, tableFor, tableForTier, make, spawn, hitsToKill, describe, table, TIERS, ROLE, TRAITS, HITS, HIT_PCT, hitPctAt, keys: LIST.map(m => m.key) };
 })();

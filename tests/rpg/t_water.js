@@ -35,6 +35,7 @@ const path = require('path'), fs = require('fs');
     const sp = W.shorePoints(5220, 8118, 400); out.shore = { n: sp.length, water: sp.filter(p => W.isWater(p.x, p.y)).length, unit: sp.filter(p => Math.abs(Math.hypot(p.nx, p.ny) - 1) < .01).length,
       landward: sp.filter(p => !W.isWater(p.x + p.nx * W.CS * 1.5, p.y + p.ny * W.CS * 1.5)).length, kinds: [...new Set(sp.map(p => p.kind))] };
     out.shoreDist = [W.shoreDist(...narrow), W.shoreDist(...winterfell), W.shoreDist(5220, 8118)];
+    out.shallow = [...new Set(sp.map(p => W.depth(p.x, p.y)))];   // the first cell off the shore is wading depth
     out.outside = [W.isWater(-10, 5), W.isWater(7300, 100), W.depth(1e9, 1e9), W.kindAt(NaN, 1)];
     out.bigSeas = cells.sea > 40000 && cells.sea < 90000;
     // ---- the 3D: a fake R.render3d with a real THREE scene (no A05 renderer in this build)
@@ -56,7 +57,9 @@ const path = require('path'), fs = require('fs');
     // the plane follows the camera in 1200-unit steps
     place(2500, 230, 3000, 2000, 0, 2500); R.step(); out.seaPos2 = [W.sea.position.x, W.sea.position.z]; place(1140 * S, 230, 1360 * S, 1030 * S, 0, 1350 * S); R.step();
     // render + pixels
-    renderer.render(scene, camera); const calls1 = renderer.info.render.calls;
+    // other live modules (nature, props) also answer 'render3d' and add to this scene: count the water's own draw calls with them hidden
+    const others = scene.children.filter(o => o !== W.sea && o !== W.rivers && o !== ground && o.visible); others.forEach(o => o.visible = false);
+    renderer.render(scene, camera); const calls1 = renderer.info.render.calls; others.forEach(o => o.visible = true);
     const grab = () => { const c = document.createElement('canvas'); c.width = 390; c.height = 844; const g = c.getContext('2d'); g.drawImage(glc, 0, 0); return { c, d: g.getImageData(0, 0, 390, 844).data }; };
     const stat = d => { let non = 0, blue = 0, white = 0; for (let i = 0; i < d.length; i += 16) { const r = d[i], g = d[i + 1], b = d[i + 2]; if (Math.abs(r - 6) + Math.abs(g - 11) + Math.abs(b - 20) > 12) non++; if (b > r + 10 && g > r) blue++; if (r > 200 && g > 200 && b > 200) white++; } return { non, blue, white, of: d.length / 16 }; };
     const view1 = grab(); out.px1 = stat(view1.d); out.calls = calls1;
@@ -89,8 +92,9 @@ const path = require('path'), fs = require('fs');
   ok(r.riverrun[0] === false && r.kl[0] === false, 'Riverrun + King\'s Landing castles are land: ' + JSON.stringify([r.riverrun, r.kl]));
   ok(r.trident.river >= 20 && r.trident.flows === r.trident.river && r.trident.unit === r.trident.flows, 'the Trident is a river with unit flow vectors: ' + JSON.stringify(r.trident));
   ok(r.riverNearRiverrun >= 20, 'river cells in the Riverrun / Trident area: ' + r.riverNearRiverrun);
-  ok(r.godsEye.lake >= r.godsEye.total * 0.5 && r.godsEye.depth === 1, 'the God\'s Eye is a lake (the Isle of Faces in it is land): ' + JSON.stringify(r.godsEye));
+  ok(r.godsEye.lake >= r.godsEye.total * 0.5 && r.godsEye.depth >= 0.5, 'the God\'s Eye is a lake, wading depth or deeper (the Isle of Faces in it is land): ' + JSON.stringify(r.godsEye));
   ok(r.shore.n >= 3 && r.shore.water === r.shore.n && r.shore.unit === r.shore.n && r.shore.landward >= r.shore.n * 0.8, 'shorePoints east of King\'s Landing: in the water, unit normals toward land: ' + JSON.stringify(r.shore));
+  ok(r.shallow.length === 1 && r.shallow[0] === 0.5, 'shallows: water cells on the shoreline are 0.5 deep (wading), open sea 1: ' + JSON.stringify([r.shallow, r.narrowSea[1]]));
   ok(r.shoreDist[0] > 0 && r.shoreDist[1] < 0, 'shoreDist signed (+ water, − land): ' + JSON.stringify(r.shoreDist));
   ok(r.outside.every(v => !v), 'outside the world / NaN → land: ' + JSON.stringify(r.outside));
   ok(r.attached && r.uniforms && r.hasMask === 1, 'sea plane attached to the fake scene with the mask texture: ' + JSON.stringify([r.attached, r.uniforms, r.hasMask]));
@@ -104,7 +108,30 @@ const path = require('path'), fs = require('fs');
   ok(r.night === 1 && r.sun[1] > 0.4, 'night + sun direction from R.ambience: ' + JSON.stringify([r.night, r.sun]));
   ok(errors.length === 0, 'no page errors: ' + errors.slice(0, 3).join(' | '));
   console.log(JSON.stringify({ cells: r.cells, buildMs: Math.round(r.buildMs), trident: r.trident.river, godsEye: r.godsEye, shore: r.shore.n, calls: r.calls, px: r.px1, renderMs: +r.renderMs.toFixed(1) }));
-  if (fails.length) { console.log('FAIL\n - ' + fails.join('\n - ')); await browser.close(); process.exit(1); }
-  console.log('OK t_water');
   await browser.close();
+  // ---- part 2: the integrated build (the real renderer): the sea plane in its scene, the coast / lakes / rivers carved out of the
+  // terrain, a hero in the river wades (24_physics reads R.water.depth), and a picture of the coast south of White Harbor
+  if (!process.env.T_WATER_NO_LIVE) {
+    const L = require('./lib.js'); const b = await L.launch(); const pg = b.page;
+    await L.boot(pg, { save: L.fakeSave({ lvl: 5 }), wait: 30000, timeout: 60000 });
+    await pg.waitForFunction(() => R.water && R.water.ready && R.water.carved > 0, null, { timeout: 20000 }).catch(() => {});
+    const q = await pg.evaluate(() => { const W = R.water, G = R.render3d, p = R.player, o = {};
+      o.mode = R.render && R.render.mode; o.ready = W.ready; o.carved = W.carved; o.inScene = !!(G && W.sea && W.sea.parent === G.scene && W.rivers && W.rivers.parent === G.scene);
+      o.seaFloor = G ? +G.groundY(1100 * 6, 1350 * 6).toFixed(1) : null; o.seaY = W.sea ? W.sea.position.y : null;
+      // the hero walks along the Trident: wading, shallow depth, splash rings from the physics
+      p.x = 3600; p.y = 6500; p.hp = p.hpMax = 1e6; const P = R.phys; let wade = 0, maxD = 0;
+      for (let i = 0; i < 90; i++) { p.x = 3600 + (i % 30); p.y = 6500; p.vx = 60; R.step(); if (p.wading) wade++; maxD = Math.max(maxD, p.depth || 0); }
+      o.wade = wade; o.depthHere = W.depth(3600, 6500); o.maxD = maxD; o.physDepth = P && P.depthAt ? P.depthAt(3600, 6500) : null;
+      p.x = 3852; p.y = 4250; R.cam.yaw = Math.PI; if (R.render.snapCam) R.render.snapCam(); for (let i = 0; i < 30; i++) { R.step(); p.x = 3852; p.y = 4250; }
+      return o; });
+    await pg.waitForTimeout(300); await L.shot(pg, 'rpg_water_live');
+    const errs = b.errors.slice(); await b.close();
+    ok(q.mode === '3d' && q.ready && q.inScene, 'live: the sea + river meshes are in the renderer\'s scene: ' + JSON.stringify([q.mode, q.ready, q.inScene]));
+    ok(q.carved > 1000 && q.seaFloor < q.seaY, 'live: the terrain is carved under the sea plane (the art\'s olive sea no longer a plateau): ' + JSON.stringify([q.carved, q.seaFloor, q.seaY]));
+    ok(q.depthHere === 0.5 && q.physDepth === 0.5, 'live: the Trident is wading depth for the physics: ' + JSON.stringify([q.depthHere, q.physDepth, q.wade, q.maxD]));
+    ok(!errs.length, 'live: no page errors: ' + errs.slice(0, 3).join(' | '));
+    console.log('live', JSON.stringify(q));
+  }
+  if (fails.length) { console.log('FAIL\n - ' + fails.join('\n - ')); process.exit(1); }
+  console.log('OK t_water');
 })().catch(e => { console.error(e); process.exit(1); });

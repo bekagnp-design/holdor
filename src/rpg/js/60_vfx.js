@@ -33,7 +33,10 @@ window.R = window.R || {};
   const houseCol = () => { try { const h = R.state && R.state.p && (R.state.p.house || (R.state.acc && R.state.acc.house)); const d = R.data && R.data.houses && R.data.houses[h]; return (d && d.col) || HOUSE_COL[h] || '#a9bdd0'; } catch (e) { return '#a9bdd0'; } };
   const gone = e => !e || e.dead || e.removed || e.done;
   const goneEnt = e => gone(e) || (R.ents && R.ents.indexOf(e) < 0);
-  const entH = e => e.h || (e.r || 14) * 2.2;
+  // in 3D the billboard's own height (R.render3d.sprites: id → {sp}, anchored at the feet) puts sparks, shields and pillars on the sprite
+  const spriteH = e => { try { const S = R.render3d && R.render3d.sprites, s = S && e && e.id != null && S.get && S.get(e.id); if (s && s.sp && s.sp.scale) { const h = Math.abs(s.sp.scale.y); if (h > 1 && isFinite(h)) return h * 0.82; } } catch (x) {} return 0; };
+  const entH = e => e.h || spriteH(e) || (e.r || 14) * 2.2;
+  fx.entH = entH;
   /* ---- colours: hex → rgba strings, cached; soft disc sprites per colour ---- */
   const RGBA = new Map(), SOFT = new Map();
   function rgb(col) { if (col[0] !== '#') return null; let h = col.slice(1); if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2]; const n = parseInt(h.slice(0, 6), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
@@ -101,14 +104,29 @@ window.R = window.R || {};
   K.dust = (x, y, o) => { if (A.length > CAP * 0.75) return null; let p = null; for (let i = 0, n = o.n || 1; i < n; i++) p = dot('dust', x + (rnd() - 0.5) * 8, y + (rnd() - 0.5) * 4, 1 + rnd() * 3, 0.4, 2.5 + rnd() * 1.5, o.col || fx.dustCol || '#b9a58a', 0, { a: 0.55, vx: (rnd() - 0.5) * 16, vy: (rnd() - 0.5) * 8, vz: 6, sz2: 1, layer: 0 }); return p; };
   K.portal = (x, y, o) => { const e = o.ent || null; if (e) { x = e.x; y = e.y; }
     return add(EMIT, 'portal', x, y, 0, o.dur || (e ? 1e9 : 2), 4, { ent: e, every: 0.05, acc: 0.05, sub: 'portal', r: o.r || 40, col: o.col || '#b48cff', col2: o.col2 || '#e6d2ff', layer: 0, fl: 1 }); };
+  // water (24_physics on entering water, 47_wildlife's fish): droplets that arc and fall back + a ring spreading on the surface
+  K.splash = (x, y, o) => { const col = o.col || '#cfe3ee', n = cnt(o.n ? o.n + 3 : 6); const p = add(RING, 'splash', x, y, 1, 0.55, 2, { r: o.r || 22, sz2: 2, col: '#e4f0f6', a: 0 });
+    for (let i = 0; i < n; i++) add(DROP, 'splash', x + (rnd() - 0.5) * 6, y + (rnd() - 0.5) * 4, 2, 0.6, 1, { vx: (rnd() - 0.5) * 70, vy: (rnd() - 0.5) * 40, vz: 50 + rnd() * 80, g: 520, sz: 1.3 + rnd() * 1.3, col: i & 1 ? col : '#ffffff' });
+    return p; };
+  K.ripple = (x, y, o) => add(RING, 'ripple', x, y, 1, o.dur || 0.9, 1, { r: o.r || 18, sz2: 1.5, col: o.col || '#dbeaf2', a: 0 });
+  K.smoke = (x, y, o) => { let p = null; for (let i = 0, n = cnt(o.n || 6); i < n; i++) p = dot('smoke', x + (rnd() - 0.5) * 14, y + (rnd() - 0.5) * 8, (o.z || 4) + rnd() * 8, 1.2 + rnd() * 0.8, 7 + rnd() * 6, o.col || '#6d6a66', 0, { a: 0.32, sz2: 2.2, vx: (rnd() - 0.5) * 12, vy: (rnd() - 0.5) * 6, vz: 18 + rnd() * 16, drag: 0.5, ph: rnd() * TAU }); return p; };
   fx.kinds = Object.keys(K);
-  fx.spawn = (kind, x, y, o) => { const f = K[kind]; if (!f) return null; return f(x || 0, y || 0, o || {}) || null; };
+  // names the skill / boss / event modules spawn → the closest kind with its colour (so none of them silently draws nothing)
+  const KALIAS = { slam: ['nova', { col: '#c8b48a', r: 110, w: 8 }], warcry: ['nova', { col: '#ff9a4a', r: 120 }], rally: ['nova', { col: '#ffd36a', r: 110 }], taunt: ['nova', { col: '#ff5a4a', r: 90 }],
+    dread: ['nova', { col: '#7a4aa8', r: 110 }], fire: ['nova', { col: '#ff7a2a', r: 80, fill: 0.22 }], frost: ['shatter', {}], raise: ['ash', {}], volley: ['arrow', {}], shaft: ['bolt', { col: '#fff2b0', col2: '#d8a83a' }],
+    strike: ['slash', {}], peck: ['hit', { col: '#2a2a30', sz: 7 }], raven: ['hit', { col: '#2a2a30', sz: 7 }], snap: ['hit', { col: '#c8b48a' }], trap: ['hit', { col: '#c8b48a' }], water: ['splash', {}], wade: ['ripple', {}] };
+  fx.alias = KALIAS;
+  fx.spawn = (kind, x, y, o) => { let f = K[kind]; o = o || {}; if (!f) { const a = KALIAS[kind]; if (!a || !K[a[0]]) return null; f = K[a[0]]; o = Object.assign({}, a[1], o); } return f(x || 0, y || 0, o) || null; };
   fx.stop = p => { if (p && p.on) p.t = p.life; };
   fx.count = () => A.length;
   fx.clear = () => { while (A.length) release(A.length - 1); N.length = 0; pend.length = 0; shk.t = 0; fx.offset.x = fx.offset.y = 0; };
   /* ---- numbers: rise with an ease-out, land from 1.3 → 1, crits gold and bigger ---- */
   let seq = 0;
-  fx.num = (x, y, txt, col, big) => { if (N.length >= NCAP) N.shift(); const n = { x, y, z: 60, txt: String(txt), col: col || (big ? '#ffd36a' : '#f3f6fa'), big: !!big, t: 0, life: big ? 1.1 : 0.85, dx: (rnd() - 0.5) * 18, seq: ++seq }; N.push(n); fx.stats.nums++; return n; };
+  // 3D: callers place numbers a little 'north' of the target (y − r·1.6, a 2D lift); seat the number above the nearest billboard's head instead
+  function seat3d(n) { let best = null, bd = 56 * 56; const L = R.ents || [];
+    for (let i = 0; i < L.length; i++) { const e = L[i]; if (!e || e.kind === 'drop' || e.kind === 'portal') continue; const dx = e.x - n.x, d0 = dx * dx + (e.y - n.y) ** 2, d1 = dx * dx + (e.y - (e.r || 14) * 1.6 - n.y) ** 2, d = Math.min(d0, d1); if (d < bd) { bd = d; best = e; } }
+    if (best) { n.x = best.x; n.y = best.y; n.z = entH(best) + 6; } }
+  fx.num = (x, y, txt, col, big) => { if (N.length >= NCAP) N.shift(); const n = { x, y, z: 60, txt: String(txt), col: col || (big ? '#ffd36a' : '#f3f6fa'), big: !!big, t: 0, life: big ? 1.1 : 0.85, dx: (rnd() - 0.5) * 18, seq: ++seq }; if (fx.is3d) seat3d(n); N.push(n); fx.stats.nums++; return n; };
   fx.numPose = n => { const k = Math.min(1, n.t / n.life); return { k, rise: (n.big ? 40 : 28) * eo(k), scale: 1.3 - 0.3 * eo(Math.min(1, n.t / 0.14)), alpha: k < 0.65 ? 1 : Math.max(0, 1 - (k - 0.65) / 0.35) }; };
   /* ---- shake: the renderer reads R.fx.offset; our own drawing applies it too (setTransform, so never twice) ---- */
   const shk = { a: 0, d: 1, t: 0 };
@@ -240,6 +258,9 @@ window.R = window.R || {};
       else if (/wight|skel|bone|ghoul|undead|dead|shade/i.test(arch) || m.kind === 'boss') fx.spawn('ash', m.x, m.y, { h });
       else { fx.spawn('blood', m.x, m.y, { h }); fx.spawn('dust', m.x, m.y, { n: 2 }); }
       if (m.kind === 'boss' || /giant|mammoth|dragon/i.test(arch)) fx.shake(8, 0.35); });
+    // wading: every footstep in water (24_physics: e.wading / e.depth) leaves a ring and a few drops, near the hero only
+    R.bus.on('footstep', e => { if (!e || !(e.wading || (e.depth || 0) >= 0.5)) return; const pl = R.player; if (pl && e !== pl && Math.hypot(e.x - pl.x, e.y - pl.y) > 500) return;
+      fx.spawn('ripple', e.x, e.y, { r: (e.r || 14) * 1.2, dur: 0.8 }); if (e === pl) for (let i = 0; i < 2; i++) add(DROP, 'splash', e.x, e.y, 2, 0.4, 0, { vx: (rnd() - 0.5) * 50, vy: (rnd() - 0.5) * 30, vz: 30 + rnd() * 40, g: 520, sz: 1.2 + rnd(), col: '#e4f0f6' }); });
     R.bus.on('levelup', () => { const pl = R.player; if (pl) fx.spawn('levelup', pl.x, pl.y, { ent: pl }); });
     R.bus.on('loot', item => { if (!item) return; const e = item.ent || item.drop || null; const x = e ? e.x : item.x != null ? item.x : R.player ? R.player.x : 0, y = e ? e.y : item.y != null ? item.y : R.player ? R.player.y : 0;
       if ((item.rar | 0) >= 2) fx.spawn('loot', x, y, { rar: item.rar, ent: e }); else for (let i = 0, n = cnt(4); i < n; i++) dot('loot', x + (rnd() - 0.5) * 12, y + (rnd() - 0.5) * 6, rnd() * 8, 0.6, 1.5 + rnd(), RAR_COL[item.rar | 0] || RAR_COL[0], 1, { vz: 30 + rnd() * 20 }); });

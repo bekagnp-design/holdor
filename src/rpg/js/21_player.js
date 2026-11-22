@@ -8,7 +8,7 @@
      R.input.interact = {label, e} | null (set here) · R.input.setPotions(count, cdFrac 0..1)
      R.cam.yaw — the stick is rotated by it: dx = mx·cos − my·sin, dy = mx·sin + my·cos (yaw 0: up = north = −y); R.plr.camDir is the one place to flip
      R.world.slide(x, y, nx, ny, r) → {x,y}  (else R.world.blocked(x,y) with an axis-separated slide)
-     R.attack(player, o) with o = {kind:'melee'|'ranged'|'magic', dir:{x,y}, range, arc, dmg, mult, combo:0..2, knock, splash, arrows, target}
+     R.attack(player, o) with o = {kind:'melee'|'ranged'|'magic', dir:{x,y}, range, arc, dmg (the hero's atk; R.attack multiplies by mult), mult, combo:0..2, knock, splash, arrows, target}
        — when absent the attack is resolved here on top of R.hit(src, tgt, dmg, {knock, kind}); when R.hit is absent too, hp is reduced here.
      R.skills.cast(slot) slot 0..2 · R.data.classes[cls].basic {kind, arc, range, mult, arrows, splash} overrides the defaults below
      R.champs.cls(heroId) → 'knight'|'ranger'|'maester' (else R.data.champs[id].type mapped) · R.champs.statsAt(heroId, lvl) → {hp, atk, def, spd, crit} added to the base
@@ -26,7 +26,7 @@
   const TYPE2CLS = { melee: 'knight', tank: 'knight', warrior: 'knight', knight: 'knight', ranged: 'ranger', archer: 'ranger', ranger: 'ranger', mage: 'maester', magic: 'maester', caster: 'maester', support: 'maester', maester: 'maester' };
   const STATS = ['str', 'agi', 'int', 'vit'];
   const num = (v, d) => (typeof v === 'number' && isFinite(v) ? v : d);
-  const P = R.plr = { DEF, TYPE2CLS, SPD, SPRINT, ATK_T, COMBO_W, DODGE_T, DODGE_D, DODGE_INV, DODGE_CD, POT_CD, POT_T, POT_HEAL, COMBAT_T, NEXT_T, INTERACT_R, LVL_MAX };
+  const P = R.plr = { DEF, TYPE2CLS, KNOCK3, LUNGE, AUTOFACE_R, SPD, SPRINT, ATK_T, COMBO_W, DODGE_T, DODGE_D, DODGE_INV, DODGE_CD, POT_CD, POT_T, POT_HEAL, COMBAT_T, NEXT_T, INTERACT_R, LVL_MAX };
   if (!R.input) R.input = { move: { x: 0, y: 0 }, pressed: () => false, down: () => false, interact: null };   // the joystick module (02) replaces this when present
   const inp = () => R.input || {};
   const pressed = n => { const I = inp(); try { return !!(I.pressed && I.pressed(n)); } catch (e) { return false; } };
@@ -96,7 +96,11 @@
     // the champion line (R.champs.statsAt) is an ABSOLUTE stat line at level L (role × rarity × the reference player): it scales the
     // formula instead of adding to it, so the champion's flavour and the hero's stat points both count; spd is absolute (165/155/150)
     const refOk = R.champs && typeof R.champs.refHp === 'function' && typeof R.champs.refAtk === 'function' && typeof R.champs.refDef === 'function';
-    const kHp = refOk && H.hp > 0 ? H.hp / Math.max(1, R.champs.refHp(L)) : 1, kAtk = refOk && H.atk > 0 ? H.atk / Math.max(1, R.champs.refAtk(L)) : 1, kDef = refOk && H.def > 0 ? H.def / Math.max(1, R.champs.refDef(L)) : 1;
+    // the companion-era role lines are wide (a support's atk ×0.6, a shooter's hp ×0.7): as a HERO half of the spread counts, clamped,
+    // so every champion kills a same-level common in the 4–7 hits of docs/rpg-balance.md and survives the same packs
+    const soft = (k, lo, hi) => R.clamp(1 + (k - 1) * 0.5, lo, hi);
+    const kHp = refOk && H.hp > 0 ? soft(H.hp / Math.max(1, R.champs.refHp(L)), 0.82, 1.2) : 1, kAtk = refOk && H.atk > 0 ? soft(H.atk / Math.max(1, R.champs.refAtk(L)), 0.85, 1.15) : 1, kDef = refOk && H.def > 0 ? soft(H.def / Math.max(1, R.champs.refDef(L)), 0.82, 1.25) : 1;
+    e.statK = { hp: Math.round(kHp * 1000) / 1000, atk: Math.round(kAtk * 1000) / 1000, def: Math.round(kDef * 1000) / 1000 };
     let hpMax = (120 + 18 * L + 6 * vit) * kHp + g.hp + (refOk ? 0 : num(H.hp, 0)); if (C.hpK) hpMax *= C.hpK;
     let power = 1 + 0.012 * num(S.int, 5) + g.power / 100 + num(H.power, 0) / 100; if (C.powK) power *= C.powK;
     e.hpMax = Math.max(1, Math.round(hpMax)); e.atk = Math.round(((10 + 2 * L + 1.5 * main) * kAtk + g.atk + (refOk ? 0 : num(H.atk, 0))) * 10) / 10; e.def = Math.round(((4 + 1.2 * L + 0.6 * vit) * kDef + g.def + (refOk ? 0 : num(H.def, 0))) * 10) / 10;
@@ -158,7 +162,7 @@
     else { const c = en.filter(t => { const dx = t.x - e.x, dy = t.y - e.y, d = Math.hypot(dx, dy); if (d - (t.r || 0) > o.range) return false; if (dx * o.dir.x + dy * o.dir.y < 0) return false; return Math.abs(dx * o.dir.y - dy * o.dir.x) <= (t.r || 0) + 24; }).sort((a, b) => R.dist(e, a) - R.dist(e, b));
       const n = Math.max(1, num(o.arrows, 1)); for (let i = 0; i < n && c.length; i++) hits.push(c[Math.min(i, c.length - 1)]);
       if (o.kind === 'magic' && hits[0] && o.splash > 0) for (const t of en) if (t !== hits[0] && R.dist(t, hits[0]) <= o.splash + (t.r || 0)) hits.push(t); }
-    for (const t of hits) dmg(e, t, o.dmg, { knock: o.knock, kind: o.kind === 'magic' ? 'fire' : 'phys' });
+    for (const t of hits) dmg(e, t, o.dmg * num(o.mult, 1), { knock: o.knock, kind: o.kind === 'magic' ? 'fire' : 'phys' });
     return hits.length;
   };
   /* mx, my: the WORLD-space move direction (already rotated by the camera) */
@@ -173,7 +177,7 @@
     if (melee && tgt) { const gap = Math.hypot(dx, dy) - (tgt.r || 0) - range + 6; if (gap > 0) { const d = Math.hypot(dx, dy) || 1, s = Math.min(LUNGE, gap); moveTo(e, e.x + dx / d * s, e.y + dy / d * s); dx = tgt.x - e.x; dy = tgt.y - e.y; } }   // a short lunge: a tap in reach connects
     let L = Math.hypot(dx, dy); if (L < 1e-6) { dx = e.face || 1; dy = 0; L = 1; } dx /= L; dy /= L; if (Math.abs(dx) > 0.15) e.face = dx < 0 ? -1 : 1;
     const third = e.comboN === 2, mult = num(C.mult, 1) * (third ? 1.4 : 1);
-    const o = { kind: melee ? 'melee' : C.kind, dir: { x: dx, y: dy }, range, arc: num(C.arc, 110), dmg: e.atk * mult, mult, combo: e.comboN, knock: third ? KNOCK3 : 0, splash: num(C.splash, 0), arrows: third ? Math.max(1, num(C.arrows, 1)) : 1, target: tgt };
+    const o = { kind: melee ? 'melee' : C.kind, dir: { x: dx, y: dy }, range, arc: num(C.arc, 110), dmg: e.atk, mult, combo: e.comboN, knock: third ? KNOCK3 : 0, splash: num(C.splash, 0), arrows: third ? Math.max(1, num(C.arrows, 1)) : 1, target: tgt };
     sfx(melee ? 'swing' : C.kind === 'ranged' ? 'bow' : 'spell'); fx(melee ? 'slash' : C.kind === 'ranged' ? 'arrow' : 'bolt', e.x, e.y, { dir: o.dir, face: e.face, range, src: e, tgt, combo: e.comboN }); hap('light');
     R.bus.emit('attack', e, o);
     if (typeof R.attack === 'function') { try { R.attack(e, o); return o; } catch (x) { console.error('R.attack', x); } }

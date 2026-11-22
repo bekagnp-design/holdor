@@ -76,12 +76,13 @@
 #ui>#bossbar,#ui>#evbar,#ui>#dgbar{top:calc(var(--st) + 210px);max-width:calc(100% - 24px)}
 #ui>#evbar{width:min(calc(100% - 24px),360px)}
 #ui [data-hud-yield]{display:none!important}
-#ui>.toast{max-width:calc(100% - 132px);width:max-content;white-space:normal;text-align:center;line-height:1.25;transition:top .18s ease-out;z-index:6}
+#ui>.toast{max-width:calc(100% - 132px);width:max-content;white-space:normal;text-align:center;line-height:1.25;z-index:6;animation:hudtoast .25s ease-out}
+@keyframes hudtoast{from{opacity:0}to{opacity:1}}
 
 /* region title (js sets its top to the column's next free line) */
 #hud-region{position:absolute;left:50%;top:calc(var(--st) + 210px);transform:translateX(-50%);width:min(calc(100% - 32px),360px);text-align:center;opacity:0;pointer-events:none;visibility:hidden}
 #hud-region.on{visibility:visible;animation:hudban 3.4s ease-in-out forwards}
-@keyframes hudban{0%{opacity:0;transform:translate(-50%,6px)}14%{opacity:1;transform:translate(-50%,0)}80%{opacity:1}100%{opacity:0}}
+@keyframes hudban{0%{opacity:0}14%{opacity:1}80%{opacity:1}100%{opacity:0}}
 #hud-region b{display:block;font:800 clamp(22px,7vw,30px)/1.1 var(--f-display);color:#f2e6c9;letter-spacing:.08em;text-shadow:0 2px 10px #000,0 0 24px rgba(0,0,0,.9)}
 #hud-region small{display:block;margin-top:4px;font:700 13px var(--f-display);color:var(--gold);letter-spacing:.06em;text-shadow:0 1px 4px #000}
 #hud-region p{margin:6px auto 0;max-width:300px;font:italic 15px/1.3 var(--f-body);color:#d8dfe8;text-shadow:0 1px 4px #000}
@@ -93,7 +94,7 @@
 @keyframes hudvig{0%,100%{box-shadow:inset 0 0 70px 24px rgba(180,10,10,.75)}50%{box-shadow:inset 0 0 90px 36px rgba(200,20,20,.85)}}
 
 /* narrow phones (360): a smaller block, the same columns */
-@media (max-width:370px){#hud-region b{font-size:22px}#ui>.toast{max-width:calc(100% - 120px)}}
+@media (max-width:370px){#hud-region b{font-size:22px}#ui>.toast{max-width:calc(100% - 140px)}}
 /* landscape phones: the minimap goes to the corner and A02's row to its left (the button arc needs the right edge from the middle down);
    the message column sits top-centre between the hero block and the row */
 @media (orientation:landscape) and (max-height:520px){
@@ -108,3 +109,18 @@
   #ui>.toast{max-width:30vw}
 }
 @media (prefers-reduced-motion:reduce){#hud .bar i,#hud .chip,#hud-port{animation:none!important;transition:none!important}}
+
+/* ---- dark-fantasy finish (the owner: "not a Lego game"): forged metal frames, worn gradients, soft grain, no flat toy colours ---- */
+#hud-port{border:2px solid var(--hc);box-shadow:0 0 0 2px #1a130a,0 0 0 3.5px rgba(227,182,97,.55),0 3px 12px rgba(0,0,0,.7),inset 0 0 10px rgba(0,0,0,.7)}
+#hud-lvl{background:radial-gradient(circle at 40% 30%,#3a2b12,#0b0a08 75%);border-color:#c9a04e;box-shadow:0 0 0 1px #000,0 2px 6px rgba(0,0,0,.7)}
+#hud-bars{position:relative;padding:2px 6px 4px 4px;margin:-2px -6px -4px -4px;border-radius:10px;background:linear-gradient(90deg,rgba(6,9,14,.62),rgba(6,9,14,.38) 70%,rgba(6,9,14,0))}
+#hud .bar{border:1px solid #5b4524;background:linear-gradient(180deg,#07090d,#141a22);box-shadow:0 0 0 1px rgba(0,0,0,.7),inset 0 2px 4px rgba(0,0,0,.8)}
+#hud-hp .fill{background:linear-gradient(180deg,#e8705f 0%,#b3261d 45%,#6e0f0b 100%);box-shadow:inset 0 1px 0 rgba(255,210,190,.35),inset 0 -2px 3px rgba(0,0,0,.35)}
+#hud-hp .fill::after,#hud-xp .fill::after{content:"";position:absolute;inset:0;border-radius:inherit;background:repeating-linear-gradient(115deg,rgba(255,255,255,.07) 0 2px,rgba(0,0,0,.06) 2px 5px);mix-blend-mode:overlay}
+#hud-xp .fill{background:linear-gradient(180deg,#f2d38a,#b8862e 55%,#6d4c14)}
+#hud .chip{background:linear-gradient(180deg,rgba(38,30,18,.92),rgba(10,10,12,.92));border:1px solid rgba(201,160,78,.45);box-shadow:0 1px 0 rgba(255,230,170,.08) inset,0 2px 6px rgba(0,0,0,.6)}
+#hud-hall{background:linear-gradient(180deg,rgba(38,30,18,.92),rgba(10,10,12,.92));border-color:rgba(201,160,78,.4)}
+#minimap{box-shadow:0 0 0 2px #1a130a,0 0 0 3.5px rgba(201,160,78,.6),0 4px 14px rgba(0,0,0,.7)}
+#hud-town{background:linear-gradient(180deg,rgba(44,34,18,.94),rgba(10,10,12,.94));border-color:#c9a04e}
+#qtrack .qt-card{background:linear-gradient(90deg,rgba(10,10,14,.86),rgba(10,10,14,.6));border-color:rgba(201,160,78,.35)}
+#ui>.toast{background:linear-gradient(180deg,rgba(30,24,14,.94),rgba(8,9,12,.94));border:1px solid rgba(201,160,78,.45);box-shadow:0 6px 18px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,230,170,.08)}

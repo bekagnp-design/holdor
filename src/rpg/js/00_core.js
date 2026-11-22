@@ -12,8 +12,13 @@ window.R = window.R || {};
   R.player = null;
 
   /* ---- errors: every uncaught one lands in R.errors and the #err overlay (installed first, so later modules are covered) ---- */
+  // the #err overlay is for developers only (?debug=1 or R.debug): it never takes a tap, a tap dismisses it, it hides after 4 s; R.errors always fills (tests read it)
+  R.debug = /[?&#]debug=1\b/.test(location.search + location.hash);
+  let errT = 0;
   R.err = (msg, src) => { const s = (src ? src + ': ' : '') + msg; R.errors.push(s); if (R.errors.length > 60) R.errors.shift();
-    const el = document.getElementById('err'); if (el) { el.style.display = 'block'; el.textContent = R.errors.slice(-4).join('\n'); } return s; };
+    const el = document.getElementById('err'); if (el && R.debug) { el.style.display = 'block'; el.style.pointerEvents = 'none'; el.textContent = R.errors.slice(-4).join('\n');
+      clearTimeout(errT); errT = setTimeout(() => { el.style.display = 'none'; }, 4000); } return s; };
+  document.addEventListener('pointerdown', () => { const el = document.getElementById('err'); if (el && el.style.display === 'block') el.style.display = 'none'; }, true);
   window.addEventListener('error', ev => R.err(ev.message || (ev.error && ev.error.message) || String(ev.error), 'error'));
   window.addEventListener('unhandledrejection', ev => R.err((ev.reason && (ev.reason.message || ev.reason)) + '', 'promise'));
 
@@ -146,7 +151,9 @@ window.R = window.R || {};
     try { localStorage.setItem(R.KEY, JSON.stringify(R.state)); } catch (e) {}
     R.bus.emit('save', R.state); if (R.net && R.net.on && R.net.save) { try { R.net.save(); } catch (e) { R.err(e.message, 'net.save'); } } return true; };
   // load(raw?) → true when a save was found (localStorage, or the object given); v1 saves migrate, missing keys fill from defaults, the p.* aliases are installed
-  R.load = raw => { try { const s = raw || JSON.parse(localStorage.getItem(R.KEY) || 'null'); if (s && isObj(s) && isObj(s.p)) { migrate(s); fill(s, R.newState(s.acc.house)); R.state = R.alias(s); R.bus.emit('load', R.state); return true; } } catch (e) { R.err((e && e.message) || e, 'load'); } return false; };
+  R.load = raw => { try { const s = raw || JSON.parse(localStorage.getItem(R.KEY) || 'null'); if (s && isObj(s) && isObj(s.p)) { migrate(s); const def = R.newState(s.acc.house), had = isObj(s.acc.champs) && Object.keys(s.acc.champs).some(k => s.acc.champs[k] && s.acc.champs[k].unlocked);
+      if (had) def.acc.champs = {};   // an account keeps exactly the champions it unlocked (no free starter on every load)
+      fill(s, def); R.state = R.alias(s); R.bus.emit('load', R.state); return true; } } catch (e) { R.err((e && e.message) || e, 'load'); } return false; };
   R.reset = () => { try { localStorage.removeItem(R.KEY); } catch (e) {} R.state = null; };
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') R.save(true); });
   window.addEventListener('pagehide', () => R.save(true));
@@ -180,7 +187,7 @@ window.R = window.R || {};
   let gl = document.getElementById('gl'); if (!gl) { gl = document.createElement('canvas'); gl.id = 'gl'; gl.style.cssText = 'position:absolute;inset:0;width:100%;height:100%'; app.insertBefore(gl, cv); }
   const ctx = cv.getContext('2d'); R.cv = cv; R.gl = gl; R.ctx = ctx; R.vw = 390; R.vh = 844; R.dpr = 1;
   R.resize = () => { R.dpr = Math.min(2, window.devicePixelRatio || 1); R.vw = window.innerWidth || 390; R.vh = window.innerHeight || 844; const w = Math.round(R.vw * R.dpr), h = Math.round(R.vh * R.dpr);
-    cv.width = w; cv.height = h; if (gl.width !== w || gl.height !== h) { gl.width = w; gl.height = h; } R.camClamp(); R.bus.emit('resize', R.vw, R.vh); };
+    cv.width = w; cv.height = h; const g = R.gl || gl; if (g && (g.width !== w || g.height !== h)) { g.width = w; g.height = h; } R.camClamp(); R.bus.emit('resize', R.vw, R.vh); };
   window.addEventListener('resize', R.resize); R.resize();
   const sysErr = (s, e) => { s._errs = (s._errs || 0) + 1; if (s._errs <= 3) { console.error(s.name, e); R.err((e && e.message) || e, 'sys:' + s.name); } };
   // one fixed step (1/60 s): systems in order, animation clocks, garbage, camera, tick1s + played seconds (autosave every 30 s of play)
@@ -188,7 +195,8 @@ window.R = window.R || {};
     for (const s of R.sysList) if (s.update) { try { s.update(dt); } catch (e) { sysErr(s, e); } }
     for (const e of R.ents) e.animT += dt;
     gc(); R.camUpdate(dt);
-    if (Math.floor(R.t + 1e-9) !== Math.floor(t0 + 1e-9)) { if (R.state && R.state.p) { R.state.p.played = (R.state.p.played | 0) + 1; if (R.state.p.played % 30 === 0) R.save(); } R.bus.emit('tick1s'); } };
+    if (Math.floor(R.t + 1e-9) !== Math.floor(t0 + 1e-9)) { if (R.state && R.state.p) { R.state.p.played = (R.state.p.played | 0) + 1; if (R.state.p.played % 30 === 0) R.save(); }
+      const p = R.state && R.state.p, pl = p && p.played; R.bus.emit('tick1s'); if (p && R.state.p === p && p.played > pl) p.played = pl; } };   // the core counts played seconds; a 'tick1s' listener must not count them again
   R.drawAll = () => { ctx.setTransform(R.dpr, 0, 0, R.dpr, 0, 0); ctx.clearRect(0, 0, R.vw, R.vh);
     for (const s of R.sysList) if (s.draw) { ctx.save(); try { s.draw(ctx); } catch (e) { sysErr(s, e); } ctx.restore(); } };
   let acc = 0, last = 0, raf = 0;
@@ -216,6 +224,7 @@ window.R = window.R || {};
     const dead = !!p.dead;
     const e = R.spawn({ kind: 'player', team: 0, r: 16, x, y, face: 1, name: p.name || (p.hero ? R.champInfo(p.hero).name : 'Hero'), lvl: p.lvl || 1, cls: p.cls, hero: p.hero, type: p.hero || p.cls, house: R.state.acc.house,
       hpMax: st.hpMax, hp: dead ? 0 : (p.hp > 0 ? Math.min(p.hp, st.hpMax) : st.hpMax), atk: st.atk, def: st.def, spd: st.spd, keep: true, dead, anim: dead ? 'die' : 'idle' });
+    if (!dead && R.plr && typeof R.plr.attach === 'function') { try { R.plr.attach(e); if (typeof e.recalc === 'function') e.recalc(); e.hp = p.hp > 0 ? Math.min(p.hp, e.hpMax) : e.hpMax; } catch (x) { R.err(x.message, 'makePlayer'); } }
     if (dead) { e.diedAt = R.t; e.hp = 0;   // a hero that died before the reload stays dead: 21_player must not run its death (a 2nd Hall line) again
       if (R.plr && typeof R.plr.attach === 'function') { try { R.plr.attach(e); } catch (x) {} } e.dead = true; e.deathT = R.t || 1e-9; e.nextT = 0; e.anim = 'die'; }
     R.player = e; R.camFollow(e); return e; };
@@ -224,7 +233,17 @@ window.R = window.R || {};
     const info = R.champInfo(id); const c = a.champs[id] = a.champs[id] || { unlocked: 1, runs: 0 }; c.unlocked = 1; c.runs = (c.runs | 0) + 1;
     const p = R.blankHero(id); p.name = info.name; p.cls = R.clsOf(id); const pos = R.homePos(a.house); p.pos = { x: pos.x, y: pos.y };
     s.p = p; R.alias(s); R.clearEnts(); R.bus.emit('hero', id);
-    const e = R.enterWorld(); R.save(true); return e; };
+    const e = R.enterWorld();
+    // the new life starts at the house seat, never where the last one fell: full hp, 3 s of grace, no enemy within 600 units of the seat
+    e.x = pos.x; e.y = pos.y; e.vx = e.vy = 0; e.hp = e.hpMax; e.inv = Math.max(e.inv || 0, R.t + 3); e.graceT = R.t + 3; R.camSnap();
+    for (const m of R.ents.slice()) if (m !== e && (m.kind === 'mob' || m.kind === 'boss') && !m.keep && (m.x - pos.x) ** 2 + (m.y - pos.y) ** 2 < 600 * 600) R.remove(m);
+    R.ward = { x: pos.x, y: pos.y, r: R.WARD_R, until: R.t + R.WARD_T };   // the seat's ward: no enemy comes within WARD_R of the new hero's start for WARD_T s
+    R.save(true); return e; };
+  // the ward (a new life's first seconds): hostile mobs inside the ring are set back to its edge each step, so a level-1 hero is never born into a fight
+  R.WARD_R = 420; R.WARD_T = 8; R.ward = null;
+  R.sys.ward = { order: 99, update() { const w = R.ward; if (!w) return; if (R.t > w.until) { R.ward = null; return; }
+    for (const m of R.ents) { if (m.dead || m.team === 0 || (m.kind !== 'mob' && m.kind !== 'boss')) continue; const dx = m.x - w.x, dy = m.y - w.y, d2 = dx * dx + dy * dy; if (d2 >= w.r * w.r) continue;
+      const d = Math.sqrt(d2) || 1, ux = d2 ? dx / d : 1, uy = d2 ? dy / d : 0; m.x = w.x + ux * (w.r + 4); m.y = w.y + uy * (w.r + 4); m.vx = m.vy = 0; } } };
   // enterWorld(): the hero at p.pos or the house seat, camera snapped, loop running, no screen open; emits 'start'(player)
   R.enterWorld = () => { if (!R.state) R.state = R.newState(); if (R.ui.cur) R.ui.close(); R.resize();
     const e = R.makePlayer();
@@ -232,6 +251,6 @@ window.R = window.R || {};
     R.camSnap(); R.run(); R.bus.emit('start', e); R.save(); return e; };
   // respawnAt(x, y): the hero stands up at x,y with full hp and clean status (a revive); emits 'respawn'(player); saves at once
   R.respawnAt = (x, y) => { const e = R.player || R.makePlayer(x, y); if (!R.ents.includes(e)) R.ents.push(e);
-    e.x = x; e.y = y; e.vx = e.vy = 0; e.dead = false; e.diedAt = null; e.hp = e.hpMax; e.anim = 'idle'; e.animT = 0; e.status = {}; e.cd = {};
+    e.x = x; e.y = y; e.vx = e.vy = 0; e.dead = false; e.diedAt = null; e.deathT = 0; e.nextT = 0; e.killer = null; e.lastHitBy = null; e.hp = e.hpMax; e.anim = 'idle'; e.animT = 0; e.status = {}; e.cd = {};
     R.camSnap(); R.bus.emit('respawn', e); R.save(true); return e; };
 })();

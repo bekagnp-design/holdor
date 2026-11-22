@@ -64,7 +64,10 @@
     return out; };
 
   /* ---------- drop rolls ---------- */
-  const goldFor = (mob, md) => { const b = bal(); let g = md && md.gold != null ? md.gold : (b.gold || [2, 8]); const lvl = Math.max(1, mob.lvl || 1);
+  /* balance.drops.gold is the gold drop CHANCE (1 = always, A39); the amount is balance.mob.gold(L, roll) = 2–8 × level (ARCH) */
+  const goldFor = (mob, md) => { const lvl = Math.max(1, mob.lvl || 1); const BM = R.data.balance && R.data.balance.mob;
+    let g = md && md.gold != null ? md.gold : null;
+    if (g == null) { let v = NaN; if (BM && typeof BM.gold === 'function') { try { v = Math.round(BM.gold(lvl, rnd())); } catch (e) {} } g = v > 0 ? { flat: [v, v] } : [2, 8]; }
     if (typeof g === 'number') g = Math.round(g * lvl); else if (Array.isArray(g)) g = Math.round(rr(g[0], g[1]) * lvl); else if (g && g.flat) g = Math.round(rr(g.flat[0], g.flat[1])); else g = Math.round(rr(2, 8) * lvl);
     if (mob.kind === 'boss') g *= 10; else if (mob.elite) g *= 3; return Math.max(0, Math.round(g)); };
   const drop = mob => { if (!mob || mob.looted || mob.noLoot) return []; mob.looted = true;

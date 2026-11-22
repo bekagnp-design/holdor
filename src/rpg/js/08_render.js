@@ -290,7 +290,8 @@
     const hurt = e.hp < e.hpMax && (e.kind === 'mob' || e.kind === 'boss' || e.kind === 'companion');
     if (hurt) { const w = (e.kind === 'boss' ? 56 : 34) * z, h = (e.kind === 'boss' ? 5 : 3.5) * z; y -= h;
       bar(ctx, s.x - w / 2, y, w, h, e.hp / e.hpMax, e.kind === 'companion' ? '#7fd06a' : e.kind === 'boss' ? '#e3b661' : '#e14b4b'); y -= 3 * z; }
-    const tag = e.kind === 'npc' || e.kind === 'boss' || e.kind === 'ghost' || (e.kind === 'player' && e !== R.player);
+    // NPC names come from A20's npcBubbles system when it runs (it draws the name with the speech bubble)
+    const tag = (e.kind === 'npc' && !(R.sys.npcBubbles && R.render3d)) || e.kind === 'boss' || e.kind === 'ghost' || (e.kind === 'player' && e !== R.player);
     if (tag && e.name) { const fs = Math.max(10, Math.round(11 * z)); y -= fs + 1; label(ctx, e.name, s.x, y, fs, e.kind === 'boss' ? '#e3b661' : e.kind === 'ghost' ? '#9fb6c9' : e.kind === 'npc' ? '#f3e7c4' : '#8fc0ff'); }
     const st = e.status; if (st && (stOn(st.stun) || stOn(st.burn) || stOn(st.slow))) {
       let icons = ''; if (stOn(st.stun)) icons += '★'; if (stOn(st.burn)) icons += '🔥'; if (stOn(st.slow)) icons += '❄';
@@ -390,12 +391,15 @@
   const pxy = Rd.pxy, pts = Rd.pts, rid = Rd.rid;
 
   /* ---------- canvas + renderer ---------- */
-  const gl = document.createElement('canvas'); gl.id = 'gl'; R.cv.parentNode.insertBefore(gl, R.cv);
+  // the core's #gl canvas (index.tpl.html / 00_core R.gl) when it exists: one #gl in the page, so document.querySelector('#gl') is the drawn one
+  const ownGl = !(R.gl && R.gl.tagName === 'CANVAS'), gl = ownGl ? document.createElement('canvas') : R.gl; if (ownGl) { gl.id = 'gl'; R.cv.parentNode.insertBefore(gl, R.cv); }
   let renderer;
   try { renderer = new T.WebGLRenderer({ canvas: gl, antialias: false, alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: false }); }
-  catch (e) { Rd.why = 'renderer: ' + e.message; gl.remove(); return; }
-  if (!renderer.getContext()) { Rd.why = 'no context'; gl.remove(); return; }
+  catch (e) { Rd.why = 'renderer: ' + e.message; if (ownGl) gl.remove(); return; }
+  if (!renderer.getContext()) { Rd.why = 'no context'; if (ownGl) gl.remove(); return; }
   renderer.setClearColor(0x060b14, 1);
+  // natural look: ACES filmic tone mapping, sRGB output (textures in sRGB are decoded to linear), a touch over-exposed to keep the art's light
+  try { renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.18; renderer.outputColorSpace = T.SRGBColorSpace; } catch (e) {}
   const scene = new T.Scene();
   const camera = new T.PerspectiveCamera(60, 1, 20, 9000);
   const hemi = new T.HemisphereLight(0xbfd4ea, 0x5a4a3a, 1.0); scene.add(hemi);
@@ -404,9 +408,12 @@
   let glName = ''; try { const g = renderer.getContext(), dbg = g.getExtension('WEBGL_debug_renderer_info'); glName = String(dbg ? g.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : g.getParameter(g.RENDERER)); } catch (e) {}
   const R3 = R.render3d = { scene, camera, renderer, glName, software: /swiftshader|llvmpipe|software|mesa offscreen/i.test(glName), stats: { calls: 0, sprites: 0, props: 0 } };
   Rd.mode = '3d'; Rd.gl = gl;
+  // the vignette is a static CSS layer between #gl and #c (no full-screen drawImage on the overlay every frame)
+  let vigEl = null; try { vigEl = document.createElement('div'); vigEl.id = 'glvig'; R.cv.parentNode.insertBefore(vigEl, R.cv); } catch (e) { vigEl = null; }
 
   /* ---------- heights ---------- */
-  let hts = new Float32Array(NX * NY), seaMask = new Uint8Array(NX * NY), terrainHasArt = false;
+  let hts = new Float32Array(NX * NY), seaMask = new Uint8Array(NX * NY), terrainHasArt = false, seaFromWater = false;
+  const waterReady = () => { const W = R.water; return !!(W && typeof W.kindAt === 'function' && (W.ready === undefined || W.ready)); };
   const RIDGES = [ // world units: the Frostfangs, the mountains west of the North, the Mountains of the Moon (the Vale), the Westerlands hills, the Red Mountains
     { x: 3180, y: 1620, rx: 760, ry: 950, h: 240 }, { x: 2280, y: 3720, rx: 320, ry: 640, h: 150 }, { x: 4980, y: 6000, rx: 440, ry: 680, h: 200 },
     { x: 2640, y: 7080, rx: 320, ry: 520, h: 90 }, { x: 3840, y: 10200, rx: 1150, ry: 280, h: 160 }];
@@ -415,23 +422,30 @@
   function buildHeights(img) {
     let px = null;
     if (img) { try { const c = document.createElement('canvas'); c.width = NX; c.height = NY; const g = c.getContext('2d'); g.drawImage(img, 0, 0, NX, NY); px = g.getImageData(0, 0, NX, NY).data; } catch (e) { px = null; } }
-    const blk = !px && R.world && R.world.blocked;
+    const blk = !px && R.world && R.world.blocked, WA = waterReady() ? R.water : null; seaFromWater = !!WA;
     for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) {
       const k = j * NX + i, x = i / SEG_X * R.W, y = j / SEG_Y * R.H; let h, sea = false;
       if (px) { const r = px[k * 4], g = px[k * 4 + 1], b = px[k * 4 + 2], lum = (r * .3 + g * .59 + b * .11) / 255;
-        // the art's sea is a dark, desaturated teal: dark, cool (green and blue ≥ red) but not grey (the ridges) and not pure blue (banners)
-        sea = lum < .36 && b >= r - 4 && g >= r - 2 && Math.max(g, b) - r >= 10 && b - r < 70;
+        // the art's sea is dark and olive (about 56-70, 55-61, 25-31): dark, blue well under red and green
+        sea = WA ? false : lum < .3 && b < r - 15 && b < g - 15 && Math.abs(r - g) < 22;
         if (!sea) h = 20 + 40 * clamp((.7 - lum) * 2.2, 0, 1); }
       else { sea = blk ? !!R.world.blocked(x, y) : (x < 300 || x > R.W - 300 || y < 200 || y > R.H - 200); h = 30 + 10 * Math.sin(x * .0021) * Math.cos(y * .0017); }
+      if (WA) { try { sea = WA.kindAt(x, y) === 'sea'; } catch (e) {} if (sea) h = 0; else if (h == null) h = 30; }
       if (sea) h = 0; else h += ridgeH(x, y) + 5 * Math.sin(x * .004) * Math.cos(y * .003);
       hts[k] = h; seaMask[k] = sea ? 1 : 0;
     }
+    smoothHeights();
     // the height canvas (grey = height / H_MAX) for the water / nature agents
     const hc = R3.heightmap && R3.heightmap.canvas || document.createElement('canvas'); hc.width = NX; hc.height = NY;
     const hg = hc.getContext('2d'), id = hg.createImageData(NX, NY), d = id.data;
     for (let k = 0; k < NX * NY; k++) { const v = Math.round(clamp(hts[k] / H_MAX, 0, 1) * 255); d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = seaMask[k] ? 0 : 255; }
     hg.putImageData(id, 0, 0);
     R3.heightmap = { canvas: hc, w: NX, h: NY, scale: R.W / SEG_X, max: H_MAX, data: hts, sea: seaMask };
+  }
+  function smoothHeights() {
+    for (let pass = 0; pass < 3; pass++) { const o = hts.slice();
+      for (let j = 1; j < NY - 1; j++) for (let i = 1; i < NX - 1; i++) { const k = j * NX + i; if (seaMask[k]) continue;
+        const a = (o[k] * 4 + o[k - 1] + o[k + 1] + o[k - NX] + o[k + NX] + (o[k - NX - 1] + o[k - NX + 1] + o[k + NX - 1] + o[k + NX + 1]) * .5) / 10; hts[k] = Math.max(4, a); } }
   }
   function groundY(x, y) {
     const fx = clamp(x / R.W * SEG_X, 0, SEG_X - 1e-6), fy = clamp(y / R.H * SEG_Y, 0, SEG_Y - 1e-6);
@@ -484,11 +498,33 @@
   let terrain = null, mapTex = null, fogTex = null, fogCv = null;
   const VS = 'varying vec2 vUv; varying vec3 vN; varying vec3 vW;\nvoid main(){ vUv = uv; vN = normalize(mat3(modelMatrix) * normal); vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }';
   const FS = 'uniform sampler2D map; uniform sampler2D fogMap; uniform float fogA; uniform vec3 sunDir; uniform vec3 sunCol; uniform vec3 skyCol; uniform vec3 gndCol; uniform vec3 tint; uniform vec3 fogCol; uniform float fogNear; uniform float fogFar;\n' +
-    'varying vec2 vUv; varying vec3 vN; varying vec3 vW;\nvoid main(){ vec3 c = texture2D(map, vUv).rgb; float f = texture2D(fogMap, vUv).a; vec3 n = normalize(vN);\n' +
+    'uniform sampler2D dGrass; uniform sampler2D dSand; uniform sampler2D dSnow; uniform sampler2D dRock; uniform vec4 dAvg; uniform float uDet; uniform float uDetCol; uniform float uDetK; uniform float uGrade;\n' +
+    'varying vec2 vUv; varying vec3 vN; varying vec3 vW;\n' +
+    'float lum(vec3 c){ return dot(c, vec3(0.299, 0.587, 0.114)); }\n' +
+    'void main(){ vec3 c = texture2D(map, vUv).rgb; float f = texture2D(fogMap, vUv).a; vec3 n = normalize(vN); float d = distance(vW, cameraPosition);\n' +
+    ' float near = uDet * (1.0 - smoothstep(260.0, 950.0, d));\n' +
+    ' if (near > 0.001) { vec2 uv = vW.xz * uDetK; vec3 g = texture2D(dGrass, uv).rgb, sa = texture2D(dSand, uv * 1.3).rgb, sn = texture2D(dSnow, uv * 0.8).rgb, rk = texture2D(dRock, uv * 0.7).rgb;\n' +
+    '  float L = lum(c), sat = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));\n' +
+    '  float wSnow = clamp(smoothstep(0.55, 0.75, L) * (1.0 - smoothstep(0.08, 0.2, sat)) + smoothstep(150.0, 190.0, vW.y) + (1.0 - smoothstep(1800.0, 2700.0, vW.z)) * 0.8, 0.0, 1.0);\n' +
+    '  float wSand = clamp(smoothstep(0.06, 0.16, c.r - c.b) * smoothstep(0.32, 0.5, L) * smoothstep(0.0, 0.08, c.r - c.g + 0.04), 0.0, 1.0) * (1.0 - wSnow);\n' +
+    '  float wRock = clamp(smoothstep(0.22, 0.45, 1.0 - n.y) + smoothstep(110.0, 160.0, vW.y) * 0.7, 0.0, 1.0) * (1.0 - wSnow * 0.7);\n' +
+    '  float wGrass = max(0.0, 1.0 - wSnow - wSand - wRock);\n' +
+    '  float ws = wGrass + wSand + wSnow + wRock + 1e-4; vec3 det = (g * wGrass + sa * wSand + sn * wSnow + rk * wRock) / ws; float avg = dot(dAvg, vec4(wGrass, wSand, wSnow, wRock)) / ws;\n' +
+    '  vec3 modc = c * clamp(lum(det) / max(avg, 0.04), 0.35, 1.8); vec3 hue = det * (L / max(lum(det), 0.04));\n' +
+    '  c = mix(c, mix(modc, hue, uDetCol * 0.4), near); }\n' +
     ' float dl = max(dot(n, sunDir), 0.0); vec3 hemi = mix(gndCol, skyCol, n.y * 0.5 + 0.5); vec3 col = c * (hemi + sunCol * dl) * tint; col *= 1.0 - fogA * f;\n' +
-    ' float d = distance(vW, cameraPosition); float ff = smoothstep(fogNear, fogFar, d); col = mix(col, fogCol, ff); gl_FragColor = vec4(col, 1.0); }';
+    ' float L2 = lum(col); col = mix(vec3(L2), col, 1.0 + 0.08 * uGrade); col *= mix(vec3(1.0), vec3(1.03, 1.0, 0.95), uGrade);\n' +
+    ' float ff = smoothstep(fogNear, fogFar, d); col = mix(col, fogCol, ff); gl_FragColor = vec4(col, 1.0);\n' +
+    ' #include <tonemapping_fragment>\n #include <colorspace_fragment>\n}';
+  // the detail textures (A-G10's R.tex when it is there; a grey value-noise canvas until then)
+  const noiseTex = (() => { const N = 128, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'), id = g.createImageData(N, N); let sd = 9;
+    const rnd = () => { sd = (sd * 1664525 + 1013904223) >>> 0; return sd / 4294967296; }; const v = new Float32Array(N * N); for (let i = 0; i < v.length; i++) v[i] = rnd();
+    for (let pass = 0; pass < 2; pass++) { const o = v.slice(); for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { let a = 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) a += o[((y + dy + N) % N) * N + (x + dx + N) % N]; v[y * N + x] = a / 9; } }
+    for (let i = 0; i < v.length; i++) { const q = Math.round(clamp(128 + (v[i] - .5) * 300 + (rnd() - .5) * 40, 0, 255)); id.data[i * 4] = id.data[i * 4 + 1] = id.data[i * 4 + 2] = q; id.data[i * 4 + 3] = 255; }
+    g.putImageData(id, 0, 0); const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.colorSpace = T.SRGBColorSpace; return t; })();
   const U = { map: { value: null }, fogMap: { value: null }, fogA: { value: 0.55 }, sunDir: { value: new T.Vector3(.4, .8, .45).normalize() }, sunCol: { value: new T.Color(0.55, 0.52, 0.46) },
-    skyCol: { value: new T.Color(0.62, 0.64, 0.68) }, gndCol: { value: new T.Color(0.34, 0.3, 0.26) }, tint: { value: new T.Color(1, 1, 1) }, fogCol: { value: new T.Color(0x9fb0c4) }, fogNear: { value: 500 }, fogFar: { value: 1500 } };
+    skyCol: { value: new T.Color(0.62, 0.64, 0.68) }, gndCol: { value: new T.Color(0.34, 0.3, 0.26) }, tint: { value: new T.Color(1, 1, 1) }, fogCol: { value: new T.Color(0x9fb0c4) }, fogNear: { value: 500 }, fogFar: { value: 1500 },
+    dGrass: { value: noiseTex }, dSand: { value: noiseTex }, dSnow: { value: noiseTex }, dRock: { value: noiseTex }, dAvg: { value: new T.Vector4(.21, .21, .21, .21) }, uDet: { value: 1 }, uDetCol: { value: 0 }, uDetK: { value: 1 / 90 }, uGrade: { value: 1 } };
   const terrainMat = new T.ShaderMaterial({ uniforms: U, vertexShader: VS, fragmentShader: FS, side: T.DoubleSide });
   // the terrain is one height grid cut into 30×30-cell tiles (6 × 10 meshes, one material): three frustum-culls the tiles,
   // and the camera's far plane follows the fog, so a frame draws ~10 % of the 108k triangles
@@ -510,23 +546,37 @@
       const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.BufferAttribute(pos, 3)); geo.setAttribute('normal', new T.BufferAttribute(no, 3)); geo.setAttribute('uv', new T.BufferAttribute(uv, 2)); geo.setIndex(new T.BufferAttribute(idx, 1)); geo.computeBoundingSphere();
       const m = new T.Mesh(geo, terrainMat); m.name = 'tile'; terrain.add(m); tiles.push(m);
     }
-    if (mapTex) mapTex.dispose(); mapTex = new T.CanvasTexture(texCanvas(img)); mapTex.anisotropy = R3.software ? 1 : Math.min(2, renderer.capabilities.getMaxAnisotropy()); mapTex.wrapS = mapTex.wrapT = T.ClampToEdgeWrapping; U.map.value = mapTex;
+    if (mapTex) mapTex.dispose(); mapTex = new T.CanvasTexture(texCanvas(img)); mapTex.colorSpace = T.SRGBColorSpace; mapTex.anisotropy = R3.software ? 1 : Math.min(2, renderer.capabilities.getMaxAnisotropy()); mapTex.wrapS = mapTex.wrapT = T.ClampToEdgeWrapping; U.map.value = mapTex;
     if (!fogTex) { fogCv = document.createElement('canvas'); fogCv.width = 512; fogCv.height = 1024; fogTex = new T.CanvasTexture(fogCv); fogTex.minFilter = T.LinearFilter; fogTex.generateMipmaps = false; U.fogMap.value = fogTex; }
-    scene.add(terrain); R3.terrain = terrain; R3.terrainTiles = tiles;
+    scene.add(terrain); R3.terrain = terrain; R3.terrainTiles = tiles; attachDetail();
     for (const p of props.values()) placeProp(p);
   }
   R3.rebuildTerrain = buildTerrain;
+  let detailOn = false;
+  function texAvg(X, name) { try { if (typeof X.avg === 'function') { const h = X.avg(name); if (typeof h === 'string' && /^#[0-9a-f]{6}$/i.test(h)) { const c = new T.Color(h); return c.r * .299 + c.g * .587 + c.b * .114; } }
+    const c = typeof X.canvas === 'function' && X.canvas(name); if (!c || !c.width) return .45; const k = document.createElement('canvas'); k.width = k.height = 8; const g = k.getContext('2d'); g.drawImage(c, 0, 0, 8, 8);
+    const d = g.getImageData(0, 0, 8, 8).data; let a = 0; for (let i = 0; i < d.length; i += 4) { const l = (d[i] * .299 + d[i + 1] * .587 + d[i + 2] * .114) / 255; a += Math.pow(l, 2.2); } return a / 64; } catch (e) { return .45; } }
+  function attachDetail() {
+    if (detailOn) return true; const X = R.tex; if (!X || typeof X.get !== 'function') return false;
+    const get = (n, alt) => { try { return X.get(n) || (alt && X.get(alt)) || null; } catch (e) { return null; } };
+    const g = get('grass'), sa = get('sand'), sn = get('snow'), rk = get('rock'); if (!g || !sa || !sn || !rk) return false;
+    for (const t of [g, sa, sn, rk]) if (t.wrapS !== T.RepeatWrapping) { t.wrapS = t.wrapT = T.RepeatWrapping; t.needsUpdate = true; }
+    U.dGrass.value = g; U.dSand.value = sa; U.dSnow.value = sn; U.dRock.value = rk; U.dAvg.value.set(texAvg(X, 'grass'), texAvg(X, 'sand'), texAvg(X, 'snow'), texAvg(X, 'rock')); U.uDetCol.value = 1;
+    detailOn = true; R3.detail = true; return true; }
+  R3.attachDetail = attachDetail;
+  R.bus.on('tick1s', () => { if (!detailOn) attachDetail(); });
   function refreshFog() { if (!fogCv) return; const g = fogCv.getContext('2d'); g.clearRect(0, 0, 512, 1024); if (Rd.fogCanvas && !Rd.fogEmpty()) { g.imageSmoothingEnabled = true; g.drawImage(Rd.fogCanvas, 0, 0, 512, 1024); } fogTex.needsUpdate = true; }
   R.bus.on('fog', refreshFog);
-  R.bus.on('tick1s', () => { if (!terrainHasArt && drawable(R.assets && R.assets.map)) buildTerrain(); });
+  R.bus.on('tick1s', () => { if ((!terrainHasArt && drawable(R.assets && R.assets.map)) || (terrain && !seaFromWater && waterReady())) buildTerrain(); });
 
   /* ---------- sun / fog / tint ---------- */
   R3.setSun = (elev, col, az) => { elev = clamp(elev == null ? 55 : elev, -10, 90); az = az == null ? 215 : az; const e = elev * DEG, a = az * DEG, d = new T.Vector3(Math.sin(a) * Math.cos(e), Math.sin(e), Math.cos(a) * Math.cos(e)).normalize();
     sun.position.copy(d).multiplyScalar(1000); sun.target.position.set(0, 0, 0); sun.intensity = 1.2 * clamp(Math.sin(Math.max(0, e)) + .12, 0, 1); if (col != null) sun.color.set(col);
-    U.sunDir.value.copy(d); U.sunCol.value.copy(sun.color).multiplyScalar(0.55 * clamp(Math.sin(Math.max(0, e)) + .12, 0, 1)); };
+    U.sunDir.value.copy(d); U.sunCol.value.copy(sun.color).multiplyScalar(0.55 * clamp(Math.sin(Math.max(0, e)) + .12, 0, 1));
+    const k = clamp((elev + 6) / 30, 0, 1); _sc.copy(sun.color).lerp(new T.Color(1, 1, 1), .55); spriteLight.copy(_nightC).lerp(_sc, k); spriteLight.multiplyScalar(.78 + .22 * k); tintVer++; };
   R3.setFog = (col, near, far) => { if (col != null) { scene.fog.color.set(col); U.fogCol.value.copy(scene.fog.color); renderer.setClearColor(scene.fog.color, 1); } if (near != null) { scene.fog.near = near; U.fogNear.value = near; }
-    if (far != null) { scene.fog.far = far; U.fogFar.value = far; camera.far = Math.max(800, far * 1.25); camera.updateProjectionMatrix(); } }; // the far plane follows the fog: beyond it the sky is the fog colour anyway
-  let tintVer = 1; const tint = new T.Color(1, 1, 1);
+    if (far != null) { scene.fog.far = far; U.fogFar.value = far; camera.far = Math.max(800, far * 1.06); camera.updateProjectionMatrix(); } }; // the far plane follows the fog: beyond it the sky is the fog colour anyway
+  let tintVer = 1; const tint = new T.Color(1, 1, 1), spriteLight = new T.Color(1, 1, 1), _nightC = new T.Color(.5, .56, .78), _sc = new T.Color();
   R3.setTint = col => { tint.set(col); U.tint.value.copy(tint); tintVer++; };
   R3.setSky = (sky, gnd) => { if (sky != null) { hemi.color.set(sky); U.skyCol.value.copy(hemi.color).multiplyScalar(.62); } if (gnd != null) { hemi.groundColor.set(gnd); U.gndCol.value.copy(hemi.groundColor).multiplyScalar(.5); } };
   R3.setSun(55); R3.setFog(0x9fb0c4, 500, 1500);
@@ -611,7 +661,7 @@
   function spriteFor(e) {
     let s = sprites.get(e.id); if (s) return s;
     // DoubleSide so a mirrored (face -1) quad is not culled; forceSinglePass or three draws every transparent DoubleSide object twice
-    const mat = new T.SpriteMaterial({ transparent: true, alphaTest: .08, depthWrite: true, side: T.DoubleSide, forceSinglePass: true, fog: true }); const sp = new T.Sprite(mat); sp.center.set(.5, 0); sp.frustumCulled = false;
+    const mat = new T.SpriteMaterial({ transparent: true, alphaTest: .08, depthWrite: true, side: T.DoubleSide, forceSinglePass: true, fog: true, toneMapped: false }); const sp = new T.Sprite(mat); sp.center.set(.5, 0); sp.frustumCulled = false;
     s = { sp, mat, cv: null, tv: 0, ent: e, wh: 60 }; sprites.set(e.id, s); scene.add(sp); return s;
   }
   // flat discs: shadows (one instanced mesh for every billboard) and the hero's light
@@ -619,7 +669,7 @@
   const shadowTex = new T.CanvasTexture(glyph('shadow', (g, s) => { const gr = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2); gr.addColorStop(0, 'rgba(0,0,0,.5)'); gr.addColorStop(.6, 'rgba(0,0,0,.3)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, s, s); }, 64));
   const SH_MAX = 128;
   const shadows = new T.InstancedMesh(discGeo, new T.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), SH_MAX); shadows.frustumCulled = false; shadows.count = 0; shadows.instanceMatrix.setUsage(T.DynamicDrawUsage); shadows.renderOrder = 1; scene.add(shadows);
-  const lightTex = new T.CanvasTexture(glyph('light', (g, s) => { const gr = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2); gr.addColorStop(0, 'rgba(255,232,170,.5)'); gr.addColorStop(1, 'rgba(255,232,170,0)'); g.fillStyle = gr; g.fillRect(0, 0, s, s); }, 64));
+  const lightTex = new T.CanvasTexture(glyph('light', (g, s) => { const gr = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2); gr.addColorStop(0, 'rgba(255,236,190,.22)'); gr.addColorStop(1, 'rgba(255,236,190,0)'); g.fillStyle = gr; g.fillRect(0, 0, s, s); }, 64));
   const heroLight = new T.Mesh(discGeo, new T.MeshBasicMaterial({ map: lightTex, transparent: true, depthWrite: false, blending: T.AdditiveBlending })); heroLight.scale.set(150, 1, 150); heroLight.visible = false; scene.add(heroLight);
   const _m = new T.Matrix4(), _q = new T.Quaternion(), _p = new T.Vector3(), _s = new T.Vector3(), _f = new T.Frustum(), _pm = new T.Matrix4(), _sph = new T.Sphere();
   const stOn = v => !!v && (typeof v !== 'number' || v > 0);
@@ -637,7 +687,7 @@
       const wh = heightOf(e), gy = groundY(e.x, e.y);
       _sph.center.set(e.x, gy + wh / 2 + (e.z || 0), e.y); _sph.radius = wh; if (e !== hero && !_f.intersectsSphere(_sph)) continue;
       const s = spriteFor(e); seen.add(e.id); s.ent = e; s.wh = wh;
-      const cv = frameFor(e, wh); if (cv !== s.cv) { s.cv = cv; s.mat.map = texFor(cv); s.mat.needsUpdate = true; } else if (cv.dirty) texFor(cv);
+      const cv = frameFor(e, wh); if (cv !== s.cv) { s.cv = cv; const had = !!s.mat.map; s.mat.map = texFor(cv); if (!had) s.mat.needsUpdate = true; } else if (cv.dirty) texFor(cv);
       // canvas px -> world units and the feet anchor: 05_sprites' meta {ax, ay, h}; else units/anchor on the canvas; else critters 1 px = 1 unit (or e.h), feet at the bottom
       let u, ax = .5, ay = 1; const M = cv.meta;
       if (M && M.h > 0 && M.ax != null) { u = wh / M.h; ax = M.ax / cv.width; ay = M.ay / cv.height; }
@@ -650,7 +700,7 @@
       s.mat.opacity = a; s.mat.rotation = e.tumble && e.tumble.ang ? e.tumble.ang : e.kind === 'portal' ? R.t * 1.5 : 0;
       // hit flash: the sprite colour above 1 whitens the frame (no blending / shader change)
       const flash = e.flash > 0 || (e.hitT != null && R.t - e.hitT < .08);
-      if (flash) s.mat.color.setRGB(2.6, 2.4, 2.2); else if (s.flash || s.tv !== tintVer) s.mat.color.copy(tint);
+      if (flash) s.mat.color.setRGB(2.6, 2.4, 2.2); else if (s.flash || s.tv !== tintVer) s.mat.color.copy(tint).multiply(spriteLight);
       s.flash = flash; s.tv = tintVer;
       s.sp.visible = true; ns++;
       if (e.kind !== 'drop' && e.kind !== 'portal' && e.kind !== 'trap' && !(e.dead && a < .5) && n < SH_MAX && !(e.kind === 'critter' && (e.z || 0) > 60)) {
@@ -710,7 +760,8 @@
      follows the zoom (30 deg close .. 40 deg far). Yaw / distance ease toward their targets; a value written to R.cam.yaw / R.cam.dist
      from outside (tests, cut-scenes) is taken as the new target and snapped to. */
   R.cam.yaw = R.cam.yaw || 0; R.cam.dist = R.cam.dist || 420; R.cam.pitch = R.cam.pitch || 35 * DEG;
-  const CAM = { yawT: R.cam.yaw, distT: R.cam.dist, yawOut: R.cam.yaw, distOut: R.cam.dist, DMIN: 300, DMAX: 700, PMIN: 30, PMAX: 40, TURN: .0065 };
+  const CAM = { yawT: R.cam.yaw, distT: R.cam.dist, yawOut: R.cam.yaw, distOut: R.cam.dist, DMIN: 300, DMAX: 700, PMIN: 30, PMAX: 40, TURN: .0065, AHEAD: .14 };
+  const _la = new T.Vector3();
   R3.camCfg = CAM;
   const camT = new T.Vector3(R.W / 2, 30, R.H / 2); let camInit = false, lastPlayer = null; const look = { x: 0, y: 0 };
   Rd.snapCam = () => { camInit = false; };
@@ -733,10 +784,12 @@
     const k = camInit ? .14 : 1; if (!camInit || Math.hypot(tx - camT.x, ty - camT.z) > 1500) { camT.set(tx, 0, ty); camInit = true; camT.y = groundY(clamp(tx, 0, R.W), clamp(ty, 0, R.H)) + 30; } else { camT.x = lerp(camT.x, tx, k); camT.z = lerp(camT.z, ty, k); }
     camT.x = clamp(camT.x, 0, R.W); camT.z = clamp(camT.z, 0, R.H); camT.y = lerp(camT.y, groundY(camT.x, camT.z) + 30, camInit ? .1 : 1);
     const cp = Math.cos(C.pitch), sp = Math.sin(C.pitch), fx = Math.sin(C.yaw), fz = -Math.cos(C.yaw);
-    const cx = camT.x - fx * cp * C.dist, cz = camT.z - fz * cp * C.dist; let cy = camT.y + sp * C.dist;
+    // the camera looks a little past the hero (AHEAD x dist), so he stands below the screen centre with more of the way ahead in view
+    const ah = (CAM.AHEAD || 0) * C.dist, lx = camT.x + fx * ah, lz = camT.z + fz * ah;
+    const cx = lx - fx * cp * C.dist, cz = lz - fz * cp * C.dist; let cy = camT.y + sp * C.dist;
     // keep the camera above the ground under it and halfway back (hills behind the hero)
     const gc = Math.max(groundY(clamp(cx, 0, R.W), clamp(cz, 0, R.H)), groundY(clamp((cx + camT.x) / 2, 0, R.W), clamp((cz + camT.z) / 2, 0, R.H)) - 10) + 40; if (cy < gc) cy = gc;
-    camera.position.set(cx, cy, cz); camera.lookAt(camT); camera.updateMatrixWorld(true);
+    camera.position.set(cx, cy, cz); _la.set(lx, camT.y, lz); camera.lookAt(_la); camera.updateMatrixWorld(true);
     C.x = camT.x; C.y = camT.z; C.z = (R.vh / 2) / (camera.position.distanceTo(camT) * Math.tan(camera.fov * DEG / 2));
     C.fwd = { x: fx, y: fz };
   }
@@ -746,15 +799,16 @@
      fragment shader (chained after the module's own onBeforeCompile, its cache key kept + '|occ'): a fragment nearer to the camera than
      the hero and inside an ellipse around the hero and the fight around him is discarded by a 4x4 ordered dither (a soft see-through
      hole, no transparency sorting); anything within 120 units of the camera fades too. */
-  const OCC = { uOccP: { value: new T.Vector4(0, 0, 0, 0) }, uOccR: { value: new T.Vector3(.32, .42, 1) } };
+  const OCC = { uOccP: { value: new T.Vector4(0, 0, 0, 0) }, uOccR: { value: new T.Vector3(.32, .42, 1) }, uOccH: { value: new T.Vector4(0, -1e5, 0, 0) } };
   R3.occ = OCC;
-  const OCC_V = 'varying vec4 vOccC;\n', OCC_F = 'varying vec4 vOccC; uniform vec4 uOccP; uniform vec3 uOccR;\n' +
+  const OCC_V = 'varying vec4 vOccC; varying vec3 vOccW;\n', OCC_F = 'varying vec4 vOccC; varying vec3 vOccW; uniform vec4 uOccP; uniform vec3 uOccR; uniform vec4 uOccH;\n' +
     'float occB(vec2 p){ vec2 q = mod(floor(p), 4.0); float i = q.x + q.y * 4.0;\n' +
     ' return (i<0.5?0.0:i<1.5?8.0:i<2.5?2.0:i<3.5?10.0:i<4.5?12.0:i<5.5?4.0:i<6.5?14.0:i<7.5?6.0:i<8.5?3.0:i<9.5?11.0:i<10.5?1.0:i<11.5?9.0:i<12.5?15.0:i<13.5?7.0:i<14.5?13.0:5.0) / 16.0 + 0.03; }\n' +
     'void occTest(){ if (uOccP.w < 0.5) return; vec2 n = vOccC.xy / vOccC.w; float dz = vOccC.w;\n' +
     ' vec2 d = vec2((n.x - uOccP.x) * uOccR.z / uOccR.x, (n.y - uOccP.y) / uOccR.y); float r = length(d);\n' +
-    ' float k = (1.0 - smoothstep(0.55, 1.0, r)) * step(dz, uOccP.z - 18.0) * 0.92;\n' +
+    ' float k = (1.0 - smoothstep(0.62, 1.0, r)) * step(dz, uOccP.z - 18.0) * 1.04;\n' +
     ' k = max(k, 1.0 - smoothstep(70.0, 130.0, dz));\n' +
+    ' float hd = distance(vOccW.xz, uOccH.xz); k = max(k, (1.0 - smoothstep(uOccH.w * 0.7, uOccH.w, hd)) * step(uOccH.y + 6.0, vOccW.y) * step(dz, uOccP.z + 40.0));\n' +
     ' if (k > 0.0 && k >= occB(gl_FragCoord.xy)) discard; }\n';
   const MAIN = /void\s+main\s*\(\s*\)\s*\{/;
   function occPatch(m) {
@@ -764,8 +818,8 @@
     m.onBeforeCompile = function (sh, rr) {
       if (typeof prev === 'function') { try { prev.call(this, sh, rr); } catch (e) {} }
       if (!/#include <project_vertex>/.test(sh.vertexShader) || !MAIN.test(sh.fragmentShader)) return;
-      sh.uniforms.uOccP = OCC.uOccP; sh.uniforms.uOccR = OCC.uOccR;
-      sh.vertexShader = OCC_V + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n vOccC = gl_Position;');
+      sh.uniforms.uOccP = OCC.uOccP; sh.uniforms.uOccR = OCC.uOccR; sh.uniforms.uOccH = OCC.uOccH;
+      sh.vertexShader = OCC_V + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n vOccC = gl_Position; { vec4 ow = vec4(transformed, 1.0);\n#ifdef USE_INSTANCING\n ow = instanceMatrix * ow;\n#endif\n vOccW = (modelMatrix * ow).xyz; }');
       sh.fragmentShader = OCC_F + sh.fragmentShader.replace(MAIN, 'void main() {\n occTest();');
     };
     m.customProgramCacheKey = function () { let k = ''; try { k = typeof prevKey === 'function' ? prevKey.call(this) : ''; } catch (e) {} return k + '|occ' + (typeof prev === 'function' ? String(prev).length : 0); };
@@ -775,12 +829,12 @@
   function occScan() { scene.traverse(o => { if (!o.isMesh || o === shadows || o === heroLight || (o.parent && o.parent.name === 'terrain')) return; const mm = o.material; if (Array.isArray(mm)) mm.forEach(occPatch); else occPatch(mm); }); }
   const _hv = new T.Vector3();
   function occUpdate() {
-    if ((occN++ % 30) === 0) occScan();
+    if ((occN++ % 4) === 0) occScan();
     const p = R.player; if (!p || R3.occOff) { OCC.uOccP.value.w = 0; return; }
     const gy = groundY(p.x, p.y) + 30; _hv.set(p.x, gy, p.y).applyMatrix4(camera.matrixWorldInverse); const d = -_hv.z;
     _hv.set(p.x, gy, p.y).project(camera);
     // clip w = view depth; the hole is centred a bit above the hero's middle, wide enough for the mobs around him
-    OCC.uOccP.value.set(_hv.x, _hv.y + .04, d, d > 0 ? 1 : 0);
+    OCC.uOccP.value.set(_hv.x, _hv.y + .04, d, d > 0 ? 1 : 0); OCC.uOccH.value.set(p.x, gy - 30, p.y, R3.occInside == null ? 80 : R3.occInside);
     const zoom = 420 / Math.max(200, R.cam.dist || 420); OCC.uOccR.value.set(.34 * zoom, .3 * zoom, camera.aspect);
   }
 
@@ -814,14 +868,15 @@
         for (let i = 0; i <= g.P.length; i++) { if (i === g.P.length && !g.closed) break; const q = g.P[i % g.P.length], s = R.w2s(q[0], q[1], 6); if (s.behind || s.d > 3000) { up = true; continue; } if (up) ctx.moveTo(s.x, s.y); else ctx.lineTo(s.x, s.y); up = false; }
         ctx.lineWidth = 22; ctx.strokeStyle = 'rgba(215,40,40,' + (.08 + .05 * pulse) + ')'; ctx.stroke(); ctx.lineWidth = 9; ctx.strokeStyle = 'rgba(230,60,50,' + (.2 + .08 * pulse) + ')'; ctx.stroke(); ctx.lineWidth = 2.5; ctx.strokeStyle = 'rgba(255,120,100,' + (.55 + .3 * pulse) + ')'; ctx.stroke(); ctx.restore(); } }
     if (!(R.sys.vfx && R.sys.vfx.draw)) Rd.hook('vfx', 'drawWorld', ctx);
-    Rd.drawVignette(ctx);
+    if (!vigEl) Rd.drawVignette(ctx);
     Rd.hook('ambience', 'drawTint', ctx);
   }
 
   /* ---------- the system ---------- */
   let vw = 0, vh = 0, dpr = 0, lastState = null, ready = false;
   // portrait phones get a taller field of view so the sides of a fight stay on screen; the pixel ratio is capped at 1.5 (1 on software GL)
-  function resize() { if (vw === R.vw && vh === R.vh && dpr === R.dpr) return; vw = R.vw; vh = R.vh; dpr = R.dpr; renderer.setPixelRatio(Math.min(dpr || 1, R3.software ? 1 : 1.5)); renderer.setSize(vw, vh, false);
+  // the core resizes #gl to vw x dpr on window resizes: re-apply three's size whenever the buffer is not ours
+  function resize() { if (vw === R.vw && vh === R.vh && dpr === R.dpr && DYN.pr && gl.width === Math.floor(R.vw * DYN.pr)) return; vw = R.vw; vh = R.vh; dpr = R.dpr; DYN.pr = 0; prApply(prCap());
     camera.aspect = vw / Math.max(1, vh); camera.fov = camera.aspect < .62 ? 64 : camera.aspect < 1 ? 58 : 50; camera.updateProjectionMatrix(); }
   // projectiles (kind 'proj') on the overlay at chest height: A11's R.combat.drawProj when present, else a short streak
   function drawProjs(ctx) { const C = R.combat, dp = C && typeof C.drawProj === 'function' ? C.drawProj : null; const hero = R.player; if (!hero) return;
@@ -829,11 +884,31 @@
       try { if (dp) dp(ctx, q); else { const a = R.w2s(e.x, e.y, q.z), l = Math.hypot(e.vx || 0, e.vy || 0) || 1, b = R.w2s(e.x - (e.vx || 0) / l * 14, e.y - (e.vy || 0) / l * 14, q.z); if (!a.behind && !b.behind) { ctx.strokeStyle = e.col || '#f1dca3'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); } } } catch (x) {}
     } }
   R.sys.render.update = function () { resize(); if (!terrain) buildTerrain(); updateCam(); if (R.state !== lastState) { lastState = R.state; Rd.fogCheck(); } };
-  R.sys.render.draw = function (ctx) {
-    const t0 = performance.now(); resize(); if (!terrain) buildTerrain(); if (!camInit) updateCam();
+  /* dynamic resolution: the drawing buffer's pixel ratio starts at min(dpr, 1.5) (0.75 on software GL) and steps down by .15 (to .6) while
+     the frame interval averages over 24 ms (under ~42 fps), back up after 4 s under 15 ms; R3.prFixed = a number pins it (tests). */
+  const DYN = { pr: 0, n: 0, sum: 0, last: 0, good: 0, MIN: .6 };
+  R3.dyn = DYN;
+  function prCap() { return R3.prFixed > 0 ? R3.prFixed : Math.min(R.dpr || 1, R3.software ? .75 : 1.5); }
+  function prApply(pr) { pr = Math.round(clamp(pr, R3.prFixed > 0 ? R3.prFixed : DYN.MIN, prCap()) * 100) / 100; if (pr === DYN.pr) return; DYN.pr = pr; renderer.setPixelRatio(pr); renderer.setSize(R.vw, R.vh, false); }
+  function prTick(now) {
+    if (!DYN.pr) prApply(prCap());
+    const d = DYN.last ? now - DYN.last : 16; DYN.last = now; if (d > 250) return; // a hidden tab or a pause, not a slow frame
+    DYN.sum += d; DYN.n++; if (DYN.n < 45) return; const avg = DYN.sum / DYN.n; DYN.sum = DYN.n = 0; DYN.avg = avg;
+    if (avg > 24 && DYN.pr > DYN.MIN) { prApply(DYN.pr - .15); DYN.good = 0; }
+    else if (avg < 15) { if (++DYN.good >= 5 && DYN.pr < prCap()) { prApply(DYN.pr + .15); DYN.good = 0; } } else DYN.good = 0;
+  }
+  // the 3D frame alone (no overlay): also R3.render() / draw() / frame() for tests
+  function frame3d(force) {
+    resize(); if (!terrain) buildTerrain(); if (!camInit) updateCam();
     if (!fogTex.image.__drawn && Rd.fogCanvas) { fogTex.image.__drawn = true; refreshFog(); }
     syncProps(); syncSprites(); occUpdate();
-    renderer.render(scene, camera); R3.stats.calls = renderer.info.render.calls;
+    renderer.render(scene, camera); const ri = renderer.info.render; R3.stats.calls = ri.calls; R3.stats.tris = ri.triangles; R3.stats.tex = renderer.info.memory.textures; R3.stats.pr = DYN.pr;
+    return true;
+  }
+  R3.render = R3.draw = R3.frame = () => frame3d(true);
+  R.sys.render.draw = function (ctx) {
+    const t0 = performance.now(); prTick(t0);
+    frame3d(false);
     overlay(ctx);
     if (!ready) { ready = true; R.bus.emit('render3d', R3); }
     const ms = performance.now() - t0; Rd.stats.last = ms; const h = Rd.stats.hist; h.push(ms); if (h.length > 120) h.shift();

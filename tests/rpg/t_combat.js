@@ -19,7 +19,11 @@ const ok = (c, name, info) => { console.log((c ? 'OK   ' : 'FAIL ') + name + (in
   /* page-side helpers: a fresh arena with one player entity at (1000,1000) facing +x */
   await pg.evaluate(() => {
     window.T = {};
-    T.reset = (hp = 400) => { R.ents.length = 0; R.state = R.newState(); R.t = 0; R.rng(7);
+    /* the integrated build runs ~30 systems; the arena keeps only combat's own (status ticks, mob AI, projectiles) so the world's
+       population, region gates, physics impulses and the player's stat recalculation do not move or rescale the test entities */
+    const KEEP = ['combat', 'ai', 'proj'];
+    T.isolate = () => { R.sysList = R.sysList.filter(s => KEEP.includes(s.name) || KEEP.some(k => R.sys[k] === s)); if (R.phys) R.phys.off = true; };
+    T.reset = (hp = 400) => { T.isolate(); R.ents.length = 0; R.state = R.newState(); R.t = 0; R.rng(7);
       R.player = R.spawn({ kind: 'player', team: 0, x: 1000, y: 1000, hp, hpMax: hp, atk: 20, def: 10, crit: 0, r: 14, face: 1, name: 'Hero' });
       T.hits = []; T.kills = []; T.xp = 0; T.gold = 0; return R.player; };
     T.steps = n => { for (let i = 0; i < n; i++) R.step(); };
@@ -38,18 +42,30 @@ const ok = (c, name, info) => { console.log((c ? 'OK   ' : 'FAIL ') + name + (in
   ok(r.dist < 80, 'mob stands at melee reach after the hit', r.dist);
 
   /* 2. R.hit applies def, no crit when crit = 0, kills, rewards */
-  r = await pg.evaluate(() => { T.reset(); const m = R.spawnMob('sword', 1500, 1500, 1); m.def = 100; m.hp = m.hpMax = 1000; m.ai.off = true;
+  r = await pg.evaluate(() => { T.reset(); const m = R.spawnMob('sword', 1500, 1500, 1); m.def = 50; m.hp = m.hpMax = 1000; m.ai.off = true; R.player.atk = 50;
     const a = R.hit(R.player, m, 50, { kind: 'phys' }); const hp1 = m.hp;
     m.def = 0; const b = R.hit(R.player, m, 50); const hp2 = m.hp;
     const k = R.spawnMob('axe', 1600, 1600, 2); k.hp = 10; k.def = 0; const xp0 = R.state.p.xp, gold0 = R.state.p.gold;
     const c = R.hit(R.player, k, 50); T.steps(1);
     const killed = (R.acc && R.acc().world && R.acc().world.killed) || (R.state.acc && R.state.acc.world && R.state.acc.world.killed) || R.state.p.killed;
-    return { a: a.dmg, hp1, b: b.dmg, hp2, crit: a.crit || b.crit, killed: c.killed, dead: k.dead, anim: k.anim, lastHitBy: k.lastHitBy === R.player, kills: T.kills, xpGain: R.state.p.xp - xp0, goldGain: R.state.p.gold - gold0, xpEv: T.xp, cnt: killed && killed.axe, hurt: m.anim }; });
-  ok(r.a === 25 && r.hp1 === 975, 'def 100 halves the damage (50 → 25)', r);
+    return { a: a.dmg, hp1, b: b.dmg, hp2, crit: a.crit || b.crit, killed: c.killed, dead: k.dead, anim: k.anim, lastHitBy: k.lastHitBy === R.player, kills: T.kills, xpGain: R.state.p.xp - xp0, goldGain: (R.state.p.gold - gold0) + R.ents.filter(e => e.kind === 'drop' && e.sub === 'gold').reduce((a, e) => a + (e.amount || 0), 0), xpEv: T.xp, cnt: killed && killed.axe, hurt: m.anim }; });
+  ok(r.a === 25 && r.hp1 === 975, 'atk 50 through def 50 is halved (balance dmg: atk²/(atk+def) = 25)', r);
   ok(r.b === 50 && r.hp2 === 925 && !r.crit, 'def 0 keeps 50; no crit at crit 0', r);
   ok(r.killed && r.dead && r.anim === 'die' && r.lastHitBy && r.kills.length === 1 && r.kills[0] === 'axe', 'hp ≤ 0 → R.kill, die anim, lastHitBy, kill event', r);
-  ok(r.xpGain > 0 && r.xpEv === r.xpGain && r.goldGain >= 4 && r.cnt === 1, 'kill gives xp + gold to the save and counts killed.axe', r);
+  ok(r.xpGain > 0 && r.xpEv === r.xpGain && r.goldGain >= 4 && r.cnt === 1, 'kill gives xp to the save, gold (to the save or dropped on the ground) and counts killed.axe', r);
   ok(r.hurt === 'hurt', 'a hit target shows the hurt anim', r.hurt);
+
+  /* 2a. a kill pays xp exactly once and rolls loot exactly once, though 20_combat, 21_player and 32_loot all listen to 'kill' */
+  r = await pg.evaluate(() => { T.reset(); if (R.plr && R.plr.attach) { R.plr.attach(R.player); R.player.atk = 20; R.player.def = 10; R.player.hp = R.player.hpMax = 400; }
+    let xpEv = 0, drops = 0; const f1 = () => xpEv++, f2 = e => { if (e && e.kind === 'drop') drops++; }; R.bus.on('xp', f1); R.bus.on('spawn', f2);
+    const m = R.spawnMob('axe', 1040, 1000, 1); m.ai.off = true; m.hp = 5; const xp0 = R.state.p.xp;
+    R.hit(R.player, m, 50); const xp1 = R.state.p.xp, d1 = drops; R.bus.emit('kill', m, R.player); R.kill(m, R.player); T.steps(2);
+    const sm = R.spawnMob('axe', 1060, 1000, 1, { summoned: m, noReward: true }); sm.ai.off = true; const ev0 = xpEv, dr0 = drops; R.hit(R.player, sm, 1e6); T.steps(1);
+    R.bus.off('xp', f1); R.bus.off('spawn', f2);
+    return { xpEv: ev0, gained: xp1 - xp0, mobXp: m.xp, drops1: d1, dropsAfter: dr0, xpAfter: R.state.p.xp - xp0, nrXp: xpEv - ev0, nrDrops: drops - dr0 }; });
+  ok(r.xpEv === 1 && r.gained === r.mobXp && r.gained > 0 && r.xpAfter === r.gained, 'a kill pays its xp once (a second kill event pays nothing)', r);
+  ok(r.drops1 >= 1 && r.dropsAfter === r.drops1, 'a kill rolls its loot once (gold on the ground; a second kill event drops nothing)', r);
+  ok(r.nrXp === 0 && r.nrDrops === 0, 'a noReward summon pays no xp and drops nothing', r);
 
   /* 2b. crit: chance 1 → ×1.6 */
   r = await pg.evaluate(() => { T.reset(); const m = R.spawnMob('sword', 1500, 1500, 1); m.def = 0; m.hp = m.hpMax = 1000; m.ai.off = true; R.player.crit = 1; const a = R.hit(R.player, m, 50); R.player.crit = 0; return { dmg: a.dmg, crit: a.crit }; });
@@ -123,19 +139,21 @@ const ok = (c, name, info) => { console.log((c ? 'OK   ' : 'FAIL ') + name + (in
 
   /* 9. mobs stop at a safe POI's edge; separation keeps them apart */
   r = await pg.evaluate(() => { T.reset(); R.data.world = { pois: [{ id: 'wf', kind: 'castle', x: 1000, y: 1000 }, { id: 'camp', kind: 'camp', x: 5000, y: 5000 }] };
-    const m = R.spawnMob('axe', 1300, 1000, 1); T.steps(300); const d = Math.round(R.dist(m, R.player));
+    const q = R.spawnMob('axe', 1290, 1060, 1); T.steps(120); const quiet = { st: q.ai.st, d: Math.round(R.dist(q, R.player)) }; R.remove(q);
+    const m = R.spawnMob('axe', 1300, 1000, 1); T.steps(2); R.hit(R.player, m, 1); T.steps(200); const d = Math.round(R.dist(m, R.player));
     const c = R.spawnMob('axe', 5000, 5000, 1); c.ai.t = 1e9; T.steps(2); const cd = Math.round(Math.hypot(c.x - 5000, c.y - 5000));
     const a1 = R.spawnMob('axe', 6000, 6000, 1), a2 = R.spawnMob('axe', 6000, 6000, 1); a1.ai.t = a2.ai.t = 1e9; T.steps(3); const sep = Math.round(R.dist(a1, a2));
-    delete R.data.world; return { d, hits: T.hits.length, st: m.ai.st, cd, sep, rsum: Math.round(a1.r + a2.r) }; });
-  ok(r.d >= 160 && r.d <= 175 && r.hits === 0, 'a mob stops at the castle safe radius (160) and cannot reach the player inside', r);
+    delete R.data.world; return { quiet, d, hits: T.hits.filter(h => h.tgt === R.player.id).length, st: m.ai.st, cd, sep, rsum: Math.round(a1.r + a2.r) }; });
+  ok(r.quiet.st !== 'chase' && r.quiet.st !== 'attack' && r.quiet.d > 250, 'a mob does not aggro a hero who stands inside a castle', r.quiet);
+  ok(r.d >= 160 && r.d <= 175 && r.hits === 0, 'a provoked mob chases to the castle safe radius (160) and cannot reach the player inside', r);
   ok(r.cd < 2, 'a camp is not a safe POI', r.cd);
   ok(r.sep >= r.rsum - 1, 'two mobs on one spot separate to their radius sum', r);
 
   /* 10. R.data.mobs entries are honoured; R.mobs.statsAt wins when present; elite scales */
-  r = await pg.evaluate(() => { T.reset(); R.data.mobs = { axe: { name: 'Test wight', hp: 77, atk: 5, def: 0, spd: 100, role: 'melee', sprite: 'axe', wight: 1 }, bowman: { hp: 40, atk: 6, spd: 120, role: 'ranged', range: 250 } };
+  r = await pg.evaluate(() => { T.reset(); const keepMobs = R.mobs, keepData = R.data.mobs; R.mobs = undefined; R.data.mobs = { axe: { name: 'Test wight', hp: 77, atk: 5, def: 0, spd: 100, role: 'melee', sprite: 'axe', wight: 1 }, bowman: { hp: 40, atk: 6, spd: 120, role: 'ranged', range: 250 } };
     const a = R.spawnMob('axe', 2000, 2000, 1), bw = R.spawnMob('bowman', 2000, 2100, 1), g = R.spawnMob('giant', 2000, 2200, 1), e = R.spawnMob('axe', 2000, 2300, 1, { elite: true });
-    R.mobs = { statsAt: (t, l) => ({ hp: 500 + l }) }; const s = R.spawnMob('axe', 2000, 2400, 3); delete R.mobs; delete R.data.mobs;
-    return { a: [a.hpMax, a.atk, a.spd, a.name, a.sprite], bw: [bw.role, bw.range, bw.hpMax], g: [g.hpMax, g.role, g.name], e: [e.hpMax, e.name], s: s.hpMax, lvl5: R.spawnMob('axe', 2000, 2500, 5).hpMax }; });
+    R.mobs = { statsAt: (t, l) => ({ hp: 500 + l }) }; const s = R.spawnMob('axe', 2000, 2400, 3); R.mobs = undefined; R.data.mobs = undefined;
+    return { a: [a.hpMax, a.atk, a.spd, a.name, a.sprite], bw: [bw.role, bw.range, bw.hpMax], g: [g.hpMax, g.role, g.name], e: [e.hpMax, e.name], s: s.hpMax, lvl5: (() => { const v = R.spawnMob('axe', 2000, 2500, 5).hpMax; R.mobs = keepMobs; R.data.mobs = keepData; return v; })() }; });
   ok(r.a[0] === 77 && r.a[1] === 5 && r.a[2] === 100 && r.a[3] === 'Test wight', 'R.data.mobs numbers are used as given (lvl 1 = ×1)', r.a);
   ok(r.bw[0] === 'ranged' && r.bw[1] === 250 && r.bw[2] === 40, 'a data-only type works (no fallback row)', r.bw);
   ok(r.g[0] === 580 && r.g[1] === 'melee' && r.g[2] === 'Wight giant', 'a type missing from R.data.mobs falls back to the old table', r.g);

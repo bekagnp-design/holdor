@@ -12,7 +12,10 @@ const ROOT = path.resolve(__dirname, '..', '..'); const SC = path.join(ROOT, '.s
   await page.waitForFunction(() => window.R && R.skills && R.data && R.data.skills && R.screens && R.screens.skills, { timeout: 20000 });
   const out = {}; let fails = 0; const ok = (k, v, info) => { out[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); if (!v) fails++; };
   // the scene: a hero of the given class at level 60 and five sturdy dummies around him
-  const scene = (cls, lvl) => page.evaluate(([cls, lvl]) => { R.stop && R.stop(); R.paused = false; R.ents.length = 0; R.state = R.newState(); const p = R.state.p; p.cls = cls; p.lvl = lvl; p.skills = {}; p.bar = [null, null, null]; delete p.sigSet; delete p.hero;
+  /* the integrated build runs ~30 systems: the scene keeps the skills' and combat's own, so the world's population (new mobs would add hp
+     to the sum), its gates, physics and the hero's stat recalculation (21_player) leave the scene alone */
+  const scene = (cls, lvl) => page.evaluate(([cls, lvl]) => { R.sysList = R.sysList.filter(s => ['skills', 'combat', 'ai', 'proj'].includes(s.name)); if (R.phys) R.phys.off = true;
+    R.stop && R.stop(); R.paused = false; R.ents.length = 0; R.state = R.newState(); const p = R.state.p; p.cls = cls; p.lvl = lvl; p.skills = {}; p.bar = [null, null, null]; delete p.sigSet; delete p.hero;
     R.player = R.spawn({ kind: 'player', team: 0, x: 3000, y: 6000, r: 14, hp: 400, hpMax: 400, atk: 40, def: 10, lvl, face: 1, name: 'Hero' }); R.cam.x = 3000; R.cam.y = 6000; R.cam.z = 1;
     const at = [[30, 0], [60, 30], [-40, -20], [90, -10], [0, -75]]; for (const [dx, dy] of at) R.spawn({ kind: 'mob', type: 'axe', team: 1, x: 3000 + dx, y: 6000 + dy, r: 14, hp: 100000, hpMax: 100000, atk: 5, def: 2, spd: 100, lvl: 10, name: 'Dummy' });
     R.skills.sync(); return R.skills.list().map(s => s.id); }, [cls, lvl]);

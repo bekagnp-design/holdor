@@ -186,7 +186,7 @@
     },
     list: async () => {
       if (!N.on) return C.msgs;
-      const z = N.zone || ''; if (z !== C.zone) { C.zone = z; C.since = 0; C.msgs = []; }
+      const z = N.zone || ''; if (z !== C.zone) { C.zone = z; C.since = 0; C.msgs = []; C.unread = 0; }   /* a new zone, a new chat */
       const r = await N.rpc('rpg_chat_list', { token: N.token, seat: N.seat, zone: C.zone, since: C.since });
       if (r && Array.isArray(r.msgs) && r.msgs.length) {
         const seen = new Set(C.msgs.map(m => m.id)), add = r.msgs.filter(m => !seen.has(m.id));

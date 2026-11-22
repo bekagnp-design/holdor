@@ -110,7 +110,7 @@
     const pri = el('button', 'pri', 'RESUME'); pri.dataset.act = 'resume'; root.appendChild(tap(pri, () => R.ui.close()));
     const L = el('div', 'mn-list'); root.appendChild(L);
     const add = (ico, label, scr, sub) => { const b = row(ico, label, sub, () => goto(scr), R.screens[scr] ? '' : 'dim'); b.dataset.scr = scr; L.appendChild(b); };
-    add('skills', 'Skills', 'skills'); add('heroes', 'Heroes', 'heroes'); add('quests', 'Quests', 'quests'); add('ach', 'Achievements', 'achievements');
+    add('skills', 'Skills', 'skills'); add('heroes', 'Heroes', 'heroes'); add('quests', 'Quests', 'quests'); add('ach', 'Achievements', R.screens.achievements ? 'achievements' : 'ach');
     add('hall', 'Hall of the Fallen', 'hall', (acc() && acc().hall && acc().hall.length ? acc().hall.length + ' fallen' : null));
     if (R.screens.board) add('board', 'Leaderboard', 'board');
     add('chat', 'Chat', 'chat');
@@ -124,7 +124,9 @@
     L.appendChild(sw('dmgnum', 'Damage numbers', 'Numbers fly off every hit')); L.appendChild(sw('manual', 'Manual stat points', 'You place the 3 points each level'));
     root.appendChild(foot()); };
 
-  const wipe = () => { try { localStorage.removeItem('holdor_rpg'); } catch (e) {} R.state = null; R.stop(); R.bus.emit('wipe'); if (typeof R.reload === 'function') R.reload(); else location.reload(); };
+  // a save already queued (debounced) or a module saving on 'wipe' must not write the old account back before the reload
+  const rm = () => { try { localStorage.removeItem('holdor_rpg'); } catch (e) {} };
+  const wipe = () => { rm(); R.save = () => false; R.state = null; R.stop(); R.bus.emit('wipe'); rm(); setTimeout(rm, 0); setTimeout(rm, 1000); if (typeof R.reload === 'function') R.reload(); else location.reload(); };
   R.reload = R.reload || (() => location.reload());
   R.wipe = wipe;
   const renderAccount = () => { root.appendChild(head('Account', true)); const p = R.state && R.state.p || {}; const c = el('div', 'mn-card'); root.appendChild(c);
@@ -162,7 +164,8 @@
   if (T0) {
     R.tg.call('ready'); R.tg.call('expand'); R.tg.call('disableVerticalSwipes'); R.tg.call('setHeaderColor', '#060b14'); R.tg.call('setBackgroundColor', '#060b14');
     try { if (T0.MainButton && T0.MainButton.hide) T0.MainButton.hide(); } catch (e) {}
-    try { const BB = T0.BackButton; if (BB) { if (BB.onClick) BB.onClick(() => { R.haptic('light'); R.ui.close(); }); const sync = () => { try { if (R.ui.cur) BB.show(); else BB.hide(); } catch (e) {} }; R.bus.on('screen', sync); sync(); } } catch (e) {}
+    try { const BB = T0.BackButton; if (BB) { if (BB.onClick) BB.onClick(() => { R.haptic('light'); R.ui.close(); }); const NOBACK = { intro: 1, death: 1 };   // screens that must be answered, not closed (the title / house pick, the fallen hero)
+        const sync = () => { try { if (R.ui.cur && !NOBACK[R.ui.cur]) BB.show(); else BB.hide(); } catch (e) {} }; R.bus.on('screen', sync); sync(); } } catch (e) {}
     try { if (T0.onEvent) { T0.onEvent('viewportChanged', () => { try { R.resize(); } catch (e) {} }); T0.onEvent('themeChanged', () => R.tg.call('setHeaderColor', '#060b14')); } } catch (e) {}
   }
 })();

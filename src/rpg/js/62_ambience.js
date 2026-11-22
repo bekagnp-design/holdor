@@ -29,6 +29,7 @@
   let T = 0, wind = 0, wxT = 0, bioT = 0, gustT = 2, glT = 0, bioLock = null, tinted = false;
   A.gl = { elev: 0, sun: '', fog: '', near: 0, far: 0, calls: 0 };
   A.sun = { az: 0, el: 0 }; A.sunDir = { x: 0, y: 1, z: 0 }; A.moon = { phase: 0, lit: 0 };
+  A.lightsOn = true;                                 // false: no warm night glows (tests, dungeons)
   A.cloud = { on: true, k: .5, tex: null, in3d: false }; A.bolts = []; A.auroraK = 0; A.heatK = 0; A.stormlands = false; A.beyond = false; A.region = '';
   let ltT = 6; const thunder = [];
 
@@ -37,10 +38,13 @@
     [/iron|coast|sea|island|shore|bay|salt/, 'coast'], [/reach|crown|storm|west|king|plain|grass|forest|wood/, 'sun']];
   const regStr = reg => !reg ? '' : typeof reg === 'string' ? reg.toLowerCase() : [reg.biome, reg.id, reg.name].filter(x => x != null).join(' ').toLowerCase();
   A.biomeOf = reg => { const s = regStr(reg); if (!s) return 'none'; for (const [re, b] of BIO) if (re.test(s)) return b; return 'sun'; };
-  const setRegion = reg => { const s = regStr(reg); A.region = s; A.stormlands = /storm/.test(s); A.beyond = /beyond|winter|frost|always|haunted/.test(s); return A.biomeOf(reg); };
+  const setRegion = reg => { const s = regStr(reg); A.region = s; A.regWeather = reg && typeof reg === 'object' && typeof reg.weather === 'string' ? reg.weather.toLowerCase() : null; A.stormlands = /storm/.test(s); A.beyond = /beyond|winter|frost|always|haunted/.test(s); return A.biomeOf(reg); };
   const KNOWN = ['clear', 'snow', 'rain', 'sun', 'heat', 'spray'];
   const WX = { cold: [['snow', .65], ['clear', 1]], wet: [['rain', .4], ['clear', 1]], sun: [['sun', .75], ['clear', 1]], hot: [['heat', .75], ['clear', 1]], coast: [['spray', .7], ['clear', 1]], none: [['clear', 1]] };
-  const roll = () => { const r = rnd(); for (const [w, p] of WX[A.biome] || WX.none) if (r < p) return w; return 'clear'; };
+  // a region that names its weather (R.data.world regions: the Riverlands and the Stormlands 'rain', the North 'snow', Dorne 'sand') gets it 60 % of the time
+  let lastReg = '';
+  const RW = { rain: 'rain', storm: 'rain', snow: 'snow', sand: 'heat', heat: 'heat', spray: 'spray', sun: 'sun', clear: 'clear' };
+  const roll = () => { const rw = RW[A.regWeather]; if (rw && rnd() < .6) return rw; const r = rnd(); for (const [w, p] of WX[A.biome] || WX.none) if (r < p) return w; return 'clear'; };
 
   /* ---- clock ---- */
   const flags = () => { const S = R.state; if (!S) return null; const w = S.acc && S.acc.world; return (w && w.flags) || (S.p && S.p.flags) || null; };
@@ -160,6 +164,9 @@
     const f = FOG[A.weather] || FOG.clear, col = mix(mix(f[0], [236, 200, 160], warm * .5), [20, 30, 58], k);
     const near = R.lerp(f[1], Math.min(f[1], 500), k), far = R.lerp(f[2], Math.min(f[2], 1700), k);
     const g = A.gl; g.elev = Math.round(elev * 10) / 10; g.sun = hex(sun); g.fog = hex(col); g.near = Math.round(near); g.far = Math.round(far); g.calls++;
+    const t = A.tint, ta = t.op === 'multiply' || !t.op ? R.clamp(t.a, 0, 1) : 0; g.tint = hex(mix([255, 255, 255], [t.r, t.g, t.b], ta));
+    g.sky = hex(mix(mix([191, 212, 234], [236, 200, 160], warm * .4), [52, 68, 110], k)); g.gnd = hex(mix([90, 74, 58], [24, 26, 38], k));
+    try { if (typeof G.setTint === 'function') G.setTint(g.tint); if (typeof G.setSky === 'function') G.setSky(g.sky, g.gnd); } catch (e) {}
     try { G.setSun(g.elev, g.sun); if (typeof G.setFog === 'function') G.setFog(g.fog, g.near, g.far); if (typeof G.setCloudShadow === 'function' && !A.cloud.in3d) { G.setCloudShadow(cloudTex()); A.cloud.in3d = true; } } catch (e) { console.warn('ambience: render3d', e); }
   };
 
@@ -172,7 +179,7 @@
     wind = 22 * Math.sin(T / 9) + 10 * Math.sin(T / 3.1);
     // biome: twice a second from the player's (or the camera's) region
     bioT -= dt;
-    if (bioT <= 0) { bioT = .5; let b = A.biome; if (bioLock) b = setRegion(bioLock); else if (R.world && R.world.regionAt) { const e = R.player || R.cam; try { b = setRegion(R.world.regionAt(e.x, e.y)); } catch (x) { } } if (b !== A.biome) { A.biome = b; wxT = 0; } }
+    if (bioT <= 0) { bioT = .5; let b = A.biome; if (bioLock) b = setRegion(bioLock); else if (R.world && R.world.regionAt) { const e = R.player || R.cam; try { b = setRegion(R.world.regionAt(e.x, e.y)); } catch (x) { } } if (b !== A.biome || A.region !== lastReg) { A.biome = b; lastReg = A.region; wxT = 0; } }
     // weather: a roll every 90–180 s, or when the biome changes
     if (A.auto) { wxT -= dt; if (wxT <= 0) { wxT = 90 + rnd() * 90; const w = roll(); if (w !== A.weather) { A.weather = w; for (const p of A.parts) p.fade = true; } } }
     if (A.weather === 'heat' && A.nightK < .7) { gustT -= dt; if (gustT <= 0) { gustT = 3 + rnd() * 4; let n = Math.round((reduced ? 10 : 22)); while (n-- > 0 && A.parts.length < A.cap) add('gust'); } }
@@ -199,14 +206,24 @@
   let lightSpr = null;
   const light = () => { if (lightSpr) return lightSpr; const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'); const g = x.createRadialGradient(64, 64, 4, 64, 64, 64); g.addColorStop(0, 'rgba(255,200,120,.62)'); g.addColorStop(.45, 'rgba(255,160,80,.22)'); g.addColorStop(1, 'rgba(255,140,60,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); return lightSpr = c; };
   const poiXY = p => p.x != null ? [p.x, p.y] : p.pos ? (p.pos.x != null ? [p.pos.x, p.pos.y] : [p.pos[0], p.pos[1]]) : null;
+  let flakeCv = null, bandCv = null;
+  const band = () => { if (bandCv) return bandCv; const c = document.createElement('canvas'); c.width = 64; c.height = 32; const x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 0, 32);
+    g.addColorStop(0, 'rgba(255,240,210,0)'); g.addColorStop(.5, 'rgba(255,240,210,1)'); g.addColorStop(1, 'rgba(255,240,210,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 32);
+    const h = x.createLinearGradient(0, 0, 64, 0); h.addColorStop(0, 'rgba(0,0,0,1)'); h.addColorStop(.15, 'rgba(0,0,0,0)'); h.addColorStop(.85, 'rgba(0,0,0,0)'); h.addColorStop(1, 'rgba(0,0,0,1)');
+    x.globalCompositeOperation = 'destination-out'; x.fillStyle = h; x.fillRect(0, 0, 64, 32); return bandCv = c; };
+  const flake = () => { if (flakeCv) return flakeCv; const c = document.createElement('canvas'); c.width = c.height = 16; const x = c.getContext('2d'), g = x.createRadialGradient(8, 8, 0, 8, 8, 8);
+    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.35, 'rgba(250,252,255,.75)'); g.addColorStop(1, 'rgba(240,246,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 16, 16); return flakeCv = c; };
   const drawLights = ctx => {
-    const k = A.nightK; if (k < .05) { A.lights = 0; return; }
+    const k = A.nightK; if (k < .05 || A.lightsOn === false) { A.lights = 0; return; }
     const spr = light(), w = vw(), h = vh(), z = R.cam.z || 1; let n = 0;
     ctx.globalCompositeOperation = 'lighter';
     const one = (sx, sy, r, i, a) => { if (sx < -r || sy < -r || sx > w + r || sy > h + r || n >= 14) return; const f = r * (1 + .045 * Math.sin(T * 11 + i * 1.7)); ctx.globalAlpha = a * k; ctx.drawImage(spr, sx - f, sy - f, f * 2, f * 2); n++; };
-    if (R.player && !R.player.dead) { const s = R.w2s(R.player.x, R.player.y); one(s.x, s.y, 150 * z, 0, .9); }
+    const g3 = in3d(), cam = g3 && R.render3d.camera ? R.render3d.camera.position : null;
+    if (R.player && !R.player.dead) { const s = R.w2s(R.player.x, R.player.y); one(s.x, s.y, (g3 ? 110 : 150) * z, 0, g3 ? .3 : .9); }
     const pois = R.data.world && R.data.world.pois; let i = 1;
-    if (pois && pois.length) for (const p of pois) { const xy = poiXY(p); if (!xy) continue; const s = R.w2s(xy[0], xy[1]); one(s.x, s.y, 110 * z, i++, .8); if (n >= 14) break; }
+    if (pois && pois.length) for (const p of pois) { const xy = poiXY(p); if (!xy) continue; const s = R.w2s(xy[0], xy[1]); if (s.behind) continue;
+      let f = 1; if (cam) { const d = Math.hypot(cam.x - xy[0], cam.z - xy[1]); if (d > 1500 || s.y < h * .22) continue; f = R.clamp(480 / Math.max(1, d), .2, 1); }
+      one(s.x, s.y, 110 * z * f, i++, g3 ? .55 : .8); if (n >= 14) break; }
     if (n < 14) for (const e of R.ents) if (e.kind === 'portal' && !e.dead) { const s = R.w2s(e.x, e.y); one(s.x, s.y, 80 * z, i++, .7); }
     A.lights = n; ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   };
@@ -216,12 +233,12 @@
     for (const kind in K) {
       if (!cnt[kind]) continue;
       ctx.globalAlpha = 1;
-      if (kind === 'snow') { ctx.fillStyle = 'rgba(255,255,255,.82)'; ctx.beginPath(); for (const p of P) if (p.kind === kind) { ctx.moveTo(p.x + p.s, p.y); ctx.arc(p.x, p.y, p.s * p.k, 0, TAU); } ctx.fill(); }
-      else if (kind === 'rain') { ctx.strokeStyle = 'rgba(200,215,235,.42)'; ctx.lineWidth = 1; ctx.beginPath(); for (const p of P) if (p.kind === kind) { ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * .016 * p.k, p.y - p.s * p.k); } ctx.stroke(); }
+      if (kind === 'snow') { const f = flake(); for (const p of P) if (p.kind === kind) { const r = p.s * p.k * 1.9; ctx.globalAlpha = .55 + .1 * (3.4 - p.s); ctx.drawImage(f, p.x - r, p.y - r, r * 2, r * 2); } ctx.globalAlpha = 1; }   // soft flakes, not dots
+      else if (kind === 'rain') { ctx.strokeStyle = 'rgba(196,208,222,.28)'; ctx.lineWidth = 1.2; ctx.beginPath(); for (const p of P) if (p.kind === kind) { ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * .016 * p.k, p.y - p.s * p.k); } ctx.stroke(); }
       else if (kind === 'splash') { ctx.strokeStyle = 'rgba(210,225,240,.38)'; ctx.lineWidth = 1; ctx.beginPath(); for (const p of P) if (p.kind === kind) { const r = 1.5 + 7 * p.t / p.ttl; ctx.moveTo(p.x + r, p.y); ctx.arc(p.x, p.y, r, 0, TAU); } ctx.stroke(); }
       else if (kind === 'shaft') { ctx.fillStyle = 'rgb(255,242,205)'; for (const p of P) if (p.kind === kind) { ctx.globalAlpha = (.045 + .03 * Math.sin(T * .7 + p.ph)) * p.k; ctx.beginPath(); ctx.moveTo(p.x, 0); ctx.lineTo(p.x + p.s, 0); ctx.lineTo(p.x + p.s + p.sk, h); ctx.lineTo(p.x + p.sk, h); ctx.closePath(); ctx.fill(); } }
       else if (kind === 'pollen') { ctx.fillStyle = 'rgba(246,226,150,.62)'; ctx.beginPath(); for (const p of P) if (p.kind === kind) { ctx.moveTo(p.x + p.s, p.y); ctx.arc(p.x, p.y, p.s * p.k, 0, TAU); } ctx.fill(); }
-      else if (kind === 'shimmer') { ctx.fillStyle = 'rgb(255,240,210)'; const a = .055 * (1 + .7 * A.heatK); for (const p of P) if (p.kind === kind) { ctx.globalAlpha = a * p.k; ctx.fillRect(-20 + Math.sin(T * 3 + p.ph) * 10, p.y, w + 40, p.s); } }
+      else if (kind === 'shimmer') { const bd = band(), a = .07 * (1 + .7 * A.heatK); for (const p of P) if (p.kind === kind) { ctx.globalAlpha = a * p.k; const hh = p.s * 9; ctx.drawImage(bd, -30 + Math.sin(T * 3 + p.ph) * 12, p.y - hh * .5 + Math.sin(T * 1.3 + p.ph) * 3, w + 60, hh); } }   // soft warm bands, no hard lines
       else if (kind === 'gust') { ctx.strokeStyle = 'rgba(214,184,120,.5)'; ctx.lineWidth = 1.5; ctx.beginPath(); for (const p of P) if (p.kind === kind) { ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.s * p.k, p.y - p.vy * .02); } ctx.stroke(); }
       else if (kind === 'spray') { ctx.fillStyle = 'rgba(210,232,246,.5)'; ctx.beginPath(); for (const p of P) if (p.kind === kind) { const a = 1 - p.t / p.ttl; if (a <= 0) continue; const r = p.s * a * p.k; ctx.moveTo(p.x + r, p.y); ctx.arc(p.x, p.y, r, 0, TAU); } ctx.fill(); }
       else if (kind === 'gull') { ctx.strokeStyle = 'rgba(40,46,58,.75)'; ctx.lineWidth = 1.4; ctx.beginPath(); for (const p of P) if (p.kind === kind) { const f = p.s * .7 * Math.sin(T * 9 + p.ph); ctx.moveTo(p.x - p.s, p.y + f); ctx.lineTo(p.x, p.y); ctx.lineTo(p.x + p.s, p.y + f); } ctx.stroke(); }
@@ -263,6 +280,8 @@
       ctx.globalAlpha = .3 * a; ctx.strokeStyle = 'rgb(170,190,255)'; ctx.lineWidth = 6; path(); ctx.stroke(); ctx.globalAlpha = a; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.6; path(); ctx.stroke(); }
     ctx.globalAlpha = 1;
   };
+  // 3D (Addendum 2): #c is a transparent overlay over #gl, so the colour wash goes to R.render3d.setTint/setSky instead (drive3d)
+  const in3d = () => !!(R.render3d && typeof R.render3d.setTint === 'function' && R.render && R.render.mode === '3d');
   const drawTint = ctx => {
     const t0 = performance.now();
     ctx.save();
@@ -270,7 +289,7 @@
     if (A.on) {
       const t = A.tint;
       drawClouds(ctx);
-      if (t.a > 0) { ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = t.a; ctx.fillStyle = 'rgb(' + t.r + ',' + t.g + ',' + t.b + ')'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
+      if (t.a > 0 && !in3d()) { ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = t.a; ctx.fillStyle = 'rgb(' + t.r + ',' + t.g + ',' + t.b + ')'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
       drawAurora(ctx); drawMoon(ctx);
       drawLights(ctx);
       drawParts(ctx);

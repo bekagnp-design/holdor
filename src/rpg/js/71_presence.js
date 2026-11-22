@@ -22,10 +22,14 @@
   /* ---- ghosts ---- */
   const ghostOf = name => P.ghosts.find(g => g.name === name && !g.gone);
   P.sync = list => { if (!online() || !Array.isArray(list)) list = []; const seen = new Set(); const mine = me();
-    for (const o of list) { if (!o || !o.name || o.name === mine || seen.has(o.name)) continue; seen.add(o.name); let g = ghostOf(o.name);
+    /* heroes are champions, so many players share a name ("Brienne of Tarth"): the server never lists me, so a name like mine is another player;
+       each row matches the nearest unmatched ghost of the same name + house (within 900 u), else it is a new ghost */
+    const used = new Set();
+    const match = o => { let best = null, bd = 900; for (const q of P.ghosts) { if (q.gone || used.has(q) || q.name !== o.name || (q.house || '') !== (o.house || q.house || '')) continue; const d = Math.hypot((q.tx != null ? q.tx : q.x) - (+o.x || 0), (q.ty != null ? q.ty : q.y) - (+o.y || 0)); if (d < bd) { bd = d; best = q; } } return best; };
+    for (const o of list) { if (!o || !o.name) continue; let g = match(o); seen.add(o.name);
       if (!g) { g = R.spawn({ kind: 'ghost', ghost: true, team: 2, name: o.name, house: o.house || 'stark', lvl: o.lvl || 1, hero: o.hero || null, type: o.hero || null, x: +o.x || 0, y: +o.y || 0, r: 14, hp: 1, alpha: 0, solid: false, invuln: true, noHit: true, zone: o.zone, at: o.at, interact: { label: 'Greet', fn: () => P.greet(g) } }); g.tx = g.x; g.ty = g.y; P.ghosts.push(g); }
-      else { g.tx = +o.x || g.tx; g.ty = +o.y || g.ty; g.lvl = o.lvl || g.lvl; g.house = o.house || g.house; if (o.hero) g.hero = g.type = o.hero; g.zone = o.zone; g.at = o.at; if (Math.hypot(g.tx - g.x, g.ty - g.y) > 600) { g.x = g.tx; g.y = g.ty; } } }
-    for (const g of P.ghosts) if (!seen.has(g.name)) g.gone = true; };
+      else { g.tx = +o.x || g.tx; g.ty = +o.y || g.ty; g.lvl = o.lvl || g.lvl; g.house = o.house || g.house; if (o.hero) g.hero = g.type = o.hero; g.zone = o.zone; g.at = o.at; if (Math.hypot(g.tx - g.x, g.ty - g.y) > 600) { g.x = g.tx; g.y = g.ty; } } used.add(g); }
+    for (const g of P.ghosts) if (!used.has(g)) g.gone = true; };
   P.list = () => P.ghosts.filter(g => !g.gone && !g.dead).map(g => ({ name: g.name, house: g.house, lvl: g.lvl, hero: g.hero, x: g.x, y: g.y, zone: g.zone, col: hcol(g.house) }));
   P.nearest = r => { let best = null, bd = r || P.cfg.greetR; for (const g of P.ghosts) { if (g.gone) continue; const d = Math.hypot(g.x - px(), g.y - py()); if (d <= bd) { bd = d; best = g; } } return best; };
   const emote = (x, y, txt, col) => { if (R.fx && R.fx.num) { try { R.fx.num(x, y - 48, txt, col, true); return; } catch (e) {} } P.emotes.push({ x, y: y - 44, txt, col, t0: R.t }); };

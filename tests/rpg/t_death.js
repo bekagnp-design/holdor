@@ -10,7 +10,8 @@ const ROOT = path.resolve(__dirname, '..', '..');
   const errors = []; p.on('pageerror', e => errors.push('PE:' + e.message));
   const RES = {}; const ok = (k, v, info) => { RES[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
   await p.goto('file://' + path.resolve(ROOT, process.env.HOLDOR_HTML || 'beta/index.html'));
-  await p.waitForFunction(() => window.R && R.screens && R.screens.death && R.bus && R.spawn, { timeout: 20000 });
+  await p.waitForFunction(() => window.R && R.screens && R.screens.death && R.bus && R.spawn && R.boot, { timeout: 20000 });   // after the boot door (it would replace the faked state)
+  await p.waitForTimeout(300);
   const read = () => p.evaluate(() => {
     const q = s => document.querySelector(s); const vis = s => { const e = q(s); return !!e && !e.hidden && e.offsetParent !== null; };
     return { cur: R.ui.cur, paused: R.paused, shown: !!q('.dth.show'), fade: !!q('.dth-fade'), txt: (document.getElementById('screen').textContent || '').replace(/\s+/g, ' ').trim(),
@@ -47,7 +48,8 @@ const ROOT = path.resolve(__dirname, '..', '..');
   ok('the run\'s numbers: level, kills (5 mobs + 1 boss), time, bosses', /12 ?Level/.test(s1.txt) && /6 ?Kills/.test(s1.txt) && /13 min ?Time/.test(s1.txt) && /1 ?Bosses/.test(s1.txt), s1.txt.slice(0, 220));
   const line = await p.evaluate(() => (document.querySelector('.dth-line') || {}).textContent || '');
   const lines = await p.evaluate(() => { const L = R.data.story && R.data.story.death; return Array.isArray(L) && L.length ? L.map(x => typeof x === 'string' ? x : x && (x.t || x.text || x.line || x.txt)) : R.screens.death.LINES; });
-  ok('a story line (R.data.story.death or the originals)', line.length > 10 && lines.includes(line), line);
+  const tpl = t => new RegExp('^' + String(t).replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\{\w+\}/g, '.+?') + '$');
+  ok('a story line (R.data.story.death or the originals), its {placeholders} filled', line.length > 10 && !/[{}]/.test(line) && lines.some(t => t === line || tpl(t).test(line)), line);
   ok('the Hall of the Fallen line', /Here lies Jon, level 12, slain by White Walker after 13 min\./.test(s1.txt) && /Hall of the Fallen ·/.test(s1.txt), s1.txt.slice(200, 420));
   ok('one hall entry written, the best level kept', s1.hall.length === 1 && s1.hall[0].id === 'jon' && s1.hall[0].lvl === 12 && s1.hall[0].killer === 'White Walker' && s1.best.lvl === 12 && s1.best.kills === 6, JSON.stringify({ hall: s1.hall, best: s1.best }));
   ok('one primary CHOOSE THE NEXT HERO, a quiet Hall link, nothing about rising or ads', s1.next && s1.link && /CHOOSE THE NEXT HERO/.test(s1.txt) && !/RISE|ad to keep|revive/i.test(s1.txt), s1.txt.slice(-160));
@@ -56,14 +58,13 @@ const ROOT = path.resolve(__dirname, '..', '..');
 
   /* 2 — the Hall of the Fallen: the list and the best level; back returns to the death sheet */
   await p.tap('.dth-halllink'); await p.waitForTimeout(300);
-  const today = await p.evaluate(() => new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }));
   const h1 = await read();
-  ok('the Hall opens from the sheet', h1.cur === 'hall' && /HALL OF THE FALLEN/.test(h1.txt), h1.cur);
-  ok('the Hall lists Jon: level, killer, date, time; and the best level', /Lv 12 · killed by White Walker/.test(h1.txt) && h1.txt.includes(today) && /13 min/.test(h1.txt) && /Lv 12 ?best level/.test(h1.txt) && /1 ?hero fallen/.test(h1.txt), h1.txt.slice(0, 220));
-  ok('the Hall has a portrait slot per row', await p.evaluate(() => document.querySelectorAll('.hall-row .hall-pic').length === 1));
-  ok('the Hall\'s primary while the hero lies there is CHOOSE THE NEXT HERO', /CHOOSE THE NEXT HERO$/.test(h1.txt), h1.txt.slice(-40));
+  ok('the Hall opens from the sheet', h1.cur === 'hall' && /Hall of the Fallen/i.test(h1.txt), h1.cur);
+  ok('the Hall lists Jon: level, killer, when, time; and the best level', /Jon Lv 12/.test(h1.txt) && /slain by White Walker/.test(h1.txt) && /just now|ago/.test(h1.txt) && /13 min/.test(h1.txt) && /Lv 12 ?best level/i.test(h1.txt) && /1 ?fallen/i.test(h1.txt), h1.txt.slice(0, 260));
+  ok('the Hall has a portrait slot per row', await p.evaluate(() => document.querySelectorAll('.hr-row .hr-pt, .hall-row .hall-pic').length === 1));
+  ok("the Hall's primary while the hero lies there is CHOOSE THE NEXT HERO", /CHOOSE THE NEXT HERO$/.test(h1.txt), h1.txt.slice(-40));
   await p.screenshot({ path: path.join(ROOT, '.shots', 'rpg_hall.png') });
-  await p.tap('.hall-back'); await p.waitForTimeout(300);
+  await p.tap('#screen .hr-back, #screen .hall-back'); await p.waitForTimeout(300);
   const b1 = await read();
   ok('back from the Hall returns to the death sheet, shown at once', b1.cur === 'death' && b1.shown, JSON.stringify({ cur: b1.cur, shown: b1.shown }));
 

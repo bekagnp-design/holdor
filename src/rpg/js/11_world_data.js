@@ -283,7 +283,7 @@ window.R = window.R || {}; R.data = R.data || {};
     { id: 'sh_coast', name: 'Weirwood of the Shore', type: 'shrine', x: 1100, y: 4500, region: 'westcoast', blurb: 'A lone weirwood on the cliff, bent inland by the sea wind.' },
     { id: 'camp_kraken', name: 'Ironborn Landing', type: 'camp', x: 1500, y: 4900, region: 'westcoast', camp: 'ironborn', mobs: ['axe', 'spear', 'archer', 'chief'], blurb: 'Longships dragged up the shingle and a camp of reavers around them.' },
     /* the Iron Islands */
-    { id: 'old_wyk', name: 'Old Wyk', type: 'town', x: 600, y: 5800, region: 'ironislands', inn: true, blurb: 'The holy island, where the drowned captains are crowned under a hill of bones.' },
+    { id: 'old_wyk', name: 'Old Wyk', type: 'town', x: 330, y: 5620, region: 'ironislands', inn: true, blurb: 'The holy island, where the drowned captains are crowned under a hill of bones.' },
     { id: 'sh_iron', name: 'The Drowned Shore', type: 'shrine', x: 700, y: 6300, region: 'ironislands', blurb: 'A grey beach where the priests bless men with salt water.' },
     { id: 'camp_iron', name: 'Salt Wife Cove', type: 'camp', x: 1300, y: 6000, region: 'ironislands', camp: 'bandit', mobs: ['axe', 'sword', 'crawler'], blurb: 'A smugglers\' cove the lords of Pyke pretend not to see.' },
     /* the Riverlands (with the Neck) */

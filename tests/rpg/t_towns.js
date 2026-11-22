@@ -84,12 +84,15 @@ const HTML = path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'bet
   await tap('.tw-tabs [data-t="smith"]', 300);
   await tap('[data-pick="e:weapon"]', 300);
   const sm0 = await ev(() => { const it = R.state.p.gear.weapon, c = R.towns.upgradeCost(it); return { cur: R.ui.cur, up: it.up | 0, lvl: it.lvl, atk: it.stats.atk, mats: R.towns.mats(), gold: R.state.p.gold, c, btn: document.querySelector('.tw-up').textContent.trim(), rows: document.querySelectorAll('.tw-prow').length, on: (document.querySelector('.tw-prow.on') || {}).dataset }; });
-  ok('the smith lists the equipped sword + the bag\'s gear; the sword is picked; UPGRADE shows mats + gold', sm0.cur === 'smith' && sm0.rows >= 3 && sm0.on && sm0.on.pick === 'e:weapon' && /^UPGRADE \+1/.test(sm0.btn) && sm0.c.mats === 2 && sm0.c.gold > 0 && sm0.mats === 3, JSON.stringify(sm0));
+  ok('the smith lists the equipped sword + the bag\'s gear; the sword is picked; UPGRADE shows mats + gold', sm0.cur === 'smith' && sm0.rows >= 3 && sm0.on && sm0.on.pick === 'e:weapon' && /^UPGRADE \+1/.test(sm0.btn) && sm0.c.mats >= 1 && sm0.c.gold > 0 && sm0.mats === 3, JSON.stringify(sm0));
   await tap('.tw-up', 150);
   const sm1 = await ev(() => { const it = R.state.p.gear.weapon; return { up: it.up | 0, lvl: it.lvl, atk: it.stats.atk, mats: R.towns.mats(), gold: R.state.p.gold, flash: !!document.querySelector('.tw-flash'), btn: document.querySelector('.tw-up').textContent.trim(), name: document.querySelector('.tw-fhead b').textContent }; });
-  ok('a tap on UPGRADE raises the sword to +1 (level and ATK up), takes 2 mats and the gold, flashes', sm1.up === sm0.up + 1 && sm1.lvl > sm0.lvl && sm1.atk > sm0.atk && sm1.mats === sm0.mats - 2 && sm1.gold === sm0.gold - sm0.c.gold && sm1.flash && /\+1$/.test(sm1.name), JSON.stringify(sm1));
+  ok('a tap on UPGRADE raises the sword to +1 (level and ATK up), takes its mats and the gold, flashes', sm1.up === sm0.up + 1 && sm1.lvl > sm0.lvl && sm1.atk > sm0.atk && sm1.mats === sm0.mats - sm0.c.mats && sm1.gold === sm0.gold - sm0.c.gold && sm1.flash && /\+1$/.test(sm1.name), JSON.stringify(sm1));
+  // too few mats for the next step: the button says what is missing and is disabled (the bag is emptied of mats, the tab re-rendered)
+  await ev(() => { R.state.p.inv = R.state.p.inv.filter(it => it.kind !== 'mat'); });
+  await tap('.tw-tabs [data-t="shop"]', 200); await tap('.tw-tabs [data-t="smith"]', 300); await tap('[data-pick="e:weapon"]', 300);
   const sm2 = await ev(() => ({ btn: document.querySelector('.tw-up').textContent.trim(), dis: document.querySelector('.tw-up').disabled, mats: R.towns.mats(), need: R.towns.upgradeCost(R.state.p.gear.weapon).mats }));
-  ok('with one mat left the next step (3 mats) says what is missing and is disabled', sm2.dis && sm2.btn === 'Need 2 more mats' && sm2.mats === 1 && sm2.need === 3, JSON.stringify(sm2));
+  ok('without the mats the next step says what is missing and is disabled', sm2.dis && sm2.btn === 'Need ' + sm2.need + ' more mats' && sm2.mats === 0 && sm2.need >= 1, JSON.stringify(sm2));
   const rf0 = await ev(() => { const it = R.state.p.gear.weapon; return { gems: R.state.p.gems, sec: JSON.stringify(Object.entries(it.stats).filter(([k]) => k !== 'atk')), btn: document.querySelector('.tw-ref').textContent.trim() }; });
   await tap('.tw-ref', 400);
   const rf1 = await ev(() => { const it = R.state.p.gear.weapon; return { gems: R.state.p.gems, sec: JSON.stringify(Object.entries(it.stats).filter(([k]) => k !== 'atk')), atk: it.stats.atk, n: Object.keys(it.stats).length }; });

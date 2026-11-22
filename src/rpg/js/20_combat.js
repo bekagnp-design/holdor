@@ -50,6 +50,20 @@
     if (D.raise || D.caster) return 'caster'; if (D.healAura || D.heal || D.healer) return 'healer'; if (D.speedAura || D.key === 'chief') return 'chief';
     if (D.ranged || D.range > 60) return 'ranged'; return 'melee';
   };
+  /* A08's roles (melee ranged caster healer summoner fly brute elite boss) → the AI's behaviours (melee ranged caster healer chief) */
+  const hasT = (D, t) => !!(D && Array.isArray(D.traits) && D.traits.indexOf(t) >= 0);
+  C.normRole = (r, D) => {
+    if (r === 'summoner' || r === 'necro') return 'caster';
+    if (r === 'melee' || r === 'ranged' || r === 'caster' || r === 'healer' || r === 'chief') { if (r === 'melee' && (hasT(D, 'haste') || (D && D.key === 'chief'))) return 'chief'; return r; }
+    if (hasT(D, 'haste') || (D && (D.key === 'chief' || D.speedAura))) return 'chief';
+    if (hasT(D, 'heal') || (D && (D.healAura || D.healer))) return 'healer';
+    if (r === 'fly') return (D && (D.ranged || hasT(D, 'ranged'))) ? 'ranged' : 'melee';
+    if (hasT(D, 'ranged') && !(D && D.base && D.base.range <= 60)) return 'ranged';
+    return 'melee';
+  };
+  C.raiseOf = (D, role) => { if (!D) return null; if (D.raise === true) return 'axe'; if (typeof D.raise === 'string') return D.raise;
+    if (hasT(D, 'raise')) return 'axe'; if (hasT(D, 'summon')) return (D.p && D.p.summon && D.p.summon.key) || 'spider';
+    return role === 'caster' && !Array.isArray(D.traits) ? 'axe' : null; };
   /* level scaling (used when A08's R.mobs.statsAt is absent): lvl 1 = ×1 */
   C.hpK = lvl => { const L = Math.max(0, lvl - 1); return 1 + 0.14 * L + 0.004 * L * L; };
   C.atkK = lvl => { const L = Math.max(0, lvl - 1); return 1 + 0.10 * L + 0.002 * L * L; };
@@ -91,21 +105,32 @@
     return { x: src.face < 0 ? -1 : 1, y: 0 };
   };
   const UNSAFE = /camp|dungeon|ruin|lair|portal|cave|nest|barrow|grave|tomb|wild|boss|den/i;
-  C.safeR = p => { if (!p || p.safe === false || p.safe === 0) return 0; if (typeof p.safe === 'number') return p.safe; if (typeof p.safeR === 'number') return p.safeR; return UNSAFE.test(String(p.kind || p.type || '')) ? 0 : C.SAFE_R; };
+  /* a castle / town / shrine is a refuge: its own radius (+40 for the NPCs at the walls), at least SAFE_R */
+  C.safeR = p => { if (!p || p.safe === false || p.safe === 0) return 0; if (typeof p.safe === 'number') return p.safe; if (typeof p.safeR === 'number') return p.safeR; return UNSAFE.test(String(p.kind || p.type || '')) ? 0 : Math.max(C.SAFE_R, num(p.r, 0) > 0 ? p.r + 40 : 0); };
   let safeList = null, safeSrc = null;
   const safePois = () => { const W = R.data.world; const P = W && (W.pois || W.poi); if (!P) return null; if (P !== safeSrc) { safeSrc = P; safeList = (Array.isArray(P) ? P : Object.values(P)).filter(p => p && typeof p.x === 'number' && C.safeR(p) > 0); } return safeList; };
   /* a mob stops at the edge of a safe POI radius */
   C.keepOut = e => {
     if (e.ignoreSafe) return;
-    /* a mob first seen inside a safe radius (spawned there by a quest, an event or a test) may stay in that one: it is never teleported out */
-    const first = !e.koSeen; e.koSeen = 1;
+    /* a mob first seen inside a safe radius right next to the hero (< 150 units: put there on purpose by a quest, the tutorial or a test) may
+       stay in that one; any other mob inside (the population, an event) is pushed out at once */
+    const first = !e.koSeen; e.koSeen = 1; const pl = R.player; const nearHero = first && pl && !pl.dead && Math.hypot(e.x - pl.x, e.y - pl.y) < 150;
     const pushOut = p => { const sr = C.safeR(p); if (!sr) return; const dx = e.x - p.x, dy = e.y - p.y; if (Math.abs(dx) >= sr || Math.abs(dy) >= sr) return; const d = Math.hypot(dx, dy); if (d >= sr) return;
-      const pid = p.id || (p.x + ',' + p.y); if (first) { (e.koIn = e.koIn || {})[pid] = 1; return; } if (e.koIn && e.koIn[pid]) return;
+      const pid = p.id || (p.x + ',' + p.y); if (nearHero) { (e.koIn = e.koIn || {})[pid] = 1; return; } if (e.koIn && e.koIn[pid]) return;
       if (d < 1e-6) { e.x = p.x + sr + 0.5; return; } const k = (sr + 0.5) / d; e.x = p.x + dx * k; e.y = p.y + dy * k; };
     const L = safePois();
     if (L) { for (const p of L) pushOut(p); return; }
     const pa = R.world && fn(R.world, 'poiAt'); if (pa) { const p = pa(e.x, e.y, C.SAFE_R); if (p && typeof p.x === 'number') pushOut(p); }
   };
+
+  /* the safe POI whose radius holds (x, y), or null; a mob allowed inside it (koIn) does not count it */
+  C.safeAt = (x, y, e) => { const L = safePois(); if (!L) return null; for (const p of L) { const sr = C.safeR(p); const dx = x - p.x, dy = y - p.y; if (Math.abs(dx) >= sr || Math.abs(dy) >= sr || dx * dx + dy * dy >= sr * sr) continue;
+      if (e && e.koIn && e.koIn[p.id || (p.x + ',' + p.y)]) continue; return p; } return null; };
+  /* home ground: mobs within HOME_R of a house seat are at most max(2, hero level + 1) — a level-1 hero's first fields are fair */
+  C.HOME_R = 1500;
+  C.homeCap = (x, y, lvl) => { const W = R.data.world; const P = W && W.pois ? (Array.isArray(W.pois) ? W.pois : Object.values(W.pois)) : null; if (!P) return lvl;
+    const pl = R.player, cap = Math.max(2, num(pl && pl.lvl, 1) + 1); if (lvl <= cap) return lvl;
+    for (const q of P) if (q && q.seat && typeof q.x === 'number' && Math.hypot(x - q.x, y - q.y) < C.HOME_R) return cap; return lvl; };
 
   /* ---- R.hit(src, tgt, dmg, o) — the one damage path ----
      o: { kind:'phys'|'fire'|'ice'|'holy', mult, crit (true forces, number = chance), critMult, knock (units), stun/slow (s), burn/bleed (s, true = 3),
@@ -155,9 +180,9 @@
       if (o.burn) { S.burn = t + (o.burn === true ? 3 : o.burn); S.burnT = t + 0.5; S.burnDmg = Math.max(1, Math.round(full * 0.04)); S.burnSrc = src || null; }
       if (o.bleed) { S.bleed = t + (o.bleed === true ? 3 : o.bleed); S.bleedT = t + 0.5; S.bleedDmg = Math.max(1, Math.round(full * 0.04)); S.bleedSrc = src || null; }
       /* a mob that is hit from outside its aggro turns on the attacker */
-      if (tgt.kind === 'mob' && tgt.ai && !tgt.ai.off && !tgt.ai.tgt && src && src.team !== tgt.team && (src.kind === 'player' || src.kind === 'companion')) { tgt.ai.tgt = src; tgt.ai.st = 'chase'; tgt.ai.lost = 0; }
+      if (tgt.kind === 'mob' && tgt.ai && src && src.team !== tgt.team && (src.kind === 'player' || src.kind === 'companion')) { tgt.ai.hitBy = src; tgt.ai.hitT = t; if (!tgt.ai.off && !tgt.ai.tgt) { tgt.ai.tgt = src; tgt.ai.st = 'chase'; tgt.ai.lost = 0; } }
     }
-    const info = { src, tgt, dmg, crit, kind, dot, absorbed, blocked: false, killed: false, o };
+    const info = { src, tgt, dmg, crit, kind, dot, absorbed, blocked: false, killed: false, knock: num(o.knock, 0), o };
     C.stats.hits++;
     R.bus.emit('hit', info);
     if (!o.silent) {
@@ -224,15 +249,15 @@
     o = o || {}; const D = C.defOf(type) || FALLBACK[type];
     if (!D) { console.warn('spawnMob: unknown type', type); return null; }
     if (lvl == null) { const la = R.world && (fn(R.world, 'levelAt') || null); const ra = R.world && fn(R.world, 'regionAt'); lvl = (la && la(x, y)) || (ra && ((ra(x, y) || {}).lvl || (ra(x, y) || {}).level)) || 1; if (typeof lvl !== 'number') lvl = 1; }
-    lvl = Math.max(1, Math.round(lvl));
+    lvl = Math.max(1, Math.round(lvl)); if (!o.keepLvl && o.kind !== 'boss' && !o.elite) lvl = C.homeCap(x, y, lvl);
     const base = C.statsAt(type, lvl);
     const sa = R.mobs && fn(R.mobs, 'statsAt'); let st = base;
     if (sa) { const s = sa(type, lvl); if (s && typeof s === 'object') { st = Object.assign({}, base); for (const k in s) if (typeof s[k] === 'number' || typeof s[k] === 'boolean' || typeof s[k] === 'string') st[k] = s[k]; if (s.hp != null && s.hpMax == null) st.hpMax = s.hp; } }
-    const role = o.role || st.role || C.roleOf(D);
+    const role = C.normRole(o.role || st.role || C.roleOf(D), D);
     const e = { kind: o.kind || 'mob', type, name: o.name || D.name || D.n || type, team: o.team == null ? 1 : o.team, x, y, lvl, r: st.r,
       hp: st.hpMax, hpMax: st.hpMax, atk: st.atk, def: st.def, spd: st.spd, range: st.range, aggro: num(o.aggro, st.aggro), atkCd: st.atkCd, role, fly: !!(st.fly || D.fly || D.air),
       sprite: D.sprite || D.art || D.key || type, elite: !!o.elite, xp: st.xp, gold: st.gold, crit: num(D.crit, 0.05), face: rnd() < 0.5 ? -1 : 1, vx: 0, vy: 0,
-      knock: !!D.knock, charge: !!D.charge, slowImmune: !!D.slowImmune, stealth: !!D.stealth, walker: !!D.walker, wight: !!D.wight, raise: D.raise === true ? 'axe' : (D.raise || (role === 'caster' ? 'axe' : null)),
+      knock: !!D.knock, charge: !!D.charge, slowImmune: !!D.slowImmune, stealth: !!D.stealth, walker: !!D.walker, wight: !!D.wight, raise: C.raiseOf(D, role),
       dmgKind: D.dmgKind || (D.ice || D.walker ? 'ice' : 'phys'), res: null, status: {}, cd: {}, anim: 'idle',
       ai: Object.assign({ st: 'idle', home: o.home || { x, y }, t: R.t + 2 + 2 * rnd(), tgt: null, lost: 0, scanT: R.t + rnd() * 0.15, to: null, summons: [] }, o.ai || {}) };
     if (D.ice) e.res = { phys: num(D.ice, 0.35), fire: -0.5 }; else if (D.physImmune) e.res = { phys: num(D.physImmune, 0.45), holy: -0.5 };
@@ -312,10 +337,11 @@
     if (S.stun > t) { e.vx = e.vy = 0; if (e.anim === 'walk' || e.anim === 'attack') e.anim = 'idle'; return; }
     const slow = S.slow > t ? 0.5 : 1;
     roles(e, foes, t);
-    if (a.tgt && (a.tgt.dead || a.tgt.hp <= 0 || R.ents.indexOf(a.tgt) < 0)) a.tgt = null;
+    if (a.tgt && (a.tgt.dead || a.tgt.hp <= 0)) a.tgt = null;
     if (t >= a.scanT) {
-      a.scanT = t + 0.15;
-      if (!a.tgt) { const f = nearestFoe(e, foes, e.aggro); if (f && (e.fly || C.los(e, f))) { a.tgt = f; a.st = 'chase'; a.lost = 0; } }
+      a.scanT = t + 0.15; if (a.tgt && R.ents.indexOf(a.tgt) < 0) a.tgt = null;
+      if (a.tgt && !e.koIn && C.safeAt(a.tgt.x, a.tgt.y, e) && !(a.hitBy === a.tgt && t - (a.hitT || -9) < 4)) a.tgt = null;   /* the hero reached a refuge */
+      if (!a.tgt) { const f = nearestFoe(e, foes, e.aggro); if (f && !C.safeAt(f.x, f.y, e) && (e.fly || C.los(e, f))) { a.tgt = f; a.st = 'chase'; a.lost = 0; } }
       else { const d = R.dist(e, a.tgt); if (d > e.aggro * 1.6) a.tgt = null; else if (!e.fly && !C.los(e, a.tgt)) { a.lost += 0.15; if (a.lost > 6) a.tgt = null; } else a.lost = 0; }
       if (!a.tgt && (a.st === 'chase' || a.st === 'attack')) { a.st = 'idle'; a.t = t + 0.5 + rnd(); if (e.anim === 'attack') e.anim = 'idle'; }
     }

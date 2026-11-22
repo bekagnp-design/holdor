@@ -50,13 +50,13 @@ const { chromium } = require('playwright'); const path = require('path'); const 
   ok('RIDE AS calls R.newHero with the id, counts a run, closes the screen', rode.nh.length === 1 && rode.nh[0] === lockedId && rode.ride[0] === lockedId && rode.cur === null && rode.runs === 1, JSON.stringify(rode));
 
   // 4. the fall writes one hall line (no duplicate from the death event), the hall lists it
-  const fell = await page.evaluate(id => { const p = R.state.p; p.hero = id; p.name = R.heroes.champ(id).name; p.lvl = 7; p.played = 540; const e = R.heroes.fall({ name: 'Wight' }); R.bus.emit('death', { killer: { name: 'Wight' } }); return { e, n: R.heroes.acc().hall.length, best: R.heroes.best() }; }, lockedId);
+  const fell = await page.evaluate(id => { const p = R.state.p; p.hero = id; p.name = R.heroes.champ(id).name; p.lvl = 7; p.played = 540; if (R.screens.death && R.screens.death.cfg) R.screens.death.cfg.fade = 600000; const e = R.heroes.fall({ name: 'Wight' }); R.bus.emit('death', { killer: { name: 'Wight' } }); return { e, n: R.heroes.acc().hall.length, best: R.heroes.best() }; }, lockedId);
   await page.waitForTimeout(60);
   const hallN = await page.evaluate(() => R.heroes.acc().hall.length);
   ok('fall() writes name, level and killer; the death event does not double it', fell.e && fell.e.lvl === 7 && fell.e.killer === 'Wight' && fell.n === 1 && hallN === 1 && fell.best.lvl === 7 && fell.best.runs === 1, JSON.stringify([fell.e, hallN, fell.best]));
   await page.evaluate(() => R.ui.open('hall')); await page.waitForTimeout(120);
   const rows = await count('.hr-row'), row = (await txt('.hr-row')) || '', sum = (await txt('.hr-sum')) || '';
-  ok('the hall lists the entry with portrait, name, level, killer and when', rows === 1 && row.includes(lockedName) && /Lv 7/.test(row) && /slain by Wight/.test(row) && /ago|just now/.test(row) && (await count('.hr-row .hr-pt')) === 1, row);
+  ok('the hall lists the entry with portrait, name, level, killer and when', rows === 1 && row.includes(lockedName) && /Lv 7/.test(row) && /slain by Wight/.test(row) && /ago|just now/.test(row) && (await count('.hr-row .hr-pt')) === 1, row + ' cur=' + (await page.evaluate(() => R.ui.cur + ' ' + document.getElementById('screen').innerText.slice(0, 160))));
   ok('the hall sums runs, best level and the fallen', /1\s*runs/.test(sum.replace(/\s+/g, ' ')) && /Lv 7\s*best level/.test(sum.replace(/\s+/g, ' ')) && /1\s*fallen/.test(sum.replace(/\s+/g, ' ')), sum.replace(/\s+/g, ' '));
 
   // 5. after a death: the fallen hero crossed with its level, another hero preselected; hall ↔ heroes by taps

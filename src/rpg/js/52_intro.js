@@ -53,8 +53,10 @@
   const portrait = id => { const A = window.A_CHAMP, k = id + '_portrait'; const p = (A && A.art && A.art[k]) || (window.CHAMP_ART && window.CHAMP_ART[k]) || null;
     if (!p) return null; if (typeof p === 'string') return p; if (p.src) return p.src; if (p.toDataURL) { try { return p.toDataURL(); } catch (e) {} } return null; };
   const unlocked = id => { const a = R.state && R.state.acc && R.state.acc.champs; return !!(a && a[id] && a[id].unlocked); };
+  const fill = (t, c) => String(t).replace(/\{(\w+)\}/g, (m, k) => c[k] != null ? String(c[k]) : '').replace(/\s{2,}/g, ' ').trim();   // no brace ever reaches the screen
   const prologue = (h, seat) => { const st = R.data.story; const L = st && st.prologue && (st.prologue[h] || st.prologue.default); let out;
-    if (Array.isArray(L) && L.length) out = L.map(x => String(x && x.t || x)); else out = ['The ravens stopped coming to ' + seat + ' three nights ago.',
+    const C = champs().find(c => c.id === I.hero), HS = houses()[h] || {}; const ctx = { hero: C ? C.n : 'A hero', name: C ? C.n : 'A hero', house: HS.n || h, seat, words: HS.words || '' };
+    if (Array.isArray(L) && L.length) out = L.map(x => fill(String(x && x.t || x), ctx)); else out = ['The ravens stopped coming to ' + seat + ' three nights ago.',
       'Then the shepherds came down from the hills and would not say what they had seen.', 'Last night the watch heard it: footsteps in the dark where no one walked.',
       'At dawn they found the old graves open. Every one of them. Empty.'];
     out = out.filter(x => x !== RULE).slice(0, 4); out.push(RULE); return out; };
@@ -62,11 +64,13 @@
   const sfx = n => { try { R.sfx && R.sfx.play && R.sfx.play(n, 0.6); } catch (e) {} };
   const hap = k => { try { window.Telegram.WebApp.HapticFeedback.impactOccurred(k || 'light'); } catch (e) {} };
   const mk = (tag, cls, txt) => { const d = document.createElement(tag); if (cls) d.className = cls; if (txt != null) d.textContent = txt; return d; };
-  const pic = (id, cls, fbEmoji) => { const src = portrait(id); if (src) { const im = mk('img', cls); im.src = src; im.alt = ''; im.draggable = false; return im; } return mk('div', cls + ' em', fbEmoji); };
+  const pic = (id, cls, fbEmoji) => { if (id && R.heroes && typeof R.heroes.portrait === 'function') { try { const el = R.heroes.portrait(id, 64); if (el && el.nodeType && !el.classList.contains('hr-ini')) { el.classList.add(...cls.split(' ')); el.style.width = el.style.height = ''; return el; } } catch (e) {} }
+    const src = portrait(id); if (src) { const im = mk('img', cls); im.src = src; im.alt = ''; im.draggable = false; return im; } return mk('div', cls + ' em', fbEmoji); };
 
   /* ---- the background: a slow pan over the map art with snow ---- */
   const BG = { cv: null, ctx: null, img: null, fb: null, snow: [], raf: 0, t0: 0, on: false, dpr: 1 };
-  const mapImg = () => { const a = R.assets && R.assets.map;
+  const mapImg = () => { const cl = (R.assets && R.assets.mapClean) || (R.render3d && R.render3d.mapCanvas); if (cl && typeof cl === 'object' && (cl.naturalWidth || cl.width)) return cl;   // the cleaned map (no old stage marks) when G1's is there
+    const a = R.assets && R.assets.map;
     if (a && typeof a === 'object' && (a.naturalWidth != null || a.width)) return a; // an Image or a canvas (maybe still loading)
     const src = typeof a === 'string' ? a : typeof window.A_MAP === 'string' ? window.A_MAP : (window.A_MAP && (window.A_MAP.src || window.A_MAP.url)) || null;
     const im = new Image(); const cands = src ? [src] : ['../src/assets/westeros_1200.webp', 'src/assets/westeros_1200.webp']; let i = 0;
@@ -95,7 +99,7 @@
   const bgStop = () => { BG.on = false; if (BG.raf) cancelAnimationFrame(BG.raf); BG.raf = 0; BG.cv = BG.ctx = null; };
 
   /* ---- the screen ---- */
-  const I = R.intro = { step: null, house: null, hero: null, lines: null, idx: 0, open: false, done: false, go: null, heroes, houses, champs, RULE,
+  const I = R.intro = { step: null, house: null, hero: null, lines: null, idx: 0, open: false, done: false, go: null, heroes, houses, champs, RULE, starter: h => starterOf(h || 'stark'),
     bg: () => ({ on: BG.on, map: !!ready(BG.img), w: BG.cv ? BG.cv.width : 0, h: BG.cv ? BG.cv.height : 0, snow: BG.snow.length }) };
   let root, veil, pane, typeT = 0, onResize = null;
   const stopTyping = () => { if (typeT) clearTimeout(typeT); typeT = 0; };
@@ -137,16 +141,16 @@
       c.appendChild(pic(C.id, 'pt', C.e)); const tx = mk('div', 'tx'); tx.appendChild(mk('div', 'nm', C.n)); const cl = mk('div', 'cl'); cl.appendChild(mk('i', null, CLS_E[C.cls])); cl.appendChild(document.createTextNode(CLS_N[C.cls])); tx.appendChild(cl); tx.appendChild(mk('div', 'fl', C.fl)); c.appendChild(tx); c.appendChild(mk('span', 'chk', '✓'));
       c.onclick = () => { I.hero = C.id; for (const n of wrap.querySelectorAll('.in-hero')) n.classList.toggle('sel', n.dataset.id === C.id); btn.disabled = false; btn.textContent = label(); sfx('ui'); hap('light'); };
       wrap.appendChild(c); }
-    if (locked.length) { wrap.appendChild(mk('div', 'in-lockh', 'Unlock by riding north')); const g = mk('div', 'in-locked');
+    if (locked.length) { wrap.appendChild(mk('div', 'in-lockh', 'Unlocks as you progress')); const g = mk('div', 'in-locked');
       for (const C of locked) { const c = mk('div', 'in-hero lock'); c.dataset.id = C.id; c.appendChild(pic(C.id, 'pt', C.e)); c.appendChild(mk('div', 'nm', C.n)); const cl = mk('div', 'cl'); cl.appendChild(mk('i', null, CLS_E[C.cls])); cl.appendChild(document.createTextNode(CLS_N[C.cls])); c.appendChild(cl); c.appendChild(mk('span', 'lk', '🔒'));
-        c.onclick = () => { sfx('ui'); R.ui.toast && R.ui.toast(C.n + ' — unlock by riding north', '#e3b661'); }; g.appendChild(c); }
+        c.onclick = () => { sfx('ui'); R.ui.toast && R.ui.toast(C.n + ' — unlocks as you progress', '#e3b661'); }; g.appendChild(c); }
       wrap.appendChild(g); }
     body.appendChild(wrap); pane.appendChild(body); btn = foot(label(), () => go('prologue'), !I.hero); };
 
   const stPrologue = () => { const H = houses()[I.house || 'stark']; const C = champs().find(c => c.id === I.hero) || heroes(I.house || 'stark')[0]; I.lines = prologue(I.house || 'stark', H.seat); I.idx = 0;
     const skip = mk('button', 'in-skip', 'SKIP'); skip.id = 'in-skip'; skip.onclick = e => { e.stopPropagation(); sfx('ui'); finish(); }; pane.appendChild(skip);
     const st = mk('div', 'in-stage'); st.id = 'in-stage'; const fig = mk('div', 'fig'); fig.appendChild(pic(C ? C.id : '', 'hp', H.e)); fig.appendChild(mk('div', 'sg', H.e)); st.appendChild(fig);
-    if (C) st.appendChild(mk('div', 'who', C.n + ' of House ' + H.n)); const cap = mk('div', 'in-cap'); cap.id = 'in-cap'; st.appendChild(cap);
+    if (C) st.appendChild(mk('div', 'who', C.n + ' — House ' + H.n)); const cap = mk('div', 'in-cap'); cap.id = 'in-cap'; st.appendChild(cap);
     const dots = mk('div', 'in-dots'); for (let i = 0; i < I.lines.length; i++) dots.appendChild(mk('i')); st.appendChild(dots); st.appendChild(mk('div', 'in-hint', 'tap to continue')); pane.appendChild(st);
     const show = () => { for (let i = 0; i < dots.children.length; i++) dots.children[i].className = i <= I.idx ? 'on' : ''; cap.classList.toggle('rule', I.idx === I.lines.length - 1); typeInto(cap, I.lines[I.idx]); };
     st.onclick = () => { sfx('ui'); hap('light'); I.idx++; if (I.idx >= I.lines.length) finish(); else show(); };

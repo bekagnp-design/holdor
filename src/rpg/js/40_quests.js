@@ -18,12 +18,17 @@
   const normalize = q => { let r = q;
     if (R.story && typeof R.story.resolve === 'function' && q && q.text && Array.isArray(q.text.offer)) { try { r = R.story.resolve(q, house()) || q; } catch (e) { r = q; } }
     if (r === q) r = Object.assign({}, q);
-    r.target = normTarget(r); const T = r.text || {}; r.text = { offer: Array.isArray(T.offer) ? T.offer.join(' ') : T.offer, progress: T.progress, done: T.done, pages: Array.isArray(T.offer) ? T.offer.slice() : (T.offer ? [T.offer] : []) };
+    r.giver = notHero(r.giver); r.target = normTarget(r); if (r.target && r.target.npc) r.target = Object.assign({}, r.target, { npc: notHero(r.target.npc) }); const T = r.text || {}; r.text = { offer: Array.isArray(T.offer) ? T.offer.join(' ') : T.offer, progress: T.progress, done: T.done, pages: Array.isArray(T.offer) ? T.offer.slice() : (T.offer ? [T.offer] : []) };
     return r; };
+  // the champion the player rides as is not standing at the seat (42_dialog never spawns him): his quests go to a neighbour at the same place
+  const npcRow = id => { const N = R.data && R.data.npcs; if (!N || id == null) return null; return Array.isArray(N) ? N.find(n => n && n.id === id) || null : N[id] || null; };
+  const notHero = id => { const hero = P() && P().hero, n = npcRow(id); if (!hero || !n || n.champ !== hero) return id;
+    const N = Array.isArray(R.data.npcs) ? R.data.npcs : Object.values(R.data.npcs || {}); const at = N.filter(m => m && m.poi === n.poi && m.id !== n.id && m.champ !== hero);
+    const alt = at.find(m => m.role === 'arms') || at.find(m => m.role === 'steward') || at.find(m => m.role === 'maester') || at[0]; return alt ? alt.id : id; };
   let qCache = null;
   const Q = () => { const raw = (R.data && Array.isArray(R.data.quests)) ? R.data.quests : []; const h = house();
-    if (qCache && qCache.raw === raw && qCache.n === raw.length && qCache.h === h) return qCache.list;
-    const list = raw.filter(Boolean).map(normalize); qCache = { raw, n: raw.length, h, list }; return list; };
+    const hero = (P() && P().hero) || ''; if (qCache && qCache.raw === raw && qCache.n === raw.length && qCache.h === h && qCache.hero === hero) return qCache.list;
+    const list = raw.filter(Boolean).map(normalize); qCache = { raw, n: raw.length, h, hero, list }; return list; };
   const WORLD = () => { const a = ACC(); return a && (a.world || (a.world = {})); };
   const QS = () => { const w = WORLD(); if (w) return w.quests || (w.quests = {}); const p = P(); return p ? (p.quests || (p.quests = {})) : null; };
   const flags = () => { const w = WORLD(); if (w) return w.flags || (w.flags = {}); const p = P(); return p ? (p.flags || (p.flags = {})) : {}; };

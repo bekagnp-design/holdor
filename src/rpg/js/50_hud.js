@@ -4,14 +4,15 @@
    "Lv 12 · 340/1,120" and the gold / gem chips (count-up). Tap the block → the hero sheet ('btn' 'inv'). Under it: #qtrack (A18 renders the
    tracker; tap → quest log), the TOWN pill. Top-right: A02's row (map · bag · menu), the 96-px round minimap under it (tap → map), the chat
    button (#prChat, A38) under the minimap. The message column (top-centre, under all of that): ONE bar (#bossbar > #dgbar > #evbar, the others
-   wait with data-hud-yield), the tutorial card, the region title, the toasts — stacked by stack() so nothing overlaps. Bottom: A02's controls.
+   wait with data-hud-yield), A24's achievement card, the tutorial card, the region title, the toasts — stacked by stack() so nothing overlaps. Bottom: A02's controls.
    Hooks: R.hud = {el, mm, E, refresh(), banner(id), stack(), last, shown}. */
 (function () {
   const HOUSE_COL = { stark: '#a9bdd0', lannister: '#e3b661', targaryen: '#e14b4b', greyjoy: '#d8b74a', tyrell: '#7fd06a', martell: '#f08a3c', baratheon: '#e0c14a' };
   const CLS = { knight: 'Knight', ranger: 'Ranger', maester: 'Maester' };
   const hcol = h => (R.data.houses && R.data.houses[h] && R.data.houses[h].col) || HOUSE_COL[h] || '#a9bdd0';
-  const houseOf = st => (R.state.acc && R.state.acc.house) || st.house || (R.data.champs && R.data.champs[st.hero] && R.data.champs[st.hero].house) || 'stark';
-  const titleOf = st => st.title || (R.state.acc && R.state.acc.title) || CLS[st.cls] || '';
+  const houseOf = st => { try { return houseOf_(st); } catch (e) { return 'stark'; } };
+  const houseOf_ = st => (R.state.acc && R.state.acc.house) || st.house || (R.data.champs && R.data.champs[st.hero] && R.data.champs[st.hero].house) || 'stark';
+  const titleOf = st => { try { return (R.state.acc && R.state.acc.title) || st.title || CLS[st.cls] || ''; } catch (e) { return CLS[st.cls] || ''; } };
   const xpNext = L => { const B = R.data.balance; try { if (B && typeof B.xpNext === 'function') return B.xpNext(L); } catch (e) {} return 80 + 45 * L + 6 * L * L; };
   const fmt = n => String(Math.max(0, Math.round(n || 0))).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -140,7 +141,7 @@
   /* ---- the fallen chip: "☠ n" heroes fallen (R.state.acc.hall), tap → the hall ---- */
   const drawHall = () => {
     const acc = R.state.acc, el = E['hud-hall']; if (!acc) { el.classList.remove('on'); return; }
-    const n = Array.isArray(acc.hall) ? acc.hall.length : 0; el.classList.add('on');
+    const n = Array.isArray(acc.hall) ? acc.hall.length : 0; el.classList.toggle('on', n > 0);
     if (n !== last.fallen) { last.fallen = n; el.querySelector('b').textContent = n; el.title = n + (n === 1 ? ' hero fallen' : ' heroes fallen'); }
   };
 
@@ -152,7 +153,7 @@
   const banner = id => {
     const r = regionOf(id) || {}, name = r.name || (typeof id === 'string' ? id.replace(/[_-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '');
     if (!name) return; const band = bandOf(r), el = E['hud-region'];
-    el.querySelector('b').textContent = name; el.querySelector('small').textContent = band ? name + ' · ' + band : ''; el.querySelector('p').textContent = storyOf(id);
+    el.querySelector('b').textContent = name; el.querySelector('small').textContent = band || ''; el.querySelector('p').textContent = storyOf(id);
     el.querySelector('small').style.display = band ? '' : 'none';
     el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); stack(); clearTimeout(banT); banT = setTimeout(() => { el.classList.remove('on'); stack(); }, 3400);
   };
@@ -166,12 +167,13 @@
     for (const id of BARS) { const b = document.getElementById(id); if (!b) continue;
       if (!lead && shownEl(b)) { lead = b; if (b.style.top !== y + 'px') b.style.top = y + 'px'; y = Math.max(y, b.getBoundingClientRect().bottom + GAP); }
       else if (lead && shownEl(b)) b.setAttribute('data-hud-yield', '1'); }
+    for (const a of ui.querySelectorAll(':scope>.ach-toast')) { if (a.style.top !== y + 'px') a.style.top = y + 'px'; y += a.offsetHeight + GAP; }   // A24's unlock card
     const tw = document.querySelector('#tut:not(.off) .tut-wrap');
     if (tw && shownEl(tw)) { if (tw.style.top !== y + 'px') tw.style.top = y + 'px'; y += tw.offsetHeight + GAP; }
     const rg = E['hud-region']; if (rg.classList.contains('on')) { if (rg.style.top !== y + 'px') rg.style.top = y + 'px'; y += rg.offsetHeight + GAP; }
     for (const t of ui.querySelectorAll(':scope>.toast')) { if (t.style.top !== y + 'px') t.style.top = y + 'px'; y += t.offsetHeight + 6; }
   };
-  try { new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1 && (n.classList.contains('toast') || BARS.includes(n.id) || n.id === 'tut')) { stack(); return; } })
+  try { new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1 && (n.classList.contains('toast') || n.classList.contains('ach-toast') || BARS.includes(n.id) || n.id === 'tut')) { stack(); return; } })
     .observe(ui, { childList: true }); } catch (e) {}
 
   /* ---- refresh ---- */
@@ -220,6 +222,7 @@
 
   /* ---- system: ≤ 10 refreshes a second ---- */
   let acc = 0.1;
-  R.addSys('hud', { order: 950, update(dt) { acc += dt; if (acc < 0.1) return; acc = 0; refresh(); } });
-  R.hud = { el: root, mm, E, refresh, banner, stack, last, shown, drawMini: () => R.player && drawMini(R.player) };
+  let warned = 0;   // the HUD never breaks the frame: a half-built save (no acc yet) only skips this refresh
+  R.addSys('hud', { order: 950, update(dt) { acc += dt; if (acc < 0.1) return; acc = 0; try { refresh(); } catch (e) { if (!warned++) console.warn('hud', e); } } });
+  R.hud = { el: root, mm, E, refresh, banner, stack, last, shown, resetPortrait: () => { portKey = ''; faceKey = ''; }, drawMini: () => R.player && drawMini(R.player) };
 })();

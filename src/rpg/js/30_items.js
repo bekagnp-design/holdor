@@ -163,18 +163,22 @@ window.R = window.R || {};
   const roll = (lvl, rarMin, rng, cls) => {
     rng = rng || rnd; lvl = Math.max(1, Math.round(lvl || 1));
     const rar = rollRar(rarMin || 0, rng);
-    const mixG = (D.balance && D.balance.drops && D.balance.drops.gear) || MIX.gear;
-    const kind = pickKey(mixG, rng);
-    const b = pick(basesOf(kind, cls, lvl, rar), x => 1 / (1 + Math.abs(lvl - x.tier) / 6), rng);
+    // balance.drops.gear is the gear DROP CHANCE (a number, A39); only an object is a slot mix
+    const isMix = o => !!o && typeof o === 'object' && Object.keys(o).some(k => o[k] > 0);
+    const bd = D.balance && D.balance.drops; const mixG = isMix(bd && bd.gearMix) ? bd.gearMix : isMix(bd && bd.gear) ? bd.gear : MIX.gear;
+    let kind = pickKey(mixG, rng); if (!kind || !['weapon', 'armor', 'trinket'].includes(kind)) kind = pickKey(MIX.gear, rng);
+    let bs = basesOf(kind, cls, lvl, rar); if (!bs || !bs.length) bs = basesOf(kind, null, lvl, rar);
+    const b = pick(bs, x => 1 / (1 + Math.abs(lvl - x.tier) / 6), rng);
+    if (!b) return null;
     return make(b.key, lvl, rar, rng);
   };
   // a drop from a kill: gear, or a potion, or a material
   const rollLoot = (lvl, rarMin, rng, cls) => {
     rng = rng || rnd;
-    const mix = (D.balance && D.balance.drops) || MIX;
-    const what = pickKey(mix.loot || MIX.loot, rng);
-    if (what === 'potion') return make(pickKey(mix.potion || MIX.potion, rng), lvl, 0, rng);
-    if (what === 'mat') return make(pickKey(mix.mat || MIX.mat, rng), lvl, 0, rng);
+    const bd = (D.balance && D.balance.drops) || {}; const obj = (o, d) => (o && typeof o === 'object' && Object.keys(o).length ? o : d);
+    const what = pickKey(obj(bd.loot, MIX.loot), rng);
+    if (what === 'potion') return make(pickKey(obj(bd.potionMix, MIX.potion), rng), lvl, 0, rng);
+    if (what === 'mat') return make(pickKey(obj(bd.matMix, MIX.mat), rng), lvl, 0, rng);
     return roll(lvl, rarMin, rng, cls);
   };
 

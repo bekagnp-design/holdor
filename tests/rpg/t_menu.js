@@ -26,7 +26,7 @@ const HTML = path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'bet
   });
   await page.goto('file://' + HTML + '?startapp=r_abc12');
   await page.waitForFunction(() => window.R && R.screens && R.screens.menu && R.tg, { timeout: 20000 });
-  const R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
+  const R = global.__R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
   const calls = () => page.evaluate(() => window.__tg.map(x => x[0]));
   const tgArgs = name => page.evaluate(n => window.__tg.filter(x => x[0] === n).map(x => x.slice(1)), name);
 
@@ -41,24 +41,24 @@ const HTML = path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'bet
   await page.evaluate(() => { R.state = R.newState(); R.state.p.name = 'Hodor'; R.state.p.house = 'stark'; R.state.p.cls = 'knight'; R.state.p.lvl = 7; R.state.p.played = 4200; R.state.p.hero = 'jon';
     R.state.acc = { house: 'stark', champs: { jon: { unlocked: 1, runs: 2 }, robb: { unlocked: 1, runs: 1 } }, hall: [{ id: 'robb', name: 'Robb', lvl: 9, killer: 'wight', at: Date.now() - 3600e3, played: 600 }], titles: [], title: '', ach: [], world: { found: [], flags: {}, quests: {}, bosses: {}, killed: {} }, best: { lvl: 9, kills: 120 } };
     R.net = { on: true }; R.start(); R.resize(); });
-  await page.waitForFunction(() => { const b = document.getElementById('menuBtn'); return b && !b.classList.contains('off') && b.getBoundingClientRect().width >= 44; }, { timeout: 5000 }).catch(() => {});
-  const bb = await page.evaluate(() => { const b = document.getElementById('menuBtn'); const r = b.getBoundingClientRect(); return { w: r.width, h: r.height, off: b.classList.contains('off'), data: b.dataset.btn }; });
-  ok('menu button ≥44px, data-btn=menu', bb.w >= 44 && bb.h >= 44 && !bb.off && bb.data === 'menu', JSON.stringify(bb));
+  await page.waitForFunction(() => { const b = document.getElementById('b-menu') || document.getElementById('menuBtn'); return b && b.getBoundingClientRect().width >= 44; }, { timeout: 5000 }).catch(() => {});
+  const bb = await page.evaluate(() => { const b = document.getElementById('b-menu') || document.getElementById('menuBtn'); const r = b.getBoundingClientRect(); return { w: r.width, h: r.height, off: b.classList.contains('off') || !r.width, data: b.dataset.btn || b.dataset.b, n: document.querySelectorAll('#b-menu,#menuBtn').length }; });
+  ok('one menu button, ≥44px, menu', bb.w >= 44 && bb.h >= 44 && !bb.off && bb.data === 'menu' && bb.n === 1, JSON.stringify(bb));
 
   // startapp r_abc12 → refBy once (the own id 777 differs)
   await page.waitForFunction(() => R.state.p.flags && R.state.p.flags.refBy, { timeout: 5000 }).catch(() => {});
   ok('startapp → flags.refBy', await page.evaluate(() => R.state.p.flags.refBy === 'abc12'), await page.evaluate(() => JSON.stringify(R.state.p.flags)));
 
   // open from the button (a real tap)
-  await page.tap('#menuBtn'); await page.waitForTimeout(150);
-  let st = await page.evaluate(() => ({ cur: R.ui.cur, on: document.getElementById('screen').classList.contains('on'), paused: R.paused, btnOff: document.getElementById('menuBtn').classList.contains('off') }));
+  await page.tap('#b-menu', { force: true }); await page.waitForTimeout(150);
+  let st = await page.evaluate(() => ({ cur: R.ui.cur, on: document.getElementById('screen').classList.contains('on'), paused: R.paused, btnOff: (b => !b || b.classList.contains('off') || !b.getBoundingClientRect().width)(document.getElementById('b-menu') || document.getElementById('menuBtn')) }));
   ok('tap menu → screen menu, paused, button hidden', st.cur === 'menu' && st.on && st.paused && st.btnOff, JSON.stringify(st));
   ok('BackButton.show on open', (await calls()).includes('BackButton.show'));
   const rows = await page.evaluate(() => Array.from(document.querySelectorAll('#menu .mn-row .lb')).map(x => x.firstChild.textContent.trim()));
   const need = ['Skills', 'Heroes', 'Quests', 'Achievements', 'Hall of the Fallen', 'Chat', 'Settings', 'Invite a friend', 'Account'];
   ok('rows present, no Party', need.every(n => rows.includes(n)) && !rows.includes('Party'), rows.join('|'));
   ok('Heroes/Hall rows target the heroes/hall screens', await page.evaluate(() => document.querySelector('#menu .mn-row[data-row="heroes"]').dataset.scr === 'heroes' && document.querySelector('#menu .mn-row[data-row="hall"]').dataset.scr === 'hall' && /1 fallen/.test(document.querySelector('#menu .mn-row[data-row="hall"]').textContent)));
-  ok('a row for a missing screen toasts instead of throwing', await page.evaluate(() => { document.querySelector('#menu .mn-row[data-row="heroes"]').click(); return R.ui.cur === 'menu' && !!document.querySelector('#ui .toast'); }));
+  ok('a row for a missing screen toasts instead of throwing', await page.evaluate(() => { const sv = R.screens.heroes; delete R.screens.heroes; document.querySelector('#menu .mn-row[data-row="heroes"]').click(); if (sv) R.screens.heroes = sv; return R.ui.cur === 'menu' && !!document.querySelector('#ui .toast'); }));
   ok('Leaderboard row iff R.screens.board', await page.evaluate(() => !!document.querySelector('#menu .mn-row[data-scr="board"]') === !!R.screens.board));
   const sizes = await page.evaluate(() => Array.from(document.querySelectorAll('#menu button')).map(b => b.getBoundingClientRect().height));
   ok('every target ≥44px', sizes.length > 8 && sizes.every(h => h >= 44), JSON.stringify(sizes.map(Math.round)));
@@ -70,7 +70,7 @@ const HTML = path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'bet
 
   // RESUME closes
   await page.tap('#menu button.pri'); await page.waitForTimeout(120);
-  st = await page.evaluate(() => ({ cur: R.ui.cur, on: document.getElementById('screen').classList.contains('on'), paused: R.paused, btnOff: document.getElementById('menuBtn').classList.contains('off') }));
+  st = await page.evaluate(() => ({ cur: R.ui.cur, on: document.getElementById('screen').classList.contains('on'), paused: R.paused, btnOff: (b => !b || b.classList.contains('off') || !b.getBoundingClientRect().width)(document.getElementById('b-menu') || document.getElementById('menuBtn')) }));
   ok('RESUME → closed, unpaused, button back', st.cur === null && !st.on && !st.paused && !st.btnOff, JSON.stringify(st));
   const seq = await calls(); ok('BackButton.hide after close', seq.lastIndexOf('BackButton.hide') > seq.lastIndexOf('BackButton.show'));
 
@@ -82,12 +82,12 @@ const HTML = path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'bet
   ok('Esc opens, Esc closes', e1 === 'menu' && e2 === null, e1 + '/' + e2);
 
   // the Telegram BackButton closes a screen too
-  await page.tap('#menuBtn'); await page.waitForTimeout(100);
+  await page.tap('#b-menu', { force: true }); await page.waitForTimeout(100);
   await page.evaluate(() => window.Telegram.WebApp.BackButton.fn());
   ok('BackButton tap closes the screen', await page.evaluate(() => R.ui.cur === null));
 
   // Settings toggles → R.state.opts, saved
-  await page.tap('#menuBtn'); await page.waitForTimeout(100);
+  await page.tap('#b-menu', { force: true }); await page.waitForTimeout(100);
   await page.tap('#menu .mn-row[data-row="gear"]'); await page.waitForTimeout(100);
   const before = await page.evaluate(() => JSON.stringify(R.state.opts));
   await page.tap('#menu .mn-sw[data-opt="sfx"]'); await page.tap('#menu .mn-sw[data-opt="haptic"]'); await page.tap('#menu .mn-sw[data-opt="dmgnum"]'); await page.tap('#menu .mn-sw[data-opt="manual"]');
@@ -116,7 +116,7 @@ const HTML = path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'bet
   // Account → Start over: two taps, wipes the save, reloads (stubbed)
   await page.tap('#menu .mn-row[data-row="acc"]'); await page.waitForTimeout(100);
   const kv = await page.evaluate(() => Array.from(document.querySelectorAll('#menu .mn-kv')).map(x => x.textContent));
-  ok('account: house, hero, champion, class, level, fallen, best', kv.some(x => /^HouseStark$/.test(x)) && kv.some(x => /^HeroHodor$/.test(x)) && kv.some(x => /^ChampionJon$/.test(x)) && kv.some(x => /Knight/.test(x)) && kv.some(x => /^Level7$/.test(x)) && kv.some(x => /^Heroes fallen1$/.test(x)) && kv.some(x => /^Best level9$/.test(x)), kv.join('|'));
+  ok('account: house, hero, champion, class, level, fallen, best', kv.some(x => /^HouseStark$/.test(x)) && kv.some(x => /^HeroHodor$/.test(x)) && kv.some(x => /^ChampionJon( Snow)?$/.test(x)) && kv.some(x => /Knight/.test(x)) && kv.some(x => /^Level7$/.test(x)) && kv.some(x => /^Heroes fallen1$/.test(x)) && kv.some(x => /^Best level9$/.test(x)), kv.join('|'));
   await page.evaluate(() => { window.__reloaded = 0; R.reload = () => { window.__reloaded++; }; try { location.reload = () => { window.__reloaded += 100; }; } catch (e) {} });
   await page.tap('#menu .mn-row[data-act="startover"]'); await page.waitForTimeout(100);
   const a1 = await page.evaluate(() => ({ armed: document.querySelector('[data-act="startover"]').classList.contains('armed'), save: !!localStorage.getItem('holdor_rpg'), rel: window.__reloaded, txt: document.querySelector('[data-act="startover"] .lb').textContent }));
@@ -135,7 +135,7 @@ const HTML = path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'bet
   const plain = await p2.evaluate(() => { R.state = R.newState(); R.start(); R.ui.open('menu'); const r = { tg: R.tg.on, cur: R.ui.cur, rows: document.querySelectorAll('#menu .mn-row').length, hap: (R.haptic('light'), true) }; R.ui.close(); return r; });
   ok('plain browser: no Telegram, menu works, haptic silent', !plain.tg && plain.cur === 'menu' && plain.rows >= 9 && plain.hap && !err2.length, JSON.stringify(plain) + ' ' + err2.join(';'));
   // save v1 (no acc) still renders: the house from p, nothing fallen
-  const v1 = await p2.evaluate(() => { R.state = R.newState(); R.state.p.name = 'Old'; R.state.p.house = 'tyrell'; R.ui.open('menu', 'account'); const kv = Array.from(document.querySelectorAll('#menu .mn-kv')).map(x => x.textContent); R.ui.close(); return kv; });
+  const v1 = await p2.evaluate(() => { const s = R.newState(); s.p.name = 'Old'; s.p.house = 'tyrell'; delete s.acc; s.v = 1; R.state = s; R.ui.open('menu', 'account'); const kv = Array.from(document.querySelectorAll('#menu .mn-kv')).map(x => x.textContent); R.ui.close(); return kv; });
   ok('v1 save renders the account page', v1.some(x => /^HouseTyrell$/.test(x)) && v1.some(x => /^Heroes fallen0$/.test(x)) && v1.some(x => /^HeroOld$/.test(x)), v1.join('|'));
 
   console.log(JSON.stringify(R, null, 1));
@@ -144,4 +144,4 @@ const HTML = path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'bet
   console.log(bad ? 'FAILS: ' + bad : 'ALL PASS');
   await browser.close();
   process.exit(bad || errors.length ? 1 : 0);
-})().catch(e => { console.error('ERR', e); process.exit(1); });
+})().catch(e => { console.error('ERR', e, JSON.stringify(global.__R || {}, null, 1)); process.exit(1); });

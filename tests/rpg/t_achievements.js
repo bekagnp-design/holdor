@@ -10,7 +10,7 @@ const SC = path.resolve(__dirname, '..', '..', '.shots') + '/'; fs.mkdirSync(SC,
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message + ' @ ' + (e.stack || '').split('\n').slice(0, 2).join(' | ')));
   page.on('console', m => { if (m.type() === 'error' && !/ERR_|Failed to load|net::|telegram/i.test(m.text())) errors.push('C:' + m.text()); });
   await page.goto('file://' + path.resolve(__dirname, '..', '..', process.env.RPG_HTML || 'beta/index.html'));
-  await page.waitForFunction(() => window.R && R.ach && R.data && R.data.achievements && R.screens.ach, { timeout: 20000 });
+  await page.waitForFunction(() => window.R && R.ach && R.data && R.data.achievements && R.screens.ach && R.boot, { timeout: 20000 }); await page.waitForTimeout(300);   // after the boot door (it would replace the faked state)
   const T = {}; const ok = (k, v, info) => { T[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
 
   // 1. the data
@@ -22,7 +22,7 @@ const SC = path.resolve(__dirname, '..', '..', '.shots') + '/'; fs.mkdirSync(SC,
 
   // 2. a fresh v2 account + hero (the core stub may still save the v1 shape: give it an acc so the module uses the account)
   const fresh = () => page.evaluate(() => { R.state = R.newState(); if (!R.state.acc) R.state.acc = { house: 'stark', champs: { jon: { unlocked: 1, runs: 1 } }, hall: [], titles: [], title: '', ach: [], world: { found: [], flags: {}, quests: {}, bosses: {}, killed: {} }, best: { lvl: 1, kills: 0 } };
-    Object.assign(R.state.p, { hero: 'jon', name: 'Jon', lvl: 1, gems: 0, created: 1000 }); R.player = { kind: 'player', gems: 0, x: 0, y: 0 }; document.querySelectorAll('.ach-toast').forEach(d => d.remove()); });
+    Object.assign(R.state.p, { hero: 'jon', name: 'Jon', lvl: 1, gems: 0, created: 1000 }); R.player = { kind: 'player', gems: 0, x: 0, y: 0 }; if (R.ui.cur === 'intro') R.ui.close(); document.querySelectorAll('.ach-toast').forEach(d => d.remove()); });
   await fresh();
   const k = await page.evaluate(() => { const A = R.data.achievements, g = id => A.find(a => a.id === id).reward.gems || 0;
     for (let i = 0; i < 100; i++) R.bus.emit('kill', { kind: 'mob', type: 'axe', lvl: 1 }, R.player);
@@ -79,7 +79,7 @@ const SC = path.resolve(__dirname, '..', '..', '.shots') + '/'; fs.mkdirSync(SC,
       acc: R.state.acc.ach.length, paused: R.paused, cur: R.ui.cur, big: [...document.querySelectorAll('.ach-chip,.ach-back')].every(b => b.getBoundingClientRect().height >= 44) }; });
   ok('screen: every card, locked kill_1000 reads 101 / 1,000 with a 10% bar', s.n === data.n && s.lock && s.pt === '101 / 1,000' && s.bar === '10%' && s.done === s.acc && s.cnt === `${s.acc} / ${data.n}` && s.cur === 'ach' && s.paused === true, JSON.stringify(s));
   ok('title picker: None first (on), earned titles as chips ≥ 44 px', s.chips[0] === 'None' && s.on === 'None' && s.chips.includes('Sworn Sword') && s.chips.includes('Hedge Knight') && s.big, s.chips.join('|'));
-  await page.locator('.ach-chip', { hasText: 'Sworn Sword' }).first().tap(); await page.waitForTimeout(120);
+  try { await page.locator('.ach-chip', { hasText: 'Sworn Sword' }).first().tap({ timeout: 5000 }); } catch (e) { ok('the Sworn Sword chip can be tapped', false, e.message.split('\n')[0]); } await page.waitForTimeout(120);
   const t = await page.evaluate(() => ({ title: R.state.acc.title, p: R.state.p.title, api: R.ach.title(), on: document.querySelector('.ach-chip.on').textContent.trim(), sec: document.getElementById('achTitleSec').textContent.trim(), bad: R.ach.setTitle('Not Earned') }));
   ok('one tap sets the title on the account (mirrored to the hero), rejects an unearned one', t.title === 'Sworn Sword' && t.p === 'Sworn Sword' && t.api === 'Sworn Sword' && t.on === 'Sworn Sword' && /Sworn Sword/.test(t.sec) && t.bad === false, JSON.stringify(t));
   await page.evaluate(() => window.scrollTo(0, 0));

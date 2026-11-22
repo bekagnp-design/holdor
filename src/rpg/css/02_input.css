@@ -47,3 +47,9 @@
 #ctl .ib.dn{transform:scale(.92);filter:brightness(1.3)}
 #ctl .ib .dot{position:absolute;right:-3px;top:-3px;width:10px;height:10px;border-radius:50%;background:var(--bad);display:none;border:1.5px solid #060b14}
 #ctl .ib.mark .dot{display:block}
+/* G5: narrow phones (360): the resting joystick ring moves left so it never sits under skill 1; landscape: the arc stays bottom-right */
+@media (max-width:370px){#joy-rest{left:calc(30px + env(safe-area-inset-left));bottom:calc(84px + env(safe-area-inset-bottom))}}
+#ctl-top{gap:6px}
+@media (orientation:landscape) and (max-height:520px){#ctl-top{right:calc(98px + env(safe-area-inset-right))}}
+/* dark-fantasy finish for the top row: forged plates with a bronze edge */
+#ctl .ib{background:linear-gradient(180deg,rgba(40,32,20,.9),rgba(8,10,14,.9));border:1.5px solid rgba(201,160,78,.42);color:#e9dcc0;box-shadow:0 4px 10px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,230,170,.1)}

@@ -1,8 +1,8 @@
 /* 52_intro.css — the first two minutes: title → house → path → name → prologue (A27) */
 #screen.intro{padding:0;overflow:hidden;background:#060b14}
 .in{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;color:#e9eef5}
-.in-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
-.in-veil{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 38%,rgba(6,11,20,.12),rgba(6,11,20,.88) 78%);transition:background .6s ease}
+.in-cv{position:absolute;inset:0;width:100%;height:100%;display:block;filter:blur(3px) brightness(.62) saturate(.7);transform:scale(1.04)}
+.in-veil{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 38%,rgba(6,11,20,.38),rgba(6,11,20,.92) 78%);transition:background .6s ease}
 .in.dim .in-veil{background:linear-gradient(180deg,rgba(6,11,20,.78),rgba(6,11,20,.9))}
 .in.dark .in-veil{background:rgba(4,7,14,.94)}
 .in-top{position:relative;z-index:2;display:flex;align-items:center;gap:8px;padding:max(10px,env(safe-area-inset-top)) 12px 4px;min-height:60px}

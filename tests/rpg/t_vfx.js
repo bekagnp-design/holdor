@@ -15,6 +15,8 @@ const path = require('path');
   const p = await open();
   const r = await p.evaluate(() => {
     const out = {}; const fx = R.fx, S = R.sys.vfx, DT = 1 / 60;
+    // the integrated build installs the 3D projection; sections 1–11 test the layer on the flat 2D projection (core's), 12 on a perspective one
+    const w2sReal = R.w2s, keep3d = R.render3d; R.w2s = (x, y) => ({ x: (x - R.cam.x) * R.cam.z + 195, y: (y - R.cam.y) * R.cam.z + 422 }); R.render3d = undefined;
     R.cam.x = 500; R.cam.y = 500; R.cam.z = 1; R.paused = false; if (R.ui && R.ui.cur) R.ui.close();
     const cv = document.createElement('canvas'); cv.width = 390; cv.height = 844; const ctx = cv.getContext('2d'); R.dpr = 1;
     const clear = () => { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, 390, 844); };
@@ -67,7 +69,11 @@ const path = require('path');
     fx.clear(); fx.spawn('nova', 500, 500, { r: 60, dur: 1, w: 2 }); step(30); clear(); S.drawWorld(ctx); out.persp = bbox(); out.perspIs3d = fx.is3d;
     fx.clear(); fx.spawn('nova', 500, 500, { r: 60, dur: 1, w: 2, z: 100 }); step(30); clear(); S.drawWorld(ctx); out.perspHi = bbox();
     fx.clear(); for (const k of fx.kinds) fx.spawn(k, 500, 500, opts[k] || {}); step(5); clear(); S.drawWorld(ctx); out.perspPx = pixels(); fx.clear(); R.w2s = w2s0; fx.spawn('dust', 500, 500, {}); S.drawWorld(ctx); out.flatAgain = fx.is3d === false;
-    fx.clear(); return out;
+    /* 13. every kind the other modules spawn (24_physics, 47_wildlife, 22_skills, 13_bosses, 45_events) makes particles */
+    const asked = ['splash', 'smoke', 'raise', 'slam', 'volley', 'warcry', 'dread', 'fire', 'frost', 'peck', 'rally', 'raven', 'shaft', 'snap', 'strike', 'taunt', 'trap', 'dash', 'heal', 'levelup', 'shield', 'slash', 'dust', 'nova', 'loot', 'hit', 'blood', 'ash', 'shatter'];
+    out.asked = asked.filter(k => { fx.clear(); return !fx.spawn(k, 500, 500, k === 'shield' || k === 'dash' || k === 'heal' || k === 'levelup' ? { ent } : {}); });
+    fx.clear(); fx.spawn('splash', 500, 500, { n: 3 }); const sp0 = fx.ps.filter(q => q.kind === 'splash').length; step(60); out.splash = { n: sp0, after: fx.ps.filter(q => q.kind === 'splash' && !q.fl).length };
+    fx.clear(); R.w2s = w2sReal; R.render3d = keep3d; return out;
   });
   /* the page itself: start the loop, spawn, and the real canvas is not blank */
   await p.evaluate(() => { R.cam.x = 500; R.cam.y = 500; R.cam.z = 1; R.paused = false; R.start(); for (const k of R.fx.kinds) R.fx.spawn(k, 500 + (Math.random() - 0.5) * 200, 500 + (Math.random() - 0.5) * 400, k === 'shield' || k === 'dash' || k === 'portal' || k === 'levelup' || k === 'heal' ? { ent: R.player, dur: 3 } : k === 'loot' ? { rar: 4 } : k === 'arrow' ? { vx: 1, vy: 0 } : k === 'bolt' ? { vx: 0, vy: -1 } : { r: 80, dur: 3 }); R.fx.num(520, 480, 128, null, true); R.fx.num(480, 520, 15); });
@@ -86,6 +92,8 @@ const path = require('path');
   for (const k of expectKinds) ok('kind ' + k + ' spawns and draws', r.perKind[k] && r.perKind[k].made && r.perKind[k].n > 0 && r.perKind[k].px > 0, JSON.stringify(r.perKind[k]));
   const timed = expectKinds.filter(k => !['shield', 'portal'].includes(k));
   ok('timed kinds are gone after 10 s', timed.every(k => r.left[k] === 0), JSON.stringify(r.left));
+  ok('every kind other modules spawn exists (skills / bosses through aliases)', !r.asked.length, r.asked.join());
+  ok('a splash throws droplets that land within a second', r.splash.n >= 4 && r.splash.after === 0, r.splash);
   ok('all kinds together, 30 steps: canvas not blank', r.allPx > 500 && r.allN > 0, r.allPx + ' px, ' + r.allN + ' particles');
   ok('2000 spawns never pass the cap', r.capMax <= r.cap && r.capMax > 0, r.capMax + ' <= ' + r.cap + ' (dropped ' + r.dropped + ')');
   ok('a full pool keeps the expensive shields when cheap ash asks', r.shieldsKept, '');

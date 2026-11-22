@@ -35,6 +35,7 @@
   const byId = {}; for (const b of D.bosses) byId[b.id] = b;
 
   /* ---- tuning ---- */
+  const SEAT_MIN = 1100, APPEAR_R = 1000, VANISH_R = 1800, MAX_SCALE = 2.0;   // a boss shows up only when the hero is near; its billboard ≤ 2× a common mob
   const ENGAGE = 600, LEASH = 950, RESPAWN = 600, MOVE_CD = [3.6, 2.9, 2.2], BASIC_CD = 1.6, RESET_AFTER = 5;
   const M = { /* move: windup seconds, then an effect */
     slam: { wind: 1.0, r: 120 }, charge: { wind: 0.8, w: 72, dash: 0.35 }, summon: { wind: 0.9 }, volley: { wind: 0.8, r0: 90, r1: 320, half: 0.61 },
@@ -61,11 +62,19 @@
   /* movement: the world's slide when present (it keeps entities out of sea and mountains), else its blocked test, else free */
   const moveTo = (e, nx, ny) => {
     const W = R.world;
-    if (W && W.slide) { const p = W.slide(e, nx, ny); if (p && typeof p.x === 'number') { e.x = p.x; e.y = p.y; } return; }
+    if (W && W.slide) { if (W.slide.length <= 3) { W.slide(e, nx - e.x, ny - e.y); return; } const p = W.slide(e, nx, ny); if (p && typeof p.x === 'number') { e.x = p.x; e.y = p.y; } return; }   // 10_world: slide(e, dx, dy)
     if (W && W.blocked) { if (!W.blocked(nx, ny)) { e.x = nx; e.y = ny; } else if (!W.blocked(nx, e.y)) e.x = nx; else if (!W.blocked(e.x, ny)) e.y = ny; return; }
     e.x = nx; e.y = ny;
   };
-  const spotOf = b => { const P = D.world && D.world.pois; const p = P && (Array.isArray(P) ? P.find(q => q.id === b.poi) : P[b.poi]); return p && typeof p.x === 'number' ? { x: p.x, y: p.y } : { x: b.x, y: b.y }; };
+  /* a boss stands at its anchor POI, but never within SEAT_MIN of a house seat or the start (the hero must not meet one at the gate) */
+  const seats = () => { const W = D.world || {}; const P = W.pois ? (Array.isArray(W.pois) ? W.pois : Object.values(W.pois)) : []; const out = P.filter(q => q && q.seat && typeof q.x === 'number').map(q => ({ x: q.x, y: q.y }));
+    const H = D.houses || {}; for (const h in H) { let st = H[h] && H[h].seat; if (typeof st === 'string') st = P.find(q => q && q.id === st); if (st && typeof st.x === 'number') out.push({ x: st.x, y: st.y }); }
+    if (W.start && typeof W.start.x === 'number') out.push({ x: W.start.x, y: W.start.y }); return out; };
+  const awayFromSeats = (x, y) => { for (let k = 0; k < 4; k++) { let moved = false; for (const q of seats()) { const dx = x - q.x, dy = y - q.y, d = Math.hypot(dx, dy); if (d >= SEAT_MIN) continue;
+      const ux = d > 1 ? dx / d : 0, uy = d > 1 ? dy / d : -1; x = q.x + ux * (SEAT_MIN + 10); y = q.y + uy * (SEAT_MIN + 10); moved = true; } if (!moved) break; }
+    return { x: R.clamp(x, 0, R.W || 7200), y: R.clamp(y, 0, R.H || 12288) }; };
+  const spotOf = b => { const P = D.world && D.world.pois; const p = P && (Array.isArray(P) ? P.find(q => q.id === b.poi) : P[b.poi]); const s = p && typeof p.x === 'number' ? { x: p.x, y: p.y } : { x: b.x, y: b.y }; return awayFromSeats(s.x, s.y); };
+  const bossXp = L => { const Bb = R.data.balance; try { if (Bb && Bb.mob && typeof Bb.mob.bossXp === 'function') { const v = Bb.mob.bossXp(L); if (v > 0) return Math.round(v); } } catch (x) {} return Math.round(60 + 20 * L); };
   B.spotOf = id => spotOf(typeof id === 'string' ? byId[id] : id);
   const tele = (t) => { t.t0 = R.t; t.t1 = R.t + t.dur; B.telegraphs.push(t); B.stats.tele++; return t; };
 
@@ -74,19 +83,26 @@
     const b = byId[id]; if (!b) { console.warn('no boss', id); return null; }
     const old = B.live[id]; if (old && !old.dead && R.ents.includes(old)) return old;
     const s = spotOf(b);
-    const e = R.spawn({ kind: 'boss', type: b.sprite, sprite: b.sprite, scale: b.scale, name: b.name, title: b.title, lvl: b.lvl, team: 1, x: s.x, y: s.y, r: Math.round(14 * b.scale), face: -1,
-      hp: b.hp, hpMax: b.hp, atk: b.atk, def: b.def, spd: b.spd, boss: true,
+    const sc = Math.min(MAX_SCALE, b.scale);
+    const e = R.spawn({ kind: 'boss', type: b.sprite, sprite: b.sprite, scale: sc, size: sc, name: b.name, title: b.title, lvl: b.lvl, team: 1, x: s.x, y: s.y, r: Math.round(14 * sc), face: -1,
+      hp: b.hp, hpMax: b.hp, atk: b.atk, def: b.def, spd: b.spd, boss: true, xp: bossXp(b.lvl),
       ai: { boss: id, st: 'idle', phase: 0, home: { x: s.x, y: s.y }, nextMove: 0, nextBasic: 0, act: null, last: null, lostT: 0, adds: [] } });
     B.live[id] = e; delete B.deadAt[id]; R.bus.emit('boss', id, 'spawn'); return e;
   };
   B.despawn = id => { const e = B.live[id]; if (e) { R.remove(e); delete B.live[id]; if (B.cur === e) B.disengage(); } };
   B.spawnAll = () => { for (const b of D.bosses) if (!(b.id in B.deadAt)) B.spawn(b.id); };
-  const ensure = () => { for (const b of D.bosses) { const e = B.live[b.id]; if (e && !e.dead && R.ents.includes(e)) continue; const d = B.deadAt[b.id]; if (d == null) { if (!e || !R.ents.includes(e)) B.spawn(b.id); } else if (R.t - d >= RESPAWN) B.spawn(b.id); } };
+  const ensure = () => { const pl = R.player; for (const b of D.bosses) { const e = B.live[b.id]; const sp = spotOf(b); const far = pl ? Math.hypot(sp.x - pl.x, sp.y - pl.y) : 0;
+      if (e && !e.dead && R.ents.includes(e)) { if (pl && B.cur !== e && far > VANISH_R && Math.hypot(e.x - pl.x, e.y - pl.y) > VANISH_R) B.despawn(b.id); continue; }
+      if (pl && far > APPEAR_R) continue;
+      const d = B.deadAt[b.id]; if (d == null) { if (!e || !R.ents.includes(e)) B.spawn(b.id); } else if (R.t - d >= RESPAWN) B.spawn(b.id); } };
 
   /* ---- the boss bar ---- */
   let bar = null, barV = { hp: -1, id: '' };
-  const barEl = () => { if (bar && bar.isConnected) return bar; bar = document.getElementById('bossbar'); if (bar) return bar;
-    bar = document.createElement('div'); bar.id = 'bossbar'; bar.innerHTML = '<div class="bb-head"><b class="bb-name"></b><span class="bb-title"></span></div><div class="bb-bar"><div class="bb-fill"></div><div class="bb-ticks"></div></div><div class="bb-hp"></div>';
+  const BAR_HTML = '<div class="bb-head"><b class="bb-name"></b><span class="bb-title"></span></div><div class="bb-bar"><div class="bb-fill"></div><div class="bb-ticks"></div></div><div class="bb-hp"></div>';
+  /* the HUD (A25) may provide an empty <div id="bossbar"> slot: fill it once with the bar's parts */
+  const barEl = () => { if (bar && bar.isConnected && bar.querySelector('.bb-name')) return bar; bar = document.getElementById('bossbar');
+    if (bar) { if (!bar.querySelector('.bb-name')) bar.innerHTML = BAR_HTML; return bar; }
+    bar = document.createElement('div'); bar.id = 'bossbar'; bar.innerHTML = BAR_HTML;
     (document.getElementById('bossslot') || document.getElementById('ui') || document.body).appendChild(bar); return bar; };
   B.engage = e => { if (!e || e.dead) return; if (B.cur !== e) { B.cur = e; barV.id = ''; R.bus.emit('boss', e.ai.boss, 'engage'); if (R.sfx && R.sfx.play) R.sfx.play('boss_drums', 0.8); } const el = barEl(); el.classList.add('on'); barDraw(e, true); };
   B.disengage = () => { if (!B.cur) return; const e = B.cur; B.cur = null; const el = barEl(); el.classList.remove('on'); R.bus.emit('boss', e.ai.boss, 'disengage'); };
@@ -112,7 +128,9 @@
       const gems = 20 + Math.floor(rnd() * 41);
       if (R.loot && R.loot.gems) R.loot.gems(e.x, e.y, gems); else { st.gems = (st.gems || 0) + gems; R.bus.emit('gems', gems); }
       let item = null; if (R.items && R.items.roll) { try { item = R.items.roll(b.lvl, 3); } catch (x) { item = null; } }
-      if (item) { if (R.loot && R.loot.drop) R.loot.drop(e.x, e.y, item); else { st.inv = st.inv || []; st.inv.push(item); R.bus.emit('loot', item); } }
+      if (item) { let put = null; if (R.loot && typeof R.loot.spawn === 'function') { try { put = R.loot.spawn('item', e.x, e.y, { item }); } catch (x) { put = null; } }
+        if (!put) { st.inv = st.inv || []; st.inv.push(item); R.bus.emit('loot', item); } }
+      e.looted = true;   /* this is the boss's whole reward: 32_loot's and 20_combat's 'kill' rolls skip it */
       e.drops = { gems, item };
       if (R.save) R.save();
     }

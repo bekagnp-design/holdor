@@ -1,15 +1,16 @@
 /* HOLDOR RPG — R.sfx: every sound is synthesised in WebAudio, no files. (A33)
    R.sfx.play(name, vol=1)      one-shot; returns the voice ({n: source nodes, end}) or false (unknown / muted / locked / throttled / capped)
    R.sfx.ambient(biome|null)    crossfades one looping bed per biome kind: wind (north, wall), birds + crickets (the reach and the green lands),
-                                waves (coasts, islands), desert wind (Dorne). R.sfx.kindOf(biome) maps any region/biome string to a kind.
+                                waves (coasts, islands, and anywhere within ~240 units of a sea shore by R.water), desert wind (Dorne). R.sfx.kindOf(biome) maps any region/biome string to a kind.
    R.sfx.music('explore'|'boss'|null)  a very quiet drone + sparse plucked notes in D Dorian / a faster pulse for a boss / silence.
    R.sfx.sync()                 master gain ← R.state.opts.sfx (0..1 or true/false).  R.sfx.setVolume(v) writes it back and saves.
    R.sfx.unlock()               resumes the AudioContext (called on the first touch / click / key).  R.sfx.stopAll() cuts live voices.
-   Counters for tests: R.sfx.nodes (held loop sources: ambient + music), R.sfx.voices() (live one-shots), R.sfx.stats {played, throttled, capped}, R.sfx.last.
+   Counters for tests: R.sfx.nodes (held loop sources: ambient + music), R.sfx.voices() (live one-shots), R.sfx.stats {played, throttled, capped}, R.sfx.last, R.sfx.hist (the last 16 names played).
    Throttle: one name at most 8×/s (R.sfx.RATE); polyphony: 12 one-shot voices (R.sfx.MAX_VOICES) — a fanfare (levelup, drums, horn, roar, quest,
    chest, error, open, close) takes the place of the voice ending soonest, every other sound is dropped while the cap is full.
    Names: swing hit hitCrit arrow bolt nova shield heal hurt die shatter coin loot levelup quest questDone ui open close error potion dodge roar drums horn door chest fall
-          howl gull raven crow thunder splash · footsteps stepGrass stepSnow stepSand stepWet stepStone.
+          howl gull raven crow croak thunder splash wade forge trap · footsteps stepGrass stepSnow stepSand stepWet stepStone (wading → wade).
+          Families: boss_<move>, skill_<kind> and k_/m_/r_ class skill ids, quest…, step… resolve to the closest sound (R.sfx.resolve / R.sfx.has).
    Fauna in the beds, by R.sfx.isNight() (the ambience module's day/night if it exposes one, else the clock; R.sfx.night = true|false forces it):
    birds by day and crickets at night on the green lands, gulls by day on the coast, a distant wolf now and then in the north. R.sfx.fauna says what is on.
    Hooks (so it works alone): hit, kill, levelup, loot, gold, quest, btn, screen, enter, boss, death, respawn, footstep (e, surface: the player always,
@@ -17,7 +18,7 @@
 (function () {
   const S = R.sfx = R.sfx || {};
   const AC = window.AudioContext || window.webkitAudioContext;
-  S.ok = !!AC; S.ac = null; S.master = null; S.unlocked = false; S.nodes = 0; S.vol = 1; S.last = null;
+  S.ok = !!AC; S.ac = null; S.master = null; S.unlocked = false; S.nodes = 0; S.vol = 1; S.last = null; S.hist = [];
   S.stats = { played: 0, throttled: 0, capped: 0, stolen: 0, beats: 0, plucks: 0, chirps: 0, gulls: 0, howls: 0 }; S.MAX_VOICES = 12; S.RATE = 8;
   S.ambientKind = null; S.musMode = null;
   let sfxBus = null, ambBus = null, musBus = null, noiseBuf = null, ambLayer = null, musLayer = null;
@@ -64,7 +65,7 @@
 
   /* ---- the sounds ---- */
   // names other modules use → the closest synth (ach, boss phases, dungeon doors, tutorial chime, death, event horns)
-  const ALIAS = { caw: 'crow', croak: 'splash', bark: 'howl', bleat: 'ui', cluck: 'ui', hiss: 'die', ach: 'quest', boss_: 'drums', boss_drums: 'drums', boss_start: 'drums', boss_phase: 'drums', boss_win: 'horn', chime: 'ui', death: 'fall', dg_door: 'door', dg_enter: 'open', dg_wave: 'drums', event: 'horn', reward: 'chest', tap: 'ui', win: 'horn', crit: 'hitCrit', click: 'ui', buy: 'coin', sell: 'coin', equip: 'ui', unlock: 'levelup', gem: 'coin', gold: 'coin', cast: 'nova', step: 'stepGrass', slash: 'swing' };
+  const ALIAS = { caw: 'crow', bow: 'arrow', shoot: 'arrow', spell: 'nova', ui_rank: 'quest', quest_done: 'questDone', quest_turn: 'chest', wading: 'wade', ripple: 'stepWet', bark: 'howl', bleat: 'ui', cluck: 'ui', hiss: 'die', ach: 'quest', boss_: 'drums', boss_drums: 'drums', boss_start: 'drums', boss_phase: 'drums', boss_win: 'horn', chime: 'ui', death: 'fall', dg_door: 'door', dg_enter: 'open', dg_wave: 'drums', event: 'horn', reward: 'chest', tap: 'ui', win: 'horn', crit: 'hitCrit', click: 'ui', buy: 'coin', sell: 'coin', equip: 'ui', unlock: 'levelup', gem: 'coin', gold: 'coin', cast: 'nova', step: 'stepGrass', slash: 'swing' };
   const REC = {
     swing: v => hiss(v, { bp: 700, bp1: 2200, q: 1.2, dur: 0.14, a: 0.01, d: 0.08, g: 0.35 }),
     hit: v => { hiss(v, { lp: 1400, dur: 0.07, a: 0.002, d: 0.05, g: 0.5 }); tone(v, { f: 190, f1: 55, dur: 0.1, d: 0.08, g: 0.45 }); },
@@ -102,6 +103,10 @@
     raven: v => [0, 0.26].forEach(at => { tone(v, { type: 'sawtooth', f: 420, f1: 300, dur: 0.18, at, a: 0.01, d: 0.15, g: 0.2, lp: 2200, vib: { f: 45, depth: 120 } }); hiss(v, { bp: 1200, q: 1.5, dur: 0.16, at, a: 0.01, d: 0.13, g: 0.12 }); }),   // a croak
     crow: v => [0, 0.18, 0.36].forEach(at => tone(v, { type: 'sawtooth', f: 640, f1: 480, dur: 0.12, at, a: 0.008, d: 0.1, g: 0.18, lp: 2500, vib: { f: 40, depth: 150 } })),
     thunder: v => { hiss(v, { hp: 2500, dur: 0.15, a: 0.002, d: 0.12, g: 0.35 }); hiss(v, { lp: 160, lp1: 55, dur: 2.6, a: 0.05, d: 2.3, g: 0.8 }); tone(v, { f: 48, f1: 28, dur: 1.6, a: 0.04, d: 1.4, g: 0.45 }); hiss(v, { lp: 400, lp1: 90, dur: 1.2, at: 0.3, a: 0.1, d: 1.0, g: 0.3 }); },
+    croak: v => [0, 0.22].forEach(at => tone(v, { type: 'sawtooth', f: 150, f1: 105, dur: 0.16, at, a: 0.01, d: 0.13, g: 0.2, lp: 700, vib: { f: 32, depth: 40 } })),   // a frog, twice
+    wade: v => { hiss(v, { lp: 900, lp1: 380, dur: 0.32, a: 0.04, d: 0.25, g: 0.3 }); hiss(v, { bp: 1500, bp1: 700, q: 0.8, dur: 0.22, at: 0.04, a: 0.02, d: 0.18, g: 0.16 }); tone(v, { f: 140, f1: 80, dur: 0.18, a: 0.02, d: 0.15, g: 0.12 }); },   // a leg through water
+    forge: v => { tone(v, { type: 'triangle', f: 1250, dur: 0.6, a: 0.001, d: 0.5, g: 0.22 }); tone(v, { f: 1870, dur: 0.45, a: 0.001, d: 0.35, g: 0.12 }); tone(v, { f: 2960, dur: 0.3, a: 0.001, d: 0.2, g: 0.06 }); hiss(v, { hp: 2500, dur: 0.06, a: 0.001, d: 0.05, g: 0.3 }); },   // hammer on an anvil
+    trap: v => { hiss(v, { hp: 1800, dur: 0.05, a: 0.001, d: 0.04, g: 0.45 }); tone(v, { type: 'square', f: 420, f1: 180, dur: 0.08, a: 0.001, d: 0.07, g: 0.14, lp: 2400 }); },   // jaws snapping shut
     splash: v => { hiss(v, { bp: 1800, bp1: 600, q: 1, dur: 0.3, a: 0.005, d: 0.25, g: 0.4 }); tone(v, { f: 300, f1: 120, dur: 0.12, a: 0.003, d: 0.1, g: 0.25 }); hiss(v, { hp: 4000, dur: 0.25, at: 0.05, a: 0.03, d: 0.2, g: 0.12 }); },
     /* footsteps (short, quiet) */
     stepGrass: v => { hiss(v, { lp: 500, dur: 0.07, a: 0.003, d: 0.05, g: 0.18 }); tone(v, { f: 110, f1: 70, dur: 0.06, a: 0.002, d: 0.05, g: 0.15 }); },                      // a soft thud
@@ -114,8 +119,19 @@
   const PRI = { levelup: 1, drums: 1, horn: 1, roar: 1, quest: 1, questDone: 1, chest: 1, error: 1, open: 1, close: 1 };   // never dropped behind a wall of hits
   const cut = (v, t) => { try { v.out.gain.cancelScheduledValues(t); v.out.gain.setValueAtTime(0, t); } catch (e) {} for (const s of v.srcs) { try { s.stop(t + 0.01); } catch (e) {} } };
 
+  // families other modules build at runtime: 'boss_' + move, 'skill_' + kind (and the k_/m_/r_ class skill ids), 'quest…', 'step…'
+  const BOSSMOVE = { slam: 'hit', charge: 'roar', volley: 'arrow', frost: 'shatter', roar: 'roar', summon: 'horn', heal: 'heal', enrage: 'roar', hit: 'hit', dead: 'horn', death: 'horn', end: 'horn', win: 'horn' };
+  const SKILLKW = [[/heal|tinct|flask|pool|mend/, 'heal'], [/shield|oath|guard|ward/, 'shield'], [/dash|lunge|charge|step|leap/, 'dodge'], [/taunt|roar|shout|cry/, 'roar'], [/frost|ice|freeze/, 'shatter'],
+    [/volley|arrow|rain|shot|bow/, 'arrow'], [/trap|snare/, 'trap'], [/raven|crow|bird/, 'raven'], [/fire|bolt|storm|lightning|wild/, 'bolt'], [/nova|burst|ring|weir/, 'nova'], [/aoe|whirl|cleave|melee|slash|strike/, 'swing']];
+  const resolve = name => { if (REC[name]) return name; const a = ALIAS[name]; if (a && REC[a]) return a; const s = String(name);
+    if (s.startsWith('boss_')) { const b = BOSSMOVE[s.slice(5)]; return b && REC[b] ? b : 'drums'; }
+    if (s.startsWith('skill_') || /^[kmr]_/.test(s)) { for (const [re, n] of SKILLKW) if (re.test(s)) return n; return 'nova'; }
+    if (s.startsWith('quest')) return 'questDone';
+    if (s.startsWith('step')) return 'stepGrass';
+    return null; };
+  S.resolve = resolve; S.has = name => !!resolve(name);
   S.play = (name, vol) => {
-    if (!REC[name] && ALIAS[name]) name = ALIAS[name];
+    name = resolve(name) || name;
     const rec = REC[name]; if (!rec) { if (!warned[name]) { warned[name] = 1; console.warn('sfx: no sound named', name); } return false; }
     if (S.sync() <= 0) return false;
     const ac = ensure(); if (!ac || ac.state === 'closed') return false;
@@ -130,7 +146,7 @@
     const v = { ac, t0: t, out: ac.createGain(), end: t, srcs: [], name };
     v.out.gain.value = clamp(vol == null ? 1 : +vol || 0, 0, 2); v.out.connect(sfxBus);
     try { rec(v); } catch (e) { console.error('sfx', name, e); }
-    v.n = v.srcs.length; st.push(ms); live.push(v); S.stats.played++; S.last = name;
+    v.n = v.srcs.length; st.push(ms); live.push(v); S.stats.played++; S.last = name; S.hist.push(name); if (S.hist.length > 16) S.hist.shift();
     setTimeout(() => { try { v.out.disconnect(); } catch (e) {} }, (v.end - t + 0.15) * 1000);
     return v;
   };
@@ -219,7 +235,10 @@
   S.timers = () => (ambLayer && ambLayer.on ? ambLayer.timers.length : 0) + (musLayer && musLayer.on ? musLayer.timers.length : 0);
 
   /* ---- what plays when: the world mode (explore / boss) and silence under a menu ---- */
-  let world = null, started = false, enterSeen = false;
+  let world = null, started = false, enterSeen = false, regBed = null, bedTick = 0;
+  const coastNear = () => { const W = R.water, p = R.player; if (!W || !W.ready || typeof W.shorePoints !== 'function' || !p) return false;
+    try { const pts = W.shorePoints(p.x, p.y, 240); for (let i = 0; i < pts.length; i++) if (pts[i].kind === 'sea') return true; } catch (e) {} return false; };
+  S.coastNear = coastNear;
   const menuOpen = () => { const c = R.ui && R.ui.cur; if (!c) return false; const s = R.screens && R.screens[c]; return !(s && s.live); };
   const apply = () => S.music(menuOpen() ? null : world);
   S.setWorld = m => { world = m; apply(); return world; };
@@ -240,20 +259,23 @@
     R.bus.on('screen', name => { if (started) P(name ? 'open' : 'close', 0.8); apply(); });
     R.bus.on('enter', id => { enterSeen = true; let reg = null;
       try { if (R.world && R.world.regionOf) reg = R.world.regionOf(id); if (!reg && R.data.world && R.data.world.regions) reg = R.data.world.regions.find(r => r.id === id || r.name === id); } catch (e) {}
-      S.ambient(reg && (reg.biome || reg.id) || id); });
+      regBed = reg && (reg.biome || reg.id) || id; S.ambient(coastNear() ? 'coast' : regBed); });
     R.bus.on('boss', (id, phase) => { const over = phase === false || /end|dead|done|kill|win|lose|over|fled|out/.test((phase == null ? '' : phase + '').toLowerCase());
       if (over) { if (world === 'boss') S.setWorld('explore'); } else if (world !== 'boss') { P('drums'); S.setWorld('boss'); } });
     R.bus.on('death', () => { P('fall', 1); if (world === 'boss') S.setWorld('explore'); });
     R.bus.on('respawn', () => P('heal', 0.8));
     const STEP = { grass: 'stepGrass', snow: 'stepSnow', ice: 'stepSnow', sand: 'stepSand', wet: 'stepWet', water: 'stepWet', mud: 'stepWet', stone: 'stepStone', rock: 'stepStone', road: 'stepStone', wood: 'stepStone' };
     let otherStepMs = 0;
-    R.bus.on('footstep', (e, surface) => { if (!e) return; const name = STEP[(surface || 'grass') + ''] || STEP.grass;
+    R.bus.on('splash', e => { if (!e) return; if (e === R.player) { P('splash', 0.8); return; } if (R.player && Math.hypot((e.x || 0) - R.player.x, (e.y || 0) - R.player.y) < 260) P('splash', 0.35); });
+    R.bus.on('footstep', (e, surface) => { if (!e) return; const name = e.wading || (e.depth || 0) >= 0.5 ? 'wade' : STEP[(surface || 'grass') + ''] || STEP.grass;
       if (e === R.player || e.kind === 'player') { P(name, 0.7); return; }
       if (!R.player) return; const d = Math.hypot((e.x || 0) - R.player.x, (e.y || 0) - R.player.y); if (d > 300) return;
       const ms = performance.now(); if (ms - otherStepMs < 120) return; otherStepMs = ms; P(name, 0.1 + 0.45 * (1 - d / 300)); });
     R.bus.on('tick1s', () => { S.sync();
       if (!started && R.running) { started = true; if (!world) world = 'explore'; apply(); }
-      if (!enterSeen && R.player && R.world && R.world.regionAt) { try { const reg = R.world.regionAt(R.player.x, R.player.y); if (reg && (reg.biome || reg.id)) S.ambient(reg.biome || reg.id); } catch (e) {} } });
+      if (!enterSeen && R.player && R.world && R.world.regionAt) { try { const reg = R.world.regionAt(R.player.x, R.player.y); if (reg && (reg.biome || reg.id)) regBed = reg.biome || reg.id; } catch (e) {} }
+      // the sea is heard where it is: within ~240 units of a sea shoreline (R.water, A44) the bed is the waves, else the region's
+      if (R.running && regBed != null && (++bedTick & 1) === 0) { const want = coastNear() ? 'coast' : regBed; if (S.kindOf(want) !== S.ambientKind) S.ambient(want); } });
   }
   const gest = () => { S.unlock(); };
   for (const ev of ['pointerdown', 'touchstart', 'mousedown', 'keydown', 'click']) window.addEventListener(ev, gest, { capture: true, passive: true });

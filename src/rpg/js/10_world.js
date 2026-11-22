@@ -1,7 +1,13 @@
 /* HOLDOR RPG — world runtime (A06). Helpers over R.data.world (written by 11_world_data.js, which loads AFTER this file,
    so the data is read lazily on every call), the region / POI watcher (system 'world', order 50) and the ambient
    population (system 'populate', order 60). Without R.data.world every helper returns a safe default: no regions,
-   no POIs, nothing blocked except the outside of the world, no spawns. */
+   no POIs, nothing blocked except the outside of the world, no spawns.
+   G2 (v2.0.0): slide(e, dx, dy) → moved? and slide(x, y, nx, ny, r) → {x, y} (21_player) both stop at the mask AND at
+   ground obstacles (obstacleAt(x, y, r): world.extraBlocked chained + R.nature.blockedAt). Gates: a region is never gated
+   for its own house (isHome: rg.home or gates[].homeOf); only a WALK into a closed region is refused (the first placement
+   is accepted), pushed back ≤ PUSH (60) units per check toward the last good spot, never onto a blocked cell; the toast
+   names the region and the boss's display name. Calm seats: ambient mobs never spawn within SEAT_SAFE (600) of a house
+   seat or a town (calmAt), and those spawned within SEAT_EASY (1500) of a seat take the bottom of the level band. */
 (function () {
   const world = R.world = R.world || {};
   const W = () => (R.data && R.data.world) || null;
@@ -11,7 +17,8 @@
   const SAFE = 160;         // no spawns inside this radius around a POI
   const FAR = 1400;         // mobs farther than this from the player are despawned
   const CD = 6;             // seconds between spawn batches
-  const SEAT_SAFE = 600;    // no ambient spawns this close to a house seat: the start is calm
+  const SEAT_SAFE = 600;    // no ambient spawns this close to a house seat or a town: the start is calm, wights stay out of the streets
+  const SEAT_EASY = 1500;   // ambient mobs spawned this close to a house seat take the bottom of the region's level band (1–2 at home)
   world.CELL = CELL; world.MASK = MASK; world.POI_R = POI_R; world.SAFE = SAFE; world.FAR = FAR; world.SEAT_SAFE = SEAT_SAFE;
   world.extraBlocked = null; // fn(x, y, r) → true when something on the ground (09_nature's trees / rocks) stands there; slide checks it
   world.populate = true;    // dungeons / intro set false: no ambient spawns (despawning of far mobs still runs)
@@ -109,7 +116,7 @@
     for (let t = 0; t < tries && out.length < n; t++) {
       const a = rng() * Math.PI * 2, dist = min + (max - min) * rng(), px = x + Math.cos(a) * dist, py = y + Math.sin(a) * dist;
       if (!world.inWorld(px, py) || world.blocked(px, py) || (safe > 0 && world.inPoi(px, py, safe))) continue;
-      if (o.seats && world.nearSeat(px, py, o.seats > 1 ? o.seats : SEAT_SAFE)) continue;            // o.seats: keep the house seats calm
+      if (o.seats && world.calmAt(px, py, o.seats > 1 ? o.seats : SEAT_SAFE)) continue;              // o.seats: keep the seats and towns calm
       if (home && t < tries / 2 && world.regionAt(px, py) !== home) continue;      // prefer the home region, relax after half the tries
       out.push({ x: Math.round(px), y: Math.round(py) });
     }
@@ -117,6 +124,9 @@
   };
   world.seats = () => world.pois().filter(p => p.seat);
   world.nearSeat = (x, y, r = SEAT_SAFE) => { for (const p of world.pois()) if (p.seat && (p.x - x) ** 2 + (p.y - y) ** 2 < r * r) return p; return null; };
+  // a calm place: within r of a house seat, a town (or any POI with a hub / an inn in a town), or inside any POI's safe radius
+  world.calmAt = (x, y, r = SEAT_SAFE) => { for (const p of world.pois()) { const d2 = (p.x - x) ** 2 + (p.y - y) ** 2;
+    if (d2 < SAFE * SAFE) return p; if ((p.seat || p.hub || p.type === 'town') && d2 < r * r) return p; } return null; };
   world.spawnTableAt = (x, y) => { const d = W(); if (!d || !d.spawns) return null; const rg = world.regionAt(x, y); if (!rg) return null; return d.spawns.find(s => s.region === rg.id) || null; };
 
   // where a new character of this house stands: the house seat POI, 20 units south of its marker
@@ -201,7 +211,7 @@
     const dens = tab.density == null ? 1 : tab.density, lo = Math.round(8 * dens), hi = Math.max(lo, Math.round(14 * dens));
     const live = world.liveMobs().length; if (live >= lo) return 0;
     const tgt = lo + Math.floor(rng() * (hi - lo + 1)), pts = world.spawnAround(p.x, p.y, tgt - live, { rng, seats: true });
-    const la = tab.lvl ? tab.lvl[0] : 1, lb = tab.lvl ? tab.lvl[1] : la;
+    const la = tab.lvl ? tab.lvl[0] : 1, lb0 = tab.lvl ? tab.lvl[1] : la, lb = world.nearSeat(p.x, p.y, SEAT_EASY) ? Math.min(lb0, la + 1) : lb0;   // gentle near a seat
     for (const q of pts) world.spawnMob(pick(tab.mobs, rng), q.x, q.y, la + Math.floor(rng() * (lb - la + 1)));
     return pts.length;
   };

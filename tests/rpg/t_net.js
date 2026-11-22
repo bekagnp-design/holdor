@@ -57,6 +57,8 @@ const stateOf = (name, saved, extra) => Object.assign({ v: 2, saved,
     const M = await open({ tag: 'A', tg: INIT, local: stateOf('Loc', 1000), server: stateOf('Srv', 2000) });
     const p = M.page;
     const logged = await p.evaluate(() => R.net.ready);
+    await p.waitForFunction(() => !!R.boot, null, { timeout: 15000 }).catch(() => {}); await p.waitForTimeout(1200);
+    await p.evaluate(() => { R.stop(); R.save(true); }); await p.waitForTimeout(700);   // the world's own clock (played seconds, hp, position) would change the state under the save checks
     ok('A login resolved true', logged === true);
     const L = last(M, 'tg_login');
     ok('A tg_login POSTed with init_data', L && L.body && L.body.init_data === INIT, JSON.stringify(names(M)));
@@ -67,7 +69,7 @@ const stateOf = (name, saved, extra) => Object.assign({ v: 2, saved,
     ok('A server state (newer) replaced the local one', st0.name === 'Srv' && st0.pulled === true, st0.name);
     /* wallet import: gold/gems to the current hero, champions unlocked as heroes, flag set, toast, pushed */
     const w = await p.evaluate(() => ({ gold: R.state.p.gold, gems: R.state.p.gems, champs: R.state.acc.champs, wal: R.state.wallet, imp: R.net.imported, toast: [...document.querySelectorAll('.toast')].map(t => t.textContent).join('|') }));
-    ok('A wallet import added 1234 gold + 56 gems to the hero', w.gold === 100 + 1234 && w.gems === 5 + 56, JSON.stringify([w.gold, w.gems]));
+    ok('A wallet import added 1234 gold + 56 gems to the hero (achievements may pay real gems on top)', w.gold === 100 + 1234 && w.gems >= 5 + 56, JSON.stringify([w.gold, w.gems]));
     ok('A old champions unlocked as heroes (arya, dany new; jon kept)', w.champs.arya && w.champs.arya.unlocked === 1 && w.champs.arya.runs === 0 && w.champs.dany && w.champs.dany.unlocked === 1 && w.champs.jon && w.champs.jon.unlocked === 1 && Object.keys(w.champs).length === 3, JSON.stringify(w.champs));
     ok('A wallet flag set with the amounts', w.wal.imported === true && w.wal.gold0 === 1234 && w.wal.gems0 === 56 && w.wal.champs0 === 2 && w.imp && w.imp.champs === 2, JSON.stringify(w.wal));
     ok('A toast says what rode with you', /Your gold, dragonglass and 2 champions rode with you/.test(w.toast), w.toast);
@@ -144,8 +146,9 @@ const stateOf = (name, saved, extra) => Object.assign({ v: 2, saved,
     const p = M.page; await p.evaluate(() => R.net.ready); await p.waitForTimeout(100);
     const c0 = await p.evaluate(() => ({ st: R.state, on: R.net.on, wal: !!R.net.wal }));
     ok('C logged in, no state yet, wallet cached for a later import', c0.on === true && c0.st === null && c0.wal === true && count(M, 'rpg_save') === 0, JSON.stringify(c0));
-    const c1 = await p.evaluate(async () => { R.state = R.newState(); R.state.acc = { house: 'stark', champs: {}, hall: [], world: { found: [], flags: {}, quests: {}, bosses: {}, killed: {} } }; R.save(true); await new Promise(r => setTimeout(r, 300)); return { gold: R.state.p.gold, imp: R.state.wallet.imported, n: Object.keys(R.state.acc.champs).length }; });
-    ok('C the first save imports the wallet and pushes', c1.imp === true && c1.gold === 1234 && c1.n === 3 && count(M, 'rpg_save') >= 1 && M.server && M.server.wallet.imported === true, JSON.stringify([c1, count(M, 'rpg_save')]));
+    const c1 = await p.evaluate(async () => { R.state = R.newState(); R.state.acc = { house: 'stark', champs: {}, hall: [], world: { found: [], flags: {}, quests: {}, bosses: {}, killed: {} } }; R.save(true); await new Promise(r => setTimeout(r, 200));
+      const blank = R.state.wallet.imported; R.state.p.hero = 'brienne'; R.state.p.name = 'Brienne of Tarth'; R.save(true); /* the intro's blank hero gets nothing; the first real hero does */ await new Promise(r => setTimeout(r, 300)); return { blank, gold: R.state.p.gold, imp: R.state.wallet.imported, n: Object.keys(R.state.acc.champs).length }; });
+    ok('C the first save of a real hero imports the wallet (not the blank one) and pushes', c1.blank === false && c1.imp === true && c1.gold === 1234 && c1.n === 3 && count(M, 'rpg_save') >= 1 && M.server && M.server.wallet.imported === true, JSON.stringify([c1, count(M, 'rpg_save')]));
     await p.close();
   }
 

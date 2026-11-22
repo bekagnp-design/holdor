@@ -16,6 +16,8 @@ const path = require('path');
     for (const e of R.ents.slice()) if (e.kind === 'mob') R.remove(e);
     if (!R.player) R.player = R.spawn({ kind: 'player', team: 0, hp: 100, hpMax: 100, lvl: 1, name: 'Test' }); R.player.dead = false; R.player.x = 3000; R.player.y = 6000;
     if (!R.spawnMob) R.spawnMob = (type, x, y, lvl) => R.spawn({ kind: 'mob', type, x, y, lvl, hp: 10, hpMax: 10, team: 1 });
+    // the open world around the test spot has real mobs (and a boss): the hero stays alive, so only the tutorial decides what happens
+    const keep = () => { const pl = R.player; if (pl) { pl.dead = false; pl.hp = pl.hpMax || 100; } }; R.addSys('t_alive0', { order: -9999, update: keep }); R.addSys('t_alive1', { order: 9999, update: keep });
     R.paused = false; R.step(); });
   const step = n => p.evaluate(n => { for (let i = 0; i < n; i++) R.step(); }, n);
   const txt = () => p.evaluate(() => { const e = document.querySelector('#tut .tut-txt'); return e ? e.textContent : null; });
@@ -66,9 +68,11 @@ const path = require('path');
   await step(90); ok('step 7 by itself after 6 s without the dialog module', (await txt()) === STEPS[6], await txt());
   await p.evaluate(() => { if (window.__dlg) R.screens.dialog = window.__dlg; });
   // SKIP by a real tap
-  await p.evaluate(() => { R.tut.reset(); R.step(); });
+  await p.evaluate(() => { for (const e of R.ents.slice()) if (e.kind === 'mob') R.remove(e); R.player.dead = false; R.player.hp = R.player.hpMax || 100; R.tut.reset(); R.step(); });
   ok('reset shows step 1 again', (await txt()) === STEPS[0], await txt());
-  await p.tap('#tut .tut-skip'); await p.waitForTimeout(100);
+  const sk = await p.evaluate(() => { const b = document.querySelector('#tut .tut-skip'); if (!b) return null; const r = b.getBoundingClientRect(); return { w: r.width, h: r.height, t: b.textContent }; });
+  ok('SKIP is small (one word, ≥ 44 px tall)', sk && sk.h >= 44 && sk.w <= 90 && sk.t === 'SKIP', JSON.stringify(sk));
+  await p.tap('#tut .tut-skip', { force: true, timeout: 5000 }).catch(e => ok('SKIP tap', false, e.message.split('\n')[0])); await p.waitForTimeout(100);
   ok('SKIP ends it: card gone, flag 8', !(await card()) && (await tut()) === 8, 'flag=' + (await tut()));
   await step(30); ok('no card after the skip', !(await card()));
   ok('no page errors', !errors.length, errors.join(' | '));

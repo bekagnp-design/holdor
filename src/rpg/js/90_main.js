@@ -36,11 +36,15 @@
     return R.boot;
   };
   R.route = route;
+  // one WebGL canvas: the renderer (A05) inserts its own #gl right before #c; the template's spare one goes (R.gl → the live one)
+  const oneGl = () => { try { const cv = document.getElementById('c'), all = [...document.querySelectorAll('canvas#gl')]; if (all.length < 2) return;
+    const keep = cv && cv.previousElementSibling && cv.previousElementSibling.id === 'gl' ? cv.previousElementSibling : all[all.length - 1];
+    for (const g of all) if (g !== keep) g.remove(); R.gl = keep; } catch (e) {} };
   const enter = () => {
-    if (entered) return; entered = true;
+    if (entered) return; entered = true; oneGl();
     if (!R.load()) R.state = null;
     route();
-    unload(); label(); R.bus.emit('boot', R.boot);
+    unload(); if (R.boot !== 'intro') label(); R.bus.emit('boot', R.boot);   // the title prints its own version
   };
   // a server save replaced the local one after the boot (R.net emits 'netload'): open its door once, unless the player is already where it leads
   R.bus.on('netload', () => { if (!entered) return; try {
@@ -49,6 +53,9 @@
     if (door === 'world' && R.player && !R.player.dead && R.player.hero === R.state.p.hero && !R.ui.cur) { R.clearEnts(); R.enterWorld(); return; }
     route(); R.bus.emit('boot', R.boot);
   } catch (e) { R.err((e && e.message) || e, 'netload'); } });
+  // Telegram's BackButton closes any screen: with no hero yet (the intro) the title comes back instead of an empty world
+  let reT = 0;
+  R.bus.on('screen', n => { if (n != null || !entered) return; clearTimeout(reT); reT = setTimeout(() => { if (R.ui.cur || R.player) return; if (doorOf(R.state) === 'intro' && R.screens.intro) R.ui.open('intro'); }, 300); });
   const go = () => { try { enter(); } catch (e) { R.err((e && e.message) || e, 'boot'); unload(); } };
   const boot = () => { if (booted) return; booted = true;
     // inside Telegram: start the login now (R.net logs in on window load otherwise) and give it a short head start

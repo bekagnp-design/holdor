@@ -87,7 +87,10 @@
     c.save(); c.beginPath(); c.rect(o.x, o.y, mw, mh); c.clip();
     // fog over regions never entered
     const RG = regions();
-    for (const r of RG) { if (entered(r.id)) continue; const P = poly(r); if (P.length < 3) continue; path(c, P); c.closePath(); c.fillStyle = 'rgba(5,9,18,.74)'; c.fill(); c.lineWidth = Math.max(6, 10 * z); c.strokeStyle = 'rgba(5,9,18,.45)'; c.stroke(); }
+    // soft edges: the fog is blurred (a region polygon is often a few straight lines)
+    try { c.filter = 'blur(' + Math.round(R.clamp(8 * z, 4, 14)) + 'px)'; } catch (e) {}
+    for (const r of RG) { if (entered(r.id)) continue; const P = poly(r); if (P.length < 3) continue; path(c, P); c.closePath(); c.fillStyle = 'rgba(5,9,18,.7)'; c.fill(); c.lineWidth = Math.max(6, 10 * z); c.strokeStyle = 'rgba(5,9,18,.35)'; c.stroke(); }
+    try { c.filter = 'none'; } catch (e) {}
     // roads, faint
     c.lineWidth = Math.max(1, 1.1 * z); c.strokeStyle = 'rgba(255,226,170,.26)'; c.lineCap = 'round'; c.lineJoin = 'round';
     for (const rd of roads()) { path(c, rd); c.stroke(); }
@@ -95,14 +98,17 @@
     const cen = {}; for (const r of RG) cen[r.id] = centroid(r);
     for (const g of gates()) { if (gateOpen(g)) continue; let x = g.x, y = g.y; if (!num(x) || !num(y)) { const a = cen[g.from], b = cen[g.to]; if (!a || !b) continue; x = (a.x + b.x) / 2; y = (a.y + b.y) / 2; } const s = toS(x, y); chain(c, s.x, s.y, 5 * R.clamp(z, .8, 1.6)); const lv = g.lvl != null ? g.lvl : g.level; if (lv != null) halo(c, 'Lv ' + lv, s.x, s.y + 12 * R.clamp(z, .8, 1.6), '700 ' + Math.round(10 * R.clamp(z, .9, 1.4)) + 'px ' + 'Cinzel,Georgia,serif', '#ff8a8a'); }
     // region names + level bands at the centroids
+    const boxes = []; const hits = (x, y, w, h) => boxes.some(b => x - w / 2 < b.x + b.w / 2 && x + w / 2 > b.x - b.w / 2 && y - h / 2 < b.y + b.h / 2 && y + h / 2 > b.y - b.h / 2);
     for (const r of RG) { const cc = cen[r.id]; if (!cc) continue; const s = toS(cc.x, cc.y), on = entered(r.id), fs = Math.round(13 * R.clamp(z, .8, 1.5)); const name = (r.name || r.n || r.id || '') + ''; if (!name) continue;
+      c.font = '700 ' + fs + 'px Cinzel,Georgia,serif'; boxes.push({ x: s.x, y: s.y + fs * .5, w: c.measureText(name.toUpperCase()).width + 8, h: fs * 2.4 });
       halo(c, name.toUpperCase(), s.x, s.y, '700 ' + fs + 'px Cinzel,Georgia,serif', on ? '#f3e7c4' : 'rgba(243,231,196,.62)'); const b = band(r); if (b) halo(c, b, s.x, s.y + fs * 1.05, '600 ' + Math.round(fs * .8) + 'px Cinzel,Georgia,serif', on ? '#e3b661' : 'rgba(227,182,97,.65)'); }
     // POIs: unfound faint dots, found icons with names
     const nameZ = z >= .75, fs2 = Math.round(11 * R.clamp(z, .9, 1.4));
     for (const p of pois()) { const s = toS(p.x, p.y); if (s.x < -40 || s.y < -40 || s.x > vw + 40 || s.y > vh + 40) continue; const kind = p.kind || p.type || 'town';
       if (!found(p.id)) { c.beginPath(); c.arc(s.x, s.y, kind === 'castle' ? 3.2 : 2.4, 0, 7); c.fillStyle = 'rgba(255,255,255,.38)'; c.fill(); continue; }
       const sz = (kind === 'castle' ? 9 : 7.5) * R.clamp(z, .8, 1.5); icon(c, p, s.x, s.y, sz);
-      if (nameZ || kind === 'castle') halo(c, (p.name || p.n || p.id) + '', s.x, s.y + sz * 1.5 + fs2 * .6, '600 ' + fs2 + 'px Cinzel,Georgia,serif', '#f3e7c4'); }
+      if (nameZ || kind === 'castle') { const nm = (p.name || p.n || p.id) + '', f2 = '600 ' + fs2 + 'px Cinzel,Georgia,serif'; c.font = f2; const w2 = c.measureText(nm).width + 6;
+        let ly = s.y + sz * 1.5 + fs2 * .6; if (hits(s.x, ly, w2, fs2 + 4)) ly = s.y - sz * 1.5 - fs2 * .6; if (!hits(s.x, ly, w2, fs2 + 4)) halo(c, nm, s.x, ly, f2, '#f3e7c4'); } }
     // quest markers, gold
     for (const m of qmarks()) { const s = toS(m.x, m.y), sz = 7 * R.clamp(z, .9, 1.4); c.save(); c.translate(s.x, s.y); c.rotate(Math.PI / 4); c.fillStyle = '#e3b661'; c.strokeStyle = 'rgba(5,9,18,.9)'; c.lineWidth = 1.5; c.beginPath(); c.rect(-sz, -sz, sz * 2, sz * 2); c.fill(); c.stroke(); c.restore(); halo(c, '!', s.x, s.y + 0.5, '900 ' + Math.round(sz * 1.6) + 'px Georgia,serif', '#2a1d05'); c.lineWidth = 1; }
     // active events, red
@@ -163,7 +169,7 @@
     cv.addEventListener('pointerdown', down); cv.addEventListener('pointermove', move); cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); cv.addEventListener('wheel', wheel, { passive: false });
     window.addEventListener('resize', size);
     view.z = 1; const at = arg && num(arg.x) && num(arg.y) ? arg : R.player || { x: R.W / 2, y: R.H / 2 }; view.cx = at.x; view.cy = at.y; size();
-    const RG = regions(); root.querySelector('.mp-z').textContent = (RG.length ? RG.filter(r => entered(r.id)).length + '/' + RG.length + ' regions · ' : '') + ((P().found || []).length) + ' places found'; };
+    const RG = regions(); root.querySelector('.mp-z').textContent = (RG.length ? RG.filter(r => entered(r.id)).length + '/' + RG.length + ' regions · ' : '') + ((P().found || []).length) + ((P().found || []).length === 1 ? ' place found' : ' places found'); };
   S.close = () => { window.removeEventListener('resize', size); if (raf) cancelAnimationFrame(raf); raf = 0; hideTag(); closeCard(); if (root) { root.classList.remove('mp'); root.innerHTML = ''; } cv = null; ctx = null; you = null; ptrs.clear(); };
   /* ---- test hooks ---- */
   S.view = () => ({ cx: view.cx, cy: view.cy, z: view.z, k: k(), vw, vh }); S.toScreen = (x, y) => toS(x, y); S.toWorld = (x, y) => toW(x, y); S.redraw = redraw; S.hit = hit; S.zoomAt = zoomAt; S.centreOn = centreOn; S.travel = travel; S.canvas = () => cv;

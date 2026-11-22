@@ -157,6 +157,11 @@ const { ok, skip, has } = L;
   }
 
   /* ---- 7. permadeath: the hero dies → death screen + a Hall entry; the next hero is fresh and the game runs ---- */
+  // the world may have killed the hero already (mobs at the seat while the screens were tested): that is a real death — take the next life first
+  const early = await E(() => R.player && R.player.dead ? { killer: R.player.killer || (R.player.lastHitBy && (R.player.lastHitBy.name || R.player.lastHitBy.type)) || null, cur: R.ui.cur, hall: R.state.acc.hall.length } : null);
+  if (early) { console.log('  info the hero died in the world before section 7: ' + JSON.stringify(early) + ' — a new life first');
+    ok('a hero killed by the world gets the death screen or the heroes screen (never a dead hero with nothing open)', early.cur === 'death' || early.cur === 'heroes' || early.cur === null && await L.waitFor(page, 'R.ui.cur === "death" || R.ui.cur === "heroes"', 2500), JSON.stringify(early));
+    await E(() => { if (R.ui.cur) R.ui.close(); if (typeof R.newHero === 'function') R.newHero(R.state.p.hero); }); await L.steps(page, 5); }
   const plNow = await has(page, 'R.player && !R.player.dead');
   if (!plNow) { skip('the hero\'s death opens the death screen and writes the Hall', 'no living player'); skip('the next hero is a fresh level-1 hero and the game runs', 'no living player'); }
   else {

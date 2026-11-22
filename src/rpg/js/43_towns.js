@@ -80,7 +80,9 @@
   const sold = poi => { const p = P(); if (!p) return []; const f = p.flags = p.flags || {}; const S = f.shopSold = f.shopSold || {}; const k = soldKey(poi); for (const q in S) if (q !== k) delete S[q]; return S[k] = S[k] || []; };
   /* ---- services ---- */
   T.restCost = () => { const p = P(), l = p ? (p.lvl | 0) || 1 : 1; return l < 5 ? 0 : Math.round(20 * l / 5); };
-  T.upgradeCost = it => { const i = I(); if (i && i.upgradeCost) { try { const c = i.upgradeCost(it); if (c) return { gold: c.gold | 0, mats: c.mats | 0 }; } catch (e) {} } const up = it ? (it.up | 0) : 0, lvl = it ? (it.lvl | 0) || 1 : 1; return { gold: Math.round((40 + 12 * lvl) * (1 + up) * (1 + .3 * (it ? it.rar | 0 : 0))), mats: 2 + up }; };
+  // 30_items prices an upgrade in typed mats ({iron, dust, glass}); the smith counts them as one number of materials from the bag
+  const matN = m => m && typeof m === 'object' ? Object.values(m).reduce((a, v) => a + (v | 0), 0) : m | 0;
+  T.upgradeCost = it => { const i = I(); if (i && i.upgradeCost) { try { const c = i.upgradeCost(it); if (c) return { gold: c.gold | 0, mats: matN(c.mats) }; } catch (e) {} } const up = it ? (it.up | 0) : 0, lvl = it ? (it.lvl | 0) || 1 : 1; return { gold: Math.round((40 + 12 * lvl) * (1 + up) * (1 + .3 * (it ? it.rar | 0 : 0))), mats: 2 + up }; };
   T.canUpgrade = it => !!it && /^(weapon|armor|trinket)$/.test(it.kind) && (it.up | 0) < T.MAX_UP;
   const upgrade = it => { const i = I(); if (i && i.upgrade) { try { const r = i.upgrade(it, { paid: true }); if (r && r !== it && r.id) Object.assign(it, r); return true; } catch (e) { console.warn('items.upgrade', e); } }
     it.up = (it.up | 0) + 1; it.lvl = (it.lvl | 0) + 1; const st = it.stats = it.stats || {}; for (const k in st) st[k] = k === 'crit' || k === 'spd' ? Math.round((st[k] + .5) * 10) / 10 : Math.max(st[k] + 1, Math.round(st[k] * 1.1)); return true; };

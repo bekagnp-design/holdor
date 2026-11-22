@@ -9,12 +9,12 @@ const SC = path.resolve(__dirname, '..', '..', '.shots') + '/'; fs.mkdirSync(SC,
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message)); page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push('CE:' + m.text()); });
   await page.goto('file://' + path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'beta/index.html'));
-  await page.waitForFunction(() => window.R && R.presence && R.screens.chat && R.screens.board, { timeout: 20000 });
+  await page.waitForFunction(() => window.R && R.presence && R.screens.chat && R.screens.board && R.boot, { timeout: 20000 }); await page.waitForTimeout(300);   // after the boot door (it would replace the faked state)
   const T = {}; const ok = (k, v, info) => { T[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); };
   // a logged-in world: me at (1000,1000), two others, a fake server, a plain ground so the screenshot shows something
   await page.evaluate(() => {
     R.state = R.newState(); R.state.p.name = 'Me'; R.state.p.house = 'stark';
-    R.player = R.spawn({ kind: 'player', team: 0, x: 1000, y: 1000, hp: 200, name: 'Me' }); R.cam.x = 1000; R.cam.y = 1000; R.cam.z = 1;
+    R.player = R.spawn({ kind: 'player', team: 0, x: 1000, y: 1000, hp: 200, name: 'Me' }); R.cam.x = 1000; R.cam.y = 1000; R.cam.z = 1; if (R.ui.cur) R.ui.close();   // the boot's intro gives way to the faked world
     window.__calls = []; window.__board = []; window.__db = [];
     R.net = { on: true, others: [{ name: 'Arya', house: 'stark', lvl: 7, hero: 'arya', x: 1100, y: 940, zone: 'north', at: Date.now() }, { name: 'Oberyn', house: 'martell', lvl: 12, x: 880, y: 1080, zone: 'north', at: Date.now() }],
       chat: { send: t => { window.__calls.push(t); return Promise.resolve({ id: 100 + window.__calls.length }); }, list: () => Promise.resolve(window.__db) },

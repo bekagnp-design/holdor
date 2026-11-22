@@ -68,7 +68,14 @@
     pr[n] = true; dn[n] = true;
     if (src === 'btn') I.haptic(HAP[n] || 'light');
     if (n === 'interact' && I.interact && typeof I.interact.fn === 'function') { try { I.interact.fn(I.interact); } catch (e) { console.error('interact', e); } }
+    if (src === 'btn' && UIB[n] && btns[n]) { const b = btns[n].getBoundingClientRect(); ghost = { t: performance.now() + 2500, l: b.left - 12, r: b.right + 12, tp: b.top - 12, b: b.bottom + 12 }; }   // the screen this opens is now under the finger: eat the click the touch makes there
     R.bus.emit('btn', n, src); return true; };
+  /* a touch on a top-row button opens a screen on pointerdown; the browser then sends a 'click' to whatever is under the finger — the new
+     screen (its close button, its backdrop). That click — on the button's own spot, before the next touch (2.5 s at most: a slow software-GL frame can delay it) — is swallowed once. */
+  let ghost = null;
+  document.addEventListener('pointerdown', () => { ghost = null; }, true);   // a new touch starts a new interaction (runs before the button's own handler)
+  document.addEventListener('click', e => { const g = ghost; if (!g) return; if (performance.now() > g.t) { ghost = null; return; }
+    if (e.clientX >= g.l && e.clientX <= g.r && e.clientY >= g.tp && e.clientY <= g.b) { ghost = null; e.stopPropagation(); e.preventDefault(); } }, true);
   const release = n => { dn[n] = false; };
   for (const n in btns) {
     const el = btns[n]; el._pid = null;

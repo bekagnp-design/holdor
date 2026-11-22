@@ -102,15 +102,20 @@
   function spawnFor(poiId) {
     if (byPoi[poiId]) return byPoi[poiId];
     const p = poiById(poiId); if (!p) return (byPoi[poiId] = []);
-    const c = pxy(p), L = npcsAt(poiId), out = [], base = frac(poiId) * Math.PI * 2;
+    // never the champion the player is riding as; the ring is wide enough that two neighbours stand >= 60 units apart
+    const hero = R.state && R.state.p && R.state.p.hero;
+    const c = pxy(p), L = npcsAt(poiId).filter(n => !(hero && n.champ && n.champ === hero)), out = [], base = frac(poiId) * Math.PI * 2;
+    const R0 = Math.max(80, L.length * 68 / (2 * Math.PI));
     L.forEach((n, i) => {
-      let a = base + i * Math.PI * 2 / Math.max(1, L.length) + (frac(poiId + ':' + n.id) - 0.5) * 0.5; const rad = 40 + 50 * frac(n.id + '@' + poiId);
+      let a = base + i * Math.PI * 2 / Math.max(1, L.length) + (frac(poiId + ':' + n.id) - 0.5) * 0.12; const rad = R0 + 22 * frac(n.id + '@' + poiId);
       let x, y, k = 0; do { x = c.x + Math.cos(a) * rad; y = c.y + Math.sin(a) * rad; a += 0.73; } while (R.world && R.world.blocked && R.world.blocked(x, y) && ++k < 9);
       const kind = kindOf(n);
       const sprite = n.champ ? 'champ:' + n.champ : 'npc:' + kind;
-      const e = R.spawn({ kind: 'npc', team: 2, x, y, r: 14, name: n.name || n.id, dialog: n.id, poi: poiId, type: sprite, sprite, rkind: kind, role: n.role || roleOf(n).label,
+      const e = R.spawn({ kind: 'npc', team: 2, x, y, r: 14, name: String(n.name || n.id).split(',')[0], fullName: n.name || n.id, dialog: n.id, poi: poiId, type: sprite, sprite, rkind: kind, role: n.role || roleOf(n).label,
         hp: 1, hpMax: 1, lvl: n.lvl || 1, face: x < c.x ? 1 : -1, npc: n, invuln: true, noBar: true, bubT: R.t + 1.5 + i * 1.7, bubN: 0, bub: null, mark: '', ph: frac(n.id) * 6.28 });
-      e.draw = (ctx, sx, sy, o) => drawEnt(ctx, e, sx, sy, o); if (!n.champ) e.frame = (anim, t, face) => frameOf(kind, anim, t, face); out.push(e);
+      e.draw = (ctx, sx, sy, o) => drawEnt(ctx, e, sx, sy, o); if (!n.champ) e.frame = (anim, t, face) => frameOf(kind, anim, t, face);
+      else { e.champ = n.champ; e.frame = (anim, t, face) => champFrame(n.champ, anim, t, face) || frameOf(kind, anim, t, face); }   // the champion's own art, not a mob sheet
+      out.push(e);
     });
     byPoi[poiId] = out; return out;
   }
@@ -127,12 +132,14 @@
       for (const id in byPoi) if (near.indexOf(id) < 0 && near.indexOf(+id) < 0) despawnFor(id);
       for (const e of all()) e.mark = turnInsFor(e.dialog).length ? '?' : offersFor(e.dialog).length ? '!' : '';
     }
+    let nearest = null, nd = 121; for (const e of all()) { const d = Math.hypot(e.x - P.x, e.y - P.y); if (d < nd) { nd = d; nearest = e; } }
     for (const e of all()) { const d = Math.hypot(e.x - P.x, e.y - P.y);
       if (d < 60) e.face = P.x < e.x ? -1 : 1;
-      if (e.bub && R.t > e.bub.until) e.bub = null;
-      if (d <= 120 && R.t >= e.bubT) { e.bubT = R.t + 8; const L = idleLines(e.npc); if (L.length) { e.bubN++; e.bub = { txt: tpl(L[(e.bubN + hash(e.dialog)) % L.length], e.npc), until: R.t + 3.5 }; } } }
+      if (e.bub && (R.t > e.bub.until || e !== nearest)) e.bub = null;   // one speaker at a time: the nearest NPC within 120 units
+      if (e === nearest && R.t >= e.bubT) { e.bubT = R.t + 8; const L = idleLines(e.npc); if (L.length) { e.bubN++; e.bub = { txt: tpl(L[(e.bubN + hash(e.dialog)) % L.length], e.npc), until: R.t + 3.5 }; } } }
   } });
-  R.bus.on('interact', e => { if (e && e.kind === 'npc' && !e.dead) R.ui.open('dialog', e); });
+  // an NPC that brings its own interaction (the events' caravan wagon: interact() opens its shop) uses it instead of the dialog
+  R.bus.on('interact', e => { if (!e || e.kind !== 'npc' || e.dead) return; if (typeof e.interact === 'function') { try { e.interact(e); } catch (err) { console.error('npc interact', err); } return; } R.ui.open('dialog', e); });
 
   /* ---- drawing ---- */
   function drawNpc(ctx, x, y, kind, o) {
@@ -175,10 +182,11 @@
     return cv;
   }
   const isCanvas = c => c && typeof c === 'object' && c.width > 0 && typeof c.getContext === 'function';
+  const champFrame = (id, anim, t, face) => { if (!(R.draw && R.draw.champFrame)) return null; try { const f = R.draw.champFrame(id, anim || 'idle', t || 0, face || 1); return isCanvas(f) ? f : null; } catch (err) { return null; } };
   function drawEnt(ctx, e, sx, sy, o) {
     o = o || {}; const z = o.s || R.cam.z || 1; if (sx == null) { const p = R.w2s(e.x, e.y, 0); sx = p.x; sy = p.y; }
     if (e.type && e.type.indexOf('champ:') === 0 && R.draw) {
-      if (R.draw.frame) { try { const f = R.draw.frame(e.type, e.anim || 'idle', e.animT || 0, e.face || 1); if (isCanvas(f)) { const u = f.units || { w: f.width / 2, h: f.height / 2 }, an = f.anchor || { x: 0.5, y: 1 }; ctx.drawImage(f, sx - u.w * an.x * z, sy - u.h * an.y * z, u.w * z, u.h * z); return; } } catch (err) {} }
+      if (R.draw.frame || R.draw.champFrame) { try { const f = champFrame(e.type.slice(6), e.anim || 'idle', e.animT || 0, e.face || 1) || (R.draw.frame && R.draw.frame(e.type, e.anim || 'idle', e.animT || 0, e.face || 1)); if (isCanvas(f)) { const u = f.units || { w: f.width / 2, h: f.height / 2 }, an = f.anchor || { x: 0.5, y: 1 }; ctx.drawImage(f, sx - u.w * an.x * z, sy - u.h * an.y * z, u.w * z, u.h * z); return; } } catch (err) {} }
       if (R.draw.champ) { try { R.draw.champ(e.type.slice(6), sx, sy, { anim: e.anim, face: e.face, t: e.animT, s: z, ent: e }); return; } catch (err) {} }
     }
     drawNpc(ctx, sx, sy, e.rkind || 'villager', { s: z, face: e.face, t: e.animT, ph: e.ph });
@@ -188,7 +196,7 @@
     ctx.save(); ctx.beginPath(); ctx.arc(72, 72, 69, 0, Math.PI * 2); ctx.fillStyle = '#0b1220'; ctx.fill(); ctx.clip();
     const g = ctx.createRadialGradient(72, 50, 8, 72, 72, 72); g.addColorStop(0, shade(role.col, -0.2)); g.addColorStop(1, '#0b1220'); ctx.fillStyle = g; ctx.globalAlpha = 0.55; ctx.fillRect(0, 0, 144, 144); ctx.globalAlpha = 1;
     let ok = false;
-    if (n.champ && R.draw && R.draw.frame) { try { const f = R.draw.frame('champ:' + n.champ, 'idle', 0, 1); if (isCanvas(f)) { const u = f.units || { w: f.width / 2, h: f.height / 2 }, an = f.anchor || { x: 0.5, y: 1 }, k = 2.6; ctx.drawImage(f, 72 - u.w * an.x * k, 134 - u.h * an.y * k, u.w * k, u.h * k); ok = true; } } catch (err) {} }
+    if (n.champ && R.draw && (R.draw.champFrame || R.draw.frame)) { try { const f = champFrame(n.champ, 'idle', 0, 1) || R.draw.frame('champ:' + n.champ, 'idle', 0, 1); if (isCanvas(f)) { const u = f.units || { w: f.width / 2, h: f.height / 2 }, an = f.anchor || { x: 0.5, y: 1 }, k = 2.6; ctx.drawImage(f, 72 - u.w * an.x * k, 134 - u.h * an.y * k, u.w * k, u.h * k); ok = true; } } catch (err) {} }
     if (!ok && n.champ && R.draw && R.draw.champ) { const old = R.ctx; R.ctx = ctx; try { R.draw.champ(n.champ, 72, 134, { anim: 'idle', face: 1, t: 0, s: 2.6, portrait: true, ctx }); ok = true; } catch (err) {} R.ctx = old; }
     if (!ok) drawNpc(ctx, 72, 134, kindOf(n), { s: 2.9, t: 0, face: 1 });
     ctx.restore(); ctx.beginPath(); ctx.arc(72, 72, 69, 0, Math.PI * 2); ctx.strokeStyle = role.col; ctx.lineWidth = 4; ctx.stroke();
@@ -206,9 +214,9 @@
       if (selfDraw) drawEnt(ctx, e, p.x, p.y, { s: z });
       const top = (q.y === p.y && q.x === p.x) ? p.y - 48 * z : q.y - 6, col = (ROLES[e.rkind] || ROLES.villager).col;
       ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.font = '700 11px Cinzel,Georgia,serif'; const nw = ctx.measureText(e.name).width + 12;
-      ctx.fillStyle = 'rgba(6,11,20,.7)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(p.x - nw / 2, top - 8, nw, 16, 6) : ctx.rect(p.x - nw / 2, top - 8, nw, 16); ctx.fill();
-      ctx.fillStyle = col; ctx.fillText(e.name, p.x, top + 1);
+      if (selfDraw) { ctx.font = '700 11px Cinzel,Georgia,serif'; const nw = ctx.measureText(e.name).width + 12;   // the renderer draws its own name tag (08_render)
+        ctx.fillStyle = 'rgba(6,11,20,.7)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(p.x - nw / 2, top - 8, nw, 16, 6) : ctx.rect(p.x - nw / 2, top - 8, nw, 16); ctx.fill();
+        ctx.fillStyle = col; ctx.fillText(e.name, p.x, top + 1); }
       if (e.mark) { const bob = Math.sin(R.t * 4 + e.ph) * 2; ctx.font = '900 16px Cinzel,Georgia,serif'; ctx.fillStyle = '#060b14'; ctx.fillText(e.mark, p.x + 1, top - 20 + bob + 1); ctx.fillStyle = e.mark === '?' ? '#7fd06a' : '#e3b661'; ctx.fillText(e.mark, p.x, top - 20 + bob); }
       if (e.bub) bubble(ctx, p.x, top - (e.mark ? 34 : 16), e.bub.txt, col);
       ctx.restore(); }
@@ -252,7 +260,7 @@
       sh.querySelector('.dlg-role').textContent = [n.role || roleOf(n).label, poi && poi.name].filter(Boolean).join(' · ');
       portrait(sh.querySelector('.dlg-por'), n);
       sh.addEventListener('click', ev => { if (ev.target.closest('button')) return; S.tap(); });
-      el.onclick = ev => { if (ev.target === el) S.leave(); };
+      const t0 = Date.now(); el.onclick = ev => { if (ev.target === el && Date.now() - t0 > 450) S.leave(); };   // not while the sheet slides in (a double tap on TALK)
       S.show(st.root);
       if (R.state) { flags['met:' + n.id] = met + 1; R.save(); }
       if (ent) ent.face = R.player && R.player.x < ent.x ? -1 : 1;
@@ -267,7 +275,9 @@
     render() { const st = S.state; if (!st || !S.el) return; S.el.querySelector('.dlg-t').textContent = st.shown; S.el.classList.toggle('typing', st.typing); S.el.classList.toggle('more', !st.typing && !st.done); },
     choices() {
       const st = S.state, n = st.npc, box = S.el.querySelector('.dlg-ch'); box.innerHTML = ''; let pri = false;
-      const mk = (cls, txt, fn) => { const b = document.createElement('button'); b.className = cls; b.textContent = txt; b.addEventListener('click', ev => { ev.stopPropagation(); fn(); }); return b; };
+      // a fast tap meant to skip the text must not land on a choice that just rose under the finger: choices answer after 300 ms
+      const shownAt = Date.now();
+      const mk = (cls, txt, fn) => { const b = document.createElement('button'); b.className = cls; b.textContent = txt; b.addEventListener('click', ev => { ev.stopPropagation(); if (Date.now() - shownAt < 300) return; fn(); }); return b; };
       const card = (q, kind) => { const d = document.createElement('div'); d.className = 'dlg-q ' + kind; d.dataset.quest = q.id;
         const t = document.createElement('div'); t.className = 'dlg-qt'; t.textContent = (kind === 'offer' ? '✦ ' : '✓ ') + (q.title || q.name || q.id); d.appendChild(t);
         const ch = document.createElement('div'); ch.className = 'dlg-chips'; for (const c of chips(q)) { const s = document.createElement('span'); s.className = 'chip ' + c.k; s.textContent = c.t; ch.appendChild(s); } if (ch.childNodes.length) d.appendChild(ch);
@@ -290,11 +300,11 @@
     accept(q) { const st = S.state; let ok = true;
       try { if (R.quests && R.quests.accept) ok = R.quests.accept(q.id, st.id) !== false; else { qstate()[q.id] = { st: 'open', n: 0 }; R.bus.emit('quest', q.id, 'open'); } } catch (err) { console.error(err); ok = false; }
       if (!ok) { R.ui.toast('You cannot take that quest now.'); return S.choices(); }
-      R.ui.toast('Quest accepted: ' + (q.title || q.id), '#e3b661'); R.save(); if (R.sfx && R.sfx.play) { try { R.sfx.play('quest', 0.6); } catch (err) {} } R.ui.close(); },
+      if (!(R.quests && R.quests.accept)) R.ui.toast('Quest accepted: ' + (q.title || q.id), '#e3b661'); R.save(); /* R.quests toasts it already */ if (R.sfx && R.sfx.play) { try { R.sfx.play('quest', 0.6); } catch (err) {} } R.ui.close(); },
     turnIn(q) { const st = S.state; let ok = true;
       try { if (R.quests && R.quests.turnIn) ok = R.quests.turnIn(q.id, st.id) !== false; else { const Q = qstate(), s = Q[q.id] || (Q[q.id] = {}); s.st = 'turned'; const r = rew(q); if (r.gold) { R.state.p.gold += r.gold; R.bus.emit('gold', r.gold); } if (r.gems) { R.state.p.gems += r.gems; } if (r.xp) R.bus.emit('xp', r.xp); R.bus.emit('quest', q.id, 'turned'); } } catch (err) { console.error(err); ok = false; }
       if (!ok) { R.ui.toast('Not finished yet.'); return S.choices(); }
-      R.ui.toast('Quest complete: ' + (q.title || q.id), '#7fd06a'); R.save(); if (R.sfx && R.sfx.play) { try { R.sfx.play('reward', 0.7); } catch (err) {} } R.ui.close(); },
+      if (!(R.quests && R.quests.turnIn)) R.ui.toast('Quest complete: ' + (q.title || q.id), '#7fd06a'); R.save(); if (R.sfx && R.sfx.play) { try { R.sfx.play('reward', 0.7); } catch (err) {} } R.ui.close(); },
     leave() { R.ui.close(); },
     close() { const st = S.state; if (st) clearInterval(st.timer); S.state = null; S.el = null; const el = document.getElementById('screen'); if (el) el.onclick = null; } };
 })();

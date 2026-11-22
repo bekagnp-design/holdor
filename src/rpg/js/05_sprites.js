@@ -222,7 +222,7 @@
   D.sprite = (key0, x, y, o) => { const key = resolve(key0), cf = cfgOf(key), im = enemyImg(key); return draw2d('e', key, key, im, im ? metaOf(key) : PMETA, cf.an, cf.h * BIG, x, y, o, colFor(key)); };
   const champSheet = (id, anim) => anim === 'attack' && champImg(id + '_attack') ? id + '_attack' : id;
   D.champ = (id, x, y, o) => { o = o || {}; const sheet = champSheet(id, o.anim), im = champImg(sheet); const fo = sheet !== id ? Object.assign({ noSwing: true }, o.fo) : o.fo; return draw2d('c', id, sheet, im, im ? cmetaOf(sheet) : PMETA, 'walk', CHAMP_H * BIG, x, y, Object.assign({}, o, { fo }), colFor(id)); };
-  D.hero = (x, y, o) => { const id = R.state && R.state.p && R.state.p.hero; if (id) return D.champ(id, x, y, o); if (R.heroArt && R.heroArt.draw) return R.heroArt.draw(x, y, o); return draw2d('h', 'hero', 'hero', null, PMETA, 'walk', CHAMP_H * BIG, x, y, o, (o && o.col) || houseCol()); };
+  D.hero = (x, y, o) => { const id = R.state && R.state.p && R.state.p.hero; if (id) return D.champ(id, x, y, o); if (R.heroArt && R.heroArt.draw) { /* A37's signature is (ctx, sx, sy, o) in screen px */ const g = (o && o.ctx) || R.ctx; let sx = x, sy = y; if (!(o && o.screen)) { const p = R.w2s(x, y, (o && o.z) || 0); sx = p.x; sy = p.y; } return R.heroArt.draw(g, sx, sy, o); } return draw2d('h', 'hero', 'hero', null, PMETA, 'walk', CHAMP_H * BIG, x, y, o, (o && o.col) || houseCol()); };
 
   /* ---- 3D: one frame as a canvas (billboard texture) ---- */
   function frameX(ns, key, sheet, im, m, an, anim, t, face, o, col) {

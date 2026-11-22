@@ -22,6 +22,7 @@ const { chromium } = require('playwright'); const fs = require('fs'), path = req
     if (!R.state) R.state = R.newState(); R.state.p.lvl = 12; R.state.p.gems = 5;
     if (!R.player) R.player = R.spawn({ kind: 'player', team: 0, x: 3600, y: 9000, hp: 500, lvl: 12, name: 'Tester' });
     R.player.x = 3600; R.player.y = 9000; R.cam.x = 3600; R.cam.y = 9000; R.paused = false;
+    R.player.hp = R.player.hpMax = 1e7; R.player.def = 1e4; if (R.ui.cur) R.ui.close();   // the integrated build's mobs hit for real: the hero must outlast the run
     window.__dgEv = []; R.bus.on('dungeon', (id, st, x) => window.__dgEv.push(st));
   });
   const steps = n => p.evaluate(n => { for (let i = 0; i < n; i++) R.step(); }, n);
@@ -84,6 +85,15 @@ const { chromium } = require('playwright'); const fs = require('fs'), path = req
   const shot = await p.evaluate(() => { R.drawAll(); const c = R.cv, x = c.getContext('2d'); const d = x.getImageData(0, 0, c.width, c.height).data; let dark = 0, lit = 0; for (let i = 0; i < d.length; i += 16) { const l = (d[i] + d[i + 1] + d[i + 2]) / 3; if (l < 20) dark++; else lit++; } return { dark, lit }; });
   ok('the dungeon draws its own floor and walls (dark stone with lit rooms)', shot.dark > 0 && shot.lit > 0, JSON.stringify(shot));
   try { fs.mkdirSync(path.resolve(__dirname, '..', '..', '.shots'), { recursive: true }); await p.screenshot({ path: path.resolve(__dirname, '..', '..', '.shots', 'rpg_dungeon.png') }); } catch (e) {}
+  // 8. the real map (G7): each dungeon POI of R.data.world carries a portal; walking up to it offers ENTER and the interact opens its sheet
+  const real = await p.evaluate(() => { if (R.dungeons.active) R.dungeons.leave(); if (R.ui.cur) R.ui.close(); const out = {};
+    let fl = null; try { fl = R.acc ? R.acc().world.flags : null; } catch (e) {} fl = fl || R.state.p.flags; for (const g of ['north', 'wall', 'beyond', 'winter']) fl['gate:' + g] = 1;   // walk anywhere
+    for (const id of ['dg_crypts', 'dg_harrenhal', 'dg_caves']) { const poi = R.data.world.poiById && R.data.world.poiById[id]; if (!poi) { out[id] = 'no poi'; continue; }
+      R.player.x = poi.x + 24; R.player.y = poi.y; for (let i = 0; i < 40; i++) R.step(); const pt = R.ents.find(e => e.kind === 'portal' && !e.dead && e.dg === id); const I = R.input && R.input.interact;
+      let sheet = null; if (pt) { R.bus.emit('interact', pt); sheet = R.ui.cur; if (R.ui.cur) R.ui.close(); } out[id] = { portal: !!pt, near: !!(I && I.e === pt), label: I && I.label, sheet }; }
+    R.player.x = 3600; R.player.y = 9000; return out; });
+  ok('real map: every dungeon POI has a portal; next to it INTERACT says ENTER and opens the dungeon sheet',
+    Object.values(real).every(v => v && v.portal && v.near && v.label === 'ENTER' && v.sheet === 'dungeon'), JSON.stringify(real));
   ok('no page errors', !errors.length, errors.join(' | '));
   console.log(JSON.stringify(T, null, 1)); console.log('ERR', JSON.stringify(errors));
   await browser.close(); process.exit(Object.values(T).some(v => v.startsWith('FAIL')) || errors.length ? 1 : 0);
