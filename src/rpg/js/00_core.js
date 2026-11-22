@@ -210,7 +210,7 @@ window.R = window.R || {};
     const rot = H > W * 1.05 && !R.noRot; R.rot = rot;
     const aw = rot ? H : W, ah = rot ? W : H, de = document.documentElement; de.classList.toggle('rot', rot); de.classList.add('land');
     /* the size media queries of the CSS, as classes on the app's own size (a media query sees the unturned screen) */
-    de.classList.toggle('q-s', aw > ah && ah <= 520); de.classList.toggle('q-h700', ah <= 700); de.classList.toggle('q-w370', aw <= 370); de.classList.toggle('q-w480', aw >= 480); de.classList.toggle('q-wide', aw >= 600 && aw > ah);
+    de.classList.toggle('q-s', aw > ah && ah <= 520); de.classList.toggle('q-h700', ah <= 700); de.classList.toggle('q-w370', aw <= 370); de.classList.toggle('q-w480', aw >= 480); de.classList.toggle('q-wide', aw >= 600 && aw > ah); de.classList.toggle('q-n', aw > ah && aw < 700); de.classList.toggle('q-h380', aw > ah && ah < 380);
     de.style.setProperty('--vw', (aw / 100) + 'px'); de.style.setProperty('--vh', (ah / 100) + 'px');
     if (app && app.style) { if (rot) app.style.cssText = 'position:fixed;left:0;top:0;right:auto;bottom:auto;width:' + aw + 'px;height:' + ah + 'px;transform-origin:0 0;transform:rotate(90deg) translateY(-100%)'; else app.style.cssText = ''; }
     return (R._lay = { w: aw, h: ah }); };

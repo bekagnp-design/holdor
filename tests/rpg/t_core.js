@@ -146,6 +146,7 @@ const { ok } = L;
     const why = await E(() => R.player ? null : (window.__nullWhy || "no clearEnts")); if (why) console.log('  info R.player was cleared by: ' + why);
     await E(() => { R.run(); if (!R.player) R.enterWorld(); R.player.x = 4321; R.player.y = 8765; R.save(true); });
     await L.boot(p, { settle: 400 });
+    await L.waitFor(p, () => !!(window.R && R.player), 8000);   // a loaded machine (software GL) can run the world's entry a frame after R.running
     const re = await E(() => ({ boot: R.boot, x: R.player.x, y: R.player.y, hero: R.state.p.hero, running: R.running, cur: R.ui.cur, alias: R.state.p.flags === R.state.acc.world.flags && R.state.p.flags.keepMe === 1 }));
     ok('reload: the living hero enters the world at his saved position, aliases live', re.boot === 'world' && Math.abs(re.x - 4321) < 40 && Math.abs(re.y - 8765) < 40 && re.hero === 'sansa' && re.running && re.cur === null && re.alias, JSON.stringify(re));
 
