@@ -3,11 +3,19 @@
 import glob, os, sys
 H = os.path.dirname(os.path.abspath(__file__)); V = os.path.join(H, 'rpg'); ROOT = os.path.dirname(H)
 out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'beta', 'index.html')
-tpl = open(os.path.join(V, 'index.tpl.html'), encoding='utf-8').read()
+tpl_path = os.path.join(V, 'index.tpl.html')
+if os.environ.get('RPG_OVERLAY') and os.path.isfile(os.path.join(os.environ['RPG_OVERLAY'], 'index.tpl.html')): tpl_path = os.path.join(os.environ['RPG_OVERLAY'], 'index.tpl.html')
+tpl = open(tpl_path, encoding='utf-8').read()
+OVER = os.environ.get('RPG_OVERLAY')   # a second src/rpg dir (an agent's worktree): its files replace same-named ones, extra files are added
+def files(pat):
+    m = {os.path.relpath(f, V): f for f in glob.glob(os.path.join(V, pat))}
+    if OVER and os.path.isdir(OVER):
+        for f in glob.glob(os.path.join(OVER, pat)): m[os.path.relpath(f, OVER)] = f
+    return [m[k] for k in sorted(m)]
 def cat(pat, sep, guard=False):
     parts = []
-    for f in sorted(glob.glob(os.path.join(V, pat))):
-        rel = os.path.relpath(f, V); body = open(f, encoding='utf-8').read().rstrip('\n')
+    for f in files(pat):
+        rel = os.path.relpath(f, OVER) if OVER and f.startswith(OVER) else os.path.relpath(f, V); body = open(f, encoding='utf-8').read().rstrip('\n')
         if guard:   # every js module is an IIFE: a load-time throw in one must not abort the ones after it
             body = 'try{\n' + body + '\n}catch(e){console.error("[rpg] %s", e); if(window.R&&R.err)R.err("%s: "+(e&&e.message||e));}' % (rel, rel)
         parts.append('/* ==== %s ==== */\n' % rel + body + '\n')
