@@ -12,7 +12,9 @@ def cat(pat, sep):
 css = cat('css/*.css', '\n')
 js = cat('vendor/*.js', '\n') + '\n' + cat('assets/*.js', '\n') + '\n' + cat('js/*.js', '\n')
 assert '</style>' in tpl and '</script>' in tpl, 'template needs </style> and </script>'
-s = tpl.replace('</style>', css + '\n</style>', 1).replace('</script>', js + '\n</script>', 1)
+s = tpl.replace('</style>', css + '\n</style>', 1)
+k = s.rfind('</script>'); assert k > 0
+s = s[:k] + js + '\n' + s[k:]          # the LAST script tag is the inline one (the first is the Telegram SDK include)
 os.makedirs(os.path.dirname(out), exist_ok=True)
 open(out, 'w', encoding='utf-8').write(s)
 print('wrote', out, len(s))
