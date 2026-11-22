@@ -37,7 +37,7 @@ CHROMIUM_PATH=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome node tests/rp
   `CHROMIUM_PATH` to any installed Chromium/Chrome. Headless Chromium renders the WebGL terrain with its software renderer.
 - The game runs **60 fixed steps per game second** (`R.step()`); tests call it directly and seed `R.rng(seed)` for
   deterministic runs. The whole game object `window.R` is public — keep it that way. Keyboard: WASD/arrows, J attack,
-  K dodge, 1-2-3 skills, E interact. Entities keep 2D ground coordinates; the renderer reads the terrain height.
+  K dodge, 1-2-3 skills, R potion, F interact, Q/E rotate the camera, M map, I bag, Esc menu. Entities keep 2D ground coordinates; the renderer reads the terrain height.
 - The red `#err` overlay must stay hidden in every test; a console error fails the suite.
 - A new version: bump `R.VERSION` in `src/rpg/js/00_core.js`, change only the modules you own (+ their CSS and test),
   build, run the suite, update `docs/build-backlog.md` (one section) and `docs/roadmap.md`.

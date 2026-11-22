@@ -6,9 +6,24 @@
    API: R.quests.available(npcId?) accept(id) progress(id, k) turnIn(id) tracked() track(id) markers() forNpc(npcId) state(id) get(id) line(q) refresh()
    in: kill, loot, poi, boss, dialog, levelup, tick1s     out: quest(id, 'open'|'progress'|'done'|'turned') */
 (function () {
-  const Q = () => (R.data && Array.isArray(R.data.quests)) ? R.data.quests : [];
   const P = () => R.state && R.state.p;
   const ACC = () => { try { if (R.acc) return R.acc(); } catch (e) {} return R.state && R.state.acc; };
+  /* every quest is RESOLVED for the account's house before it is offered, tracked or drawn: 41_story's placeholders ('seat', 'seat:<role>',
+     'house:N', {hero} …) go through R.story.resolve, and a string target becomes {mob|item+from|poi|boss|npc(+poi)} by the quest type.
+     The list is cached per (data array, length, house): a house change or a new account re-resolves it on the next read. */
+  const house = () => { const a = ACC(); return (a && a.house) || (P() && P().house) || 'stark'; };
+  const normTarget = q => { const t = q.target; if (t && typeof t === 'object' && !Array.isArray(t)) { if (q.type === 'collect' && q.from && !t.from) return Object.assign({ from: q.from }, t); return t; }
+    switch (q.type) { case 'kill': return { mob: t }; case 'collect': return { item: t, from: q.from || null }; case 'reach': return { poi: t || q.poi };
+      case 'boss': return { boss: t }; case 'talk': return { npc: t }; case 'escort': return { npc: t, poi: q.to || null }; default: return t == null ? {} : { id: t }; } };
+  const normalize = q => { let r = q;
+    if (R.story && typeof R.story.resolve === 'function' && q && q.text && Array.isArray(q.text.offer)) { try { r = R.story.resolve(q, house()) || q; } catch (e) { r = q; } }
+    if (r === q) r = Object.assign({}, q);
+    r.target = normTarget(r); const T = r.text || {}; r.text = { offer: Array.isArray(T.offer) ? T.offer.join(' ') : T.offer, progress: T.progress, done: T.done, pages: Array.isArray(T.offer) ? T.offer.slice() : (T.offer ? [T.offer] : []) };
+    return r; };
+  let qCache = null;
+  const Q = () => { const raw = (R.data && Array.isArray(R.data.quests)) ? R.data.quests : []; const h = house();
+    if (qCache && qCache.raw === raw && qCache.n === raw.length && qCache.h === h) return qCache.list;
+    const list = raw.filter(Boolean).map(normalize); qCache = { raw, n: raw.length, h, list }; return list; };
   const WORLD = () => { const a = ACC(); return a && (a.world || (a.world = {})); };
   const QS = () => { const w = WORLD(); if (w) return w.quests || (w.quests = {}); const p = P(); return p ? (p.quests || (p.quests = {})) : null; };
   const flags = () => { const w = WORLD(); if (w) return w.flags || (w.flags = {}); const p = P(); return p ? (p.flags || (p.flags = {})) : {}; };
@@ -35,7 +50,14 @@
   const npcPos = id => { const e = npcEnt(id); if (e) return { x: e.x, y: e.y }; const d = npcData(id); return xy(d) || (d && d.poi ? poiPos(d.poi) : null); };
   const bossPos = id => { const e = R.find(e => e.kind === 'boss' && !e.dead && (e.type === id || e.boss === id)); if (e) return { x: e.x, y: e.y }; const d = R.data.bosses && findIn(R.data.bosses, id); return xy(d) || (d && d.poi ? poiPos(d.poi) : null); };
   const giverPos = q => npcPos(q.giver) || poiPos(q.poi) || null;
-  const targetPos = q => { const t = q.target || {}; return (t.poi && poiPos(t.poi)) || (t.npc && npcPos(t.npc)) || (t.boss && bossPos(t.boss)) || xy(t) || poiPos(q.poi) || giverPos(q); };
+  const nearMob = types => { const pl = R.player; if (!pl || !R.ents) return null; let b = null, bd = 1400;
+    for (const e of R.ents) { if (e.dead || (e.kind !== 'mob' && e.kind !== 'boss') || e.team !== 1) continue; if (types && !types(e.type)) continue;
+      const d = Math.hypot(e.x - pl.x, e.y - pl.y); if (d < bd) { bd = d; b = e; } } return b ? { x: b.x, y: b.y } : null; };
+  const mobMatch = tm => !tm || tm === '*' || tm === 'any' ? null : (ty => Array.isArray(tm) ? tm.includes(ty) : tm === ty);
+  const targetPos = q => { const t = q.target || {};
+    if (q.type === 'kill' && t.mob) { const m = nearMob(mobMatch(t.mob)); if (m) return m; }
+    if (q.type === 'collect' && t.from) { const m = nearMob(mobMatch(t.from)); if (m) return m; }
+    return (t.poi && poiPos(t.poi)) || (t.npc && npcPos(t.npc)) || (t.boss && bossPos(t.boss)) || xy(t) || poiPos(q.poi) || giverPos(q); };
   const RAR = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
 
   /* ---- availability ---- */
@@ -198,7 +220,8 @@
   R.bus.on('kill', (mob, by) => { if (!mob || !P() || (by && by.team === 1)) return; const type = mob.type;
     for (const q of Q()) { const s = st(q.id); if (!s || s.st !== 'open') continue; const t = q.target || {};
       if (q.type === 'kill') { const tm = t.mob; if (!tm || tm === '*' || tm === type || (Array.isArray(tm) && tm.includes(type)) || (t.boss && mob.kind === 'boss' && t.boss === (mob.boss || type))) progress(q.id, 1); }
-      else if (q.type === 'boss' && mob.kind === 'boss' && t.boss === (mob.boss || type)) bossDone(t.boss, q); } });
+      else if (q.type === 'collect' && t.from && (t.from === '*' || t.from === 'any' || t.from === type || (Array.isArray(t.from) && t.from.includes(type)))) progress(q.id, 1);
+      else if (q.type === 'boss' && mob.kind === 'boss' && t.boss === (mob.boss || mob.bossId || type)) bossDone(t.boss, q); } });
   R.bus.on('boss', (id, phase) => { if (phase !== 'dead' || !P()) return; for (const q of Q()) { const s = st(q.id); if (s && s.st === 'open' && q.type === 'boss' && q.target && q.target.boss === id) bossDone(id, q); } });
   R.bus.on('loot', item => { if (!item || !P()) return; const keys = [item.base, item.key, item.type, item.kind === 'mat' ? item.id : null, item.name].filter(x => x != null);
     for (const q of Q()) { const s = st(q.id); if (s && s.st === 'open' && q.type === 'collect' && q.target && keys.includes(q.target.item)) progress(q.id, item.n || item.qty || 1); } });
@@ -210,5 +233,7 @@
   R.bus.on('tick1s', () => { markNpcs(); refresh(); });
   R.bus.on('screen', n => { if (n !== 'quests') logEl = null; refresh(); });
 
-  R.quests = { get, all: Q, state: st, available, canAccept, forNpc, accept, progress, turnIn, track, tracked, markers, line, refresh, giverPos, targetPos, npcName, poiName, mobName, markNpcs };
+  R.bus.on('house', () => { qCache = null; refresh(); }); R.bus.on('newhero', () => { qCache = null; refresh(); });
+  const offersFor = npcId => available(npcId), turnInsFor = npcId => forNpc(npcId).turnin;
+  R.quests = { get, all: Q, state: st, available, canAccept, forNpc, offersFor, turnInsFor, resolve: normalize, reset: () => { qCache = null; }, accept, progress, turnIn, track, tracked, markers, line, refresh, giverPos, targetPos, npcName, poiName, mobName, markNpcs };
 })();

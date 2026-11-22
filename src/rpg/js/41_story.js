@@ -337,7 +337,7 @@
   N('hh_warden', 'Pate, warden of the ruin', 'warden', 'harrenhal', null, 'npc:steward',
     ['Harrenhal is a ruin. I am its warden. Do not laugh.', 'Nobody who sleeps inside the walls wakes. Camp outside.', 'Something cold nests in the burned towers. Its servants carry bone that frost will not leave.'],
     ['Harren built it to last forever. It lasted a day against dragons. It is lasting longer against this.', 'I count the towers each dawn. Five. Still five.']);
-  N('mc_crannog', 'Howland of the Neck, a crannogman', 'ranger', 'moatcailin', null, 'npc:ranger',
+  N('mc_crannog', 'Howland of the Neck, a crannogman', 'ranger', 'moat_cailin', null, 'npc:ranger',
     ['The Neck is ours. Was ours. The Walker took the ruin and we took the bog.', 'Three towers still stand. It stands in the middle one.', 'Crannogmen do not fight Walkers. We show others where to.'],
     ['Every soldier who ever died at Moat Cailin is up and in the causeway.', 'Frogs are quiet. Frogs are never quiet. That is how you know.']);
   N('wh_lord', 'Lord Osric Manderly', 'steward', 'whiteharbor', null, 'npc:steward',
@@ -383,7 +383,7 @@
   N('hd_elder', 'Wyn, a free folk elder', 'elder', 'hardhome', null, 'npc:steward',
     ['Thousands here. The sea behind, the dead in front. You have boats?', 'Crows with boats. I have lived long enough to see that.', 'Walk in front. You have the glass.'],
     ['The ones who stay will be walking by morning.', 'Hardhome was cursed before. We came anyway. There was nowhere else.']);
-  N('ft_ranger', 'Ranger Doss', 'ranger', 'fist', null, 'npc:ranger',
+  N('ft_ranger', 'Ranger Doss', 'ranger', 'fist_of_first_men', null, 'npc:ranger',
     ['The Fist. Three hundred rangers died here. I was late. That is why I am alive.', 'The cache is under the cairn at the north edge. Dead men walk over it.', 'It comes south. A column of cold down from the Frostfangs. Look.'],
     ['Every dead thing we ever fought answers to it.', 'If it reaches the Wall there is no Wall.']);
 
@@ -406,7 +406,7 @@
   M('m03', 'Black glass', 3, 'collect', 'seat', 'seat:maester', 'dragonglass', 5,
     ["Dragonglass. Obsidian, if you want the Citadel's word. The old songs say it kills them for good.", 'The dead keep {hero} in the vault below the walls. The shards are there too, in their flesh.', 'Bring me five shards. Bring {hero} out alive. If the songs are right, your house needs both.'],
     'Dragonglass shards gathered from the vault', 'Five shards; a knife by dusk. And {hero} walks free and will ride for {house}.',
-    { from: 'crypt', rescue: true, hero: 'house:0', reward: { hero: 'house:0' } });
+    { from: 'crypt', rescue: true, hero: 'house:1', reward: { hero: 'house:1' } });
   M('m04', 'Hounds of the night', 4, 'kill', 'seat', 'seat:arms', 'hound', 8,
     ['The kennels emptied themselves two nights ago. The hounds are dead and still hungry.', 'Eight of them run the fields in a pack. They go for the legs. Keep yours under you.', 'Hit the first one hard. The rest come in low behind it.'],
     'Dead hounds put down', 'Eight. Good. A pack that size could have pulled down a horse. Now I can spare a blade for the road.',
@@ -420,10 +420,10 @@
   M('m07', 'Turned cloaks', 9, 'kill', 'kingslanding', 'kl_hand', 'sword', 12,
     ['Gold cloaks died holding the River Gate. They are back in the same cloaks, holding it for the other side.', 'Twelve of them. Swordsmen, slow and heavy. They take two hits where a farmer takes one.', 'The city cannot see dead guards on its walls. Clear them.'],
     'Turned gold cloaks put down', 'The River Gate is ours again. The city will not thank you. The city does not know. I do.');
-  M('m08', 'Crown of rot', 11, 'boss', 'duskendale', 'kl_hand', 'kingwight', 1,
+  M('m08', 'Crown of rot', 11, 'boss', 'kingswood', 'kl_hand', 'boss_kingswood', 1,
     ["Something crawled out of a king's crypt and walked to Duskendale. It wears a crown.", 'The dead gather to it, and it keeps a court. {hero} of your house is in that court, in chains.', 'End the king. The chains open with him. Not a thing for one blade, but one blade is what we have.'],
     'Put down the Crowned Corpse at Duskendale', 'The crown came off; the rest followed. {hero} rides for {house} now. The rot comes from the north.',
-    { rescue: true, hero: 'house:1', reward: { hero: 'house:1', gems: 15 } });
+    { rescue: true, hero: 'house:2', reward: { hero: 'house:2', gems: 15 } });
   M('m09', 'Ravens north', 13, 'reach', 'riverrun', 'kl_hand', 'riverrun', 1,
     ['Riverrun answers no ravens. The Riverlands are the road to the North, and the road is dark.', "Go to Riverrun. If the Tullys' castellan lives, he will know where the dead cross the rivers.", 'If he does not live, you will know soon enough.'],
     'Reach Riverrun', 'Riverrun stands. Its gates are shut and its river is full. But it stands.');
@@ -438,13 +438,13 @@
     ['The Twins hold the only bridge over the Green Fork. The Freys will not open it for nothing.', 'A wagon of grain goes north as our toll. Walk beside it. The dead like wagons.', 'If the wagon arrives, the bridge opens. If not, the North is cut off.'],
     'Bring the grain wagon to the Twins', 'The grain is in. The Freys counted every sack. The bridge is open for as long as that lasts.',
     { to: 'twins', reward: { gems: 20 } });
-  M('m13', 'The Neck', 21, 'boss', 'moatcailin', 'tw_lord', 'neckwalker', 1,
+  M('m13', 'The Neck', 21, 'boss', 'moat_cailin', 'tw_lord', 'boss_neck', 1,
     ['Past the bridge is the Neck, and in the Neck is Moat Cailin. Nothing comes through it alive now.', 'A Walker holds the ruin. Not a wight; a Walker. It raised every soldier who ever died there.', 'Kill it and the causeway opens. Fail, and the Freys are the last living men on this river.'],
     'Put down the Walker of the Neck at Moat Cailin', 'The causeway is clear. The Freys say they always believed in your house. They say that to the winner.');
   M('m14', 'White Harbor', 24, 'reach', 'whiteharbor', 'tw_lord', 'whiteharbor', 1,
     ['White Harbor has ships, walls and a lord who feeds his people. That makes it a target.', 'Go north along the coast. If the port holds, the North can still be supplied by sea.', 'Lord Manderly holds {hero} of your house as a deserter. Reach the gate; your word frees them.'],
     'Reach White Harbor', 'White Harbor. The gate opened. {hero} is freed on your word and rides for {house}.',
-    { rescue: true, hero: 'house:2', reward: { hero: 'house:2' } });
+    { rescue: true, hero: 'house:3', reward: { hero: 'house:3' } });
   M('m15', "The wolves' den", 27, 'talk', 'winterfell', 'wh_lord', 'wf_lord', 1,
     ['Winterfell has gone quiet. No ravens, no riders, no smoke seen from the road.', "Ride to the wolves' den. If Lord Stark holds, the North holds. If not, I need to know today.", 'Take the kingsroad. Everything else is snow now.'],
     'Speak with the lord of Winterfell', 'Winterfell holds. Barely, by the look of the walls. But its lord is alive and he has a plan.');
@@ -456,7 +456,7 @@
     ['Last Hearth burns, and the Umbers say the dead giants carry the fire with them.', 'Hearth-stones, warm from the hall, lodged in their flesh. Bring me eight. Fire that walks is new.', 'The Umbers will help, if any are left to help.'],
     'Hearth-stones taken from the dead giants', 'Still warm. Fire the cold cannot put out. If I can learn why, we have a weapon.',
     { from: 'giant' });
-  M('m18', 'The giant of the Gift', 36, 'boss', 'lasthearth', 'lh_lord', 'giantwight', 1,
+  M('m18', 'The giant of the Gift', 36, 'boss', 'queenscrown', 'lh_lord', 'boss_north', 1,
     ['There is a giant in the Gift. Dead, twice the size of the rest, with a weirwood for a club.', 'It flattened my gate with one swing. My gate was oak and iron.', 'Kill it, or I bury what is left of my house under what is left of my hall.'],
     'Put down the Giant of the Gift', 'It fell toward us. We all ran. Then we all laughed. I have not heard that sound in a year.');
   M('m19', 'Black brothers', 39, 'reach', 'castleblack', 'lh_lord', 'castleblack', 1,
@@ -465,11 +465,11 @@
   M('m20', 'Beyond the gate', 42, 'talk', 'castleblack', 'cb_lc', 'cb_turncloak', 1,
     ['We have a wildling in the ice cells who says she has seen where the cold comes from.', '{hero} of your house is in the next cell, taken on the road for a wight. I trust neither.', 'Hear her. Then tell me if I should hang them or feed them.'],
     'Hear the wildling turncloak', 'Feed them, then. She knows the ground. Both walk free, and {hero} rides for {house}.',
-    { rescue: true, hero: 'house:3', reward: { hero: 'house:3', gems: 30 } });
+    { rescue: true, hero: 'house:4', reward: { hero: 'house:4', gems: 30 } });
   M('m21', "Craster's cold hall", 45, 'kill', 'crasters', 'cb_turncloak', 'walker', 25,
     ['There is a hall in the Haunted Forest where a man gave his sons to the cold for years.', 'The sons came back. Twenty-five Walkers hold the hall now. It is their door south.', 'Shut it. I will show the path. I will not go inside.'],
     'Walkers put down at the cold hall', 'The hall is empty. Burn it. I should have asked someone to burn it years ago.');
-  M('m22', 'The Fist', 48, 'collect', 'fist', 'cb_ranger', 'frostglass', 10,
+  M('m22', 'The Fist', 48, 'collect', 'fist_of_first_men', 'cb_ranger', 'frostglass', 10,
     ['The rangers died on the Fist of the First Men. They had a cache of dragonglass with them.', 'Ten blades, wrapped in oilcloth, under the cairn at the north edge. The dead walk over it.', 'Bring them back. Ten men might live for each blade.'],
     'Dragonglass blades recovered from the Fist', 'Ten blades. Ten brothers who died carrying them. Hand them out. Then go to the Lord Commander.',
     { from: 'any' });
@@ -477,7 +477,7 @@
     ['The free folk are at Hardhome. Thousands, with the sea at their backs and the dead in front.', 'The Watch has sent boats. Someone has to walk the elders from the village to the shore.', 'Whoever carries the glass walks in front.'],
     'Walk the free folk to the boats at Hardhome', 'The boats are full. The ones who stayed will be walking by morning. Who could be saved, was.',
     { to: 'hardhome' });
-  M('m24', 'The long night ends', 52, 'boss', 'fist', 'cb_lc', 'palelord', 1,
+  M('m24', 'The long night ends', 52, 'boss', 'heart_of_winter', 'cb_lc', 'boss_winter', 1,
     ['It is coming south. The rangers see a column of cold walking down from the Frostfangs.', 'Every dead thing we ever fought answers to it. The brothers call it the Pale Lord.', 'Meet it at the Fist. If it reaches the Wall, there is no Wall. Hold the door.'],
     'Put down the Pale Lord at the Fist', 'It broke like ice in spring. The dead fell where they stood, from here to Dorne. The door held.',
     { reward: { gems: 40 } });
@@ -621,11 +621,11 @@
     riverlands: 'The Riverlands. Three rivers, a hundred fords, and the dead crossing every one.', vale: 'The Vale. Mountains the dead climb slowly and the living cannot climb fast enough.',
     north: 'The North. The snow does not melt here now, and the cold has learned to walk.', wall: 'The Wall. Seven hundred feet of ice, and the one thing it was built for is coming.',
     beyond: 'Beyond the Wall. No lords, no laws, and the cold is a thing with a will of its own.', alwayswinter: 'The Lands of Always Winter. Where the cold comes from. Nothing here was ever alive.' };
-  const boss = { sandwight: 'The Spear of the Sands. A Dornish lord buried with his spear. He kept the spear.', rotknight: 'The Rotting Knight. He drowned in the Mander in full plate. The plate held.',
-    stormwight: 'The Drowned Captain. Shipbreaker Bay took his ship. He came back for the castle.', goldwight: 'The Gilded Dead. A lord buried in gold armour in the deep mines. The gold did not rust.',
-    drownedking: 'The Drowned Reaver. He went under with his longship and brought the crew back with him.', kingwight: 'The Crowned Corpse. A king from the crypts below the sept, still wearing his crown.',
-    neckwalker: "The Walker of the Neck. It raised Moat Cailin's dead and holds the only road north.", skywight: 'The Hollow Falcon. A knight of the Vale who fell from the Eyrie and stood back up.',
-    giantwight: 'The Giant of the Gift. It walked out of the snow with a tree for a club.', palelord: 'The Pale Lord. The cold that walks. It waited eight thousand years. It is not patient.' };
+  const boss = { boss_dorne: 'The Spear of the Sands. A Dornish lord buried with his spear. He kept the spear.', boss_reach: 'The Rotting Knight. He drowned in the Mander in full plate. The plate held.',
+    boss_stormlands: 'The Drowned Captain. Shipbreaker Bay took his ship. He came back for the castle.', boss_westerlands: 'The Gilded Dead. A lord buried in gold armour in the deep mines. The gold did not rust.',
+    boss_iron: 'The Drowned Reaver. He went under with his longship and brought the crew back with him.', boss_kingswood: 'The Crowned Corpse. A king from the crypts below the sept, still wearing his crown.',
+    boss_neck: "The Walker of the Neck. It raised Moat Cailin's dead and holds the only road north.", boss_vale: 'The Hollow Falcon. A knight of the Vale who fell from the Eyrie and stood back up.',
+    boss_north: 'The Giant of the Gift. It walked out of the snow with a tree for a club.', boss_winter: 'The Pale Lord. The cold that walks. It waited eight thousand years. It is not patient.' };
   /* the Hall of the Fallen: {name} {lvl} {killer} are filled by the death screen */
   const epitaphs = ['{name}, level {lvl}. Fell to {killer}. The ground was cold. It got colder.', '{name} held for {lvl} levels. {killer} held longer. The snow keeps the rest.',
     'Here lies {name}. A blade sworn to the house, broken at level {lvl} by {killer}.', '{name} went down facing {killer}. Level {lvl}. The dead would have welcomed them. The house did not let them.',
@@ -702,12 +702,28 @@
   D.quests = QUESTS; D.questById = {}; for (const q of QUESTS) D.questById[q.id] = q;
   D.story = { prologue, regions, boss, epitaphs, death: epitaphs, nextHero, levelup, titles, dialogs, seats: SEATS, seatNames: SEAT_NAMES, hubs: HUBS, main: QUESTS.filter(q => q.main).map(q => q.id), houseChamps: HOUSE_CHAMPS };
   const champName = id => { const c = D.champs && (D.champs[id] || (Array.isArray(D.champs) && D.champs.find(x => x && x.id === id))); return (c && (c.name || c.n)) || CHAMP_NAMES[id] || id; };
-  const champOf = (house, i) => { const list = HOUSE_CHAMPS[house] || HOUSE_CHAMPS.stark; return list[Math.min(i, list.length - 1)]; };
+  // 'house:N' → the N-th champion of the house in the old order, never the one every new account already rides with (R.firstChamp)
+  const champOf = (house, i) => { const list = HOUSE_CHAMPS[house] || HOUSE_CHAMPS.stark; let first = null; try { first = R.firstChamp ? R.firstChamp(house) : null; } catch (e) {}
+    if (i > 0 && first && list.indexOf(first) >= 0) { const rest = list.filter(c => c !== first); return rest[Math.min(i - 1, rest.length - 1)]; } return list[Math.min(i, list.length - 1)]; };
+  /* the real map (R.data.world, js/11) decides where things are: old ids are aliased, NPC kinds / services / portraits are filled for 42_dialog,
+     and a kill target that never spawns in the quest's region is swapped for that region's most common mob (so m01 works for every house) */
+  const ALIAS = { moatcailin: 'moat_cailin', fist: 'fist_of_first_men', castle_black: 'castleblack', kings_landing: 'kingslanding', white_harbor: 'whiteharbor',
+    kingwight: 'boss_kingswood', neckwalker: 'boss_neck', giantwight: 'boss_north', palelord: 'boss_winter', sandwight: 'boss_dorne', rotknight: 'boss_reach',
+    stormwight: 'boss_stormlands', goldwight: 'boss_westerlands', drownedking: 'boss_iron', skywight: 'boss_vale' };
+  const KIND = { steward: 'lord', maester: 'maester', arms: 'guard', innkeep: 'innkeeper', smith: 'smith', septon: 'septon', priest: 'septon', hunter: 'hunter', ranger: 'ranger',
+    fisher: 'fisher', captain: 'sellsword', miner: 'farmer', gardener: 'farmer', rider: 'ranger', smuggler: 'sellsword', scribe: 'maester', turncloak: 'wildling', keeper: 'elder',
+    ferryman: 'fisher', carter: 'farmer', falconer: 'hunter', novice: 'maester', harbour: 'fisher', warden: 'steward', elder: 'elder' };
+  for (const n of NPCS) { n.poi = ALIAS[n.poi] || n.poi; n.kind = KIND[n.role] || 'villager'; if (n.sprite.indexOf('champ:') === 0) n.champ = n.sprite.slice(6);
+    const sv = []; if (n.role === 'smith') sv.push('smith'); if (n.lines.inn) sv.push('inn'); if (n.lines.shop && (n.role === 'smith' || !n.lines.inn)) sv.push('shop'); n.services = sv; }
+  const W = () => D.world || null;
+  const regionOfPoi = pid => { const w = W(); const p = w && (w.poiById ? w.poiById[pid] : (w.pois || []).find(x => x.id === pid)); return p ? p.region : null; };
+  const spawnList = reg => { const w = W(); const s = w && reg && (w.spawnsByRegion ? w.spawnsByRegion[reg] : (w.spawns || []).find(x => x.region === reg)); return s && Array.isArray(s.mobs) ? s.mobs : []; };
+  const fitMob = (mob, pid) => { const L = spawnList(regionOfPoi(pid)); if (!L.length || L.some(m => m.type === mob)) return mob; return L.slice().sort((a, b) => b.w - a.w)[0].type; };
   const seatNpc = (house, role) => NPCS.find(n => n.poi === (SEATS[house] || 'winterfell') && n.role === role);
-  const resolveId = (v, house) => { if (typeof v !== 'string') return v; if (v === 'seat') return SEATS[house] || 'winterfell'; if (v.indexOf('seat:') === 0) { const n = seatNpc(house, v.slice(5)); return n ? n.id : v; } if (v.indexOf('house:') === 0) return champOf(house, +v.slice(6) || 0); return v; };
+  const resolveId = (v, house) => { if (typeof v !== 'string') return v; v = ALIAS[v] || v; if (v === 'seat') return SEATS[house] || 'winterfell'; if (v.indexOf('seat:') === 0) { const n = seatNpc(house, v.slice(5)); return n ? n.id : v; } if (v.indexOf('house:') === 0) return champOf(house, +v.slice(6) || 0); return v; };
   const ctx = (house, q) => { const c = { house: HOUSE_NAMES[house] || house, seat: SEAT_NAMES[SEATS[house]] || 'the seat' }; if (q && q.hero) c.hero = champName(resolveId(q.hero, house)); return c; };
   const fmt = (s, c) => typeof s === 'string' ? s.replace(/\{(\w+)\}/g, (m, k) => c && c[k] != null ? c[k] : m) : s;
-  R.story = { seats: SEATS, hubs: HUBS, champName, champOf, seatNpc, fmt, ctx, resolveId,
+  R.story = { seats: SEATS, hubs: HUBS, champName, champOf, seatNpc, fmt, ctx, resolveId, alias: ALIAS, fitMob,
     seatOf: house => SEATS[house] || 'winterfell',
     pick: arr => arr && arr.length ? arr[Math.floor(Math.random() * arr.length)] : '',
     line: (npcId, kind) => { const n = byId[npcId]; return n ? R.story.pick(n.lines[kind || 'greet']) : ''; },
@@ -715,7 +731,10 @@
     resolve: (q, house) => { if (typeof q === 'string') q = D.questById[q]; if (!q) return null; house = house || (R.state && R.state.acc && R.state.acc.house) || (R.state && R.state.p && R.state.p.house) || 'stark';
       const c = ctx(house, q); const r = Object.assign({}, q, { poi: resolveId(q.poi, house), giver: resolveId(q.giver, house), target: resolveId(q.target, house), reward: Object.assign({}, q.reward) });
       if (q.hero) r.hero = resolveId(q.hero, house); if (q.reward && q.reward.hero) r.reward.hero = resolveId(q.reward.hero, house);
-      r.text = { offer: q.text.offer.map(s => fmt(s, c)), progress: fmt(q.text.progress, c), done: fmt(q.text.done, c) }; return r; },
+      if (q.to) r.to = resolveId(q.to, house);
+      if (q.type === 'kill' && typeof r.target === 'string') r.target = fitMob(r.target, r.poi);
+      if (q.type === 'collect' && q.from && q.from !== 'any') { const f = fitMob(q.from, r.poi); r.from = f === q.from ? f : 'any'; }
+      const T = q.text || {}; r.text = { offer: (Array.isArray(T.offer) ? T.offer : [T.offer]).filter(Boolean).map(s => fmt(s, c)), progress: fmt(T.progress, c), done: fmt(T.done, c) }; return r; },
     prologue: house => (prologue[house] || prologue.stark).map(s => fmt(s, { hero: champName(champOf(house, 0)), house: HOUSE_NAMES[house] || house })),
     epitaph: (name, lvl, killer) => fmt(R.story.pick(epitaphs), { name, lvl, killer }) };
 })();

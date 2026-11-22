@@ -156,6 +156,26 @@
   };
   P.wrapHit();
 
+  /* ---- the home-region gate (the KNOWN BUG of the integrated build): A07 marks a gate's home houses (gates[].homeOf, gateFor(region,
+     house) → null at home), but A06's R.world.gateOpen ignores it, so a Stark hero who starts at Winterfell inside the gated North was
+     pushed 480 units south by the world watcher every 0.5 s (the probe: stick right 60 steps → +149 x, +960 y). Until A06 reads
+     gateFor itself, the gate of the account house's own region counts as open. Guarded: no data / no gateFor → A06's answer. */
+  const houseNow = () => { let a = null; try { a = typeof R.acc === 'function' ? R.acc() : null; } catch (e) { a = null; } a = a || (R.state && R.state.acc) || null;
+    return (a && a.house) || (R.state && R.state.p && R.state.p.house) || null; };
+  P.homeGate = id => {
+    const D = R.data && R.data.world, h = houseNow(); if (!D || !h) return false;
+    const rid = typeof id === 'string' ? id : id && id.id; if (!rid) return false;
+    try { if (typeof D.gateFor === 'function') return !D.gateFor(rid, h) && !!(D.gates || []).find(g => g && g.region === rid); } catch (e) { return false; }
+    const g = (D.gates || []).find(q => q && q.region === rid); return !!(g && Array.isArray(g.homeOf) && g.homeOf.indexOf(h) >= 0);
+  };
+  P.wrapGate = () => {
+    const W = R.world; if (!W || typeof W.gateOpen !== 'function' || W.gateOpen.__phys) return false;
+    const orig = W.gateOpen;
+    const g = function (id) { const r = orig.apply(this, arguments); if (r || P.off) return r; return P.homeGate(id) ? true : r; };
+    g.__phys = true; g.orig = orig; W.gateOpen = g; return true;
+  };
+  P.wrapGate();
+
   /* ---- hit feel + death tumble ---- */
   R.bus.on('hit', info => {
     if (P.off || !info || !info.tgt || info.dot) return;
@@ -175,6 +195,7 @@
   R.addSys('physPre', { order: 79, update(dt) {
     if (P.off) return;
     if (R.hit !== lastHit) P.wrapHit();
+    if (R.world && R.world.gateOpen && !R.world.gateOpen.__phys) P.wrapGate();
     for (const e of R.ents) {
       if (e.stunMicro > 0) e.stunMicro -= dt;
       if (e.flash > 0) e.flash -= dt;

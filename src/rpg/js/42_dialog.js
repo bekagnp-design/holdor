@@ -50,7 +50,19 @@
   const frac = s => hash(s) / 4294967296;
   const vals = m => !m ? [] : Array.isArray(m) ? m : Object.keys(m).map(k => { const o = m[k]; if (o && typeof o === 'object' && o.id == null) o.id = k; return o; });
   const objs = m => vals(m).filter(o => o && typeof o === 'object');
-  const npcs = () => objs(R.data.npcs);
+  /* ONE roster: the story's named NPCs (R.data.npcs, js/41) + the world's per-POI roster (R.data.world.npcs, js/11) minus every world NPC whose
+     role a story NPC at the same POI already covers (lord ~ steward, innkeeper ~ innkeep, merchant ~ anyone who sells, …): no doubles */
+  const COVER = { lord: ['lord', 'steward'], steward: ['lord', 'steward'], maester: ['maester'], innkeeper: ['innkeeper', 'inn'], smith: ['smith'], merchant: ['shop'],
+    septon: ['septon'], elder: ['elder'], ranger: ['ranger'], guard: ['guard'] };
+  let rosterCache = null;
+  const npcs = () => { const a = R.data.npcs, b = R.data.world && R.data.world.npcs, na = vals(a).length, nb = vals(b).length;
+    if (rosterCache && rosterCache.a === a && rosterCache.b === b && rosterCache.na === na && rosterCache.nb === nb) return rosterCache.list;
+    const story = objs(a), seen = new Set(story.map(n => n.id)), have = {};
+    for (const n of story) { const k = n.poi; const h = have[k] || (have[k] = new Set()); h.add(n.kind || String(n.role || '').toLowerCase()); h.add(String(n.role || '').toLowerCase());
+      for (const sv of list(n.services)) h.add(sv); if (n.lines && n.lines.inn) h.add('inn'); }
+    const extra = objs(b).filter(n => { if (!n.id || seen.has(n.id)) return false; const h = have[n.poi]; const r = String(n.role || n.kind || '').toLowerCase();
+      return !(h && (COVER[r] || [r]).some(x => h.has(x))); });
+    const out = story.concat(extra); rosterCache = { a, b, na, nb, list: out }; return out; };
   const npcById = id => npcs().find(n => n.id === id) || null;
   const pois = () => objs(R.data.world && R.data.world.pois);
   const poiById = id => id == null ? null : pois().find(p => p.id === id) || null;
@@ -209,7 +221,13 @@
   if (R.draw && !R.draw.npc) R.draw.npc = drawNpc;
 
   /* ---- the dialog screen ---- */
-  const nodeOf = (def, n) => { if (def == null) return null; if (typeof def === 'string' || Array.isArray(def)) return { text: def }; if (def.nodes) return def.nodes[def.start || 'start'] || def; return def; };
+  /* 41_story writes a dialog as an array of nodes [{text, choices:[{t, next:i} | {t, quest} | {t, inn} | {t, shop} | {t, close}]}]: turn it into
+     {start:'0', nodes}; quest choices are dropped (the quest cards come from R.quests), inn / shop / close become acts */
+  const fromArray = arr => { const nodes = {}; arr.forEach((nd, i) => { nodes[i] = { text: nd.text, choices: list(nd.choices).filter(c => c && !c.quest).map(c =>
+      c.close ? { t: c.t, act: 'close' } : c.inn ? { t: c.t, act: 'inn' } : c.shop ? { t: c.t, act: 'shop' } : c.smith ? { t: c.t, act: 'smith' } : c.next != null ? { t: c.t, next: String(c.next) } : c) }; });
+    return { start: '0', nodes }; };
+  const isNodeArr = d => Array.isArray(d) && d.length && d[0] && typeof d[0] === 'object' && d[0].text != null;
+  const nodeOf = (def, n) => { if (def == null) return null; if (isNodeArr(def)) def = fromArray(def); if (typeof def === 'string' || Array.isArray(def)) return { text: def }; if (def.nodes) return def.nodes[def.start || 'start'] || def; return def; };
   const pagesOf = (t, n) => { if (typeof t === 'function') t = t(n, R.state); return list(t).map(s => tpl(s, n)).filter(Boolean); };
   const services = n => { const s = list(n.services || n.service || (n.shop === true ? 'shop' : n.shop)); if (!s.length && KIND_SVC[kindOf(n)]) s.push(KIND_SVC[kindOf(n)]); return s.filter(x => SVC[x]); };
   const S = R.screens.dialog = { live: false, state: null, el: null,
@@ -219,8 +237,12 @@
       const poi = poiById(ent && ent.poi != null ? ent.poi : n.poi);
       const def = R.data.story && R.data.story.dialogs ? R.data.story.dialogs[n.id] : null;
       const flags = R.state ? (world().flags || (world().flags = {})) : {}; const met = flags['met:' + n.id] || 0;
-      const st = S.state = { id: n.id, npc: n, ent, poi, def: typeof def === 'function' ? def(n, R.state) : def, root: null, node: null, pages: [], page: 0, full: '', shown: '', typing: false, done: false, timer: 0, met };
+      let d0 = typeof def === 'function' ? def(n, R.state) : def; if (isNodeArr(d0)) d0 = fromArray(d0);
+      const st = S.state = { id: n.id, npc: n, ent, poi, def: d0, root: null, node: null, pages: [], page: 0, full: '', shown: '', typing: false, done: false, timer: 0, met };
       st.root = nodeOf(st.def, n) || { text: [GREET[(hash(n.id) + met) % GREET.length]].concat(greetLines(n).length ? [greetLines(n)[met % greetLines(n).length]] : []).join(' ') };
+      try { const ti = turnInsFor(n.id), of = offersFor(n.id), T = q => q && q.text || {};
+        const lines = ti.length ? [T(ti[0]).done] : of.length ? (T(of[0]).pages && T(of[0]).pages.length ? T(of[0]).pages : [T(of[0]).offer]) : null;
+        if (lines && lines.filter(Boolean).length) st.root = { text: lines.filter(Boolean), choices: (st.root && st.root.choices) || [] }; } catch (err) {}
       el.innerHTML = '';
       const sh = document.createElement('div'); sh.className = 'dlg'; sh.dataset.npc = n.id; sh.style.setProperty('--role', roleOf(n).col);
       sh.innerHTML = '<div class="dlg-top"><canvas class="dlg-por" width="144" height="144"></canvas><div class="dlg-who"><div class="dlg-name"></div><div class="dlg-role"></div></div></div>'

@@ -3,9 +3,11 @@
 const fs = require('fs'), path = require('path'), vm = require('vm'), { execSync } = require('child_process');
 const ROOT = path.join(__dirname, '..', '..');
 const fails = []; const ok = (c, m) => { if (!c) fails.push(m); };
-const R = { data: {} }; vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'src/rpg/js/41_story.js'), 'utf8'), { R, console });
+
+const W = { window: null, R: { data: {} }, console }; W.window = W; vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'src/rpg/js/11_world_data.js'), 'utf8'), W);
+const POIS = W.R.data.world.pois.map(p => p.id);   // the real map's POI ids (js/11): every NPC and quest place must be one of them
+const R = { data: { world: W.R.data.world } }; vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'src/rpg/js/41_story.js'), 'utf8'), { R, console });
 const D = R.data, S = D.story;
-const POIS = ['winterfell', 'castleblack', 'dreadfort', 'whiteharbor', 'moatcailin', 'twins', 'riverrun', 'harrenhal', 'eyrie', 'gulltown', 'kingslanding', 'dragonstone', 'duskendale', 'stormsend', 'highgarden', 'oldtown', 'hornhill', 'casterly', 'lannisport', 'pyke', 'sunspear', 'yronwood', 'lasthearth', 'karhold', 'deepwood', 'crasters', 'hardhome', 'fist'];
 const HOUSES = ['stark', 'lannister', 'baratheon', 'targaryen', 'greyjoy', 'tyrell', 'martell'];
 const TYPES = ['kill', 'collect', 'reach', 'boss', 'talk', 'escort'];
 const MOBS = ['axe', 'sword', 'archer', 'spear', 'shield', 'child', 'crawler', 'crypt', 'berserk', 'thenn', 'necro', 'skin', 'chief', 'hound', 'wolf', 'boar', 'bear', 'cat', 'elk', 'mammoth', 'giant', 'spider', 'brood', 'raven', 'bat', 'eagle', 'rider', 'outrider', 'wraith', 'shade', 'walker', 'lord', 'king', 'dragon'];
