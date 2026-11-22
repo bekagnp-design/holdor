@@ -14,10 +14,10 @@ const { ok } = L;
     /* ================= A: fresh boot → the intro; the inline loader gives way ================= */
     const b = await L.boot(p, { save: null, settle: 700 });
     const a0 = await E(() => ({ v: R.VERSION, boot: R.boot, cur: R.ui.cur, player: !!R.player, hero: R.state && R.state.p && R.state.p.hero, loader: !!document.getElementById('boot'),
-      gl: document.querySelectorAll('canvas#gl').length === 1 && !!(document.getElementById('gl').compareDocumentPosition(document.getElementById('c')) & Node.DOCUMENT_POSITION_FOLLOWING), vw: R.vw, vh: R.vh }));
+      gl: document.querySelectorAll('canvas#gl').length === 1 && !!(document.getElementById('gl').compareDocumentPosition(document.getElementById('c')) & Node.DOCUMENT_POSITION_FOLLOWING), vw: R.vw, vh: R.vh, rot: R.rot }));
     ok('R.VERSION 2.0.0', a0.v === '2.0.0', a0.v);
     ok('fresh boot: the intro opens (R.boot intro), no hero yet, the inline loader is gone', b.booted && a0.boot === 'intro' && a0.cur === 'intro' && !a0.hero && !a0.loader, JSON.stringify(a0));
-    ok('one #gl canvas, under (before) #c; viewport 390×844', a0.gl && a0.vw === 390 && a0.vh === 844, JSON.stringify(a0));
+    ok('one #gl canvas, under (before) #c; the landscape app 844×390 (no turn on a landscape window)', a0.gl && a0.vw === 844 && a0.vh === 390 && a0.rot === false, JSON.stringify(a0));
     const first = await E(() => ({ core: ['stark', 'lannister', 'baratheon', 'targaryen', 'greyjoy', 'tyrell', 'martell'].map(h => R.firstChamp(h)),
       a10: R.champs && R.champs.first ? ['stark', 'lannister', 'martell'].map(h => R.champs.first(h)) : null, heroes: R.heroes ? ['stark', 'lannister', 'martell'].map(h => R.heroes.starter(h)) : null,
       intro: R.intro && R.intro.starter ? ['stark', 'lannister', 'martell'].map(h => R.intro.starter(h)) : null, ns: Object.keys(R.newState('tyrell').acc.champs) }));

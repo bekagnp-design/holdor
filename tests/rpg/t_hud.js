@@ -1,6 +1,7 @@
 // HOLDOR RPG — the HUD (A25): bars follow hp/xp, the gold chip follows the `gold` event, the minimap draws the map / mobs / ghosts /
 // quest markers, the region banner on `enter`, the TOWN pill, the fallen chip, the level-up pulse, hidden while a screen is open,
-// nothing on the joystick zone or the bottom-right button column at 390×844 and 360×740.
+// nothing on the joystick zone or the round button cluster, on a landscape phone (844×390) and a small one (740×360): the app is always laid
+// out wide (R.layout; a landscape window gets no turn), the minimap is 80 px in the top-right corner with the top row to its left (html.q-s).
 // usage: python3 src/build_rpg.py beta/index.html && CHROMIUM_PATH=... node tests/rpg/t_hud.js   (HOLDOR_HTML=path overrides the build)
 const { chromium } = require('playwright');
 const path = require('path'), fs = require('fs');
@@ -39,7 +40,7 @@ const px = n => Math.round(n * 10) / 10;
     for (let i = 0; i < d.length; i += 4) { const r = d[i], g = d[i + 1], b = d[i + 2], a = d[i + 3]; if (a > 0) non++; if (r > 190 && g < 110 && b < 110) red++; if (r > 240 && g > 240 && b > 240) white++;
       if (r < 130 && g > 180 && b > 200) cyan++; if (r > 200 && g > 150 && b < 130) gold++; if (g > 70 && r < 70 && b < 80 && g > r + 35) green++; } return { non, red, white, cyan, gold, green, w: c.width }; });
 
-  const page = await mk(390, 844);
+  const page = await mk(844, 390);
   await setup(page);
   ok('hud visible with a player and no screen', (await style(page, '#hud', 'visibility')) === 'visible');
   ok('hp bar 30%', near(await width(page, '#hud-hp .fill'), 30), await width(page, '#hud-hp .fill'));
@@ -87,7 +88,8 @@ const px = n => Math.round(n * 10) / 10;
   const mt = await page.evaluate(() => { const r = document.getElementById('minimap').getBoundingClientRect(), e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return { b: window.__btn.join(), cur: R.ui.cur, top: e && (e.id || e.className), hud: document.getElementById('hud').className }; }); await page.evaluate(() => { for (let i = 0; i < 3 && R.ui.cur; i++) R.ui.close(); });
   ok('minimap tap emits btn map (the map opens)', /^map/.test(mt.b), JSON.stringify(mt));
   const mb = await page.$eval('#minimap', el => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; });
-  ok('minimap 96 px, top-right, under the top row', mb.w === 96 && mb.h === 96 && mb.x + mb.w <= 390 && mb.y > 30, JSON.stringify(mb));
+  const tr0 = await page.evaluate(() => { const r = id => { const e = document.getElementById(id); if (!e || getComputedStyle(e).display === 'none') return null; const b = e.getBoundingClientRect(); return { l: Math.round(b.left), r: Math.round(b.right), t: Math.round(b.top), b: Math.round(b.bottom) }; }; return { top: r('ctl-top'), chat: r('prChat'), rv: R.vw + '×' + R.vh + (R.rot ? ' rot' : ''), cls: document.documentElement.className }; });
+  ok('844×390 (landscape, no turn, html.q-s): minimap 80 px in the top-right corner, the top row (map · bag · menu) and the chat button to its left', tr0.rv === '844×390' && /\bq-s\b/.test(tr0.cls) && mb.w === 80 && mb.h === 80 && mb.x + mb.w <= 844 && mb.x + mb.w >= 844 - 24 && mb.y < 24 && (!tr0.top || tr0.top.r <= mb.x) && (!tr0.chat || tr0.chat.r <= mb.x || tr0.chat.t >= mb.y + mb.h), JSON.stringify({ mb, tr0 }));
   // region banner
   await page.evaluate(() => { R.data.world = { regions: [{ id: 'riverlands', name: 'The Riverlands', lvl: [10, 20] }], pois: [{ id: 'riverrun', kind: 'castle', house: 'tully', x: 3700, y: 6100 }] }; R.data.story = { regions: { riverlands: 'The rivers remember every crossing.' } }; R.bus.emit('enter', 'riverlands'); });
   await page.waitForTimeout(600);
@@ -109,8 +111,9 @@ const px = n => Math.round(n * 10) / 10;
   ok('HUD hidden while any screen is open', (await style(page, '#hud', 'visibility')) === 'hidden');
   await page.evaluate(() => R.ui.close()); await page.waitForTimeout(250);
   // fallen chip tap → hall
-  await page.evaluate(() => { R.screens.hall = { open() { window.__hall = 1; }, close() {} }; }); await page.tap('#hud-hall', { force: true }); await page.waitForTimeout(100);
-  ok('fallen chip tap opens the hall', (await page.evaluate(() => R.ui.cur === 'hall' && window.__hall === 1)));
+  await page.evaluate(() => { R.screens.hall = { open() { window.__hall = 1; }, close() {} }; }); const hTop = await page.evaluate(() => { const r = document.getElementById('hud-hall').getBoundingClientRect(), e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return e && (e.id || e.className); });
+  await page.tap('#hud-hall', { force: true }); await page.waitForTimeout(100);
+  ok('fallen chip tap opens the hall', (await page.evaluate(() => R.ui.cur === 'hall' && window.__hall === 1)), 'top element at the chip: ' + hTop);
   await page.evaluate(() => R.ui.close()); await page.waitForTimeout(250);
   ok('no fallen chip while nobody has fallen', (await page.evaluate(() => { const h = R.state.acc.hall; R.state.acc.hall = []; for (let i = 0; i < 7; i++) R.step(); const d = getComputedStyle(document.getElementById('hud-hall')).display; R.state.acc.hall = h; for (let i = 0; i < 7; i++) R.step(); return d; })) === 'none');
   // low hp vignette
@@ -127,40 +130,50 @@ const px = n => Math.round(n * 10) / 10;
     const el = document.getElementById('hud-lvtxt'); const mo = new MutationObserver(() => {}); mo.observe(el, { characterData: true, childList: true, subtree: true });
     for (let i = 0; i < 60; i++) { R.state.p.xp = 1000 + i; R.step(); } const n = mo.takeRecords().length; mo.disconnect(); return { order: s.order, writes: n, idx: R.sysList.indexOf(s), total: R.sysList.length }; });
   ok('system order 950, ≤ 10 refreshes a second', rate.order === 950 && rate.writes >= 8 && rate.writes <= 10, JSON.stringify(rate));
-  // geometry: nothing on the joystick zone (left half, bottom 45 %) or the bottom-right 160 px; everything inside the viewport
+  // geometry: nothing on the joystick zone (left half, bottom 45 %) or on the round button cluster (A02's attack · dodge · skills · potion: their bounding box); everything inside the viewport
   const geo = async (page, w, h) => page.evaluate(([w, h]) => {
-    const bad = [], seen = []; for (const el of document.querySelectorAll('#hud *')) { if (el.id === 'hud-vig' || el.id === 'hud-region') continue; const r = el.getBoundingClientRect(); if (!r.width || !r.height || getComputedStyle(el).visibility === 'hidden') continue; seen.push(el.id || el.className);
+    const bad = [], seen = [], cl = [...document.querySelectorAll('#ctl .cb')].filter(b => getComputedStyle(b).display !== 'none' && getComputedStyle(document.getElementById('ctl')).display !== 'none').map(b => b.getBoundingClientRect());
+    const box = cl.length ? { l: Math.min(...cl.map(r => r.left)), t: Math.min(...cl.map(r => r.top)), r: Math.max(...cl.map(r => r.right)), b: Math.max(...cl.map(r => r.bottom)) } : { l: w - 160, t: h - 160, r: w, b: h }; for (const el of document.querySelectorAll('#hud *')) { if (el.id === 'hud-vig' || el.id === 'hud-region') continue; const r = el.getBoundingClientRect(); if (!r.width || !r.height || getComputedStyle(el).visibility === 'hidden') continue; seen.push(el.id || el.className);
       if (r.left < 0 || r.top < 0 || r.right > w + .5 || r.bottom > h + .5) bad.push('out:' + (el.id || el.className));
       if (r.left < w / 2 && r.bottom > h * .55) bad.push('joy:' + (el.id || el.className));
-      if (r.right > w - 160 && r.bottom > h - 160) bad.push('btns:' + (el.id || el.className)); }
+      if (r.right > box.l + 1 && r.left < box.r - 1 && r.bottom > box.t + 1 && r.top < box.b - 1) bad.push('btns:' + (el.id || el.className) + ' ' + [r.left, r.top, r.right, r.bottom].map(Math.round).join(',') + ' vs cluster ' + [box.l, box.t, box.r, box.b].map(Math.round).join(',')); }
     const tl = document.getElementById('hud-row').getBoundingClientRect(), tr = document.getElementById('hud-tr').getBoundingClientRect();
     if (tl.right > tr.left) bad.push('overlap tl/tr ' + Math.round(tl.right) + '>' + Math.round(tr.left));
     // nothing of the HUD on A02's top row (map · bag · menu) or on the chat button
     const hit = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
     for (const id of ['ctl-top', 'prChat']) { const o = document.getElementById(id); if (!o || getComputedStyle(o).display === 'none') continue; const ob = o.getBoundingClientRect();
       for (const el of document.querySelectorAll('#hud *')) { if (el.id === 'hud-vig' || el.id === 'hud-region' || el.id === 'hud-slot' || el.id === 'hud-tl') continue; const r = el.getBoundingClientRect(); if (!r.width || !r.height || getComputedStyle(el).visibility === 'hidden') continue; if (hit(r, ob)) bad.push(id + ':' + (el.id || el.className)); } }
-    return { bad, n: seen.length, tlRight: Math.round(tl.right), trLeft: Math.round(tr.left) }; }, [w, h]);
+    return { bad, n: seen.length, cluster: cl.length, tlRight: Math.round(tl.right), trLeft: Math.round(tr.left), rv: R.vw + '×' + R.vh }; }, [w, h]);
   // the message column: a bar, toasts and the region title stacked, none over another or over the HUD blocks
   const column = async page => page.evaluate(() => {
-    if (!document.getElementById('bossbar')) { const b = document.createElement('div'); b.id = 'bossbar'; b.className = 'on'; b.style.cssText = 'display:block;height:40px;width:300px;position:absolute;left:50%;transform:translateX(-50%)'; document.getElementById('ui').appendChild(b); }
+    let made = null; if (!document.getElementById('bossbar')) { const b = made = document.createElement('div'); b.id = 'bossbar'; b.className = 'on'; b.style.cssText = 'display:block;height:40px;width:300px;position:absolute;left:50%;transform:translateX(-50%)'; document.getElementById('ui').appendChild(b); }
     else document.getElementById('bossbar').classList.add('on');
     R.ui.toast('Quest complete'); R.ui.toast('New quest: The long road north'); R.hud.banner('riverlands'); for (let i = 0; i < 7; i++) R.step(); R.hud.stack();
     const els = [document.getElementById('bossbar'), document.getElementById('hud-region'), ...document.querySelectorAll('#ui>.toast'), document.getElementById('hud-row'), document.getElementById('qtrack'), document.getElementById('hud-tr'), document.getElementById('ctl-top'), document.getElementById('prChat')].filter(Boolean);
     const rs = els.map(e => { const r = e.getBoundingClientRect(); return { id: e.id || e.className, l: r.left, r: r.right, t: r.top, b: r.bottom }; }).filter(r => r.r > r.l && r.b > r.t);
-    const over = []; for (let i = 0; i < rs.length; i++) for (let j = i + 1; j < rs.length; j++) { const a = rs[i], b = rs[j]; if (a.l < b.r - 1 && a.r > b.l + 1 && a.t < b.b - 1 && a.b > b.t + 1) over.push(a.id + '/' + b.id); }
-    document.getElementById('bossbar').classList.remove('on'); return { over, n: rs.length }; });
-  const c1 = await column(page); ok('390×844: bar, region title and toasts stack without overlapping each other or the HUD', !c1.over.length && c1.n >= 8, JSON.stringify(c1));
-  const g1 = await geo(page, 390, 844);
-  ok('390×844: HUD inside the view, clear of the joystick zone and the button column', !g1.bad.length && g1.n > 8, JSON.stringify(g1));
+    const over = [], f = a => [a.l, a.t, a.r, a.b].map(Math.round).join(','); for (let i = 0; i < rs.length; i++) for (let j = i + 1; j < rs.length; j++) { const a = rs[i], b = rs[j]; if (a.l < b.r - 1 && a.r > b.l + 1 && a.t < b.b - 1 && a.b > b.t + 1) over.push(a.id + ' ' + f(a) + ' / ' + b.id + ' ' + f(b)); }
+    document.getElementById('bossbar').classList.remove('on'); if (made) made.remove(); document.querySelectorAll('#ui>.toast').forEach(t => t.remove()); R.hud.stack(); return { over, n: rs.length }; });
+  const c1 = await column(page); ok('844×390: bar, region title and toasts stack without overlapping each other or the HUD', !c1.over.length && c1.n >= 8, JSON.stringify(c1));
+  const g1 = await geo(page, 844, 390);
+  ok('844×390: HUD inside the view, clear of the joystick zone and the button cluster', !g1.bad.length && g1.n > 8 && g1.cluster >= 6 && g1.rv === '844×390', JSON.stringify(g1));
   // the screenshot: banner + mobs + town + 25 % hp
   await page.evaluate(() => { R.player.hp = 250; R.towns.inside = () => ({ id: 'winterfell', name: 'Winterfell' }); R.state.p.gold = 1620; R.bus.emit('enter', 'riverlands'); for (let i = 0; i < 7; i++) R.step(); });
   await page.waitForTimeout(700); await page.screenshot({ path: SC + 'rpg_hud.png' });
-  // the tutorial card + an achievement card at spawn: the achievement queues under the card in the message column, never over it
-  const ta = await page.evaluate(() => { document.querySelectorAll('#ui>.ach-toast,#tut').forEach(e => e.remove());
+  // the tutorial card + an achievement card at spawn: the achievement queues under the card in the message column, never over it; neither card
+  // covers the HUD's hero block / fallen chip / minimap, A02's top row (map · bag · menu) or the chat button (they all stay tappable)
+  const cards = page => page.evaluate(() => { for (let i = 0; i < 4 && R.ui.cur; i++) R.ui.close(); for (let i = 0; i < 7; i++) R.step(); document.querySelectorAll('#ui>.ach-toast,#tut').forEach(e => e.remove());
     const t = document.createElement('div'); t.id = 'tut'; t.className = 'tut'; t.innerHTML = '<div class="tut-wrap"><div class="tut-card" style="height:64px">x</div></div>'; document.getElementById('ui').appendChild(t);
-    const a = document.createElement('div'); a.className = 'ach-toast'; a.style.height = '60px'; a.textContent = 'First Steps'; document.getElementById('ui').appendChild(a);
-    R.hud.stack(); const tw = t.querySelector('.tut-wrap').getBoundingClientRect(); const o = { tutB: Math.round(tw.bottom), tutT: Math.round(tw.top), achT: Math.round(parseFloat(a.style.top)), achH: a.offsetHeight };   /* the card's own top: its entrance slides it from above */ t.remove(); a.remove(); return o; });
-  ok('the achievement card queues below the tutorial card (no overlap)', ta.achT >= ta.tutB, JSON.stringify(ta));
+    const a = document.createElement('div'); a.className = 'ach-toast'; a.style.height = '60px'; a.style.animation = 'none'; a.textContent = 'First Steps'; document.getElementById('ui').appendChild(a);
+    R.hud.stack(); const tw = t.querySelector('.tut-wrap').getBoundingClientRect(); const o = { tutB: Math.round(tw.bottom), tutT: Math.round(tw.top), achT: Math.round(parseFloat(a.style.top)), achH: a.offsetHeight };   /* the card's own top: its entrance slides it from above */
+    const f = r => [r.left, r.top, r.right, r.bottom].map(Math.round).join(','), hit = (p, q) => p.left < q.right - 1 && p.right > q.left + 1 && p.top < q.bottom - 1 && p.bottom > q.top + 1; o.over = [];
+    for (const [nm, c] of [['tut', tw], ['ach', a.getBoundingClientRect()]]) for (const id of ['hud-bars', 'hud-port', 'hud-hall', 'minimap', 'ctl-top', 'prChat']) { const el = document.getElementById(id); if (!el || getComputedStyle(el).display === 'none' || getComputedStyle(el).visibility === 'hidden') continue; const r = el.getBoundingClientRect(); if (r.width && hit(c, r)) o.over.push(nm + ' ' + f(c) + ' / ' + id + ' ' + f(r)); }
+    o.tut = f(tw); o.ach = f(a.getBoundingClientRect()); o.cur = R.ui.cur; o.hud = getComputedStyle(document.getElementById('hud')).visibility;
+    t.remove(); R.hud.stack(); const ar = a.getBoundingClientRect(); o.achAlone = f(ar);   // no tutorial card: the achievement card alone heads the column
+    for (const id of ['hud-bars', 'hud-port', 'hud-hall', 'minimap', 'ctl-top', 'prChat']) { const el = document.getElementById(id); if (!el || getComputedStyle(el).display === 'none' || getComputedStyle(el).visibility === 'hidden') continue; const r = el.getBoundingClientRect(); if (r.width && hit(ar, r)) o.over.push('ach alone ' + f(ar) + ' / ' + id + ' ' + f(r)); }
+    a.remove(); return o; });
+  const ta = await cards(page);
+  ok('844×390: the achievement card queues below the tutorial card (no overlap)', ta.achT >= ta.tutB, JSON.stringify(ta));
+  ok('844×390: the tutorial and achievement cards stay off the hero block, the fallen chip, the minimap, the top row and the chat button', ta.hud === 'visible' && !ta.over.length, JSON.stringify(ta.over.length ? ta.over : ta));
   // the quest-direction label: at the arrow's tip, ≥ 60 px from the hero's screen position (feet and body centre), for a mark in every direction
   const wl = await page.evaluate(() => { const out = []; const P = R.player; const c = document.createElement('canvas').getContext('2d'); R.ui.close && R.ui.close();
     // a fixed tilted projection (the 3D camera is not rendering here): ground scaled 0.5 × 0.3, height 1.6 px a unit, the hero's feet at 60 % of the screen
@@ -172,13 +185,16 @@ const px = n => Math.round(n * 10) / 10;
   ok('the "! N paces" label stays ≥ 60 px from the hero (feet and body) in all 8 directions, near the arrow tip', wl.length === 8 && wl.every(o => o.none || (o.d >= 60 && o.dm >= 60 && o.tip < 200)) && wl.filter(o => !o.none).length >= 6, JSON.stringify(wl));
   await page.close();
   // small phone
-  const p2 = await mk(360, 740); await setup(p2);
+  const p2 = await mk(740, 360); await setup(p2);
   await p2.evaluate(() => { R.towns = { inside: () => ({ id: 'winterfell', name: 'Winterfell' }) }; R.spawn({ kind: 'mob', type: 'axe', x: 3800, y: 6000, hp: 30 }); for (let i = 0; i < 7; i++) R.step(); });
-  const g2 = await geo(p2, 360, 740);
-  ok('360×740: HUD inside the view, clear of the joystick zone and the button column', !g2.bad.length && g2.n > 8, JSON.stringify(g2));
-  const c2 = await column(p2); ok('360×740: the message column stacks without overlaps', !c2.over.length && c2.n >= 8, JSON.stringify(c2));
+  const g2 = await geo(p2, 740, 360);
+  ok('740×360: HUD inside the view, clear of the joystick zone and the button cluster', !g2.bad.length && g2.n > 8 && g2.cluster >= 6 && g2.rv === '740×360', JSON.stringify(g2));
+  const c2 = await column(p2); ok('740×360: the message column stacks without overlaps', !c2.over.length && c2.n >= 8, JSON.stringify(c2));
+  const ta2 = await cards(p2);
+  ok('740×360: the achievement card queues below the tutorial card (no overlap)', ta2.achT >= ta2.tutB, JSON.stringify(ta2));
+  ok('740×360: the tutorial and achievement cards stay off the hero block, the fallen chip, the minimap, the top row and the chat button', ta2.hud === 'visible' && !ta2.over.length, JSON.stringify(ta2.over.length ? ta2.over : ta2));
   const fonts = await p2.evaluate(() => { const o = {}; for (const id of ['hud-lvtxt', 'hud-title', 'hud-gold', 'hud-lvl']) o[id] = parseFloat(getComputedStyle(document.getElementById(id)).fontSize); return o; });
-  ok('360×740: text ≥ 12 px', Object.values(fonts).every(f => f >= 12), JSON.stringify(fonts));
+  ok('740×360: text ≥ 12 px', Object.values(fonts).every(f => f >= 12), JSON.stringify(fonts));
   await p2.screenshot({ path: SC + 'rpg_hud_360.png' }); await p2.close();
   await browser.close();
   for (const k in out) console.log(k + ': ' + out[k]);
