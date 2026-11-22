@@ -4,6 +4,15 @@
   const C = R.combat = R.combat || {};
   C.SAFE_R = 160;      /* mobs never enter this radius around a safe POI (castle, town, shrine) */
   C.AGGRO = 340;       /* default aggro radius; lost beyond 1.6× or after 6 s without line of sight */
+  /* temper (MR B, 2026-11-22): most field mobs are PASSIVE (yellow) — they never start a fight, only answer one: a hit
+     from the hero provokes that mob, it fights until it loses him, then calms down. A few are AGGRESSIVE (red) and come
+     only when the hero steps inside C.RED_R. Bosses, elites, event, dungeon and summoned mobs are always aggressive. */
+  C.RED_SHARE = 0.2; C.RED_R = 230; C.TEMPER_COL = { passive: '#f2cf4a', aggressive: '#e5463f' };
+  C.TEST_TEMPER = null;   /* tests set 'aggressive' to get the old always-hostile mobs with their full aggro */
+  C.temperOf = (D, o) => C.TEST_TEMPER ? C.TEST_TEMPER : (o.temper === 'passive' || o.temper === 'aggressive') ? o.temper
+    : (o.kind === 'boss' || o.elite || o.event || o.dungeon || o.summoned || o.team === 0 || D.aggressive) ? 'aggressive'
+    : D.passive ? 'passive' : (rnd() < C.RED_SHARE ? 'aggressive' : 'passive');
+  C.isPassive = e => !!e && e.temper === 'passive' && !(e.ai && e.ai.provoked);
   C.WINDUP = 0.35;     /* mob attack wind-up (s) */
   C.CONE = 50;         /* mob melee cone (degrees) */
   C.PROJ_HIT = 14;     /* a projectile hits the first enemy within this many units */
@@ -182,7 +191,7 @@
       if (o.burn) { S.burn = t + (o.burn === true ? 3 : o.burn); S.burnT = t + 0.5; S.burnDmg = Math.max(1, Math.round(full * 0.04)); S.burnSrc = src || null; }
       if (o.bleed) { S.bleed = t + (o.bleed === true ? 3 : o.bleed); S.bleedT = t + 0.5; S.bleedDmg = Math.max(1, Math.round(full * 0.04)); S.bleedSrc = src || null; }
       /* a mob that is hit from outside its aggro turns on the attacker */
-      if (tgt.kind === 'mob' && tgt.ai && src && src.team !== tgt.team && (src.kind === 'player' || src.kind === 'companion')) { tgt.ai.hitBy = src; tgt.ai.hitT = t; if (!tgt.ai.off && !tgt.ai.tgt) { tgt.ai.tgt = src; tgt.ai.st = 'chase'; tgt.ai.lost = 0; } }
+      if (tgt.kind === 'mob' && tgt.ai && src && src.team !== tgt.team && (src.kind === 'player' || src.kind === 'companion')) { tgt.ai.hitBy = src; tgt.ai.hitT = t; tgt.ai.provoked = true; if (tgt.temper === 'passive') tgt.hostileCol = C.TEMPER_COL.aggressive; if (!tgt.ai.off && !tgt.ai.tgt) { tgt.ai.tgt = src; tgt.ai.st = 'chase'; tgt.ai.lost = 0; } }
     }
     const info = { src, tgt, dmg, crit, kind, dot, absorbed, blocked: false, killed: false, knock: num(o.knock, 0), o };
     C.stats.hits++;
@@ -266,6 +275,8 @@
     if (o.summoned) { e.summoner = o.summoned; e.noReward = o.noReward != null ? o.noReward : false; e.xp = Math.round(e.xp * 0.5); e.gold = Math.round(e.gold * 0.3); }
     if (e.elite) { e.hpMax = Math.round(e.hpMax * 2.2); e.hp = e.hpMax; e.atk = Math.round(e.atk * 1.4); e.r *= 1.15; e.xp = Math.round(e.xp * 2.5); e.gold = Math.round(e.gold * 2.5); e.name = 'Elite ' + e.name; e.crit += 0.1; }
     if (o.noReward) e.noReward = true;
+    e.temper = C.temperOf(D, o); e.hostileCol = C.TEMPER_COL[e.temper];
+    if (e.temper === 'aggressive' && !C.TEST_TEMPER && o.aggro == null && e.kind === 'mob' && !e.elite && !o.event && !o.dungeon && !o.summoned) e.aggro = Math.min(e.aggro, C.RED_R + (e.fly ? 40 : 0));
     if (o.ext) Object.assign(e, o.ext);
     return R.spawn(e);
   };
@@ -347,8 +358,10 @@
     if (t >= a.scanT) {
       a.scanT = t + 0.15; if (a.tgt && R.ents.indexOf(a.tgt) < 0) a.tgt = null;
       if (a.tgt && !e.koIn && C.safeAt(a.tgt.x, a.tgt.y, e) && !(a.hitBy === a.tgt && t - (a.hitT || -9) < 4)) a.tgt = null;   /* the hero reached a refuge */
-      if (!a.tgt) { const f = nearestFoe(e, foes, e.aggro); if (f && !C.safeAt(f.x, f.y, e) && C.chasers(f) < C.maxChasers(f) && (e.fly || C.los(e, f))) { a.tgt = f; a.st = 'chase'; a.lost = 0; } }
+      if (!a.tgt && C.isPassive(e)) { /* a passive mob never picks a fight */ }
+      else if (!a.tgt) { const f = nearestFoe(e, foes, e.aggro); if (f && !C.safeAt(f.x, f.y, e) && C.chasers(f) < C.maxChasers(f) && (e.fly || C.los(e, f))) { a.tgt = f; a.st = 'chase'; a.lost = 0; } }
       else { const d = R.dist(e, a.tgt); if (d > e.aggro * 1.6) a.tgt = null; else if (!e.fly && !C.los(e, a.tgt)) { a.lost += 0.15; if (a.lost > 6) a.tgt = null; } else a.lost = 0; }
+      if (!a.tgt && a.provoked && e.temper === 'passive') { a.provoked = false; e.hostileCol = C.TEMPER_COL.passive; }   /* lost him: calm again */
       if (!a.tgt && (a.st === 'chase' || a.st === 'attack')) { a.st = 'idle'; a.t = t + 0.5 + rnd(); if (e.anim === 'attack') e.anim = 'idle'; }
     }
     if (e.role === 'healer') { if (a.st !== 'flee' && a.tgt && e.hp < 0.3 * e.hpMax) a.st = 'flee'; else if (a.st === 'flee' && (e.hp >= 0.5 * e.hpMax || !a.tgt)) { a.st = a.tgt ? 'chase' : 'idle'; a.t = t + 1; } }

@@ -289,7 +289,10 @@
     const top = s.y - ((hOver || e.h || (e.r || 14) * 2.6) + 8) * z; let y = top;
     const hurt = e.hp < e.hpMax && (e.kind === 'mob' || e.kind === 'boss' || e.kind === 'companion');
     if (hurt) { const w = (e.kind === 'boss' ? 56 : 34) * z, h = (e.kind === 'boss' ? 5 : 3.5) * z; y -= h;
-      bar(ctx, s.x - w / 2, y, w, h, e.hp / e.hpMax, e.kind === 'companion' ? '#7fd06a' : e.kind === 'boss' ? '#e3b661' : '#e14b4b'); y -= 3 * z; }
+      bar(ctx, s.x - w / 2, y, w, h, e.hp / e.hpMax, e.kind === 'companion' ? '#7fd06a' : e.kind === 'boss' ? '#e3b661' : (e.hostileCol || '#e14b4b')); y -= 3 * z; }
+    /* a field mob shows its temper: yellow = passive (fights only when hit), red = aggressive (comes inside its radius) */
+    if (e.kind === 'mob' && e.hostileCol && e.name && R.player && Math.hypot(e.x - R.player.x, e.y - R.player.y) < 650) {
+      const fs = Math.max(9, Math.round(10 * z)); y -= fs + 1; label(ctx, e.name + ' ' + (e.lvl || 1), s.x, y, fs, e.hostileCol); }
     // NPC names come from A20's npcBubbles system when it runs (it draws the name with the speech bubble)
     const tag = (e.kind === 'npc' && !(R.sys.npcBubbles && R.render3d)) || e.kind === 'boss' || e.kind === 'ghost' || (e.kind === 'player' && e !== R.player);
     if (tag && e.name) { const fs = Math.max(10, Math.round(11 * z)); y -= fs + 1; label(ctx, e.name, s.x, y, fs, e.kind === 'boss' ? '#e3b661' : e.kind === 'ghost' ? '#9fb6c9' : e.kind === 'npc' ? '#f3e7c4' : '#8fc0ff'); }
