@@ -10,7 +10,7 @@ def cat(pat, sep):
         parts.append('/* ==== %s ==== */\n' % os.path.relpath(f, V) + open(f, encoding='utf-8').read().rstrip('\n') + '\n')
     return sep.join(parts)
 css = cat('css/*.css', '\n')
-js = cat('assets/*.js', '\n') + '\n' + cat('js/*.js', '\n')
+js = cat('vendor/*.js', '\n') + '\n' + cat('assets/*.js', '\n') + '\n' + cat('js/*.js', '\n')
 assert '</style>' in tpl and '</script>' in tpl, 'template needs </style> and </script>'
 s = tpl.replace('</style>', css + '\n</style>', 1).replace('</script>', js + '\n</script>', 1)
 os.makedirs(os.path.dirname(out), exist_ok=True)

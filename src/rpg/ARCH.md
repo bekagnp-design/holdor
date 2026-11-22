@@ -137,3 +137,27 @@ waits for `R.assets.ready` (A04's loader) then calls `R.ui.open('intro')` for a 
 - No Telegram bot token anywhere; the client has only `SB.url` + the publishable key (copy them from `src/base/index.v1.0.44.html`).
 - Every number a player sees is real (the save or the server). No fake player counts.
 - Keep the old `src/`, `tests/`, `backend/` files; the new game lives in `src/rpg/`, `tests/rpg/`, `backend/holdor_v40.sql`.
+
+## Addendum 2 (owner's decisions, 2026-11-22 15:10) — READ THIS, it overrides the text above where they differ
+1. **3D world.** The map is a 3D terrain (three.js, MIT, vendored as `src/rpg/vendor/three.min.js`, included by the build before assets):
+   a heightmap built from the Westeros art (sea 0, lowlands, hills, the Vale / Frostfangs / Red Mountains high, snow in the north),
+   textured with the map art + roads, a third-person camera behind the hero (yaw rotated by a right-side drag, `R.cam.yaw`, pitch fixed
+   ~35°, distance 420 units, pinch to zoom 300–700). Entities keep their 2D world coordinates (x, y on the ground plane; the renderer
+   reads the terrain height). Heroes, mobs, NPCs and other players are **billboard sprites** (the old game's art via `R.draw.frame`).
+   POIs are low-poly meshes (castles = towers + walls + a banner in the house colour, camps = tents + fire, shrines = a weirwood).
+   The WebGL canvas (`#gl`) sits UNDER the existing 2D canvas `#c`, which stays as a transparent overlay for VFX, damage numbers,
+   name tags, telegraph circles and the minimap: **`R.w2s(x,y,z=0)` becomes the 3D projection** (the renderer overrides it) so every
+   2D module keeps working unchanged. `R.cam.z` stays the pixels-per-unit factor at the hero's depth for sizing.
+2. **One hero, permadeath, heroes = champions.** The player IS one of his unlocked champions (the old 49: Jon, Arya, Robb, …; a new
+   account starts with its house's first champion). Class from the champion's type: melee → knight, ranged → ranger, mage → maester.
+   The hero's sprite is the champion's stance/attack sheets. **No companions.** When the hero dies the run ends: the Hall of the Fallen
+   gets a line (name, level, killer, time), titles/achievements stay, and the player picks the next hero from the unlocked champions
+   (new ones are unlocked by rescue quests and bosses). Gold, gems, gear, level, xp die with the hero. World progress (regions
+   discovered, gates opened, quests turned in, POIs found) belongs to the ACCOUNT and stays.
+   Save shape: `R.state = { v:2, acc:{ house, champs:{id:{unlocked:1, runs:n}}, hall:[{id,name,lvl,killer,at,played}], titles:[], title, ach:[],
+   world:{found:[], flags:{}, quests:{}, bosses:{}, killed:{}}, best:{lvl, kills} }, p:{ hero:champId, name, cls, lvl, xp, hp, gold, gems, pos, stats, pts,
+   skills, spts, bar, gear, inv, potions, created, played }, wallet:{imported}, opts:{} }` — `R.state.p` is the current hero; modules that
+   read `R.state.p.found / flags / quests / bosses / killed` read them from `R.state.acc.world` instead (core provides getters
+   `R.acc()` and keeps `R.state.p.flags` as an alias object of `acc.world.flags` so existing code keeps working).
+3. The old wallet import gives the FIRST hero its gold/gems and unlocks the champions it had.
+4. Open-source code may be copied only under MIT/BSD/Apache licences (three.js and its examples are MIT) with the licence header kept.
