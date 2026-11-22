@@ -477,6 +477,7 @@
   function texMap(m, name) { const T = R.tex; if (!T || typeof T.get !== 'function') return; let t = null; try { t = T.get(name); } catch (e) { t = null; } if (!t) return;
     m.map = t; let k = 1.4; try { const a = typeof T.avg === 'function' ? T.avg(name) : null; if (a && /^#[0-9a-f]{6}$/i.test(a)) { const n = parseInt(a.slice(1), 16), L = ((n >> 16 & 255) * .3 + (n >> 8 & 255) * .59 + (n & 255) * .11) / 255; k = Math.min(2, Math.max(1, .6 / Math.max(.15, L))); } } catch (e) {}
     m.color.setScalar(k); m.needsUpdate = true; }
+  const CLUT_T = { pebbles: 1, pebbles_snow: 1, twigs: 1, log: 1, roots: 1, moss: 1, litter: 1, snowtuft: 1 };
   const geoFor = (type, biome) => { if (impOn(type)) return impGeo(type, biome || 'reach'); if (GEO[type]) return GEO[type]; grng = mkRng(hs(type)); let g = null;
     if (type === 'tree' && R.props && R.props.tree) { try { const m = R.props.tree(GEO._treeBiome || 'reach'); g = m && m.geometry; } catch (e) { g = null; } }
     if (!g) g = PROPS[type].mk(); if (PROPS[type] && PROPS[type].tx) addUV(g, 36); g.userData.tris = g.attributes.position.count / 3; return GEO[type] = g; };
@@ -514,6 +515,8 @@ ${bill ? `  vec2 dC = cameraPosition.xz - iPos.xz; float aB = atan(dC.x, dC.y); 
     else if (P.shiny) m = new THREE.MeshPhongMaterial({ vertexColors: true, specular: P.shiny.specular || 0xffffff, shininess: P.shiny.shininess || 100, transparent: P.shiny.opacity != null, opacity: P.shiny.opacity == null ? 1 : P.shiny.opacity, side: P.ds ? THREE.DoubleSide : THREE.FrontSide, depthWrite: P.shiny.opacity == null });
     else m = new THREE.MeshLambertMaterial({ vertexColors: true, side: P.ds ? THREE.DoubleSide : THREE.FrontSide });
     if (P.tx && !P.glow) texMap(m, P.tx);
+    // N1: the near-field clutter never renders pure black: a self-lit floor of half its own mean colour
+    if (CLUT_T[type] && m.emissive) { const ca = geoFor(type, biome).attributes.color; if (ca) { let r = 0, g = 0, b = 0; const n = ca.count; for (let i = 0; i < n; i++) { r += ca.getX(i); g += ca.getY(i); b += ca.getZ(i); } m.emissive.setRGB(r / n * .55, g / n * .55, b / n * .55); } }
     const sway = (P.sway || 0) * (B.wind || 1), spin = P.spin || 0;
     if (sway || P.bill || spin) {
       const bill = !!P.bill, uni = { uSway: { value: sway }, uFreq: { value: .9 + .9 * (B.wind || 1) }, uH: { value: Math.max(1, P.h || 1) }, uSpin: { value: spin }, uHub: { value: new THREE.Vector2(P.hub ? P.hub[0] : 0, P.hub ? P.hub[1] : 1e9) },

@@ -1,7 +1,7 @@
 /* HOLDOR RPG — 43b_townlife.js (C1): towns that read at a glance and invite you in.
    1. Entry banner: walking into a castle / town / village (distance to the POI ≤ its r + 30, left again past r + 200) shows ONE short banner per
-      visit — a heraldic shield in the house colour, the place's name, "Seat of House Stark · The North", and a quick list of what is there
-      ("Smith · Inn · Market · 3 quests"). The list is a ≥ 44-px button that opens R.screens.town (43_towns) for that POI. The banner sits in
+      visit (5.2 s of game time) — a heraldic shield in the house colour, the place's name, "Seat of House Stark" / "Town · The North", and the
+      services-here quick list ("Smith · Inn · Market · 3 quests"): a ≥ 44-px button that opens R.screens.town (43_towns) for that POI. The banner sits in
       the HUD's message column (top-centre, from #hud-slot down) and moves below whatever is shown there (the bars, the tutorial card, the
       region title, the toasts), the top-left block and the top-right column: it never covers them. It waits while a screen is open.
    2. Service signs over the NPCs that serve (DOM pills in #ui positioned every step through R.w2s, so they stay crisp and tappable):
@@ -75,7 +75,6 @@
     if (poi.smith || roles.has('smith') || roles.has('svc:smith')) items.push('Smith');
     if (poi.inn || roles.has('innkeeper') || roles.has('svc:inn')) items.push('Inn');
     if (poi.shop || roles.has('merchant') || roles.has('svc:shop')) items.push('Market');
-    if (roles.has('maester')) items.push('Maester'); if (roles.has('septon')) items.push('Sept');
     if (roles.has('board')) items.push('Notice board');
     let quests = 0, turn = 0;
     for (const n of ns) { quests += try_(() => (R.npcs.offersFor(n.id) || []).length, 0); turn += try_(() => (R.npcs.turnInsFor(n.id) || []).length, 0); }
@@ -94,7 +93,7 @@
     ban = document.createElement('div'); ban.id = 'tl-ban'; ban.className = 'tl-ban'; ban.setAttribute('role', 'status');
     ban.innerHTML = '<div class="tl-crest"><svg viewBox="0 0 40 46"><path class="s" d="M20 2l17 5v13c0 11-7.6 19-17 23C10.6 39 3 31 3 20V7z"/><path class="i" d="M20 6.5l13 3.8v9.8c0 8.6-5.8 14.9-13 18.2-7.2-3.3-13-9.6-13-18.2v-9.8z"/></svg><b></b></div>' +
       '<div class="tl-txt"><div class="tl-nm"></div><div class="tl-sub"></div></div>' +
-      '<button type="button" class="tl-svc" aria-label="Services here"><span class="tl-k">SERVICES HERE</span><span class="tl-list"></span><span class="tl-a">›</span></button>';
+      '<button type="button" class="tl-svc" aria-label="Services here" title="Services here"><span class="tl-list"></span><span class="tl-a">›</span></button>';
     ban.querySelector('.tl-svc').addEventListener('click', ev => { ev.stopPropagation(); const p = banPoi; if (!p) return; hap('select');
       TL.hideBanner(); try { if (R.screens.town) R.ui.open('town', p); else if (R.towns && R.towns.open) R.towns.open('shop', p); } catch (e) {} R.bus.emit('town:service', 'town', p); });
     layer.appendChild(ban);
@@ -198,8 +197,9 @@
         const q = try_(() => R.w2s(e.x, e.y, 80), null), f = try_(() => R.w2s(e.x, e.y, 0), null);
         let on = !!(q && f && !q.behind && !f.behind);
         if (on) { const top = (q.y === f.y && q.x === f.x) ? f.y - 48 * (R.cam.z || 1) : q.y - 6; s.x = q.x; s.y = top - (e.mark ? 32 : 13);
-          if (s.x < 20 || s.x > vw - 20 || s.y < 50 || s.y > vh - 10) on = false; }
+        }
         const near = d <= LABEL_R;
+        if (on) { const hw0 = near ? 62 : 24; if (s.x - hw0 < 2 || s.x + hw0 > vw - 2 || s.y < 50 || s.y > vh - 10) on = false; }
         if (on) { const hw = near ? 62 : 24, r = { left: s.x - hw, right: s.x + hw, top: s.y - 46, bottom: s.y };
           for (const o of obsCache) if (rectHit(r, o)) { on = false; break; } }
         const op = on ? Math.max(0, Math.min(1, 1 - (d - NEAR) / (FAR - NEAR))) : 0; if (op < .06) on = false;

@@ -40,6 +40,7 @@ const hit = (a, b) => !!(a && b && a.right > b.left + 1 && a.left < b.right - 1 
     L.ok('signs for the smith (who also sells at Winterfell) and the inn', ['smith', 'inn'].every(k => sg.some(s => s.svc === k)), sg.map(s => s.svc + (s.on ? '+' : '-')).join(' '));
     L.ok('a visible sign sits right over its NPC (same x within 4 px, just above the head)', sg.filter(s => s.on).length > 0 && sg.filter(s => s.on).every(s => Math.abs(s.cx - s.q.x) <= 4 && s.bottom <= s.q.y + 2 && s.bottom > s.q.y - 90), JSON.stringify(sg));
     L.ok('signs are ≥ 44 px tall', sg.filter(s => s.on).every(s => s.h >= 44), sg.map(s => s.h).join(','));
+    await page.waitForTimeout(800); await L.steps(page, 2);
     await L.shot(page, 'townlife_winterfell_signs');
     // two stand-in smiths 150 units ahead of the hero and 600 behind him (the camera stands ~340 behind): one sign shows, the other hides
     const beh = await L.ev(page, async () => { const P = R.player; R.cam.yaw = 0; for (let i = 0; i < 30; i++) R.step();
@@ -97,6 +98,8 @@ const hit = (a, b) => !!(a && b && a.right > b.left + 1 && a.left < b.right - 1 
       await new Promise(r => setTimeout(r, 450)); R.step(); const R2 = el => el && el.getBoundingClientRect(); const b = document.getElementById('tl-ban');
       const t = document.querySelector('#tut:not(.off) .tut-wrap');
       return { on: b.classList.contains('on'), why: R.townlife.hideWhy, cur: R.townlife.cur, ui: R.ui.cur, ban: R2(b), tl: R2(document.getElementById('hud-tl')), qt: R2(document.getElementById('qtrack')), tr: R2(document.getElementById('hud-tr')), tut: t && getComputedStyle(t).display !== 'none' ? R2(t) : null, vw: innerWidth }; }, W);
+    const sgEdge = await L.ev(page, () => R.townlife.signs().filter(s => s.on).map(s => { const r = s.el.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.right)]; }));
+    L.ok('360×640: every shown sign is wholly on screen', sgEdge.every(([a, b]) => a >= 0 && b <= 360), JSON.stringify(sgEdge));
     L.ok('360×640: the banner shows inside the screen and clears the HUD block, tracker and tutorial card', small.on && small.ban.left >= 0 && small.ban.right <= small.vw && !hit(small.ban, small.tl) && !hit(small.ban, small.qt) && !hit(small.ban, small.tr) && !hit(small.ban, small.tut), JSON.stringify(small));
     await L.shot(page, 'townlife_360_banner');
     const ge = await L.ev(page, () => ({ tl: R.townlife.err || null, errs: (R.errors || []).filter(e => /townlife/.test(String(e && (e.msg || e.message || e)))).length }));
