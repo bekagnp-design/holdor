@@ -4635,7 +4635,12 @@ try{
   R3.heroView = HB;
   function heroTrack(e) {
     if (HB.t === R.t) return; const dt = HB.t < 0 ? 1 / 60 : Math.max(1 / 240, R.t - HB.t); HB.t = R.t;
-    const vx = e.vx || 0, vy = e.vy || 0, sp = Math.hypot(vx, vy); if (sp > 15) { HB.dx = vx / sp; HB.dy = vy / sp; } else if (HB.t === 0) { HB.dx = e.face < 0 ? -1 : 1; HB.dy = 0; }
+    // the hero is moved by physics (e.vx/vy stay 0): take the heading from his actual displacement (or e.vel), smoothed
+    if (HB.px == null) { HB.px = e.x; HB.py = e.y; }
+    let vx = e.vx || (e.vel && e.vel.x) || 0, vy = e.vy || (e.vel && e.vel.y) || 0;
+    if (!(Math.hypot(vx, vy) > 15)) { const mx = (e.x - HB.px) / dt, my = (e.y - HB.py) / dt; if (Math.hypot(mx, my) < 2000) { vx = mx; vy = my; } }
+    HB.px = e.x; HB.py = e.y; HB.svx = lerp(HB.svx || 0, vx, .35); HB.svy = lerp(HB.svy || 0, vy, .35); vx = HB.svx; vy = HB.svy;
+    const sp = Math.hypot(vx, vy); if (sp > 15) { HB.dx = vx / sp; HB.dy = vy / sp; } else if (HB.t === 0) { HB.dx = e.face < 0 ? -1 : 1; HB.dy = 0; }
     const ang = Math.atan2(HB.dy, HB.dx); let da = ang - HB.ang; da = Math.atan2(Math.sin(da), Math.cos(da)); HB.ang = ang;
     HB.lean = lerp(HB.lean, clamp(da / dt * .35, -1, 1), .15); HB.speed = clamp(sp / 240, 0, 1);
     const f = R.cam.fwd || { x: 0, y: -1 }, dot = HB.dx * f.x + HB.dy * f.y; HB.back = HB.back ? dot > .42 : dot > .5;
@@ -5436,8 +5441,8 @@ ${bill ? `  vec2 dC = cameraPosition.xz - iPos.xz; float aB = atan(dC.x, dC.y); 
     else if (P.shiny) m = new THREE.MeshPhongMaterial({ vertexColors: true, specular: P.shiny.specular || 0xffffff, shininess: P.shiny.shininess || 100, transparent: P.shiny.opacity != null, opacity: P.shiny.opacity == null ? 1 : P.shiny.opacity, side: P.ds ? THREE.DoubleSide : THREE.FrontSide, depthWrite: P.shiny.opacity == null });
     else m = new THREE.MeshLambertMaterial({ vertexColors: true, side: P.ds ? THREE.DoubleSide : THREE.FrontSide });
     if (P.tx && !P.glow) texMap(m, P.tx);
-    // N1: the near-field clutter never renders pure black: a self-lit floor of half its own mean colour
-    if (CLUT_T[type] && m.emissive) { const ca = geoFor(type, biome).attributes.color; if (ca) { let r = 0, g = 0, b = 0; const n = ca.count; for (let i = 0; i < n; i++) { r += ca.getX(i); g += ca.getY(i); b += ca.getZ(i); } m.emissive.setRGB(r / n * .55, g / n * .55, b / n * .55); } }
+    // N1: solid props (clutter, stones, logs, mills …) never render pure black under the dim side light: a self-lit floor of half their mean colour
+    if ((CLUT_T[type] || ROCKH[type] || !P.sway) && m.emissive && !P.shiny) { const ca = geoFor(type, biome).attributes.color; if (ca) { let r = 0, g = 0, b = 0; const n = ca.count; for (let i = 0; i < n; i++) { r += ca.getX(i); g += ca.getY(i); b += ca.getZ(i); } m.emissive.setRGB(r / n * .55, g / n * .55, b / n * .55); } }
     const sway = (P.sway || 0) * (B.wind || 1), spin = P.spin || 0;
     if (sway || P.bill || spin) {
       const bill = !!P.bill, uni = { uSway: { value: sway }, uFreq: { value: .9 + .9 * (B.wind || 1) }, uH: { value: Math.max(1, P.h || 1) }, uSpin: { value: spin }, uHub: { value: new THREE.Vector2(P.hub ? P.hub[0] : 0, P.hub ? P.hub[1] : 1e9) },
