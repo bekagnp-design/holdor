@@ -45,12 +45,12 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
     const live = out.filter(e => R.ents.includes(e)).length;
     return { n: out.length, again: again.length, subs, gold, dist, live, icons: out.every(e => e.icon && e.col), item: out.find(e => e.sub === 'item'), kinds: out.every(e => e.kind === 'drop'), hopped };
   });
-  ok(d1.n >= 4 && d1.kinds, 'drop() spawns drop entities (gold + item + potion + mat)', { n: d1.n, subs: d1.subs });
+  ok(d1.n >= 2 && d1.kinds && d1.subs.gold >= 1 && d1.n - d1.subs.gold >= 1, 'every kill drops gold + at least one thing (material / potion / gear)', { n: d1.n, subs: d1.subs });
   ok(d1.again === 0, 'a second drop() on the same mob rolls nothing (mob.looted)');
   ok(d1.gold >= 6 && d1.gold <= 24, 'gold = 2–8 × level 3', d1.gold);
   ok(d1.dist.every(d => d >= 15 && d <= 60), 'drops settle 20–50 units from the mob', d1.dist);
   ok(d1.live === d1.n, 'the far-off drops are not picked up (player 850 u away)');
-  ok(d1.icons && d1.item && d1.item.item && d1.item.item.name, 'every drop has e.icon + e.col; the item drop carries the item', d1.item && d1.item.item.name);
+  ok(d1.icons, 'every drop has e.icon + e.col');
   ok(d1.hopped, 'drops hop (vz) and land (z back to 0)');
 
   /* 2. gold auto-pickup within 46 u; the magnet pulls from 120 u; an item is not auto-taken */
@@ -72,41 +72,39 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
   ok(d2.farMoved && d2.farGone && d2.gold === 17, 'gold at 110 u is magnetised and taken (+7)', d2);
   ok(d2.ev === 17, "the fallback path emits 'gold' once per coin", d2.ev);
 
-  /* 3. an item needs INTERACT: the label appears within 70 u, the bus event takes it, auto-equip into the empty slot, then into the bag */
-  const d3 = await page.evaluate(() => {
+  /* 3. the owner: walking within ~70 u picks everything up (no tap): the empty weapon slot is auto-filled, the next weapon lands in the bag,
+        'loot' + 'inv' + 'pickup'(drop, item) per item; a Rare drop has a blue beam */
+  const d3 = await page.evaluate(() => { const pk = []; R.bus.on('pickup', (e, it) => pk.push(e.sub)); const inv = []; R.bus.on('inv', it => inv.push(it && it.id));
     const it1 = { id: 'sw1', kind: 'weapon', name: 'Castle-forged sword', rar: 2, lvl: 3, stats: { atk: 9 }, icon: '🗡️' };
-    const e1 = R.loot.spawn('item', R.player.x + 50, R.player.y, { item: it1, scatter: false });
-    for (let i = 0; i < 30; i++) R.step();                                                              // 0.5 s: no auto-take at 50 u (not standing on it)
-    const stillThere = R.ents.includes(e1), lbl = R.input.interact && R.input.interact.label, src = R.input.interact && R.input.interact.src, glow = e1.glow, col = e1.col;
-    R.bus.emit('interact', e1);                                                                          // A12's INTERACT → bus
-    const gone = !R.ents.includes(e1), gear = R.state.p.gear.weapon && R.state.p.gear.weapon.id, inv1 = R.state.p.inv.length, cleared = !R.input.interact;
-    const e2 = R.loot.spawn('item', R.player.x + 50, R.player.y, { item: { id: 'sw2', kind: 'weapon', name: 'Longaxe', rar: 0, lvl: 3, stats: { atk: 7 }, icon: '🪓' }, scatter: false });
-    R.step(); R.step(); R.input.interact.act();                                                         // the act() shortcut
+    const e1 = R.loot.spawn('item', R.player.x + 50, R.player.y, { item: it1, scatter: false }); const glow = e1.glow, col = e1.col;
+    R.step(); R.step(); const gone = !R.ents.includes(e1), gear = R.state.p.gear.weapon && R.state.p.gear.weapon.id, inv1 = R.state.p.inv.length;
+    const e2 = R.loot.spawn('item', R.player.x + 60, R.player.y, { item: { id: 'sw2', kind: 'weapon', name: 'Longaxe', rar: 0, lvl: 3, stats: { atk: 7 }, icon: '🪓' }, scatter: false });
+    const far = R.loot.spawn('item', R.player.x + 200, R.player.y, { item: { id: 'sw3', kind: 'weapon', name: 'Far blade', rar: 0, lvl: 3, stats: { atk: 5 }, icon: '🗡️' }, scatter: false });
+    R.step(); R.step(); const farStays = R.ents.includes(far); R.remove(far); far.dead = true;
     const inv2 = R.state.p.inv.map(i => i.id), gearStill = R.state.p.gear.weapon.id;
-    return { stillThere, lbl, src, glow, col, gone, gear, inv1, cleared, inv2, gearStill, loot: window.__loot.slice() };
-  });
-  ok(d3.stillThere, 'an item at 50 u is not auto-picked');
-  ok(d3.lbl === 'Take Castle-forged sword' && d3.src === 'loot', "R.input.interact = {label:'Take <name>', src:'loot'}", d3.lbl);
+    return { glow, col, gone, gear, inv1, inv2, gearStill, farStays, loot: window.__loot.slice(), pk, inv }; });
+  ok(d3.gone && d3.gear === 'sw1' && d3.inv1 === 0, 'an item at 50 u is picked up by walking near; the empty weapon slot is auto-filled', d3);
+  ok(d3.inv2.length === 1 && d3.inv2[0] === 'sw2' && d3.gearStill === 'sw1' && d3.farStays, 'the second weapon lands in the bag, the equipped one stays; one at 200 u stays on the ground', d3.inv2);
   ok(d3.glow === '#4fb0ff' && d3.col === '#4fb0ff', 'a Rare item drop has a blue beam (e.glow) in the rarity colour', d3.glow);
-  ok(d3.gone && d3.gear === 'sw1' && d3.inv1 === 0 && d3.cleared, "'interact' takes it; the empty weapon slot is auto-filled; the label clears", d3);
-  ok(d3.inv2.length === 1 && d3.inv2[0] === 'sw2' && d3.gearStill === 'sw1', 'the second weapon lands in the bag, the equipped one stays', d3.inv2);
-  ok(d3.loot.length === 2 && d3.loot[0] === 'Castle-forged sword', "'loot' emitted per item", d3.loot);
+  ok(d3.loot.length === 2 && d3.loot[0] === 'Castle-forged sword' && d3.pk.length === 2 && d3.inv.includes('sw2'), "'loot', 'inv' and 'pickup' emitted per item", d3);
 
-  /* 3b. standing on a material for 1.5 s takes it without a tap; materials stack */
+  /* 3b. materials are picked up the same way and stack */
   const d3b = await page.evaluate(() => {
     const m = { id: 'bone', kind: 'mat', name: 'Wight bone', rar: 0, lvl: 3, icon: '🦴', n: 1 };
-    const e = R.loot.spawn('mat', R.player.x + 5, R.player.y, { item: m, scatter: false });
-    for (let i = 0; i < 60; i++) R.step();                                                               // 1.0 s: still there
-    const at1 = R.ents.includes(e);
-    for (let i = 0; i < 40; i++) R.step();                                                               // 1.67 s: taken
-    const at2 = R.ents.includes(e);
+    const e = R.loot.spawn('mat', R.player.x + 5, R.player.y, { item: m, scatter: false }); R.step(); const at2 = R.ents.includes(e);
     const e2 = R.loot.spawn('mat', R.player.x + 5, R.player.y, { item: { id: 'bone', kind: 'mat', name: 'Wight bone', rar: 0, lvl: 3, icon: '🦴', n: 2 }, scatter: false });
     R.loot.take(e2);
     const mats = R.state.p.inv.filter(i => i.kind === 'mat');
-    return { at1, at2, mats: mats.length, n: mats[0] && mats[0].n, inv: R.state.p.inv.length };
+    return { at2, mats: mats.length, n: mats[0] && mats[0].n, inv: R.state.p.inv.length };
   });
-  ok(d3b.at1 && !d3b.at2, 'a material is auto-taken after 1.5 s standing on it', d3b);
+  ok(!d3b.at2, 'a material at the feet is taken at once', d3b);
   ok(d3b.mats === 1 && d3b.n === 3, 'materials stack by id (1 + 2 = 3)', d3b);
+
+  /* 3c. a boss drops 4–6 things with a rare+ piece, an elite 2–3 */
+  const d3c = await page.evaluate(() => { const cnt = m => { const out = R.loot.drop(m); out.forEach(e => { R.remove(e); e.dead = true; }); return out.filter(e => e.sub !== 'gold'); };
+    const b = cnt({ kind: 'boss', type: 'nope', x: 5000, y: 5000, lvl: 10, hp: 0 }), el = cnt({ kind: 'mob', elite: true, type: 'nope', x: 5000, y: 5000, lvl: 5, hp: 0 });
+    return { boss: b.filter(e => e.sub !== 'gem').length, rare: b.some(e => e.sub === 'item' && e.item.rar >= 2), elite: el.length }; });
+  ok(d3c.boss >= 4 && d3c.boss <= 6 && d3c.rare && d3c.elite >= 2 && d3c.elite <= 3, 'a boss drops 4–6 things incl. a rare+, an elite 2–3', d3c);
 
   /* 4. a chest: INTERACT opens it into 3 items + gold (+ gems from Rare) */
   const d4 = await page.evaluate(() => {

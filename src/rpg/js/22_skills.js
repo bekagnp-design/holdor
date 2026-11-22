@@ -23,28 +23,28 @@
   };
   D.classOrder = ['knight', 'ranger', 'maester'];
   /* ---------------- skills: 6 per class, unlocked at levels 1, 4, 8, 14, 22, 32 ---------------- */
-  const UNLOCK = [1, 4, 8, 14, 22, 32];
+  const UNLOCK = [1, 1, 1, 8, 14, 22];   // the owner: three spells from level 1 for every class (the champion's signature joins at 6)
   const S = (id, cls, name, icon, cd, kind, v, d, x) => Object.assign({ id, cls, name, icon, cd, cost: 0, kind, v, d }, x || {});
   const pl = n => n === 1 ? '' : 's';
   const LIST = [
     // knight
-    S('k_cleave', 'knight', 'Northern Cleave', '⚔️', 6, 'melee_aoe', [150, 175, 200, 230, 260], v => `A sweeping cut: every foe in front of you takes ${v}% weapon damage.`, { arc: 110, range: 90 }),
-    S('k_shield', 'knight', 'Shield of the Watch', '🛡️', 14, 'shield', [60, 95, 135, 180, 240], v => `Raise your shield: absorbs ${v} damage (+3 per level) for 8 s.`, { dur: 8 }),
-    S('k_lunge', 'knight', 'Direwolf Lunge', '🐺', 9, 'dash_strike', [170, 200, 230, 260, 300], v => `Lunge 160 paces forward; everything on the way takes ${v}% weapon damage.`, { dash: 160 }),
-    S('k_taunt', 'knight', "Warden's Challenge", '📣', 18, 'taunt', [3, 3.5, 4, 4.5, 5], v => `Roar: foes within 200 paces turn on you for ${v} s and you take 40% less damage meanwhile.`, { range: 200 }),
+    S('k_cleave', 'knight', 'Cleave', '🗡️', 6, 'melee_aoe', [150, 175, 200, 230, 260], v => `A sweeping cut: every foe in front of you takes ${v}% weapon damage.`, { arc: 110, range: 90 }),
+    S('k_lunge', 'knight', 'Shield Charge', '🛡️', 9, 'dash_strike', [170, 200, 230, 260, 300], v => `Charge 160 paces behind your shield: everything on the way takes ${v}% weapon damage and is knocked back.`, { dash: 160, knock: 90, stun: 0.4 }),
+    S('k_taunt', 'knight', 'War Cry', '📣', 18, 'taunt', [3, 3.5, 4, 4.5, 5], v => `War cry: foes within 200 paces cower and turn on you; for ${v} s you take 40% less damage and for ${v + 3} s you deal 20% more.`, { range: 200 }),
+    S('k_shield', 'knight', 'Raised Shield', '🔰', 14, 'shield', [60, 95, 135, 180, 240], v => `Raise your shield: absorbs ${v} damage (+3 per level) for 8 s.`, { dur: 8 }),
     S('k_whirl', 'knight', 'Ironwood Whirl', '🌀', 12, 'melee_aoe', [120, 140, 160, 185, 210], v => `Spin with the blade: every foe around you takes ${v}% weapon damage and bleeds for 3 s.`, { arc: 360, range: 110, dot: 'bleed' }),
     S('k_oath', 'knight', 'Oath of the Gate', '🏰', 30, 'heal', [25, 30, 35, 40, 50], v => `Plant your feet: heal ${v}% of your health and gain a shield of the same size for 6 s.`, { self: true, shield: true, dur: 6 }),
     // ranger
-    S('r_volley', 'ranger', 'Volley of the Neck', '🏹', 5, 'volley', [3, 4, 5, 6, 7], v => `Loose ${v} arrows at the nearest foes within 320 paces, 70% weapon damage each.`, { range: 320, each: 70 }),
-    S('r_snare', 'ranger', "Crannogman's Snare", '🪤', 10, 'trap', [130, 155, 180, 210, 240], v => `Set a snare at your feet: the first foe to step on it takes ${v}% weapon damage and is held for 2 s.`, { n: 1, hold: 2 }),
-    S('r_step', 'ranger', 'Shadowcat Step', '🐾', 8, 'dash_strike', [140, 165, 190, 220, 250], v => `Dart 180 paces; foes you pass take ${v}% weapon damage.`, { dash: 180 }),
-    S('r_rain', 'ranger', 'Rain of Arrows over the Neck', '🌧️', 16, 'rain', [60, 70, 80, 95, 110], v => `Arrows fall on the nearest foes for 2.5 s: five times ${v}% weapon damage within 90 paces.`, { r: 90, ticks: 5, dur: 2.5, range: 320 }),
+    S('r_volley', 'ranger', 'Volley', '🏹', 5, 'volley', [3, 4, 5, 6, 7], v => `Loose ${v} arrows at the nearest foes within 320 paces, 70% weapon damage each.`, { range: 320, each: 70 }),
+    S('r_snare', 'ranger', 'Snare Trap', '🪤', 10, 'trap', [130, 155, 180, 210, 240], v => `Set a snare at your feet: the first foe to step on it takes ${v}% weapon damage and is held for 2 s.`, { n: 1, hold: 2 }),
+    S('r_step', 'ranger', 'Roll Shot', '🎯', 8, 'dash_strike', [140, 165, 190, 220, 250], v => `Dart 180 paces; foes you pass take ${v}% weapon damage.`, { dash: 180 }),
+    S('r_rain', 'ranger', 'Rain of Arrows', '🌧️', 16, 'rain', [60, 70, 80, 95, 110], v => `Arrows fall on the nearest foes for 2.5 s: five times ${v}% weapon damage within 90 paces.`, { r: 90, ticks: 5, dur: 2.5, range: 320 }),
     S('r_weir', 'ranger', 'Weirwood Shaft', '🌳', 11, 'volley', [260, 300, 340, 390, 440], v => `One heavy shaft flies 320 paces straight through every foe in its line for ${v}% weapon damage.`, { range: 320, line: true }),
     S('r_ring', 'ranger', 'Thorn Ring', '🌵', 24, 'trap', [180, 210, 240, 280, 320], v => `Three snares spring up around you, each dealing ${v}% weapon damage and holding its foe for 2 s.`, { n: 3, hold: 2 }),
     // maester
-    S('m_flask', 'maester', 'Wildfire Flask', '🧪', 4, 'fire_bolt', [130, 150, 170, 195, 220], v => `Hurl a flask at the nearest foe within 260 paces: ${v}% skill damage, splashes and burns for 3 s.`, { range: 260, dot: 'burn' }),
-    S('m_frost', 'maester', 'Breath of the Long Night', '❄️', 10, 'frost_nova', [90, 105, 120, 140, 160], v => `Cold bursts from you: foes within 130 paces take ${v}% skill damage, freeze for a moment and move half as fast for 3 s.`, { r: 130, slow: 3 }),
-    S('m_tinct', 'maester', 'Citadel Tincture', '💚', 14, 'heal', [20, 25, 30, 36, 42], v => `Mend wounds: you and your companions within 160 paces heal ${v}% of your health.`, { r: 160 }),
+    S('m_flask', 'maester', 'Wildfire Bolt', '🔥', 4, 'fire_bolt', [130, 150, 170, 195, 220], v => `Hurl a flask at the nearest foe within 260 paces: ${v}% skill damage, splashes and burns for 3 s.`, { range: 260, dot: 'burn' }),
+    S('m_frost', 'maester', 'Frost Nova', '❄️', 10, 'frost_nova', [90, 105, 120, 140, 160], v => `Cold bursts from you: foes within 130 paces take ${v}% skill damage, freeze for a moment and move half as fast for 3 s.`, { r: 130, slow: 3 }),
+    S('m_tinct', 'maester', 'Mend', '💚', 14, 'heal', [20, 25, 30, 36, 42], v => `Mend wounds: you and your companions within 160 paces heal ${v}% of your health.`, { r: 160 }),
     S('m_pool', 'maester', "Alchemist's Green", '🟢', 15, 'wildfire', [45, 55, 65, 75, 90], v => `Spill green fire on the nearest foes: a pool 70 paces wide burns for 4 s, ${v}% skill damage every half second.`, { r: 70, ticks: 8, dur: 4, range: 260 }),
     S('m_raven', 'maester', 'Raven Call', '🐦‍⬛', 24, 'summon_raven', [1, 2, 2, 3, 3], v => `Call ${v} raven${pl(v)} from the rookery: they harry your foes for 20 s.`, { life: 20 }),
     S('m_storm', 'maester', 'Dragonfire Reckoning', '☄️', 28, 'rain', [110, 125, 140, 160, 180], v => `Fire falls from the sky on the nearest foes for 3 s: six times ${v}% skill damage within 120 paces.`, { r: 120, ticks: 6, dur: 3, range: 260, fire: true })
@@ -77,7 +77,11 @@
   const nearest = (x, y, r) => { let b = null, bd = r * r; for (const e of R.ents) if (isFoe(e)) { const d = (e.x - x) ** 2 + (e.y - y) ** 2; if (d < bd) { bd = d; b = e; } } return b; };
   const atk = () => { const p = pl8(); let a; if (p && p.atk) a = p.atk; else { const s = P(); if (!s) return 10; const c = cls(); a = 10 + 2 * s.lvl + 1.5 * ((s.stats && s.stats[c.main]) || 5); }
     const st = p && p.status; if (st && st.rally > R.t) a *= st.rallyK || 1.3; return a; };
-  const dmgOf = (sk, pct) => Math.max(1, Math.round(atk() * (pct / 100) * cls().skillMul));
+  /* talents (25_progression, P1): R.prog.mods() → {cdrPct, skillPct:{id: pct}} */
+  const tal = () => { try { const m = R.prog && typeof R.prog.mods === 'function' && R.prog.mods(); return (m && typeof m === 'object') ? m : {}; } catch (e) { return {}; } };
+  const sPct = sk => 1 + (+((tal().skillPct || {})[sk && sk.id]) || 0) / 100;
+  const cdOf = s => s.cd * Math.max(0.2, 1 - (+tal().cdrPct || 0) / 100);
+  const dmgOf = (sk, pct) => Math.max(1, Math.round(atk() * (pct / 100) * cls().skillMul * sPct(sk)));
   const fx = (kind, x, y, o) => { if (R.fx && R.fx.spawn) try { R.fx.spawn(kind, x, y, o || {}); } catch (e) {} };
   const sfx = name => { if (R.sfx && R.sfx.play) try { R.sfx.play(name, 0.8); } catch (e) {} };
   const haptic = kind => { const o = R.state && R.state.opts; if (o && o.haptic === 0) return; try { if (R.haptic) R.haptic(kind); else { const H = window.Telegram && Telegram.WebApp && Telegram.WebApp.HapticFeedback; H && H.impactOccurred(kind || 'medium'); } } catch (e) {} };
@@ -118,10 +122,10 @@
         const dx = x - x0, dy = y - y0, l2 = dx * dx + dy * dy || 1; let t = ((e.x - x0) * dx + (e.y - y0) * dy) / l2; t = R.clamp(t, 0, 1); const qx = x0 + dx * t, qy = y0 + dy * t;
         if (Math.hypot(e.x - qx, e.y - qy) <= 50 + (e.r || 14)) hitSet.add(e); }
       p.x = x; p.y = y; if (dir.x) p.face = dir.x > 0 ? 1 : -1; p.status = p.status || {}; p.status.iframe = R.t + 0.3; p.dashT = R.t;
-      for (const e of hitSet) hurt(p, e, dmg, { kind: 'phys', knock: 24 }); fx('dash', x0, y0, { to: { x, y } }); if (R.fx && R.fx.shake && hitSet.size) R.fx.shake(4, 0.15); return true; },
+      for (const e of hitSet) hurt(p, e, dmg, { kind: 'phys', knock: sk.knock || 24, stun: sk.stun || 0 }); fx('dash', x0, y0, { to: { x, y } }); if (R.fx && R.fx.shake && hitSet.size) R.fx.shake(4, 0.15); return true; },
     taunt(sk, v, p) { let n = 0; for (const e of foes(p.x, p.y, sk.range || 200)) { e.ai = e.ai || {}; e.ai.target = p; e.ai.taunt = R.t + v; e.ai.state = e.ai.state === 'idle' || e.ai.state === 'patrol' ? 'chase' : e.ai.state; e.status = e.status || {}; e.status.stun = Math.max(e.status.stun || 0, R.t + 0.5); e.taunted = R.t + v; n++; }
-      p.status = p.status || {}; p.status.guard = R.t + v; p.status.guardK = 0.6; fx('taunt', p.x, p.y, { r: sk.range || 200, dur: 0.6 }); if (R.fx && R.fx.shake) R.fx.shake(2, 0.2); return true; },
-    heal(sk, v, p) { const n = Math.round((p.hpMax || 100) * v / 100); heal(p, n); if (!sk.self) for (const e of R.near(p.x, p.y, sk.r || 160, e => !e.dead && e.team === 0 && e !== p && e.hpMax)) heal(e, Math.round(e.hpMax * v / 100));
+      p.status = p.status || {}; p.status.guard = R.t + v; p.status.guardK = 0.6; p.status.atkBuff = R.t + v + 3;   /* War Cry: +20 % damage (R.hit reads atkBuff) */ fx('taunt', p.x, p.y, { r: sk.range || 200, dur: 0.6 }); if (R.fx && R.fx.shake) R.fx.shake(2, 0.2); return true; },
+    heal(sk, v, p) { const n = Math.round((p.hpMax || 100) * v / 100 * sPct(sk)); heal(p, n); if (!sk.self) for (const e of R.near(p.x, p.y, sk.r || 160, e => !e.dead && e.team === 0 && e !== p && e.hpMax)) heal(e, Math.round(e.hpMax * v / 100));
       if (sk.shield) shieldUp(p, n, sk.dur || 6); fx('heal', p.x, p.y, { r: sk.r || 40 }); return true; },
     volley(sk, v, p) { const dir = aim(p, sk.range); if (dir.x) p.face = dir.x > 0 ? 1 : -1;
       if (sk.line) { const dmg = dmgOf(sk, v); const x1 = p.x + dir.x * sk.range, y1 = p.y + dir.y * sk.range; const hits = [];
@@ -152,6 +156,8 @@
   /* ---------------- the skill API ---------------- */
   const SK = R.skills = {
     UNLOCK, kinds: Object.keys(EX),
+    /* the element of a skill for effects and hit kinds: fire / frost / holy / poison / phys */
+    element: s => { if (!s) return 'phys'; const k = s.kind; if (s.elem) return s.elem; if (k === 'fire_bolt' || k === 'wildfire' || (k === 'rain' && s.cls === 'maester')) return 'fire'; if (k === 'frost_nova') return 'frost'; if (k === 'heal' || k === 'shield') return 'holy'; return 'phys'; },
     cls, classMods(c) { const C = D.classes[c || (P() && P().cls)] || D.classes.knight; const m = { range: C.range, arc: C.arc, splash: C.splash, hpMul: C.hpMul, critAdd: C.critAdd, skillMul: C.skillMul, pierce: C.pierce || 0 };
       if (C.pierceAt) { const first = SK.list(C.id)[0]; if (first && SK.rank(first.id) >= C.pierceAt) m.pierce = 1; } return m; },
     list(c) { const p = P(); c = c || (p && p.cls) || 'knight'; const out = D.skillOrder.map(id => D.skills[id]).filter(s => s.cls === c && !s.hero); const sig = p && c === p.cls ? SK.sigSkill() : null; if (sig) out.push(sig); return out.sort((a, b) => a.unlock - b.unlock || (a.idx | 0) - (b.idx | 0)); },
@@ -159,7 +165,7 @@
     // the hero champion's signature as a skill (needs R.data.champs from A10); null when there is none
     sigSkill() { const p = P(); if (!p || !p.hero || !D.champs || !D.champs[p.hero]) return null; const ch = D.champs[p.hero]; const sig = ch.sig || (ch.kit && ch.kit.sig); if (!sig) return null;
       const id = 'sig_' + p.hero; let s = D.skills[id]; if (s && s._src === sig && s.cls === p.cls) return s; const o = typeof sig === 'string' ? { kind: sig } : sig; const k = SIGMAP[o.kind] || EX[o.kind] && o.kind || 'melee_aoe'; const b = SIGBASE[k] || SIGBASE.melee_aoe;
-      s = Object.assign({}, b, { id, cls: p.cls, hero: p.hero, name: o.name || o.n || ((ch.name || ch.n || p.hero) + ': ' + b.name), icon: o.icon || o.e || ch.icon || b.icon, cd: o.cd || b.cd, cost: 0, kind: k, v: Array.isArray(o.v) && o.v.length === 5 ? o.v : b.v, d: typeof o.d === 'function' ? o.d : b.d, unlock: 6, idx: 6, sig: true, _src: sig });
+      s = Object.assign({}, b, { id, cls: p.cls, hero: p.hero, name: o.name || o.n || ((ch.name || ch.n || p.hero) + ': ' + b.name), icon: String(o.icon || o.e || ch.icon || b.icon).replace(/⚔️?/g, '🗡️'), cd: o.cd || b.cd, cost: 0, kind: k, v: Array.isArray(o.v) && o.v.length === 5 ? o.v : b.v, d: typeof o.d === 'function' ? o.d : b.d, unlock: 6, idx: 6, sig: true, _src: sig });
       D.skills[id] = s; if (!D.skillOrder.includes(id)) D.skillOrder.push(id); return s; },
     unlocked(id) { const s = D.skills[id], p = P(); return !!(s && p && s.cls === p.cls && (!s.hero || s.hero === p.hero) && p.lvl >= s.unlock); },
     rank(id) { const p = P(); if (!p) return 0; const r = p.skills && p.skills[id]; if (r) return Math.min(5, r); return SK.unlocked(id) ? 1 : 0; },
@@ -189,7 +195,7 @@
     cast(i) { const p = P(), pe = pl8(); if (!p || !pe) return false; const id = p.bar && p.bar[i]; if (!id) return false; const s = D.skills[id]; if (!s || !EX[s.kind] || !SK.unlocked(id)) return false;
       if (pe.status && pe.status.stun > R.t) return false; if (!SK.ready(id)) { try { R.input && R.input.flash && R.input.flash(i); } catch (e) {} return false; }
       let ok = false; try { ok = EX[s.kind](s, SK.val(id), pe) !== false; } catch (e) { console.error('cast', id, e); ok = true; }
-      pe.cd = pe.cd || {}; pe.cd[id] = R.t + s.cd; pe.anim = 'attack'; pe.animT = 0; pe.lastCast = { id, t: R.t }; sfx('skill_' + s.kind); haptic(s.cd >= 20 ? 'heavy' : 'medium'); R.bus.emit('cast', id, i); return ok; },
+      pe.cd = pe.cd || {}; pe.cd[id] = R.t + cdOf(s); pe.anim = 'attack'; pe.animT = 0; pe.lastCast = { id, t: R.t }; sfx('skill_' + s.kind); haptic(s.cd >= 20 ? 'heavy' : 'medium'); R.bus.emit('cast', id, pe, { x: pe.x, y: pe.y, dir: (pe.lastAim || { x: pe.face || 1, y: 0 }), kind: SK.element(s), r: s.r || s.range || s.arc && 90 || 120, slot: i }); return ok; },
     castId(id) { const p = P(); if (!p) return false; const i = p.bar.indexOf(id); if (i >= 0) return SK.cast(i); const old = p.bar[2]; p.bar[2] = id; const ok = SK.cast(2); p.bar[2] = old; return ok; },
     zones, shots, hurt, heal, dmgOf, EX
   };

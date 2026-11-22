@@ -10,14 +10,18 @@
              paler), their profile read from the terrain heights beyond the fog (R.render3d.groundY; flat over the sea), the base
              in the fog colour: the edge of the world never shows.
    - aurora: an additive curtain beyond the Wall at night (R.ambience.auroraK), to the north, green at its lower edge, violet
-             above, waving, with vertical rays. R.sky.aurora3d = true while it shows (the 2D bands in 62_ambience are redundant).
-   - shafts: a fan of soft additive light shafts toward a low sun (dawn / dusk, clear weather), 6 quads.
-   R.sky = { on, ready, why, dome, ring, aurora, shafts, uniforms, stats {ms, attach, profile}, aurora3d, setOn(bool),
+             above, waving, with vertical rays. R.sky.aurora (= R.sky.aurora3d) is true while it draws: 62_ambience then skips its
+             2D bands. The mesh is R.sky.auroraMesh.
+   - shafts: a fan of soft additive light shafts toward a low sun (dawn / dusk, clear weather), 6 quads. OFF by default
+             (R.sky.shaftsOn = true turns them on): on software GL they cost ~15 % of a frame, more than they add.
+   The dome writes its depth at the far plane (z = 0.99999 w), so it is never clipped whatever camera.far is (G1 moves it every frame
+   with the fog: far × 1.06); the ring (0.93 × far) and the aurora (0.7 × far) read camera.far every frame.
+   R.sky = { on, ready, why, dome, ring, aurora (bool), auroraMesh, shafts, shaftsOn, uniforms, stats {ms, attach, profile}, aurora3d, setOn(bool),
              colors() → {zen, hor, fog} (display 0–1), attach(render3d) }.  System 'sky' (order 895, before the renderer's 900).
    Without THREE / WebGL / R.render3d it does nothing. */
 (function () {
   const S = R.sky = R.sky || {};
-  S.on = S.on !== false; S.ready = false; S.aurora3d = false; S.stats = { ms: 0, attach: 0, profile: 0 };
+  S.on = S.on !== false; S.shaftsOn = S.shaftsOn === true; S.ready = false; S.aurora = S.aurora3d = false; S.stats = { ms: 0, attach: 0, profile: 0 };
   const T = window.THREE;
   if (!T) { S.why = 'no THREE'; return; }
   const clamp = (v, a, b) => v < a ? a : v > b ? b : v, lerp = (a, b, k) => a + (b - a) * k, DEG = Math.PI / 180;
@@ -32,14 +36,17 @@
     uNight: { value: 0 }, uMoonDir: { value: V3(0, .4, -.9) }, uMoon: { value: V3(0, 1, 0) }, uStars: { value: 0 }, uTime: { value: 0 },
     uHaze: { value: 0 }, uCloud: { value: new T.Vector4(.5, 0, 0, 0) }, uCloudLit: { value: V3(1, 1, 1) }, uCloudShade: { value: V3(.6, .65, .72) },
     uWind: { value: new T.Vector2(0, 0) }, uRr: { value: 2800 }, uRidge: { value: V3(.3, .36, .46) }, uRingA: { value: 1 },
-    uAur: { value: 0 }, uAurAz: { value: 0 }, uRa: { value: 1500 }, uAurB: { value: -.16 }, uAurT: { value: .05 }, uShaft: { value: 0 }, uShaftCol: { value: V3(1, .8, .55) }
+    uCut: { value: -.2 }, uAur: { value: 0 }, uAurAz: { value: 0 }, uRa: { value: 1500 }, uAurB: { value: -.16 }, uAurT: { value: .05 }, uShaft: { value: 0 }, uShaftCol: { value: V3(1, .8, .55) }
   };
   const NOISE = 'float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }\n' +
     'float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); float a = h21(i), b = h21(i + vec2(1.0, 0.0)), c = h21(i + vec2(0.0, 1.0)), d = h21(i + vec2(1.0, 1.0)); return mix(mix(a, b, f.x), mix(c, d, f.x), f.y); }\n' +
     'float fbm(vec2 p){ float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * vn(p); p = p * 2.03 + 17.1; a *= 0.5; } return s; }\n';
 
   /* ---------- the dome ---------- */
-  const DOME_VS = 'varying vec3 vDir;\nvoid main(){ vDir = position; vec4 p = projectionMatrix * viewMatrix * vec4(cameraPosition + position * 1000.0, 1.0); gl_Position = vec4(p.xy, p.w * 0.99999, p.w); }';
+  // the lower part of the sphere is folded onto uCut (just below where the terrain's far edge can show): those rows rasterise nothing,
+  // so at the game's camera the dome covers only the top band of the screen even where the GPU has no early depth test
+  const DOME_VS = 'uniform float uCut; varying vec3 vDir;\nvoid main(){ vec3 q = position; if (q.y < uCut) { q = vec3(normalize(q.xz) * sqrt(max(1.0 - uCut * uCut, 0.0)), uCut).xzy; }\n' +
+    ' vDir = q; vec4 p = projectionMatrix * viewMatrix * vec4(cameraPosition + q * 1000.0, 1.0); gl_Position = vec4(p.xy, p.w * 0.99999, p.w); }';
   const DOME_FS = 'uniform vec3 uZen, uHor, uFog, uSunDir, uSunCol, uWarm, uMoonDir, uMoon, uCloudLit, uCloudShade; uniform float uWarmK, uNight, uStars, uTime, uHaze; uniform vec4 uCloud; uniform vec2 uWind;\n' +
     'varying vec3 vDir;\n' + NOISE +
     'void main(){ vec3 d = normalize(vDir); float h = d.y, up = clamp(h, 0.0, 1.0), mu = dot(d, uSunDir), m = max(mu, 0.0);\n' +
@@ -49,8 +56,8 @@
     ' col = mix(col, uWarm, uWarmK * side * (1.0 - smoothstep(0.0, 0.42, up)));\n' +
     ' col = mix(col, vec3(0.86, 0.52, 0.62), uWarmK * 0.35 * side * smoothstep(0.08, 0.3, up) * (1.0 - smoothstep(0.3, 0.7, up)));\n' +
     // stars (night, above the horizon)
-    ' if (uStars > 0.01 && h > 0.0) { vec3 sp = d * 260.0; vec3 ci = floor(sp); vec3 cf = fract(sp) - 0.5; float r = fract(sin(dot(ci, vec3(12.9898, 78.233, 37.719))) * 43758.5453);\n' +
-    '  float st = step(0.982, r) * smoothstep(0.2, 0.0, length(cf - (vec3(fract(r * 13.1), fract(r * 7.3), fract(r * 3.7)) - 0.5) * 0.5));\n' +
+    ' if (uStars > 0.01 && h > 0.0) { vec3 sp = d * 95.0; vec3 ci = floor(sp); vec3 cf = fract(sp) - 0.5; float r = fract(sin(dot(ci, vec3(12.9898, 78.233, 37.719))) * 43758.5453);\n' +
+    '  float sd = length(cf - (vec3(fract(r * 13.1), fract(r * 7.3), fract(r * 3.7)) - 0.5) * 0.5); float st = step(0.955, r) * (smoothstep(0.13, 0.0, sd) + 0.25 * smoothstep(0.3, 0.0, sd));\n' +
     '  st *= (0.55 + 0.45 * sin(uTime * (1.3 + r * 3.0) + r * 60.0)) * (0.5 + 0.5 * fract(r * 91.7)); col += vec3(0.9, 0.93, 1.0) * st * uStars * smoothstep(0.02, 0.22, h); }\n' +
     // the moon: a disc with its phase + a halo
     ' float mm = dot(d, uMoonDir);\n' +
@@ -70,7 +77,8 @@
     ' col = mix(col, mix(uHor, uFog, 0.35), uHaze * 0.55 * (1.0 - smoothstep(0.0, 0.6, up)));\n' +
     ' float day = 1.0 - uNight; col += uSunCol * (pow(m, 8.0) * 0.14 + pow(m, 60.0) * 0.3) * day * (1.0 - uHaze * 0.35);\n' +
     ' col = mix(col, vec3(1.0, 0.97, 0.9), smoothstep(0.9993, 0.99965, mu) * day * (1.0 - uHaze * 0.6) * smoothstep(-0.01, 0.02, h));\n' +
-    ' col = mix(uFog, col, smoothstep(-0.015, 0.07 + 0.12 * uHaze, h));\n' +
+    ' float hz = smoothstep(-0.04, 0.2 + 0.15 * uHaze, h); col = mix(uFog, col, hz * hz * (3.0 - 2.0 * hz) * 0.35 + hz * 0.65);\n' +
+    ' col += (h21(gl_FragCoord.xy) - 0.5) / 160.0;\n' +
     ' gl_FragColor = vec4(col, 1.0); }';
 
   /* ---------- the ridge ring: N columns × 2 strips, (cos θ, tan elevation, sin θ) per vertex, updated from the terrain ---------- */
@@ -78,7 +86,8 @@
   const RING_VS = 'attribute float aK; attribute float aTop; uniform float uRr; varying float vK; varying float vTop;\n' +
     'void main(){ float r = uRr * (aK > 0.5 ? 1.0 : 0.9); vK = aK; vTop = aTop; vec3 w = cameraPosition + vec3(position.x * r, position.y * r, position.z * r); gl_Position = projectionMatrix * viewMatrix * vec4(w, 1.0); }';
   const RING_FS = 'uniform vec3 uFog, uRidge, uSunCol, uSunDir; uniform float uRingA, uNight; varying float vK; varying float vTop;\n' +
-    'void main(){ vec3 ridge = mix(uRidge, uFog, vK * 0.5); float k = uRingA * pow(clamp(vTop, 0.0, 1.0), 1.6); gl_FragColor = vec4(mix(uFog, ridge, k), 1.0); }';
+    'float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }\n' +
+    'void main(){ vec3 ridge = mix(uRidge, uFog, vK * 0.5); float k = uRingA * pow(clamp(vTop, 0.0, 1.0), 1.6); gl_FragColor = vec4(mix(uFog, ridge, k) + (h21(gl_FragCoord.xy) - 0.5) / 160.0, 1.0); }';
   let ringPos = null, ringTop = null, ringBot = null, ringCur = null;
 
   /* ---------- the aurora curtain (north, ±75°) ---------- */
@@ -111,7 +120,7 @@
   function mat(vs, fs, o) { return new T.ShaderMaterial(Object.assign({ uniforms: U, vertexShader: vs, fragmentShader: fs, fog: false }, o)); }
   function build() {
     root = new T.Group(); root.name = 'sky';
-    const dg = new T.SphereGeometry(1, 48, 24);
+    const dg = new T.SphereGeometry(1, 48, 20, 0, Math.PI * 2, 0, 120 * DEG);   // the zenith down to 30° below the horizon (no bottom pole)
     dome = new T.Mesh(dg, mat(DOME_VS, DOME_FS, { side: T.BackSide, depthWrite: false, depthTest: true }));
     dome.name = 'skyDome'; dome.frustumCulled = false; dome.renderOrder = 9999;
     // ring
@@ -133,11 +142,12 @@
     const sg = new T.BufferGeometry(); sg.setAttribute('position', new T.BufferAttribute(sp, 3)); sg.setAttribute('aS', new T.BufferAttribute(ss, 1)); sg.setAttribute('aQ', new T.BufferAttribute(sq, 2)); sg.setIndex(si);
     shafts = new T.Mesh(sg, mat(SH_VS, SH_FS, { side: T.DoubleSide, transparent: true, depthWrite: false, depthTest: true, blending: T.AdditiveBlending })); shafts.name = 'skyShafts'; shafts.frustumCulled = false; shafts.renderOrder = 11; shafts.visible = false;
     root.add(dome, ring, aur, shafts);
-    S.dome = dome; S.ring = ring; S.aurora = aur; S.shafts = shafts; S.root = root;
+    S.dome = dome; S.ring = ring; S.auroraMesh = aur; S.shafts = shafts; S.root = root;
   }
   S.attach = g => {
     try {
       if (!g || !g.scene || !g.camera) return false;
+      if (typeof g.setFog !== 'function' || !g.uniforms) { S.why = 'not the 3D renderer (no setFog / uniforms)'; return false; }   // a test's stand-in scene: leave it alone
       if (G === g && scene === g.scene && root && root.parent === scene) return true;
       if (!root) build();
       if (root.parent) root.parent.remove(root);
@@ -210,12 +220,12 @@
   }
 
   /* ---------- per frame ---------- */
-  let t = 0, inited = false, aurAz = 0, aurSnap = true;
+  let t = 0, inited = false, aurAz = 0, aurSnap = true; let skipG = null;
   function update(dt) {
     const G3 = R.render3d; if (!G3 || !G3.scene) return;
-    if (!S.ready || G3 !== G || G3.scene !== scene || !root || root.parent !== scene) { if (!S.attach(G3)) return; }
+    if (!S.ready || G3 !== G || G3.scene !== scene || !root || root.parent !== scene) { if (G3 === skipG || !S.attach(G3)) { skipG = G3; return; } }
     const t0 = performance.now();
-    root.visible = S.on; if (!S.on) return;
+    root.visible = S.on; if (!S.on) { S.aurora = S.aurora3d = false; return; }
     t += dt || 1 / 60; const A = R.ambience || {}, cam = G.camera, c = S.colors();
     U.uTime.value = t;
     U.uZen.value.set(c.zen[0], c.zen[1], c.zen[2]); U.uHor.value.set(c.hor[0], c.hor[1], c.hor[2]); U.uFog.value.set(c.fog[0], c.fog[1], c.fog[2]);
@@ -223,7 +233,7 @@
     const sd = A.sunDir || { x: 0, y: .88, z: .47 }, night = c.k > .5;
     // A.sunDir is the moon at night (its azimuth flips): the sun below the horizon then, the moon raised for the dome
     if (!night) U.uSunDir.value.set(sd.x, sd.y, sd.z).normalize(); else U.uSunDir.value.set(-sd.x, -Math.abs(sd.y) - .2, -sd.z).normalize();
-    const md = night ? [sd.x, Math.max(sd.y, .3), sd.z] : [-sd.x, .35, -sd.z]; U.uMoonDir.value.set(md[0], md[1], md[2]).normalize();
+    const md = night ? [sd.x, Math.max(sd.y, .2), sd.z] : [-sd.x, .35, -sd.z]; U.uMoonDir.value.set(md[0], md[1], md[2]).normalize();
     const mp = A.moon ? A.moon.phase || 0 : 0; U.uMoon.value.set((mp < .5 ? -1 : 1) * 2.1 * Math.sin(Math.PI * mp), A.moon ? .4 + .6 * (A.moon.lit || 0) : 1, 0);
     U.uStars.value = clamp((c.k - .25) / .6, 0, 1) * (1 - c.haze * .9);
     const sc = hexRGB(A.gl && A.gl.sun) || [1, .95, .86]; U.uSunCol.value.set(sc[0], sc[1], sc[2]);
@@ -237,13 +247,15 @@
     const ws = (rainy ? 2.2 : W === 'snow' ? 1.4 : 1) * (dt || 1 / 60); U.uWind.value.x += .0035 * ws; U.uWind.value.y += .0021 * ws;
     // the ring: just inside the far plane; its profile every 0.4 s (or after a jump), eased in
     U.uRr.value = cam.far * .93;
+    const camH = Math.max(20, cam.position.y - G.groundY(clamp(cam.position.x, 0, R.W), clamp(cam.position.z, 0, R.H)));
+    U.uCut.value = Math.sin(-Math.atan2(camH + 60, cam.far * .8) - 3 * DEG);
     profT -= dt || 1 / 60; const pitchE = (cam.fov / 2) * DEG - (R.cam && R.cam.pitch || 0);
     if (profT <= 0 || Math.hypot(cam.position.x - profX, cam.position.z - profZ) > 600 || Math.abs(pitchE - profE) > 2 * DEG) { profT = .4; profile(); applyProfile(inited ? .35 : 1); inited = true; }
     else applyProfile(.08);
     const rd = mix3([.8, .85, .93], [.55, .62, .78], c.k); U.uRidge.value.set(c.fog[0] * rd[0], c.fog[1] * rd[1], c.fog[2] * rd[2] + .01);
     U.uRingA.value = clamp(1 - c.haze * .5, .35, 1);
     // aurora beyond the Wall at night: in front of the ring, its lower edge on the ground line, the top above the view
-    const ak = clamp(A.auroraK || 0, 0, 1); aur.visible = ak > .02; S.aurora3d = aur.visible; U.uAur.value = ak * .85;
+    const ak = clamp(A.auroraK || 0, 0, 1); aur.visible = ak > .02; S.aurora = S.aurora3d = aur.visible; U.uAur.value = ak * .85;
     if (aur.visible) { const Ra = cam.far * .7, gB = G.groundY(clamp(cam.position.x, 0, R.W), clamp(cam.position.z - Ra, 0, R.H)); U.uRa.value = Ra;
       U.uAurB.value = Math.tan(Math.atan2(gB - cam.position.y, Ra) - 1.5 * DEG); U.uAurT.value = Math.tan(clamp(pitchE + 10 * DEG, 2 * DEG, 40 * DEG));
       // the curtain's centre eases toward the view's azimuth (≈ 25 s), so beyond the Wall it hangs wherever one looks, without sticking to the camera
@@ -251,7 +263,7 @@
     else aurSnap = true;
     // shafts: a low sun in clear / sunny weather
     const el = A.sun ? A.sun.el || 0 : .5, low = clamp(1 - (el / DEG - 6) / 22, 0, 1) * (el > 1 * DEG ? 1 : 0), clearK = W === 'clear' || W === 'sun' ? 1 : W === 'spray' ? .4 : 0;
-    U.uShaft.value = .1 * low * clearK * (1 - c.k); shafts.visible = S.shaftsOn !== false && U.uShaft.value > .004;
+    U.uShaft.value = .1 * low * clearK * (1 - c.k); shafts.visible = S.shaftsOn && U.uShaft.value > .004;
     if (shafts.visible) { U.uShaftCol.value.set(sc[0], sc[1] * .86, sc[2] * .7); U.uRa.value = aur.visible ? U.uRa.value : cam.far * .7; }
     S.stats.ms = +(performance.now() - t0).toFixed(3);
   }

@@ -17,7 +17,7 @@
   const bal = () => R.data.balance || {};
   const ptsPer = () => +bal().ptsPerLvl || +bal().pts || 3;
   const isImg = s => typeof s === 'string' && (/^(data:|https?:|\.\/|\/)/.test(s) || /\.(png|webp|svg|jpg)$/.test(s));
-  const house = () => { const h = (P() && P().house) || 'stark'; const d = (R.data.houses && R.data.houses[h]) || {}; const f = HFB[h] || HFB.stark;
+  const house = () => { const h = (R.state && R.state.acc && R.state.acc.house) || (P() && P().house) || 'stark'; const d = (R.data.houses && R.data.houses[h]) || {}; const f = HFB[h] || HFB.stark;
     const sig = d.sigil || d.img || (window.A_SIGILS && window.A_SIGILS[h]) || (R.assets && R.assets.sigils && R.assets.sigils[h]) || null;
     return { id: h, n: d.n || d.name || f.n, e: d.e || f.e, col: d.col || f.col, col2: d.col2 || f.col2, sigil: isImg(sig) ? sig : null }; };
 

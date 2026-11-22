@@ -2,7 +2,7 @@
    its top), an arrow toward the highlighted control, a small SKIP, and the ring over the control — the card never covers a control */
 #ui>.tut{position:absolute;inset:0;pointer-events:none;z-index:6;--hc:var(--acc)}
 .tut.off{display:none}
-.tut-wrap{position:absolute;left:50%;top:calc(var(--st,8px) + 210px);transform:translateX(-50%);width:min(calc(100% - 24px),380px)}
+.tut-wrap{position:absolute;left:50%;top:calc(var(--st,8px) + 214px);transform:translateX(-50%);width:min(calc(100% - 24px),380px)}
 .tut-card{width:100%;display:flex;align-items:center;gap:8px;padding:5px 4px 5px 8px;border-radius:14px;background:rgba(6,11,20,.88);border:1px solid var(--hc);box-shadow:0 8px 22px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.04);transition:border-color .25s}
 .tut-card.tut-in{animation:tutin .35s ease-out}
 .tut-card.ok{border-color:var(--ok)}

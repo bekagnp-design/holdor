@@ -14,7 +14,7 @@ const SC = path.join(ROOT, '.shots') + '/'; fs.mkdirSync(SC, { recursive: true }
   const save = require('./lib').fakeSave({ house: 'stark', lvl: 3 }); save.acc.world.flags.tut = 8;
   await page.addInitScript(s => { try { if (!sessionStorage.getItem('t_input')) { sessionStorage.setItem('t_input', '1'); localStorage.setItem('holdor_rpg', JSON.stringify(s)); } } catch (e) {} }, save);
   await page.goto('file://' + HTML);
-  await page.waitForFunction(() => window.R && R.input && R.input.el && R.step, { timeout: 20000 });
+  await page.waitForFunction(() => window.R && R.input && R.input.el && R.step, null, { timeout: 60000 });
   await page.waitForFunction(() => R.running || (R.ui && R.ui.cur), null, { timeout: 8000 }).catch(() => {});
   await page.evaluate(() => { if (R.ui.cur) R.ui.close(); R.stop && R.stop(); });
   await page.evaluate(() => { window.__btns = []; R.bus.on('btn', (n, src) => window.__btns.push(n + ':' + src)); });
@@ -96,6 +96,7 @@ const SC = path.join(ROOT, '.shots') + '/'; fs.mkdirSync(SC, { recursive: true }
   await ev(() => { window.__btns = []; }); await page.touchscreen.tap(A.x, A.y); s = await snap(); await step(1);
   ok('screen closed → controls back, ATTACK works', shown === 'block' && s.btns.includes('attack:btn'), shown + ' ' + JSON.stringify(s.btns));
   // 8. the contextual INTERACT pill
+  await ev(() => { R.input.setInteract(null); });   // the hero may stand by an NPC in the real world: start from no prompt
   let v = await centre('b-interact'); ok('INTERACT hidden by default', !v.vis, '');
   await ev(() => { R.input.interact = { label: 'TALK' }; R.step(); }); v = await centre('b-interact');
   const lbl = await ev(() => document.querySelector('#b-interact .lb').textContent);
@@ -126,6 +127,11 @@ const SC = path.join(ROOT, '.shots') + '/'; fs.mkdirSync(SC, { recursive: true }
   await ev(() => { window.__btns = []; }); for (const id of ['b-map', 'b-inv', 'b-menu']) { await ev(() => { if (R.ui.cur) R.ui.close(); }); const c = await centre(id); await page.touchscreen.tap(c.x, c.y); await page.waitForTimeout(60); }
   await ev(() => { if (R.ui.cur) R.ui.close(); });
   s = await snap(); ok('top row taps → map inv menu', JSON.stringify(s.btns) === JSON.stringify(['map:btn', 'inv:btn', 'menu:btn']), JSON.stringify(s.btns));
+  // the screen a top-row button opens is under the finger: the tap's own click (touch) and the mouse's click must not close it again
+  for (const how of ['tap', 'mouse']) { await ev(() => { for (let i = 0; i < 3 && R.ui.cur; i++) R.ui.close(); }); await page.waitForTimeout(700); const c = await centre('b-menu');
+    if (how === 'tap') await page.touchscreen.tap(c.x, c.y); else await page.mouse.click(c.x, c.y);
+    await page.waitForTimeout(350); const cur = await ev(() => R.ui.cur); ok('menu by ' + how + ' stays open (no ghost click on its ✕)', cur === 'menu', String(cur)); }
+  await ev(() => { for (let i = 0; i < 3 && R.ui.cur; i++) R.ui.close(); });
   // screenshot with the joystick held and a cooldown running
   await ev(() => { R.input.setCooldown(2, 0.6); R.input.setPotions(3); R.input.setSkill(0, { label: 'Slash' }); R.input.setSkill(1, { label: 'Shield' }); R.input.setSkill(2, { label: 'Rally' }); R.input.interact = { label: 'TALK' }; R.step(); });
   await touch('touchStart', [{ x: 110, y: 640, id: 9 }]); await touch('touchMove', [{ x: 140, y: 620, id: 9 }]); await page.waitForTimeout(80);

@@ -33,3 +33,9 @@
 .chip.item{color:#f2e6c9}
 .chip.champ{color:var(--ok);border-color:rgba(127,208,106,.5)}
 @media (max-height:700px){.dlg-txt{font-size:16px;min-height:62px}.dlg-por{width:60px;height:60px;flex-basis:60px}.dlg-name{font-size:18px}}
+/* G7: the sheet always fits a 390×844 phone (or scrolls inside itself): compact secondary choices, a short entry slide */
+.dlg{max-height:min(78vh,calc(100% - 12px));overscroll-behavior:contain;touch-action:pan-y}
+@keyframes dlgin{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.dlg-ch{gap:6px}
+.dlg-ch button.dlg-b{min-height:46px;font-size:15px}
+.dlg-txt{min-height:56px}

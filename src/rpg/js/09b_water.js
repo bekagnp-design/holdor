@@ -10,9 +10,9 @@
      flowAt(x,y) → {x,y} unit vector | null       the river's flow at a river cell
      shorePoints(x,y,r) → [{x,y,nx,ny,kind}]      shoreline cell centres within r, (nx,ny) pointing to the land (for A46's wet sand + gulls)
      shoreDist(x,y) → cells to the nearest shore  (signed: + in water, − on land, ±6 max)
-     level (sea level, 0), CS (24), w, h, kind (Uint8Array: 0 land 1 river 2 lake 3 sea), cells {sea,lake,river}
+     level (sea level, 0), CS (world units per cell = R.W / 300: 24, or 108 at R.WS 4.5), w, h, kind (Uint8Array: 0 land 1 river 2 lake 3 sea), cells {sea,lake,river}
      debugCanvas(k) → canvas of the mask at k px per cell
-   3D (when R.render3d exists / 'render3d' fires, THREE present): one sea plane 7200×7200 (120² segments) at level + 2 that
+   3D (when R.render3d exists / 'render3d' fires, THREE present): one sea plane ≥ 7200 wide, sized from the fog's far end (planeFor) at level + 2 that
    follows the camera in 1200-unit steps, a custom ShaderMaterial (two sine waves 3–6 units, storm-driven; colour by the
    shore field; sun glint from R.render3d.uniforms.sunDir / R.ambience.sunDir; alpha .85; foam from the shore field and the
    terrain band 0.3–6 above sea level; fog from the scene) and one merged mesh for rivers + lakes at the terrain height
@@ -20,7 +20,8 @@
    uniforms: R.water.uniforms (uTime, uAmp, uSpeed, uStorm, uNight, uSun, uCamPos …); setStorm(k) overrides the weather. */
 (function () {
   const Wt = R.water = R.water || {};
-  const CS = 24, PLANE = 7200, SNAP = 1200, SEG = 120, RAMP = 6;   // the plane's edge stays ≥ 3000 units out, past the clear-day fog (2600)
+  // CS: world units per mask cell = R.W / 300 (24 at the old 7200-wide world, 108 at R.WS = 4.5); set again by build()
+  let CS = (R.W || 7200) / 300, PLANE = 7200, SEG = 120; const SNAP = 1200, RAMP = 6;   // the plane grows with the fog (planeFor): its edge stays past the fog's far end
   Wt.CS = CS; Wt.level = 0; Wt.ready = false; Wt.w = 0; Wt.h = 0; Wt.kind = null; Wt.cells = { sea: 0, lake: 0, river: 0 };
   Wt.stats = { buildMs: 0, drawCalls: 0 };
   let w = 0, h = 0, N = 0, kind = null, shore = null, flowX = null, flowY = null, shoreList = [], buckets = null, BK = 10, bw = 0, bh = 0;
@@ -41,7 +42,7 @@
     try { P = pixels(img); } catch (e) { P = null; }
     if (!P) return null;
     const { d, iw, ih } = P; const S = iw / 300;                         // art px per cell (4 for the 1200-px art)
-    w = Math.round(iw / S); h = Math.round(ih / S); N = w * h;
+    w = Math.round(iw / S); h = Math.round(ih / S); N = w * h; CS = Wt.CS = (R.W || iw * (R.SCALE || 6)) / w;   // the mask spans the whole world at any R.WS
     const seaC = new Uint8Array(N), blueC = new Uint8Array(N), redC = new Uint8Array(N);
     for (let y = 0; y < ih; y++) { const by = Math.min(h - 1, (y / S) | 0) * w; for (let x = 0; x < iw; x++) { const i = (y * iw + x) * 4, r = d[i], g = d[i + 1], b = d[i + 2], lum = r * 3 + g * 6 + b, k = by + Math.min(w - 1, (x / S) | 0);
       if ((b > r + 16 && b > g + 4) || (b > r + 8 && b > g + 2 && lum < 1000)) blueC[k]++;                // blue-purple lines, dark blue lakes
@@ -132,18 +133,18 @@
   const T = window.THREE; let R3 = null, sea = null, rivers = null, matSea = null, matRiv = null, info = null, noise = null, infoDirty = true, riversDirty = true, lastHm = null, U = null;
   const DEF_SUN = { x: .4, y: .8, z: .45 };
   const VS = [
-    'uniform float uTime, uAmp, uSpeed, uRiver; attribute vec2 aFlow; attribute float aAcross, aDepth;',
-    'varying vec3 vW, vN; varying vec2 vFlow; varying float vAcross, vDepth;',
+    'uniform float uTime, uAmp, uSpeed, uRiver; attribute vec2 aFlow; attribute float aAcross, aDepth, aAlong;',
+    'varying vec3 vW, vN; varying vec2 vFlow; varying float vAcross, vDepth, vAlong;',
     '#include <fog_pars_vertex>',
     'void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); float amp = uAmp * (1.0 - uRiver);',
     ' float p1 = wp.x * 0.021 + wp.z * 0.013 + uTime * uSpeed * 1.3; float p2 = wp.x * -0.009 + wp.z * 0.027 + uTime * uSpeed * 0.9;',
     ' wp.y += amp * (0.6 * sin(p1) + 0.4 * sin(p2)); float c1 = cos(p1), c2 = cos(p2);',
     ' vN = normalize(vec3(-amp * (0.6 * c1 * 0.021 - 0.4 * c2 * 0.009), 1.0, -amp * (0.6 * c1 * 0.013 + 0.4 * c2 * 0.027)));',
-    ' vW = wp.xyz; vFlow = aFlow; vAcross = aAcross; vDepth = aDepth; vec4 mvPosition = viewMatrix * wp; gl_Position = projectionMatrix * mvPosition;',
+    ' vW = wp.xyz; vFlow = aFlow; vAcross = aAcross; vDepth = aDepth; vAlong = aAlong; vec4 mvPosition = viewMatrix * wp; gl_Position = projectionMatrix * mvPosition;',
     '#include <fog_vertex>', '}'].join('\n');
   const FS = [
     'uniform sampler2D uInfo, uNoise; uniform float uTime, uRiver, uAlpha, uNight, uLevel, uHScale, uHasMask, uSpeed; uniform vec3 uSun, uCamPos, uDeep, uShallow, uFoam, uLakeDeep, uLakeShallow; uniform vec2 uWorld, uOrigin;',
-    'varying vec3 vW, vN; varying vec2 vFlow; varying float vAcross, vDepth;',
+    'varying vec3 vW, vN; varying vec2 vFlow; varying float vAcross, vDepth, vAlong;',
     '#include <fog_pars_fragment>',
     'void main(){',
     ' vec4 info = texture2D(uInfo, vW.xz / uWorld); float g = mix(0.8, info.g, uHasMask); float hgt = info.r * uHScale;',
@@ -163,10 +164,10 @@
     ' float bandT = smoothstep(uLevel + 0.3, uLevel + 1.5, hgt) * (1.0 - smoothstep(uLevel + 4.0, uLevel + 6.0, hgt));',
     ' float fn = smoothstep(0.3, 0.75, n1.g * 0.6 + n2.r * 0.4 + 0.08); float foam = max(bandM, bandT) * fn * (1.0 - uRiver);',
     ' float edge = abs(vAcross) + (n2.r - 0.5) * 0.5; float riverFoam = smoothstep(0.6, 0.95, edge) * 0.3 * uRiver * step(vDepth, 0.75);',
-    ' float bank = vDepth < 0.75 ? 1.0 - smoothstep(0.45, 1.0, edge) : smoothstep(0.47, 0.58, g);',
+    ' float bank = vDepth < 0.75 ? (1.0 - smoothstep(0.45, 1.0, edge)) * (1.0 - smoothstep(0.5, 1.0, abs(vAlong))) : smoothstep(0.47, 0.58, g);',
     ' foam = max(foam, riverFoam) + bandM * fn * 0.35 * uRiver * step(0.75, vDepth);',
     ' col = mix(col, uFoam, clamp(foam * 0.75, 0.0, 1.0)); col *= 1.0 - 0.6 * uNight;',
-    ' float a = mix(uAlpha * smoothstep(0.48, 0.6, g) + foam * 0.12, bank * 0.92, uRiver); if (a < 0.01) discard;',
+    ' float a = mix(uAlpha * smoothstep(0.48, 0.6, g) + foam * 0.12, bank, uRiver); if (a < 0.01) discard;',   // an opaque core: overlapping river quads do not stack into a brick pattern
     ' gl_FragColor = vec4(col, clamp(a, 0.0, 1.0));',
     '#include <fog_fragment>', '}'].join('\n');
   function makeNoise() {
@@ -191,8 +192,8 @@
   }
   function buildRivers() {      // one merged geometry: oriented quads for river cells (soft banks by aAcross), cell quads for lake cells (+ one ring)
     if (!kind) return; if (rivers) { R3.scene.remove(rivers); rivers.geometry.dispose(); rivers = null; }
-    const pos = [], flow = [], across = [], depth = [], idx = []; let v = 0;
-    const quad = (pts, fx, fy, ac, dp) => { for (let i = 0; i < 4; i++) { pos.push(pts[i][0], pts[i][1], pts[i][2]); flow.push(fx, fy); across.push(ac[i]); depth.push(dp); } idx.push(v, v + 2, v + 1, v, v + 3, v + 2); v += 4; };
+    const pos = [], flow = [], across = [], depth = [], along = [], idx = []; let v = 0;
+    const quad = (pts, fx, fy, ac, dp, al) => { for (let i = 0; i < 4; i++) { pos.push(pts[i][0], pts[i][1], pts[i][2]); flow.push(fx, fy); across.push(ac[i]); depth.push(dp); along.push(al ? al[i] : 0); } idx.push(v, v + 2, v + 1, v, v + 3, v + 2); v += 4; };
     const lakeSet = new Uint8Array(N), lakeY = {}; const lakeId = new Int32Array(N).fill(-1);
     for (let k = 0; k < N; k++) { if (kind[k] !== 2) continue; const x = k % w, y = (k / w) | 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = x + dx, Y = y + dy; if (X >= 0 && Y >= 0 && X < w && Y < h && kind[Y * w + X] !== 3) lakeSet[Y * w + X] = 1; } }
     // lake surfaces: per connected lake, the 90th percentile of the ground height + 1.5 (flat)
@@ -204,11 +205,11 @@
       const x = k % w, y = (k / w) | 0, cx = (x + .5) * CS, cy = (y + .5) * CS;
       if (kind[k] === 1) { const fx = flowX[k] / 127, fy = flowY[k] / 127, L = CS * 1.15, Wd = CS * 0.62, px = -fy, py = fx; const P = [];
         for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const X = cx + fx * L * a + px * Wd * b, Y = cy + fy * L * a + py * Wd * b; P.push([X, groundY(X, Y) + 1.2, Y]); }
-        quad(P, fx, fy, [-1, -1, 1, 1], 0.5); }
+        quad(P, fx, fy, [-1, -1, 1, 1], 0.5, [-1, 1, 1, -1]); }
       else if (lakeSet[k]) { const ly = lakeY[lakeId[k]], x0 = x * CS, y0 = y * CS; quad([[x0, ly, y0], [x0 + CS, ly, y0], [x0 + CS, ly, y0 + CS], [x0, ly, y0 + CS]], 0, 0, [0, 0, 0, 0], 1); } }
     if (!v) { riversDirty = false; return; }
     const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('aFlow', new T.Float32BufferAttribute(flow, 2));
-    geo.setAttribute('aAcross', new T.Float32BufferAttribute(across, 1)); geo.setAttribute('aDepth', new T.Float32BufferAttribute(depth, 1)); geo.setIndex(idx); geo.computeBoundingSphere();
+    geo.setAttribute('aAcross', new T.Float32BufferAttribute(across, 1)); geo.setAttribute('aDepth', new T.Float32BufferAttribute(depth, 1)); geo.setAttribute('aAlong', new T.Float32BufferAttribute(along, 1)); geo.setIndex(idx); geo.computeBoundingSphere();
     rivers = new T.Mesh(geo, matRiv); rivers.name = 'water-rivers'; rivers.renderOrder = 5; rivers.frustumCulled = true; R3.scene.add(rivers); Wt.rivers = rivers; riversDirty = false;
   }
   /* the renderer's heightmap reads dark art as high ground, so the God's Eye and the river lines come out as ridges ("the dark blob
@@ -220,7 +221,7 @@
     const NX = hm.w, NY = hm.h, DX = R.W / (NX - 1), DZ = R.H / (NY - 1), M = NX * NY, wk = new Uint8Array(M), H0 = Float32Array.from(H);
     const ns = new Uint8Array(M);
     for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) { let q = 0, sc = 0;
-      for (const oy of [-14, 0, 14]) for (const ox of [-14, 0, 14]) { const c = cellOf(Math.min(R.W - 1, Math.max(0, i * DX + ox)), Math.min(R.H - 1, Math.max(0, j * DZ + oy))); if (c < 0) continue; const v = kind[c]; if (v === 3) sc++; else if (v === 2) q = 2; else if (v === 1 && q !== 2) q = 1; }
+      const so = CS * 0.58; for (const oy of [-so, 0, so]) for (const ox of [-so, 0, so]) { const c = cellOf(Math.min(R.W - 1, Math.max(0, i * DX + ox)), Math.min(R.H - 1, Math.max(0, j * DZ + oy))); if (c < 0) continue; const v = kind[c]; if (v === 3) sc++; else if (v === 2) q = 2; else if (v === 1 && q !== 2) q = 1; }
       wk[j * NX + i] = sc ? 0 : q; ns[j * NX + i] = sc; }
     let n = 0;
     // the sea: the art's olive wash reads as a plateau in the renderer, so every vertex the mask calls sea goes under the sea plane
@@ -259,19 +260,28 @@
       Wt.matSea = matSea; Wt.matRiv = matRiv;
     }
     if (sea) { try { sea.parent && sea.parent.remove(sea); } catch (e) {} }
-    const geo = new T.PlaneGeometry(PLANE, PLANE, SEG, SEG); geo.rotateX(-Math.PI / 2); const nv = geo.attributes.position.count;
-    geo.setAttribute('aFlow', new T.Float32BufferAttribute(new Float32Array(nv * 2), 2)); geo.setAttribute('aAcross', new T.Float32BufferAttribute(new Float32Array(nv), 1)); geo.setAttribute('aDepth', new T.Float32BufferAttribute(new Float32Array(nv).fill(1), 1));
+    planeFor(); const geo = new T.PlaneGeometry(PLANE, PLANE, SEG, SEG); geo.rotateX(-Math.PI / 2); const nv = geo.attributes.position.count;
+    geo.setAttribute('aFlow', new T.Float32BufferAttribute(new Float32Array(nv * 2), 2)); geo.setAttribute('aAcross', new T.Float32BufferAttribute(new Float32Array(nv), 1)); geo.setAttribute('aDepth', new T.Float32BufferAttribute(new Float32Array(nv).fill(1), 1)); geo.setAttribute('aAlong', new T.Float32BufferAttribute(new Float32Array(nv), 1));
     sea = new T.Mesh(geo, matSea); sea.name = 'water-sea'; sea.renderOrder = 10; sea.frustumCulled = false; sea.position.y = Wt.level + 2; R3.scene.add(sea); Wt.sea = sea;
     infoDirty = true; riversDirty = true; lastHm = R3.heightmap || null; Wt.stats.drawCalls = 1;
     follow();
   }
   Wt.attach = attach;
+  // the plane's size: twice the camera's reach (fog far × 1.25, what the renderer clips at) plus a snap step, ≥ 7200; ≤ 75 units per segment
+  function planeFor() { const f = R3 && R3.scene && R3.scene.fog ? R3.scene.fog.far : 2600, cf = R3 && R3.camera ? R3.camera.far : f * 1.25;
+    const need = Math.max(7200, Math.ceil((Math.max(f * 1.25, Math.min(cf, f * 2)) + SNAP) * 2 / SNAP) * SNAP); if (need === PLANE && sea) return false;
+    PLANE = need; SEG = Math.min(200, Math.max(120, Math.ceil(PLANE / 75))); Wt.planeSize = PLANE; return true; }
+  function regrowPlane() { if (!sea || !R3) return; const old = PLANE; planeFor(); if (PLANE === old) return;
+    const geo = new T.PlaneGeometry(PLANE, PLANE, SEG, SEG); geo.rotateX(-Math.PI / 2); const nv = geo.attributes.position.count;
+    geo.setAttribute('aFlow', new T.Float32BufferAttribute(new Float32Array(nv * 2), 2)); geo.setAttribute('aAcross', new T.Float32BufferAttribute(new Float32Array(nv), 1)); geo.setAttribute('aDepth', new T.Float32BufferAttribute(new Float32Array(nv).fill(1), 1)); geo.setAttribute('aAlong', new T.Float32BufferAttribute(new Float32Array(nv), 1));
+    const g0 = sea.geometry; sea.geometry = geo; try { g0.dispose(); } catch (e) {} }
+  Wt.planeFor = () => { regrowPlane(); return PLANE; };
   function follow() {
     if (!sea || !R3) return; const cam = R3.camera; const cx = cam ? cam.position.x : (R.cam.x || 0), cz = cam ? cam.position.z : (R.cam.y || 0);
     sea.position.x = Math.round(cx / SNAP) * SNAP; sea.position.z = Math.round(cz / SNAP) * SNAP; sea.position.y = Wt.level + 2; U.uOrigin.value.set(sea.position.x, sea.position.z);
     if (cam) U.uCamPos.value.copy(cam.position);
   }
-  let storm = 0, stormSet = null;
+  let storm = 0, stormSet = null, planeT = 0;
   Wt.setStorm = k => { stormSet = k == null ? null : R.clamp(+k || 0, 0, 1); };
   R.bus.on('render3d', r3 => attach(r3));
   if (R.assets && R.assets.ready && R.assets.ready.then) R.assets.ready.then(() => { if (!Wt.ready) Wt.build(); }).catch(() => {});
@@ -286,6 +296,6 @@
       U.uNight.value = A.nightK != null ? A.nightK : (A.night ? 1 : 0); U.uLevel.value = Wt.level;
       const sd = (R3 && R3.uniforms && R3.uniforms.sunDir && R3.uniforms.sunDir.value) || (A.sunDir && A.sunDir.y > 0.05 ? A.sunDir : null) || DEF_SUN;
       U.uSun.value.set(sd.x, Math.max(0.08, sd.y), sd.z).normalize();
-      if (R3) { if (R3.heightmap !== lastHm) { lastHm = R3.heightmap; infoDirty = true; riversDirty = true; } if (kind && R3.heightmap && !R3.heightmap.waterCarved && Wt.carve()) { infoDirty = true; riversDirty = true; } if (infoDirty && kind) buildInfo(); if (riversDirty && kind) { buildRivers(); Wt.stats.drawCalls = 1 + (rivers ? 1 : 0); } follow(); }
+      if (R3) { if (R3.heightmap !== lastHm) { lastHm = R3.heightmap; infoDirty = true; riversDirty = true; } if (kind && R3.heightmap && !R3.heightmap.waterCarved && Wt.carve()) { infoDirty = true; riversDirty = true; } if (infoDirty && kind) buildInfo(); if ((planeT -= dt) <= 0) { planeT = 1; regrowPlane(); } if (riversDirty && kind) { buildRivers(); Wt.stats.drawCalls = 1 + (rivers ? 1 : 0); } follow(); }
     } });
 })();

@@ -13,13 +13,15 @@ const SC = path.resolve(__dirname, '..', '..', '.shots') + '/'; fs.mkdirSync(SC,
   page.on('console', m => { if (m.type() === 'error' && !/ERR_|Failed to load|net::|telegram/i.test(m.text())) errors.push('C:' + m.text()); });
   await page.goto('file://' + path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'beta/index.html'));
   await page.waitForFunction(() => window.R && R.bus && R.screens && R.screens.levelup && R.levelup, { timeout: 20000 });
+  // the boot (90_main) loads the save once the assets are ready and would replace a state the test made before it: wait for it
+  await page.waitForFunction(() => !!R.boot, null, { timeout: 60000 }).catch(() => {});
   await page.waitForTimeout(300);
   const res = {}; let fails = 0; const ok = (k, v, info) => { res[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); if (!v) fails++; };
 
   // what the other modules would give — faked only when absent
   const setup = await page.evaluate(() => {
     if (R.ui.cur) R.ui.close();
-    if (!R.state) R.state = R.newState(); const p = R.state.p; p.lvl = 3; p.cls = 'knight'; p.house = 'stark'; p.name = 'Test'; p.pts = 0; p.stats = { str: 7, agi: 5, int: 5, vit: 6 }; p.bar = [null, null, null]; p.skills = {}; R.state.opts.manualPts = 0;
+    if (!R.state) R.state = R.newState(); const p = R.state.p; p.lvl = 3; p.cls = 'knight'; p.house = 'stark'; p.name = 'Test'; p.hero = p.hero || 'jon'; p.pts = 0; p.stats = { str: 7, agi: 5, int: 5, vit: 6 }; p.bar = [null, null, null]; p.skills = {}; R.state.opts.manualPts = 0;
     if (!R.player) R.player = R.spawn({ kind: 'player', team: 0, x: 3000, y: 6000, lvl: 3, hp: 210, hpMax: 210, atk: 26, def: 11, spd: 170 });
     let sk = R.levelup.skillsAt(3, 4, 'knight')[0];
     if (!sk) { const fake = { id: 't_shieldwall', cls: 'knight', name: 'Shield Wall', unlock: 4, icon: '🛡️', desc: 'Raise the shield: the next three blows do nothing.' };
@@ -37,11 +39,12 @@ const SC = path.resolve(__dirname, '..', '..', '.shots') + '/'; fs.mkdirSync(SC,
     return { cur: R.ui.cur, paused: R.paused, num: t('.lvup .hd .n'), skill: t('.lvup .sk .tx b'), slotBtn: t('.lvup .sk .slot'), rows: el.querySelectorAll('.lvup .st tr').length, hpB: +t('.lvup .st tr:first-child .b'), hpA: +t('.lvup .st tr:first-child .a'), hpD: t('.lvup .st tr:first-child .d'),
       auto: !!q('.lvup .auto.on'), ptsTxt: t('.lvup .pts .t'), plusOn: [...el.querySelectorAll('.lvup .pb')].filter(b => !b.disabled).length, pts: p.pts, str: p.stats.str, sum: Object.values(p.stats).reduce((a, b) => a + b, 0), bar: p.bar.slice(), say: t('.lvup .say'), go: !!q('.lvup .go'), sigil: !!q('.lvup .sig') }; });
 
-  await page.evaluate(() => window.__lvl(4));
-  await page.waitForFunction(() => R.ui.cur === 'levelup', { timeout: 5000 });
+  // whatever screen the boot left open (the intro for a save without a hero) closes first: the card waits for a free screen
+  await page.evaluate(() => { for (let i = 0; i < 4 && R.ui.cur; i++) R.ui.close(); window.__lvl(4); });
+  await page.waitForFunction(() => R.ui.cur === 'levelup', null, { timeout: 8000 });
   let s = await read();
   ok('card opens: LEVEL 4, paused, 4 stat rows, sigil, story, CONTINUE', s.cur === 'levelup' && s.paused && s.num === '4' && s.rows === 4 && s.sigil && !!s.say && s.go, JSON.stringify(s));
-  ok('the skill unlocked at 4', s.skill === setup.skName && /PUT IN SLOT/.test(s.slotBtn), s.skill + ' / ' + s.slotBtn);
+  ok('the skill unlocked at 4', s.skill === setup.skName && /PUT IN SLOT|IN SLOT \d/.test(s.slotBtn), s.skill + ' / ' + s.slotBtn);
   ok('AUTO pre-applies 3 points', s.auto && s.pts === 0 && s.sum === setup.sum0 + 3 && s.plusOn === 0, 'pts ' + s.pts + ' sum ' + s.sum + ' (was ' + setup.sum0 + ') ' + s.ptsTxt);
   ok('HP before → after real', s.hpB === setup.hp0 && s.hpA > s.hpB && s.hpD === '+' + (s.hpA - s.hpB), s.hpB + ' → ' + s.hpA + ' ' + s.hpD);
   await page.tap('.lvup .auto'); await page.waitForTimeout(120); s = await read();
@@ -49,8 +52,9 @@ const SC = path.resolve(__dirname, '..', '..', '.shots') + '/'; fs.mkdirSync(SC,
   const str0 = s.str;
   await page.tap('.lvup .pb[data-k="str"]'); await page.waitForTimeout(120); s = await read();
   ok('+ STR spends one point', s.pts === 2 && s.str === str0 + 1 && s.hpA >= setup.hp0, 'pts ' + s.pts + ' str ' + s.str);
-  await page.tap('.lvup .sk .slot'); await page.waitForTimeout(150); s = await read();
-  ok('PUT IN SLOT fills the bar', s.bar.indexOf(setup.skId) >= 0 && /IN SLOT 1/.test(s.slotBtn), JSON.stringify(s.bar) + ' ' + s.slotBtn);
+  // the skills module may already have slotted the new skill (then the button reads IN SLOT n ✓ and is disabled)
+  if (/PUT IN SLOT/.test(s.slotBtn)) { await page.tap('.lvup .sk .slot'); await page.waitForTimeout(150); } s = await read();
+  ok('PUT IN SLOT fills the bar', s.bar.indexOf(setup.skId) >= 0 && new RegExp('IN SLOT ' + (s.bar.indexOf(setup.skId) + 1)).test(s.slotBtn), JSON.stringify(s.bar) + ' ' + s.slotBtn);
   await page.waitForTimeout(400);
   await page.screenshot({ path: SC + 'rpg_levelup.png' });
   const t0 = await page.evaluate(() => R.t);

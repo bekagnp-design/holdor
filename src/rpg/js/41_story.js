@@ -713,7 +713,11 @@
   const KIND = { steward: 'lord', maester: 'maester', arms: 'guard', innkeep: 'innkeeper', smith: 'smith', septon: 'septon', priest: 'septon', hunter: 'hunter', ranger: 'ranger',
     fisher: 'fisher', captain: 'sellsword', miner: 'farmer', gardener: 'farmer', rider: 'ranger', smuggler: 'sellsword', scribe: 'maester', turncloak: 'wildling', keeper: 'elder',
     ferryman: 'fisher', carter: 'farmer', falconer: 'hunter', novice: 'maester', harbour: 'fisher', warden: 'steward', elder: 'elder' };
-  for (const n of NPCS) { n.poi = ALIAS[n.poi] || n.poi; n.kind = KIND[n.role] || 'villager'; if (n.sprite.indexOf('champ:') === 0) n.champ = n.sprite.slice(6);
+  const LABEL = { steward: 'Castellan', arms: 'Master-at-arms', innkeep: 'Innkeeper', smith: 'Smith', maester: 'Maester', septon: 'Septon', priest: 'Drowned priest',
+    hunter: 'Hunter', ranger: 'Ranger', fisher: 'Fisherman', captain: 'Captain', miner: 'Mine foreman', gardener: 'Gardener', rider: 'Sand rider', smuggler: 'Smuggler',
+    scribe: 'Scribe', turncloak: 'Free folk', keeper: 'Keeper', ferryman: 'Ferryman', carter: 'Carter', falconer: 'Falconer', novice: 'Novice', harbour: 'Harbour master',
+    warden: 'Warden', elder: 'Elder' };
+  for (const n of NPCS) { n.poi = ALIAS[n.poi] || n.poi; n.kind = KIND[n.role] || 'villager'; n.label = LABEL[n.role] || n.role; if (n.sprite.indexOf('champ:') === 0) n.champ = n.sprite.slice(6);
     const sv = []; if (n.role === 'smith') sv.push('smith'); if (n.lines.inn) sv.push('inn'); if (n.lines.shop && (n.role === 'smith' || !n.lines.inn)) sv.push('shop'); n.services = sv; }
   const W = () => D.world || null;
   const regionOfPoi = pid => { const w = W(); const p = w && (w.poiById ? w.poiById[pid] : (w.pois || []).find(x => x.id === pid)); return p ? p.region : null; };
@@ -722,7 +726,13 @@
   const seatNpc = (house, role) => NPCS.find(n => n.poi === (SEATS[house] || 'winterfell') && n.role === role);
   const resolveId = (v, house) => { if (typeof v !== 'string') return v; v = ALIAS[v] || v; if (v === 'seat') return SEATS[house] || 'winterfell'; if (v.indexOf('seat:') === 0) { const n = seatNpc(house, v.slice(5)); return n ? n.id : v; } if (v.indexOf('house:') === 0) return champOf(house, +v.slice(6) || 0); return v; };
   const ctx = (house, q) => { const c = { house: HOUSE_NAMES[house] || house, seat: SEAT_NAMES[SEATS[house]] || 'the seat' }; if (q && q.hero) c.hero = champName(resolveId(q.hero, house)); return c; };
-  const fmt = (s, c) => typeof s === 'string' ? s.replace(/\{(\w+)\}/g, (m, k) => c && c[k] != null ? c[k] : m) : s;
+  /* ONE resolver for every line of the game: fills {hero} {house} {seat} {name} {lvl} {killer} {p} {n} {poi} {h} from ctx, then from the save
+     (the account's house and seat, the current hero); a placeholder nobody can fill is left as written. Arrays are formatted item by item. */
+  const defaults = () => { const S = R.state || {}, a = S.acc || {}, p = S.p || {}, house = a.house || p.house || 'stark', hn = HOUSE_NAMES[house] || house;
+    const hero = p.name || (p.hero ? champName(p.hero) : champName(champOf(house, 0)));
+    return { house: hn, h: hn, seat: SEAT_NAMES[SEATS[house]] || 'the seat', hero, name: hero, p: p.name || 'traveller', lvl: p.lvl != null ? p.lvl : 1, killer: 'the cold' }; };
+  const fmt = (s, c) => { if (Array.isArray(s)) return s.map(x => fmt(x, c)); if (typeof s !== 'string' || s.indexOf('{') < 0) return s; let d = null;
+    return s.replace(/\{(\w+)\}/g, (m, k) => { if (c && c[k] != null) return c[k]; if (!d) { try { d = defaults(); } catch (e) { d = {}; } } return d[k] != null ? d[k] : m; }); };
   R.story = { seats: SEATS, hubs: HUBS, champName, champOf, seatNpc, fmt, ctx, resolveId, alias: ALIAS, fitMob,
     seatOf: house => SEATS[house] || 'winterfell',
     pick: arr => arr && arr.length ? arr[Math.floor(Math.random() * arr.length)] : '',

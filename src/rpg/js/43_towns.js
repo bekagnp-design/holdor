@@ -75,6 +75,11 @@
     const rng = mkRng(hash(poi.id + ':' + day())); let list = null; const i = I();
     if (i && i.shopStock) { try { list = i.shopStock(poi, lvl, rng); } catch (e) { console.warn('items.shopStock', e); } }
     if (!list || !list.length) { list = []; const rars = [0, 0, 1, 1, 2, rng() < .25 ? 3 : 2], kinds = ['weapon', 'armor', 'trinket', 'weapon', 'armor', 'trinket']; for (let k = 0; k < 6; k++) list.push(roll(Math.max(1, lvl + (k % 3) - 1), rars[k], rng) || fakeRoll(lvl, rars[k], rng, kinds[k])); }
+    // a house's sigil ring is sold only on that house's ground (no direwolf rings at Casterly Rock): others are re-rolled
+    const SIG = { t_ring_wolf: 'stark', t_ring_lion: 'lannister', t_ring_stag: 'baratheon' }, W = R.data.world;
+    const home = poi.house || (W && W.regionById && poi.region && W.regionById[poi.region] && W.regionById[poi.region].home) || null;
+    const foreign = it => !!(it && SIG[it.base] && SIG[it.base] !== home);
+    list = list.map(it => { if (!foreign(it)) return it; for (let k = 0; k < 4; k++) { const r = roll(Math.max(1, it.lvl || lvl), it.rar | 0, rng); if (r && !foreign(r)) return r; } return fakeRoll(it.lvl || lvl, it.rar | 0, rng, it.kind); }).filter(Boolean);
     return cache[key] = list.slice(0, 6); };
   const soldKey = poi => poi.id + ':' + day();
   const sold = poi => { const p = P(); if (!p) return []; const f = p.flags = p.flags || {}; const S = f.shopSold = f.shopSold || {}; const k = soldKey(poi); for (const q in S) if (q !== k) delete S[q]; return S[k] = S[k] || []; };
@@ -84,7 +89,11 @@
   const matN = m => m && typeof m === 'object' ? Object.values(m).reduce((a, v) => a + (v | 0), 0) : m | 0;
   T.upgradeCost = it => { const i = I(); if (i && i.upgradeCost) { try { const c = i.upgradeCost(it); if (c) return { gold: c.gold | 0, mats: matN(c.mats) }; } catch (e) {} } const up = it ? (it.up | 0) : 0, lvl = it ? (it.lvl | 0) || 1 : 1; return { gold: Math.round((40 + 12 * lvl) * (1 + up) * (1 + .3 * (it ? it.rar | 0 : 0))), mats: 2 + up }; };
   T.canUpgrade = it => !!it && /^(weapon|armor|trinket)$/.test(it.kind) && (it.up | 0) < T.MAX_UP;
-  const upgrade = it => { const i = I(); if (i && i.upgrade) { try { const r = i.upgrade(it, { paid: true }); if (r && r !== it && r.id) Object.assign(it, r); return true; } catch (e) { console.warn('items.upgrade', e); } }
+  // the smith has already taken the gold and the mats: 30_items' upgrade(it, mats) charges gold itself and checks a typed mats purse,
+  // so it gets the gold back for the call and a purse that holds exactly its typed cost; when it still refuses, the local step applies
+  const upgrade = it => { const i = I(); if (i && i.upgrade) { try { const c = i.upgradeCost ? i.upgradeCost(it) : null, p = P();
+      const purse = c && c.mats && typeof c.mats === 'object' ? Object.assign({}, c.mats) : { paid: true }; const g = c && p ? (c.gold | 0) : 0; if (p) p.gold = (p.gold || 0) + g;
+      const r = i.upgrade(it, purse); if (r && r.ok === false) { if (p) p.gold -= g; } else { if (r && r !== it && r.id) Object.assign(it, r); return true; } } catch (e) { console.warn('items.upgrade', e); } }
     it.up = (it.up | 0) + 1; it.lvl = (it.lvl | 0) + 1; const st = it.stats = it.stats || {}; for (const k in st) st[k] = k === 'crit' || k === 'spd' ? Math.round((st[k] + .5) * 10) / 10 : Math.max(st[k] + 1, Math.round(st[k] * 1.1)); return true; };
   const reforge = it => { const i = I(); if (i && i.reforge) { try { const r = i.reforge(it, { paid: true }); if (r && r !== it && r.id) Object.assign(it, r); return true; } catch (e) { console.warn('items.reforge', e); } }
     const m = T.mainStat(it), st = it.stats = it.stats || {}; const old = Object.keys(st).find(k => k !== m); const ks = Object.keys(BASE).filter(k => k !== m && k !== old); const k = ks[Math.floor(rnd() * ks.length)];
@@ -113,7 +122,9 @@
     el.appendChild(root); return root.querySelector('.tw-body'); };
   const refreshBal = root => { const b = root.querySelectorAll('.tw-bal b'); if (b[0]) b[0].textContent = fmt(gold()); if (b[1]) b[1].textContent = fmt(gems()); };
   const flash = (txt, col) => { const d = document.createElement('div'); d.className = 'tw-flash'; d.innerHTML = `<b style="${col ? 'color:' + col : ''}">${esc(txt)}</b>`; (document.getElementById('screen') || document.body).appendChild(d); setTimeout(() => d.remove(), 950); hap('medium'); };
-  const cmpLine = it => { const p = P(), k = T.mainStat(it), v = (it.stats || {})[k] | 0, eq = p && p.gear && p.gear[it.kind], ev = eq ? ((eq.stats || {})[k] | 0) : null;
+  // a potion or a material has no main stat to compare: say what it does instead of "ATK 0 ▲ new"
+  const useLine = it => { const st = it.stats || {}, heal = it.heal || st.heal || st.hp || 0; return it.kind === 'potion' ? `<span>${heal ? 'Heals <b>' + heal + '</b>' : 'Restores health'}</span>` : `<span>${esc(it.kind === 'mat' ? 'Material' : (it.kind || 'Item'))}</span>`; };
+  const cmpLine = it => { if (!it || !/^(weapon|armor|trinket)$/.test(it.kind)) return useLine(it || {}); const p = P(), k = T.mainStat(it), v = (it.stats || {})[k] | 0, eq = p && p.gear && p.gear[it.kind], ev = eq ? ((eq.stats || {})[k] | 0) : null;
     const d = ev == null ? null : v - ev; const tag = d == null ? '<em class="up">▲ new</em>' : d > 0 ? `<em class="up">▲ +${d}</em>` : d < 0 ? `<em class="dn">▼ ${d}</em>` : '<em class="eq">= same</em>';
     return `<span>${STAT[k] || k.toUpperCase()} <b>${v}</b></span>${tag}`; };
   const buyBtn = (cur, price, attr, label) => { const have = cur === 'gems' ? gems() : gold(), can = have >= price; const chip = `<span class="tw-chip ${cur === 'gems' ? 'd' : ''}">${cur === 'gems' ? SVG.gem : SVG.gold}${fmt(price)}</span>`;

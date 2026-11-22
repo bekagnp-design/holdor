@@ -16,15 +16,29 @@
       waves: [['walker', 'walker', 'hound'], ['walker', 'walker', 'walker', 'hound'], ['giant', 'walker', 'walker']], floor: '#17283a', wall: '#070b12', torch: '#b9f0ff', line: 'The cold itself walks these tunnels.' }
   };
   const MAX_RUNS = 3, TIME = 600, LEAVE_T = 20, WAVE_GAP = 1.2;
-  const BOUNDS = { x: 6800, y: 100, w: 400, h: 600 };
-  const ROOMS = [{ x: 6850, y: 540, w: 300, h: 140 }, { x: 6850, y: 340, w: 300, h: 140 }, { x: 6850, y: 140, w: 300, h: 140 }];
-  const HALLS = [{ x: 6972, y: 480, w: 56, h: 60 }, { x: 6972, y: 280, w: 56, h: 60 }];
-  const DOORS = [{ x: 7000, y: 510, hall: 0 }, { x: 7000, y: 310, hall: 1 }];
-  const ENTRY = { x: 7000, y: 655 }, BOSS_AT = { x: 7000, y: 215 }, CHEST_AT = { x: 7000, y: 172 };
+  /* the instance lies OUTSIDE the world (x >= R.W + 1000: no region, no terrain, no discovery); OX shifts the layout drawn at x 6800–7200.
+     While inside, R.W and the world data's size are widened to the instance's right edge so the player / camera clamps let him move. */
+  const OX = Math.round((R.W || 7200) + 1000 - 6800);
+  const BOUNDS = { x: 6800 + OX, y: 100, w: 400, h: 600 };
+  const ROOMS = [{ x: 6850 + OX, y: 540, w: 300, h: 140 }, { x: 6850 + OX, y: 340, w: 300, h: 140 }, { x: 6850 + OX, y: 140, w: 300, h: 140 }];
+  const HALLS = [{ x: 6972 + OX, y: 480, w: 56, h: 60 }, { x: 6972 + OX, y: 280, w: 56, h: 60 }];
+  const DOORS = [{ x: 7000 + OX, y: 510, hall: 0 }, { x: 7000 + OX, y: 310, hall: 1 }];
+  const ENTRY = { x: 7000 + OX, y: 655 }, BOSS_AT = { x: 7000 + OX, y: 215 }, CHEST_AT = { x: 7000 + OX, y: 172 };
+  const widen = a => { a.prevRW = R.W; const edge = BOUNDS.x + BOUNDS.w + 200; if (!(R.W >= edge)) R.W = edge; const d = R.data.world;
+    if (d && Array.isArray(d.size)) { a.prevSize = d.size; d.size = [Math.max(d.size[0], edge), d.size[1]]; } };
+  /* a stone floor in the 3D scene under the instance: R.tex 'cobble' / 'stone_dark' (G10) on a plane at the entry's ground height */
+  const floor3d = a => { const R3 = R.render3d, T = window.THREE; if (!R3 || !R3.scene || !T) return; try {
+      let src = null; if (R.tex && typeof R.tex.get === 'function') { for (const k of ['cobble', 'stone_dark']) { try { src = R.tex.get(k); } catch (e) { src = null; } if (src) break; } }
+      let map = null; if (src) { map = src.isTexture ? src.clone() : new T.CanvasTexture(src); map.wrapS = map.wrapT = T.RepeatWrapping; map.repeat.set(BOUNDS.w / 48, BOUNDS.h / 48); map.needsUpdate = true; }
+      const m = new T.Mesh(new T.PlaneGeometry(BOUNDS.w + 120, BOUNDS.h + 120), new T.MeshLambertMaterial({ color: map ? 0xb8b0a4 : 0x2a2f38, map }));
+      m.rotation.x = -Math.PI / 2; const gy = R3.groundY ? R3.groundY(ENTRY.x, ENTRY.y) : 0; m.position.set(BOUNDS.x + BOUNDS.w / 2, (gy || 0) + 0.4, BOUNDS.y + BOUNDS.h / 2); m.name = 'dungeonFloor';
+      R3.scene.add(m); a.floor3d = m; } catch (e) { console.warn('dungeon floor', e); a.floor3d = null; } };
+  const unfloor = a => { const m = a.floor3d, R3 = R.render3d; if (!m) return; try { if (R3 && R3.scene) R3.scene.remove(m); m.geometry.dispose(); if (m.material.map) m.material.map.dispose(); m.material.dispose(); } catch (e) {} a.floor3d = null; };
+  const narrow = a => { unfloor(a); if (a.prevRW != null) R.W = a.prevRW; const d = R.data.world; if (d && a.prevSize) d.size = a.prevSize; };
   const inR = (r, x, y) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
   const day = () => new Date().toISOString().slice(0, 10);
   const flags = () => (R.state && R.state.p && (R.state.p.flags = R.state.p.flags || {})) || null;
-  const D = { DG, ROOMS, HALLS, BOUNDS, ENTRY, active: null, list: () => Object.values(DG) };
+  const D = { DG, ROOMS, HALLS, BOUNDS, ENTRY, OX, active: null, list: () => Object.values(DG) };
   R.dungeons = D;
 
   /* ---- walkable mask ---- */
@@ -78,7 +92,7 @@
   };
   const spawnChest = a => {
     const def = a.def, at = CHEST_AT; let e = null;
-    if (R.loot && R.loot.chest) { try { e = R.loot.chest(at.x, at.y, { lvl: def.lvl, rar: 2, gold: def.lvl * 25, gems: 0, dungeon: a.id }); } catch (x) { console.error('dungeon chest', x); } }
+    if (R.loot && R.loot.chest) { try { e = R.loot.chest(at.x, at.y, def.lvl, 2); if (e) e.dungeon = a.id; /* 32_loot: chest(x, y, lvl, rar) */ } catch (x) { console.error('dungeon chest', x); } }
     if (!e || typeof e !== 'object') e = R.spawn({ kind: 'drop', chest: true, dgOwn: true, x: at.x, y: at.y, r: 18, team: 2, lvl: def.lvl, name: 'Treasure chest' });
     e.dgChest = true; a.chest = e; a.chestAt = { x: at.x, y: at.y }; a.cleared = true; a.leaveT = LEAVE_T;
     const F = flags(), k = 'dgc:' + a.id + ':' + day();
@@ -89,6 +103,13 @@
 
   /* ---- enter / leave ---- */
   let runN = 0;
+  // a painted billboard for the door entities (the 3D renderer billboards e.frame()): an iron-bound oak door, or an empty arch once open
+  const DF = {}; const doorFrame = open => { const k = open ? 'o' : 'c'; if (DF[k]) return DF[k]; const cv = document.createElement('canvas'); cv.width = cv.height = 128; const g = cv.getContext('2d');
+    g.fillStyle = '#2a241e'; g.fillRect(14, 20, 100, 104); g.fillStyle = '#4a4036'; g.fillRect(20, 26, 88, 98);
+    if (!open) { g.fillStyle = '#6b4a2c'; g.fillRect(28, 34, 72, 90); g.strokeStyle = '#3b2716'; g.lineWidth = 3; for (let x = 40; x < 100; x += 14) { g.beginPath(); g.moveTo(x, 36); g.lineTo(x, 122); g.stroke(); }
+      g.fillStyle = '#8d939b'; g.fillRect(28, 52, 72, 6); g.fillRect(28, 96, 72, 6); g.beginPath(); g.arc(88, 80, 4, 0, Math.PI * 2); g.fill(); }
+    else { g.fillStyle = '#0d0b09'; g.fillRect(28, 34, 72, 90); }
+    cv.units = { w: 64, h: 64 }; cv.anchor = { x: 0.5, y: 1 }; return (DF[k] = cv); };
   D.enter = id => {
     const def = DG[id], P = R.player; const c = D.canEnter(id);
     if (!def || !P || !R.state) return false;
@@ -96,9 +117,12 @@
     const F = flags(); F['dg:' + id + ':' + day()] = c.runs + 1; F.dgReturn = { x: Math.round(P.x), y: Math.round(P.y) };
     const a = D.active = { id, def, n: ++runN, room: 0, wave: 0, waveT: WAVE_GAP, mobs: [[], [], []], doors: [], boss: null, chest: null, chestAt: null, timeLeft: TIME, leaveT: 0, started: R.t, cleared: false, roomStarted: [true, false, false] };
     if (R.world) { a.prevPop = R.world.populate; R.world.populate = false; a.prevBlocked = R.world.blocked; R.world.blocked = (x, y) => D.blocked(x, y); }
-    P.x = ENTRY.x; P.y = ENTRY.y; P.vx = P.vy = 0; a.last = { x: P.x, y: P.y }; R.cam.x = P.x; R.cam.y = P.y;
+    widen(a); floor3d(a); P.x = ENTRY.x; P.y = ENTRY.y; P.vx = P.vy = 0; a.last = { x: P.x, y: P.y }; R.cam.x = P.x; R.cam.y = P.y;
+    // the instance sits in the map's far corner (inside 'beyond'): the world watcher must not see a region change there (no banner, gate
+    // pushback, discovery or region achievements). R.world.suspend = true is the flag for 10_world; R.world.cur is pre-set as well.
+    if (R.world) { a.prevCur = R.world.cur; R.world.suspend = true; R.world.inDungeon = id; try { const rg = R.world.regionAt && R.world.regionAt(P.x, P.y); R.world.cur = rg ? rg.id : null; R.world.lastGood = { x: P.x, y: P.y }; } catch (e) {} }
     for (const e of R.ents) if (e.kind === 'companion' && !e.dead) { e.x = ENTRY.x - 30 + R.rng() * 60; e.y = ENTRY.y + 10; e.vx = e.vy = 0; }
-    for (const d of DOORS) a.doors.push(R.spawn({ kind: 'door', x: d.x, y: d.y, r: 28, team: 2, open: false, dgOwn: true, name: 'Locked door' }));
+    for (const d of DOORS) { const de = R.spawn({ kind: 'door', x: d.x, y: d.y, r: 28, team: 2, open: false, dgOwn: true, name: 'Locked door' }); de.frame = () => doorFrame(de.open); a.doors.push(de); }
     R.bus.emit('dungeon', id, 'enter', { runs: c.runs + 1 }); spawnWave(a); bar(true); R.save();
     R.ui.toast(def.name + ' · lvl ' + def.lvl, '#f3e7c4');
     if (R.sfx && R.sfx.play) { try { R.sfx.play('dg_enter', 0.7); } catch (e) {} }
@@ -107,8 +131,9 @@
   D.leave = o => {
     const a = D.active; if (!a) return false; const P = R.player, F = flags(), back = (F && F.dgReturn) || null;
     for (const e of R.ents.slice()) if (e.dgRun === a.n || e.dgOwn || a.doors.includes(e) || e === a.chest || e.dg != null) R.remove(e);
-    if (R.world) { R.world.populate = a.prevPop === undefined ? true : a.prevPop; if (a.prevBlocked) R.world.blocked = a.prevBlocked; }
-    if (P && back) { P.x = back.x; P.y = back.y; P.vx = P.vy = 0; R.cam.x = P.x; R.cam.y = P.y;
+    if (R.world) { R.world.populate = a.prevPop === undefined ? true : a.prevPop; if (a.prevBlocked) R.world.blocked = a.prevBlocked; R.world.suspend = false; R.world.inDungeon = null; }
+    narrow(a); if (P && back) { P.x = back.x; P.y = back.y; P.vx = P.vy = 0; R.cam.x = P.x; R.cam.y = P.y;
+      if (R.world) { try { const rg = R.world.regionAt && R.world.regionAt(P.x, P.y); R.world.cur = rg ? rg.id : a.prevCur; R.world.lastGood = { x: P.x, y: P.y }; } catch (e) {} }
       for (const e of R.ents) if (e.kind === 'companion' && !e.dead) { e.x = back.x - 30 + R.rng() * 60; e.y = back.y + 24; } }
     if (F) delete F.dgReturn;
     D.active = null; bar(false); hideLeave();
@@ -118,11 +143,13 @@
   };
 
   /* ---- update ---- */
-  let barT = 0, interactT = 0, booted = false;
+  let barT = 0, interactT = 0, booted = false, portalT = 0;
   const alive = list => list.filter(e => !e.dead).length;
   const tick = dt => {
     const P = R.player;
     if (!booted && P && R.state) { booted = true; const F = flags(); if (F && F.dgReturn && !D.active) { P.x = F.dgReturn.x; P.y = F.dgReturn.y; delete F.dgReturn; } placePortals(); }
+    // the overworld portals are re-placed every 2 s outside a run: a new hero (R.ents reset) or a leave (dgOwn entities removed) would lose them
+    if (!D.active) { portalT -= dt; if (portalT <= 0) { portalT = 2; try { placePortals(); } catch (e) {} } }
     if (P && !D.active && R.input && R.input.pressed && R.ui.cur == null) { interactT -= dt; if (interactT <= 0) { let hit = false; try { hit = R.input.pressed('interact'); } catch (e) {}
       if (hit) { const pt = R.ents.find(e => e.kind === 'portal' && e.dgOwn && !e.dead && Math.hypot(e.x - P.x, e.y - P.y) <= e.r + 30); if (pt) { interactT = 0.6; D.sheet(pt.dg); } } } }
     const a = D.active; if (!a || !P) return;
@@ -187,7 +214,7 @@
   const h2 = (x, y) => { const n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453; return n - Math.floor(n); };
   const sRect = r => { const a = R.w2s(r.x, r.y); return { x: a.x, y: a.y, w: r.w * R.cam.z, h: r.h * R.cam.z }; };
   const drawFloor = ctx => {
-    const a = D.active; if (!a) return; ctx.save(); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, R.vw, R.vh);
+    const a = D.active; if (!a || a.floor3d) return;   /* the 3D build has its stone plane (floor3d); this is the 2D fallback */ ctx.save(); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, R.vw, R.vh);
     for (const r of ROOMS.concat(HALLS)) { const s = sRect(r); ctx.fillStyle = a.def.floor; ctx.fillRect(s.x, s.y, s.w, s.h);
       const T = 40 * R.cam.z; for (let gx = r.x; gx < r.x + r.w; gx += 40) for (let gy = r.y; gy < r.y + r.h; gy += 40) { const q = R.w2s(gx, gy), v = h2(gx, gy); ctx.fillStyle = 'rgba(255,255,255,' + (0.03 + v * 0.06).toFixed(3) + ')'; ctx.fillRect(q.x + 1, q.y + 1, Math.min(T, (r.x + r.w - gx) * R.cam.z) - 2, Math.min(T, (r.y + r.h - gy) * R.cam.z) - 2); }
       const g = ctx.createRadialGradient(s.x + s.w / 2, s.y + s.h / 2, s.h * 0.3, s.x + s.w / 2, s.y + s.h / 2, s.w * 0.7); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.55)'); ctx.fillStyle = g; ctx.fillRect(s.x, s.y, s.w, s.h); }

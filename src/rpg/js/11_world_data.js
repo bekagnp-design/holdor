@@ -13,7 +13,10 @@
 window.R = window.R || {}; R.data = R.data || {};
 (function () {
   'use strict';
-  const W = 7200, H = 12288, CELL = 120, MW = 60, MH = 102;
+  // R.WS (00_core, the owner: "make the map much bigger"): every geographic coordinate below is authored on the 7200 × 12288 grid and
+  // multiplied by S at load (regions, POIs, roads, ferries, the Wall, ridges, the mask cell); hero-scale radii stay as they are
+  const S = (window.R && +R.WS > 0) ? +R.WS : 1;
+  const W = 7200 * S, H = 12288 * S, CELL = 120 * S, MW = 60, MH = 102;
 
   /* ---------- houses (the seven; `seat` is the POI id). Another module may already own this: keep theirs. ---------- */
   const HOUSES = {
@@ -376,6 +379,12 @@ window.R = window.R || {}; R.data = R.data || {};
     { id: 'ferry_arbor', name: 'The Arbor ferry', kind: 'ferry', pts: [[1140, 10930], [1100, 11100], [900, 11350], [700, 11600], [620, 11760]] },
   ];
   // R.world.roadNear walks each road as a plain list of points: the arrays carry id / name / kind as properties
+  /* ---------- the scale (R.WS): every point array once (the frozen seas share the regions' polygons) ---------- */
+  { const done = new Set(), sp = a => { if (!a || done.has(a)) return; done.add(a); a[0] *= S; a[1] *= S; }, spoly = P => { if (!P || done.has(P)) return; done.add(P); for (const q of P) sp(q); };
+    if (S !== 1) { for (const r of REGIONS) spoly(r.poly); for (const b of BLOCKED) spoly(b.poly); for (const a of WALKABLE) spoly(a.poly); for (const f of FERRIES) spoly(f.pts); spoly(WALL.pts);
+      for (const r of ROADS_INFO) spoly(r.pts); for (const p of POIS) { p.x = Math.round(p.x * S); p.y = Math.round(p.y * S); } }
+    // castles and towns become bigger places (their radius stays in hero units, × 1.5)
+    for (const p of POIS) if (p.type === 'castle' || p.type === 'town') p.r = Math.round((p.r || 160) * 1.5); }
   const ROADS = ROADS_INFO.map(r => { const a = r.pts.map(p => p.slice()); a.id = r.id; a.name = r.name; a.kind = r.kind; return a; });
 
   /* ---------- geometry helpers (pure; the runtime world module R.world builds on them) ---------- */
@@ -395,12 +404,77 @@ window.R = window.R || {}; R.data = R.data || {};
   const MASK = { w: MW, h: MH, cell: CELL, rows };
   const blocked = (x, y) => { if (!(x >= 0 && y >= 0 && x < W && y < H)) return true; return rows[Math.floor(y / CELL)].charCodeAt(Math.floor(x / CELL)) === 35; };
 
+  /* ---------- the bigger map is filled: villages, farms, inns, watchtowers, fishing hamlets and ruins along the roads every
+     2 500–4 000 units (and a sparse grid off the roads), each with names of its land (original), seeded by position ---------- */
+  const regionOf = (x, y) => { for (const r of REGIONS) if (inPoly(x, y, r.poly)) return r; return null; };
+  const hsh = (a, b) => { let h = (Math.imul(a | 0, 374761393) + Math.imul(b | 0, 668265263)) ^ 0x5bd1e995; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+  const LAND = {   // name parts per region: a + b = a village, a farm by a family, an inn sign, a tower, a ruin
+    north: { a: ['Barrow', 'Rime', 'Wolf', 'Greystone', 'Elk', 'Holly', 'Cold', 'Long', 'Ash', 'Frost'], b: ['mere', 'holt', 'stead', 'cairn', 'brook', 'dale', 'ford', 'hollow'], fam: ['Tallhart', 'Hornwell', 'Greyfield', 'Woolfield', 'Stout'], inn: ['Frozen Kettle', 'Grey Elk', 'Sleeping Wolf', 'Hearthstone', 'Iron Pot'] },
+    farnorth: { a: ['Pine', 'Black', 'Howl', 'Snow', 'Bear', 'Wolfs', 'Raven', 'Deep'], b: ['wick', 'fell', 'stead', 'cairn', 'holt', 'ridge'], fam: ['Umberwood', 'Karsfield', 'Bole', 'Frostfoot'], inn: ['Last Fire', 'Antler Hall', 'Bear and Pine', 'Smoking Log'] },
+    wall: { a: ['Ice', 'Black', 'Hoar', 'Old', 'Rime', 'Grey'], b: ['gate', 'hold', 'watch', 'barrow', 'pike'], fam: ['Brother Aldo', 'Ranger Gil', 'Old Mott'], inn: ['Crow\'s Rest', 'Black Kettle', 'Last Bench'] },
+    beyond: { a: ['Bone', 'White', 'Mammoth', 'Frost', 'Weir', 'Shiver'], b: ['camp', 'hollow', 'mound', 'drift', 'fang'], fam: ['Free Folk', 'Hornfoot', 'Ice River'], inn: ['Fire Pit', 'Giant\'s Hearth'] },
+    winter: { a: ['Blue', 'Hollow', 'Pale', 'Silent', 'Glass'], b: ['spire', 'ring', 'field', 'tomb'], fam: ['Lost', 'Last'], inn: ['Frozen Hearth'] },
+    westcoast: { a: ['Salt', 'Shingle', 'Kelp', 'Gull', 'Flint', 'Cliff'], b: ['cove', 'strand', 'hythe', 'point', 'combe'], fam: ['Flint', 'Saltmarsh', 'Weed'], inn: ['Drowned Anchor', 'Gull and Barrel', 'Salt Lantern'] },
+    ironislands: { a: ['Salt', 'Drown', 'Grey', 'Iron', 'Kraken', 'Black'], b: ['cove', 'hythe', 'skerry', 'reach', 'stack'], fam: ['Harlow', 'Saltcliffe', 'Botley'], inn: ['Longship Rest', 'Iron Cup', 'Broken Oar'] },
+    riverlands: { a: ['Mill', 'Willow', 'Red', 'Trout', 'Ferry', 'Oak', 'Reed', 'Crab'], b: ['ford', 'wick', 'mere', 'ton', 'bridge', 'stow', 'leigh'], fam: ['Mallister', 'Vance', 'Blackwood', 'Piper', 'Smallwood'], inn: ['Crossed Fords', 'Leaping Trout', 'Miller\'s Wheel', 'Two Rivers', 'Kingfisher'] },
+    vale: { a: ['High', 'Goat', 'Eagle', 'Stone', 'Moon', 'Cliff'], b: ['crag', 'scar', 'tarn', 'pass', 'ledge'], fam: ['Corbray', 'Hunter', 'Belmore', 'Redfort'], inn: ['Eagle\'s Perch', 'Goat and Bell', 'High Hearth'] },
+    crownlands: { a: ['King', 'Rose', 'Black', 'Wend', 'Hay', 'Deer'], b: ['ford', 'wick', 'field', 'ton', 'well'], fam: ['Rykker', 'Rosby', 'Stokeworth', 'Hayford'], inn: ['Crowned Stag', 'Hay Wain', 'Blackwater Ferry'] },
+    westerlands: { a: ['Gold', 'Lion', 'Red', 'Copper', 'Crag', 'Bright'], b: ['stone', 'pit', 'ridge', 'vale', 'hold'], fam: ['Lefford', 'Crakehall', 'Marbrand', 'Prester'], inn: ['Golden Lion', 'Miner\'s Lamp', 'Copper Kettle'] },
+    reach: { a: ['Apple', 'Rose', 'Honey', 'Barley', 'Mander', 'Plum', 'Vine', 'Clover'], b: ['field', 'brook', 'well', 'ton', 'meadow', 'garth', 'by'], fam: ['Fossoway', 'Ashford', 'Merryweather', 'Cuy', 'Mullendore'], inn: ['Blushing Rose', 'Honey Barrel', 'Full Granary', 'Sleeping Bee'] },
+    stormlands: { a: ['Rain', 'Storm', 'Thunder', 'Wet', 'Rook', 'Green'], b: ['wood', 'cliff', 'hollow', 'march', 'ford'], fam: ['Errol', 'Caron', 'Swann', 'Dondarrion'], inn: ['Drowned Crow', 'Thunder Cup', 'Dry Bench'] },
+    dorne: { a: ['Sand', 'Sun', 'Red', 'Salt', 'Scorpion', 'Date'], b: ['well', 'wadi', 'oasis', 'spring', 'bluff'], fam: ['Dayne', 'Qorgyle', 'Wyl', 'Allyrion'], inn: ['Blood Orange', 'Shady Well', 'Sand Viper'] },
+    dragonstone: { a: ['Ash', 'Cinder', 'Black', 'Smoke', 'Claw'], b: ['cove', 'rock', 'hollow', 'point'], fam: ['Celtigar', 'Velaryon', 'Bar Emmon'], inn: ['Smoking Kettle', 'Drowned Dragon'] } };
+  const TYPE_W = { north: { village: 3, farm: 2, inn: 2, tower: 2, ruin: 2 }, farnorth: { village: 2, farm: 1, inn: 2, tower: 2, ruin: 3 }, wall: { tower: 3, ruin: 3, inn: 1, village: 1 }, beyond: { ruin: 4, village: 2, tower: 1 },
+    winter: { ruin: 5 }, reach: { village: 3, farm: 4, inn: 2, tower: 1, ruin: 1 }, riverlands: { village: 3, farm: 3, inn: 3, tower: 1, ruin: 2 }, crownlands: { village: 3, farm: 3, inn: 3, tower: 1, ruin: 1 },
+    stormlands: { village: 3, farm: 2, inn: 2, tower: 2, ruin: 2 }, westerlands: { village: 3, farm: 2, inn: 2, tower: 2, ruin: 2 }, vale: { village: 3, farm: 1, inn: 2, tower: 3, ruin: 1 },
+    dorne: { village: 3, farm: 1, inn: 3, tower: 2, ruin: 3 }, ironislands: { village: 4, tower: 1, ruin: 2, inn: 1 }, westcoast: { village: 4, tower: 2, ruin: 2, inn: 1 }, dragonstone: { village: 2, ruin: 3, tower: 1 } };
+  const BLURB = {
+    village: ['A cluster of {w} houses around a well and a patched sept.', 'Smoke from a dozen chimneys and dogs that bark at strangers.', 'A village that has buried more of its sons than it likes to say.', 'Folk here trade news for coin and coin for safety.'],
+    fishing: ['Boats pulled up on the shingle and nets drying on poles.', 'A fishing hamlet that smells of tar, salt and herring.', 'Smokehouses and drying racks above a grey little harbour.'],
+    farm: ['Fenced fields, a long barn and a family that works from dawn.', 'A steading with more mouths than harvest this year.', 'Fields, a pigsty and a farmer who keeps an axe by the door.'],
+    inn: ['A roadside inn with a fire, stale bread and fresh rumours.', 'Travellers swap stories here over watered ale.', 'An inn with a stable, a cellar and a landlord who sees everything.'],
+    tower: ['A lone watchtower; its beacon can be seen for leagues.', 'A tower of rough stone where a few guards watch the road.', 'An old watchtower with a ladder, a horn and tired sentries.'],
+    ruin: ['Tumbled walls and a cellar nobody admits to having opened.', 'The bones of a holdfast burnt in a war nobody remembers.', 'Moss-grown stones where something still makes its lair.'] };
+  const ADDED = [];
+  { const seen = new Set(POIS.map(p => p.name)), all = POIS.slice(), farFrom = (x, y, d) => { for (const q of all) if ((q.x - x) ** 2 + (q.y - y) ** 2 < d * d) return false; return true; };
+    const nearSea = (x, y, r) => blocked(x + r, y) || blocked(x - r, y) || blocked(x, y + r) || blocked(x, y - r);
+    const pickType = (rid, u) => { const T = TYPE_W[rid] || { village: 1, ruin: 1 }; let tot = 0; for (const k in T) tot += T[k]; let v = u * tot; for (const k in T) { v -= T[k]; if (v <= 0) return k; } return 'village'; };
+    const nameFor = (rid, type, u1, u2, fishing) => { const L = LAND[rid] || LAND.north, A = L.a[Math.floor(u1 * L.a.length)], B = L.b[Math.floor(u2 * L.b.length)], F = L.fam[Math.floor(u2 * L.fam.length)];
+      const AB = A + B.toLowerCase();
+      let n = type === 'village' ? (fishing ? AB + ' Hamlet' : AB) : type === 'farm' ? F + ' Farm' : type === 'inn' ? 'The ' + L.inn[Math.floor(u1 * L.inn.length)] : type === 'tower' ? A + ' Watchtower' : 'Ruins of ' + AB;
+      if (seen.has(n)) { const alt = n + (type === 'farm' ? ' North' : type === 'inn' ? ' Inn' : ' Old'); n = seen.has(alt) ? n + ' ' + (ADDED.length + 2) : alt; } seen.add(n); return n; };
+    const place = (x, y, u, why) => {
+      x = Math.round(x); y = Math.round(y); if (!(x > 0 && y > 0 && x < W && y < H) || blocked(x, y) || blocked(x + 80, y) || blocked(x - 80, y) || blocked(x, y + 80) || blocked(x, y - 80)) return null;
+      const rg = regionOf(x, y); if (!rg) return null; if (!farFrom(x, y, why === 'road' ? 1100 : 2100)) return null;
+      const fishing = nearSea(x, y, 700) && (rg.id === 'ironislands' || rg.id === 'westcoast' || rg.id === 'dragonstone' || hsh(x, y) < .6);
+      let type = pickType(rg.id, hsh(x + 7, y + 3)); if (fishing && (type === 'farm' || type === 'tower')) type = 'village';
+      const id = 'v_' + rg.id + '_' + (ADDED.length + 1), name = nameFor(rg.id, type, hsh(x, y + 11), hsh(x + 13, y), fishing && type === 'village');
+      const pool = BLURB[fishing && type === 'village' ? 'fishing' : type], blurb = pool[Math.floor(hsh(x + 5, y + 9) * pool.length)].replace('{w}', rg.biome === 'snow' || rg.biome === 'wall' ? 'turf-roofed' : rg.biome === 'desert' ? 'mud-brick' : 'timber');
+      const p = { id, name, type, x, y, region: rg.id, r: type === 'village' ? 150 : type === 'inn' ? 100 : type === 'farm' ? 120 : type === 'tower' ? 80 : 120, village: true, blurb };
+      if (fishing && type === 'village') p.fishing = true; if (type === 'inn') p.inn = true; if (type === 'village' && hsh(x + 1, y + 1) < .35) p.shop = true;
+      POIS.push(p); ADDED.push(p); all.push(p); return p; };
+    // along every road and track (ferries are water): one place every 2 500–4 000 units, 260–420 units off the road, either side
+    for (const rd of ROADS_INFO) { if (rd.kind === 'ferry') continue; let next = 1400 + hsh(rd.pts[0][0], rd.pts[0][1]) * 1200, acc = 0;
+      for (let i = 1; i < rd.pts.length; i++) { const a = rd.pts[i - 1], b = rd.pts[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L;
+        for (let t = 0; t < L; t += 100) { acc += 100; if (acc < next) continue; const x0 = a[0] + ux * t, y0 = a[1] + uy * t, u = hsh(x0, y0), side = u < .5 ? -1 : 1, off = 260 + 160 * hsh(y0, x0);
+          if (place(x0 - uy * off * side, y0 + ux * off * side, u, 'road') || place(x0 + uy * off * side, y0 - ux * off * side, u, 'road')) { acc = 0; next = 2500 + 1500 * hsh(x0 + 3, y0 + 7); } } } }
+    // off the roads: a jittered grid, sparse (one per ~6 000 units where nothing else stands)
+    const G = 800 * S; for (let gy = G / 2; gy < H; gy += G) for (let gx = G / 2; gx < W; gx += G) { const jx = gx + (hsh(gx, gy) - .5) * G * .6, jy = gy + (hsh(gy, gx) - .5) * G * .6; place(jx, jy, hsh(jx, jy), 'grid'); } }
+
   /* ---------- NPC roster per POI (A20's role names; A19 writes their lines; ids are stable: <poi>_<role>) ---------- */
   const NPCS = {};
-  const ROLE_LABEL = { lord: 'Lord', steward: 'Steward', smith: 'Smith', innkeeper: 'Innkeeper', merchant: 'Merchant', maester: 'Maester', septon: 'Septon', elder: 'Elder', guard: 'Warden', ranger: 'Ranger' };
+  const ROLE_LABEL = { lord: 'Lord', steward: 'Steward', smith: 'Smith', innkeeper: 'Innkeeper', merchant: 'Merchant', maester: 'Maester', septon: 'Septon', elder: 'Elder', guard: 'Warden', ranger: 'Ranger', farmer: 'Farmer', hunter: 'Hunter' };
   const ROLE_SVC = { merchant: ['shop'], innkeeper: ['inn'], smith: ['smith'] };
   for (const p of POIS) {
     const roles = [];
+    // the new places (p.village): a village 2–3 people, an inn 2–3, a farm 1–2, a tower 1, a ruin nobody
+    if (p.village) { const u = hsh(p.x + 17, p.y + 29);
+      if (p.type === 'village') { roles.push('elder', p.fishing ? 'hunter' : u < .5 ? 'farmer' : 'hunter'); if (p.shop) roles.push('merchant'); else if (u > .6) roles.push('guard'); }
+      else if (p.type === 'inn') { roles.push('innkeeper', 'merchant'); if (u < .5) roles.push('hunter'); }
+      else if (p.type === 'farm') { roles.push('farmer'); if (u < .5) roles.push('hunter'); }
+      else if (p.type === 'tower') roles.push('guard');
+      p.npcs = roles.map(r => { const id = p.id + '_' + r; NPCS[id] = { id, role: r, kind: r, name: ROLE_LABEL[r] + ' of ' + p.name.replace(/^The |^Ruins of /, ''), poi: p.id, region: p.region, services: ROLE_SVC[r] || [], side: true }; return id; });
+      continue; }
     if (p.seat) roles.push('lord', 'maester'); else if (p.type === 'castle') roles.push('steward'); else if (p.type === 'town') roles.push('elder');
     if (p.shop) roles.push('merchant'); if (p.inn) roles.push('innkeeper'); if (p.smith) roles.push('smith');
     if (p.type === 'shrine') roles.push(/weirwood|heart tree|grove|drowned/i.test(p.name) ? 'elder' : 'septon');
@@ -417,7 +491,7 @@ window.R = window.R || {}; R.data = R.data || {};
   const GATES = REGIONS.filter(r => r.gate).map(r => ({ region: r.id, after: r.gate.after, boss: r.gate.boss, via: r.gate.via, name: r.gate.name, blurb: r.gate.blurb, homeOf: Object.keys(HOUSES).filter(h => HOUSES[h].region === r.id) }));
 
   const world = {
-    size: [W, H], W, H, SCALE: 6, CELL, MW, MH,
+    size: [W, H], W, H, SCALE: 6 * S, WS: S, CELL, MW, MH, added: ADDED.map(p => p.id),
     regions: REGIONS, regionById, pois: POIS, poiById, roads: ROADS, roadsInfo: ROADS_INFO, spawns: SPAWNS, spawnsByRegion, npcs: NPCS,
     mask: MASK, maskRows: rows, seaRows: SEA_ROWS, blockedPolys: BLOCKED, walkablePolys: WALKABLE, ferries: FERRIES, wall: WALL,
     gates: GATES, start: START, houses: HOUSES,

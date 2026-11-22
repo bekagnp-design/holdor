@@ -1,7 +1,7 @@
 /* HOLDOR RPG — R.sfx: every sound is synthesised in WebAudio, no files. (A33)
    R.sfx.play(name, vol=1)      one-shot; returns the voice ({n: source nodes, end}) or false (unknown / muted / locked / throttled / capped)
    R.sfx.ambient(biome|null)    crossfades one looping bed per biome kind: wind (north, wall), birds + crickets (the reach and the green lands),
-                                waves (coasts, islands, and anywhere within ~240 units of a sea shore by R.water), desert wind (Dorne). R.sfx.kindOf(biome) maps any region/biome string to a kind.
+                                waves (coasts, islands, and anywhere within ~400 units of a sea shore by R.water), desert wind (Dorne). R.sfx.kindOf(biome) maps any region/biome string to a kind.
    R.sfx.music('explore'|'boss'|null)  a very quiet drone + sparse plucked notes in D Dorian / a faster pulse for a boss / silence.
    R.sfx.sync()                 master gain ← R.state.opts.sfx (0..1 or true/false).  R.sfx.setVolume(v) writes it back and saves.
    R.sfx.unlock()               resumes the AudioContext (called on the first touch / click / key).  R.sfx.stopAll() cuts live voices.
@@ -237,7 +237,7 @@
   /* ---- what plays when: the world mode (explore / boss) and silence under a menu ---- */
   let world = null, started = false, enterSeen = false, regBed = null, bedTick = 0;
   const coastNear = () => { const W = R.water, p = R.player; if (!W || !W.ready || typeof W.shorePoints !== 'function' || !p) return false;
-    try { const pts = W.shorePoints(p.x, p.y, 240); for (let i = 0; i < pts.length; i++) if (pts[i].kind === 'sea') return true; } catch (e) {} return false; };
+    try { const pts = W.shorePoints(p.x, p.y, Math.max(400, (W.CS || 24) * 3)); for (let i = 0; i < pts.length; i++) if (pts[i].kind === 'sea') return true; } catch (e) {} return false; };
   S.coastNear = coastNear;
   const menuOpen = () => { const c = R.ui && R.ui.cur; if (!c) return false; const s = R.screens && R.screens[c]; return !(s && s.live); };
   const apply = () => S.music(menuOpen() ? null : world);
@@ -274,7 +274,7 @@
     R.bus.on('tick1s', () => { S.sync();
       if (!started && R.running) { started = true; if (!world) world = 'explore'; apply(); }
       if (!enterSeen && R.player && R.world && R.world.regionAt) { try { const reg = R.world.regionAt(R.player.x, R.player.y); if (reg && (reg.biome || reg.id)) regBed = reg.biome || reg.id; } catch (e) {} }
-      // the sea is heard where it is: within ~240 units of a sea shoreline (R.water, A44) the bed is the waves, else the region's
+      // the sea is heard where it is: within ~400 units (≥ 3 mask cells) of a sea shoreline (R.water, A44) the bed is the waves, else the region's
       if (R.running && regBed != null && (++bedTick & 1) === 0) { const want = coastNear() ? 'coast' : regBed; if (S.kindOf(want) !== S.ambientKind) S.ambient(want); } });
   }
   const gest = () => { S.unlock(); };

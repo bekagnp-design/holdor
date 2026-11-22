@@ -57,7 +57,7 @@ async function boot(page, o = {}) {
     await page.addInitScript(([k, s]) => { try { if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, '1'); if (s) localStorage.setItem('holdor_rpg', JSON.stringify(s)); else localStorage.removeItem('holdor_rpg'); } catch (e) {} }, [key, o.save]);
   }
   await page.goto('file://' + path.resolve(ROOT, o.html || HTML()), { waitUntil: 'domcontentloaded' });
-  try { await page.waitForFunction(() => window.R && R.VERSION, null, { timeout: o.timeout || 15000 }); }
+  try { await page.waitForFunction(() => window.R && R.VERSION, null, { timeout: o.timeout || 40000 }); }
   catch (e) {
     const why = await page.evaluate(() => { const s = document.querySelector('script[src]'); return s && s.textContent.trim().length > 100 ? 'the modules were injected inside the <script src=…> tag (build_rpg.py replaces the FIRST </script>, which is the Telegram script); fix: inject before the LAST </script>' : 'window.R never appeared (00_core.js missing or threw before R.VERSION)'; }).catch(() => 'the page did not load');
     throw new Error('boot: ' + why);

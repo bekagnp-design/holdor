@@ -94,3 +94,10 @@
 @keyframes twflash{0%{opacity:0}12%{opacity:1}70%{opacity:1}100%{opacity:0}}
 @keyframes twpop{0%{transform:scale(.4);opacity:0}25%{transform:scale(1.12);opacity:1}100%{transform:scale(1) translateY(-18px);opacity:0}}
 @media (prefers-reduced-motion:reduce){.tw-flash,.tw-flash b{animation-duration:.4s}}
+/* G7: columns never grow past the phone (long names ellipsize), and the town screens hide the world labels behind them */
+.tw-grid,.tw-row.pots,.tw-row.prem,.tw-seg{grid-template-columns:repeat(2,minmax(0,1fr))}
+.tw-row.prem{grid-template-columns:repeat(3,minmax(0,1fr))}
+.tw-card{min-width:0;overflow:hidden}
+.tw-card .tw-nm{min-width:0;max-width:100%}.tw-card .tw-nm b{display:inline-block;vertical-align:top;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tw-card button{max-width:100%}
+#screen.on[data-screen="shop"],#screen.on[data-screen="inn"],#screen.on[data-screen="smith"],#screen.on[data-screen="town"]{background:rgba(6,11,20,.97)}

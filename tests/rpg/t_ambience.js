@@ -86,7 +86,7 @@ const path = require('path');
     R.render3d = keep3d;   // the budget is measured on the real path: in 3D the wash goes to the renderer, glows shrink with distance
     // budget: drawTint on the real canvas — night, snow, aurora, moon, a bolt, clouds
     A.setBiome('beyond'); A.setHour(23); A.set('snow'); A.strike(); steps(2);
-    const ctx = R.ctx; const t0 = performance.now(); for (let i = 0; i < 200; i++) S.drawTint(ctx); out.msAvg = (performance.now() - t0) / 200; out.partsNow = A.parts.length;
+    const ctx = R.ctx; out.msAvg = 1e9; for (let b = 0; b < 4; b++) { const t0 = performance.now(); for (let i = 0; i < 50; i++) S.drawTint(ctx); out.msAvg = Math.min(out.msAvg, (performance.now() - t0) / 50); } out.partsNow = A.parts.length;
     // biome lock → weather roll works for a biome; fireflies at night in the south
     A.setBiome('reach'); A.set('auto'); A.setHour(23); steps(2); out.autoWeather = A.weather; out.biome = A.biome; steps(20);
     out.flies = A.parts.filter(p => p.kind === 'fly').length;
@@ -131,7 +131,8 @@ const path = require('path');
   ok(r.storm.flag === true && r.storm.biome === 'sun', 'Stormlands flag ' + JSON.stringify(r.storm));
   ok(r.heat9.k < .3 && r.heat13.k > .95 && r.heat13.n > r.heat9.n && r.heat13.n >= 12, 'Dorne shimmers harder at noon ' + JSON.stringify([r.heat9, r.heat13]));
   ok(r.coastSpray.biome === 'coast' && r.coastSpray.n >= 10, 'the coast has spray in clear weather ' + JSON.stringify(r.coastSpray));
-  ok(r.msAvg < 8, 'drawTint under budget (8 ms on a loaded test box; ~1 ms alone): ' + r.msAvg.toFixed(3) + ' ms avg with ' + r.partsNow + ' particles + aurora + moon + bolt');
+  const load = require('os').loadavg()[0], busy = load > require('os').cpus().length * 2;   // timing means nothing on an overloaded box: report it, do not fail
+  if (busy) console.log('SKIP drawTint budget: load ' + load.toFixed(1) + ', measured ' + r.msAvg.toFixed(3) + ' ms'); else ok(r.msAvg < 1.5, 'drawTint under budget: ' + r.msAvg.toFixed(3) + ' ms avg with ' + r.partsNow + ' particles + aurora + moon + bolt');
   ok(r.biome === 'sun' && ['sun', 'clear'].indexOf(r.autoWeather) >= 0 && r.flies > 0, 'reach at night: auto weather + fireflies ' + JSON.stringify([r.biome, r.autoWeather, r.flies]));
   ok(r.coldBiome === 'cold' && r.coldTintA > r.nightA && r.coldNoonA > 0 && r.coldNoonA < .2, 'beyond the Wall: cold tint day and night ' + JSON.stringify([r.coldBiome, r.coldTintA, r.coldNoonA]));
   ok(r.biomeOf.join() === 'cold,wet,hot,coast,sun,none,cold', 'biomeOf ' + JSON.stringify(r.biomeOf));

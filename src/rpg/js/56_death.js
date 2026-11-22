@@ -50,6 +50,7 @@
   function fillLine(t, d) { const H = R.data.houses && R.state && R.state.acc && R.data.houses[R.state.acc.house];
     let reg = ''; try { const g = R.world && R.world.regionAt && R.player ? R.world.regionAt(R.player.x, R.player.y) : null; reg = g ? (typeof g === 'string' ? g : (g.name || g.n || g.id || '')) : ''; } catch (e) {}
     const v = { name: d.name, lvl: d.lvl, level: d.lvl, killer: d.killer || 'the cold', house: (H && (H.n || H.name)) || '', region: reg || 'the road', hero: d.name };
+    if (R.story && typeof R.story.fmt === 'function') { try { t = R.story.fmt(String(t), v); } catch (e) {} }   // G7's filler first, then whatever it left
     return String(t).replace(/\{(\w+)\}/g, (m, k) => v[k] != null && v[k] !== '' ? String(v[k]) : '').replace(/\s{2,}/g, ' ').trim(); }
   // the run's kills: the player module's own count when it keeps one, else the count kept here from the 'kill' events
   R.bus.on('kill', e => { const p = P(); if (!p || !e || (e.kind !== 'mob' && e.kind !== 'boss') || (R.player && R.player.dead)) return; p.runKills = (p.runKills || 0) + 1; if (e.kind === 'boss') p.runBosses = (p.runBosses || 0) + 1; });
@@ -69,6 +70,7 @@
     d.played = playedSec(p);
     d.n = (A && A.hall && A.hall.length) || 0;
     d.entry = hallLine(d, A);
+    if (A) { A.best = A.best || {}; A.best.lvl = Math.max(+A.best.lvl || 0, d.lvl); A.best.kills = Math.max(+A.best.kills || 0, d.kills); }   // the boards' best level / kills, on every death
     try { R.ambience && R.ambience.flash && R.ambience.flash('#000', 1); } catch (e) {}
     try { R.sfx && R.sfx.play && R.sfx.play('death', 0.8); } catch (e) {}
     try { if (R.state && R.state.opts && R.state.opts.haptic && window.Telegram && Telegram.WebApp && Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.notificationOccurred('error'); } catch (e) {}

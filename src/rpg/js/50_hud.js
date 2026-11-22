@@ -13,7 +13,8 @@
   const houseOf = st => { try { return houseOf_(st); } catch (e) { return 'stark'; } };
   const houseOf_ = st => (R.state.acc && R.state.acc.house) || st.house || (R.data.champs && R.data.champs[st.hero] && R.data.champs[st.hero].house) || 'stark';
   const titleOf = st => { try { return (R.state.acc && R.state.acc.title) || st.title || CLS[st.cls] || ''; } catch (e) { return CLS[st.cls] || ''; } };
-  const xpNext = L => { const B = R.data.balance; try { if (B && typeof B.xpNext === 'function') return B.xpNext(L); } catch (e) {} return 80 + 45 * L + 6 * L * L; };
+  // the same curve the player module levels on (21_player P.xpNext → R.data.balance.xp), else the balance table, else ARCH's formula
+  const xpNext = L => { try { const P = R.plr || R.playerSys; if (P && typeof P.xpNext === 'function') return P.xpNext(L); const B = R.data.balance; if (B && typeof B.xp === 'function') { const v = B.xp(L); if (v > 0) return v; } if (B && typeof B.xpNext === 'function') return B.xpNext(L); } catch (e) {} return 80 + 45 * L + 6 * L * L; };
   const fmt = n => String(Math.max(0, Math.round(n || 0))).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const $ = (tag, cls, id) => { const d = document.createElement(tag); if (cls) d.className = cls; if (id) d.id = id; return d; };
@@ -24,7 +25,7 @@
   root.innerHTML =
     '<div id="hud-tl">' +
       '<div id="hud-row">' +
-        '<div id="hud-pcol"><div id="hud-port" role="button" aria-label="Hero"><canvas id="hud-face" width="56" height="56"></canvas><img id="hud-pimg" alt=""><b id="hud-lvl">1</b></div>' +
+        '<div id="hud-pcol"><div id="hud-port" role="button" aria-label="Hero"><canvas id="hud-face" width="56" height="56"></canvas><img id="hud-pimg" alt=""><b id="hud-lvl">1</b><button id="hud-tal" type="button" aria-label="Talents to spend">!</button></div>' +
           '<button id="hud-hall" type="button" title="Heroes fallen"><span class="sk">☠</span><b>0</b></button></div>' +
         '<div id="hud-bars" role="button" aria-label="Hero sheet">' +
           '<div id="hud-name"><b></b><i id="hud-title"></i></div>' +
@@ -99,43 +100,56 @@
   };
 
   /* ---- minimap ---- */
-  const MM = 96, RAD = 640, MOBR = 600; let lastA = -Math.PI / 2;
+  // the world is R.WS (4.5) × the old grid: the minimap shows ~2000 units around the hero (a few minutes' walk), mobs within 1800
+  const MM = 96, RAD = 2000, MOBR = 1800; let lastA = -Math.PI / 2;
+  /* quest markers (40_quests R.quests.markers(): {x, y, kind 'give'|'turnin'|'target', id, ids, main}); the tracked quest's one first */
+  const qMarks = () => { let Q = null; try { Q = R.quests && R.quests.markers && R.quests.markers(); } catch (e) {} return Array.isArray(Q) ? Q.filter(m => m && m.x != null && m.y != null) : []; };
+  const trackedId = () => { try { const q = R.quests && R.quests.tracked && R.quests.tracked(); return q ? (q.id || q) : null; } catch (e) { return null; } };
+  const qGlyph = m => (m.kind === 'turnin' || m.kind === 'turn' || m.kind === 'done') ? '?' : '!';
+  const trackedMark = () => { const Q = qMarks(); if (!Q.length) return null; const id = trackedId(); return (id && Q.find(m => m.id === id || (m.ids && m.ids.indexOf(id) >= 0))) || Q.find(m => m.main) || Q[0]; };
+  const glyph = (g, x, y, r, ch, hot) => { g.beginPath(); g.arc(x, y, r, 0, 7); g.fillStyle = hot ? '#e3b661' : 'rgba(227,182,97,.8)'; g.fill(); g.lineWidth = 1.5; g.strokeStyle = '#1a130a'; g.stroke();
+    g.fillStyle = '#1a130a'; g.font = '900 ' + Math.round(r * 1.5) + 'px Cinzel,Georgia,serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(ch, x, y + .5); };
   const dot = (g, x, y, r, col, line) => { g.beginPath(); g.arc(x, y, r, 0, 7); g.fillStyle = col; g.fill(); if (line) { g.lineWidth = 1; g.strokeStyle = line; g.stroke(); } };
   const drawMini = P => {
     const d = Math.min(2, R.dpr || 1); if (mm.width !== MM * d) mm.width = mm.height = MM * d;
     const g = mctx, c = MM / 2, k = (c - 4) / RAD, px = P.x, py = P.y, house = R.state && R.state.p ? houseOf(R.state.p) : 'stark';
+    // heading-up: the camera's forward is up, like the 3D view (R.cam.yaw; the camera sits at +(sin yaw, cos yaw) behind the hero)
+    const yaw = (R.cam && R.cam.yaw) || 0, cy_ = Math.cos(yaw), sy_ = Math.sin(yaw), rp = (dx, dy) => [dx * cy_ - dy * sy_, dx * sy_ + dy * cy_];
     g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, MM, MM);
     g.save(); g.beginPath(); g.arc(c, c, c - 2, 0, 7); g.clip();
     g.fillStyle = '#0a1320'; g.fillRect(0, 0, MM, MM);
-    const img = R.assets && R.assets.map;
+    const img = R.assets && (R.assets.mapClean || R.assets.map);   // mapClean: the art without the old stage shields, when provided
     if (img && img.complete !== false && (img.naturalWidth || img.width)) {
       const ms = 1 / (R.SCALE || 6), sw = RAD * 2 * ms;
-      try { g.globalAlpha = .9; g.drawImage(img, px * ms - sw / 2, py * ms - sw / 2, sw, sw, c - RAD * k, c - RAD * k, RAD * 2 * k, RAD * 2 * k); g.globalAlpha = 1; g.fillStyle = 'rgba(6,11,20,.22)'; g.fillRect(0, 0, MM, MM); } catch (e) {}
+      try { g.save(); g.translate(c, c); g.rotate(yaw); g.globalAlpha = .9; g.drawImage(img, px * ms - sw / 2, py * ms - sw / 2, sw, sw, -RAD * k * 1.05, -RAD * k * 1.05, RAD * 2.1 * k, RAD * 2.1 * k); g.restore(); g.globalAlpha = 1; g.fillStyle = 'rgba(6,11,20,.22)'; g.fillRect(0, 0, MM, MM); } catch (e) {}
     } else { g.strokeStyle = 'rgba(255,255,255,.07)'; g.lineWidth = 1; for (let i = 1; i < 4; i++) { g.beginPath(); g.arc(c, c, i * (c - 4) / 4, 0, 7); g.stroke(); } }
     const W = R.data.world, pois = W && W.pois;
     if (pois) for (const p of (Array.isArray(pois) ? pois : Object.values(pois))) {
-      if (!p || p.x == null) continue; const dx = p.x - px, dy = p.y - py; if (dx * dx + dy * dy > RAD * RAD) continue;
-      const castle = p.kind === 'castle' || p.type === 'castle'; dot(g, c + dx * k, c + dy * k, castle ? 3.2 : 2.2, castle ? hcol(p.house) : (p.kind === 'town' ? '#f2e6c9' : '#8fa6b8'), '#000');
+      if (!p || p.x == null) continue; const [dx, dy] = rp(p.x - px, p.y - py); if (dx * dx + dy * dy > RAD * RAD) continue;
+      const kd = p.kind || p.type, castle = kd === 'castle', town = kd === 'town' || kd === 'village';
+      dot(g, c + dx * k, c + dy * k, castle ? 3.4 : town ? 2.8 : 2, castle ? hcol(p.house) : town ? '#f2e6c9' : '#8fa6b8', '#000');
     }
     for (const e of R.ents) {
-      if (e === P || e.dead) continue; const dx = e.x - px, dy = e.y - py; if (dx * dx + dy * dy > MOBR * MOBR) continue;
+      if (e === P || e.dead) continue; const [dx, dy] = rp(e.x - px, e.y - py); if (dx * dx + dy * dy > MOBR * MOBR) continue;
       let col = null, r = 2;
       if (e.kind === 'mob') col = '#e14b4b'; else if (e.kind === 'boss') { col = '#ff6a3c'; r = 3.5; } else if (e.kind === 'companion') col = '#7fd06a';
       else if (e.kind === 'ghost') col = '#4fd8e8'; else if (e.kind === 'npc') { col = '#e3b661'; r = 1.8; } else if (e.kind === 'portal') { col = '#b48cff'; r = 2.6; }
       if (col) dot(g, c + dx * k, c + dy * k, r, col);
     }
-    let Q = null; try { Q = R.quests && R.quests.markers && R.quests.markers(); } catch (e) {}
-    if (Q) for (const m of Q) {
-      if (!m || m.x == null) continue; const dx = m.x - px, dy = m.y - py, dist = Math.hypot(dx, dy), rim = c - 7;
-      if (dist * k > rim) { const a = Math.atan2(dy, dx), x = c + Math.cos(a) * rim, y = c + Math.sin(a) * rim; dot(g, x, y, 3, '#e3b661', '#000');
-        g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = '#e3b661'; g.beginPath(); g.moveTo(7, 0); g.lineTo(3, -3.5); g.lineTo(3, 3.5); g.fill(); g.restore(); }
-      else dot(g, c + dx * k, c + dy * k, 3, '#e3b661', '#000');
+    // quest markers: "!" (a quest to take / a target) or "?" (a quest to hand in); outside the circle → on the rim with a pointer outward
+    const TM = trackedMark();
+    for (const m of qMarks()) {
+      const [dx, dy] = rp(m.x - px, m.y - py), dist = Math.hypot(dx, dy), rim = c - 9, hot = !!TM && m.id === TM.id && m.x === TM.x && m.y === TM.y, r = hot ? 6 : 4.6;   // markers() builds new objects on every call
+      if (m.kind === 'give' && !hot && dist > 2500) continue;   // offers only nearby (Q1: hundreds of them); objectives / turn-ins always
+      if (dist * k > rim) { if (!hot && m.kind === 'give') continue; const a = Math.atan2(dy, dx), x = c + Math.cos(a) * rim, y = c + Math.sin(a) * rim;
+        g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = '#e3b661'; g.beginPath(); g.moveTo(r + 5, 0); g.lineTo(r - 1, -4); g.lineTo(r - 1, 4); g.fill(); g.restore(); glyph(g, x, y, r, qGlyph(m), hot); }
+      else glyph(g, c + dx * k, c + dy * k, r, qGlyph(m), hot);
     }
     if (Math.abs(P.vx || 0) + Math.abs(P.vy || 0) > 1) lastA = Math.atan2(P.vy, P.vx);
-    g.save(); g.translate(c, c); g.rotate(lastA); g.fillStyle = '#fff'; g.strokeStyle = '#000'; g.lineWidth = 1; g.beginPath(); g.moveTo(7, 0); g.lineTo(-5, 5); g.lineTo(-2.5, 0); g.lineTo(-5, -5); g.closePath(); g.fill(); g.stroke(); g.restore();
+    g.save(); g.translate(c, c); g.rotate(lastA + yaw); g.fillStyle = '#fff'; g.strokeStyle = '#000'; g.lineWidth = 1; g.beginPath(); g.moveTo(7, 0); g.lineTo(-5, 5); g.lineTo(-2.5, 0); g.lineTo(-5, -5); g.closePath(); g.fill(); g.stroke(); g.restore();
     g.restore();
     g.beginPath(); g.arc(c, c, c - 1.5, 0, 7); g.lineWidth = 2.5; g.strokeStyle = hcol(house); g.stroke();
-    g.fillStyle = 'rgba(255,255,255,.7)'; g.font = '700 8px ' + 'Cinzel,Georgia,serif'; g.textAlign = 'center'; g.fillText('N', c, 10);
+    g.fillStyle = 'rgba(255,255,255,.7)'; g.font = '700 8px ' + 'Cinzel,Georgia,serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; const nn = rp(0, -(c - 8)); g.fillText('N', c + nn[0], c + nn[1]);
   };
 
   /* ---- the fallen chip: "☠ n" heroes fallen (R.state.acc.hall), tap → the hall ---- */
@@ -171,7 +185,10 @@
     const tw = document.querySelector('#tut:not(.off) .tut-wrap');
     if (tw && shownEl(tw)) { if (tw.style.top !== y + 'px') tw.style.top = y + 'px'; y += tw.offsetHeight + GAP; }
     const rg = E['hud-region']; if (rg.classList.contains('on')) { if (rg.style.top !== y + 'px') rg.style.top = y + 'px'; y += rg.offsetHeight + GAP; }
-    for (const t of ui.querySelectorAll(':scope>.toast')) { if (t.style.top !== y + 'px') t.style.top = y + 'px'; y += t.offsetHeight + 6; }
+    // toasts: the same line twice while the first is up → one; at most the 2 newest visible (the older ones are hidden, they expire on their own)
+    const seen = new Set(); for (const t of ui.querySelectorAll(':scope>.toast')) { const k = t.textContent; if (seen.has(k)) { t.remove(); continue; } seen.add(k); }
+    const ts = [...ui.querySelectorAll(':scope>.toast')], vis = ts.slice(-2);
+    for (const t of ts) { if (vis.indexOf(t) < 0) { t.style.display = 'none'; continue; } if (t.style.top !== y + 'px') t.style.top = y + 'px'; y += t.offsetHeight + 6; }
   };
   try { new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1 && (n.classList.contains('toast') || n.classList.contains('ach-toast') || BARS.includes(n.id) || n.id === 'tut')) { stack(); return; } })
     .observe(ui, { childList: true }); } catch (e) {}
@@ -196,18 +213,22 @@
     const title = titleOf(st); if (title !== last.title) { last.title = title; E['hud-title'].textContent = title ? '· ' + title : ''; }
     const house = houseOf(st), hc = hcol(house); if (hc !== last.hc) { last.hc = hc; root.style.setProperty('--hc', hc); }
     setPortrait(st.hero, house, st.cls); drawHall();
+    let tal = false; try { tal = !!(R.prog && R.prog.hint && R.prog.hint() === '!'); } catch (e) {} E['hud-tal'].classList.toggle('on', tal);   // P1's talents: points to spend
     if (shown.gold !== (st.gold || 0)) tween('gold', st.gold || 0); if (shown.gems !== (st.gems || 0)) tween('gems', st.gems || 0);
     let town = null; try { town = R.towns && R.towns.inside && R.towns.inside(); } catch (e) {}
     E['hud-town'].classList.toggle('on', !!town); lastTown = town;
     const tn = town ? (typeof town === 'object' ? (town.name || '') : '') : ''; if (tn !== last.townName) { last.townName = tn; E['hud-town'].querySelector('.n').textContent = tn ? ' · ' + tn : ''; }
     E['hud-vig'].style.opacity = f < .3 ? (0.3 + 0.7 * (1 - f / .3)).toFixed(2) : '0'; E['hud-vig'].classList.toggle('on', f < .3);
     drawMini(P); stack();
+    if (R.input && R.input.setBag) { const inv = st.inv; R.input.setBag(Array.isArray(inv) ? inv.filter(Boolean).length : 0); }
     Object.assign(last, { hp, hpMax, lvl: L, xp, need, gold: st.gold || 0, gems: st.gems || 0, town: n_(town), house, hero: st.hero || null });
   };
 
   /* ---- taps ---- */
   const sheet = () => { if (R.ui.cur) return; if (R.input && R.input.haptic) R.input.haptic('select'); R.bus.emit('btn', 'inv', 'hud'); };
-  E['hud-bars'].addEventListener('click', sheet); E['hud-port'].addEventListener('click', sheet);
+  E['hud-bars'].addEventListener('click', sheet); E['hud-port'].addEventListener('click', ev => { if (ev.target === E['hud-tal']) return; sheet(); });
+  E['hud-tal'].addEventListener('click', ev => { ev.stopPropagation(); if (R.ui.cur) return; try { R.prog && R.prog.open && R.prog.open(); } catch (e) { console.error('talents', e); } });
+  R.bus.on('talent', () => { acc = 0.1; });
   mm.addEventListener('click', () => { R.bus.emit('btn', 'map'); });
   E['hud-town'].addEventListener('click', () => { if (R.screens.shop) R.ui.open('shop', lastTown); else R.bus.emit('btn', 'shop', lastTown); });
   E['hud-hall'].addEventListener('click', () => { if (R.screens.hall) R.ui.open('hall'); else R.bus.emit('btn', 'hall'); });
@@ -220,9 +241,28 @@
   R.bus.on('xp', () => { acc = 0.1; });
   R.bus.on('hit', i => { if (i && i.tgt === R.player) acc = 0.1; });
 
+  /* ---- the way to the tracked quest, on the 2D overlay: an arrow on a ring around the hero's feet + the distance in paces;
+     the target itself gets a bobbing "!"/"?" when it is on screen. Not while a screen or the death is up. ---- */
+  const PACE = 12;   // world units per pace (the hero is ~3 paces tall at the default zoom)
+  const drawWay = ctx => {
+    const P = R.player; if (!P || P.dead || R.ui.cur || !R.w2s || !R.vw) return; const m = trackedMark(); if (!m) return;
+    const dx = m.x - P.x, dy = m.y - P.y, d = Math.hypot(dx, dy); if (d < 60) return;
+    let hs, ts, s2; try { hs = R.w2s(P.x, P.y, 0); ts = R.w2s(m.x, m.y, 0); s2 = R.w2s(P.x + dx / d * 60, P.y + dy / d * 60, 0); } catch (e) { return; }
+    if (!hs || hs.behind) return; const col = '#e3b661', ch = qGlyph(m), t = R.t || 0;
+    const onScreen = ts && !ts.behind && ts.x > 30 && ts.x < R.vw - 30 && ts.y > 230 && ts.y < R.vh - 260;
+    ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    if (onScreen) { const by = ts.y - 34 - Math.sin(t * 4) * 4; ctx.shadowColor = '#000'; ctx.shadowBlur = 8; glyph(ctx, ts.x, by, 11, ch, true); ctx.shadowBlur = 0; ctx.restore(); return; }
+    const a = s2 && !s2.behind ? Math.atan2(s2.y - hs.y, s2.x - hs.x) : Math.atan2(dy, dx), rr = 74 + Math.sin(t * 5) * 3, x = hs.x + Math.cos(a) * rr, y = hs.y + Math.sin(a) * rr * .62;
+    ctx.translate(x, y); ctx.rotate(a); ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = 6; ctx.fillStyle = col; ctx.strokeStyle = '#1a130a'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(16, 0); ctx.lineTo(-8, -11); ctx.lineTo(-3, 0); ctx.lineTo(-8, 11); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.rotate(-a); ctx.shadowBlur = 0;
+    const paces = Math.max(1, Math.round(d / PACE)), txt = (paces >= 1000 ? (paces / 1000).toFixed(1) + 'k' : paces) + ' paces', ox = Math.cos(a) * 30, oy = Math.sin(a) * 22 + 2;
+    ctx.font = '800 12px Cinzel,Georgia,serif'; ctx.lineWidth = 3.5; ctx.strokeStyle = 'rgba(6,9,14,.9)'; ctx.strokeText(ch + '  ' + txt, ox, oy); ctx.fillStyle = '#f3e7c4'; ctx.fillText(ch + '  ' + txt, ox, oy);
+    ctx.restore(); };
+
   /* ---- system: ≤ 10 refreshes a second ---- */
   let acc = 0.1;
   let warned = 0;   // the HUD never breaks the frame: a half-built save (no acc yet) only skips this refresh
-  R.addSys('hud', { order: 950, update(dt) { acc += dt; if (acc < 0.1) return; acc = 0; try { refresh(); } catch (e) { if (!warned++) console.warn('hud', e); } } });
-  R.hud = { el: root, mm, E, refresh, banner, stack, last, shown, resetPortrait: () => { portKey = ''; faceKey = ''; }, drawMini: () => R.player && drawMini(R.player) };
+  R.addSys('hud', { order: 950, update(dt) { acc += dt; if (acc < 0.1) return; acc = 0; try { refresh(); } catch (e) { if (!warned++) console.warn('hud', e); } },
+    draw(ctx) { try { drawWay(ctx); } catch (e) { if (!warned++) console.warn('hud way', e); } } });
+  R.hud = { el: root, mm, E, refresh, banner, stack, last, shown, trackedMark, drawWay, resetPortrait: () => { portKey = ''; faceKey = ''; }, drawMini: () => R.player && drawMini(R.player) };
 })();

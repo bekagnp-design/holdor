@@ -34,7 +34,7 @@
   const st = (it, k) => (it && it.stats && +it.stats[k]) || 0;
   const score = it => it ? STATS.reduce((s, k) => s + st(it, k) * WGT[k], 0) : 0;
   const mainStat = it => { if (!it) return null; if (it.kind === 'weapon') return 'atk'; if (it.kind === 'armor') return 'def'; let b = null, bv = 0; for (const k of STATS) if (st(it, k) > bv) { bv = st(it, k); b = k; } return b; };
-  const price = it => { const I = IT(); for (const f of ['price', 'sellPrice', 'value']) if (typeof I[f] === 'function') { try { const v = +I[f](it); if (v > 0) return Math.round(v); } catch (e) {} }
+  const price = it => { const I = IT(); for (const f of ['sellPrice', 'price', 'value']) if (typeof I[f] === 'function') { try { const v = +I[f](it); if (v > 0) return Math.round(v); } catch (e) {} }
     return Math.round((4 + (it.lvl | 0) * 2) * [1, 2, 4, 9, 20][R.clamp(it.rar | 0, 0, 4)]); };
   const iconHtml = (it, cls) => { const I = IT();
     if (typeof I.icon === 'function') { try { const h = I.icon(it); if (typeof h === 'string' && h) return h[0] === '<' ? h.replace('<svg', '<svg class="ig ' + (cls || '') + '"') : '<span class="ig em ' + (cls || '') + '">' + esc(h) + '</span>'; } catch (e) {} }
@@ -113,8 +113,9 @@
   /* the hero is a champion (Addendum 2): R.draw.portrait(hero) → A_CHAMP.art[hero + '_portrait'] → R.draw.hero → the class glyph */
   const put = (box, node) => { box.insertBefore(node, box.firstChild); return true; };
   function drawPortrait(p) { const box = el && el.querySelector('.por'); if (!box) return; const hero = p.hero; let done = false;
-    if (hero && R.draw && typeof R.draw.portrait === 'function') { try { const r = R.draw.portrait(hero, { size: 72 });
-      if (r && r.nodeType === 1) done = put(box, r); else if (typeof r === 'string' && /^(data:|https?:|blob:|\.?\/)/.test(r)) { const im = new Image(); im.src = r; im.alt = ''; done = put(box, im); } } catch (e) {} }
+    if (hero && R.draw && typeof R.draw.portrait === 'function') { try { const r = R.draw.portrait(hero, 72);   // 05_sprites: portrait(id, size) → a CACHED canvas: draw a copy
+      if (r && r.tagName === 'CANVAS' && r.width > 0) { const c = document.createElement('canvas'); c.width = r.width; c.height = r.height; c.getContext('2d').drawImage(r, 0, 0); c.style.width = c.style.height = '72px'; done = put(box, c); }
+      else if (r && r.nodeType === 1) done = put(box, r.cloneNode ? r.cloneNode(true) : r); else if (typeof r === 'string' && /^(data:|https?:|blob:|\.?\/)/.test(r)) { const im = new Image(); im.src = r; im.alt = ''; done = put(box, im); } } catch (e) {} }
     if (!done && hero) { const A = (window.A_CHAMP && A_CHAMP.art) || window.CHAMP_ART, src = A && A[hero + '_portrait']; if (typeof src === 'string' && src) { const im = new Image(); im.src = src; im.alt = ''; done = put(box, im); } }
     if (!done && R.draw && typeof R.draw.hero === 'function') { try { const c = document.createElement('canvas'), d = Math.min(2, window.devicePixelRatio || 1); c.width = c.height = 72 * d; const x = c.getContext('2d'); x.scale(d, d);
       const keep = R.ctx; R.ctx = x; try { R.draw.hero(36, 58, { ctx: x, s: 1.8, scale: 1.8, anim: 'idle', face: 1, t: 0, portrait: true }); } finally { R.ctx = keep; }

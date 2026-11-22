@@ -203,28 +203,30 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
   ok(b1.region === 'north' && b1.gated && b1.open && b1.wrapped, 'Winterfell lies in the gated North; for a Stark it counts as open (home gate)', b1);
   ok(b1.dx > 120 && b1.dx < 180 && Math.abs(b1.dy) < 8 && b1.maxJump < 6, 'stick right 60 steps at Winterfell: x moves 120–180, |y| < 8, no step jumps > 6 units', { dx: +b1.dx.toFixed(1), dy: +b1.dy.toFixed(1), jump: +b1.maxJump.toFixed(2) });
 
-  /* 10b. R.hit is wrapped once: A12's wrapper sits on ours and neither re-wraps the other (the integrated build grew the chain by 2
-          per step: 84 → 9460 by t = 79 s, then "Maximum call stack size exceeded" and no damage at all). 6000 steps = 100 game-s. */
-  const hd = await pg.evaluate(() => { const depth = () => { let d = 0, f = R.hit; while (f && d < 100000) { d++; f = f.orig; } return d; };
-    const p = R.player, inv0 = p.inv; p.inv = 1e9; const d0 = depth(); for (let i = 0; i < 6000; i++) { R.step(); if (p.dead || p.hp <= 0) { p.dead = false; p.hp = p.hpMax; } }
-    p.inv = inv0; p.hp = p.hpMax; const d1 = depth(); let phys = 0; for (let f = R.hit; f; f = f.orig) if (f.__phys) phys++;
-    let works = null; try { const m = R.spawnMob('axe', p.x + 30, p.y, 1); m.ai = Object.assign(m.ai || {}, { off: true }); const h0 = m.hp; R.hit(p, m, 5, {}); works = m.hp < h0; R.remove(m); } catch (e) { works = 'threw ' + e.message; }
-    return { d0, d1, phys, works, t: +R.t.toFixed(1), errs: (R.errors || []).slice(-3).map(String) }; });
-  ok(hd.d1 === hd.d0 && hd.d1 <= 4 && hd.phys === 1, 'the R.hit chain does not grow over 6000 steps (≤ 4 deep), physics wraps it once', hd);
-  ok(hd.works === true, 'R.hit still deals damage after 100 game-s', hd.works);
-
-  /* helpers in the page: flat ground, a clean spot, the hero's speed per step */
+  /* helpers in the page: flat ground, a clean spot, the hero's speed per step; __K = the world data's scale (R.WS once A07 scales it) */
   await pg.evaluate(() => {
-    window.__g0 = R.render3d && R.render3d.groundY; window.__flat = () => { if (R.render3d) R.render3d.groundY = () => 0; };
-    window.__unflat = () => { if (R.render3d && window.__g0) R.render3d.groundY = window.__g0; };
+    window.__K = ((R.world && R.world.size && R.world.size()[0]) || 7200) / 7200;
+    /* __flat: level ground and no A43 obstacles in A06's slide (they stream in as the hero moves); __unflat puts both back */
+    window.__g0 = R.render3d && R.render3d.groundY; window.__xb = undefined;
+    window.__flat = () => { if (R.render3d) R.render3d.groundY = () => 0; if (R.world && window.__xb === undefined) { window.__xb = R.world.extraBlocked || null; R.world.extraBlocked = null; }
+      if (R.nature && !window.__nb) { window.__nb = R.nature.blockedAt; R.nature.blockedAt = () => false; } };
+    window.__unflat = () => { if (R.render3d && window.__g0) R.render3d.groundY = window.__g0; if (window.__xb !== undefined) { R.world.extraBlocked = window.__xb; window.__xb = undefined; }
+      if (window.__nb) { R.nature.blockedAt = window.__nb; window.__nb = null; } };
     window.__clear = () => { for (let i = R.ents.length - 1; i >= 0; i--) { const e = R.ents[i]; if (e !== R.player && e.kind !== 'npc' && e.kind !== 'portal') R.remove(e); } R.world.populate = false; };
-    window.__put = (x, y) => { R.input.move = { x: 0, y: 0 }; const p = R.player; p.x = x; p.y = y; p.prev = { x, y }; if (p.walk) { p.walk.x = 0; p.walk.y = 0; } p.imp = { x: 0, y: 0 }; p.z = 0; p.vz = 0; p.air = false; p.gy = null; p.status = {}; p.atkT = 0; p.dodgeT = 0; p.combatT = -99; };
-    window.__hold = (mx, my, n) => { const p = R.player, sp = []; R.input.move = { x: mx, y: my }; for (let i = 0; i < n; i++) { const x = p.x, y = p.y; R.step(); sp.push(Math.hypot(p.x - x, p.y - y) * 60); } return sp; };
+    window.__put = (x, y) => { R.input.move = { x: 0, y: 0 }; const p = R.player; p.x = x; p.y = y; p.prev = { x, y }; if (p.walk) { p.walk.x = 0; p.walk.y = 0; } p.imp = { x: 0, y: 0 }; p.z = 0; p.vz = 0; p.air = false; p.gy = null; p.status = {}; p.atkT = 0; p.dodgeT = 0; p.combatT = -99; p.moveT = 0; p.sprint = false; };
+    window.__hold = (mx, my, n) => { const p = R.player, sp = []; R.input.move = { x: mx, y: my }; for (let i = 0; i < n; i++) { const x = p.x, y = p.y; if (window.__calm) p.combatT = -99; R.step(); sp.push(Math.hypot(p.x - x, p.y - y) * 60); } return sp; };
     window.__free = () => { R.input.move = { x: 0, y: 0 }; };
     /* a free open spot: 400×400 units with no mask cell, no POI, no collider, no water */
-    window.__spot = () => { for (let y = 6500; y < 9500; y += 200) for (let x = 1500; x < 6000; x += 200) { let okk = true;
+    /* a free open spot: 400×400 units with no mask cell, no POI, no water, and a clear ±500 line east–west (A06's obstacles, A43's rocks
+       around it once its chunks are built) */
+    window.__spot = () => { const cands = [];
+      const K = window.__K; for (let y = 6500 * K; y < 9500 * K && cands.length < 12; y += 200 * K) for (let x = 1500 * K; x < 6000 * K && cands.length < 12; x += 200 * K) { let okk = true;
         for (let yy = y - 200; yy <= y + 200 && okk; yy += 50) for (let xx = x - 200; xx <= x + 200 && okk; xx += 50) if (R.world.blocked(xx, yy) || (R.water && R.water.depth(xx, yy) > 0) || R.world.poiAt(xx, yy, 200)) okk = false;
-        if (okk) return { x, y }; } return { x: 3000, y: 6000 }; };
+        if (okk) cands.push({ x, y }); }
+      const clear = c => { for (let xx = c.x - 500; xx <= c.x + 500; xx += 8) { if (R.world.blocked(xx, c.y) || (R.water && R.water.depth(xx, c.y) > 0)) return false;
+          if (R.world.obstacleAt && R.world.obstacleAt(xx, c.y, 16)) return false; if (R.nature && R.nature.blockedAt && R.nature.blockedAt(xx, c.y, 16)) return false; } return true; };
+      for (const c of cands) { window.__put(c.x, c.y); for (let i = 0; i < 30; i++) R.step(); if (clear(c)) return c; }
+      return cands[0] || { x: 3000, y: 6000 }; };
     window.__clear(); const s = window.__spot(); window.__S = s; window.__put(s.x, s.y); R.phys.extra.length = 0; R.phys.natureCols = false;   /* A43's trees off for the exact numbers; part 15 turns them back on */
   });
 
@@ -236,20 +238,20 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
     __put(__S.x, __S.y); __hold(1, 0, 30); const rev = __hold(-1, 0, 30); const vx = []; // the signed x velocity after the reversal
     __put(__S.x, __S.y); __hold(1, 0, 30); const rx = []; R.input.move = { x: -1, y: 0 }; for (let i = 0; i < 20; i++) { const x = p.x; R.step(); rx.push((p.x - x) * 60); }
     const flipAt = rx.findIndex(v => v < -150);
-    __put(__S.x, __S.y); const spr = __hold(1, 0, 130); __free(); for (let i = 0; i < 20; i++) R.step();
+    __clear(); __put(__S.x, __S.y); window.__calm = true; const spr = __hold(1, 0, 130); window.__calm = false;   /* a world event's mob may wander in: no combat */ window.__sprTr = spr.filter((_, i) => i % 10 === 0).map(v => Math.round(v)).join(',') + ' x' + Math.round(p.x - __S.x) + ' st ' + JSON.stringify(p.status) + ' sprint ' + p.sprint + ' anim ' + p.anim + ' atk ' + p.attacking() + ' dead ' + p.dead + ' cur ' + (R.ui && R.ui.cur) + ' moveT ' + (+p.moveT).toFixed(2) + ' combat ' + (R.t - p.combatT).toFixed(2) + ' hb ' + (p.lastHitBy && p.lastHitBy.kind); __free(); for (let i = 0; i < 20; i++) R.step();
     __unflat();
-    return { spd: p.spd, a3: acc[2], a5: acc[4], a8: acc[7], a12: acc[11], full: acc[29], stopAt, skid, flipAt, sprint: spr.slice(-10).reduce((a, b) => a + b, 0) / 10, sprintFlag: p.sprint, walk: !!p.walk };
+    return { spd: p.spd, a3: acc[2], a5: acc[4], a8: acc[7], a12: acc[11], full: acc[29], stopAt, skid, flipAt, sprint: spr.slice(-10).reduce((a, b) => a + b, 0) / 10, sprintFlag: p.sprint, walk: !!p.walk, tr: window.__sprTr };
   });
   ok(w.walk && w.a3 > 40 && w.a3 < 150 && w.a8 >= w.spd * 0.95, "acceleration: ~0.05 s → 40–150 u/s, by 0.13 s ≥ 95 % of full speed (full in ~0.12 s)", { a3: Math.round(w.a3), a5: Math.round(w.a5), a8: Math.round(w.a8) });
   ok(Math.abs(w.full - w.spd) < 2, 'cruise speed stays the hero\'s speed (e.spd, ~170 u/s) on flat ground', { v: Math.round(w.full), spd: w.spd });
   ok(w.stopAt >= 3 && w.stopAt <= 8 && w.skid > 3 && w.skid < 14, 'braking: stopped within ~0.1 s, skids 3–14 units', { steps: w.stopAt, skid: +w.skid.toFixed(1) });
   ok(w.flipAt >= 8 && w.flipAt <= 18, 'a reversal carries momentum: −150 u/s reached after 0.13–0.3 s', w.flipAt);
-  ok(Math.abs(w.sprint - w.spd * 240 / 170) < 4, 'sprint after 1.5 s of running: spd × 240/170 (ramped by the same weight)', { v: Math.round(w.sprint), want: Math.round(w.spd * 240 / 170) });
+  ok(Math.abs(w.sprint - w.spd * 240 / 170) < 4, 'sprint after 1.5 s of running: spd × 240/170 (ramped by the same weight)', { v: Math.round(w.sprint), want: Math.round(w.spd * 240 / 170), tr: Math.abs(w.sprint - w.spd * 240 / 170) >= 4 ? w.tr : undefined });
 
   /* 12. slopes, water and ice under the real player module */
   const sl = await pg.evaluate(() => {
     const p = R.player, S = __S, res = {};
-    R.render3d.groundY = (x, y) => (x - S.x) * 0.45; __put(S.x, S.y); const up = __hold(1, 0, 40).slice(-10).reduce((a, b) => a + b, 0) / 10; __free(); for (let i = 0; i < 10; i++) R.step();
+    __flat(); R.render3d.groundY = (x, y) => (x - S.x) * 0.45; __put(S.x, S.y); const up = __hold(1, 0, 40).slice(-10).reduce((a, b) => a + b, 0) / 10; __free(); for (let i = 0; i < 10; i++) R.step();
     __put(S.x, S.y); const dn = __hold(-1, 0, 40).slice(-10).reduce((a, b) => a + b, 0) / 10; __free(); for (let i = 0; i < 10; i++) R.step();
     R.render3d.groundY = (x, y) => (x > S.x + 30 ? (x - S.x - 30) * 2.2 : 0); __put(S.x, S.y); __hold(1, 0, 60); const wallX = p.x - S.x; __free(); for (let i = 0; i < 10; i++) R.step();
     __flat(); const W0 = R.water; const dfake = { depth: () => 0.5, isWater: () => true, kindAt: () => 'river' }; R.water = Object.assign(Object.create(W0 || {}), dfake);
@@ -259,7 +261,7 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
     __put(S.x, S.y); __hold(1, 0, 60); const iceTop = p.x; R.input.move = { x: 0, y: 0 }; for (let i = 0; i < 60; i++) R.step(); const iceSkid = p.x - iceTop; const onIce = p.onIce;
     R.world.regionAt = rg0; R.water = W0; __unflat(); __free(); __put(S.x, S.y);
     /* the ice field beyond the Wall is a fixed noise patch */
-    let pt = null; for (let y = 200; y < 900 && !pt; y += 37) for (let x = 2000; x < 5000 && !pt; x += 41) { const r = R.world.regionAt(x, y); if (r && /beyond|winter/.test(r.id) && R.phys.icePatch(x, y) && !R.world.blocked(x, y)) pt = { x, y, id: r.id }; }
+    let pt = null; const K = __K; for (let y = 200 * K; y < 900 * K && !pt; y += 37) for (let x = 2000 * K; x < 5000 * K && !pt; x += 41) { const r = R.world.regionAt(x, y); if (r && /beyond|winter/.test(r.id) && R.phys.icePatch(x, y) && !R.world.blocked(x, y)) pt = { x, y, id: r.id }; }
     return { up: up / 170, dn: dn / 170, wallX, wade: wade / 170, wading, iceSkid, onIce, icePt: pt, iceAt: pt ? R.phys.iceAt(pt.x, pt.y) : null };
   });
   ok(sl.up > 0.62 && sl.up < 0.8, 'uphill (gradient 0.45): 20–38 % slower', +sl.up.toFixed(3));
@@ -325,7 +327,7 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
   /* 16. nothing ends inside a blocked cell; one spawned inside walks out without a jump */
   const bl = await pg.evaluate(() => {
     __clear(); __flat(); const out = {};
-    let edge = null; for (let y = 3000; y < 9000 && !edge; y += 60) for (let x = 600; x < 6600 && !edge; x += 30) if (!R.world.blocked(x, y) && R.world.blocked(x + 60, y) && !R.world.blocked(x - 60, y)) edge = { x, y };
+    let edge = null; const K = __K; for (let y = 3000 * K; y < 9000 * K && !edge; y += 60) for (let x = 600 * K; x < 6600 * K && !edge; x += 30) if (!R.world.blocked(x, y) && R.world.blocked(x + 60, y) && !R.world.blocked(x - 60, y)) edge = { x, y };
     if (!edge) return { none: true };
     __put(edge.x - 60, edge.y);
     const m = R.spawnMob('axe', edge.x - 20, edge.y, 3); m.ai = Object.assign(m.ai || {}, { off: true }); m.hp = m.hpMax = 99999; m.prev = { x: m.x, y: m.y };
@@ -337,6 +339,11 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
   });
   ok(bl.none || bl.inside === 0, 'shoved at a blocked cell at 900 u/s, a mob never ends a step inside it', bl);
   ok(bl.none || (bl.was && bl.out && bl.jump < 3), 'a mob spawned inside the mask walks out (≤ 2.5 units per step, no teleport)', bl);
+
+  /* 16b. mobs can move at all: A11's C.moveEnt (with physics' guarded fallback while A06's slide has 5 parameters) moves a mob by (10, 0) */
+  const mv = await pg.evaluate(() => { __clear(); __flat(); const S = __S, m = R.spawnMob('axe', S.x + 200, S.y, 3); m.ai = Object.assign(m.ai || {}, { off: true });
+    const x0 = m.x; R.combat.moveEnt(m, 10, 0); const d = m.x - x0; R.remove(m); __unflat(); return { d, fix: !!R.combat.moveEnt.physFix, arity: R.world.slide.length }; });
+  ok(Math.abs(mv.d - 10) < 0.01, 'R.combat.moveEnt(mob, 10, 0) moves it 10 units', mv);
 
   /* 17. a crowd around the hero settles without jitter */
   const cr = await pg.evaluate(() => {
@@ -354,7 +361,7 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
 
   /* 18. landing: running off a 40-unit ledge → airborne (e.z), lands, camera kick, 'landed' event */
   const ld = await pg.evaluate(() => {
-    __clear(); const p = R.player, S = __S; R.render3d.groundY = (x, y) => (x < S.x + 40 ? 40 : 0); __put(S.x, S.y); R.step();
+    __clear(); __flat(); const p = R.player, S = __S; R.render3d.groundY = (x, y) => (x < S.x + 40 ? 40 : 0); __put(S.x, S.y); R.step();
     const sh0 = R.fx && R.fx.shake, kicks = []; if (R.fx) R.fx.shake = (px, s) => { kicks.push(px); try { sh0 && sh0(px, s); } catch (e) {} };
     let lv = null; const h = (e, v) => { if (e === p) lv = v; }; R.bus.on('landed', h);
     let zMax = 0; R.input.move = { x: 1, y: 0 }; for (let i = 0; i < 70; i++) { R.step(); zMax = Math.max(zMax, p.z || 0); } __free(); for (let i = 0; i < 10; i++) R.step();
@@ -371,7 +378,7 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
   /* 20. standing still on the real terrain: no drift (the cliff slide only acts on > 0.9 slopes) */
   const dr = await pg.evaluate(() => {
     __clear(); const p = R.player; p.inv = 1e9; R.phys.natureCols = true; const res = []; let tries = 0;
-    for (let y = 3200; y < 10000 && res.length < 6 && tries < 400; y += 523) for (let x = 900; x < 6400 && res.length < 6 && tries < 400; x += 611) { tries++;
+    const K = __K; for (let y = 3200 * K; y < 10000 * K && res.length < 6 && tries < 400; y += 523 * K) for (let x = 900 * K; x < 6400 * K && res.length < 6 && tries < 400; x += 611 * K) { tries++;
       if (R.world.blocked(x, y) || (R.water && R.water.depth(x, y) > 0) || R.phys.gradAt(x, y).m > 0.8) continue;
       __put(x, y); R.step(); R.step(); const x0 = p.x, y0 = p.y; for (let i = 0; i < 180; i++) R.step(); res.push(+Math.hypot(p.x - x0, p.y - y0).toFixed(3)); }
     p.inv = 0; R.phys.natureCols = false; __put(__S.x, __S.y); return res;
@@ -391,6 +398,70 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
   ok(dg.dodging && dg.first > 6 && dg.dodged > 150 && dg.dodged < 200 && dg.after < 6, 'dodge: full speed from the first step (> 6 units), 150–200 units, skids < 6 after it ends', dg);
   ok(Math.abs(dg.dash - 100) < 0.5 && Math.abs(dg.put - 40) < 0.01, 'a 10-unit-per-step dash by another system and a 40-unit put pass through untouched', { dash: dg.dash, put: dg.put });
 
+  /* 23. benders for the grass shader: the hero first, then the nearest moving mobs / critters, at most 8 */
+  const bd = await pg.evaluate(() => {
+    __clear(); __flat(); const p = R.player, S = __S; __put(S.x, S.y); p.inv = 1e9;
+    const ms = []; for (let i = 0; i < 12; i++) { const m = R.spawnMob('axe', S.x + 60 + i * 30, S.y + 120, 3); m.ai = Object.assign(m.ai || {}, { off: true }); m.mv = 60 + i * 5; ms.push(m); }
+    R.addSys('__mv', { order: 99, update(dt) { for (const m of ms) if (!m.dead) m.x += m.mv * dt; } });
+    for (let i = 0; i < 10; i++) R.step(); const still = R.phys.benders().map(b => Object.assign({}, b));
+    R.input.move = { x: 1, y: 0 }; for (let i = 0; i < 30; i++) R.step(); const b = R.phys.benders().map(q => Object.assign({}, q)); __free();
+    delete R.sys.__mv; const near = ms.map(m => Math.hypot(m.x - p.x, m.y - p.y)).sort((a, c) => a - c).slice(0, 7);
+    const out = { n: b.length, hero: b[0], still0: still[0], ks: b.slice(1).map(q => +q.k.toFixed(2)), ds: b.slice(1).map(q => Math.round(Math.hypot(q.x - p.x, q.y - p.y))), near: near.map(Math.round), same: R.phys.benders() === R.phys.benders() };
+    p.inv = 0; __unflat(); __clear(); return out;
+  });
+  ok(bd.n === 8 && bd.hero && bd.hero.r >= 12 && bd.hero.k > 0.9 && bd.still0 && bd.still0.k >= 0.25 && bd.same, 'R.phys.benders(): 8 entries, the hero first (r = 2 × body, k from his speed; 0.25 standing), one reused array', bd);
+  ok(bd.ks.every(k => k > 0.3 && k <= 1.5) && JSON.stringify(bd.ds) === JSON.stringify(bd.near), 'the other 7 are the nearest moving mobs, k = speed / 170', { ds: bd.ds, near: bd.near, ks: bd.ks });
+
+  /* 24. cloak / hair spring, lean and bob */
+  const ck = await pg.evaluate(() => {
+    __clear(); __flat(); const p = R.player, S = __S; __put(S.x, S.y); R.cam.yaw = 0; const out = {};
+    for (let i = 0; i < 150; i++) R.step(); out.rest0 = Object.assign({}, R.phys.cloak(p)); out.bob0 = p.bob || 0;
+    R.input.move = { x: 0, y: -1 }; let flMax = 0, bobMax = 0; for (let i = 0; i < 120; i++) { R.step(); flMax = Math.max(flMax, R.phys.cloak(p).flare); bobMax = Math.max(bobMax, p.bob || 0); }
+    out.flare = flMax; out.bobMax = bobMax;
+    R.input.move = { x: 1, y: 0 }; let angMin = 0, angMax = 0, leanMax = 0, leanMin = 0; for (let i = 0; i < 30; i++) { R.step(); const c = R.phys.cloak(p); angMin = Math.min(angMin, c.ang); angMax = Math.max(angMax, c.ang); leanMax = Math.max(leanMax, p.lean); leanMin = Math.min(leanMin, p.lean); }
+    out.turnR = { angMin, angMax, leanMax, leanMin };
+    __free(); for (let i = 0; i < 120; i++) R.step(); const c = R.phys.cloak(p); out.end = { ang: c.ang, flare: c.flare, bob: p.bob, lean: p.lean };
+    __unflat(); return out;
+  });
+  ok(Math.abs(ck.rest0.ang) < 0.03 && ck.rest0.flare < 0.05 && ck.flare > 0.5 && ck.bobMax > 1 && ck.bobMax < 4, 'the cloak lifts while running (flare > 0.5), the hero bobs 1–4 units', ck);
+  ok(ck.turnR.angMin < -0.08 && ck.turnR.angMin > -0.7 && ck.turnR.leanMax > 0.1 && ck.turnR.leanMax < 0.8, 'turning right (north → east): the cloak swings left (inertia), the hero leans into the turn', ck.turnR);
+  ok(Math.abs(ck.end.ang) < 0.03 && ck.end.flare < 0.05 && ck.end.bob < 0.01 && Math.abs(ck.end.lean) < 0.03, 'standing 2 s: the spring settles, no bob, no lean', ck.end);
+
+  /* 25. the hero's steps push loose things; sprinting kicks up dust */
+  const st = await pg.evaluate(() => {
+    __clear(); __flat(); const p = R.player, S = __S; __put(S.x, S.y); const out = {};
+    const d = R.loot.spawn('mat', S.x + 30, S.y + 4, { lvl: 3, scatter: false }); for (let i = 0; i < 5; i++) R.step(); const d0 = { x: d.x, y: d.y };
+    const sp0 = R.fx.spawn, dust = []; R.fx.spawn = (k, x, y, o) => { if (k === 'dust') dust.push(o && o.col); return sp0 ? sp0.call(R.fx, k, x, y, o) : null; };
+    R.input.move = { x: 1, y: 0 }; let zMax = 0; for (let i = 0; i < 40; i++) { R.step(); zMax = Math.max(zMax, d.z || 0); }
+    out.moved = Math.hypot(d.x - d0.x, d.y - d0.y); out.zMax = zMax; const k0 = p.kickN || 0, n0 = dust.length;
+    for (let i = 0; i < 150; i++) R.step(); __free(); R.fx.spawn = sp0; out.sprint = p.sprint; out.kicks = (p.kickN || 0) - k0; out.dust = dust.length - n0;
+    __unflat(); __clear(); return out;
+  });
+  ok(st.moved > 2 && st.zMax > 0.5, 'a drop under the hero\'s feet is pushed aside and hops', st);
+  ok(st.kicks >= 3 && st.dust >= 3, 'sprinting kicks up dust / leaves at his steps (R.fx.spawn dust)', st);
+
+  /* 26. heavy enemies stepping near the hero shake the camera slightly; far away they do not */
+  const hv = await pg.evaluate(() => {
+    __clear(); __flat(); const p = R.player, S = __S; __put(S.x, S.y); p.inv = 1e9; const out = {};
+    const sh0 = R.fx.shake, kicks = []; R.fx.shake = (px, s) => { kicks.push(+px.toFixed(2)); };
+    const g = R.spawnMob('giant', S.x + 220, S.y, 5); g.ai = Object.assign(g.ai || {}, { off: true }); g.hp = g.hpMax = 1e6;
+    let sgn = 1; R.addSys('__gw', { order: 99, update(dt) { g.x += sgn * 50 * dt; } });
+    for (let i = 0; i < 180; i++) R.step(); out.near = kicks.slice(); kicks.length = 0;
+    g.x = S.x + 1100; g.prev = { x: g.x, y: g.y }; for (let i = 0; i < 180; i++) R.step(); out.far = kicks.length;
+    delete R.sys.__gw; R.fx.shake = sh0; p.inv = 0; __unflat(); __clear(); return out;
+  });
+  ok(hv.near.length >= 3 && hv.near.every(k => k > 0 && k <= 4), 'a walking giant 220 units away: slight camera shakes at its steps (≤ 4 px)', hv.near);
+  ok(hv.far === 0, 'the same giant 1100 units away: none', hv.far);
+
+  /* 27. the blocked mask at the world's scale: R.world.blocked agrees with the data's rows at cell = size / mask.w (120 · R.WS once scaled) */
+  const mk = await pg.evaluate(() => {
+    const D = R.data.world, m = D.mask, sz = R.world.size(), cell = sz[0] / m.w; let n = 0, agree = 0, pa = 0;
+    for (let y = 37; y < sz[1]; y += sz[1] / 61) for (let x = 53; x < sz[0]; x += sz[0] / 47) { n++; const row = m.rows[Math.floor(y / cell)]; const want = row ? row.charCodeAt(Math.floor(x / cell)) === 35 : true;
+      if (R.world.blocked(x, y) === want) agree++; if (R.phys.blockedAt(x, y) === want) pa++; }
+    return { n, agree, pa, cell, WS: R.WS, size: sz, cellWS: 120 * (R.WS || 1) };
+  });
+  ok(mk.agree === mk.n && mk.pa === mk.n, 'the blocked mask: R.world.blocked = the data rows at cell = size / mask.w for every sample', mk);
+
   /* 19. the phone budget: 40 mobs + 15 critters + the hero, timed inside 600 real steps (physPre + physPost) */
   const bu = await pg.evaluate(() => {
     __clear(); const p = R.player, S = __S; __put(S.x, S.y); p.hp = p.hpMax = 1e9; p.inv = 1e9; R.phys.natureCols = true; R.world.populate = true;
@@ -407,6 +478,16 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
     const a = A.get(), b = B.get(); const out = { avg: best, med: a.med + b.med, worst: Math.max(a.worst, b.worst), movers: R.phys.stats.movers, critters: crit, mobs, cols: R.phys.colliderCount }; __clear(); return out;
   });
   ok(bu.avg < 0.3 && bu.mobs >= 30, '40 mobs + 15 critters + the hero over 600 real steps: physics < 0.3 ms per step (least disturbed of 12 batches of 50)', { avg: +bu.avg.toFixed(4), med: +bu.med.toFixed(4), worst: +bu.worst.toFixed(2), mobs: bu.mobs, critters: bu.critters, cols: bu.cols });
+
+  /* 22. R.hit is wrapped once: A12's wrapper sits on ours and neither re-wraps the other (the integrated build grew the chain by 2
+          per step: 84 → 9460 by t = 79 s, then "Maximum call stack size exceeded" and no damage at all). 6000 steps = 100 game-s. */
+  const hd = await pg.evaluate(() => { const depth = () => { let d = 0, f = R.hit; while (f && d < 100000) { d++; f = f.orig; } return d; };
+    __clear(); const p = R.player, inv0 = p.inv; p.inv = 1e9; p.hp = p.hpMax = 1e9; const d0 = depth(); for (let i = 0; i < 6000; i++) { R.step(); if (p.dead || p.hp <= 0) { p.dead = false; p.hp = p.hpMax; } }
+    p.inv = inv0; p.hp = p.hpMax; const d1 = depth(); let phys = 0; for (let f = R.hit; f; f = f.orig) if (f.__phys) phys++;
+    let works = null; try { const m = R.spawnMob('axe', p.x + 30, p.y, 1); m.ai = Object.assign(m.ai || {}, { off: true }); const h0 = m.hp; R.hit(p, m, 5, {}); works = m.hp < h0; R.remove(m); } catch (e) { works = 'threw ' + e.message; }
+    return { d0, d1, phys, works, t: +R.t.toFixed(1), errs: (R.errors || []).slice(-3).map(String), cur: R.ui && R.ui.cur, same: R.player === p }; });
+  ok(hd.d1 === hd.d0 && hd.d1 <= 4 && hd.phys === 1, 'the R.hit chain does not grow over 6000 steps (≤ 4 deep), physics wraps it once', hd);
+  ok(hd.works === true, 'R.hit still deals damage after 100 game-s', hd.works);
 
   ok(G.errors.length === 0, 'no page errors (part 2)', G.errors.slice(0, 5));
   await G.close();

@@ -58,7 +58,7 @@ const stateOf = (name, saved, extra) => Object.assign({ v: 2, saved,
     const p = M.page;
     const logged = await p.evaluate(() => R.net.ready);
     await p.waitForFunction(() => !!R.boot, null, { timeout: 15000 }).catch(() => {}); await p.waitForTimeout(1200);
-    await p.evaluate(() => { R.stop(); R.save(true); }); await p.waitForTimeout(700);   // the world's own clock (played seconds, hp, position) would change the state under the save checks
+    await p.evaluate(async () => { R.stop(); R.save(true); await R.net.save(true); }); await p.waitForTimeout(500);   // the world's own clock (played seconds, hp, position) would change the state under the save checks
     ok('A login resolved true', logged === true);
     const L = last(M, 'tg_login');
     ok('A tg_login POSTed with init_data', L && L.body && L.body.init_data === INIT, JSON.stringify(names(M)));
@@ -68,7 +68,7 @@ const stateOf = (name, saved, extra) => Object.assign({ v: 2, saved,
     ok('A rpg_load called with token + seat 0', last(M, 'rpg_load') && last(M, 'rpg_load').body.token === TOKEN && last(M, 'rpg_load').body.seat === 0);
     ok('A server state (newer) replaced the local one', st0.name === 'Srv' && st0.pulled === true, st0.name);
     /* wallet import: gold/gems to the current hero, champions unlocked as heroes, flag set, toast, pushed */
-    const w = await p.evaluate(() => ({ gold: R.state.p.gold, gems: R.state.p.gems, champs: R.state.acc.champs, wal: R.state.wallet, imp: R.net.imported, toast: [...document.querySelectorAll('.toast')].map(t => t.textContent).join('|') }));
+    const w = await p.evaluate(() => ({ gold: R.state.p.gold, gems: R.state.p.gems, champs: R.state.acc.champs, wal: R.state.wallet, imp: R.net.imported, toast: [...document.querySelectorAll('.toast')].map(t => t.textContent).concat([R.net.toast || '']).join('|') }));
     ok('A wallet import added 1234 gold + 56 gems to the hero (achievements may pay real gems on top)', w.gold === 100 + 1234 && w.gems >= 5 + 56, JSON.stringify([w.gold, w.gems]));
     ok('A old champions unlocked as heroes (arya, dany new; jon kept)', w.champs.arya && w.champs.arya.unlocked === 1 && w.champs.arya.runs === 0 && w.champs.dany && w.champs.dany.unlocked === 1 && w.champs.jon && w.champs.jon.unlocked === 1 && Object.keys(w.champs).length === 3, JSON.stringify(w.champs));
     ok('A wallet flag set with the amounts', w.wal.imported === true && w.wal.gold0 === 1234 && w.wal.gems0 === 56 && w.wal.champs0 === 2 && w.imp && w.imp.champs === 2, JSON.stringify(w.wal));
@@ -96,7 +96,7 @@ const stateOf = (name, saved, extra) => Object.assign({ v: 2, saved,
     ok('A presence POSTs rounded x/y, zone, lvl, house (account), name (hero)', PR && PR.body.token === TOKEN && PR.body.seat === 0 && PR.body.x === 1235 && PR.body.y === 5678 && typeof PR.body.zone === 'string' && PR.body.lvl === 5 && PR.body.house === 'tully' && PR.body.name === 'Srv', PR && JSON.stringify(PR.body));
     ok('A others cached + presence event', pr.n === 2 && pr.others[0].name === 'Other' && pr.got.length === 1 && pr.got[0] === 2, JSON.stringify(pr));
     /* chat */
-    const ch = await p.evaluate(async () => { const ev = []; R.bus.on('chat', (add, all) => ev.push([add.length, all.length])); const s = await R.net.chat.send('  hi   there  '); await new Promise(r => setTimeout(r, 150)); const l = await R.net.chat.list(); return { s, n: l.length, msgs: R.net.chat.msgs, since: R.net.chat.since, ev, unread: R.net.chat.unread }; });
+    const ch = await p.evaluate(async () => { const ev = []; R.bus.on('chat', (add, all) => ev.push([add.length, all.length])); const s = await R.net.chat.send('  hi   there  '); await new Promise(r => setTimeout(r, 700)); const l = await R.net.chat.list(); return { s, n: l.length, msgs: R.net.chat.msgs, since: R.net.chat.since, ev, unread: R.net.chat.unread }; });
     const CS = last(M, 'rpg_chat_send'), CL = last(M, 'rpg_chat_list');
     ok('A chat.send POSTs the trimmed body with token/seat/zone', ch.s === true && CS && CS.body.token === TOKEN && CS.body.body === 'hi there' && typeof CS.body.zone === 'string', CS && JSON.stringify(CS.body));
     ok('A chat.list pulls once, dedupes, since = last id, one chat event, unread counted', ch.n === 1 && ch.msgs[0].body === 'hi there' && ch.since === 7 && ch.ev.length === 1 && ch.unread === 1 && CL.body.since === 7, JSON.stringify(ch));
@@ -131,7 +131,7 @@ const stateOf = (name, saved, extra) => Object.assign({ v: 2, saved,
 
   /* ---------- B: local newer than the server → local pushed, nothing pulled ---------- */
   {
-    const M = await open({ tag: 'B', tg: INIT, local: stateOf('Loc', 3000, { wallet: { imported: true } }), server: stateOf('Srv', 2000, { wallet: { imported: true } }) });
+    const M = await open({ tag: 'B', tg: INIT, local: stateOf('Loc', 3000, { sync: 2000, wallet: { imported: true } }), server: stateOf('Srv', 2000, { wallet: { imported: true } }) });   // this device synced at 2000, then played on
     const p = M.page; await p.evaluate(() => R.net.ready); await p.waitForTimeout(100);
     const st = await p.evaluate(() => ({ name: R.state.p.name, pulled: R.net.pulled, gold: R.state.p.gold, imp: R.net.imported }));
     const S = last(M, 'rpg_save');

@@ -137,7 +137,7 @@ const near = (a, b) => Math.abs(a - b) < 1e-6;
 
   // 10. the sea is heard near the shore: R.water's shoreline south of White Harbor → coast, Winterfell → not
   const coast = await page.evaluate(() => { if (!R.sfx.coastNear || !R.water || !R.water.ready || !R.player) return null; const p = R.player, x0 = p.x, y0 = p.y;
-    p.x = 3852; p.y = 4360; const a = R.sfx.coastNear(); p.x = 2950; p.y = 2450; const b = R.sfx.coastNear(); p.x = x0; p.y = y0; return [a, b, R.sfx.kindOf('coast')]; });
+    const WS = R.WS || 1; p.x = 3852 * WS; p.y = 4360 * WS; const a = R.sfx.coastNear(); p.x = 2950 * WS; p.y = 2450 * WS; const b = R.sfx.coastNear(); p.x = x0; p.y = y0; return [a, b, R.sfx.kindOf('coast')]; });
   if (coast) ok(coast[0] === true && coast[1] === false && coast[2] === 'waves', 'waves near a sea shore (R.water), not inland', coast); else console.log('SKIP coast bed: no R.water in this build');
   // the live game starts its own bed / music again (tick1s, screens): stop the world first, then everything must let go
   const left = await page.evaluate(() => { if (R.pause) R.pause(true); R.running = false; R.sfx.music(null); R.sfx.ambient(null); R.sfx.stopAll(); return { nodes: R.sfx.nodes, timers: R.sfx.timers(), state: R.sfx.ac.state }; });

@@ -66,7 +66,16 @@
   const cmetaOf = name => { const a = AC(); return (a && a.meta && a.meta[name]) || CMETA0; };
   const known = key => { const a = AE(); return !!(CFG0[key] || (a && ((a.cfg && a.cfg[key]) || (a.art && a.art[key])))); };
   /* a mob type that is not a sprite key may name its sprite in R.data.mobs[type].sprite */
-  const resolve = key => { if (known(key)) return key; const M = R.data && R.data.mobs && R.data.mobs[key]; return M && M.sprite && known(M.sprite) ? M.sprite : key; };
+  /* a mob type with no sheet of its own borrows the nearest painted one by its name (bandit → the axeman, bandit_archer → the archer, …), so
+     no humanoid shows as the grey placeholder; a mob of R.data.mobs that matches nothing walks as the swordsman */
+  const GUESS = [[/archer|bow|hunter|ranger|slinger/, 'archer'], [/spear|pike|lance/, 'spear'], [/shield|guard|knight|soldier|sworn|watch/, 'shield'], [/berserk|savage|frenz/, 'berserk'],
+    [/necro|mage|priest|witch|shaman|sorcer|warlock|cultist/, 'necro'], [/chief|captain|lord|warlord|champion/, 'chief'], [/thenn|clans|tribe/, 'thenn'], [/wolf/, 'wolf'], [/hound|dog|jackal/, 'hound'], [/bear/, 'bear'],
+    [/boar|pig/, 'boar'], [/spider/, 'spider'], [/crawl|rat|leech/, 'crawler'], [/wight|dead|crypt|skelet|corpse|drown/, 'crypt'], [/shade|ghost|wraith|spirit/, 'wraith'], [/giant/, 'giant'],
+    [/rider|horse|mounted/, 'rider'], [/raven|crow/, 'raven'], [/bat/, 'bat'], [/eagle|hawk/, 'eagle'], [/cat|lion/, 'cat'], [/bandit|outlaw|raider|thug|brigand|sellsword|pirate|reaver|wildling|axe|smuggler/, 'axe'], [/sword|blade|duel/, 'sword']];
+  const guessed = {};
+  const guess = key => { if (key in guessed) return guessed[key]; const k = String(key).toLowerCase(); let v = null; for (const [re, g] of GUESS) if (re.test(k) && known(g)) { v = g; break; } return guessed[key] = v; };
+  const resolve = key => { if (known(key)) return key; const M = R.data && R.data.mobs && R.data.mobs[key]; if (M && M.sprite && known(M.sprite)) return M.sprite;
+    const g = guess(key) || (M && M.sprite && guess(M.sprite)); if (g) return g; return M ? 'sword' : key; };
   const hash = s => { let h = 7; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); };
   const colFor = key => PAL[hash(key) % PAL.length];
   const houseCol = () => { const h = R.state && R.state.p && R.state.p.house, H = R.data && R.data.houses; return (h && H && H[h] && H[h].col) || '#a9bdd0'; };
@@ -203,7 +212,7 @@
     const P = ANIM_P[an] || ANIM_P.walk, fly = !!P.fly, ghost = !!P.ghost;
     const qh = Math.max(8, Math.round(hpx * dpr / 8) * 8), r = hpx / qh;             /* frame px → css px */
     const ph = phaseOf(P, sheet, anim, t, o.walk, hW);
-    let tint = o.tint || null, tA = o.tintA == null ? 0.45 : o.tintA; if (ph.flash) { tint = '#ffffff'; tA = 0.7; }
+    let tint = o.tint || null, tA = o.tintA == null ? 0.45 : o.tintA; if (ph.flash) { tint = '#ffffff'; tA = 0.4; }
     const fr = base(ns, sheet, im, m, an, ph.an, ph.fi, qh, tint, tA, col, o.fo);
     const hover = fly ? hpx * 0.5 + Math.sin(t * 4 + seed) * 0.05 * hpx : ghost ? Math.sin(t * 2.5 + seed) * 0.06 * hpx : 0;
     let alpha = o.alpha == null ? 1 : o.alpha; if (ghost) alpha *= 0.82 + 0.18 * Math.sin(t * 3.1 + seed);
@@ -230,7 +239,7 @@
     const P = ANIM_P[an] || ANIM_P.walk, cyc = !!(P.fly || P.ghost);
     let tint = o.tint || null, tA = o.tintA == null ? 0.45 : o.tintA, ph, dk = null, dfi = 0;
     if (anim === 'die') { dk = o.death || deathKindOf(ns, key, an); dfi = Math.min(N.die - 1, Math.floor(Math.max(0, t) / (DMAX[dk] || 0.75) * N.die)); ph = { an: cyc ? 'cyc' : 'idle', fi: 0 }; }
-    else { ph = phaseOf(P, sheet, anim, t, o.walk, m.h * BIG); if (ph.flash) { tint = '#ffffff'; tA = 0.7; } }
+    else { ph = phaseOf(P, sheet, anim, t, o.walk, m.h * BIG); if (ph.flash) { tint = '#ffffff'; tA = 0.4; } }
     const k2 = 'F|' + ns + '|' + sheet + '|' + (im ? 'a' : 'p') + '|' + (dk ? 'die.' + dk : ph.an) + '|' + (dk ? dfi : ph.fi) + '|' + face + '|' + pxH + '|' + (tint ? tint + tA : '') + (o.fo && o.fo.noSwing ? '|ns' : '');
     if (o.keyOnly) return k2;
     let c = cget(k2); if (c) return c;

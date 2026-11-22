@@ -172,12 +172,21 @@ const ok = (c, name, info) => { console.log((c ? 'OK   ' : 'FAIL ') + name + (in
   ok(r.at40 && !r.at52, 'a dead mob stays 0.8 s for the die anim, then goes', r);
 
   /* 13. performance: 40 mobs, 600 steps */
-  r = await pg.evaluate(() => { T.reset(1e9); R.player.def = 0; const types = ['axe', 'sword', 'archer', 'hound', 'skin', 'necro', 'chief', 'wolf', 'raven', 'spear'];
+  r = await pg.evaluate(() => { T.reset(1e9); R.player.def = 0; R.player.lvl = 60; const types = ['axe', 'sword', 'archer', 'hound', 'skin', 'necro', 'chief', 'wolf', 'raven', 'spear'];
     for (let i = 0; i < 40; i++) { const ang = i / 40 * Math.PI * 2, d = 120 + (i % 5) * 45; R.spawnMob(types[i % types.length], 1000 + Math.cos(ang) * d, 1000 + Math.sin(ang) * d, 1); }
     const t0 = performance.now(); for (let i = 0; i < 600; i++) R.step(); const ms = performance.now() - t0;
-    return { ms: Math.round(ms * 10) / 10, mobs: R.ents.filter(e => e.kind === 'mob' && !e.dead).length, hits: T.hits.length, hp: R.player.hp }; });
+    return { ms: Math.round(ms * 10) / 10, mobs: R.ents.filter(e => e.kind === 'mob' && !e.dead).length, hits: T.hits.length, hp: R.player.hp, chasers: R.combat.chasers(R.player), cap: R.combat.maxChasers(R.player) }; });
   ok(r.ms < 300, '40 mobs × 600 steps in < 300 ms', r);
-  ok(r.hits > 100 && r.hp < 1e9, 'the crowd actually fights', { hits: r.hits });
+  ok(r.hits > 30 && r.hp < 1e9 && r.chasers <= r.cap, 'the crowd fights, at most maxChasers (6 for a level-60 hero) at once', { hits: r.hits, chasers: r.chasers, cap: r.cap });
+  /* 13b. a chasing mob really walks: ≥ 100 units in 1 s on open ground (R.world.slide takes deltas in its entity form) */
+  r = await pg.evaluate(() => { T.reset(); R.player.lvl = 1; const W = R.world, keep = W && W.blocked; if (W) W.blocked = () => false;
+    const m = R.spawnMob('axe', 1290, 1000, 1); T.steps(2); R.hit(R.player, m, 1); const x0 = m.x; T.steps(60); const moved = Math.round(x0 - m.x); if (W) W.blocked = keep;
+    return { moved, spd: m.spd, st: m.ai.st, slide: !!(W && W.slide) }; });
+  ok(r.moved >= 100 || (r.moved >= 0.8 * r.spd), 'a chasing mob covers ≥ 100 units in 1 s on open ground (through R.world.slide)', r);
+  /* 14. the pack cap: a level-1 hero among 8 idle mobs in aggro range is chased by at most 2 */
+  r = await pg.evaluate(() => { T.reset(); R.player.lvl = 1; for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; R.spawnMob('axe', 1000 + Math.cos(a) * 200, 1000 + Math.sin(a) * 200, 1); }
+    T.steps(60); return { chasers: R.combat.chasers(R.player), cap: R.combat.maxChasers(R.player) }; });
+  ok(r.chasers === 2 && r.cap === 2, 'pack aggro cap: a level 1–3 hero is chased by at most 2 mobs at once', r);
 
   await b.close();
   console.log(fails ? 'FAILED ' + fails : 'ALL OK');

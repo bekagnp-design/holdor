@@ -3,6 +3,8 @@
    A_CHAMP.houses, R.data.story.prologue, R.assets.map, R.world.startPos, R.newState(house), R.newHero, R.enterWorld — all optional.
    Test hooks: R.intro = {step, house, hero, go(step), lines, heroes(house), houses()}. */
 (function () {
+  // A_CHAMP is a top-level const of the assets (not a window property): read it by name
+  const AC = () => { try { return typeof A_CHAMP !== 'undefined' ? A_CHAMP : window.A_CHAMP; } catch (e) { return window.A_CHAMP; } };
   const ORDER = ['stark', 'lannister', 'baratheon', 'targaryen', 'greyjoy', 'tyrell', 'martell'];
   const FH = { // the old game's table, used when no data module gives one
     stark: { n: 'Stark', e: '🐺', words: 'Winter is coming', col: '#a9bdd0', col2: '#3b4a5a', seat: 'Winterfell' },
@@ -50,10 +52,11 @@
   const heroes = h => champs().filter(c => c.house === h);
   // the house's starter — the one rule of core / heroes / tests: R.firstChamp(house) (A10's R.champs.first), else the first of the list
   const starterOf = (h, list) => { list = list || heroes(h); let f = null; try { f = typeof R.firstChamp === 'function' ? R.firstChamp(h) : null; } catch (e) {} return list.some(c => c.id === f) ? f : (list[0] && list[0].id); };
-  const portrait = id => { const A = window.A_CHAMP, k = id + '_portrait'; const p = (A && A.art && A.art[k]) || (window.CHAMP_ART && window.CHAMP_ART[k]) || null;
+  const portrait = id => { const A = AC(), k = id + '_portrait'; const p = (A && A.art && A.art[k]) || (window.CHAMP_ART && window.CHAMP_ART[k]) || null;
     if (!p) return null; if (typeof p === 'string') return p; if (p.src) return p.src; if (p.toDataURL) { try { return p.toDataURL(); } catch (e) {} } return null; };
   const unlocked = id => { const a = R.state && R.state.acc && R.state.acc.champs; return !!(a && a[id] && a[id].unlocked); };
-  const fill = (t, c) => String(t).replace(/\{(\w+)\}/g, (m, k) => c[k] != null ? String(c[k]) : '').replace(/\s{2,}/g, ' ').trim();   // no brace ever reaches the screen
+  const fill = (t, c) => { if (R.story && typeof R.story.fmt === 'function') { try { t = R.story.fmt(String(t), c); } catch (e) {} } return fillOwn(t, c); };
+  const fillOwn = (t, c) => String(t).replace(/\{(\w+)\}/g, (m, k) => c[k] != null ? String(c[k]) : '').replace(/\s{2,}/g, ' ').trim();   // no brace ever reaches the screen
   const prologue = (h, seat) => { const st = R.data.story; const L = st && st.prologue && (st.prologue[h] || st.prologue.default); let out;
     const C = champs().find(c => c.id === I.hero), HS = houses()[h] || {}; const ctx = { hero: C ? C.n : 'A hero', name: C ? C.n : 'A hero', house: HS.n || h, seat, words: HS.words || '' };
     if (Array.isArray(L) && L.length) out = L.map(x => fill(String(x && x.t || x), ctx)); else out = ['The ravens stopped coming to ' + seat + ' three nights ago.',

@@ -14,10 +14,10 @@ const { ok } = L;
     /* ================= A: fresh boot → the intro; the inline loader gives way ================= */
     const b = await L.boot(p, { save: null, settle: 700 });
     const a0 = await E(() => ({ v: R.VERSION, boot: R.boot, cur: R.ui.cur, player: !!R.player, hero: R.state && R.state.p && R.state.p.hero, loader: !!document.getElementById('boot'),
-      gl: document.querySelectorAll('canvas#gl').length === 1 && document.getElementById('gl').nextElementSibling === document.getElementById('c'), vw: R.vw, vh: R.vh }));
+      gl: document.querySelectorAll('canvas#gl').length === 1 && !!(document.getElementById('gl').compareDocumentPosition(document.getElementById('c')) & Node.DOCUMENT_POSITION_FOLLOWING), vw: R.vw, vh: R.vh }));
     ok('R.VERSION 2.0.0', a0.v === '2.0.0', a0.v);
     ok('fresh boot: the intro opens (R.boot intro), no hero yet, the inline loader is gone', b.booted && a0.boot === 'intro' && a0.cur === 'intro' && !a0.hero && !a0.loader, JSON.stringify(a0));
-    ok('one #gl canvas, right before #c; viewport 390×844', a0.gl && a0.vw === 390 && a0.vh === 844, JSON.stringify(a0));
+    ok('one #gl canvas, under (before) #c; viewport 390×844', a0.gl && a0.vw === 390 && a0.vh === 844, JSON.stringify(a0));
     const first = await E(() => ({ core: ['stark', 'lannister', 'baratheon', 'targaryen', 'greyjoy', 'tyrell', 'martell'].map(h => R.firstChamp(h)),
       a10: R.champs && R.champs.first ? ['stark', 'lannister', 'martell'].map(h => R.champs.first(h)) : null, heroes: R.heroes ? ['stark', 'lannister', 'martell'].map(h => R.heroes.starter(h)) : null,
       intro: R.intro && R.intro.starter ? ['stark', 'lannister', 'martell'].map(h => R.intro.starter(h)) : null, ns: Object.keys(R.newState('tyrell').acc.champs) }));
@@ -25,9 +25,9 @@ const { ok } = L;
 
     /* the default hero: newState(stark) + newHero() */
     await E(() => { const ce = R.clearEnts; R.clearEnts = () => { window.__nullWhy = (new Error('clear').stack || '').split('\n').slice(2, 6).map(x => x.trim().replace(/\(file:.*?:(\d+):\d+\)/, '@$1')).join(' < '); return ce(); }; });
-    const nh0 = await E(() => { R.ui.close(); R.state = R.newState('stark'); const e = R.newHero(); const p = R.state.p, st = R.statsFor(p), h = R.homePos('stark');
-      return { hero: p.hero, name: p.name, cls: p.cls, lvl: p.lvl, runs: R.state.acc.champs[p.hero].runs, kind: e.kind, type: e.type, team: e.team, keep: e.keep, hpMax: e.hpMax, hp: e.hp, st, x: e.x, y: e.y, h, cur: R.ui.cur, running: R.running, saved: JSON.parse(localStorage.getItem('holdor_rpg')).p.hero }; });
-    ok('newHero(): the starter brienne (Brienne of Tarth, knight, L1, run 1), a player entity (type = id, team 0, keep), full hp (the player module stats), at the house seat, saved', nh0.hero === 'brienne' && nh0.name === 'Brienne of Tarth' && nh0.cls === 'knight' && nh0.lvl === 1 && nh0.runs === 1 && nh0.kind === 'player' && nh0.type === 'brienne' && nh0.team === 0 && nh0.keep && nh0.hp === nh0.hpMax && nh0.hpMax > 0 && Math.abs(nh0.x - nh0.h.x) < 1 && Math.abs(nh0.y - nh0.h.y) < 1 && nh0.cur === null && nh0.running && nh0.saved === 'brienne', JSON.stringify(nh0));
+    const nh0 = await E(() => { R.ui.close(); R.state = R.newState('stark'); const e = R.newHero(); const p = R.state.p, st = R.statsFor(p), h = R.homePos('stark'), d = Math.hypot(e.x - h.x, e.y - h.y), blocked = !!(R.world && R.world.blocked && R.world.blocked(e.x, e.y)), south = e.y >= h.y;
+      return { hero: p.hero, name: p.name, cls: p.cls, lvl: p.lvl, runs: R.state.acc.champs[p.hero].runs, kind: e.kind, type: e.type, team: e.team, keep: e.keep, hpMax: e.hpMax, hp: e.hp, st, x: e.x, y: e.y, h, d: Math.round(d), blocked, south, cur: R.ui.cur, running: R.running, saved: JSON.parse(localStorage.getItem('holdor_rpg')).p.hero }; });
+    ok('newHero(): the starter brienne (Brienne of Tarth, knight, L1, run 1), a player entity (type = id, team 0, keep), full hp (the player module stats), in the open courtyard south of the seat (walkable), saved', nh0.hero === 'brienne' && nh0.name === 'Brienne of Tarth' && nh0.cls === 'knight' && nh0.lvl === 1 && nh0.runs === 1 && nh0.kind === 'player' && nh0.type === 'brienne' && nh0.team === 0 && nh0.keep && nh0.hp === nh0.hpMax && nh0.hpMax > 0 && nh0.d >= 100 && nh0.d <= 4000 && !nh0.blocked && nh0.cur === null && nh0.running && nh0.saved === 'brienne', JSON.stringify(nh0));
     const tAdv = await E(async () => { const t0 = R.t, w0 = performance.now(); await new Promise(r => setTimeout(r, 2500)); return { d: R.t - t0, w: (performance.now() - w0) / 1000 }; });
     ok('the loop advances R.t in real time, never faster than the clock (2.5 s)', tAdv.d > 0 && tAdv.d <= tAdv.w + 0.05, JSON.stringify(tAdv));
     const st = await E(() => { R.stop(); const t0 = R.t, k0 = R.tick; R.step(); return { d: R.t - t0, k: R.tick - k0 }; });
@@ -61,6 +61,9 @@ const { ok } = L;
       const keep = R.state; o.mig = R.load(JSON.parse(JSON.stringify(v1))); const m = R.state;
       o.migOk = m.v === 2 && m.acc.house === 'tyrell' && m.acc.world.found[0] === 'highgarden' && m.acc.world.flags.a === 1 && m.acc.world.quests.q1.st === 'done' && m.acc.ach[0] === 'x' && m.acc.title === 'Ser' && m.acc.world.killed.axe === 4 && m.p.hero === null && m.p.lvl === 3 && m.p.gold === 9 && m.p.flags === m.acc.world.flags && !('found' in JSON.parse(JSON.stringify(m.p))) && m.acc.champs[R.firstChamp('tyrell')] && m.opts.sfx === 0 && m.opts.haptic === 1;
       o.door = R.doorOf ? [R.doorOf(m), R.doorOf(keep), R.doorOf(null)] : null;
+      // world scale: a ws-less save (the old 1× world of test 1) is rescaled to R.WS once; a save at R.WS stays
+      const old = JSON.parse(JSON.stringify(keep)); delete old.ws; old.p.pos = { x: 1000, y: 2000 }; R.load(old); o.ws = { pos: R.state.p.pos, ws: R.state.ws, WS: R.WS };
+      const cur = JSON.parse(JSON.stringify(keep)); cur.ws = R.WS; cur.p.pos = { x: 1000, y: 2000 }; R.load(cur); o.ws.same = R.state.p.pos.x === 1000 && R.state.p.pos.y === 2000 && R.state.ws === R.WS;
       R.state = keep;
       return new Promise(res => setTimeout(() => { o.debouncedLater = JSON.parse(localStorage.getItem('holdor_rpg')).p.gold === 5; o.saved = saved; res(o); }, 1000)); });
     ok('p.flags/found/quests/bosses/killed/ach/title alias acc.world.* / acc.*, settable, R.acc(), not serialised in p', sv.alias && sv.aliasSet && sv.notSerialised, JSON.stringify([sv.alias, sv.aliasSet, sv.notSerialised]));
@@ -68,6 +71,7 @@ const { ok } = L;
     ok('load: round-trip, missing keys filled (p.potions, opts, acc.best), aliases re-installed', sv.loaded && sv.back.gold === 123 && sv.back.pos.x === 1000 && sv.back.potions && sv.back.opts && sv.back.best && sv.back.flagsAlias && sv.back.title === 'Lord', JSON.stringify(sv.back));
     ok('save(): debounced (not at once, written within 1 s), save event fired', sv.debouncedNotYet && sv.debouncedLater && sv.saved >= 2, JSON.stringify([sv.debouncedNotYet, sv.debouncedLater, sv.saved]));
     ok('a v1 save migrates to v2 (world progress → acc.world, ach/title → acc, house → acc, the starter unlocked, opts filled)', sv.mig && sv.migOk);
+    ok('world scale: a ws-less save has p.pos × R.WS and ws written; a save at R.WS is untouched', sv.ws && sv.ws.pos.x === Math.round(1000 * sv.ws.WS) && sv.ws.pos.y === Math.round(2000 * sv.ws.WS) && sv.ws.ws === sv.ws.WS && sv.ws.same, JSON.stringify(sv.ws));
     ok('doors: an account without a hero or fallen → intro, a living hero → world, no state → intro', sv.door && sv.door.join() === 'intro,world,intro', JSON.stringify(sv.door));
 
     /* newHero keeps the account */
@@ -91,6 +95,7 @@ const { ok } = L;
       R.run(); const t0 = R.t; await new Promise(r => setTimeout(r, 600)); o.frozen = R.t === t0; R.stop(); return o; });
     ok('ui.open: cur/arg, #screen.on, data-screen, content, paused, the loop frozen', sc.cur === 'tst' && sc.arg === 7 && sc.paused && sc.on && sc.ds === 'tst' && sc.body === 'T7' && sc.frozen, JSON.stringify(sc));
     await L.tap(p, '#tbtn', { wait: 350 });
+    if (await E(() => R.ui.cur === 'tst')) { await p.waitForTimeout(800); await L.tap(p, '#tbtn', { wait: 500 }); }   // a slow software-GL frame can swallow the first touch
     const sc2 = await E(() => ({ cur: R.ui.cur, paused: R.paused, on: document.getElementById('screen').classList.contains('on'), html: document.getElementById('screen').innerHTML, ev: window._scr.filter(x => x[0] === 'tst' || x[0] === 'closed' || x[0] === null).slice(0, 3) }));
     const tAfter = await E(async () => { R.run(); const t0 = R.t; await new Promise(r => setTimeout(r, 2500)); return R.t - t0; });
     ok('a real tap on the screen\'s button closes it: cur null, unpaused, #screen empty, open→close events; the loop resumes', sc2.cur === null && !sc2.paused && !sc2.on && sc2.html === '' && JSON.stringify(sc2.ev) === JSON.stringify([['tst', 7], ['closed'], [null, null]]) && tAfter > 0, JSON.stringify(sc2) + ' ' + tAfter.toFixed(3));

@@ -22,6 +22,8 @@ const ok = (c, m) => { if (!c) fails.push(m); console.log((c ? 'ok   ' : 'FAIL '
   const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.goto('file://' + html);
   await pg.waitForFunction(() => window.R && R.props && R.props.build);
+  // G11's 07b_architecture.js wraps R.props.build / wall with the textured models; these checks are about A37's own builders
+  await pg.evaluate(() => { if (R.arch) { R.arch.off = true; R.arch.autoWall = false; } });
   const before = await pg.evaluate(() => ({ three: typeof THREE !== 'undefined', nullBuild: typeof THREE === 'undefined' ? R.props.build({ type: 'castle' }) === null && R.props.tree('north') === null && R.props.scatter({}, 5) === null : null }));
   if (!before.three) { ok(before.nullBuild === true, 'without THREE every builder returns null'); if (!threePath) { console.log('FAIL no THREE: vendor it in src/rpg/vendor/ or pass THREE_JS=<three.min.js>'); process.exit(1); } await pg.addScriptTag({ path: threePath }); }
   const r = await pg.evaluate(() => {
@@ -34,7 +36,7 @@ const ok = (c, m) => { if (!c) fails.push(m); console.log((c ? 'ok   ' : 'FAIL '
     out.mats = new Set(); built.forEach(o => o.traverse(m => { if (m.isMesh) out.mats.add(m.material.uuid); })); out.mats = out.mats.size;
     out.trees = {}; for (const bm of ['north', 'reach', 'dorne', 'riverlands', undefined]) { const t = R.props.tree(bm); out.trees[bm || 'default'] = R.props.tris(t); }
     out.rock = R.props.tris(R.props.rock());
-    const w = R.props.wall(); out.wall = { tris: R.props.tris(w), x: Math.round(w.position.x), z: Math.round(w.position.z) };
+    const w = R.props.wall(); out.wall = { tris: R.props.tris(w), x: Math.round(w.position.x), z: Math.round(w.position.z), arch: !!R.arch, obj: !!(w && w.isObject3D) };
     const t0 = performance.now(); const sc = R.props.scatter({ bbox: [0, 0, 3000, 3000], biome: 'north' }, 200, R.rng); out.scatterMs = Math.round((performance.now() - t0) * 10) / 10; out.scatter = sc.userData;
     const sc2 = R.props.scatter({ poly: [[0, 0], [400, 0], [400, 400], [0, 400]], biome: 'dorne' }, 40, R.rng); out.scatterPoly = sc2.userData.placed;
     // a blocked world: nothing may land
@@ -67,7 +69,8 @@ const ok = (c, m) => { if (!c) fails.push(m); console.log((c ? 'ok   ' : 'FAIL '
   ok(r.mats <= 8, 'materials shared (' + r.mats + ' across 7 POIs)');
   for (const k in r.trees) ok(r.trees[k] > 0 && r.trees[k] <= 50, 'tree ' + k + ' ' + r.trees[k] + ' tris (≤ 50)');
   ok(r.rock === 20, 'rock 20 tris (' + r.rock + ')');
-  ok(r.wall.tris <= 200 && r.wall.x === 3600 && r.wall.z === 2600, 'the Wall ' + JSON.stringify(r.wall));
+  // with G11's 07b_architecture the Wall is its textured model (its own suite checks the budget and place); else A37's box at x 3600, z 2600
+  ok(r.wall.arch ? r.wall.obj && r.wall.tris > 0 : r.wall.tris <= 200 && r.wall.x === 3600 && r.wall.z === 2600, 'the Wall ' + JSON.stringify(r.wall));
   ok(r.scatter.placed === 200 && r.scatter.trees === 150, 'scatter 200 (' + JSON.stringify(r.scatter) + ')');
   ok(r.scatterMs < 50, 'scatter 200 in ' + r.scatterMs + ' ms (< 50)');
   ok(r.scatterPoly === 40 && r.scatterBlocked === 0, 'scatter respects the polygon (' + r.scatterPoly + ') and blocked ground (' + r.scatterBlocked + ')');

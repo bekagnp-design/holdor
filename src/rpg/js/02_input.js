@@ -9,7 +9,7 @@
      pressed(name)   true for the step in which the button went down (cleared at the end of R.step: sys 'input' order 999 + 'step:end').
      down(name)      true while held.      names: attack dodge skill1 skill2 skill3 potion interact sprint map inv menu quests chat
      interact        set {label, icon?, fn?} to show the INTERACT pill, null to hide (polled every step; setInteract() applies at once).
-     setCooldown(i, frac)  i = 0..2 (bar index), frac = cooldown remaining 0..1 (1 = just used) → the conic ring.
+     setCooldown(i, frac)  i = 0..2 (bar index), frac = cooldown remaining 0..1 (1 = just used) → the conic ring.   setBag(n)  the bag's item count (+n bounce).
      setSkill(i, {label, icon, key, col})  caption / icon of a skill button.   setPotions(n)  the badge.   mark(name, bool)  a red dot on map/inv/menu.
      show(bool), reset(), btn(name) → element, el → #ctl root.
    Keyboard: WASD/arrows move, J attack, K dodge, 1/2/3 skills, R potion, F interact, Q/E rotate, Shift sprint, Esc menu, M map, I inv, L quests, C chat.
@@ -49,9 +49,9 @@
     '<button class="cb" id="b-dodge" data-b="dodge" aria-label="Dodge">' + SVG.dodge + '<span class="kh">K</span></button>' +
     '<button class="cb" id="b-attack" data-b="attack" aria-label="Attack">' + SVG.sword + '<span class="kh">J</span></button>' +
     '<button id="b-interact" data-b="interact" aria-label="Interact"><span class="ic">' + SVG.talk + '</span><span class="lb">INTERACT</span></button>' +
-    '<div id="ctl-top"><button class="ib" id="b-map" data-b="map" aria-label="Map">' + SVG.map + '<i class="dot"></i></button>' +
-    '<button class="ib" id="b-inv" data-b="inv" aria-label="Bag">' + SVG.bag + '<i class="dot"></i></button>' +
-    '<button class="ib" id="b-menu" data-b="menu" aria-label="Menu">' + SVG.menu + '<i class="dot"></i></button></div>';
+    '<div id="ctl-top"><button class="ib" id="b-map" data-b="map" aria-label="Map">' + SVG.map + '<span class="lbl">Map</span><i class="dot"></i></button>' +
+    '<button class="ib" id="b-inv" data-b="inv" aria-label="Bag">' + SVG.bag + '<span class="lbl">Bag</span><i class="dot"></i><span class="cnt"></span><span class="plus"></span></button>' +
+    '<button class="ib" id="b-menu" data-b="menu" aria-label="Menu">' + SVG.menu + '<span class="lbl">Menu</span><i class="dot"></i></button></div>';
   ui.appendChild(root);
   root.addEventListener('contextmenu', e => e.preventDefault());
   const $ = id => root.querySelector('#' + id);
@@ -141,6 +141,11 @@
   I.setSkill = (i, o) => { const el = sk[i]; if (!el) return; o = o || {}; el.querySelector('.lb').textContent = o.label || ''; el.querySelector('.ic').innerHTML = o.icon || ''; if (o.key) el.querySelector('.key').textContent = o.key; if (o.col) el.style.setProperty('--cbb', o.col); el.classList.toggle('empty', !o.label && !o.icon); };
   I.setPotions = n => { n = Math.max(0, n | 0); pot.querySelector('.badge').textContent = n; pot.classList.toggle('empty', n === 0); };
   I.mark = (n, v) => { const el = btns[n]; if (el) el.classList.toggle('mark', !!v); };
+  /* the bag: its item count on the badge; when it grows the button bounces and "+n" rises from it */
+  let bagN = null;
+  I.setBag = n => { const el = btns.inv; if (!el) return; n = Math.max(0, n | 0); if (n === bagN) return; const prev = bagN; bagN = n;
+    const c = el.querySelector('.cnt'); c.textContent = n > 99 ? '99+' : n; c.classList.toggle('on', n > 0);
+    if (prev != null && n > prev) { const pl = el.querySelector('.plus'); pl.textContent = '+' + (n - prev); el.classList.remove('got'); void el.offsetWidth; el.classList.add('got'); clearTimeout(el._gotT); el._gotT = setTimeout(() => el.classList.remove('got'), 900); } };
   let curInt = null;
   const applyInteract = o => { curInt = o; if (o) { inter.querySelector('.lb').textContent = (o.label || 'INTERACT') + ''; inter.querySelector('.ic').innerHTML = o.icon || SVG.talk; inter.classList.add('on'); } else { inter.classList.remove('on'); inter.classList.remove('dn'); inter._pid = null; dn.interact = false; } };
   I.setInteract = o => { I.interact = o || null; applyInteract(I.interact); };

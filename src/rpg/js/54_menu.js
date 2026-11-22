@@ -1,6 +1,6 @@
 /* HOLDOR RPG — the pause menu + Telegram (A29).
    R.screens.menu: a sheet with big rows — RESUME, Skills, Heroes, Quests, Achievements, Hall of the Fallen, Leaderboard (when the
-   screen exists), Chat, Settings (SFX, haptics, damage numbers, manual stat points → R.state.opts), Invite a friend (Telegram share
+   screen exists), Chat, Settings (SFX, haptics, manual stat points → R.state.opts), Share the game (Telegram share
    link with the referral code), Account (house, the current hero, class, level, heroes fallen, best level; "Start over" needs two
    taps, wipes the whole account save 'holdor_rpg' and reloads).  Save v2 (Addendum 2): the account is R.state.acc, the hero R.state.p.
    Opens from the menu button (#menuBtn, data-btn="menu"), R.input.pressed('menu') and Esc; the game pauses while it is open (core).
@@ -36,7 +36,7 @@
   }
 
   /* ---------- options: defaults filled in once the save exists ---------- */
-  const DEF = { sfx: 1, haptic: 1, dmgnum: 1, manual: 0, lang: 'en' };
+  const DEF = { sfx: 1, haptic: 1, manualPts: 0, lang: 'en' };
   const opts = () => { if (!R.state) return Object.assign({}, DEF); const o = R.state.opts = R.state.opts || {}; for (const k in DEF) if (o[k] == null) o[k] = DEF[k]; return o; };
   const setOpt = (k, v) => { const o = opts(); if (!R.state) return o; o[k] = v; if (k === 'sfx' && R.sfx) { try { if (typeof R.sfx.mute === 'function') R.sfx.mute(!v); else R.sfx.muted = !v; } catch (e) {} } R.bus.emit('opts', o, k); R.save(); return o; };
   R.opts = { get: opts, set: setOpt };
@@ -47,12 +47,12 @@
   R.fmtPlayed = fmtPlayed;
 
   /* ---------- invite: the referral code and the Telegram share sheet ---------- */
-  const refCode = () => { const f = flags(); if (f && f.ref) return String(f.ref);
-    const T = tg(), u = T && T.initDataUnsafe && T.initDataUnsafe.user; if (u && u.id && R.net && R.net.on) return String(u.id); return null; };
+  // never the Telegram id (the owner's rule: no Telegram ids in front of other players): a code the server gave (flags.ref) or none
+  const refCode = () => { const f = flags(); if (f && f.ref) return String(f.ref); return null; };
   const inviteLink = () => { const c = refCode(); return BOT_LINK + (c ? '?startapp=r_' + encodeURIComponent(c) : ''); };
   const share = (link, text) => { const u = 'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(text || ''); const T = tg();
     try { if (T && T.openTelegramLink) T.openTelegramLink(u); else window.open(u, '_blank'); } catch (e) {} return u; };
-  R.invite = () => { const link = inviteLink(); R.haptic('ok'); share(link, 'Hold the door with me — join my party in HOLDOR'); return link; };
+  R.invite = () => { const link = inviteLink(); R.haptic('ok'); share(link, 'Hold the door with me in HOLDOR'); return link; };
 
   /* ---------- the menu button over the canvas ---------- */
   const ICO = {
@@ -110,23 +110,29 @@
     const pri = el('button', 'pri', 'RESUME'); pri.dataset.act = 'resume'; root.appendChild(tap(pri, () => R.ui.close()));
     const L = el('div', 'mn-list'); root.appendChild(L);
     const add = (ico, label, scr, sub) => { const b = row(ico, label, sub, () => goto(scr), R.screens[scr] ? '' : 'dim'); b.dataset.scr = scr; L.appendChild(b); };
-    add('skills', 'Skills', 'skills'); add('heroes', 'Heroes', 'heroes'); add('quests', 'Quests', 'quests'); add('ach', 'Achievements', R.screens.achievements ? 'achievements' : 'ach');
+    add('skills', 'Skills', 'skills');
+    if (R.prog && typeof R.prog.open === 'function') { let n = 0; try { n = +R.prog.unspent() || 0; } catch (e) {}   // P1's talents (25_progression.js)
+      const t = row('skills', 'Talents', n > 0 ? n + ' to spend' : null, () => { try { R.prog.open(); } catch (e) { console.error('talents', e); } }); t.dataset.row = 'talents'; L.appendChild(t); }
+    add('heroes', 'Heroes', 'heroes'); add('quests', 'Quests', 'quests'); add('ach', 'Achievements', R.screens.achievements ? 'achievements' : 'ach');
     add('hall', 'Hall of the Fallen', 'hall', (acc() && acc().hall && acc().hall.length ? acc().hall.length + ' fallen' : null));
     if (R.screens.board) add('board', 'Leaderboard', 'board');
     add('chat', 'Chat', 'chat');
     L.appendChild(row('gear', 'Settings', null, () => render('settings')));
-    L.appendChild(row('invite', 'Invite a friend', R.net && R.net.on || (flags() && flags().ref) ? 'Both of you get a gift' : 'Share the game', () => R.invite()));
+    L.appendChild(row('invite', 'Share the game', 'Send HOLDOR to a friend', () => R.invite()));   // no gift promise until the RPG has a server referral
     L.appendChild(row('acc', 'Account', null, () => render('account')));
     root.appendChild(foot()); };
 
   const renderSettings = () => { root.appendChild(head('Settings', true)); const L = el('div', 'mn-list'); root.appendChild(L);
     L.appendChild(sw('sfx', 'Sound', 'Hits, spells, the UI')); L.appendChild(sw('haptic', 'Haptics', 'The phone answers the hand'));
-    L.appendChild(sw('dmgnum', 'Damage numbers', 'Numbers fly off every hit')); L.appendChild(sw('manual', 'Manual stat points', 'You place the 3 points each level'));
+    L.appendChild(sw('manualPts', 'Manual stat points', 'You place the 3 points each level'));   // the key 21_player / 55_levelup read
     root.appendChild(foot()); };
 
   // a save already queued (debounced) or a module saving on 'wipe' must not write the old account back before the reload
   const rm = () => { try { localStorage.removeItem('holdor_rpg'); } catch (e) {} };
-  const wipe = () => { rm(); R.save = () => false; R.state = null; R.stop(); R.bus.emit('wipe'); rm(); setTimeout(rm, 0); setTimeout(rm, 1000); if (typeof R.reload === 'function') R.reload(); else location.reload(); };
+  const wipe = () => { rm(); R.stop(); R.bus.emit('wipe');
+    // the server copy too: a fresh account goes up now (push() takes the state synchronously, keepalive survives the reload), so the next login does not bring the old one back
+    try { const N = R.net; if (N && N.on && typeof N.save === 'function' && R.newState) { R.state = R.newState(); N.save(true); } } catch (e) {}
+    R.save = () => false; R.state = null; rm(); setTimeout(rm, 0); setTimeout(rm, 1000); if (typeof R.reload === 'function') R.reload(); else location.reload(); };
   R.reload = R.reload || (() => location.reload());
   R.wipe = wipe;
   const renderAccount = () => { root.appendChild(head('Account', true)); const p = R.state && R.state.p || {}; const c = el('div', 'mn-card'); root.appendChild(c);

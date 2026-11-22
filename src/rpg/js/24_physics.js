@@ -24,6 +24,16 @@
      P.homeGate(regionId)      true when that region's gate is the account house's home (open);  P.wrapGate()
      P.blockedAt(x,y)          R.world.blocked, guarded
      P.ACC / P.BRAKE / P.ICE_GRIP / P.WALK_MAX / P.FALL_V / P.LAND_V / P.KILL_V   the tuning (u/s², u/s)
+     P.benders() → [{x,y,r,k}]  ≤ 8 grass / bush benders for N1's shader: the hero first (k ≥ 0.25), then the nearest moving mobs /
+                               critters within 700; r = 2 × body radius, k = speed / 170 (≤ 1.5). One reused array.
+     P.cloak(e) → {ang, flare} a spring-driven cloak / hair (H1): ang radians (+ = swings to the screen's right, ±0.7) from the
+                               acceleration in camera space and the turn rate; flare 0..1 lifts with speed. The hero also gets e.lean
+                               (−1..1, into the turn) and e.bob (units ≥ 0, a footfall bob; e.bobPh its phase 0..1).
+     Steps: the hero's footsteps push drops (they hop aside) and light corpses within 22 units, and kick up dust / leaves when
+            sprinting (R.fx.spawn('dust', …, {leaves})); a giant / mammoth / boss (mass ≥ 1.8) steps every 0.5 s and, within 520
+            units of the hero, shakes the camera slightly (≤ 4 px, ≤ one per 0.2 s).
+     Scale: nothing here assumes the world size; the mask is read through R.world.blocked (cell = size / mask.w), the collider grid
+            key holds up to 4099 × 60 units in y. A06's blocked uses a fixed 120 cell: it must read d.mask.cell (= 120·R.WS) once A07 scales.
      P.vel(e) → {x,y}          the measured velocity of the last step (u/s). P.speed(e) → |vel|
      P.massOf(e)               1 = a man; from e.mass, e.big or the mob def's big (giant 1.9, mammoth 2.2, …)
      P.freeze(e, s)            hit-stop: e.stunMicro = s (0.045 default) — physPost undoes the entity's motion while it lasts
@@ -65,6 +75,7 @@
   P.ARROW_VZ = 120; P.STUCK_T = 6; P.KNOCK_V = (1 - Math.exp(-P.FRICTION.ground / 60)) * 60;   /* knock N units → an impulse that slides ~N units on the ground (fixed 60 Hz steps) */ P.PRINT_T = 10; P.RIPPLE_LIFE = 0.9; P.SAMPLE_T = 0.049; P.MOVING = 20;
   P.ACC = 1450; P.BRAKE = 1750; P.ICE_GRIP = 0.14; P.DODGE_EXIT = 0.45; P.SUB = 6; P.FALL_V = 160; P.SWIM = 0.4; P.UP_DEAD = 0.06;
   P.KILL_V = 170; P.LAND_V = 220; P.UNSTICK_V = 150;
+  P.HEAVY_M = 1.8; P.HEAVY_STEP_T = 0.5; P.HEAVY_R = 520; P.STEP_PUSH_R = 22; P.BEND_N = 8; P.BEND_R = 700;
   P.prints = []; P.stuck = []; P.ripples = []; P.stats = { ms: 0, movers: 0, steps: 0, cols: 0 };
   const MOVER = { player: 1, companion: 1, mob: 1, boss: 1, npc: 1 };
   const LIGHT = { critter: 1 };                       /* collide with trees / rocks / walls only (no terrain feel, no footsteps) */
@@ -148,12 +159,19 @@
   };
   P.massOf = e => { if (!e) return 1; if (typeof e.mass === 'number') return e.mass; let m = num(e.big, 0) || (e.type ? defBig(e) : 0) || 1; if (e.kind === 'boss') m = Math.max(m, 2); e.mass = m; return m; };
   P.isBig = e => P.massOf(e) >= 1.4;
+  /* one displacement slid against the mask. Not through A11's C.moveEnt: it picks the call form by slide's arity and, since A06's
+     slide grew to 5 parameters (e, dx, dy | x, y, nx, ny, r), calls slide(e.x, e.y, dx, dy) = "go to the point (dx, dy)", so nothing
+     moved. A06's slide takes (e, dx, dy) in both versions; a point it returns is applied. */
   P.moveEnt = (e, dx, dy) => {
     if (!dx && !dy) return;
-    const C = R.combat; if (C && fn(C, 'moveEnt')) { C.moveEnt(e, dx, dy); return; }
-    const sl = !e.fly && fn(R.world, 'slide'); if (sl) { if (sl.length >= 4) { const q = sl(e.x, e.y, e.x + dx, e.y + dy, e.r); if (q && typeof q.x === 'number') { e.x = q.x; e.y = q.y; } } else sl(e, dx, dy); return; }
-    e.x = R.clamp(e.x + dx, 0, R.W || 1e9); e.y = R.clamp(e.y + dy, 0, R.H || 1e9);
+    const sl = !e.fly && fn(R.world, 'slide');
+    if (sl) { let q = null; try { q = sl(e, dx, dy); } catch (x) { q = null; } if (q && q !== e && typeof q === 'object' && isFinite(q.x) && isFinite(q.y)) { e.x = q.x; e.y = q.y; } return; }
+    const bl = !e.fly && fn(R.world, 'blocked');
+    if (bl) { const nx = e.x + dx, ny = e.y + dy; try { if (!bl(nx, ny)) { e.x = nx; e.y = ny; } else if (!bl(nx, e.y)) e.x = nx; else if (!bl(e.x, ny)) e.y = ny; } catch (x) {} }
+    else { e.x += dx; e.y += dy; }
+    e.x = R.clamp(e.x, 0, R.W || 1e9); e.y = R.clamp(e.y, 0, R.H || 1e9);
   };
+
   /* ---- colliders: circles from A43's chunks (rocks = ch.obst, tree trunks / farms / mills from ch.recs), the four towers of every
      seat castle (A37's castle: corners at ±150·1.45, radius 26·1.45) and P.extra (tests / other modules: {x,y,r}). A 60-unit grid,
      rebuilt when the chunk set changes. Entities collide with their body (0.55 × e.r, ≤ 11), not their hit radius. ---- */
@@ -208,6 +226,18 @@
     if (!dx && !dy) return; const n = Math.min(12, Math.max(1, Math.ceil(Math.max(Math.abs(dx), Math.abs(dy)) / P.SUB)));
     for (let i = 0; i < n; i++) { P.moveEnt(e, dx / n, dy / n); P.collide(e); }
   };
+  /* guarded fallback for A11: its C.moveEnt calls slide(e.x, e.y, dx, dy) once R.world.slide takes ≥ 4 parameters (A06's new
+     5-parameter form reads that as "go to the point (dx, dy)"), so no mob could move. While that is so, C.moveEnt is replaced by
+     P.moveEnt (same contract: slide (e, dx, dy), flyers free, clamped). Undone as soon as slide or C.moveEnt changes. */
+  let fixedMove = null, checked = null, checkedSl = null;
+  P.fixMoveEnt = () => {
+    const C = R.combat, sl = R.world && R.world.slide; if (!C || typeof C.moveEnt !== 'function') return false;
+    if (C.moveEnt === checked && sl === checkedSl) return false; checked = C.moveEnt; checkedSl = sl;
+    if (C.moveEnt === fixedMove) { if (!(typeof sl === 'function' && sl.length >= 4) && fixedMove.orig) { C.moveEnt = fixedMove.orig; fixedMove = null; } return false; }
+    if (!(typeof sl === 'function' && sl.length >= 4) || !/sl\.length\s*>=\s*4\s*\?\s*sl\(e\.x,\s*e\.y,\s*dx,\s*dy\)/.test(String(C.moveEnt))) return false;
+    const orig = C.moveEnt; fixedMove = (e, dx, dy) => P.moveEnt(e, dx, dy); fixedMove.orig = orig; fixedMove.physFix = true; C.moveEnt = fixedMove; checked = fixedMove; return true;
+  };
+  P.fixMoveEnt();
   P.impulse = (e, ix, iy, o) => {
     if (!e || (!ix && !iy) || !isFinite(ix) || !isFinite(iy)) return e;
     o = o || {}; const m = P.massOf(e); let k = o.raw ? 1 : (e.kind === 'boss' ? 0.15 : m >= 1.4 ? 0.57 / m : 1 / Math.max(0.5, m));
@@ -294,6 +324,7 @@
   R.addSys('physPre', { order: 79, update(dt) {
     if (P.off) return;
     if (R.hit !== lastHit) P.wrapHit();
+    P.fixMoveEnt();
     if (R.world && R.world.gateOpen && R.world.gateOpen !== lastGate) { P.wrapGate(); lastGate = R.world.gateOpen; }
     for (const e of R.ents) {
       if (e.stunMicro > 0) e.stunMicro -= dt;
@@ -310,14 +341,34 @@
   } });
 
   /* ---- physPost (101): terrain correction, impulses, velocity, footsteps, shoves, tumbles, arrows ---- */
+  /* a heavy enemy's step near the hero: a slight camera shake (≤ one per 0.2 s, fading to nothing at P.HEAVY_R) */
+  let heavyT = -9;
+  const heavyStep = e => {
+    const h = R.player; if (!h || h.dead || R.t - heavyT < 0.2) return; const d = hyp(e.x - h.x, e.y - h.y); if (d > P.HEAVY_R) return;
+    const sh = fn(R.fx, 'shake'); if (!sh) return; heavyT = R.t; e.heavyN = (e.heavyN || 0) + 1;
+    try { sh(Math.min(4, 0.9 * P.massOf(e)) * (1 - d / P.HEAVY_R) + 0.3, 0.1); } catch (x) {}
+  };
+  /* the hero's step pushes loose things under his feet: drops hop aside, light corpses get nudged; sprinting kicks up dust / leaves */
+  const LEAF = { grass: '#7d8f47', snow: '#eef4ff', ice: '#dff3ff', sand: '#d8b97a', wet: '#9fe3ff', stone: '#9aa3ad' };
+  const heroStepPush = (e, s) => {
+    const R2 = P.STEP_PUSH_R * P.STEP_PUSH_R, ents = R.ents;
+    for (let i = 0; i < ents.length; i++) { const q = ents[i]; if (q === e) continue;
+      const dx = q.x - e.x, dy = q.y - e.y; if (dx > P.STEP_PUSH_R || dx < -P.STEP_PUSH_R || dy > P.STEP_PUSH_R || dy < -P.STEP_PUSH_R) continue; const d2 = dx * dx + dy * dy; if (d2 > R2) continue;
+      const d = Math.sqrt(d2) || 1, ux = d > 1e-6 ? dx / d : (e.face || 1), uy = d > 1e-6 ? dy / d : 0, k = 1 - d / P.STEP_PUSH_R;
+      if (q.kind === 'drop' && !q.dead) { q.vx = (q.vx || 0) + ux * 70 * k; q.vy = (q.vy || 0) + uy * 70 * k; if (!(q.z > 0)) q.vz = Math.max(q.vz || 0, 30 + 50 * k); q.bounces = 0; q.kicked = R.t; }
+      else if (q.dead && q.kind === 'mob' && !P.isBig(q)) P.impulse(q, ux * 60 * k, uy * 60 * k, { raw: true }); }
+    if (e.sprint) { const sp2 = fn(R.fx, 'spawn'); if (sp2) try { sp2('dust', e.x - (e.face || 1) * 4, e.y + 3, { col: LEAF[s] || LEAF.grass, n: 2, leaves: s === 'grass' }); } catch (x) {} e.kickN = (e.kickN || 0) + 1; }
+  };
   const footstep = (e, dt) => {
     const sp = P.speed(e);
     if (sp < P.MOVING) { e.stepT = 0; e.rippleT = 0; return; }
     e.stepT = (e.stepT || 0) + dt;
-    if (e.stepT >= P.STEP_T) {
-      e.stepT -= P.STEP_T;
+    const heavy = (e.kind === 'boss' || P.massOf(e) >= P.HEAVY_M) && e !== R.player, stepT = heavy ? P.HEAVY_STEP_T : P.STEP_T;
+    if (e.stepT >= stepT) {
+      e.stepT -= stepT;
       const s = e.surface = P.surfaceAt(e.x, e.y, e);
       R.bus.emit('footstep', e, s);
+      if (e === R.player) heroStepPush(e, s); else if (heavy) heavyStep(e);
       const sp2 = fn(R.fx, 'spawn'); if (sp2 && (s !== 'grass' || e !== R.player)) sp2('dust', e.x - (e.face || 1) * 3, e.y + 2, { col: DUST[s] || DUST.grass, n: 1 });
       if (s === 'snow') { const ang = Math.atan2(e.vel.y, e.vel.x), side = (e.stepN = ((e.stepN || 0) + 1) % 2) ? 1 : -1, px = -Math.sin(ang) * 4 * side, py = Math.cos(ang) * 4 * side;
         if (P.prints.length >= 60) P.prints.shift(); P.prints.push({ x: e.x + px, y: e.y + py, ang, t: R.t, side }); }
@@ -326,8 +377,7 @@
   };
   const splash = e => {
     R.bus.emit('splash', e);
-    const sp = fn(R.fx, 'spawn'); let p = null; if (sp) p = sp('splash', e.x, e.y, { col: DUST.wet, n: 3 });
-    if (!p && fn(R.fx, 'num')) R.fx.num(e.x, e.y - (e.r || 12), '💧', DUST.wet);
+    const sp = fn(R.fx, 'spawn'); if (sp) try { sp('splash', e.x, e.y, { col: DUST.wet, n: 3 }); } catch (x) {}
     if (P.ripples.length >= 40) P.ripples.shift(); P.ripples.push({ x: e.x, y: e.y, t: R.t, r: (e.r || 12) });
   };
   const shove = (e, movers, dt) => {                   /* a moving giant drifts lighter neighbours aside (soft, on top of A11's separation) */
@@ -420,12 +470,52 @@
   const lightStep = (e, dt) => {
     if (e.dead || e.fly || num(e.z, 0) > 20 || (e.ai && (e.ai.st === 'fly' || e.ai.st === 'perch'))) { e.prev = null; return; }
     const pv = e.prev; if (!pv) { e.prev = { x: e.x, y: e.y }; return; }
-    const dx = e.x - pv.x, dy = e.y - pv.y;
-    if (dx * dx + dy * dy <= P.TELEPORT * P.TELEPORT && (dx || dy)) { P.collide(e); unstick(e, pv.x, pv.y, dt); }
+    const dx = e.x - pv.x, dy = e.y - pv.y, tele = dx * dx + dy * dy > P.TELEPORT * P.TELEPORT;
+    if (!tele && (dx || dy)) { P.collide(e); unstick(e, pv.x, pv.y, dt); }
+    const v = e.vel || (e.vel = { x: 0, y: 0 }); if (tele) { v.x = 0; v.y = 0; } else { v.x = (e.x - pv.x) / dt; v.y = (e.y - pv.y) / dt; }
     pv.x = e.x; pv.y = e.y;
   };
   /* a loot drop bounces once (A17 integrates z / vz; a second rebound is cancelled here) */
   const dropStep = e => { if (e.dead) return; if (num(e.z, 0) <= 0 && e.vz > 0) { e.bounces = (e.bounces || 0) + 1; if (e.bounces > 1) e.vz = 0; } };
+  /* ---- for the grass / bush bending shader (N1): up to P.BEND_N {x, y, r, k} — the hero (always, k ≥ 0.25 standing) and the nearest
+     moving mobs / critters within P.BEND_R of him; r = 2 × body radius, k = speed / 170 (≤ 1.5). The same array is reused each call. ---- */
+  const bendOut = [], bendPool = [];
+  P.benders = () => {
+    bendOut.length = 0; const h = R.player; let n = 0;
+    const put = (e, k) => { const o = bendPool[n] || (bendPool[n] = { x: 0, y: 0, r: 0, k: 0 }); o.x = e.x; o.y = e.y; o.r = 2 * Math.max(6, bodyR(e)); o.k = Math.min(1.5, k); bendOut.push(o); n++; };
+    if (h && !h.dead) put(h, Math.max(0.25, P.speed(h) / 170));
+    if (!h) return bendOut;
+    const cand = []; const BR = P.BEND_R * P.BEND_R;
+    for (const e of R.ents) { if (e === h || e.dead || e.fly || !(e.kind === 'mob' || e.kind === 'boss' || e.kind === 'critter')) continue; if (num(e.z, 0) > 20) continue;
+      const v = e.vel, sp = v ? hyp(v.x, v.y) : (e.vx || e.vy ? hyp(e.vx || 0, e.vy || 0) : 0); if (sp < 8) continue;
+      const d2 = (e.x - h.x) ** 2 + (e.y - h.y) ** 2; if (d2 > BR) continue; cand.push([d2, e, sp]); }
+    cand.sort((a, b) => a[0] - b[0]);
+    for (let i = 0; i < cand.length && n < P.BEND_N; i++) put(cand[i][1], cand[i][2] / 170);
+    return bendOut;
+  };
+  /* ---- the cloak / hair (H1's back-view hero art): a spring per entity, driven by its acceleration (in camera space: + = to the right
+     of the screen) and its turn rate. P.cloak(e) → {ang (radians, + swings right, ±0.7), flare (0..1, how far it lifts behind)}.
+     Entities that were asked for a cloak in the last second are stepped in physPost; the hero always. The hero also gets
+     e.lean (−1..1, into the turn) and e.bob (units ≥ 0, a footfall bob that grows with speed; e.bobPh its phase). ---- */
+  P.CLOAK_K = 90; P.CLOAK_DAMP = 7; P.FLARE_K = 40; P.FLARE_DAMP = 9;
+  const ZERO_CLOAK = { ang: 0, flare: 0 };
+  P.cloak = e => { if (!e) return ZERO_CLOAK; e.cloakAsk = R.t; const c = e.clk; return c ? c.out : ZERO_CLOAK; };
+  const cloakStep = (e, dt) => {
+    const c = e.clk || (e.clk = { ang: 0, va: 0, fl: 0, vf: 0, pvx: 0, pvy: 0, head: null, turn: 0, out: { ang: 0, flare: 0 } });
+    const v = e === R.player && e.walk ? e.walk : (e.vel || { x: 0, y: 0 }), vx = num(v.x, 0), vy = num(v.y, 0), sp = hyp(vx, vy);
+    const ax = (vx - c.pvx) / dt, ay = (vy - c.pvy) / dt; c.pvx = vx; c.pvy = vy;
+    const yaw = num(R.cam && R.cam.yaw, 0), cs = Math.cos(yaw), sn = Math.sin(yaw), axS = ax * cs + ay * sn, ayS = -ax * sn + ay * cs;   /* screen space: +x right, +y down (toward the camera) */
+    let turn = 0; if (sp > 25) { const hd = Math.atan2(vy, vx); if (c.head != null) { let dh = hd - c.head; while (dh > Math.PI) dh -= 2 * Math.PI; while (dh < -Math.PI) dh += 2 * Math.PI; turn = dh / dt; } c.head = hd; } else c.head = null;
+    c.turn += (Math.max(-8, Math.min(8, turn)) - c.turn) * Math.min(1, dt * 10);
+    const tAng = Math.max(-0.7, Math.min(0.7, -axS * 0.0003 - c.turn * 0.05)), tFl = Math.max(0, Math.min(1, sp / 240 * 0.85 + Math.max(0, -ayS) * 0.0002));
+    c.va += (P.CLOAK_K * (tAng - c.ang) - P.CLOAK_DAMP * c.va) * dt; c.ang += c.va * dt;
+    c.vf += (P.FLARE_K * (tFl - c.fl) - P.FLARE_DAMP * c.vf) * dt; c.fl += c.vf * dt;
+    c.out.ang = Math.max(-0.7, Math.min(0.7, c.ang)); c.out.flare = Math.max(0, Math.min(1, c.fl));
+    if (e === R.player) {
+      const tl = Math.max(-1, Math.min(1, c.turn * Math.min(1, sp / 170) * 0.2)); e.lean = num(e.lean, 0) + (tl - num(e.lean, 0)) * Math.min(1, dt * 8);
+      e.bobPh = (num(e.bobPh, 0) + sp * dt / 46) % 1; e.bob = Math.abs(Math.sin(e.bobPh * Math.PI * 2)) * 2.6 * Math.min(1.2, sp / 170);
+    }
+  };
   R.addSys('physPost', { order: 101, update(dt) {
     if (P.off || !(dt > 0)) return;
     const t0 = now(), movers = [], ents = R.ents; let nMov = 0;
@@ -471,6 +561,7 @@
         footstep(e, dt);
       } else e.wading = false;
       tumbleStep(e, dt);
+      if (hero || (e.cloakAsk != null && R.t - e.cloakAsk < 1)) cloakStep(e, dt);
       nMov++;
     }
     /* 6. giants push lighter neighbours aside */

@@ -1,0 +1,55 @@
+/* 43b_townlife.css (C1) — the town entry banner and the service signs over the NPCs. Dark painted plate, the house colour as the accent. */
+#tl-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#tl-layer.off{visibility:hidden}
+#tl-layer.off *{pointer-events:none!important}
+
+/* ---- the entry banner (js sets top / width: the message column's next free line) ---- */
+.tl-ban{--hc:#e3b661;--hc2:#1d2430;position:absolute;left:50%;top:calc(var(--st,0px) + 210px);width:min(calc(100% - 24px),360px);box-sizing:border-box;
+  display:grid;grid-template-columns:44px 1fr;column-gap:12px;row-gap:8px;align-items:center;padding:12px 14px 12px 12px;border-radius:14px;
+  background:radial-gradient(120% 140% at 0% 0%,color-mix(in srgb,var(--hc) 22%,transparent),transparent 60%),
+    linear-gradient(180deg,rgba(32,26,16,.95),rgba(9,10,14,.95));
+  border:1px solid color-mix(in srgb,var(--hc) 55%,rgba(201,160,78,.4));
+  box-shadow:0 10px 28px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,236,190,.1),inset 0 0 0 1px rgba(0,0,0,.35);
+  transform:translate(-50%,-10px);opacity:0;visibility:hidden;pointer-events:none;z-index:5}
+.tl-ban::before{content:"";position:absolute;left:14px;right:14px;top:-1px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--hc),transparent)}
+.tl-ban::after{content:"";position:absolute;inset:4px;border-radius:11px;border:1px solid rgba(255,230,170,.06);pointer-events:none}
+.tl-ban.on{visibility:visible;opacity:1;transform:translate(-50%,0);transition:opacity .35s ease-out,transform .35s cubic-bezier(.2,.9,.3,1.2)}
+.tl-ban.out{visibility:hidden;opacity:0;transform:translate(-50%,-6px);transition:opacity .6s ease-in,transform .6s ease-in,visibility 0s linear .6s}
+.tl-crest{position:relative;width:44px;height:50px;grid-row:1}
+.tl-crest svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
+.tl-crest .s{fill:var(--hc)}
+.tl-crest .i{fill:var(--hc2);stroke:rgba(0,0,0,.35);stroke-width:1}
+.tl-crest b{position:absolute;left:0;right:0;top:10px;text-align:center;font:900 20px/1 var(--f-display,Cinzel,Georgia,serif);color:var(--hc);text-shadow:0 1px 2px #000}
+.tl-txt{min-width:0;grid-row:1}
+.tl-nm{font:800 clamp(19px,5.6vw,23px)/1.1 var(--f-display,Cinzel,Georgia,serif);color:#f2e6c9;letter-spacing:.05em;text-shadow:0 2px 8px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-sub{margin-top:3px;font:700 13px/1.2 var(--f-display,Cinzel,Georgia,serif);color:var(--hc);letter-spacing:.04em;text-shadow:0 1px 3px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-plain{margin-top:5px;font:italic 15px/1.25 var(--f-body,Georgia,serif);color:#d8dfe8}
+.tl-svc{grid-column:1 / -1;display:flex;align-items:center;gap:10px;min-height:44px;width:100%;padding:6px 12px;border-radius:11px;text-align:left;
+  border:1px solid color-mix(in srgb,var(--hc) 45%,transparent);background:linear-gradient(180deg,rgba(255,236,190,.08),rgba(0,0,0,.25));color:#f3e7c4;pointer-events:none}
+.tl-ban.on .tl-svc{pointer-events:auto}
+.tl-svc:active{transform:scale(.98);background:linear-gradient(180deg,rgba(255,236,190,.14),rgba(0,0,0,.2))}
+.tl-k{flex:none;font:800 11px/1 var(--f-display,Cinzel,Georgia,serif);letter-spacing:.1em;color:var(--hc);opacity:.95;writing-mode:horizontal-tb;max-width:64px;white-space:normal;line-height:1.15}
+.tl-list{flex:1;min-width:0;font:600 15px/1.25 var(--f-body,Georgia,serif);color:#f2e6c9}
+.tl-a{flex:none;font:900 24px/1 var(--f-display,Cinzel,Georgia,serif);color:var(--hc)}
+
+/* ---- the service signs (js sets transform / opacity) ---- */
+.tl-sign{position:absolute;left:0;top:0;display:none;align-items:center;gap:0;min-height:44px;height:44px;padding:0 6px;border-radius:22px;
+  background:radial-gradient(circle at 50% 30%,rgba(60,46,24,.96),rgba(10,11,15,.94) 75%);border:1.5px solid rgba(227,182,97,.7);
+  box-shadow:0 3px 10px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,236,190,.12);color:#f3e7c4;transform-origin:50% 100%;will-change:transform,opacity;
+  pointer-events:none;touch-action:manipulation}
+.tl-sign.on{display:flex;pointer-events:auto}
+.tl-sign::before{content:"";position:absolute;left:-4px;right:-4px;top:-4px;bottom:-4px}   /* a little more hit area round the 44-px disc */
+.tl-sign::after{content:"";position:absolute;left:50%;bottom:-6px;margin-left:-5px;border:5px solid transparent;border-top-color:rgba(227,182,97,.7);border-bottom:0}
+.tl-ic{width:30px;height:30px;display:block;flex:none}
+.tl-ic svg{width:100%;height:100%;display:block}
+.tl-lb{max-width:0;overflow:hidden;white-space:nowrap;font:800 13px/1 var(--f-display,Cinzel,Georgia,serif);letter-spacing:.06em;color:#f2e6c9;text-shadow:0 1px 2px #000;transition:max-width .25s ease,padding .25s ease}
+.tl-sign.near .tl-lb{max-width:90px;padding:0 8px 0 5px}
+.tl-sign.tap{border-color:#f3d58a;box-shadow:0 0 0 2px rgba(243,213,138,.25),0 3px 12px rgba(0,0,0,.6)}
+.tl-sign.tap .tl-ic{animation:tlbob 1.6s ease-in-out infinite}
+.tl-sign.s-smith{border-color:rgba(227,117,45,.85)} .tl-sign.s-smith::after{border-top-color:rgba(227,117,45,.85)}
+.tl-sign.s-inn{border-color:rgba(201,138,58,.85)} .tl-sign.s-inn::after{border-top-color:rgba(201,138,58,.85)}
+.tl-sign.s-board{border-color:rgba(233,217,168,.85)} .tl-sign.s-board::after{border-top-color:rgba(233,217,168,.85)}
+.tl-sign.s-guard{border-color:rgba(122,160,210,.85)} .tl-sign.s-guard::after{border-top-color:rgba(122,160,210,.85)}
+@keyframes tlbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@media (prefers-reduced-motion:reduce){.tl-sign.tap .tl-ic{animation:none}.tl-ban.on,.tl-ban.out{transition:none}}
+@media (max-width:370px){.tl-nm{font-size:19px}.tl-list{font-size:14px}.tl-ban{padding:10px 12px 10px 10px}}

@@ -75,10 +75,10 @@
   P.add = msgs => { if (!Array.isArray(msgs)) msgs = msgs && Array.isArray(msgs.msgs) ? msgs.msgs : [msgs]; let fresh = 0;
     for (const raw of msgs) { const m = norm(raw); if (!m) continue;
       if (m.id != null && P.msgs.some(x => x.id === m.id)) continue;
-      const opt = P.sent.findIndex(x => x.body === m.body && Date.now() - x.t < 60000); if (opt >= 0 && (m.mine || m.name === me())) { m.mine = true; P.sent.splice(opt, 1); const i = P.msgs.findIndex(x => x.opt && x.body === m.body); if (i >= 0) { P.msgs[i] = m; continue; } }
+      const opt = P.sent.findIndex(x => x.body === m.body && Date.now() - x.t < 60000); if (opt >= 0 && m.mine) { m.mine = true; P.sent.splice(opt, 1); const i = P.msgs.findIndex(x => x.opt && x.body === m.body); if (i >= 0) { P.msgs[i] = m; continue; } }
       if (!m.mine && m.id == null && P.msgs.some(x => x.name === m.name && x.body === m.body && x.at === m.at)) continue;
       P.msgs.push(m); fresh++;
-      if (!m.mine && m.name !== me()) { if (R.ui.cur !== 'chat') P.setUnread(P.unread + 1); const g = ghostOf(m.name); if (g) { g.bubble = m.body.length > 60 ? m.body.slice(0, 58) + '…' : m.body; g.bubbleUntil = R.t + P.cfg.bubble; } } }
+      if (!m.mine) { if (R.ui.cur !== 'chat') P.setUnread(P.unread + 1); const g = ghostOf(m.name); if (g) { g.bubble = m.body.length > 60 ? m.body.slice(0, 58) + '…' : m.body; g.bubbleUntil = R.t + P.cfg.bubble; } } }
     if (P.msgs.length > P.cfg.keep) P.msgs.splice(0, P.msgs.length - P.cfg.keep);
     if (fresh && R.ui.cur === 'chat') renderList(); return fresh; };
   R.bus.on('chat', msgs => P.add(msgs));
@@ -88,12 +88,14 @@
     const now = Date.now(); if (now - P.lastSend < P.cfg.rate * 1000) { if (!quiet) note('Slow down', true); return Promise.resolve(false); } P.lastSend = now;
     P.sent.push({ body: txt, t: now }); const m = { name: me(), house: myHouse(), body: txt, at: now, mine: true, opt: true }; P.msgs.push(m); if (P.msgs.length > P.cfg.keep) P.msgs.shift(); if (R.ui.cur === 'chat') renderList();
     let p; try { p = Promise.resolve(R.net.chat.send(txt)); } catch (e) { p = Promise.reject(e); }
-    return p.then(r => { if (r && r.id != null) m.id = r.id; m.opt = false; return true; }, e => { const i = P.msgs.indexOf(m); if (i >= 0) P.msgs.splice(i, 1); P.sent = P.sent.filter(x => x.body !== txt); if (!quiet) note((e && e.message) || 'Not sent', true); if (R.ui.cur === 'chat') renderList(); return false; }); };
+    const drop = why => { const i = P.msgs.indexOf(m); if (i >= 0) P.msgs.splice(i, 1); P.sent = P.sent.filter(x => x.body !== txt); if (!quiet) note(why || 'Not sent', true); if (R.ui.cur === 'chat') renderList(); return false; };
+    return p.then(r => { if (r === false || r == null || (r && r.ok === false)) return drop((r && r.error) || (R.net && R.net.err) || 'Not sent');   /* refused: never shown as sent */
+      if (r && r.id != null) { m.id = r.id; m.opt = false; } return true; /* without an id the server's echo (mine) replaces the pending line: shown once */ }, e => { const i = P.msgs.indexOf(m); if (i >= 0) P.msgs.splice(i, 1); P.sent = P.sent.filter(x => x.body !== txt); if (!quiet) note((e && e.message) || 'Not sent', true); if (R.ui.cur === 'chat') renderList(); return false; }); };
   /* ---- chat sheet ---- */
   const $ = id => document.getElementById(id);
   const note = (t, bad) => { const n = $('prNote'); if (!n) { if (bad) R.ui.toast(t, '#f0a0a0'); return; } n.textContent = t; n.classList.toggle('err', !!bad); };
   const renderList = () => { const l = $('prList'); if (!l) return; const mine = me();
-    l.innerHTML = P.msgs.length ? P.msgs.map(m => `<div class="prMsg${m.mine || m.name === mine ? ' me' : ''}" data-id="${esc(m.id == null ? '' : m.id)}"><b style="color:${esc(hcol(m.house))}">${esc(m.name)}</b><span class="t">${hhmm(m.at)}</span><div class="b">${esc(m.body)}</div></div>`).join('')
+    l.innerHTML = P.msgs.length ? P.msgs.map(m => `<div class="prMsg${m.mine ? ' me' : ''}" data-id="${esc(m.id == null ? '' : m.id)}"><b style="color:${esc(hcol(m.house))}">${esc(m.name)}</b><span class="t">${hhmm(m.at)}</span><div class="b">${esc(m.body)}</div></div>`).join('')
       : '<div class="prEmpty">No one has spoken here yet. Say hello.</div>'; l.scrollTop = l.scrollHeight; };
   const QUICK = ['👋', '⚔️', '🛡️', '🔥', '❄️'];
   R.screens.chat = { live: true,
@@ -107,7 +109,8 @@
         $('prSend').onclick = send; $('prIn').onkeydown = ev => { if (ev.key === 'Enter') send(); };
         $('prQuick').onclick = ev => { const b = ev.target.closest('.prQ'); if (b) P.send(b.dataset.q); };
         let lp = 0; const list = $('prList');
-        const down = ev => { const row = ev.target.closest('.prMsg'); if (!row || row.classList.contains('me')) return; clearTimeout(lp); lp = setTimeout(() => { R.ui.toast('Reported. Thank you.'); if (R.sfx && R.sfx.play) { try { R.sfx.play('ui', 0.4); } catch (e) {} } }, 550); };
+        const down = ev => { const row = ev.target.closest('.prMsg'); if (!row || row.classList.contains('me')) return; clearTimeout(lp); lp = setTimeout(() => { const fn = R.net && R.net.chat && R.net.chat.report; if (typeof fn !== 'function') return;   /* no report path on the server yet (v23's chat_report is for the realm chat): no fake "Reported" */
+          Promise.resolve(fn(row.dataset.id)).then(ok => { if (ok) R.ui.toast('Reported. Thank you.'); }, () => {}); }, 550); };
         const up = () => clearTimeout(lp); list.addEventListener('pointerdown', down); list.addEventListener('pointerup', up); list.addEventListener('pointercancel', up); list.addEventListener('pointerleave', up); list.addEventListener('scroll', up); }
       P._zoneT = setInterval(() => { const z = $('prZone'); if (z) z.textContent = P.zone(); }, 3000); },
     close() { clearInterval(P._zoneT); } };

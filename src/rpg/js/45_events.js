@@ -56,9 +56,11 @@
   const stepTo = (m, tx, ty, sp, dt) => { const dx = tx - m.x, dy = ty - m.y, d = Math.hypot(dx, dy); if (d < 1) return 0; const k = Math.min(1, sp * dt / d); m.x += dx * k; m.y += dy * k; m.vx = dx / d * sp; m.vy = dy / d * sp; if (Math.abs(dx) > 2) m.face = dx < 0 ? -1 : 1; m.anim = 'walk'; return d; };
   /* ---- banner ---- */
   let bar = null, barHideT = 0, lastTxt = '';
-  const mkBar = () => { if (bar && bar.isConnected) return bar; const ui = document.getElementById('ui'); if (!ui) return null; bar = document.createElement('div'); bar.id = 'evbar';
+  // the HUD (50_hud) keeps an empty #evbar slot under the boss bar: fill that one; our own element only when there is no slot
+  const mkBar = () => { if (bar && bar.isConnected && bar.querySelector('.evbar-t')) return bar; const ui = document.getElementById('ui'); if (!ui) return null;
+    const slot = document.getElementById('evbar'); const own = !slot; bar = slot || document.createElement('div'); bar.id = 'evbar';
     bar.innerHTML = '<div class="evbar-ico"></div><div class="evbar-txt"><div class="evbar-t"></div><div class="evbar-s"><span class="evbar-time"></span><span class="evbar-prog"></span></div></div>';
-    bar.addEventListener('click', () => X.tap()); ui.appendChild(bar); return bar; };
+    if (!bar._evTap) { bar._evTap = 1; bar.addEventListener('click', () => X.tap()); } if (own) ui.appendChild(bar); return bar; };
   const showBar = ev => { const b = mkBar(); if (!b) return; clearTimeout(barHideT); b.className = 'on ' + ev.id; b.style.setProperty('--evc', EV[ev.id].col); b.querySelector('.evbar-ico').textContent = EV[ev.id].ico; b.querySelector('.evbar-t').textContent = ev.title; lastTxt = ''; updBar(ev); };
   const updBar = ev => { const b = bar; if (!b || !b.classList.contains('on')) return; const txt = fmtT(ev.left) + '|' + (ev.prog || ''); if (txt === lastTxt) return; lastTxt = txt; b.querySelector('.evbar-time').textContent = fmtT(ev.left); b.querySelector('.evbar-prog').textContent = ev.prog || ''; b.style.setProperty('--k', R.clamp(ev.left / ev.dur, 0, 1).toFixed(3)); };
   const endBar = (ev, result, txt) => { const b = bar; if (!b) return; b.className = 'on ' + ev.id + ' ' + result; b.style.setProperty('--evc', result === 'done' ? '#7fd06a' : '#e14b4b'); b.querySelector('.evbar-t').textContent = txt; b.querySelector('.evbar-time').textContent = ''; b.querySelector('.evbar-prog').textContent = ''; b.style.setProperty('--k', result === 'done' ? 1 : 0);
@@ -100,7 +102,7 @@
   TICKS.horde = (ev, dt) => { const liveMobs = ev.mobs.filter(alive); ev.killed = ev.total - liveMobs.length; ev.prog = ev.killed + ' / ' + ev.total; if (!liveMobs.length) { X.stop('done'); return; }
     for (const m of liveMobs) { if (busy(m)) continue; const wp = ev.path[m.evI]; if (!wp) { m.anim = 'idle'; continue; } const tx = wp.x + m.evOff.x, ty = wp.y + m.evOff.y; if (Math.hypot(tx - m.x, ty - m.y) < 16) { if (m.evI < ev.path.length - 1) m.evI++; else { m.anim = 'idle'; m.evAt = true; } continue; } if (m.ai && (!m.ai.state || m.ai.state === 'idle' || m.ai.state === 'patrol')) m.ai.state = 'march'; stepTo(m, tx, ty, Math.min(m.spd || 100, EV.horde.spd), dt); }
     if (ev.left <= 0) X.stop('fail'); };
-  ENDS.horde = (ev, result) => { if (result === 'done') { const at = ev.lastKill || (R.player ? { x: R.player.x + 60, y: R.player.y } : ev.anchor); let chest = false; if (R.loot && R.loot.chest) { try { R.loot.chest(at.x, at.y, EV.horde.chestRar); chest = true; } catch (e) { console.error(e); } }
+  ENDS.horde = (ev, result) => { if (result === 'done') { const at = ev.lastKill || (R.player ? { x: R.player.x + 60, y: R.player.y } : ev.anchor); let chest = false; if (R.loot && R.loot.chest) { try { R.loot.chest(at.x, at.y, lvl(), EV.horde.chestRar); chest = true;   /* 32_loot: chest(x, y, lvl, rar) */ } catch (e) { console.error(e); } }
       if (S()) { S().gems = (S().gems || 0) + EV.horde.gems; R.bus.emit('gems', EV.horde.gems); } endBar(ev, 'done', 'Horde destroyed: ' + (chest ? 'a chest and ' : '') + '+' + EV.horde.gems + ' gems'); R.ui.toast('The horde is destroyed. ' + ev.poi.name + ' is safe.', '#7fd06a'); if (R.sfx && R.sfx.play) { try { R.sfx.play('win', 0.9); } catch (e) {} } }
     else if (result === 'fail') { if (S() && ev.poi && ev.poi.id !== 'road') { S().flags = S().flags || {}; S().flags['raided:' + ev.poi.id] = Date.now() + EV.raidMs; } endBar(ev, 'fail', 'The horde reached ' + ev.poi.name + ': prices up for a day'); } };
   /* ---- 2. the merchant caravan ---- */
@@ -133,7 +135,10 @@
     if (Math.hypot(ev.tgt.x - m.x, ev.tgt.y - m.y) < 8) { m.anim = 'idle'; } else stepTo(m, ev.tgt.x, ev.tgt.y, Math.min(m.spd || 100, 70) * 0.6, dt); m._ex = m.x; m._ey = m.y; };
   const dropRare = (m, L) => { let it = null; if (R.items && R.items.roll) { try { it = R.items.roll(L, EV.elite.rar); } catch (e) { console.error(e); } }
     it = it || { id: 'elite_' + Date.now().toString(36), kind: 'trinket', name: (m.name || 'Elite').split(' ')[0] + "'s token", rar: EV.elite.rar, lvl: L, stats: { atk: 2 + L, hp: 10 + 4 * L }, icon: '' }; if (it.rar == null || it.rar < EV.elite.rar) it.rar = EV.elite.rar;
-    const Lo = R.loot; const fn = Lo && (Lo.drop || Lo.dropItem || Lo.spawn); if (fn) { try { fn.call(Lo, m.x, m.y, it); return it; } catch (e) { console.error(e); } } if (S()) { S().inv = S().inv || []; S().inv.push(it); } R.bus.emit('loot', it); return it; };
+    // 32_loot: spawn('item', x, y, {item}) puts it on the ground (picked up under the bag cap); else R.items.add; the raw bag push is the last resort
+    const Lo = R.loot; if (Lo && typeof Lo.spawn === 'function') { try { if (Lo.spawn('item', m.x, m.y, { item: it })) return it; } catch (e) { console.error(e); } }
+    if (R.items && typeof R.items.add === 'function') { try { const r = R.items.add(it); if (r !== false && !(r && r.ok === false)) { R.bus.emit('loot', it); return it; } } catch (e) { console.error(e); } }
+    if (S()) { S().inv = S().inv || []; S().inv.push(it); } R.bus.emit('loot', it); return it; };
   ENDS.elite = (ev, result) => { if (result === 'done') { endBar(ev, 'done', ev.name + ' is slain: a Rare drop'); if (R.sfx && R.sfx.play) { try { R.sfx.play('win', 0.9); } catch (e) {} } } else if (result === 'fail') endBar(ev, 'fail', ev.name + ' wandered off'); };
   /* ---- kills ---- */
   R.bus.on('kill', m => { const ev = X.active; if (!ev || !m || m.evN !== ev.n) return; ev.lastKill = { x: m.x, y: m.y };

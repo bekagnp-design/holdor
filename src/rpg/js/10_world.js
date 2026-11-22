@@ -7,12 +7,15 @@
    for its own house (isHome: rg.home or gates[].homeOf); only a WALK into a closed region is refused (the first placement
    is accepted), pushed back ≤ PUSH (60) units per check toward the last good spot, never onto a blocked cell; the toast
    names the region and the boss's display name. Calm seats: ambient mobs never spawn within SEAT_SAFE (600) of a house
-   seat or a town (calmAt), and those spawned within SEAT_EASY (1500) of a seat take the bottom of the level band. */
+   seat or a town (calmAt), and those spawned within SEAT_EASY (1500) of a seat take the bottom of the level band.
+   R.WS (the 4.5× world): sizes come from the data (size, mask.cell = 120 × R.WS); the region cache cell is 64 × R.WS and exact on
+   region borders; a POI is discovered within max(90, its r) (castles 240); spawn rings, safe radii and pushback stay hero-scale. */
 (function () {
   const world = R.world = R.world || {};
   const W = () => (R.data && R.data.world) || null;
-  const CELL = 64;          // regionAt cache cell (world units)
-  const MASK = 120;         // mask cell (world units): mask.rows[floor(y/120)][floor(x/120)] === '#' blocks
+  // R.WS (00_core): geography is R.WS × larger; the region cache and the mask follow it, the hero-scale radii below do not
+  const CELL = 64 * Math.max(1, Math.min(8, +R.WS || 1));   // regionAt cache cell (world units)
+  const MASK = 120;         // default mask cell when the data gives none (11_world_data's mask.cell = 120 × R.WS)
   const POI_R = 90;         // "at a POI" radius (poiAt default, the poi event)
   const SAFE = 160;         // no spawns inside this radius around a POI
   const FAR = 1400;         // mobs farther than this from the player are despawned
@@ -56,8 +59,10 @@
     const cx = Math.floor(x / CELL), cy = Math.floor(y / CELL);
     if (cx < 0 || cy < 0 || cx >= cols || cy >= rows) return null;
     const k = cy * cols + cx; let i = cache[k];
-    if (i === -1) cache[k] = i = idxAt(cx * CELL + CELL / 2, cy * CELL + CELL / 2);
-    if (i === -2) i = idxAt(x, y);
+    // a cell whose centre and four corners agree is cached; a cell on a border (-3) or outside every region (-2) is checked exactly
+    if (i === -1) { const x0 = cx * CELL, y0 = cy * CELL, c = idxAt(x0 + CELL / 2, y0 + CELL / 2);
+      i = (idxAt(x0 + .5, y0 + .5) === c && idxAt(x0 + CELL - .5, y0 + .5) === c && idxAt(x0 + .5, y0 + CELL - .5) === c && idxAt(x0 + CELL - .5, y0 + CELL - .5) === c) ? c : -3; cache[k] = i; }
+    if (i < 0) i = idxAt(x, y);
     return i >= 0 ? d.regions[i] : null;
   };
   world.regionOf = id => world.regions().find(r => r.id === id) || null;
@@ -66,6 +71,7 @@
   /* ---- POIs ---- */
   world.poi = id => world.pois().find(p => p.id === id) || null;
   world.poiAt = (x, y, r = POI_R) => { let best = null, bd = r * r; for (const p of world.pois()) { const dd = (p.x - x) ** 2 + (p.y - y) ** 2; if (dd <= bd) { bd = dd; best = p; } } return best; };
+  world.poiR = q => Math.max(POI_R, Math.min(400, (q && q.r) || 0));      // a castle (r 240) is found at its walls, a camp at 90
   world.inPoi = (x, y, r = SAFE) => world.poiAt(x, y, r);
 
   /* ---- the blocked mask: '#' cells, everything outside the world, rows the mask does not have ---- */
@@ -73,8 +79,8 @@
     const d = W(); if (!d) return false;
     if (!world.inWorld(x, y)) return true;
     const m = d.mask; if (!m || !m.rows) return false;
-    const row = m.rows[Math.floor(y / MASK)]; if (row == null) return true;
-    return row.charCodeAt(Math.floor(x / MASK)) === 35;
+    const mc = m.cell || MASK, row = m.rows[Math.floor(y / mc)]; if (row == null) return true;
+    return row.charCodeAt(Math.floor(x / mc)) === 35;
   };
   world.walkable = (x, y) => !world.blocked(x, y);
 
@@ -187,14 +193,17 @@
     world.lastGood = { x: p.x, y: p.y };
     for (const q of world.pois()) {
       const dd = (q.x - p.x) ** 2 + (q.y - p.y) ** 2;
-      if (dd <= POI_R * POI_R) { if (!inside[q.id]) { inside[q.id] = 1;
+      const qr = world.poiR(q); if (dd <= qr * qr) { if (!inside[q.id]) { inside[q.id] = 1;
         if (S) { S.found = S.found || []; if (!S.found.includes(q.id)) { S.found.push(q.id); R.save(); } }
         R.bus.emit('poi', q.id, q); } }
-      else if (inside[q.id] && dd > (POI_R + 30) ** 2) delete inside[q.id];        // leave with a little hysteresis
+      else if (inside[q.id] && dd > (qr + 30) ** 2) delete inside[q.id];        // leave with a little hysteresis
     }
   };
   const addSys = (name, s) => (R.addSys ? R.addSys(name, s) : (s.name = name, R.sys[name] = s, R.sysList = Object.values(R.sys).sort((a, b) => (a.order || 0) - (b.order || 0)), s));
-  addSys('world', { order: 50, update(dt) { acc += dt; if (acc < 0.5) return; acc = 0; world.enterCheck(); } });
+  // inside a dungeon instance (44_dungeons teleports the hero to its own rooms) the open world does not watch: no region enter,
+  // no discovery, no gate, no ambient population
+  world.inDungeon = () => { try { return !!(R.dungeons && R.dungeons.active); } catch (e) { return false; } };
+  addSys('world', { order: 50, update(dt) { acc += dt; if (acc < 0.5) return; acc = 0; if (world.inDungeon()) { world.lastGood = null; return; } world.enterCheck(); } });
 
   /* ---- ambient population: 8–14 live mobs around the player from the region's spawn table ---- */
   let cd = 0;
@@ -208,15 +217,16 @@
   world.populateNow = rng => {
     rng = rng || Math.random; const p = R.player, tab = p && world.spawnTableAt(p.x, p.y);
     if (!tab || !tab.mobs || !tab.mobs.length) return 0;
-    const dens = tab.density == null ? 1 : tab.density, lo = Math.round(8 * dens), hi = Math.max(lo, Math.round(14 * dens));
+    // near a house seat (≤ SEAT_EASY): fewer mobs (5–8) and only levels 1–2, whatever the table says
+    const easy = !!world.nearSeat(p.x, p.y, SEAT_EASY), dens = (tab.density == null ? 1 : tab.density) * (easy ? .6 : 1), lo = Math.round(8 * dens), hi = Math.max(lo, Math.round(14 * dens));
     const live = world.liveMobs().length; if (live >= lo) return 0;
     const tgt = lo + Math.floor(rng() * (hi - lo + 1)), pts = world.spawnAround(p.x, p.y, tgt - live, { rng, seats: true });
-    const la = tab.lvl ? tab.lvl[0] : 1, lb0 = tab.lvl ? tab.lvl[1] : la, lb = world.nearSeat(p.x, p.y, SEAT_EASY) ? Math.min(lb0, la + 1) : lb0;   // gentle near a seat
+    const la = easy ? 1 : tab.lvl ? tab.lvl[0] : 1, lb = easy ? 2 : tab.lvl ? tab.lvl[1] : la;   // gentle near a seat
     for (const q of pts) world.spawnMob(pick(tab.mobs, rng), q.x, q.y, la + Math.floor(rng() * (lb - la + 1)));
     return pts.length;
   };
   addSys('populate', { order: 60, update(dt) {
-    const p = R.player; if (!p || !R.state) return;
+    const p = R.player; if (!p || !R.state || world.inDungeon()) return;
     for (let i = R.ents.length - 1; i >= 0; i--) { const e = R.ents[i]; if (e.kind === 'mob' && !e.persist && !e.quest && Math.hypot(e.x - p.x, e.y - p.y) > FAR) R.remove(e); }
     cd -= dt; if (cd > 0 || world.populate === false) return;
     cd = CD; world.populateNow();

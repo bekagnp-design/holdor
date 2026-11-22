@@ -71,7 +71,8 @@
   const kindOf = n => (n && (n.kind || n.role && String(n.role).toLowerCase())) in ROLES ? (n.kind || String(n.role).toLowerCase()) : n && n.champ ? 'champion' : 'villager';
   const roleOf = n => ROLES[kindOf(n)] || ROLES.villager;
   const tpl = (s, n) => String(s).replace(/\{p\}/g, (R.state && R.state.p.name) || 'traveller').replace(/\{n\}/g, (n && n.name) || '')
-    .replace(/\{poi\}/g, (poiById(n && n.poi) || {}).name || 'this place').replace(/\{h\}/g, (R.state && ((R.state.acc && R.state.acc.house) || R.state.p.house)) || 'your house');
+    .replace(/\{poi\}/g, (poiById(n && n.poi) || {}).name || 'this place').replace(/\{h\}/g, () => { const h = R.state && ((R.state.acc && R.state.acc.house) || R.state.p.house); const H = h && R.data.houses && R.data.houses[h]; return (H && H.n) || h || 'your house'; })
+    .replace(/\{\w+\}/g, m => { try { return R.story && R.story.fmt ? R.story.fmt(m) : m; } catch (e) { return m; } });   // {hero} {house} {seat} … from the story resolver
   const list = v => v == null ? [] : Array.isArray(v) ? v : [v];
   const greetLines = n => list(n.lines && n.lines.greet);
   const idleLines = n => { const l = list(n.lines && (n.lines.idle || n.lines.greet)); return l.length ? l : LINES[kindOf(n)] || LINES.villager; };
@@ -196,7 +197,9 @@
     ctx.save(); ctx.beginPath(); ctx.arc(72, 72, 69, 0, Math.PI * 2); ctx.fillStyle = '#0b1220'; ctx.fill(); ctx.clip();
     const g = ctx.createRadialGradient(72, 50, 8, 72, 72, 72); g.addColorStop(0, shade(role.col, -0.2)); g.addColorStop(1, '#0b1220'); ctx.fillStyle = g; ctx.globalAlpha = 0.55; ctx.fillRect(0, 0, 144, 144); ctx.globalAlpha = 1;
     let ok = false;
-    if (n.champ && R.draw && (R.draw.champFrame || R.draw.frame)) { try { const f = champFrame(n.champ, 'idle', 0, 1) || R.draw.frame('champ:' + n.champ, 'idle', 0, 1); if (isCanvas(f)) { const u = f.units || { w: f.width / 2, h: f.height / 2 }, an = f.anchor || { x: 0.5, y: 1 }, k = 2.6; ctx.drawImage(f, 72 - u.w * an.x * k, 134 - u.h * an.y * k, u.w * k, u.h * k); ok = true; } } catch (err) {} }
+    // a named figure: the champion's own portrait art (R.draw.portrait, the same face the HUD shows) fills the circle
+    if (n.champ && R.draw && R.draw.portrait) { try { const pc = R.draw.portrait(n.champ, 144); if (isCanvas(pc)) { ctx.drawImage(pc, 0, 0, 144, 144); ok = true; } } catch (err) {} }
+    if (!ok && n.champ && R.draw && (R.draw.champFrame || R.draw.frame)) { try { const f = champFrame(n.champ, 'idle', 0, 1) || R.draw.frame('champ:' + n.champ, 'idle', 0, 1); if (isCanvas(f)) { const u = f.units || { w: f.width / 2, h: f.height / 2 }, an = f.anchor || { x: 0.5, y: 1 }, k = 2.6; ctx.drawImage(f, 72 - u.w * an.x * k, 134 - u.h * an.y * k, u.w * k, u.h * k); ok = true; } } catch (err) {} }
     if (!ok && n.champ && R.draw && R.draw.champ) { const old = R.ctx; R.ctx = ctx; try { R.draw.champ(n.champ, 72, 134, { anim: 'idle', face: 1, t: 0, s: 2.6, portrait: true, ctx }); ok = true; } catch (err) {} R.ctx = old; }
     if (!ok) drawNpc(ctx, 72, 134, kindOf(n), { s: 2.9, t: 0, face: 1 });
     ctx.restore(); ctx.beginPath(); ctx.arc(72, 72, 69, 0, Math.PI * 2); ctx.strokeStyle = role.col; ctx.lineWidth = 4; ctx.stroke();
@@ -257,7 +260,7 @@
         + '<div class="dlg-txt"><span class="dlg-t"></span><span class="dlg-caret"></span><span class="dlg-hint">tap ▸</span></div><div class="dlg-ch"></div>';
       el.appendChild(sh); S.el = sh;
       sh.querySelector('.dlg-name').textContent = n.name || n.id;
-      sh.querySelector('.dlg-role').textContent = [n.role || roleOf(n).label, poi && poi.name].filter(Boolean).join(' · ');
+      sh.querySelector('.dlg-role').textContent = [n.label || n.role || roleOf(n).label, poi && poi.name].filter(Boolean).join(' · ');
       portrait(sh.querySelector('.dlg-por'), n);
       sh.addEventListener('click', ev => { if (ev.target.closest('button')) return; S.tap(); });
       const t0 = Date.now(); el.onclick = ev => { if (ev.target === el && Date.now() - t0 > 450) S.leave(); };   // not while the sheet slides in (a double tap on TALK)

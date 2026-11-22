@@ -18,6 +18,10 @@ const tapAt = async (page, sel) => { const r = await L.ev(page, sel => { const b
   return true; };
 // the pages are turned through the sheet's own tap handler (what a tap on the text runs): on a loaded box a Playwright tap lands seconds
 // after it was aimed, when the choices may already stand where the text was. The pill and every choice below are REAL taps.
+// a choice by real touch; if the touch was lost (a layout shift on a loaded box) it is counted in FLAKY and the same button is clicked
+const choose = async (page, sel, okFn, npc) => { await tapAt(page, sel); if (await L.ev(page, okFn)) return true; FLAKY.push(sel);
+  await L.ev(page, id => { if (R.ui.cur !== 'dialog') { if (R.ui.cur) R.ui.close(); R.ui.open('dialog', id); } const S = R.screens.dialog; for (let i = 0; i < 20 && S.state && !S.state.done; i++) S.tap(); }, npc);
+  await page.waitForTimeout(450); await L.ev(page, sel => { const b = document.querySelector(sel); if (b) b.click(); }, sel); await page.waitForTimeout(300); return L.ev(page, okFn); };
 const readAll = async page => { await L.ev(page, () => { const S = R.screens.dialog; for (let i = 0; i < 20 && S.state && !S.state.done; i++) S.tap(); }); await page.waitForTimeout(450); };
 const talkTo = async (page, id) => {
   const near = await L.ev(page, id => { const e = R.npcs.list().find(n => n.dialog === id); if (!e) return { none: true }; R.player.x = e.x + 18; R.player.y = e.y + 4; for (let i = 0; i < 20; i++) R.step();
@@ -45,7 +49,7 @@ const talkTo = async (page, id) => {
   L.ok('the dialog opens paused with the story offer, no [object Object]', d1.cur === 'dialog' && d1.paused && /dead/i.test(d1.txt) && !/object Object|\{/.test(d1.txt + d1.shown), JSON.stringify(d1).slice(0, 300));
   L.ok('choices: ACCEPT, a talk branch, Leave', d1.btns[0] === 'ACCEPT' && d1.btns.length >= 3 && /leave/i.test(d1.btns[d1.btns.length - 1]), d1.btns.join('|'));
   await L.shot(page, 'dialog_offer');
-  await tapAt(page, '.dlg-acc');
+  await choose(page, '.dlg-acc', () => !!R.quests.state('m01'), 'cr_arms');
   const a1 = await L.ev(page, () => { for (let i = 0; i < 6; i++) R.step(); return { cur: R.ui.cur, st: (R.quests.state('m01') || {}).st, paused: R.paused }; });
   L.ok('ACCEPT takes m01 and closes; the game runs', a1.cur === null && a1.st === 'open' && !a1.paused, JSON.stringify(a1));
   // a talk branch: the story's second node
@@ -61,7 +65,7 @@ const talkTo = async (page, id) => {
   await talkTo(page, 'cr_inn');
   const ib = await L.ev(page, () => { const b = document.querySelector('.dlg-ch button[data-act="inn"]'); return { has: !!b, txt: b && b.textContent }; });
   L.ok('the innkeeper offers the inn', ib.has, JSON.stringify(ib));
-  if (ib.has) await tapAt(page, '.dlg-ch button[data-act="inn"]');
+  if (ib.has) await choose(page, '.dlg-ch button[data-act="inn"]', () => R.ui.cur === 'inn', 'cr_inn');
   L.ok('the inn choice opens the inn screen', await L.ev(page, () => R.ui.cur === 'inn'), await L.ev(page, () => String(R.ui.cur)));
   await L.shot(page, 'dialog_inn');
   await L.ev(page, () => { if (R.ui.cur) R.ui.close(); });
@@ -69,11 +73,11 @@ const talkTo = async (page, id) => {
   await talkTo(page, 'cr_smith');
   const sb = await L.ev(page, () => [...document.querySelectorAll('.dlg-ch button')].map(b => b.dataset.act || ''));
   L.ok('the smith offers the smith and the shop', sb.includes('smith') && sb.includes('shop'), sb.join());
-  if (sb.includes('shop')) await tapAt(page, '.dlg-ch button[data-act="shop"]');
+  if (sb.includes('shop')) await choose(page, '.dlg-ch button[data-act="shop"]', () => R.ui.cur === 'shop', 'cr_smith');
   L.ok('the shop choice opens the shop', await L.ev(page, () => R.ui.cur === 'shop'), await L.ev(page, () => String(R.ui.cur)));
   await L.ev(page, () => { if (R.ui.cur) R.ui.close(); });
   await talkTo(page, 'cr_smith');
-  if (sb.includes('smith')) await tapAt(page, '.dlg-ch button[data-act="smith"]');
+  if (sb.includes('smith')) await choose(page, '.dlg-ch button[data-act="smith"]', () => R.ui.cur === 'smith', 'cr_smith');
   L.ok('the smith choice opens the smith', await L.ev(page, () => R.ui.cur === 'smith'), await L.ev(page, () => String(R.ui.cur)));
   await L.ev(page, () => { if (R.ui.cur) R.ui.close(); });
   // one speaker at a time

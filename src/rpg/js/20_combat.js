@@ -87,7 +87,9 @@
     if (!dx && !dy) return;
     if (!e.fly) {
       const sl = R.world && fn(R.world, 'slide');
-      if (sl) { const r = sl.length >= 4 ? sl(e.x, e.y, dx, dy) : sl(e, dx, dy); if (r && r !== e && typeof r.x === 'number') { e.x = r.x; e.y = r.y; } return; }
+      /* 10_world: slide(e, dx, dy) moves the entity by a DELTA in place (the old 3-argument form and the new 5-argument one both take it);
+         slide(x, y, nx, ny, r) is the absolute-target form — never mix them */
+      if (sl) { const r = sl(e, dx, dy); if (r && r !== e && r !== true && typeof r.x === 'number') { e.x = r.x; e.y = r.y; } return; }
       const bl = R.world && fn(R.world, 'blocked');
       if (bl) { const nx = e.x + dx, ny = e.y + dy; if (!bl(nx, ny)) { e.x = nx; e.y = ny; } else if (!bl(nx, e.y)) e.x = nx; else if (!bl(e.x, ny)) e.y = ny; e.x = R.clamp(e.x, 0, R.W || 1e9); e.y = R.clamp(e.y, 0, R.H || 1e9); return; }
     }
@@ -148,7 +150,7 @@
     const t = R.t;
     if (o.dot === 'burn' || o.dot === 'bleed') { o = Object.assign({}, o); o[o.dot] = o[o.dot] === true || o[o.dot] == null ? 3 : o[o.dot]; o.dot = 0; }
     const dot = !!o.dot;
-    if (!dot && tgt.inv > t) return { src, tgt, dmg: 0, crit: false, kind: o.kind || 'phys', blocked: true, absorbed: 0, killed: false };
+    if (!dot && tgt.inv > t) { if (tgt.kind === 'player' && R.fx && fn(R.fx, 'num') && !o.silent) R.fx.num(tgt.x, tgt.y - 30, 'DODGE', '#9fb6c9'); return { src, tgt, dmg: 0, crit: false, kind: o.kind || 'phys', blocked: true, absorbed: 0, killed: false }; }   /* i-frames live here (the player's wrapper only covers a foreign R.hit) */
     dmg = num(dmg, (src && num(src.atk, 1)) || 1) * num(o.mult, 1);
     let crit = false;
     const kind = o.kind || (dot ? 'dot' : 'phys');
@@ -308,6 +310,10 @@
   /* ---- mob AI system (order 100) ---- */
   const nearestFoe = (e, foes, r) => { let best = null, bd = r * r; for (const f of foes) { if (f.stealthHidden) continue; const d2 = (f.x - e.x) ** 2 + (f.y - e.y) ** 2; if (d2 <= bd) { bd = d2; best = f; } } return best; };
   C.nearestFoe = nearestFoe;
+  /* a pack aggro cap: a mob only joins while fewer than maxChasers(hero) already chase him (2 for a level 1–3 hero, then
+     balance.aggro.maxPack(L)); a mob the hero hits always turns on him (R.hit sets ai.tgt) */
+  C.maxChasers = f => { const L = Math.max(1, num(f && f.lvl, 1)); if (L <= 3) return 2; const B = R.data.balance; try { if (B && B.aggro && typeof B.aggro.maxPack === 'function') return Math.max(2, B.aggro.maxPack(L) | 0); } catch (x) {} return Math.min(6, 2 + Math.floor(L / 2)); };
+  C.chasers = f => { let n = 0; for (const m of R.ents) if (m.ai && m.ai.tgt === f && !m.dead && (m.kind === 'mob' || m.kind === 'boss')) n++; return n; };
   function roles(e, foes, t) {
     const a = e.ai, cd = e.cd;
     if (e.role === 'healer' && t >= (cd.heal || 0)) {
@@ -341,7 +347,7 @@
     if (t >= a.scanT) {
       a.scanT = t + 0.15; if (a.tgt && R.ents.indexOf(a.tgt) < 0) a.tgt = null;
       if (a.tgt && !e.koIn && C.safeAt(a.tgt.x, a.tgt.y, e) && !(a.hitBy === a.tgt && t - (a.hitT || -9) < 4)) a.tgt = null;   /* the hero reached a refuge */
-      if (!a.tgt) { const f = nearestFoe(e, foes, e.aggro); if (f && !C.safeAt(f.x, f.y, e) && (e.fly || C.los(e, f))) { a.tgt = f; a.st = 'chase'; a.lost = 0; } }
+      if (!a.tgt) { const f = nearestFoe(e, foes, e.aggro); if (f && !C.safeAt(f.x, f.y, e) && C.chasers(f) < C.maxChasers(f) && (e.fly || C.los(e, f))) { a.tgt = f; a.st = 'chase'; a.lost = 0; } }
       else { const d = R.dist(e, a.tgt); if (d > e.aggro * 1.6) a.tgt = null; else if (!e.fly && !C.los(e, a.tgt)) { a.lost += 0.15; if (a.lost > 6) a.tgt = null; } else a.lost = 0; }
       if (!a.tgt && (a.st === 'chase' || a.st === 'attack')) { a.st = 'idle'; a.t = t + 0.5 + rnd(); if (e.anim === 'attack') e.anim = 'idle'; }
     }

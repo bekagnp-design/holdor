@@ -14,7 +14,7 @@
 (function () {
   const RAR_COL = ['#9aa4b1', '#5fcf6a', '#4fb0ff', '#b47cff', '#e3b661'];
   const RAR_NAME = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
-  const C = { LIFE: 60, PICK_R: 46, MAGNET_R: 120, TAKE_R: 70, STAND_T: 1.5, SCATTER: [20, 50], CHEST_LIFE: 15, INV_MAX: 60, POTION_MAX: 20 };
+  const C = { LIFE: 60, PICK_R: 70, MAGNET_R: 130, TAKE_R: 70, STAND_T: 1.5, MIX: { mat: 50, potion: 20, gear: 30 }, RAR_W: [70, 22, 6, 1.5, 0.5], SCATTER: [20, 50], CHEST_LIFE: 15, INV_MAX: 60, POTION_MAX: 20 };
   const rnd = () => (R.rng ? R.rng() : Math.random());
   const ri = (a, b) => a + Math.floor(rnd() * (b - a + 1));
   const rr = (a, b) => a + rnd() * (b - a);
@@ -55,7 +55,7 @@
     else if (sub === 'potion') { e.ptype = o.ptype || 'hp'; e.amount = Math.max(1, Math.round(o.amount || 1)); e.icon = e.ptype === 'mana' ? '💧' : '🧪'; e.col = e.ptype === 'mana' ? '#4fb0ff' : '#e14b4b'; e.name = e.ptype === 'mana' ? 'Mana potion' : 'Health potion'; }
     else if (sub === 'item' || sub === 'mat') { const it = o.item || (sub === 'mat' ? rollMat(o.lvl || 1, o) : rollItem(o.lvl || 1, o.rar || 0)); e.item = it; if (sub === 'mat') { it.kind = 'mat'; if (o.amount) it.n = o.amount; } e.icon = iconOf(it); e.col = col(it.rar); e.name = it.name || (sub === 'mat' ? 'Material' : 'Item'); if ((it.rar | 0) >= 2) e.glow = e.col; }
     else { e.icon = '❔'; e.col = '#fff'; }
-    e.auto = sub === 'gold' || sub === 'gem' || sub === 'potion';
+    e.auto = true;   /* the owner: walking within ~70 units picks everything up */
     if (o.scatter !== false) { const d = rr(C.SCATTER[0], C.SCATTER[1]), a = o.angle != null ? o.angle : rnd() * Math.PI * 2; e.vx = Math.cos(a) * d * 8; e.vy = Math.sin(a) * d * 8; e.vz = 110 + rnd() * 50; }
     return R.spawn(e); };
 
@@ -70,6 +70,8 @@
     if (g == null) { let v = NaN; if (BM && typeof BM.gold === 'function') { try { v = Math.round(BM.gold(lvl, rnd())); } catch (e) {} } g = v > 0 ? { flat: [v, v] } : [2, 8]; }
     if (typeof g === 'number') g = Math.round(g * lvl); else if (Array.isArray(g)) g = Math.round(rr(g[0], g[1]) * lvl); else if (g && g.flat) g = Math.round(rr(g.flat[0], g.flat[1])); else g = Math.round(rr(2, 8) * lvl);
     if (mob.kind === 'boss') g *= 10; else if (mob.elite) g *= 3; return Math.max(0, Math.round(g)); };
+  const pickW = o => { let tot = 0; for (const k in o) tot += Math.max(0, +o[k] || 0); let r = rnd() * tot; for (const k in o) { r -= Math.max(0, +o[k] || 0); if (r < 0) return k; } return Object.keys(o)[0]; };
+  const pickIdx = w => { let tot = 0; for (const v of w) tot += v; let r = rnd() * tot; for (let i = 0; i < w.length; i++) { r -= w[i]; if (r < 0) return i; } return 0; };
   const drop = mob => { if (!mob || mob.looted || mob.noLoot) return []; mob.looted = true;
     const md = (R.data.mobs && mob.type && R.data.mobs[mob.type]) || null; const b = bal(); const lvl = Math.max(1, mob.lvl || 1);
     const boss = mob.kind === 'boss', elite = !!mob.elite || boss; const floor = boss ? 2 : elite ? 1 : 0; const out = []; const x = mob.x, y = mob.y;
@@ -78,11 +80,16 @@
     if (Array.isArray(tbl)) { for (const d of tbl) { if (!d || rnd() >= (d.p == null ? 1 : d.p)) continue; const n = d.n ? ri(d.n[0], d.n[1]) : 1;
         if (d.sub === 'item') out.push(spawn('item', x, y, { lvl, rar: Math.max(floor, d.rar | 0) })); else if (d.sub === 'mat') out.push(spawn('mat', x, y, { lvl, id: d.id, name: d.name, icon: d.icon, amount: n }));
         else if (d.sub === 'potion') out.push(spawn('potion', x, y, { ptype: d.ptype, amount: n })); else if (d.sub === 'gem') out.push(spawn('gem', x, y, { amount: n })); } }
-    else { const t = tbl || {}; const pItem = t.item != null ? t.item : (elite ? (b.eliteItem != null ? b.eliteItem : 0.35) : (b.item != null ? b.item : 0.12));
-      const pPot = t.potion != null ? t.potion : (b.potion != null ? b.potion : 0.06), pMat = t.mat != null ? t.mat : (b.mat != null ? b.mat : 0.15), pGem = t.gem != null ? t.gem : 0;
-      if (boss || rnd() < pItem) out.push(spawn('item', x, y, { lvl, rar: floor })); if (boss && rnd() < 0.5) out.push(spawn('item', x, y, { lvl, rar: 1 }));
-      if (rnd() < pPot) out.push(spawn('potion', x, y, { ptype: rnd() < 0.85 ? 'hp' : 'mana' })); if (rnd() < pMat) out.push(spawn('mat', x, y, { lvl, amount: elite ? ri(1, 2) : 1 }));
-      if (boss) { const bg = b.bossGems || [2, 5]; out.push(spawn('gem', x, y, { amount: ri(bg[0], bg[1]) })); } else if (rnd() < pGem) out.push(spawn('gem', x, y, { amount: 1 })); }
+    else { /* the owner: EVERY kill drops gold and at least one thing — material 50 %, potion 20 %, gear 30 % (rarity 70 / 22 / 6 / 1.5 / 0.5);
+              elites 2–3 things, bosses 4–6 with a rare+ piece among them (C.MIX / C.RAR_W; balance.drops.mix / rarMix override) */
+      const mix = (b.mix && typeof b.mix === 'object') ? b.mix : C.MIX, rw = Array.isArray(b.rarMix) ? b.rarMix : C.RAR_W;
+      const n = boss ? ri(4, 6) : elite ? ri(2, 3) : 1; let rareDone = false;
+      for (let k = 0; k < n; k++) { const what = pickW(mix); let rar = Math.max(floor, pickIdx(rw));
+        const forceRare = boss && k === n - 1 && !rareDone; if (forceRare) rar = Math.max(2, rar);   /* the boss's rare+ piece */
+        if (forceRare || what === 'gear') { if (rar >= 2) rareDone = true; out.push(spawn('item', x, y, { lvl, rar })); }
+        else if (what === 'potion') out.push(spawn('potion', x, y, { ptype: rnd() < 0.85 ? 'hp' : 'mana' }));
+        else out.push(spawn('mat', x, y, { lvl, amount: elite ? ri(1, 2) : 1 })); }
+      if (boss) { const bg = b.bossGems || [2, 5]; out.push(spawn('gem', x, y, { amount: ri(bg[0], bg[1]) })); } else { const t = tbl || {}; if (typeof t.gem === 'number' && rnd() < t.gem) out.push(spawn('gem', x, y, { amount: 1 })); } }
     return out; };
 
   /* ---------- pickup ---------- */
@@ -104,7 +111,7 @@
       if (!slotFree && p.inv.length >= invMax()) { toast('Bag full', '#e14b4b'); return false; } p.inv.push(it); const eq = equipFree(it);
       fx(x, y, e.icon + ' ' + it.name, e.col, (it.rar | 0) >= 2); toast('+' + it.name + (eq ? ' (equipped)' : ''), e.col); R.bus.emit('loot', it); sfx('loot'); }
     else return false;
-    e.dead = true; e.taken = true; R.remove(e); if (cur && cur.e === e) clearInteract(); R.save && R.save(); return true; };
+    e.dead = true; e.taken = true; R.remove(e); if (cur && cur.e === e) clearInteract(); R.bus.emit('pickup', e, e.item || { sub: e.sub, amount: e.amount }); if (e.sub === 'item' || e.sub === 'mat') R.bus.emit('inv', e.item); R.save && R.save(); return true; };
 
   /* ---------- chests ---------- */
   const chest = (x, y, lvl, rar) => { lvl = Math.max(1, lvl || (R.player && R.player.lvl) || 1); rar = R.clamp(rar == null ? 1 : rar | 0, 0, 4);
@@ -133,7 +140,7 @@
       e.blink = e.life - e.age < 8;
       if (!alive) continue; const d = Math.hypot(e.x - pl.x, e.y - pl.y);
       if (e.auto) { if (e.sub === 'potion' && p.potions && (p.potions[e.ptype || 'hp'] || 0) >= C.POTION_MAX) continue;
-        if (d <= C.PICK_R) { take(e); continue; }
+        if (d <= C.PICK_R) { if (R.t < (e.fullT || 0)) continue; if (!take(e)) e.fullT = R.t + 2; continue; }
         if (d < C.MAGNET_R && e.age > 0.25) { const sp = 260 + (C.MAGNET_R - d) * 4; const k = Math.min(1, sp * dt / d); e.x += (pl.x - e.x) * k; e.y += (pl.y - e.y) * k; e.vx = e.vy = 0; } }
       else { if (d <= C.TAKE_R) { if (d < bestD) { best = e; bestD = d; } if (d <= pl.r + e.r + 6) { e.standT += dt; if (e.standT >= C.STAND_T) { take(e); continue; } } else e.standT = 0; } else e.standT = 0; } }
     if (best) setInteract(best); else if (cur) clearInteract(); };

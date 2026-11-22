@@ -221,8 +221,9 @@
     const g3 = in3d(), cam = g3 && R.render3d.camera ? R.render3d.camera.position : null;
     if (R.player && !R.player.dead) { const s = R.w2s(R.player.x, R.player.y); one(s.x, s.y, (g3 ? 110 : 150) * z, 0, g3 ? .3 : .9); }
     const pois = R.data.world && R.data.world.pois; let i = 1;
+    const hd = g3 && R.player ? R.w2s(R.player.x, R.player.y).d || 0 : 0;   // the hero's depth: z px per unit there, z·hd/d at depth d
     if (pois && pois.length) for (const p of pois) { const xy = poiXY(p); if (!xy) continue; const s = R.w2s(xy[0], xy[1]); if (s.behind) continue;
-      let f = 1; if (cam) { const d = Math.hypot(cam.x - xy[0], cam.z - xy[1]); if (d > 1500 || s.y < h * .22) continue; f = R.clamp(480 / Math.max(1, d), .2, 1); }
+      let f = 1; if (cam) { const d = Math.hypot(cam.x - xy[0], cam.z - xy[1]); if (d > 1500 || s.y < h * .22) continue; f = hd > 0 && s.d > 0 ? R.clamp(hd / s.d, .15, 1.2) : R.clamp(480 / Math.max(1, d), .2, 1); }
       one(s.x, s.y, 110 * z * f, i++, g3 ? .55 : .8); if (n >= 14) break; }
     if (n < 14) for (const e of R.ents) if (e.kind === 'portal' && !e.dead) { const s = R.w2s(e.x, e.y); one(s.x, s.y, 80 * z, i++, .7); }
     A.lights = n; ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
@@ -238,7 +239,7 @@
       else if (kind === 'splash') { ctx.strokeStyle = 'rgba(210,225,240,.38)'; ctx.lineWidth = 1; ctx.beginPath(); for (const p of P) if (p.kind === kind) { const r = 1.5 + 7 * p.t / p.ttl; ctx.moveTo(p.x + r, p.y); ctx.arc(p.x, p.y, r, 0, TAU); } ctx.stroke(); }
       else if (kind === 'shaft') { ctx.fillStyle = 'rgb(255,242,205)'; for (const p of P) if (p.kind === kind) { ctx.globalAlpha = (.045 + .03 * Math.sin(T * .7 + p.ph)) * p.k; ctx.beginPath(); ctx.moveTo(p.x, 0); ctx.lineTo(p.x + p.s, 0); ctx.lineTo(p.x + p.s + p.sk, h); ctx.lineTo(p.x + p.sk, h); ctx.closePath(); ctx.fill(); } }
       else if (kind === 'pollen') { ctx.fillStyle = 'rgba(246,226,150,.62)'; ctx.beginPath(); for (const p of P) if (p.kind === kind) { ctx.moveTo(p.x + p.s, p.y); ctx.arc(p.x, p.y, p.s * p.k, 0, TAU); } ctx.fill(); }
-      else if (kind === 'shimmer') { const bd = band(), a = .07 * (1 + .7 * A.heatK); for (const p of P) if (p.kind === kind) { ctx.globalAlpha = a * p.k; const hh = p.s * 9; ctx.drawImage(bd, -30 + Math.sin(T * 3 + p.ph) * 12, p.y - hh * .5 + Math.sin(T * 1.3 + p.ph) * 3, w + 60, hh); } }   // soft warm bands, no hard lines
+      else if (kind === 'shimmer') { const bd = band(), a = .045 * (1 + .6 * A.heatK); for (const p of P) if (p.kind === kind) { ctx.globalAlpha = a * p.k; const hh = p.s * 14; ctx.drawImage(bd, -30 + Math.sin(T * 3 + p.ph) * 12, p.y - hh * .5 + Math.sin(T * 1.3 + p.ph) * 3, w + 60, hh); } }   // soft warm bands, no hard lines
       else if (kind === 'gust') { ctx.strokeStyle = 'rgba(214,184,120,.5)'; ctx.lineWidth = 1.5; ctx.beginPath(); for (const p of P) if (p.kind === kind) { ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.s * p.k, p.y - p.vy * .02); } ctx.stroke(); }
       else if (kind === 'spray') { ctx.fillStyle = 'rgba(210,232,246,.5)'; ctx.beginPath(); for (const p of P) if (p.kind === kind) { const a = 1 - p.t / p.ttl; if (a <= 0) continue; const r = p.s * a * p.k; ctx.moveTo(p.x + r, p.y); ctx.arc(p.x, p.y, r, 0, TAU); } ctx.fill(); }
       else if (kind === 'gull') { ctx.strokeStyle = 'rgba(40,46,58,.75)'; ctx.lineWidth = 1.4; ctx.beginPath(); for (const p of P) if (p.kind === kind) { const f = p.s * .7 * Math.sin(T * 9 + p.ph); ctx.moveTo(p.x - p.s, p.y + f); ctx.lineTo(p.x, p.y); ctx.lineTo(p.x + p.s, p.y + f); } ctx.stroke(); }
@@ -260,13 +261,15 @@
   };
   const AUR = ['rgb(90,255,160)', 'rgb(170,110,255)', 'rgb(80,220,200)'];
   const drawAurora = ctx => {
-    const k = A.auroraK; if (k < .03) return; const w = vw(); ctx.globalCompositeOperation = 'lighter';
+    const k = A.auroraK; if (k < .03) return; if (in3d() && R.sky && (R.sky.aurora || R.sky.hasAurora)) return;   // the 3D sky (09e_sky.js) draws its own
+    const w = vw(); ctx.globalCompositeOperation = 'lighter';
     for (let i = 0; i < 3; i++) { const y0 = 40 + i * 34, th = 26 + i * 7, top = [], bot = []; for (let x = -10; x <= w + 10; x += Math.max(24, w / 14)) { const y = y0 + 18 * Math.sin(x / 90 + T * .6 + i * 1.3) + 8 * Math.sin(x / 37 - T * .9 + i); top.push([x, y]); bot.push([x, y + th * (.7 + .3 * Math.sin(x / 60 + T * .4 + i))]); }
       ctx.globalAlpha = k * (.07 + .03 * Math.sin(T * .8 + i * 2)); ctx.fillStyle = AUR[i]; ctx.beginPath(); ctx.moveTo(top[0][0], top[0][1]); for (const p of top) ctx.lineTo(p[0], p[1]); for (let j = bot.length - 1; j >= 0; j--) ctx.lineTo(bot[j][0], bot[j][1]); ctx.closePath(); ctx.fill(); }
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   };
   const drawMoon = ctx => {
-    const k = A.nightK; if (k < .05) return; const w = vw(), h = vh(), arc = ((A.hour - 21 + 24) % 24) / 8; if (arc > 1.05) return;     // up from 21 to 5
+    const k = A.nightK; if (k < .05) return; if (in3d() && R.sky) return;   // the 3D sky (09e_sky.js, G12) draws the moon
+    const w = vw(), h = vh(), arc = ((A.hour - 21 + 24) % 24) / 8; if (arc > 1.05) return;     // up from 21 to 5
     const x = w * (.12 + .76 * arc), y = h * .13 - h * .06 * Math.sin(Math.PI * arc), r = 13, f = A.moon.phase, dim = A.weather === 'rain' ? .3 : A.weather === 'snow' ? .6 : 1;
     ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = .08 * k * dim; ctx.fillStyle = 'rgb(220,228,255)'; ctx.beginPath(); ctx.arc(x, y, r * 2.3, 0, TAU); ctx.fill();
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = .9 * k * dim; ctx.fillStyle = 'rgb(236,240,250)'; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
