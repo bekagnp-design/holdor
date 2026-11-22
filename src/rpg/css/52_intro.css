@@ -29,6 +29,7 @@ button.in-sec{width:100%;min-height:48px;margin-top:10px;font-size:15px;letter-s
 
 /* step 2 — houses */
 .in-houses{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+html.q-wide .in-houses{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}html.q-wide .in-house{min-height:96px;padding:8px 6px}html.q-wide .in-house .sg{font-size:30px}
 .in-house{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:126px;padding:12px 8px;border:2px solid rgba(255,255,255,.14);border-radius:16px;text-align:center;cursor:pointer;transition:transform .12s,border-color .15s,box-shadow .15s}
 .in-house:active{transform:scale(.97)}
 .in-house.sel{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold),0 0 28px rgba(227,182,97,.35)}
@@ -86,4 +87,4 @@ button.in-sec{width:100%;min-height:48px;margin-top:10px;font-size:15px;letter-s
 @keyframes insway{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.03)}}
 @keyframes inblink{50%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.in-logo,.in-sub,.in-rule,.in-stage .fig,.in-cap .ct{animation:none}}
-@media (max-height:700px){.in-logo{font-size:50px}.in-house{min-height:108px}.in-house .sg{font-size:34px}.in-stage .hp{width:120px;height:120px}}
+html.q-h700 .in-logo{font-size:50px}html.q-h700 .in-house{min-height:108px}html.q-h700 .in-house .sg{font-size:34px}html.q-h700 .in-stage .hp{width:120px;height:120px}

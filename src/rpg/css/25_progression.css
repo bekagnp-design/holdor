@@ -28,7 +28,7 @@
 .pg-bh em{font-style:normal;font:700 12px var(--f-display,Georgia,serif);color:var(--dim)}
 .pg-link{align-self:center;width:3px;height:8px;background:rgba(255,255,255,.08);border-radius:2px}
 .pg-link.on{background:color-mix(in srgb,var(--acc) 70%,transparent)}
-.pg-n{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:clamp(54px,8.6vh,78px);padding:5px 3px;border-radius:12px;
+.pg-n{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:clamp(54px,calc(8.6 * var(--vh,1vh)),78px);padding:5px 3px;border-radius:12px;
   border:1px solid rgba(255,255,255,.1);background:radial-gradient(ellipse at 50% 20%,rgba(255,255,255,.07),rgba(0,0,0,.25));color:var(--ink);font:inherit;transition:transform .12s}
 .pg-n:active{transform:scale(.96)}
 .pg-ic{display:flex;color:var(--dim)}
@@ -60,7 +60,7 @@
 .pg-pri{margin-top:auto;min-height:54px;border-radius:14px;border:0;font:800 15px/1.1 var(--f-display,Georgia,serif);letter-spacing:.04em;color:#140d05;
   background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 85%,#fff),var(--acc) 55%,color-mix(in srgb,var(--acc) 70%,#000));box-shadow:0 6px 20px color-mix(in srgb,var(--acc) 35%,transparent),inset 0 1px 0 rgba(255,255,255,.4)}
 .pg-pri.off{background:rgba(255,255,255,.07);color:var(--dim);box-shadow:none;border:1px solid var(--line);font-weight:700;letter-spacing:0}
-@media (max-height:700px){.pg{gap:7px}.pg-name{font-size:19px}.pg-n{min-height:54px}.pg-pts{padding:6px 10px}.pg-pts b{font-size:26px}.pg-det{padding:8px 10px}.pg-pri{min-height:48px}}
+html.q-h700 .pg{gap:7px}html.q-h700 .pg-name{font-size:19px}html.q-h700 .pg-n{min-height:54px}html.q-h700 .pg-pts{padding:6px 10px}html.q-h700 .pg-pts b{font-size:26px}html.q-h700 .pg-det{padding:8px 10px}html.q-h700 .pg-pri{min-height:48px}
 /* the milestone card (not a screen: it waits until no screen is open, then 3.2 s or a tap) */
 .pg-mile{--acc:#e3b661;position:absolute;left:0;right:0;top:18%;z-index:55;display:flex;justify-content:center;pointer-events:auto;animation:pgmile .5s cubic-bezier(.2,1.4,.4,1)}
 .pg-mile-in{min-width:220px;max-width:320px;padding:14px 22px 16px;text-align:center;border-radius:18px;border:1px solid color-mix(in srgb,var(--acc) 60%,transparent);color:#f3e7c4;

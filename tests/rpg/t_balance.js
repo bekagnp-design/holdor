@@ -66,7 +66,7 @@ ok(r10 && within(+r10[2] * 60, s.minutesTo[10], 0.15), 'doc table: hours to reac
     const { chromium } = require('playwright');
     const exe = process.env.CHROMIUM_PATH || (fs.existsSync('/opt/pw-browsers/chromium-1243/chrome-linux64/chrome') ? '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome' : undefined);
     const browser = await chromium.launch({ executablePath: exe });
-    const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+    const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
     const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message)); page.on('console', m => { if (m.type() === 'error' && !/ERR_|Failed to load|net::|supabase|telegram/i.test(m.text())) errors.push('C:' + m.text()); });
     await page.goto('file://' + html);
     const found = await page.waitForFunction(() => window.R && R.data && R.data.balance, null, { timeout: 20000 }).then(() => true).catch(() => false);

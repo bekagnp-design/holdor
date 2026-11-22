@@ -31,7 +31,7 @@
 .prChat .bd{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--bad);color:#fff;font:800 11px/20px var(--f-display);display:none;border:2px solid #060b14}
 .prChat .bd.on{display:block}
 /* leaderboard */
-.prBoardWrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;min-height:calc(100vh - 24px)}
+.prBoardWrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;min-height:calc(calc(100 * var(--vh,1vh)) - 24px)}
 .prTabs{display:flex;gap:6px;margin:6px 0 8px}
 .prTab{flex:1;min-height:44px;font-size:14px;letter-spacing:.04em;color:var(--muted)}
 .prTab.on{background:rgba(227,182,97,.16);border-color:var(--gold);color:var(--gold)}

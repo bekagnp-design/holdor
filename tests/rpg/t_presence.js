@@ -6,7 +6,7 @@ const fs = require('fs'), path = require('path');
 const SC = path.resolve(__dirname, '..', '..', '.shots') + '/'; fs.mkdirSync(SC, { recursive: true });
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+  const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message)); page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push('CE:' + m.text()); });
   await page.goto('file://' + path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'beta/index.html'));
   await page.waitForFunction(() => window.R && R.presence && R.screens.chat && R.screens.board && R.boot, { timeout: 20000 }); await page.waitForTimeout(300);   // after the boot door (it would replace the faked state)

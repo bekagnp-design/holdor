@@ -22,7 +22,7 @@
 .tut-ring.guess{opacity:.55;border-style:dashed}
 @keyframes tutin{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
 @keyframes tutpulse{0%,100%{transform:scale(1);opacity:.95}50%{transform:scale(1.1);opacity:.6}}
-@media (orientation:landscape) and (max-height:520px){.tut-wrap{width:min(36vw,360px)}.tut-txt{font-size:14px}}
+html.q-s .tut-wrap{width:min(calc(36 * var(--vw,1vw)),360px)}html.q-s .tut-txt{font-size:14px}
 @media (prefers-reduced-motion:reduce){.tut-ring,.tut-card.tut-in{animation:none}}
 /* dark-fantasy finish: a worn dark plate with a gold hairline, the house colour only as the edge accent */
 .tut-card{background:linear-gradient(180deg,rgba(30,24,14,.95),rgba(8,9,12,.95));border:1px solid rgba(201,160,78,.5);border-left:3px solid var(--hc);box-shadow:0 8px 22px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,230,170,.08)}

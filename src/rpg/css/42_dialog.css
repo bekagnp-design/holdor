@@ -1,6 +1,6 @@
 /* HOLDOR RPG — the NPC dialog sheet (A20). The world stays visible above, darkened; the sheet sits at the bottom. */
 #screen.on[data-screen="dialog"]{background:linear-gradient(180deg,rgba(6,11,20,.18) 0%,rgba(6,11,20,.55) 55%,rgba(6,11,20,.85) 100%);padding:0;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
-.dlg{--role:#9aa7b4;position:relative;background:linear-gradient(180deg,#17202f 0%,#0b1220 100%);border-top:2px solid var(--role);border-radius:22px 22px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom));max-height:78vh;overflow:auto;box-shadow:0 -14px 40px rgba(0,0,0,.6);animation:dlgin .26s cubic-bezier(.2,.8,.2,1)}
+.dlg{--role:#9aa7b4;position:relative;background:linear-gradient(180deg,#17202f 0%,#0b1220 100%);border-top:2px solid var(--role);border-radius:22px 22px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom));max-height:calc(78 * var(--vh,1vh));overflow:auto;box-shadow:0 -14px 40px rgba(0,0,0,.6);animation:dlgin .26s cubic-bezier(.2,.8,.2,1)}
 .dlg::before{content:"";position:absolute;left:50%;top:6px;width:44px;height:4px;margin-left:-22px;border-radius:2px;background:rgba(255,255,255,.18)}
 @keyframes dlgin{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
 .dlg-top{display:flex;align-items:center;gap:12px;margin-top:6px}
@@ -32,10 +32,11 @@
 .chip.gems{color:#c79bff;border-color:rgba(199,155,255,.5)}
 .chip.item{color:#f2e6c9}
 .chip.champ{color:var(--ok);border-color:rgba(127,208,106,.5)}
-@media (max-height:700px){.dlg-txt{font-size:16px;min-height:62px}.dlg-por{width:60px;height:60px;flex-basis:60px}.dlg-name{font-size:18px}}
+html.q-h700 .dlg-txt{font-size:16px;min-height:62px}html.q-h700 .dlg-por{width:60px;height:60px;flex-basis:60px}html.q-h700 .dlg-name{font-size:18px}
 /* G7: the sheet always fits a 390×844 phone (or scrolls inside itself): compact secondary choices, a short entry slide */
-.dlg{max-height:min(78vh,calc(100% - 12px));overscroll-behavior:contain;touch-action:pan-y}
+.dlg{max-height:min(calc(78 * var(--vh,1vh)),calc(100% - 12px));overscroll-behavior:contain;touch-action:pan-y}
 @keyframes dlgin{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
 .dlg-ch{gap:6px}
 .dlg-ch button.dlg-b{min-height:46px;font-size:15px}
 .dlg-txt{min-height:56px}
+html.q-wide .dlg{width:min(720px,calc(100% - 24px));margin:0 auto;max-height:calc(100% - 24px)}

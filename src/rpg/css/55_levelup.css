@@ -50,5 +50,15 @@
 .lvup .pb:disabled{filter:none;opacity:.78}
 .lvup .pb:disabled .p{color:var(--ok);font-size:14px}
 .lvup .go{margin-top:auto}
-@media (max-height:700px){.lvup{gap:8px}.lvup .hd{height:120px}.lvup .hd .n{font-size:64px}.lvup .sig{width:64px;height:64px;font-size:30px}.lvup .sig img{width:46px;height:46px}.lvup .st td{padding:7px 8px;font-size:16px}.lvup .pb{min-height:66px}}
+html.q-h700 .lvup{gap:8px}html.q-h700 .lvup .hd{height:120px}html.q-h700 .lvup .hd .n{font-size:64px}html.q-h700 .lvup .sig{width:64px;height:64px;font-size:30px}html.q-h700 .lvup .sig img{width:46px;height:46px}html.q-h700 .lvup .st td{padding:7px 8px;font-size:16px}html.q-h700 .lvup .pb{min-height:66px}
+.lvup .lv-l,.lvup .lv-r{display:contents}
+/* landscape (the game is wide since test 5): the burst, sigil and line on the left, the numbers and CONTINUE on the right */
+html.q-wide .lvup{max-width:860px;display:grid;grid-template-columns:minmax(230px,.8fr) 1.2fr;gap:0 24px;align-items:center;min-height:100%}
+html.q-wide .lvup .lv-l,html.q-wide .lvup .lv-r{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+html.q-wide .lvup .hd{height:104px}html.q-wide .lvup .hd .n{font-size:60px}html.q-wide .lvup .ring{width:150px;height:150px;margin:-75px 0 0 -75px}
+html.q-wide .lvup .st td{padding:6px 10px;font-size:16px}html.q-wide .lvup .pb{min-height:58px}html.q-wide .lvup .go{margin-top:4px}
+html.q-wide .lvup{height:100%;min-height:0}
+html.q-wide .lvup .lv-r{max-height:100%;overflow-y:auto;justify-content:flex-start;padding:2px 2px 0;overscroll-behavior:contain}
+html.q-wide .lvup .lv-r .go{position:sticky;bottom:0;flex:none;z-index:2}
+html.q-wide .lvup .sk{padding:8px}html.q-wide .lvup .sk .tx small{-webkit-line-clamp:1}
 @media (prefers-reduced-motion:reduce){.lvup,.lvup *{animation:none!important}.lvup .burst{display:none}}

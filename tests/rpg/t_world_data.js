@@ -9,7 +9,7 @@ const ED_KEYS = ['axe', 'sword', 'archer', 'spear', 'shield', 'child', 'crawler'
 const HOUSES = ['stark', 'lannister', 'baratheon', 'targaryen', 'greyjoy', 'tyrell', 'martell'];
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+  const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message));
   await page.goto('file://' + path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'beta/index.html'));
   await page.waitForFunction(() => window.R && R.data && R.data.world, { timeout: 20000 });

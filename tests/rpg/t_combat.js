@@ -10,7 +10,7 @@ const ok = (c, name, info) => { console.log((c ? 'OK   ' : 'FAIL ') + name + (in
 
 (async () => {
   const b = await chromium.launch({ executablePath: EXE });
-  const pg = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const pg = await b.newPage({ viewport: { width: 844, height: 390 } });
   pg.on('pageerror', e => { console.log('PAGE ERROR', e.message); fails++; });
   await pg.route('**/*', r => (r.request().url().startsWith('file:') ? r.continue() : r.abort()));
   await pg.goto('file://' + HTML, { waitUntil: 'domcontentloaded' });

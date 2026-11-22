@@ -147,7 +147,7 @@ function fakeR(seed, cls) {
     if (!html) { html = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'holdor-rpg-')), 'index.html'); const b = spawnSync('python3', [path.join(ROOT, 'src', 'build_rpg.py'), html], { encoding: 'utf8' }); if (b.status !== 0) throw new Error('build failed: ' + b.stderr); }
     const { chromium } = require('playwright');
     const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-    const pg = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true });
+    const pg = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1, hasTouch: true });
     // the Telegram SDK include fails offline / behind a proxy: a resource error, not a script error
     pg.on('pageerror', e => errors.push('PE:' + e.message)); pg.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push('CE:' + m.text()); });
     await pg.goto('file://' + html); await pg.waitForFunction(() => window.R && window.R.items && window.R.data.items, { timeout: 15000 });

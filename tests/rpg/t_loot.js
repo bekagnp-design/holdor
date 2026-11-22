@@ -9,7 +9,7 @@ let fails = 0;
 const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (extra != null ? '  ' + JSON.stringify(extra) : '')); if (!c) fails++; };
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1 });
   const errors = []; page.on('pageerror', e => errors.push(e.message));
   await page.goto('file://' + file);
   await page.waitForFunction(() => window.R && R.loot && R.spawn, { timeout: 15000 });

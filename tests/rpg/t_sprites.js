@@ -21,7 +21,7 @@ function oldArt() {
 }
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+  const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message));
   await page.route('**/telegram-web-app.js', r => r.fulfill({ status: 200, contentType: 'application/javascript', body: '' }));
   const inj = oldArt(); if (inj) await page.addInitScript(d => { window.__INJ = d; }, inj);

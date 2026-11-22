@@ -7,7 +7,7 @@ const path = require('path');
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
   const errors = []; const R = {}; const ok = (k, v, info) => { R[k] = (v ? 'OK' : 'FAIL') + (info != null ? ' ' + info : ''); };
   const html = 'file://' + path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'beta/index.html');
-  const open = async (opts) => { const p = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true });
+  const open = async (opts) => { const p = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1, hasTouch: true });
     p.on('pageerror', e => errors.push('PE:' + e.message)); p.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push('CE:' + m.text()); });
     if (opts && opts.calm) await p.emulateMedia({ reducedMotion: 'reduce' });
     await p.goto(html); await p.waitForFunction(() => window.R && R.fx && R.sys && R.sys.vfx && R.fx.spawn, { timeout: 20000 }); return p; };

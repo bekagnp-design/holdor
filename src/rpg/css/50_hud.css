@@ -83,7 +83,7 @@
 #hud-region{position:absolute;left:50%;top:calc(var(--st) + 214px);transform:translateX(-50%);width:min(calc(100% - 32px),360px);text-align:center;opacity:0;pointer-events:none;visibility:hidden}
 #hud-region.on{visibility:visible;animation:hudban 3.4s ease-in-out forwards}
 @keyframes hudban{0%{opacity:0}14%{opacity:1}80%{opacity:1}100%{opacity:0}}
-#hud-region b{display:block;font:800 clamp(22px,7vw,30px)/1.1 var(--f-display);color:#f2e6c9;letter-spacing:.08em;text-shadow:0 2px 10px #000,0 0 24px rgba(0,0,0,.9)}
+#hud-region b{display:block;font:800 clamp(22px,calc(7 * var(--vw,1vw)),30px)/1.1 var(--f-display);color:#f2e6c9;letter-spacing:.08em;text-shadow:0 2px 10px #000,0 0 24px rgba(0,0,0,.9)}
 #hud-region small{display:block;margin-top:4px;font:700 13px var(--f-display);color:var(--gold);letter-spacing:.06em;text-shadow:0 1px 4px #000}
 #hud-region p{margin:6px auto 0;max-width:300px;font:italic 15px/1.3 var(--f-body);color:#d8dfe8;text-shadow:0 1px 4px #000}
 #hud-region p:empty{display:none}
@@ -94,20 +94,10 @@
 @keyframes hudvig{0%,100%{box-shadow:inset 0 0 70px 24px rgba(180,10,10,.75)}50%{box-shadow:inset 0 0 90px 36px rgba(200,20,20,.85)}}
 
 /* narrow phones (360): a smaller block, the same columns */
-@media (max-width:370px){#hud-region b{font-size:22px}#ui>.toast{max-width:calc(100% - 140px)}}
+html.q-w370 #hud-region b{font-size:22px}html.q-w370 #ui>.toast{max-width:calc(100% - 140px)}
 /* landscape phones: the minimap goes to the corner and A02's row to its left (the button arc needs the right edge from the middle down);
    the message column sits top-centre between the hero block and the row */
-@media (orientation:landscape) and (max-height:520px){
-  #hud-tl{width:min(34vw,280px)}
-  #hud-row{width:100%;min-width:0;max-width:none}
-  #hud-tr{top:var(--st)}
-  #minimap{width:80px;height:80px}
-  #ui>#prChat{top:calc(var(--st) + 56px);right:calc(100px + var(--sr))}
-  #hud-slot,#ui>#bossbar,#ui>#evbar,#ui>#dgbar,#hud-region{top:var(--st)}
-  #ui>#bossbar,#ui>#evbar,#ui>#dgbar{width:min(30vw,300px);max-width:30vw}
-  #hud-region{width:min(30vw,300px)}
-  #ui>.toast{max-width:30vw}
-}
+html.q-s #hud-tl{width:min(calc(34 * var(--vw,1vw)),280px)}html.q-s #hud-row{width:100%;min-width:0;max-width:none}html.q-s #hud-tr{top:var(--st)}html.q-s #minimap{width:80px;height:80px}html.q-s #ui>#prChat{top:calc(var(--st) + 56px);right:calc(100px + var(--sr))}html.q-s #hud-slot,html.q-s #ui>#bossbar,html.q-s #ui>#evbar,html.q-s #ui>#dgbar,html.q-s #hud-region{top:var(--st)}html.q-s #ui>#bossbar,html.q-s #ui>#evbar,html.q-s #ui>#dgbar{width:min(calc(30 * var(--vw,1vw)),300px);max-width:calc(30 * var(--vw,1vw))}html.q-s #hud-region{width:min(calc(30 * var(--vw,1vw)),300px)}html.q-s #ui>.toast{max-width:calc(30 * var(--vw,1vw))}
 @media (prefers-reduced-motion:reduce){#hud .bar i,#hud .chip,#hud-port{animation:none!important;transition:none!important}}
 
 /* ---- dark-fantasy finish (the owner: "not a Lego game"): forged metal frames, worn gradients, soft grain, no flat toy colours ---- */
@@ -141,6 +131,6 @@
 #tl-ban .tl-nm{font-size:15px;line-height:1.15;letter-spacing:.03em}
 #tl-ban .tl-sub{margin-top:1px;font-size:11px;line-height:1.15}
 #tl-ban .tl-plain{margin-top:1px;font-size:11px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#tl-ban .tl-svc{grid-column:3;grid-row:1;width:auto;max-width:min(52vw,190px);min-height:44px;gap:6px;padding:4px 8px 4px 10px;border-radius:10px}
+#tl-ban .tl-svc{grid-column:3;grid-row:1;width:auto;max-width:min(calc(52 * var(--vw,1vw)),190px);min-height:44px;gap:6px;padding:4px 8px 4px 10px;border-radius:10px}
 #tl-ban .tl-list{font-size:12px;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 #tl-ban .tl-a{font-size:18px}

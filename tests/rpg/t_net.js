@@ -19,7 +19,7 @@ const stateOf = (name, saved, extra) => Object.assign({ v: 2, saved,
 
   /* one page = one fresh context (own localStorage). mock: every /rest/v1/rpc/<name> POST is recorded and answered. */
   async function open(o) {
-    const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true });
+    const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1, hasTouch: true });
     page.on('pageerror', e => errors.push((o.tag || '') + ' PE:' + e.message));
     const M = { reqs: [], mode: 'ok', server: o.server === undefined ? null : o.server, page };
     await page.route(u => /telegram\.org/.test(u.href), r => r.fulfill({ status: 200, contentType: 'application/javascript', body: '/* stub */' }));

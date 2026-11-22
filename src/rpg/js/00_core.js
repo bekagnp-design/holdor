@@ -196,7 +196,25 @@ window.R = window.R || {};
   let cv = document.getElementById('c'); if (!cv) { cv = document.createElement('canvas'); cv.id = 'c'; app.prepend(cv); }
   let gl = document.getElementById('gl'); if (!gl) { gl = document.createElement('canvas'); gl.id = 'gl'; gl.style.cssText = 'position:absolute;inset:0;width:100%;height:100%'; app.insertBefore(gl, cv); }
   const ctx = cv.getContext('2d'); R.cv = cv; R.gl = gl; R.ctx = ctx; R.vw = 390; R.vh = 844; R.dpr = 1;
-  R.resize = () => { R.dpr = Math.min(1.5, window.devicePixelRatio || 1); R.vw = window.innerWidth || 390; R.vh = window.innerHeight || 844; const w = Math.round(R.vw * R.dpr), h = Math.round(R.vh * R.dpr);
+  /* ---- landscape (MR B, 2026-11-22: "a horizontal game"): the game is always laid out wide. A phone held upright gets the
+     whole #app turned 90° clockwise (turn the phone a quarter left to play); a phone held sideways needs no turn. Everything
+     inside #app (canvases, HUD, screens, even position:fixed) follows the turn; pointer coordinates go through R.pt,
+     element rectangles through R.rect, and CSS sizes use --vw / --vh (1 % of the app's width / height), never vw / vh. */
+  R.rot = false;
+  R.pt = (cx, cy) => R.rot ? { x: cy, y: (window.innerWidth || 0) - cx } : { x: cx, y: cy };
+  R.rect = el => { const b = el.getBoundingClientRect(); if (!R.rot) return b; const W = window.innerWidth || 0;
+    const r = { left: b.top, right: b.bottom, top: W - b.right, bottom: W - b.left }; r.x = r.left; r.y = r.top; r.width = r.right - r.left; r.height = r.bottom - r.top; return r; };
+  R.layout = () => { const W = window.innerWidth || 390, H = window.innerHeight || 844;
+    /* a soft keyboard shrinks the window: while a text field has focus the layout keeps its turn and size */
+    const ae = document.activeElement; if (R._lay && ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) return R._lay;
+    const rot = H > W * 1.05 && !R.noRot; R.rot = rot;
+    const aw = rot ? H : W, ah = rot ? W : H, de = document.documentElement; de.classList.toggle('rot', rot); de.classList.add('land');
+    /* the size media queries of the CSS, as classes on the app's own size (a media query sees the unturned screen) */
+    de.classList.toggle('q-s', aw > ah && ah <= 520); de.classList.toggle('q-h700', ah <= 700); de.classList.toggle('q-w370', aw <= 370); de.classList.toggle('q-w480', aw >= 480); de.classList.toggle('q-wide', aw >= 600 && aw > ah);
+    de.style.setProperty('--vw', (aw / 100) + 'px'); de.style.setProperty('--vh', (ah / 100) + 'px');
+    if (app && app.style) { if (rot) app.style.cssText = 'position:fixed;left:0;top:0;right:auto;bottom:auto;width:' + aw + 'px;height:' + ah + 'px;transform-origin:0 0;transform:rotate(90deg) translateY(-100%)'; else app.style.cssText = ''; }
+    return (R._lay = { w: aw, h: ah }); };
+  R.resize = () => { R.dpr = Math.min(1.5, window.devicePixelRatio || 1); const L = R.layout(); R.vw = L.w; R.vh = L.h; const w = Math.round(R.vw * R.dpr), h = Math.round(R.vh * R.dpr);
     cv.width = w; cv.height = h; const g = R.gl || gl; if (g && (g.width !== w || g.height !== h)) { g.width = w; g.height = h; } R.camClamp(); R.bus.emit('resize', R.vw, R.vh); };
   window.addEventListener('resize', R.resize); R.resize();
   const sysErr = (s, e) => { s._errs = (s._errs || 0) + 1; if (s._errs <= 3) { console.error(s.name, e); R.err((e && e.message) || e, 'sys:' + s.name); } };

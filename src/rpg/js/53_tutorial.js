@@ -150,7 +150,7 @@
   /* the arrow on the card points from the card toward the ring (8 directions) */
   const ARROWS = ['→', '↘', '↓', '↙', '←', '↖', '↑', '↗'];
   const pointAt = (tx, ty) => { const a = T.el && T.el.querySelector('.tut-arrow'); if (!a || !T.card) return; if (tx == null) { a.textContent = ''; return; }
-    const b = T.card.getBoundingClientRect(), cx = b.left + b.width / 2, cy = b.top + b.height / 2;
+    const b = R.rect(T.card), cx = b.left + b.width / 2, cy = b.top + b.height / 2;
     if (tx >= b.left && tx <= b.right && ty >= b.top && ty <= b.bottom) { a.textContent = ''; return; }
     const k = Math.round(Math.atan2(ty - cy, tx - cx) / (Math.PI / 4)); const ch = ARROWS[(k + 8) % 8]; if (a.textContent !== ch) a.textContent = ch; };
   const layoutRing = () => { const ring = T.ring; if (!ring) return; const st = S[T.step];
@@ -158,7 +158,7 @@
     else if (!st || !st.ring || T.doneAt != null) pointAt(null);
     if (!st || !st.ring || st.ring === 'drop' || st.ring === 'npc' || T.doneAt != null) { ring.style.display = 'none'; return; }
     const el = findTarget(st.ring); let x, y, w, h, guess = false;
-    if (el) { const b = el.getBoundingClientRect(); if (b.width < 4 || b.height < 4) { ring.style.display = 'none'; return; } x = b.left - 8; y = b.top - 8; w = b.width + 16; h = b.height + 16; }
+    if (el) { const b = R.rect(el); if (b.width < 4 || b.height < 4) { ring.style.display = 'none'; return; } x = b.left - 8; y = b.top - 8; w = b.width + 16; h = b.height + 16; }
     else { const g = GUESS[st.ring]; if (!g) { ring.style.display = 'none'; return; } w = h = g[2]; x = g[0] * R.vw - w / 2; y = g[1] * R.vh - h / 2; guess = st.ring !== 'joy'; }
     pointAt(x + w / 2, y + h / 2);
     ring.style.display = 'block'; ring.style.left = x + 'px'; ring.style.top = y + 'px'; ring.style.width = w + 'px'; ring.style.height = h + 'px'; ring.classList.toggle('guess', guess); ring.classList.toggle('sq', Math.abs(w - h) > 12); };

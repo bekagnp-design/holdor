@@ -123,16 +123,16 @@
 
   // the message column: start at #hud-slot, then step below every visible obstacle the banner would meet
   const OBST = ['#hud-tl', '#hud-tr', '#ui>#prChat', '#bossbar', '#dgbar', '#evbar', '#tut:not(.off) .tut-wrap', '#hud-region.on', '#ctl-top'];
-  const shownEl = el => { if (!el || !el.isConnected) return false; const cs = getComputedStyle(el); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) return false; const r = el.getBoundingClientRect(); return r.width > 1 && r.height > 1; };
+  const shownEl = el => { if (!el || !el.isConnected) return false; const cs = getComputedStyle(el); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) return false; const r = R.rect(el); return r.width > 1 && r.height > 1; };
   const obstacles = () => { const out = [];
-    for (const s of OBST) for (const el of document.querySelectorAll(s)) if (shownEl(el)) out.push(el.getBoundingClientRect());
-    for (const el of document.querySelectorAll('#ui>.toast, #ui>.ach-toast')) if (shownEl(el)) out.push(el.getBoundingClientRect());
+    for (const s of OBST) for (const el of document.querySelectorAll(s)) if (shownEl(el)) out.push(R.rect(el));
+    for (const el of document.querySelectorAll('#ui>.toast, #ui>.ach-toast')) if (shownEl(el)) out.push(R.rect(el));
     return out; };
   TL.obstacles = obstacles;
   const placeBanner = () => {
     if (!ban || !banOn) return;
-    const vw = window.innerWidth, w = Math.min(vw - 24, 360), x = (vw - w) / 2, hgt = ban.offsetHeight || 60;   // compact: ≤ 64 px (50_hud.css)
-    const slot = document.getElementById('hud-slot'); let y = slot ? slot.getBoundingClientRect().top : 210;
+    const vw = R.vw || window.innerWidth, w = Math.min(vw - 24, 360), x = (vw - w) / 2, hgt = ban.offsetHeight || 60;   // compact: ≤ 64 px (50_hud.css)
+    const slot = document.getElementById('hud-slot'); let y = slot ? R.rect(slot).top : 210;
     const obs = obstacles();
     for (let k = 0; k < 8; k++) { let moved = false;
       for (const r of obs) if (r.right > x + 2 && r.left < x + w - 2 && r.bottom > y - 4 && r.top < y + hgt + 4) { y = r.bottom + 10; moved = true; }
@@ -188,7 +188,7 @@
     const P = R.player, hide = !P || screenOpen() || hudHidden() || !R.w2s;
     const keep = new Set();
     if (!hide) {
-      const now = performance.now(); if (now - obsT > 250) { obsT = now; obsCache = obstacles().concat([...document.querySelectorAll('#ctl .cb, #b-interact.on, #ctl-top')].filter(shownEl).map(el => el.getBoundingClientRect())); if (banOn && ban) obsCache.push(ban.getBoundingClientRect()); }
+      const now = performance.now(); if (now - obsT > 250) { obsT = now; obsCache = obstacles().concat([...document.querySelectorAll('#ctl .cb, #b-interact.on, #ctl-top')].filter(shownEl).map(el => R.rect(el))); if (banOn && ban) obsCache.push(R.rect(ban)); }
       const vw = R.vw || window.innerWidth, vh = R.vh || window.innerHeight;
       for (const e of npcEnts()) {
         const svc = svcOf(e); if (!svc) continue; const d = Math.hypot(e.x - P.x, e.y - P.y); if (d > FAR) continue;

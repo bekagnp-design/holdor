@@ -118,7 +118,7 @@ console.log('tiers  ' + [1, 2, 3, 4, 5, 'boss'].map(t => 'T' + t + ' ' + R.mobs.
   if (!FILE && fs.existsSync(path.join(ROOT, 'src', 'build_rpg.py'))) { fs.mkdirSync(path.join(ROOT, '.shots'), { recursive: true }); const out = path.join(ROOT, '.shots', 'rpg_mobs.html'); const r = spawnSync('python3', [path.join(ROOT, 'src', 'build_rpg.py'), out], { encoding: 'utf8' }); if (r.status === 0 && isRpg(out)) FILE = out; else console.log('build_rpg.py: ' + (r.stderr || r.stdout || '').trim()); }
   if (!pw || !FILE) { console.log('SKIP browser part: ' + (!pw ? 'playwright not installed' : 'no RPG build (set RPG_HTML or add src/build_rpg.py)')); return done(); }
   const browser = await pw.chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+  const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
   const errors = [];
   page.on('pageerror', x => errors.push('PE:' + x.message));
   page.on('console', m => { if (m.type() === 'error' && !/ERR_TUNNEL|Failed to load|net::|telegram/i.test(m.text())) errors.push('C:' + m.text()); });

@@ -8,7 +8,7 @@ const SC = path.resolve(__dirname, '..', '..', '.shots') + '/'; fs.mkdirSync(SC,
 const HTML = path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'beta/index.html');
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+  const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message + ' @ ' + (e.stack || '').split('\n').slice(0, 2).join(' | ')));
   page.on('console', m => { if (m.type() === 'error' && !/ERR_|Failed to load|net::/.test(m.text())) errors.push('C:' + m.text()); });
   await page.route('**/telegram-web-app.js', r => r.abort());
@@ -130,7 +130,7 @@ const HTML = path.resolve(__dirname, '..', '..', process.env.HOLDOR_HTML || 'bet
   ok('second tap wipes + reloads', a2.save === null && a2.rel >= 1 && a2.state === null && !a2.running, JSON.stringify({ save: a2.save && a2.save.length, rel: a2.rel, state: !!a2.state, running: a2.running }));
 
   // no Telegram at all: a fresh page must boot the module without errors and still open the menu
-  const p2 = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  const p2 = await browser.newPage({ viewport: { width: 844, height: 390 }, hasTouch: true });
   const err2 = []; p2.on('pageerror', e => err2.push(e.message));
   await p2.route('**/telegram-web-app.js', r => r.abort());
   await p2.goto('file://' + HTML);

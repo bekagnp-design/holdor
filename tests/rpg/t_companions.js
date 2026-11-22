@@ -3,7 +3,7 @@
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs');
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true });
+  const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1, hasTouch: true });
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message));
   const html = process.env.HOLDOR_HTML || 'beta/index.html';
   await page.goto('file://' + (path.isAbsolute(html) ? html : path.resolve(__dirname, '..', '..', html)));
