@@ -61,7 +61,7 @@ function oldArt() {
     R.state = R.newState ? R.newState() : { p: {} }; R.state.p.hero = 'jon'; out.hero = paint(() => R.draw.hero(110, 170, O('walk', 0.2))).n;
     R.state.p.hero = null; out.heroPH = paint(() => R.draw.hero(110, 170, O('walk', 0.2))).n;
     // ui helpers
-    out.portrait = (() => { const c = R.draw.portrait('jon', 48); const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 20) n++; return { n, same: R.draw.portrait('jon', 48) === c, url: typeof R.draw.portraitURL('jon') === 'string' && R.draw.portraitURL('jon').startsWith('data:'), w: c.width }; })();
+    out.portrait = (() => { const c = R.draw.portrait('jon', 48); const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 20) n++; return { n, same: R.draw.portrait('jon', 48) === c, url: typeof R.draw.portraitURL('jon') === 'string' && R.draw.portraitURL('jon').startsWith('data:'), w: c.width, want: Math.round(48 * (R.dpr || 1)) }; })();
     const bar = paint(() => R.draw.bar(110, 100, 60, 6, 0.6, '#7fd06a', { ctx: g, screen: true })), bar0 = paint(() => R.draw.bar(110, 100, 60, 6, 0, '#7fd06a', { ctx: g, screen: true }));
     out.bar = bar.n; out.barFill = bar.h !== bar0.h && bar0.n > 60;
     out.name = paint(() => R.draw.name(110, 100, 'WIGHT', '#e9eef5', { ctx: g, screen: true })).n;
@@ -80,7 +80,7 @@ function oldArt() {
   ok('the death animation changes the frame and ends empty', A.dies === A.n, A.dies + '/' + A.n);
   ok('the champion draws in every animation, the attack sheet differs', A.champ.length === 0 && A.champAtkDiffers, A.champ.join(' '));
   ok('the hero draws as a champion and as a placeholder', A.hero > 120 && A.heroPH > 120, A.hero + ' / ' + A.heroPH);
-  ok('portrait: cached canvas + data URL', A.portrait.n > 400 && A.portrait.same && A.portrait.url && A.portrait.w === 96, JSON.stringify(A.portrait));
+  ok('portrait: cached canvas + data URL', A.portrait.n > 400 && A.portrait.same && A.portrait.url && A.portrait.w === (A.portrait.want || 96), JSON.stringify(A.portrait));   // size × R.dpr (the core caps R.dpr, e.g. 1.5: 72 px for 48)
   ok('bar / name / shadow draw', A.bar > 150 && A.barFill && A.name > 60 && A.shadow > 200, A.bar + ' fill:' + A.barFill + ' ' + A.name + ' ' + A.shadow);
   ok('zsort: drops first, then by y (id breaks ties), flyers last', A.zsort === '3,2,5,1,4', A.zsort);
   ok('measure / deathKind', A.measure === true);

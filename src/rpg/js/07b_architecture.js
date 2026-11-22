@@ -691,11 +691,39 @@
     const type = typeOf(poi); if (!type) return null;
     const C = Ctx(poi); C.gyBase = C.gy; const sk = type === 'castle' ? seatKey(poi) : null;
     if (sk) SEATS[sk](C); else B[type](C);
-    C.gy = C.gyBase; C.finish();
+    C.gy = C.gyBase;
+    if (sk || poi.seat || /kingslanding/.test(poi.id || '')) for (const c of spawnSpots(poi)) clearSpot(C, c[0], c[1], SPAWN_CLEAR);
+    C.finish();
     const grp = C.grp; grp.name = 'poi:' + type; grp.position.set(poi.x || 0, 0, poi.y || 0);
     grp.userData.poi = poi; grp.userData.type = type; grp.userData.arch = sk || type; grp.userData.seat = !!sk || /kingslanding/.test(poi.id || ''); grp.userData.tris = tris(grp);
     if (!grp.userData.radius) grp.userData.radius = 160;
     return grp;
+  }
+  /* the courtyard where a new life stands (00_core R.spawnPoint: the seat's centre + (poi.r or 160) + 40 to the south, or the
+     point it really picks) stays open: SPAWN_CLEAR units around it carry no building part above the ground; long wall slabs are cut
+     around the circle (a breach), anything else that reaches into it is left out */
+  const SPAWN_CLEAR = 92;
+  function spawnSpots(poi) { const r = +poi.r > 0 ? +poi.r : 160, out = [[0, r + 40]];
+    try { if (poi.house && typeof R.spawnPoint === 'function') { const sp = R.spawnPoint(poi.house); if (sp && isFinite(sp.x) && isFinite(sp.y)) { const dx = sp.x - (poi.x || 0), dz = sp.y - (poi.y || 0);
+      if (dx * dx + dz * dz < 700 * 700 && (Math.abs(dx) > 4 || Math.abs(dz - r - 40) > 4)) out.push([dx, dz]); } } } catch (e) {}
+    return out; }
+  function clearSpot(C, cx, cz, RC) {
+    const gy = C.gy(cx, cz) + 6;
+    for (const m in C.B) { const parts = C.B[m], keep = [];
+      for (const p of parts) { const g = p.g, o = p.o; if (!g.boundingBox) g.computeBoundingBox(); const bb = g.boundingBox;
+        const sx = o.sx == null ? 1 : o.sx, sy = o.sy == null ? 1 : o.sy, sz = o.sz == null ? 1 : o.sz, ry = o.ry || 0;
+        const top = (o.y || 0) + Math.max(bb.max.y * sy, bb.min.y * sy); if (top <= gy) { keep.push(p); continue; }
+        const ux = Math.cos(ry), uz = -Math.sin(ry), vx = Math.sin(ry), vz = Math.cos(ry), dx = cx - (o.x || 0), dz = cz - (o.z || 0);
+        const x0 = bb.min.x * sx, x1 = bb.max.x * sx, z0 = bb.min.z * sz, z1 = bb.max.z * sz, tilt = Math.abs(o.rx || 0) + Math.abs(o.rz || 0) > .05 ? Math.max(sy, 4) * .5 : 0;
+        const t = dx * ux + dz * uz, n = dx * vx + dz * vz, et = Math.max(x0 - tilt - t, 0, t - x1 - tilt), en = Math.max(z0 - tilt - n, 0, n - z1 - tilt);
+        if (et * et + en * en >= RC * RC) { keep.push(p); continue; }   // the footprint misses the circle
+        const L = x1 - x0, slab = (Math.abs(bb.min.x + .5) < 1e-3 && Math.abs(bb.max.x - .5) < 1e-3 && Math.abs(bb.min.z + .5) < 1e-3 && Math.abs(bb.max.z - .5) < 1e-3);
+        if (!slab || tilt || L < (z1 - z0) * 2.5) continue;   // not a long wall slab: left out
+        const h = Math.sqrt(Math.max(0, RC * RC - en * en)), cut0 = t - h, cut1 = t + h;
+        for (const [a, b] of [[x0, Math.min(x1, cut0)], [Math.max(x0, cut1), x1]]) { if (b - a < 4) continue; const mid = (a + b) / 2;
+          keep.push(Object.assign({}, p, { o: Object.assign({}, o, { x: (o.x || 0) + ux * mid, z: (o.z || 0) + uz * mid, sx: b - a }) })); }
+      }
+      C.B[m] = keep; if (!keep.length) delete C.B[m]; }
   }
   function tris(obj) { let n = 0; if (!obj) return 0; obj.traverse(o => { if (o.isMesh && o.geometry && o.name !== 'steam') { const g = o.geometry; n += Math.round((g.index ? g.index.count : g.attributes.position.count) / 3); } }); return n; }
 

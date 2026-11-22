@@ -22,11 +22,15 @@ const SEATS = ['winterfell', 'casterly', 'highgarden', 'sunspear', 'pyke', 'stor
       } catch (e) { out.errors.push(p.id + ': ' + e.message); } }
     const sig = o => { const h = []; o.traverse(m => { if (m.isMesh) { const a = m.geometry.attributes.position.array; let s = 0; for (let i = 0; i < a.length; i += 7) s += a[i]; h.push(a.length + ':' + s.toFixed(2)); } }); return h.join(); };
     for (const id of ['winterfell', 'pyke', 'kingslanding', 'camp_barrows', 'dg_crypts']) { const p = pois.find(q => q.id === id); if (!p) continue; if (sig(R.props.build(p)) !== sig(R.props.build(p))) out.det = false; }
-    // the spawn point (x, y + r) and a ring around it stay open at every seat: a ray from above hits no building there
-    out.spawn = {}; const rc = new THREE.Raycaster();
+    // the real spawn point (00_core R.spawnPoint(house): the courtyard at (x, y + r + 40); King's Landing has no house → the same rule)
+    // and a ring of ~90 around it stay open at every seat: 17 rays from above hit no building there; the spawn is on land (not the sea)
+    out.spawn = {}; out.spawnAt = {}; out.spawnSea = {}; const rc = new THREE.Raycaster();
     for (const id of ['winterfell', 'casterly', 'highgarden', 'sunspear', 'pyke', 'stormsend', 'dragonstone', 'kingslanding']) { const p = pois.find(q => q.id === id); if (!p) continue;
+      const sp = p.house && R.spawnPoint ? R.spawnPoint(p.house) : { x: p.x, y: p.y + (p.r || 160) + 40 }; out.spawnAt[id] = [sp.x - p.x, sp.y - p.y];
+      out.spawnSea[id] = !!(R.world.blocked && R.world.blocked(sp.x, sp.y)); if (R.render3d && R.render3d.seaAt && R.render3d.seaAt(sp.x, sp.y)) (out.spawnWet = out.spawnWet || []).push(id);
       const o = R.arch.build(p); o.updateMatrixWorld(true); const meshes = o.children.filter(m => m.isMesh && m.name !== 'arch:thatch' && m.name !== 'steam'), g0 = R.render3d ? R.render3d.groundY(p.x, p.y) : 0; let hit = 0;
-      for (const [dx, dz] of [[0, 0], [30, 0], [-30, 0], [0, 30], [0, -30]]) { const sx = p.x + dx, sz = p.y + (p.r || 160) + dz, gl = (R.render3d ? R.render3d.groundY(sx, sz) : 0) - g0;
+      const rays = [[0, 0]]; for (const d of [45, 85]) for (let i = 0; i < 8; i++) rays.push([Math.sin(i / 8 * 6.2832) * d, Math.cos(i / 8 * 6.2832) * d]);
+      for (const [dx, dz] of rays) { const sx = sp.x + dx, sz = sp.y + dz, gl = (R.render3d ? R.render3d.groundY(sx, sz) : 0) - g0;
         rc.set(new THREE.Vector3(sx, 2000, sz), new THREE.Vector3(0, -1, 0)); const h = rc.intersectObjects(meshes, false).filter(q => q.point.y > gl + 8); if (h.length) hit++; }
       out.spawn[id] = hit; }
     const w = R.props.wall(); out.wall = { tris: w && w.userData.tris, name: w && w.name, kids: w && w.children.length };
@@ -48,7 +52,9 @@ const SEATS = ['winterfell', 'casterly', 'highgarden', 'sunspear', 'pyke', 'stor
   const tot = Object.values(r.tris).filter(v => !v.seat).map(v => v.t); console.log('   others: max ' + Math.max(...tot) + ', mean ' + Math.round(tot.reduce((a, b) => a + b, 0) / tot.length));
   L.ok('≤ 10 materials shared by every POI + the Wall (' + r.mats + ': ' + r.matNames.join(',') + '; ' + r.textured + ' textured)', r.mats <= 10 && r.matNames.length <= 10 && r.textured >= 7);
   L.ok('deterministic per POI id', r.det);
-  L.ok('the spawn point south of each seat is open (' + JSON.stringify(r.spawn) + ')', Object.values(r.spawn).every(v => v === 0));
+  L.ok('the spawn point (R.spawnPoint) of each seat and ~90 around it are open (' + JSON.stringify(r.spawn) + ' at ' + JSON.stringify(r.spawnAt) + ')', Object.keys(r.spawn).length >= 8 && Object.values(r.spawn).every(v => v === 0));
+  L.ok('every seat spawn stands on walkable land, not blocked by the sea (' + JSON.stringify(r.spawnSea) + ')', Object.values(r.spawnSea).every(v => v === false));
+  if (r.spawnWet) console.log('   note: the water layer calls these spawn points sea (shallows): ' + r.spawnWet.join(', '));
   L.ok('the Wall builds (' + JSON.stringify(r.wall) + ') and stands in the scene', r.wall.tris > 500 && r.wall.name === 'wall' && r.inScene);
   L.ok('without THREE build/wall return null, unknown types fall through', r.noThree === true && r.unknown === true, String(r.noThree));
   const shots = [];

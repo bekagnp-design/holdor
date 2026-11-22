@@ -43,6 +43,8 @@ const { chromium } = require('playwright'); const path = require('path');
     const bx = e.x, lim = bx + 50; R.world = { blocked: (x, y) => x > lim }; R.input.move = { x: 1, y: 1 }; step(60); out.blockedX = +(e.x - bx).toFixed(1); out.blockedY = +(e.y - y0).toFixed(1); delete R.world; R.input.move = { x: 0, y: 0 }; step(1);
     /* the basic attack: auto-face, hit, no walking while swinging, the combo, the kill → xp */
     Math.random = () => 0.99; e.crit = 0;   /* R.hit rolls crits with R.rng: no crit chance, so the combo numbers are exact */
+    /* 25_progression pays a first kill of each mob type once more (+3 xp units): mark the axeman as seen, so only mob.xp is counted */
+    S.p.prog = S.p.prog && typeof S.p.prog === 'object' ? S.p.prog : {}; S.p.prog.kin = Object.assign(S.p.prog.kin || {}, { axe: 1 });
     const m = R.spawn({ kind: 'mob', type: 'axe', name: 'Axeman', x: e.x - 40, y: e.y, r: 14, team: 1, hp: 500, hpMax: 500, def: 0, lvl: 1, xp: 20 });
     press('attack'); out.hit1 = got.hit && got.hit.length === 1 && got.hit[0][0].tgt === m ? got.hit[0][0].dmg : null; out.mobHp = m.hp; out.atkAnim = e.anim; out.autoFace = e.face;
     R.input.move = { x: 1, y: 0 }; x0 = e.x; step(5); out.noWalkInAttack = e.x === x0; R.input.move = { x: 0, y: 0 }; step(15);

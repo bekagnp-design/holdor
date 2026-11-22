@@ -855,19 +855,17 @@
   /* ---------- see-through: props / trees / houses in front of the hero are dithered away ----------
      Every non-shader mesh material in the scene (A37's props, A43's nature, the simple POI props) gets a screen-space test in its
      fragment shader (chained after the module's own onBeforeCompile, its cache key kept + '|occ'): a fragment nearer to the camera than
-     the hero and inside an ellipse around the hero and the fight around him is discarded by a 4x4 ordered dither (a soft see-through
+     the hero and inside an ellipse around the hero and the fight around him is discarded with a clean edge (no dither stipple; a see-through
      hole, no transparency sorting); anything within 120 units of the camera fades too. */
   const OCC = { uOccP: { value: new T.Vector4(0, 0, 0, 0) }, uOccR: { value: new T.Vector3(.32, .42, 1) }, uOccH: { value: new T.Vector4(0, -1e5, 0, 0) } };
   R3.occ = OCC;
   const OCC_V = 'varying vec4 vOccC; varying vec3 vOccW;\n', OCC_F = 'varying vec4 vOccC; varying vec3 vOccW; uniform vec4 uOccP; uniform vec3 uOccR; uniform vec4 uOccH;\n' +
-    'float occB(vec2 p){ vec2 q = mod(floor(p), 4.0); float i = q.x + q.y * 4.0;\n' +
-    ' return (i<0.5?0.0:i<1.5?8.0:i<2.5?2.0:i<3.5?10.0:i<4.5?12.0:i<5.5?4.0:i<6.5?14.0:i<7.5?6.0:i<8.5?3.0:i<9.5?11.0:i<10.5?1.0:i<11.5?9.0:i<12.5?15.0:i<13.5?7.0:i<14.5?13.0:5.0) / 16.0 + 0.03; }\n' +
     'void occTest(){ if (uOccP.w < 0.5) return; vec2 n = vOccC.xy / vOccC.w; float dz = vOccC.w;\n' +
     ' vec2 d = vec2((n.x - uOccP.x) * uOccR.z / uOccR.x, (n.y - uOccP.y) / uOccR.y); float r = length(d);\n' +
     ' float k = (1.0 - smoothstep(0.86, 1.0, r)) * step(dz, uOccP.z - 18.0) * 1.04;\n' +
     ' k = max(k, 1.0 - smoothstep(96.0, 116.0, dz));\n' +
     ' float hd = distance(vOccW.xz, uOccH.xz); k = max(k, (1.0 - smoothstep(uOccH.w * 0.88, uOccH.w, hd)) * step(uOccH.y + 6.0, vOccW.y) * step(dz, uOccP.z + 40.0));\n' +
-    ' if (k > 0.0 && k >= occB(gl_FragCoord.xy)) discard; }\n';
+    ' if (k >= 0.5) discard; }\n';   // a clean cut at the middle of each band (QA test 2.1: the 4x4 dither rim showed as stippled halos round the walls)
   const MAIN = /void\s+main\s*\(\s*\)\s*\{/;
   function occPatch(m) {
     if (!m || m.__occ || m.isShaderMaterial || m.isRawShaderMaterial || m.isSpriteMaterial || m.isPointsMaterial || m.isLineBasicMaterial) return;
@@ -971,11 +969,34 @@
     else if (avg > 30 && !R3.software && U.uDet.value > 0) { U.uDet.value = 0; R3.stats.lowDetail = true; }
     else if (avg < 15) { if (++DYN.good >= 5 && DYN.pr < prCap()) { prApply(DYN.pr + .15); DYN.good = 0; } } else DYN.good = 0;
   }
+  /* freeze spikes when new ground streams in (QA test 2.1): a shader program compiles and a texture / buffer uploads on the first draw that
+     uses it, all inside that one frame. At the first frame every material in the scene is compiled and every texture uploaded; afterwards a
+     nature chunk group that A43 attaches is held hidden and revealed at most one per frame (its materials compiled and its textures
+     uploaded on that frame), so streaming costs one chunk's upload per frame at most. R3.warm = {done, n revealed, q queued}. */
+  const WARM = { done: false, seen: new WeakSet(), q: [], n: 0, root: null, pinned: 0 };
+  R3.warm = WARM;
+  const upOne = v => { if (v && v.isTexture && !v.__up && v.image) { v.__up = 1; try { renderer.initTexture(v); } catch (e) {} } };
+  function upTex(o) { const ms = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
+    for (const m of ms) { for (const k in m) upOne(m[k]); if (m.uniforms) for (const k in m.uniforms) { const u = m.uniforms[k]; if (u) upOne(u.value); } } }
+  // A43 disposes a chunk's materials when it rebuilds / drops it, and three then deletes the shader program once no material uses it, so
+  // walking back (or a LOD rebuild) compiled the same programs again (QA walk: +9 nature programs re-made, 4-18 s frames on software GL).
+  // Every program is pinned once (usedTimes + 1): it is never released, a material that comes back reuses it (a few dozen variants at most).
+  function pinPrograms() { const pr = renderer.info.programs; if (!pr || pr.length === WARM.pinned) return; for (const q of pr) if (q && !q.__pin) { q.__pin = 1; q.usedTimes++; } WARM.pinned = pr.length; }
+  function warmTick() {
+    pinPrograms();
+    if (!WARM.done) { WARM.done = true; try { scene.traverse(upTex); renderer.compile(scene, camera); } catch (e) {} const nr = scene.getObjectByName('nature'); if (nr) for (const c of nr.children) WARM.seen.add(c); return; }
+    if (!R3.stageChunks) return;   // staged chunk reveal: opt-in (R3.stageChunks = true) until t_nature is checked with it (test 3 run: 16 fails with it on)
+    let nr = WARM.root; if (!nr || nr.parent !== scene) { nr = WARM.root = scene.getObjectByName('nature') || null; if (!nr) return; }
+    for (const c of nr.children) if (!WARM.seen.has(c)) { WARM.seen.add(c); if (c.isGroup && c.visible) { c.visible = false; c.userData.__wq = 1; WARM.q.push(c); } }
+    while (WARM.q.length) { const c = WARM.q.shift(); if (c.parent !== nr || !c.userData.__wq) continue; c.userData.__wq = 0; c.visible = true;
+      try { c.traverse(upTex); renderer.compile(c, camera, scene); } catch (e) {} WARM.n++; break; }
+  }
+  R3.warmFlush = () => { for (const c of WARM.q) if (c.userData.__wq) { c.userData.__wq = 0; c.visible = true; } WARM.q.length = 0; };
   // the 3D frame alone (no overlay): also R3.render() / draw() / frame() for tests
   function frame3d(force) {
     resize(); if (!terrain) buildTerrain(); if (!camInit) updateCam();
     if (!fogTex.image.__drawn && Rd.fogCanvas) { fogTex.image.__drawn = true; refreshFog(); }
-    syncProps(); syncSprites(); occUpdate(); syncGate();
+    syncProps(); syncSprites(); occUpdate(); syncGate(); warmTick();
     renderer.render(scene, camera); const ri = renderer.info.render; R3.stats.calls = ri.calls; R3.stats.tris = ri.triangles; R3.stats.tex = renderer.info.memory.textures; R3.stats.pr = DYN.pr;
     return true;
   }

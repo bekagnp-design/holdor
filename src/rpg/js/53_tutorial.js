@@ -1,6 +1,6 @@
 /* HOLDOR RPG — 53_tutorial.js (A28): the first three minutes after the prologue.
    Eight short steps driven by real play: one coach line in the HUD's message column (top-centre; 50_hud.js stacks it under the bars, the
-   region title and toasts go under it) with an arrow toward the highlighted control + a ring over that control; a small SKIP on the card.  State: flags.tut = index of the current step (0..7); 8 = finished or skipped.  The flags are the
+   region title and toasts go under it) with an arrow toward the highlighted control + a ring over that control; a small SKIP on the card.  State: flags.tut = index of the current step (0..7); 8 = finished or skipped.  SKIP is for good: acc.tutOff + this device's localStorage 'holdor_tut_off' keep it off even when an older save (a late server load) comes back with flags.tut < 8; R.tut.reset() clears both.  The flags are the
    account's (R.state.acc.world.flags, Addendum 2; R.state.p.flags is its alias / the v1 fallback), so a new hero after a
    death does not replay it.  No step blocks the game; when the module a step needs is absent, the step completes by itself
    after FALLBACK seconds.  Test hooks: R.tut (STEPS, step, targets, skip(), done(), reset()). */
@@ -31,7 +31,12 @@
   const T = R.tut = { STEPS, N, step: -1, el: null, card: null, ring: null, txt: null, who: null, face: null, targets: {}, pend: 0, wait: 0, doneAt: null, lay: 0, offs: [] };
   const P = () => R.state && R.state.p;
   const F = () => { const s = R.state; if (!s) return null; if (s.acc && s.acc.world) return s.acc.world.flags || (s.acc.world.flags = {}); const p = s.p; if (!p) return null; return p.flags || (p.flags = {}); };
-  const idx = () => { const f = F(); if (!f) return N; const v = f.tut; return v == null ? 0 : Math.max(0, v | 0); };
+  // SKIP ends it for good: an account flag (acc.tutOff) + this device's flag, so an older save (a late server load, a stale copy) cannot bring the card back
+  const DEV = 'holdor_tut_off';
+  let devFlag = null;   // read once (idx() runs every step), kept in step by skip / reset
+  const devOff = () => { if (devFlag == null) { try { devFlag = localStorage.getItem(DEV) === '1'; } catch (e) { devFlag = false; } } return devFlag; };
+  const off = () => { const a = R.state && R.state.acc; return !!((a && a.tutOff) || devOff()); };
+  const idx = () => { const f = F(); if (!f) return N; if (off()) { if ((f.tut | 0) < N) f.tut = N; const a = R.state && R.state.acc; if (a && !a.tutOff) a.tutOff = 1; return N; } const v = f.tut; return v == null ? 0 : Math.max(0, v | 0); };
   const active = () => !!(R.player && !R.player.dead && idx() < N);
   const house = () => (P() && P().house) || (R.state && R.state.acc && R.state.acc.house) || 'stark';
   const houseCol = () => { const H = R.data.houses && R.data.houses[house()]; return (H && (H.col || H.color)) || getComputedStyle(document.documentElement).getPropertyValue('--acc').trim() || '#a9bdd0'; };
@@ -130,12 +135,13 @@
     if (T.card) { T.card.classList.remove('ok'); T.txt.textContent = st.txt; const c = coach(); T.who.textContent = (c && c.name ? c.name + ' · ' : '') + (i + 1) + '/' + N; T.card.classList.remove('tut-in'); void T.card.offsetWidth; T.card.classList.add('tut-in'); }
     if (st.on) for (const ev in st.on) on(ev, st.on[ev]);
     try { st.enter && st.enter(); } catch (e) { console.error('tut enter', e); }
-    R.bus.emit('tutorial', i, 'enter'); };
+    R.bus.emit('tutorial', i, 'enter'); try { R.hud && R.hud.stack && R.hud.stack(); } catch (e) {} };   // the message column: the card first, an achievement card under it
   T.done = () => { if (T.doneAt != null || T.step < 0) return; T.doneAt = R.t; T.pend = ADV; offAll(); if (T.card) T.card.classList.add('ok'); if (T.ring) T.ring.style.display = 'none'; chime(); haptic('success'); R.bus.emit('tutorial', T.step, 'done'); };
   const advance = () => { const f = F(); if (!f) return; f.tut = T.step + 1; R.save(); if (f.tut >= N) finish(); else enter(f.tut); };
   const finish = () => { const f = F(); if (f) f.tut = N; R.save(); teardown(); R.bus.emit('tutorial', N, 'end'); };
-  T.skip = () => { if (!active()) return; const f = F(); if (f) f.tut = N; haptic('light'); R.save(); teardown(); R.bus.emit('tutorial', N, 'skip'); };
-  T.reset = () => { const f = F(); if (f) { f.tut = 0; delete f.tutBlade; } teardown(); };
+  T.skip = () => { if (!active()) return; const f = F(); if (f) f.tut = N; const a = R.state && R.state.acc; if (a) a.tutOff = 1; devFlag = true; try { localStorage.setItem(DEV, '1'); } catch (e) {} haptic('light'); R.save(true); teardown(); R.bus.emit('tutorial', N, 'skip'); };
+  T.reset = () => { const f = F(); if (f) { f.tut = 0; delete f.tutBlade; } const a = R.state && R.state.acc; if (a) delete a.tutOff; devFlag = false; try { localStorage.removeItem(DEV); } catch (e) {} teardown(); };
+  T.off = off;
 
   /* ---- the ring over a DOM control ---- */
   const findTarget = name => { const o = T.targets[name]; if (typeof o === 'function') { try { return o(); } catch (e) { return null; } } if (o && o.nodeType) return o;

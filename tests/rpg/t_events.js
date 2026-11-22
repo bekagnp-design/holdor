@@ -11,7 +11,14 @@ const L = require('./lib');
   const b = await L.boot(page, { save: L.fakeSave({ house: 'stark', lvl: 6, flags: { 'gate:north': 1 } }), timeout: 90000, wait: 30000 });
   L.ok('booted into the world', b.running && !!b.player, JSON.stringify({ running: b.running, cur: b.cur }));
   const at = await L.ev(page, () => { if (R.ui.cur) R.ui.close(); R.player.hp = R.player.hpMax = 1e7; R.player.def = 1e4;
-    R.player.x = 3000; R.player.y = 3150; for (let i = 0; i < 30; i++) R.step(); window.__ev = []; R.bus.on('event', (id, st) => __ev.push(id + ':' + st));
+    // the Kingsroad in the North: (3000, 3150) of the 7200 grid × R.WS (the world is R.WS × that); when the scaled spot is not
+    // north / is in a POI / no event may start, walk the roads of the data to the nearest such point
+    const WS = (R.data.world.W || 7200) / 7200, okAt = (x, y) => { const rg = R.world.regionAt(x, y); return rg && rg.id === 'north' && !R.events.inPoi(x, y) && !R.world.blocked(x, y); };
+    let sx = 3000 * WS, sy = 3150 * WS;
+    if (!okAt(sx, sy)) { let best = null, bd = 1e18; for (const rd of R.world.roads()) { const pts = Array.isArray(rd) ? rd : (rd.pts || rd.points || rd.path || []);
+        for (const q of pts) { const x = q[0] != null ? q[0] : q.x, y = q[1] != null ? q[1] : q.y, d = (x - sx) ** 2 + (y - sy) ** 2; if (d < bd && okAt(x, y)) { bd = d; best = [x, y]; } } }
+      if (best) { sx = best[0]; sy = best[1]; } }
+    R.player.x = sx; R.player.y = sy; for (let i = 0; i < 30; i++) R.step(); window.__ev = []; R.bus.on('event', (id, st) => __ev.push(id + ':' + st));
     return { x: Math.round(R.player.x), y: Math.round(R.player.y), can: R.events.canStart(), inPoi: R.events.inPoi(R.player.x, R.player.y), region: (R.world.regionAt(R.player.x, R.player.y) || {}).id }; });
   L.ok('the hero stands on the Kingsroad in the North, outside every POI; an event may start', at.region === 'north' && !at.inPoi && at.can, JSON.stringify(at));
   const killAll = () => L.ev(page, () => { let n = 0; for (const m of R.events.mobs()) if (!m.dead) { R.hit(R.player, m, 1e7, { kind: 'phys' }); if (!m.dead && R.kill) R.kill(m, R.player); n++; } for (let i = 0; i < 10; i++) R.step(); return n; });
@@ -25,13 +32,18 @@ const L = require('./lib');
   const H2 = await L.ev(page, () => ({ ev: __ev.slice(), active: !!R.events.active, gems: R.state.p.gems || 0, bar: (document.querySelector('#evbar .evbar-t') || {}).textContent }));
   L.ok('horde: all killed → done, gems paid, the banner says so', H2.ev.includes('horde:done') && !H2.active && H2.gems > H.g0, JSON.stringify(H2));
   // 2. the caravan: its wagon answers INTERACT with the shop
+  // no ambient mob may reach the hero while the caravan is checked (a level-up from the horde resets hp to the real maximum)
+  const calm = () => L.ev(page, () => { R.world.populate = false; for (const e of R.ents.slice()) if (e.kind === 'mob' && !e.dead && !e.persist && !e.quest && !(R.events.mobs() || []).includes(e)) R.remove(e);
+    const p = R.player; if (p) { p.hp = p.hpMax; p.inv = R.t + 999; } return true; });
+  await calm();
   const C = await L.ev(page, () => { const ev = R.events.start('caravan'); for (let i = 0; i < 6; i++) R.step(); const w = ev && ev.npc;
     if (w) { R.player.x = w.x + 20; R.player.y = w.y; for (let i = 0; i < 12; i++) R.step(); }
     const I = R.input.interact; return { id: ev && ev.id, wagon: !!w, near: !!(I && I.e === w), stock: ev && ev.poi && ev.poi.stock.length }; });
   L.ok('caravan: a wagon on the road with goods, INTERACT offered next to it', C.id === 'caravan' && C.wagon && C.near && C.stock > 0, JSON.stringify(C));
   let flaky = '';
   // the horde's XP may have raised a level: the level-up popup waits for a free screen; settle it first (it is not the caravan's business)
-  await L.ev(page, () => { for (let k = 0; k < 4; k++) { if (R.ui.cur) R.ui.close(); for (let i = 0; i < 30; i++) R.step(); } if (R.ui.cur) R.ui.close(); });
+  await L.ev(page, () => { for (let k = 0; k < 4; k++) { if (R.ui.cur) R.ui.close(); for (let i = 0; i < 30; i++) R.step(); const p = R.player; if (p) { p.hp = p.hpMax; p.inv = R.t + 999; } } if (R.ui.cur) R.ui.close(); });
+  await calm();
   if (C.near) { await L.tap(page, '#b-interact'); await L.steps(page, 2);
     if (!(await L.waitFor(page, () => R.ui.cur != null, 6000))) { flaky = 'pill tap lost, interact sent on the bus'; await L.ev(page, () => { const I = R.input.interact; if (I && I.e) R.bus.emit('interact', I.e); }); await L.waitFor(page, () => R.ui.cur != null, 3000); } }
   if (await L.ev(page, () => R.ui.cur === 'levelup')) { flaky += ' level-up popup closed first'; await L.ev(page, () => { R.ui.close(); const I = R.input.interact; if (I && I.e) R.bus.emit('interact', I.e); }); }

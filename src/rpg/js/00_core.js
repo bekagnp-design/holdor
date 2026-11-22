@@ -128,7 +128,7 @@ window.R = window.R || {};
   /* ---- the save (v2): acc = the account (house, unlocked champions, the Hall of the Fallen, titles, world progress), p = the one living hero ---- */
   R.state = null;
   R.KEY = 'holdor_rpg';
-  R.blankHero = hero => ({ hero: hero || null, name: '', cls: 'knight', lvl: 1, xp: 0, hp: 0, gold: 0, gems: 0, pos: null, stats: { str: 5, agi: 5, int: 5, vit: 5 }, pts: 0, skills: {}, spts: 0, bar: [null, null, null], gear: {}, inv: [], potions: { hp: 3 }, dead: false, created: Date.now(), played: 0 });
+  R.blankHero = hero => ({ hero: hero || null, name: '', cls: 'knight', lvl: 1, xp: 0, hp: 0, gold: 0, gems: 0, pos: null, stats: { str: 5, agi: 5, int: 5, vit: 5 }, pts: 0, skills: {}, spts: 0, bar: [null, null, null], gear: {}, inv: [], potions: { hp: 3 }, talents: {}, prog: { poi: {}, reg: {}, kin: {}, mile: {} }, dead: false, created: Date.now(), played: 0 });
   // newState(house) → a fresh account of that house with its first champion unlocked and an empty hero (no p.hero yet: the intro / R.newHero fills it)
   R.newState = house => { house = house || 'stark'; const first = R.firstChamp(house); const champs = {}; if (first) champs[first] = { unlocked: 1, runs: 0 };
     return R.alias({ v: 2, ws: R.WS, acc: { house, champs, hall: [], titles: [], title: '', ach: [], world: { found: [], flags: {}, quests: {}, bosses: {}, killed: {} }, best: { lvl: 0, kills: 0 } },
@@ -162,7 +162,8 @@ window.R = window.R || {};
   // load(raw?) → true when a save was found (localStorage, or the object given); v1 saves migrate, missing keys fill from defaults, the p.* aliases are installed
   R.load = raw => { try { const s = raw || JSON.parse(localStorage.getItem(R.KEY) || 'null'); if (s && isObj(s) && isObj(s.p)) { migrate(s); rescale(s); const def = R.newState(s.acc.house), had = isObj(s.acc.champs) && Object.keys(s.acc.champs).some(k => s.acc.champs[k] && s.acc.champs[k].unlocked);
       if (had) def.acc.champs = {};   // an account keeps exactly the champions it unlocked (no free starter on every load)
-      fill(s, def); R.state = R.alias(s); R.bus.emit('load', R.state); return true; } } catch (e) { R.err((e && e.message) || e, 'load'); } return false; };
+      fill(s, def); const hp = s.p; if (!isObj(hp.talents)) hp.talents = {}; if (!isObj(hp.prog)) hp.prog = {}; for (const k of ['poi', 'reg', 'kin', 'mile']) if (!isObj(hp.prog[k])) hp.prog[k] = {};   // the hero's talent ranks + XP ledger: kept as saved, never dropped
+      R.state = R.alias(s); R.bus.emit('load', R.state); return true; } } catch (e) { R.err((e && e.message) || e, 'load'); } return false; };
   R.reset = () => { try { localStorage.removeItem(R.KEY); } catch (e) {} R.state = null; };
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') R.save(true); });
   window.addEventListener('pagehide', () => R.save(true));

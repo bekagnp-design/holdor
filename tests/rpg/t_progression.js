@@ -99,11 +99,12 @@ function stub(lvl, cls) {
     await SHOT(page, 'p1_talents_360');
     await page.setViewportSize({ width: 390, height: 844 });
     // save → reload keeps the talents
-    await page.evaluate(() => { R.ui.close(); R.save(true); });
+    const pre = await page.evaluate(() => { R.ui.close(); R.save(true); const j = JSON.parse(localStorage.getItem('holdor_rpg') || 'null'); return { saved: j && j.p && j.p.talents, lvl: j && j.p && j.p.lvl }; });
+    L.ok('browser: the save written before the reload carries the talents', pre.saved && pre.saved.k_edge1 === 1, JSON.stringify(pre));
     await page.reload({ waitUntil: 'commit', timeout: 90000 });
     await page.waitForFunction(() => window.R && R.prog && R.state && R.state.p && R.running, null, { timeout: 90000, polling: 250 });
     await page.waitForTimeout(400);
-    const s2 = await page.evaluate(() => ({ t: R.state.p.talents, un: R.prog.unspent() }));
+    const s2 = await page.evaluate(() => { let ls = null; try { ls = JSON.parse(localStorage.getItem('holdor_rpg')).p.talents; } catch (e) {} return { t: R.state.p.talents, un: R.prog.unspent(), ls, boot: R.boot, lvl: R.state.p.lvl, net: !!(R.net && R.net.on) }; });
     L.ok('browser: save/load keeps the talents', s2.t && s2.t.k_edge1 === 1 && s2.un === 1, JSON.stringify(s2));
     // XP from a first kill of a type (a real 'kill' through the bus) — once
     const k = await page.evaluate(() => { if (R.ui.cur) R.ui.close(); for (let i = 0; i < 120; i++) R.step(); const x0 = R.state.p.xp + 0, l0 = R.state.p.lvl;

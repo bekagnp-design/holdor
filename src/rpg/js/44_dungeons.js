@@ -120,7 +120,7 @@
     widen(a); floor3d(a); P.x = ENTRY.x; P.y = ENTRY.y; P.vx = P.vy = 0; a.last = { x: P.x, y: P.y }; R.cam.x = P.x; R.cam.y = P.y;
     // the instance sits in the map's far corner (inside 'beyond'): the world watcher must not see a region change there (no banner, gate
     // pushback, discovery or region achievements). R.world.suspend = true is the flag for 10_world; R.world.cur is pre-set as well.
-    if (R.world) { a.prevCur = R.world.cur; R.world.suspend = true; R.world.inDungeon = id; try { const rg = R.world.regionAt && R.world.regionAt(P.x, P.y); R.world.cur = rg ? rg.id : null; R.world.lastGood = { x: P.x, y: P.y }; } catch (e) {} }
+    if (R.world) { a.prevCur = R.world.cur; R.world.suspend = true; try { const rg = R.world.regionAt && R.world.regionAt(P.x, P.y); R.world.cur = rg ? rg.id : null; R.world.lastGood = { x: P.x, y: P.y }; } catch (e) {} }
     for (const e of R.ents) if (e.kind === 'companion' && !e.dead) { e.x = ENTRY.x - 30 + R.rng() * 60; e.y = ENTRY.y + 10; e.vx = e.vy = 0; }
     for (const d of DOORS) { const de = R.spawn({ kind: 'door', x: d.x, y: d.y, r: 28, team: 2, open: false, dgOwn: true, name: 'Locked door' }); de.frame = () => doorFrame(de.open); a.doors.push(de); }
     R.bus.emit('dungeon', id, 'enter', { runs: c.runs + 1 }); spawnWave(a); bar(true); R.save();
@@ -131,7 +131,7 @@
   D.leave = o => {
     const a = D.active; if (!a) return false; const P = R.player, F = flags(), back = (F && F.dgReturn) || null;
     for (const e of R.ents.slice()) if (e.dgRun === a.n || e.dgOwn || a.doors.includes(e) || e === a.chest || e.dg != null) R.remove(e);
-    if (R.world) { R.world.populate = a.prevPop === undefined ? true : a.prevPop; if (a.prevBlocked) R.world.blocked = a.prevBlocked; R.world.suspend = false; R.world.inDungeon = null; }
+    if (R.world) { R.world.populate = a.prevPop === undefined ? true : a.prevPop; if (a.prevBlocked) R.world.blocked = a.prevBlocked; R.world.suspend = false; }
     narrow(a); if (P && back) { P.x = back.x; P.y = back.y; P.vx = P.vy = 0; R.cam.x = P.x; R.cam.y = P.y;
       if (R.world) { try { const rg = R.world.regionAt && R.world.regionAt(P.x, P.y); R.world.cur = rg ? rg.id : a.prevCur; R.world.lastGood = { x: P.x, y: P.y }; } catch (e) {} }
       for (const e of R.ents) if (e.kind === 'companion' && !e.dead) { e.x = back.x - 30 + R.rng() * 60; e.y = back.y + 24; } }

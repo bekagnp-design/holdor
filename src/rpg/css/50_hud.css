@@ -129,5 +129,18 @@
 #hud-tal{position:absolute;right:-8px;top:-8px;z-index:3;display:none;width:22px;height:22px;min-height:22px;padding:0;border-radius:50%;border:1.5px solid #1a130a;background:radial-gradient(circle at 40% 30%,#ffe7a8,#e3b661 50%,#9a6b1c);color:#1a130a;font:900 14px/19px var(--f-display);box-shadow:0 0 0 1px rgba(227,182,97,.6),0 2px 6px rgba(0,0,0,.6);pointer-events:auto;animation:hudtal 1.4s ease-in-out infinite}
 #hud-tal.on{display:block}
 #hud-tal::before{content:"";position:absolute;left:-11px;right:-11px;top:-11px;bottom:-11px}
+#hud-tal{transform-origin:50% 0}   /* the pulse grows down, never past the screen's top edge */
 @keyframes hudtal{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
 @media (prefers-reduced-motion:reduce){#hud-tal{animation:none}}
+
+/* the message column's town entry banner (C1's #tl-ban), compact: ≤ 64 px — a small crest, the name · subtitle on one line, the services button (≥ 44 px) beside it */
+#tl-ban.tl-ban{grid-template-columns:26px minmax(0,1fr) auto;column-gap:9px;row-gap:0;padding:7px 8px 7px 9px;border-radius:12px;max-height:64px;overflow:hidden;
+  box-shadow:0 6px 16px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,236,190,.08)}
+#tl-ban .tl-crest{width:26px;height:30px}
+#tl-ban .tl-crest b{top:6px;font-size:13px}
+#tl-ban .tl-nm{font-size:15px;line-height:1.15;letter-spacing:.03em}
+#tl-ban .tl-sub{margin-top:1px;font-size:11px;line-height:1.15}
+#tl-ban .tl-plain{margin-top:1px;font-size:11px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tl-ban .tl-svc{grid-column:3;grid-row:1;width:auto;max-width:min(52vw,190px);min-height:44px;gap:6px;padding:4px 8px 4px 10px;border-radius:10px}
+#tl-ban .tl-list{font-size:12px;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#tl-ban .tl-a{font-size:18px}

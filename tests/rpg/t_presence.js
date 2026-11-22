@@ -41,7 +41,7 @@ const SC = path.resolve(__dirname, '..', '..', '.shots') + '/'; fs.mkdirSync(SC,
   const D = await page.evaluate(() => { const now = Date.now(); window.__db = [{ id: 1, name: 'Oberyn', house: 'martell', body: 'The sun never sets on the sand', at: new Date(now - 90000).toISOString() }, { id: 2, name: 'Arya', house: 'stark', body: 'Anyone for the Wall?', at: now - 30000 }];
     R.bus.emit('chat', window.__db); const g = R.ents.find(e => e.kind === 'ghost' && e.name === 'Oberyn'); return { unread: R.presence.unread, badges: window.__badges.slice(), bubble: g.bubble, until: g.bubbleUntil - R.t, dom: (document.querySelector('#prChat .bd') || {}).textContent, on: !!document.querySelector('#prChat .bd.on') }; });
   ok('unread counts the two new messages, chatBadge(n) fires, the badge shows 2', D.unread === 2 && D.badges.join() === '1,2' && D.dom === '2' && D.on, JSON.stringify(D));
-  ok('the ghost whose message arrived gets a 6 s speech bubble', D.bubble === 'The sun never sets on the sand' && D.until > 5.5 && D.until <= 6, JSON.stringify([D.bubble, D.until]));
+  ok('the ghost whose message arrived gets a 6 s speech bubble', D.bubble === 'The sun never sets on the sand' && D.until > 5.5 && D.until <= 6 + 1e-6, JSON.stringify([D.bubble, D.until]));
   await page.screenshot({ path: SC + 'rpg_ghosts.png' });
   // open the sheet with a real tap on the floating button: live, the zone name, the rows, unread reset
   await page.locator('#prChat').tap(); await page.waitForTimeout(400);

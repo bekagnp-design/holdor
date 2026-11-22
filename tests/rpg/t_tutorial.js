@@ -17,18 +17,22 @@ const path = require('path');
     if (!R.player) R.player = R.spawn({ kind: 'player', team: 0, hp: 100, hpMax: 100, lvl: 1, name: 'Test' }); R.player.dead = false; R.player.x = 3000; R.player.y = 6000;
     if (!R.spawnMob) R.spawnMob = (type, x, y, lvl) => R.spawn({ kind: 'mob', type, x, y, lvl, hp: 10, hpMax: 10, team: 1 });
     // the open world around the test spot has real mobs (and a boss): the hero stays alive, so only the tutorial decides what happens
-    const keep = () => { const pl = R.player; if (pl) { pl.dead = false; pl.hp = pl.hpMax || 100; } }; R.addSys('t_alive0', { order: -9999, update: keep }); R.addSys('t_alive1', { order: 9999, update: keep });
+    const keep = () => { const pl = R.player; if (pl) { pl.dead = false; pl.hp = pl.hpMax || 100; pl.inv = (R.t || 0) + 60; } };   // + untouchable (20_combat: inv): no stray hit opens the death screen R.addSys('t_alive0', { order: -9999, update: keep }); R.addSys('t_alive1', { order: 9999, update: keep });
     R.paused = false; R.step(); });
-  const step = n => p.evaluate(n => { for (let i = 0; i < n; i++) R.step(); }, n);
+  // the open world around the test spot is live: a stray hit can open the death screen (the card hides while any screen is up) — close it, the hero stays alive
+  const step = n => p.evaluate(n => { for (let i = 0; i < n; i++) { if (R.ui.cur) R.ui.close(); if (R.player) R.player.dead = false; R.step(); } }, n);
   const txt = () => p.evaluate(() => { const e = document.querySelector('#tut .tut-txt'); return e ? e.textContent : null; });
   const tut = () => p.evaluate(() => { const s = R.state; const f = s.acc && s.acc.world ? s.acc.world.flags : s.p.flags; return f ? f.tut : undefined; });
+  const why = () => p.evaluate(() => JSON.stringify({ step: R.tut.step, doneAt: R.tut.doneAt, pend: R.tut.pend, t: R.t, cur: R.ui.cur, dead: R.player && R.player.dead, inEnts: R.ents.indexOf(R.player) >= 0, sys: !!R.sys.tutorial, inList: R.sysList.indexOf(R.sys.tutorial) >= 0, errs: R.sys.tutorial && R.sys.tutorial._errs }));
   const card = () => p.evaluate(() => !!document.getElementById('tut'));
   const STEPS = await p.evaluate(() => R.tut.STEPS.map(s => s.txt));
   ok('8 distinct step texts', STEPS.length === 8 && new Set(STEPS).size === 8 && STEPS.every(t => t && t.length <= 90), JSON.stringify(STEPS.map(t => t.length)));
   ok('the card shows step 1', (await txt()) === STEPS[0], await txt());
   ok('the coach line names the step 1/8', await p.evaluate(() => /1\/8/.test(document.querySelector('#tut .tut-who').textContent)));
   ok('the ring is shown for step 1 (joystick zone)', await p.evaluate(() => { const r = document.querySelector('#tut .tut-ring'); return r && r.style.display === 'block'; }));
-  ok('the SKIP link is there and tall enough', await p.evaluate(() => { const b = document.querySelector('#tut .tut-skip').getBoundingClientRect(); return b.height >= 44 && /SKIP/.test(document.querySelector('#tut .tut-skip').textContent); }));
+  // offsetHeight (layout): the card's entrance animation scales it for a moment, getBoundingClientRect would read the animated size
+  const skH = await p.evaluate(() => { const b = document.querySelector('#tut .tut-skip'); return b ? { h: b.offsetHeight, t: b.textContent } : null; });
+  ok('the SKIP link is there and tall enough', !!skH && skH.h >= 44 && /SKIP/.test(skH.t), JSON.stringify(skH));
   ok('the flag starts unset / 0', [0, undefined].includes(await tut()));
   // 1 move: the player 200 units away + one step completes it
   await p.evaluate(() => { R.player.x += 200; R.step(); });
@@ -41,13 +45,13 @@ const path = require('path');
   ok('step 3 text after the three kills', (await txt()) === STEPS[2], await txt()); ok('flag 2', (await tut()) === 2);
   // 3 loot
   await p.evaluate(() => R.bus.emit('loot', { id: 'x', kind: 'mat', name: 'Bone' })); await step(60);
-  ok('step 4 text after loot', (await txt()) === STEPS[3], await txt()); ok('flag 3', (await tut()) === 3);
+  ok('step 4 text after loot', (await txt()) === STEPS[3], (await txt()) + ' ' + (await why())); ok('flag 3', (await tut()) === 3);
   // 4 skill: the skill1 button
   await p.evaluate(() => R.bus.emit('btn', 'skill1')); await step(60);
   ok('step 5 text after skill1', (await txt()) === STEPS[4], await txt()); ok('flag 4', (await tut()) === 4);
   // 5 dodge
   await p.evaluate(() => R.bus.emit('btn', 'dodge')); await step(60);
-  ok('step 6 text after dodge', (await txt()) === STEPS[5], await txt()); ok('flag 5', (await tut()) === 5);
+  ok('step 6 text after dodge', (await txt()) === STEPS[5], (await txt()) + ' ' + (await why())); ok('flag 5', (await tut()) === 5);
   // 6 quest: the dialog opens
   await p.evaluate(() => R.bus.emit('dialog', 'maester')); await step(60);
   ok('step 7 text after the dialog', (await txt()) === STEPS[6], await txt()); ok('flag 6', (await tut()) === 6);
@@ -68,13 +72,29 @@ const path = require('path');
   await step(90); ok('step 7 by itself after 6 s without the dialog module', (await txt()) === STEPS[6], await txt());
   await p.evaluate(() => { if (window.__dlg) R.screens.dialog = window.__dlg; });
   // SKIP by a real tap
-  await p.evaluate(() => { for (const e of R.ents.slice()) if (e.kind === 'mob') R.remove(e); R.player.dead = false; R.player.hp = R.player.hpMax || 100; R.tut.reset(); R.step(); });
+  await p.evaluate(() => { if (R.ui.cur) R.ui.close(); for (const e of R.ents.slice()) if (e.kind === 'mob') R.remove(e); R.player.dead = false; R.player.hp = R.player.hpMax || 100; R.tut.reset(); R.step(); });
+  await p.waitForTimeout(350);   // the card's entrance (scale) settles before the tap
   ok('reset shows step 1 again', (await txt()) === STEPS[0], await txt());
-  const sk = await p.evaluate(() => { const b = document.querySelector('#tut .tut-skip'); if (!b) return null; const r = b.getBoundingClientRect(); return { w: r.width, h: r.height, t: b.textContent }; });
+  const sk = await p.evaluate(() => { const b = document.querySelector('#tut .tut-skip'); if (!b) return null; return { w: b.offsetWidth, h: b.offsetHeight, t: b.textContent }; });   // layout size: the card's entrance scale would read 43.99
   ok('SKIP is small (one word, ≥ 44 px tall)', sk && sk.h >= 44 && sk.w <= 90 && sk.t === 'SKIP', JSON.stringify(sk));
   await p.tap('#tut .tut-skip', { force: true, timeout: 5000 }).catch(e => ok('SKIP tap', false, e.message.split('\n')[0])); await p.waitForTimeout(100);
   ok('SKIP ends it: card gone, flag 8', !(await card()) && (await tut()) === 8, 'flag=' + (await tut()));
   await step(30); ok('no card after the skip', !(await card()));
+  // SKIP is for good: the account flag + this device's flag; an older save (a late server load: flags.tut = 1, no acc.tutOff) does not bring step 2 back
+  const skf = await p.evaluate(() => ({ acc: R.state.acc && R.state.acc.tutOff, dev: localStorage.getItem('holdor_tut_off') }));
+  ok('SKIP sets the account flag (acc.tutOff) and this device\'s flag', skf.acc === 1 && skf.dev === '1', JSON.stringify(skf));
+  await p.evaluate(() => { const old = JSON.parse(JSON.stringify(R.state)); delete old.acc.tutOff; old.acc.world.flags.tut = 1; R.state = old; });
+  await step(30);
+  const back = await p.evaluate(() => ({ card: !!document.getElementById('tut'), txt: (document.querySelector('#tut .tut-txt') || {}).textContent || null, flag: R.state.acc.world.flags.tut, acc: R.state.acc.tutOff }));
+  ok('an older save after SKIP (flags.tut = 1) does not bring the card back; the flags are restored', !back.card && back.flag === 8 && back.acc === 1, JSON.stringify(back));
+  await p.evaluate(() => { localStorage.removeItem('holdor_tut_off'); R.state.acc.world.flags.tut = 1; });
+  await step(30);
+  const accOnly = await p.evaluate(() => ({ card: !!document.getElementById('tut'), flag: R.state.acc.world.flags.tut }));
+  ok('the account flag alone (another device) keeps it off too', !accOnly.card && accOnly.flag === 8, JSON.stringify(accOnly));
+  await p.evaluate(() => R.tut.reset()); await step(3);
+  const rs = await p.evaluate(() => ({ card: !!document.getElementById('tut'), acc: R.state.acc.tutOff, dev: localStorage.getItem('holdor_tut_off') }));
+  ok('R.tut.reset() clears both flags (tests / a deliberate replay)', rs.card && rs.acc === undefined && rs.dev === null, JSON.stringify(rs));
+  await p.evaluate(() => R.tut.skip());
   ok('no page errors', !errors.length, errors.join(' | '));
   console.log(JSON.stringify(RES, null, 1)); console.log('ERR', JSON.stringify(errors));
   await browser.close(); process.exit(Object.values(RES).some(v => v.startsWith('FAIL')) || errors.length ? 1 : 0);

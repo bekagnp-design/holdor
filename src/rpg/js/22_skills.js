@@ -194,8 +194,11 @@
     bar() { const p = P(); return p && p.bar ? p.bar.slice() : [null, null, null]; },
     cast(i) { const p = P(), pe = pl8(); if (!p || !pe) return false; const id = p.bar && p.bar[i]; if (!id) return false; const s = D.skills[id]; if (!s || !EX[s.kind] || !SK.unlocked(id)) return false;
       if (pe.status && pe.status.stun > R.t) return false; if (!SK.ready(id)) { try { R.input && R.input.flash && R.input.flash(i); } catch (e) {} return false; }
+      /* for the effects only (63_spellfx): where the cast starts and where it aims — the same pure aim() the executor uses, read before it runs */
+      const x0 = pe.x, y0 = pe.y; let am = null; try { am = aim(pe, (s.range || s.r || 120) + 40); } catch (e) {}
       let ok = false; try { ok = EX[s.kind](s, SK.val(id), pe) !== false; } catch (e) { console.error('cast', id, e); ok = true; }
-      pe.cd = pe.cd || {}; pe.cd[id] = R.t + cdOf(s); pe.anim = 'attack'; pe.animT = 0; pe.lastCast = { id, t: R.t }; sfx('skill_' + s.kind); haptic(s.cd >= 20 ? 'heavy' : 'medium'); R.bus.emit('cast', id, pe, { x: pe.x, y: pe.y, dir: (pe.lastAim || { x: pe.face || 1, y: 0 }), kind: SK.element(s), r: s.r || s.range || s.arc && 90 || 120, slot: i }); return ok; },
+      pe.cd = pe.cd || {}; pe.cd[id] = R.t + cdOf(s); pe.anim = 'attack'; pe.animT = 0; pe.lastCast = { id, t: R.t }; sfx('skill_' + s.kind); haptic(s.cd >= 20 ? 'heavy' : 'medium'); const dir = pe.lastAim || (am ? { x: am.x, y: am.y } : { x: pe.face || 1, y: 0 });
+      R.bus.emit('cast', id, pe, { x: pe.x, y: pe.y, dir, kind: SK.element(s), r: s.r || s.range || s.arc && 90 || 120, slot: i, x0, y0, ang: Math.atan2(dir.y, dir.x), tx: am && am.t ? am.t.x : null, ty: am && am.t ? am.t.y : null, arc: s.arc || 0, range: s.range || 0, skind: s.kind }); return ok; },
     castId(id) { const p = P(); if (!p) return false; const i = p.bar.indexOf(id); if (i >= 0) return SK.cast(i); const old = p.bar[2]; p.bar[2] = id; const ok = SK.cast(2); p.bar[2] = old; return ok; },
     zones, shots, hurt, heal, dmgOf, EX
   };

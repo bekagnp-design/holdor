@@ -58,6 +58,8 @@ const ok = (c, name, info) => { console.log((c ? 'OK   ' : 'FAIL ') + name + (in
   /* 2a. a kill pays xp exactly once and rolls loot exactly once, though 20_combat, 21_player and 32_loot all listen to 'kill' */
   r = await pg.evaluate(() => { T.reset(); if (R.plr && R.plr.attach) { R.plr.attach(R.player); R.player.atk = 20; R.player.def = 10; R.player.hp = R.player.hpMax = 400; }
     let xpEv = 0, drops = 0; const f1 = () => xpEv++, f2 = e => { if (e && e.kind === 'drop') drops++; }; R.bus.on('xp', f1); R.bus.on('spawn', f2);
+    /* 25_progression pays the first kill of each mob type once more: mark 'axe' as seen, so only mob.xp is counted here */
+    const pp = R.state.p; pp.prog = pp.prog && typeof pp.prog === 'object' ? pp.prog : {}; pp.prog.kin = Object.assign(pp.prog.kin || {}, { axe: 1 });
     const m = R.spawnMob('axe', 1040, 1000, 1); m.ai.off = true; m.hp = 5; const xp0 = R.state.p.xp;
     R.hit(R.player, m, 50); const xp1 = R.state.p.xp, d1 = drops; R.bus.emit('kill', m, R.player); R.kill(m, R.player); T.steps(2);
     const sm = R.spawnMob('axe', 1060, 1000, 1, { summoned: m, noReward: true }); sm.ai.off = true; const ev0 = xpEv, dr0 = drops; R.hit(R.player, sm, 1e6); T.steps(1);

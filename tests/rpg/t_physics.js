@@ -430,7 +430,8 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
   /* 25. the hero's steps push loose things; sprinting kicks up dust */
   const st = await pg.evaluate(() => {
     __clear(); __flat(); const p = R.player, S = __S; __put(S.x, S.y); const out = {};
-    const d = R.loot.spawn('mat', S.x + 30, S.y + 4, { lvl: 3, scatter: false }); for (let i = 0; i < 5; i++) R.step(); const d0 = { x: d.x, y: d.y };
+    /* 32_loot's auto pickup takes the owner's drops within 70 units: this drop is a plain loose thing (auto off; INTERACT-only, untaken in 0.7 s) */
+    const d = R.loot.spawn('mat', S.x + 30, S.y + 4, { lvl: 3, scatter: false }); d.auto = false; for (let i = 0; i < 5; i++) R.step(); const d0 = { x: d.x, y: d.y };
     const sp0 = R.fx.spawn, dust = []; R.fx.spawn = (k, x, y, o) => { if (k === 'dust') dust.push(o && o.col); return sp0 ? sp0.call(R.fx, k, x, y, o) : null; };
     R.input.move = { x: 1, y: 0 }; let zMax = 0; for (let i = 0; i < 40; i++) { R.step(); zMax = Math.max(zMax, d.z || 0); }
     out.moved = Math.hypot(d.x - d0.x, d.y - d0.y); out.zMax = zMax; const k0 = p.kickN || 0, n0 = dust.length;

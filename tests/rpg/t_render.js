@@ -26,6 +26,8 @@ const SETUP = (n) => `(() => {
   R.spawn({ kind: 'drop', x: 3040, y: 3960, r: 8, team: 2, hp: 1, item: { rar: 3 } }); R.spawn({ kind: 'drop', x: 2960, y: 4040, r: 8, team: 2, hp: 1, item: { rar: 1 } });
   R.spawn({ kind: 'portal', x: 2880, y: 3900, r: 28, team: 2, hp: 1 });
   R.spawn({ kind: 'mob', type: 'axe', x: 3080, y: 4020, r: 14, team: 1, hp: 60, hpMax: 60, z: 40, tumble: { ang: .8 }, flash: 1 });
+  // the real world (R.WS = 4.5) replaces the fixture above: (3000, 4000) is then out at sea. Move the whole scene to a seat's core (land).
+  const W = R.data.world, P = W && (W.pois || []).find(q => q.id === 'winterfell'); if (P && W.regions && W.regions.length > 2) { const ox = P.x - 3000, oy = P.y - 4000; for (const e of R.ents) { e.x += ox; e.y += oy; } }
   R.render.redrawFog && R.render.redrawFog();
   return R.render.mode;
 })()`;
@@ -60,18 +62,31 @@ async function run(label, args, n) {
   const errs = []; pg.on('pageerror', e => errs.push('PE ' + e.message)); pg.on('console', m => { if (m.type() === 'error' && !noise(m.text())) errs.push('CE ' + m.text()); });
   await pg.goto('file://' + HTML); await pg.waitForFunction(() => window.R && R.render && R.sys.render, null, { timeout: 15000 });
   const mode = await pg.evaluate(SETUP(30)); const r = await pg.evaluate(FRAMES(n));
+  // closing the intro with no hero entered makes 52_intro re-open it 300 ms later (and an opening screen resets the input): close, wait, close again
+  await pg.evaluate(() => { if (R.ui && R.ui.cur) R.ui.close(); }); await pg.waitForTimeout(450);
   const y0 = await pg.evaluate(() => { if (R.ui && R.ui.cur) R.ui.close(); R.paused = false; return R.cam.yaw; });
-  await pg.mouse.move(250, 300); await pg.mouse.down(); for (let i = 1; i <= 5; i++) await pg.mouse.move(250 + i * 20, 300); await pg.mouse.up();
+  // a real CDP touch drag on the right half (not on a button): 100 px to the right
+  const cdp = await pg.context().newCDPSession(pg); const tp = (x, y) => [{ x, y, radiusX: 10, radiusY: 10, force: 1, id: 3 }];
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: tp(250, 300) });
+  for (let i = 1; i <= 5; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: tp(250 + i * 20, 300) });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
   const y1 = await pg.evaluate(() => { for (let i = 0; i < 30; i++) R.step(); return R.cam.yaw; });
+  // a real two-finger pinch on the right half: fingers apart → closer
+  const pd0 = await pg.evaluate(() => R.cam.dist); const tp2 = (a, b) => [{ x: a, y: 300, id: 4 }, { x: b, y: 300, id: 5 }];
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: tp2(260, 330) });
+  for (let i = 1; i <= 6; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: tp2(260 - i * 6, 330 + i * 6) });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  const pd1 = await pg.evaluate(() => { for (let i = 0; i < 60; i++) R.step(); return R.cam.dist; });
+  await pg.evaluate(d => { R.cam.dist = d; for (let i = 0; i < 60; i++) R.step(); }, pd0);
   const d0 = await pg.evaluate(() => R.cam.dist); await pg.mouse.move(250, 300); await pg.mouse.wheel(0, -200);
   const d1 = await pg.evaluate(() => { for (let i = 0; i < 40; i++) R.step(); return R.cam.dist; });
   for (let i = 0; i < 6; i++) await pg.mouse.wheel(0, -400); const dMin = await pg.evaluate(() => { for (let i = 0; i < 60; i++) R.step(); return R.cam.dist; });
   for (let i = 0; i < 8; i++) await pg.mouse.wheel(0, 400); const dMax = await pg.evaluate(() => { for (let i = 0; i < 60; i++) R.step(); return R.cam.dist; });
-  r.camCtl = await pg.evaluate(([y0, y1, d0, d1, dMin, dMax]) => { if (!R.render3d) return null; const C = R.cam, out = { dYaw: y1 - y0, dDist: d1 - d0, minDist: dMin, maxDist: dMax };
+  r.camCtl = await pg.evaluate(([y0, y1, d0, d1, dMin, dMax, pd0, pd1]) => { if (!R.render3d) return null; const C = R.cam, out = { dYaw: y1 - y0, dDist: d1 - d0, minDist: dMin, maxDist: dMax, pinch: [pd0, pd1] };
     C.yaw = Math.PI / 2; C.dist = 420; R.step(); R.drawAll(); const cam = R.render3d.camera.position, p = R.player; out.fwdX = p.x - cam.x; out.fwdZ = Math.abs(p.y - cam.z);
     out.camDir = R.plr && R.plr.camDir ? R.plr.camDir(0, -1) : null; C.yaw = 0; R.step();
     const H = R.render3d.heightOf; out.hHero = H(R.player); const boss = R.ents.find(e => e.kind === 'boss'), mob = R.ents.find(e => e.kind === 'mob' && e.type === 'axe'); out.hBoss = boss && H(boss); out.hMob = mob && H(mob);
-    const sp = R.render3d.sprites.get(R.player.id); out.heroBB = sp ? { w: +sp.sp.scale.x.toFixed(1), h: +sp.sp.scale.y.toFixed(1), cy: +sp.sp.center.y.toFixed(3) } : null; return out; }, [y0, y1, d0, d1, dMin, dMax]);
+    const sp = R.render3d.sprites.get(R.player.id); out.heroBB = sp ? { w: +sp.sp.scale.x.toFixed(1), h: +sp.sp.scale.y.toFixed(1), cy: +sp.sp.center.y.toFixed(3) } : null; return out; }, [y0, y1, d0, d1, dMin, dMax, pd0, pd1]);
   r.render3dEvent = await pg.evaluate(() => { let got = false; R.bus.on('render3d', () => { got = true; }); R.drawAll(); return got || !R.render3d || 'fired-before'; });
   return { b, pg, errs, mode, r };
 }
@@ -92,7 +107,8 @@ async function run(label, args, n) {
   ok(r.cam1.z > 1 && r.cam1.z < 4, 'R.cam.z = px per unit at the hero (' + r.cam1.z.toFixed(2) + ')');
   ok(r.cam1.dist === 420 && r.cam1.yaw === 0, 'camera defaults: dist 420, yaw 0');
   const cc = r.camCtl || {};
-  ok(cc.dYaw > .4 && cc.dYaw < .9, 'a right-half drag of 100 px turns the camera right (yaw +' + (cc.dYaw || 0).toFixed(2) + ')');
+  ok(cc.dYaw > .4 && cc.dYaw < .9, 'a real right-half touch drag of 100 px turns the camera right (yaw +' + (cc.dYaw || 0).toFixed(2) + ')');
+  ok(cc.pinch && cc.pinch[1] < cc.pinch[0] - 40, 'a real two-finger pinch (fingers apart) zooms in: dist ' + (cc.pinch && cc.pinch.map(Math.round).join(' → ')));
   ok(cc.minDist >= 299 && cc.minDist < 320 && cc.maxDist > 680 && cc.maxDist <= 701, 'pinch / wheel zooms within 300..700 (' + Math.round(cc.minDist) + '..' + Math.round(cc.maxDist) + ')');
   ok(cc.fwdX > 200 && cc.fwdZ < 60 && (!cc.camDir || cc.camDir.x > .99), 'yaw 90 deg: the camera looks east and stick-up moves east (camera ' + Math.round(cc.fwdX) + ' u west of the hero; camDir ' + JSON.stringify(cc.camDir) + ')');
   ok(cc.hHero === 64 && cc.hMob > 40 && cc.hMob < 56 && cc.hBoss <= 2 * cc.hMob + 4, 'billboard heights: hero ' + cc.hHero + ', axe ' + cc.hMob + ', boss ' + cc.hBoss + ' (<= 2 x mob); hero quad ' + JSON.stringify(cc.heroBB));

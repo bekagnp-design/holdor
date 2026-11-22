@@ -78,6 +78,14 @@
         for (let i = 0; i < bx; i++) { push(i, 0); push(i, byh - 1); } for (let j = 0; j < byh; j++) { push(0, j); push(bx - 1, j); }
         while (qq.length) { const j = qq.pop(), i = qq.pop(); push(i - 1, j); push(i + 1, j); push(i, j - 1); push(i, j + 1); }
         for (let j = 1; j < byh - 1; j++) for (let i = 1; i < bx - 1; i++) if (!vis[j * bx + i]) { const k = (y0 - 1 + j) * w + x0 - 1 + i; if (kind[k] !== 3) kind[k] = 2; } } }
+    // 3b. POI cores and the houses' spawn points are always dry land (F2/QA test 2.1: Dragonstone's spawn read as sea, the carve then put
+    // the hero under the sea plane): no sea / lake / river cell within 110 units of a place, 160 of a spawn point
+    const dry = [], W0 = R.data && R.data.world, pois = W0 && W0.pois ? (Array.isArray(W0.pois) ? W0.pois : Object.keys(W0.pois).map(k => W0.pois[k])) : [];
+    for (const q of pois) if (q && isFinite(q.x) && isFinite(q.y)) dry.push([q.x, q.y, 110]);
+    if (typeof R.spawnPoint === 'function') for (const hs of ['stark', 'lannister', 'targaryen', 'baratheon', 'greyjoy', 'tyrell', 'martell']) { try { const sp = R.spawnPoint(hs); if (sp && isFinite(sp.x) && isFinite(sp.y)) dry.push([sp.x, sp.y, 160]); } catch (e) {} }
+    for (const d of dry) { const rc = Math.ceil(d[2] / CS) + 1, cx = Math.floor(d[0] / CS), cy = Math.floor(d[1] / CS);
+      for (let y = cy - rc; y <= cy + rc; y++) for (let x = cx - rc; x <= cx + rc; x++) { if (x < 0 || y < 0 || x >= w || y >= h) continue; if (Math.hypot((x + .5) * CS - d[0], (y + .5) * CS - d[1]) <= d[2] + CS * .5) kind[y * w + x] = 0; } }
+    Wt.dry = dry.length;
     // 4. the shore field: signed distance in cells to the sea/lake shoreline (+ in water, − on land; rivers count as land), capped at RAMP
     shore = new Int8Array(N); const dq = new Int32Array(N); let qh = 0, qt = 0; const dist = new Int16Array(N).fill(-1);
     const isW = k => kind[k] >= 2;
