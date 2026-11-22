@@ -706,7 +706,12 @@
   R3.heroView = HB;
   function heroTrack(e) {
     if (HB.t === R.t) return; const dt = HB.t < 0 ? 1 / 60 : Math.max(1 / 240, R.t - HB.t); HB.t = R.t;
-    const vx = e.vx || 0, vy = e.vy || 0, sp = Math.hypot(vx, vy); if (sp > 15) { HB.dx = vx / sp; HB.dy = vy / sp; } else if (HB.t === 0) { HB.dx = e.face < 0 ? -1 : 1; HB.dy = 0; }
+    // the hero is moved by physics (e.vx/vy stay 0): take the heading from his actual displacement (or e.vel), smoothed
+    if (HB.px == null) { HB.px = e.x; HB.py = e.y; }
+    let vx = e.vx || (e.vel && e.vel.x) || 0, vy = e.vy || (e.vel && e.vel.y) || 0;
+    if (!(Math.hypot(vx, vy) > 15)) { const mx = (e.x - HB.px) / dt, my = (e.y - HB.py) / dt; if (Math.hypot(mx, my) < 2000) { vx = mx; vy = my; } }
+    HB.px = e.x; HB.py = e.y; HB.svx = lerp(HB.svx || 0, vx, .35); HB.svy = lerp(HB.svy || 0, vy, .35); vx = HB.svx; vy = HB.svy;
+    const sp = Math.hypot(vx, vy); if (sp > 15) { HB.dx = vx / sp; HB.dy = vy / sp; } else if (HB.t === 0) { HB.dx = e.face < 0 ? -1 : 1; HB.dy = 0; }
     const ang = Math.atan2(HB.dy, HB.dx); let da = ang - HB.ang; da = Math.atan2(Math.sin(da), Math.cos(da)); HB.ang = ang;
     HB.lean = lerp(HB.lean, clamp(da / dt * .35, -1, 1), .15); HB.speed = clamp(sp / 240, 0, 1);
     const f = R.cam.fwd || { x: 0, y: -1 }, dot = HB.dx * f.x + HB.dy * f.y; HB.back = HB.back ? dot > .42 : dot > .5;
