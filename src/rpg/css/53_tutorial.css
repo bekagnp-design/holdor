@@ -1,21 +1,26 @@
-/* 53_tutorial.css (A28): the coach card at the top, the SKIP link under it, the highlight ring over a control */
-#ui>.tut{position:absolute;inset:0;pointer-events:none;z-index:5;--hc:var(--acc)}
+/* 53_tutorial.css (A28; layout G5): a compact coach line in the HUD's message column (top-centre, under the minimap / chat; 50_hud.js sets
+   its top), an arrow toward the highlighted control, a small SKIP, and the ring over the control — the card never covers a control */
+#ui>.tut{position:absolute;inset:0;pointer-events:none;z-index:6;--hc:var(--acc)}
 .tut.off{display:none}
-.tut-wrap{position:absolute;left:12px;right:118px;top:calc(max(10px,env(safe-area-inset-top)) + 66px);display:flex;flex-direction:column;align-items:flex-end;gap:2px}
-.tut-card{width:100%;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:16px;background:rgba(6,11,20,.86);border:1px solid var(--hc);box-shadow:0 8px 22px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.04);transition:border-color .25s}
-.tut-card.in{animation:tutin .35s ease-out}
+.tut-wrap{position:absolute;left:50%;top:calc(var(--st,8px) + 210px);transform:translateX(-50%);width:min(calc(100% - 24px),380px)}
+.tut-card{width:100%;display:flex;align-items:center;gap:8px;padding:5px 4px 5px 8px;border-radius:14px;background:rgba(6,11,20,.88);border:1px solid var(--hc);box-shadow:0 8px 22px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.04);transition:border-color .25s}
+.tut-card.tut-in{animation:tutin .35s ease-out}
 .tut-card.ok{border-color:var(--ok)}
-.tut-face{width:48px;height:48px;border-radius:50%;flex:0 0 48px;border:2px solid var(--hc);background:#0b1220}
+.tut-face{width:36px;height:36px;border-radius:50%;flex:0 0 36px;border:2px solid var(--hc);background:#0b1220}
 .tut-body{flex:1;min-width:0}
-.tut-who{font:700 11px var(--f-display);letter-spacing:.08em;color:var(--hc);text-transform:uppercase;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tut-txt{font:600 16px/1.25 var(--f-body);color:#f3e7c4;margin-top:2px}
-.tut-check{width:28px;height:28px;border-radius:50%;flex:0 0 28px;display:grid;place-items:center;font:900 16px var(--f-display);color:#0b2a0a;background:var(--ok);opacity:0;transform:scale(.4);transition:opacity .25s,transform .35s cubic-bezier(.3,1.6,.5,1)}
-.tut-card.ok .tut-check{opacity:1;transform:scale(1)}
-.tut-skip{pointer-events:auto;min-height:44px;padding:0 10px;border:0;background:none;box-shadow:none;font:700 11px var(--f-display);letter-spacing:.08em;color:var(--muted);text-decoration:underline;text-underline-offset:3px;opacity:.85}
+.tut-who{font:700 12px/14px var(--f-display);letter-spacing:.06em;color:var(--hc);text-transform:uppercase;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tut-txt{font:600 15px/1.25 var(--f-body);color:#f3e7c4;margin-top:1px}
+.tut-arrow{flex:0 0 26px;width:26px;height:26px;display:grid;place-items:center;font:900 20px/1 var(--f-display);color:var(--hc);transition:transform .2s}
+.tut-arrow:empty{display:none}
+.tut-card.ok .tut-arrow{display:none}
+.tut-check{width:26px;height:26px;border-radius:50%;flex:0 0 26px;display:none;place-items:center;font:900 15px var(--f-display);color:#0b2a0a;background:var(--ok);transform:scale(.4);transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.tut-card.ok .tut-check{display:grid;transform:scale(1)}
+.tut-skip{pointer-events:auto;flex:0 0 auto;min-height:44px;min-width:44px;padding:0 8px;border:0;border-left:1px solid rgba(255,255,255,.12);border-radius:0 10px 10px 0;background:none;box-shadow:none;font:700 12px var(--f-display);letter-spacing:.06em;color:var(--muted);opacity:.9}
 .tut-skip:active{opacity:1;color:#fff}
 .tut-ring{position:absolute;display:none;border:3px solid var(--hc);border-radius:50%;box-shadow:0 0 0 4px rgba(0,0,0,.35),0 0 18px var(--hc);animation:tutpulse 1.1s ease-in-out infinite;pointer-events:none}
 .tut-ring.sq{border-radius:18px}
 .tut-ring.guess{opacity:.55;border-style:dashed}
 @keyframes tutin{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
 @keyframes tutpulse{0%,100%{transform:scale(1);opacity:.95}50%{transform:scale(1.1);opacity:.6}}
-@media (prefers-reduced-motion:reduce){.tut-ring,.tut-card.in{animation:none}}
+@media (orientation:landscape) and (max-height:520px){.tut-wrap{width:min(36vw,360px)}.tut-txt{font-size:14px}}
+@media (prefers-reduced-motion:reduce){.tut-ring,.tut-card.tut-in{animation:none}}

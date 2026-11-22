@@ -48,6 +48,8 @@
       out.push({ id: r.id, house: r.house, n: r.n || (fb && fb[2]) || r.id, e: glyph(r.e, fb ? fb[3] : '⚔️'), type: r.type || (fb && fb[4]) || 'melee', cls: clsOf(r.type || (fb && fb[4])), tier: t, fl: FANTASY[r.id] || 'Rides for the house.' }); }
     return out.sort((a, b) => (ORDER.indexOf(a.house) - ORDER.indexOf(b.house)) || (a.tier - b.tier)); };
   const heroes = h => champs().filter(c => c.house === h);
+  // the house's starter — the one rule of core / heroes / tests: R.firstChamp(house) (A10's R.champs.first), else the first of the list
+  const starterOf = (h, list) => { list = list || heroes(h); let f = null; try { f = typeof R.firstChamp === 'function' ? R.firstChamp(h) : null; } catch (e) {} return list.some(c => c.id === f) ? f : (list[0] && list[0].id); };
   const portrait = id => { const A = window.A_CHAMP, k = id + '_portrait'; const p = (A && A.art && A.art[k]) || (window.CHAMP_ART && window.CHAMP_ART[k]) || null;
     if (!p) return null; if (typeof p === 'string') return p; if (p.src) return p.src; if (p.toDataURL) { try { return p.toDataURL(); } catch (e) {} } return null; };
   const unlocked = id => { const a = R.state && R.state.acc && R.state.acc.champs; return !!(a && a[id] && a[id].unlocked); };
@@ -125,7 +127,9 @@
 
   const stHero = () => { const H = houses()[I.house || 'stark']; const list = heroes(I.house || 'stark'); if (!list.length) { I.house = 'stark'; return stHero(); }
     header('Choose your hero', H.n + "'s champions — one rides, the rest wait", 'house'); const body = mk('div', 'in-body');
-    const open = list.filter((c, i) => i === 0 || unlocked(c.id)), locked = list.filter(c => !open.includes(c)); // a new account: only the first
+    const first = starterOf(I.house || 'stark', list);
+    const open = list.filter(c => c.id === first || unlocked(c.id)), locked = list.filter(c => !open.includes(c)); // a new account: only the house's starter
+    open.sort((a, b) => (b.id === first) - (a.id === first));
     if (!I.hero || !open.some(c => c.id === I.hero)) I.hero = open[0].id;
     let btn; const label = () => 'Ride as ' + (list.find(c => c.id === I.hero) || open[0]).n;
     const wrap = mk('div', 'in-heroes');
@@ -152,10 +156,12 @@
 
   const enter = () => { if (typeof R.enterWorld === 'function') R.enterWorld(); else R.start(); };
   const finish = () => { if (I.done) return; I.done = true; stopTyping(); const house = I.house || 'stark'; const C = champs().find(c => c.id === I.hero) || heroes(house)[0]; const id = C.id;
-    const s = R.newState(house); s.p = s.p || {};
+    // an account between heroes (no hero, e.g. a migrated v1 save) keeps its world progress; otherwise a fresh account of the chosen house
+    const keep = R.state && R.state.acc && R.state.p && !R.state.p.hero ? R.state : null;
+    const s = keep || R.newState(house); s.p = s.p || {};
     if (!s.acc) s.acc = { house, champs: {}, hall: [], titles: [], title: '', ach: [], world: { found: [], flags: {}, quests: {}, bosses: {}, killed: {} }, best: { lvl: 1, kills: 0 } };
-    s.acc.house = house; s.acc.champs = s.acc.champs || {}; s.acc.champs[id] = { unlocked: 1, runs: 0 };
-    s.p.hero = id; s.p.name = C.n; s.p.cls = C.cls; s.p.house = house; R.state = s;
+    s.acc.house = house; s.acc.champs = s.acc.champs || {}; s.acc.champs[id] = Object.assign(s.acc.champs[id] || { runs: 0 }, { unlocked: 1 });
+    s.p.hero = id; s.p.name = C.n; s.p.cls = C.cls; R.state = s;
     try { if (R.world && typeof R.world.startPos === 'function') { const p = R.world.startPos(house); if (p && p.x != null) s.p.pos = { x: Math.round(p.x), y: Math.round(p.y) }; } } catch (e) { console.warn('startPos', e); }
     R.ui.close();
     if (typeof R.newHero === 'function') { try { R.newHero(id); } catch (e) { console.error('newHero', e); } R.save(true); if (!R.running) enter(); }
@@ -166,6 +172,7 @@
       root = mk('div', 'in'); const cv = mk('canvas', 'in-cv'); veil = mk('div', 'in-veil'); pane = mk('div', 'in-pane'); pane.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;z-index:2';
       root.appendChild(cv); root.appendChild(veil); root.appendChild(pane); el.appendChild(root); S.el = root;
       bgStart(cv); onResize = () => bgSize(); window.addEventListener('resize', onResize);
+      try { R.bootLoader && R.bootLoader.done(); } catch (e) {}   // the template's inline loader gives way to the title
       if (I.house) setAcc(houses()[I.house].col);
       go(arg && arg.step && arg.step !== 'title' ? arg.step : 'title'); },
     close: () => { stopTyping(); bgStop(); I.open = false; I.step = null; if (onResize) window.removeEventListener('resize', onResize); onResize = null;

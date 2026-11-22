@@ -18,7 +18,7 @@
      status.stun / status.slow are until-times in game seconds (like cd and inv). */
 (function () {
   const SPD = 170, SPRINT = 240, SPRINT_AFTER = 1.5, ATK_T = 0.3, COMBO_W = 0.7, DODGE_T = 0.35, DODGE_D = 170, DODGE_INV = 0.4, DODGE_CD = 1.2,
-    POT_CD = 8, POT_T = 2, POT_HEAL = 0.4, COMBAT_T = 5, REGEN = 0.01, NEXT_T = 4, INTERACT_R = 70, AUTOFACE_R = 90, LVL_MAX = 60;
+    POT_CD = 8, POT_T = 2, POT_HEAL = 0.4, COMBAT_T = 5, REGEN = 0.01, NEXT_T = 4, INTERACT_R = 70, AUTOFACE_R = 90, LVL_MAX = 60, KNOCK3 = 28, LUNGE = 44;   // the third swing's knockback stays inside the next swing's reach
   const DEF = {
     knight: { kind: 'melee', arc: 110, range: 60, mult: 1.0, main: 'str', hpK: 1.2, auto: { str: 2, vit: 1 } },
     ranger: { kind: 'ranged', range: 320, mult: 0.8, arrows: 2, main: 'agi', critB: 15, auto: { agi: 2, vit: 1 } },
@@ -71,7 +71,14 @@
     e.inCombat = () => R.t - e.combatT < COMBAT_T; e.dodging = () => R.t < e.dodgeT; e.attacking = () => R.t < e.atkT; e.stunned = () => num(e.status && e.status.stun, 0) > R.t;
     return e;
   };
-  P.make = () => { const p = st(); if (!p) return null; const pos = P.startPos();
+  /* the hero's home region is never gated for his own house (guarded fallback until 10_world's gateOpen knows rg.home): set its gate flag
+     quietly, so the gate watcher does not push a new Stark hero out of Winterfell */
+  P.homeGate = () => { try { const p = st(), a = acc(); const h = (a && a.house) || (p && p.house); const W = R.data.world; if (!h || !W || !R.world) return false;
+    const rs = Array.isArray(W.regions) ? W.regions : Object.values(W.regions || {}); const H = R.data.houses && R.data.houses[h];
+    let rg = rs.find(r => r && r.home === h) || (H && H.region && rs.find(r => r && r.id === H.region)); const s = P.seat(); if (!rg && s && typeof R.world.regionAt === 'function') rg = R.world.regionAt(s.x, s.y);
+    if (!rg || !rg.gate || (typeof R.world.gateOpen === 'function' && R.world.gateOpen(rg))) return false;
+    const S = typeof R.world.store === 'function' ? R.world.store() : world(); if (!S) return false; S.flags = S.flags || {}; S.flags['gate:' + rg.id] = 1; return true; } catch (x) { return false; } };
+  P.make = () => { const p = st(); if (!p) return null; P.homeGate(); const pos = P.startPos();
     const e = R.spawn({ kind: 'player', x: pos.x, y: pos.y, r: 14, team: 0, name: p.name || 'You', lvl: num(p.lvl, 1), type: p.hero || p.cls, hp: 1, hpMax: 1 });
     R.player = e; return P.ensure(); };
   P.ensure = () => { const p = st(); if (!p) return null; const e = R.player; if (!e || e.kind !== 'player') return P.make();
@@ -159,12 +166,14 @@
     const C = P.cls(); const now = R.t;
     e.comboN = now - e.comboT <= COMBO_W ? (e.comboN + 1) % 3 : 0; e.comboT = now; e.atkT = now + ATK_T; e.anim = 'attack'; e.animT = 0; e.combatT = now; e.sprint = false; e.moveT = 0;
     const range = num(C.range, 60), melee = C.kind !== 'ranged' && C.kind !== 'magic'; mx = num(mx, 0); my = num(my, 0); const hasMove = Math.hypot(mx, my) >= 0.08;
-    const tgt = P.nearestEnemy(e, melee ? AUTOFACE_R : Math.max(AUTOFACE_R, range)); let dx = 0, dy = 0;
-    if (melee) { if (hasMove) { dx = mx; dy = my; } else if (tgt) { dx = tgt.x - e.x; dy = tgt.y - e.y; } }
-    else if (tgt) { dx = tgt.x - e.x; dy = tgt.y - e.y; } else if (hasMove) { dx = mx; dy = my; }
+    /* auto-face: the swing turns to the nearest enemy in reach (the stick only picks among enemies it points at, else aims the swing) */
+    const reachR = melee ? Math.max(AUTOFACE_R, range + 40) : Math.max(AUTOFACE_R, range); let tgt = P.nearestEnemy(e, reachR); let dx = 0, dy = 0;
+    if (tgt && hasMove) { let best = null, bs = 0.5; for (const t of enemies(e, reachR)) { const tx = t.x - e.x, ty = t.y - e.y, d = Math.hypot(tx, ty) || 1; const s = (tx * mx + ty * my) / d / Math.hypot(mx, my) - d / (reachR * 4); if (s > bs) { bs = s; best = t; } } if (best) tgt = best; }
+    if (tgt) { dx = tgt.x - e.x; dy = tgt.y - e.y; } else if (hasMove) { dx = mx; dy = my; }
+    if (melee && tgt) { const gap = Math.hypot(dx, dy) - (tgt.r || 0) - range + 6; if (gap > 0) { const d = Math.hypot(dx, dy) || 1, s = Math.min(LUNGE, gap); moveTo(e, e.x + dx / d * s, e.y + dy / d * s); dx = tgt.x - e.x; dy = tgt.y - e.y; } }   // a short lunge: a tap in reach connects
     let L = Math.hypot(dx, dy); if (L < 1e-6) { dx = e.face || 1; dy = 0; L = 1; } dx /= L; dy /= L; if (Math.abs(dx) > 0.15) e.face = dx < 0 ? -1 : 1;
     const third = e.comboN === 2, mult = num(C.mult, 1) * (third ? 1.4 : 1);
-    const o = { kind: melee ? 'melee' : C.kind, dir: { x: dx, y: dy }, range, arc: num(C.arc, 110), dmg: e.atk * mult, mult, combo: e.comboN, knock: third ? 70 : 0, splash: num(C.splash, 0), arrows: third ? Math.max(1, num(C.arrows, 1)) : 1, target: tgt };
+    const o = { kind: melee ? 'melee' : C.kind, dir: { x: dx, y: dy }, range, arc: num(C.arc, 110), dmg: e.atk * mult, mult, combo: e.comboN, knock: third ? KNOCK3 : 0, splash: num(C.splash, 0), arrows: third ? Math.max(1, num(C.arrows, 1)) : 1, target: tgt };
     sfx(melee ? 'swing' : C.kind === 'ranged' ? 'bow' : 'spell'); fx(melee ? 'slash' : C.kind === 'ranged' ? 'arrow' : 'bolt', e.x, e.y, { dir: o.dir, face: e.face, range, src: e, tgt, combo: e.comboN }); hap('light');
     R.bus.emit('attack', e, o);
     if (typeof R.attack === 'function') { try { R.attack(e, o); return o; } catch (x) { console.error('R.attack', x); } }
@@ -224,14 +233,14 @@
   /* ---- movement ---- */
   function moveTo(e, nx, ny) {
     nx = R.clamp(nx, 0, R.W); ny = R.clamp(ny, 0, R.H); const W = R.world;
-    if (W && typeof W.slide === 'function') { try { const q = W.slide(e.x, e.y, nx, ny, e.r); if (isPt(q)) { e.x = q.x; e.y = q.y; return; } } catch (x) {} }
+    if (W && typeof W.slide === 'function') { try { if (W.slide.length <= 3) { W.slide(e, nx - e.x, ny - e.y); return; } const q = W.slide(e.x, e.y, nx, ny, e.r); if (isPt(q)) { e.x = q.x; e.y = q.y; return; } } catch (x) {} }
     if (W && typeof W.blocked === 'function') { try { if (!W.blocked(nx, ny)) { e.x = nx; e.y = ny; } else if (!W.blocked(nx, e.y)) e.x = nx; else if (!W.blocked(e.x, ny)) e.y = ny; return; } catch (x) {} }
     e.x = nx; e.y = ny;
   }
 
   /* ---- the system ---- */
   function update(dt) {
-    const p = st(); if (!p) return; const e = P.ensure(); if (!e) return; wrapHit();
+    const p = st(); if (!p) return; const e = P.ensure(); if (!e) return; wrapHit(); if (!e.hgDone) { e.hgDone = 1; P.homeGate(); }
     if ((e.hp <= 0 || e.dead) && !e.deathT) return die(e);
     if (e.dead) { if (e.nextT && R.t >= e.nextT) { e.nextT = 0; if (typeof R.newHero === 'function') { try { R.newHero(P.nextHero()); } catch (x) { console.error('newHero', x); } } } return; }
     const I = inp(); const screen = !!(R.ui && R.ui.cur);

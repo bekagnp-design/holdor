@@ -1,11 +1,11 @@
-/* HOLDOR RPG — the in-world HUD (A25). DOM in #ui, refreshed at most 10×/s by a system of order 950, hidden while a screen is open.
-   Top-left: the hero's portrait (the champion's art: R.draw.portrait(hero) → A_CHAMP.art[hero+'_portrait'] → a code-drawn face; house ring)
-   + level badge, under it the fallen chip "☠ n" (R.state.acc.hall, tap → the hall screen); HP bar (numbers on tap), XP bar +
-   "Lv 12 · 340/1,120", the title; under them the slots #bossbar / #evbar / #dgbar (A09 / A23 / A22 fill them), the TOWN pill, #qtrack (A18).
-   Top-right: gold + gem chips (count-up on change), the 96-px round 2D minimap under them (map art around the hero). A02's three icon
-   buttons go in the right column below the minimap — this file leaves that column and the bottom-right 160 px free, and nothing sits
-   on the joystick zone (bottom 45 %, left half). One hero, no companions (Addendum 2): no party strip.
-   Hooks: R.hud = {el, mm, E, refresh(), banner(id), last, shown}. */
+/* HOLDOR RPG — the in-world HUD (A25; layout G5). DOM in #ui, refreshed at most 10×/s by a system of order 950, hidden while a screen is open.
+   Top-left, one compact block: the hero's portrait (R.draw.portrait(hero) → A_CHAMP.art[hero+'_portrait'] → a code-drawn face; house ring)
+   + level badge, the fallen chip "☠ n" under it (R.state.acc.hall, tap → the hall); the name (+ title), the HP bar with its numbers, the XP bar,
+   "Lv 12 · 340/1,120" and the gold / gem chips (count-up). Tap the block → the hero sheet ('btn' 'inv'). Under it: #qtrack (A18 renders the
+   tracker; tap → quest log), the TOWN pill. Top-right: A02's row (map · bag · menu), the 96-px round minimap under it (tap → map), the chat
+   button (#prChat, A38) under the minimap. The message column (top-centre, under all of that): ONE bar (#bossbar > #dgbar > #evbar, the others
+   wait with data-hud-yield), the tutorial card, the region title, the toasts — stacked by stack() so nothing overlaps. Bottom: A02's controls.
+   Hooks: R.hud = {el, mm, E, refresh(), banner(id), stack(), last, shown}. */
 (function () {
   const HOUSE_COL = { stark: '#a9bdd0', lannister: '#e3b661', targaryen: '#e14b4b', greyjoy: '#d8b74a', tyrell: '#7fd06a', martell: '#f08a3c', baratheon: '#e0c14a' };
   const CLS = { knight: 'Knight', ranger: 'Ranger', maester: 'Maester' };
@@ -23,26 +23,21 @@
   root.innerHTML =
     '<div id="hud-tl">' +
       '<div id="hud-row">' +
-        '<div id="hud-pcol"><div id="hud-port"><canvas id="hud-face" width="56" height="56"></canvas><img id="hud-pimg" alt=""><b id="hud-lvl">1</b></div>' +
+        '<div id="hud-pcol"><div id="hud-port" role="button" aria-label="Hero"><canvas id="hud-face" width="56" height="56"></canvas><img id="hud-pimg" alt=""><b id="hud-lvl">1</b></div>' +
           '<button id="hud-hall" type="button" title="Heroes fallen"><span class="sk">☠</span><b>0</b></button></div>' +
-        '<div id="hud-bars">' +
+        '<div id="hud-bars" role="button" aria-label="Hero sheet">' +
+          '<div id="hud-name"><b></b><i id="hud-title"></i></div>' +
           '<div id="hud-hp" class="bar"><i class="ghost"></i><i class="fill"></i><span id="hud-hpn"></span></div>' +
           '<div id="hud-xp" class="bar"><i class="fill"></i></div>' +
-          '<div id="hud-lvtxt">Lv 1 · 0/131</div>' +
-          '<div id="hud-title"></div>' +
+          '<div id="hud-meta"><span id="hud-lvtxt">Lv 1 · 0/131</span>' +
+            '<span id="hud-chips"><span class="chip gold"><i></i><b id="hud-gold">0</b></span><span class="chip gem"><i></i><b id="hud-gems">0</b></span></span></div>' +
         '</div>' +
       '</div>' +
-      '<div id="hud-tc"><div id="bossbar"></div><div id="evbar"></div><div id="dgbar"></div></div>' +
-      '<button id="hud-town" type="button"><span class="k">TOWN</span><span class="n"></span><span class="a">›</span></button>' +
       '<div id="qtrack"></div>' +
+      '<button id="hud-town" type="button"><span class="k">TOWN</span><span class="n"></span><span class="a">›</span></button>' +
     '</div>' +
-    '<div id="hud-tr">' +
-      '<div id="hud-chips">' +
-        '<div class="chip gold"><i></i><b id="hud-gold">0</b></div>' +
-        '<div class="chip gem"><i></i><b id="hud-gems">0</b></div>' +
-      '</div>' +
-      '<canvas id="minimap" width="96" height="96"></canvas>' +
-    '</div>' +
+    '<div id="hud-tr"><canvas id="minimap" width="96" height="96" role="button" aria-label="World map"></canvas></div>' +
+    '<div id="hud-slot"></div>' +
     '<div id="hud-region"><b></b><small></small><p></p></div>' +
     '<div id="hud-vig"></div>';
   ui.appendChild(root);
@@ -159,11 +154,28 @@
     if (!name) return; const band = bandOf(r), el = E['hud-region'];
     el.querySelector('b').textContent = name; el.querySelector('small').textContent = band ? name + ' · ' + band : ''; el.querySelector('p').textContent = storyOf(id);
     el.querySelector('small').style.display = band ? '' : 'none';
-    el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); clearTimeout(banT); banT = setTimeout(() => el.classList.remove('on'), 3400);
+    el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); stack(); clearTimeout(banT); banT = setTimeout(() => { el.classList.remove('on'); stack(); }, 3400);
   };
 
+  /* ---- the message column: one bar, the tutorial card, the region title, the toasts — each starts under the one above ---- */
+  const BARS = ['bossbar', 'dgbar', 'evbar'], GAP = 8;
+  const shownEl = el => { if (!el || !el.isConnected) return false; const cs = getComputedStyle(el); return cs.display !== 'none' && cs.visibility !== 'hidden'; };
+  const stack = () => {
+    const ui = root.parentNode; if (!ui) return; const top0 = E['hud-slot'].getBoundingClientRect().top; let y = top0, lead = null;
+    for (const id of BARS) { const b = document.getElementById(id); if (!b) continue; b.removeAttribute('data-hud-yield'); }
+    for (const id of BARS) { const b = document.getElementById(id); if (!b) continue;
+      if (!lead && shownEl(b)) { lead = b; if (b.style.top !== y + 'px') b.style.top = y + 'px'; y = Math.max(y, b.getBoundingClientRect().bottom + GAP); }
+      else if (lead && shownEl(b)) b.setAttribute('data-hud-yield', '1'); }
+    const tw = document.querySelector('#tut:not(.off) .tut-wrap');
+    if (tw && shownEl(tw)) { if (tw.style.top !== y + 'px') tw.style.top = y + 'px'; y += tw.offsetHeight + GAP; }
+    const rg = E['hud-region']; if (rg.classList.contains('on')) { if (rg.style.top !== y + 'px') rg.style.top = y + 'px'; y += rg.offsetHeight + GAP; }
+    for (const t of ui.querySelectorAll(':scope>.toast')) { if (t.style.top !== y + 'px') t.style.top = y + 'px'; y += t.offsetHeight + 6; }
+  };
+  try { new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1 && (n.classList.contains('toast') || BARS.includes(n.id) || n.id === 'tut')) { stack(); return; } })
+    .observe(ui, { childList: true }); } catch (e) {}
+
   /* ---- refresh ---- */
-  const last = {}; let hpNums = false, hpNumT = 0, lastTown = null;
+  const last = {}; let lastTown = null;
   const n_ = t => t ? (typeof t === 'object' ? (t.name || true) : t) : null;
   const refresh = () => {
     const P = R.player, st = R.state && R.state.p;
@@ -174,11 +186,12 @@
     E['hud-hp'].querySelector('.fill').style.width = (f * 100).toFixed(1) + '%'; E['hud-hp'].querySelector('.ghost').style.width = (f * 100).toFixed(1) + '%';
     E['hud-hp'].classList.toggle('low', f < .3);
     E['hud-hpn'].textContent = fmt(hp) + ' / ' + fmt(hpMax);
-    if (hpNums && hpNumT && performance.now() > hpNumT) { hpNums = false; hpNumT = 0; } E['hud-hp'].classList.toggle('nums', hpNums);
     E['hud-xp'].querySelector('.fill').style.width = (R.clamp(xp / need, 0, 1) * 100).toFixed(1) + '%';
     E['hud-lvtxt'].textContent = 'Lv ' + L + ' · ' + fmt(xp) + '/' + fmt(need);
     E['hud-lvl'].textContent = L;
-    const title = titleOf(st); if (title !== last.title) { last.title = title; E['hud-title'].textContent = title; E['hud-title'].title = st.name || ''; }
+    const nm = st.name || (R.data.champs && R.data.champs[st.hero] && (R.data.champs[st.hero].n || R.data.champs[st.hero].name)) || CLS[st.cls] || 'Hero';
+    if (nm !== last.name) { last.name = nm; E['hud-name'].querySelector('b').textContent = nm; }
+    const title = titleOf(st); if (title !== last.title) { last.title = title; E['hud-title'].textContent = title ? '· ' + title : ''; }
     const house = houseOf(st), hc = hcol(house); if (hc !== last.hc) { last.hc = hc; root.style.setProperty('--hc', hc); }
     setPortrait(st.hero, house, st.cls); drawHall();
     if (shown.gold !== (st.gold || 0)) tween('gold', st.gold || 0); if (shown.gems !== (st.gems || 0)) tween('gems', st.gems || 0);
@@ -186,12 +199,13 @@
     E['hud-town'].classList.toggle('on', !!town); lastTown = town;
     const tn = town ? (typeof town === 'object' ? (town.name || '') : '') : ''; if (tn !== last.townName) { last.townName = tn; E['hud-town'].querySelector('.n').textContent = tn ? ' · ' + tn : ''; }
     E['hud-vig'].style.opacity = f < .3 ? (0.3 + 0.7 * (1 - f / .3)).toFixed(2) : '0'; E['hud-vig'].classList.toggle('on', f < .3);
-    drawMini(P);
+    drawMini(P); stack();
     Object.assign(last, { hp, hpMax, lvl: L, xp, need, gold: st.gold || 0, gems: st.gems || 0, town: n_(town), house, hero: st.hero || null });
   };
 
   /* ---- taps ---- */
-  E['hud-bars'].addEventListener('click', () => { hpNums = !hpNums; hpNumT = hpNums ? performance.now() + 4000 : 0; E['hud-hp'].classList.toggle('nums', hpNums); });
+  const sheet = () => { if (R.ui.cur) return; if (R.input && R.input.haptic) R.input.haptic('select'); R.bus.emit('btn', 'inv', 'hud'); };
+  E['hud-bars'].addEventListener('click', sheet); E['hud-port'].addEventListener('click', sheet);
   mm.addEventListener('click', () => { R.bus.emit('btn', 'map'); });
   E['hud-town'].addEventListener('click', () => { if (R.screens.shop) R.ui.open('shop', lastTown); else R.bus.emit('btn', 'shop', lastTown); });
   E['hud-hall'].addEventListener('click', () => { if (R.screens.hall) R.ui.open('hall'); else R.bus.emit('btn', 'hall'); });
@@ -207,5 +221,5 @@
   /* ---- system: ≤ 10 refreshes a second ---- */
   let acc = 0.1;
   R.addSys('hud', { order: 950, update(dt) { acc += dt; if (acc < 0.1) return; acc = 0; refresh(); } });
-  R.hud = { el: root, mm, E, refresh, banner, last, shown, drawMini: () => R.player && drawMini(R.player) };
+  R.hud = { el: root, mm, E, refresh, banner, stack, last, shown, drawMini: () => R.player && drawMini(R.player) };
 })();

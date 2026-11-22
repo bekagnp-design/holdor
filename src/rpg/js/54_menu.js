@@ -80,8 +80,13 @@
 
   /* Esc: closes any screen; opens the menu when none is open.  The input module's 'menu' button does the same. */
   const toggle = () => { if (R.ui.cur) R.ui.close(); else if (R.state) R.ui.open('menu'); };
-  window.addEventListener('keydown', e => { if (e.key === 'Escape' && !e.repeat) { e.preventDefault(); toggle(); } });
-  R.addSys('menu', { order: 95, update() { if (R.input && typeof R.input.pressed === 'function' && R.input.pressed('menu')) toggle(); } });
+  // one path only: the input module emits 'btn' 'menu' for its top-row button AND for Esc (polling pressed('menu') as well toggled twice:
+  // the press survives a paused frame, so the menu reopened right after it closed). Without the input module, Esc is ours.
+  R.bus.on('btn', n => { if (n === 'menu') toggle(); });
+  if (!R.input) window.addEventListener('keydown', e => { if (e.key === 'Escape' && !e.repeat) { e.preventDefault(); toggle(); } });
+  // the UI keys / buttons nobody else answers: L → quest log, C → zone chat (toggles)
+  const flip = name => { if (!R.screens[name]) return; if (R.ui.cur === name) R.ui.close(); else if (R.state && R.player) R.ui.open(name); };
+  R.bus.on('btn', n => { if (n === 'quests') flip('quests'); else if (n === 'chat') flip('chat'); });
   document.addEventListener('visibilitychange', () => { if (document.hidden && R.state) { R.save(true); if (R.running && !R.ui.cur) R.ui.open('menu'); } });
 
   /* ---------- the screen ---------- */

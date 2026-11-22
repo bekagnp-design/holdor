@@ -40,7 +40,9 @@ window.R = window.R || {};
     R.ents.push(e); R.bus.emit('spawn', e); return e; };
   // kill(e, by?): marks dead, starts the die animation; 'kill'(mob, byEnt) for mobs and bosses, 'death'(player) for the player.
   // The body is removed R.GC (1.2) s later by the step unless e.keep (the player keeps).
-  R.kill = (e, by) => { if (!e || e.dead) return; e.dead = true; e.diedAt = R.t; e.anim = 'die'; e.animT = 0; e.vx = e.vy = 0; if (by) e.lastHitBy = by;
+  R.kill = (e, by) => { if (!e || e.dead) return;
+    if (e.kind === 'player' && typeof e.die === 'function' && !e.deathT) { if (by && by !== e) e.lastHitBy = by; return e.die(by); }   // 21_player's permadeath path (one Hall line, one 'death')
+    e.dead = true; e.diedAt = R.t; e.anim = 'die'; e.animT = 0; e.vx = e.vy = 0; if (by) e.lastHitBy = by;
     if (e.kind === 'mob' || e.kind === 'boss') R.bus.emit('kill', e, e.lastHitBy); else if (e.kind === 'player') R.bus.emit('death', e); };
   R.remove = e => { const i = R.ents.indexOf(e); if (i >= 0) { R.ents.splice(i, 1); R.bus.emit('remove', e); } };
   R.clearEnts = () => { const old = R.ents.slice(); R.ents.length = 0; for (const e of old) R.bus.emit('remove', e); R.player = null; };
@@ -96,7 +98,13 @@ window.R = window.R || {};
   R.champInfo = id => { const r = champRows().find(r => r.id === id) || CH0.find(r => r.id === id);
     return r ? { id, house: r.house, name: r.name || id, type: r.type || 'melee' } : { id, house: null, name: id ? id.charAt(0).toUpperCase() + id.slice(1) : 'Hero', type: 'melee' }; };
   R.clsOf = id => { if (R.champs && typeof R.champs.cls === 'function') { try { const c = R.champs.cls(id); if (c) return c; } catch (e) {} } return R.CLS_OF[R.champInfo(id).type] || 'knight'; };
-  R.firstChamp = house => { const r = champRows().find(r => r.house === house) || CH0.find(r => r.house === house) || champRows()[0]; return r ? r.id : 'jon'; };
+  // the house's starting hero — ONE rule for core, intro, heroes and tests: A10's R.champs.first(house) (the old game's opening order, tier 0),
+  // else the same order kept here (Stark → brienne, Lannister → kevan, …), else the first roster row of the house
+  R.FIRST = { stark: 'brienne', lannister: 'kevan', baratheon: 'gendry', targaryen: 'viserys', greyjoy: 'rodrik', tyrell: 'garlan', martell: 'areo' };
+  R.firstChamp = house => { house = house || 'stark';
+    if (R.champs && typeof R.champs.first === 'function') { try { const id = R.champs.first(house); if (id) return id; } catch (e) {} }
+    if (R.FIRST[house]) return R.FIRST[house];
+    const r = champRows().find(r => r.house === house) || CH0.find(r => r.house === house) || champRows()[0]; return r ? r.id : 'brienne'; };
 
   /* ---- progression fallbacks (R.data.balance and R.champs override when A39's / A10's modules are present) ---- */
   R.MAIN = { knight: 'str', ranger: 'agi', maester: 'int' };
@@ -134,6 +142,7 @@ window.R = window.R || {};
   R.save = now => { if (!R.state) return false; if (!now) { if (!saveT) saveT = setTimeout(() => { saveT = 0; R.save(true); }, 800); return true; }
     if (saveT) { clearTimeout(saveT); saveT = 0; }
     const P = R.player, p = R.state.p; if (P && p) { p.pos = { x: Math.round(P.x), y: Math.round(P.y) }; p.dead = !!P.dead; if (!P.dead) p.hp = Math.round(P.hp); }
+    R.state.saved = Date.now();   // the save's time: R.net keeps the newer of local / server by it
     try { localStorage.setItem(R.KEY, JSON.stringify(R.state)); } catch (e) {}
     R.bus.emit('save', R.state); if (R.net && R.net.on && R.net.save) { try { R.net.save(); } catch (e) { R.err(e.message, 'net.save'); } } return true; };
   // load(raw?) → true when a save was found (localStorage, or the object given); v1 saves migrate, missing keys fill from defaults, the p.* aliases are installed
@@ -207,7 +216,8 @@ window.R = window.R || {};
     const dead = !!p.dead;
     const e = R.spawn({ kind: 'player', team: 0, r: 16, x, y, face: 1, name: p.name || (p.hero ? R.champInfo(p.hero).name : 'Hero'), lvl: p.lvl || 1, cls: p.cls, hero: p.hero, type: p.hero || p.cls, house: R.state.acc.house,
       hpMax: st.hpMax, hp: dead ? 0 : (p.hp > 0 ? Math.min(p.hp, st.hpMax) : st.hpMax), atk: st.atk, def: st.def, spd: st.spd, keep: true, dead, anim: dead ? 'die' : 'idle' });
-    if (dead) e.diedAt = R.t;
+    if (dead) { e.diedAt = R.t; e.hp = 0;   // a hero that died before the reload stays dead: 21_player must not run its death (a 2nd Hall line) again
+      if (R.plr && typeof R.plr.attach === 'function') { try { R.plr.attach(e); } catch (x) {} } e.dead = true; e.deathT = R.t || 1e-9; e.nextT = 0; e.anim = 'die'; }
     R.player = e; R.camFollow(e); return e; };
   // newHero(champId?) → the hero entity: a fresh level-1 hero of that champion (name from the roster, class from its type), at the house seat, all entities cleared, in the world; emits 'hero'(id)
   R.newHero = id => { if (!R.state) R.state = R.newState(); const s = R.state, a = s.acc; id = id || R.firstChamp(a.house);

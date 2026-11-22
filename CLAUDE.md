@@ -73,9 +73,10 @@ CHROMIUM_PATH=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome node tests/rp
   others on the map + zone chat, wallet carried over, release straight to Telegram; Addendum 2 (15:10): 3D world
   (three.js terrain, third-person camera, billboard sprites), one hero = one of the unlocked champions, no companions,
   permadeath with the Hall of the Fallen, world progress on the account, the old wallet funds the first hero.
-- The root `index.html` is **v1.5.1** (the TD) until the v2.0.0 release PR. Supabase holds the TD's objects as applied
-  with their releases; v40 is additive and goes in right before the v2.0.0 release (named migration `holdor_v40_rpg`,
-  backup first).
+- The root `index.html` is **v1.5.1** (the TD) until the v2.0.0 release PR. **Supabase v40 applied 2026-11-22**
+  (migrations `holdor_v40_rpg` + `holdor_v40_rpg_chat_send_exact`; additive: no `rpg_*` object existed before, so no
+  backup was needed; all 7 function hashes equal the file; RLS on, execute granted to anon/authenticated except
+  `rpg_count`). The project had been paused (status INACTIVE) and was restored the same day before the migration.
 - The TD game's sources stay in `src/` as an archive, buildable with `python3 src/build.py <path>` → a path of your
   choice, never `beta/`. Its docs are history; `docs/build-backlog.md` keeps every TD version's section.
 - Next: v2.0.1 hotfixes from the first day → v2.1 guilds + co-op boss raids → v2.2 PvP duels (Crownlands arena) →

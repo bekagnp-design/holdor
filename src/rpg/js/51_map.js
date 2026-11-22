@@ -168,5 +168,7 @@
   /* ---- test hooks ---- */
   S.view = () => ({ cx: view.cx, cy: view.cy, z: view.z, k: k(), vw, vh }); S.toScreen = (x, y) => toS(x, y); S.toWorld = (x, y) => toW(x, y); S.redraw = redraw; S.hit = hit; S.zoomAt = zoomAt; S.centreOn = centreOn; S.travel = travel; S.canvas = () => cv;
   S.pan = (dx, dy) => { view.cx -= dx / k(); view.cy -= dy / k(); clampView(); redraw(); };
+  // the top-row MAP button, the minimap tap and the M key all emit 'btn' 'map': open the map, or close it when it is open
+  if (R.bus && R.bus.on) R.bus.on('btn', n => { if (n !== 'map') return; if (R.ui.cur === 'map') R.ui.close(); else if (R.state && R.player) R.ui.open('map'); });
   if (R.bus && R.bus.on) { R.bus.on('poi', () => { if (R.ui.cur === 'map') redraw(); }); R.bus.on('enter', () => { if (R.ui.cur === 'map') redraw(); }); }
 })();

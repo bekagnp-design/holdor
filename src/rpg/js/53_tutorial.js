@@ -1,28 +1,28 @@
 /* HOLDOR RPG — 53_tutorial.js (A28): the first three minutes after the prologue.
-   Eight short steps driven by real play: a coach card at the top (the house's master-at-arms) + a highlight ring over the
-   control the step names.  State: flags.tut = index of the current step (0..7); 8 = finished or skipped.  The flags are the
+   Eight short steps driven by real play: one coach line in the HUD's message column (top-centre; 50_hud.js stacks it under the bars, the
+   region title and toasts go under it) with an arrow toward the highlighted control + a ring over that control; a small SKIP on the card.  State: flags.tut = index of the current step (0..7); 8 = finished or skipped.  The flags are the
    account's (R.state.acc.world.flags, Addendum 2; R.state.p.flags is its alias / the v1 fallback), so a new hero after a
    death does not replay it.  No step blocks the game; when the module a step needs is absent, the step completes by itself
    after FALLBACK seconds.  Test hooks: R.tut (STEPS, step, targets, skip(), done(), reset()). */
 (function () {
   const N = 8, FALLBACK = 6, ADV = 0.7, MOVE = 150, REST = 3;   // steps · s before a step without its module completes · s the check mark stays · units to walk · s the last card stays
   const STEPS = [
-    { id: 'move',   txt: 'Drag on the left to walk · drag on the right to look around',                  ring: 'joy' },
-    { id: 'attack', txt: 'Three wights at the gate. ATTACK',                                               ring: 'attack' },
-    { id: 'loot',   txt: 'Pick up what they dropped',                                                      ring: 'drop' },
-    { id: 'skill',  txt: 'Skill 1 — tap it when the ring is full',                                         ring: 'skill1' },
-    { id: 'dodge',  txt: 'DODGE through an attack',                                                        ring: 'dodge' },
-    { id: 'quest',  txt: 'The maester has work for you — walk to the ! marker',                            ring: 'npc' },
-    { id: 'equip',  txt: 'Open the bag and equip the blade',                                               ring: 'bag' },
-    { id: 'done',   txt: 'One rule: if you fall, the run ends — your house sends the next hero. Ride north.', ring: 'minimap' }
+    { id: 'move',   txt: 'Drag on the left to walk. Drag on the right to look.',   ring: 'joy' },
+    { id: 'attack', txt: 'Wights at the gate. Tap ATTACK.',                        ring: 'attack' },
+    { id: 'loot',   txt: 'Walk over the loot to pick it up.',                      ring: 'drop' },
+    { id: 'skill',  txt: 'Tap skill 1.',                                           ring: 'skill1' },
+    { id: 'dodge',  txt: 'Tap DODGE to roll out of a hit.',                        ring: 'dodge' },
+    { id: 'quest',  txt: 'Walk to the ! and talk.',                                ring: 'npc' },
+    { id: 'equip',  txt: 'Open the bag. Equip the blade.',                         ring: 'bag' },
+    { id: 'done',   txt: 'If you fall, the run ends. The map shows the way north.', ring: 'minimap' }
   ];
   /* DOM controls other modules draw: several spellings are tried in order; R.tut.targets[name] = selector | element | fn overrides */
   const TARGETS = {
-    joy: '#joy,#joystick,#joyzone,.joy,.joystick,.joy-zone,[data-ctl=joy],[data-btn=joy],[data-btn=move]',
-    attack: '#btn-attack,#attack,.btn-attack,[data-btn=attack],[data-ctl=attack]',
-    skill1: '#btn-skill1,#skill1,[data-btn=skill1],[data-btn=skill0],[data-skill="0"],[data-skill="1"],.btn-skill,.skill',
-    dodge: '#btn-dodge,#dodge,.btn-dodge,[data-btn=dodge]',
-    bag: '#btn-bag,#bag,#btn-inv,#btn-inventory,.btn-bag,[data-btn=bag],[data-btn=inv],[data-btn=inventory],[data-open=inventory]',
+    joy: '#joy.on,#joy-rest,#joy,#joystick,#joyzone,.joy,.joystick,.joy-zone,[data-ctl=joy],[data-btn=joy],[data-btn=move]',
+    attack: '#b-attack,#btn-attack,#attack,.btn-attack,[data-btn=attack],[data-ctl=attack]',
+    skill1: '#b-sk1,#btn-skill1,#skill1,[data-btn=skill1],[data-btn=skill0],[data-skill="0"],[data-skill="1"],.btn-skill,.skill',
+    dodge: '#b-dodge,#btn-dodge,#dodge,.btn-dodge,[data-btn=dodge]',
+    bag: '#b-inv,#btn-bag,#bag,#btn-inv,#btn-inventory,.btn-bag,[data-btn=bag],[data-btn=inv],[data-btn=inventory],[data-open=inventory]',
     minimap: '#minimap,#mini,#hud-map,.minimap,[data-ctl=minimap],[data-btn=map]'
   };
   /* where the control usually sits when its element is not found (x, y as viewport fractions, size in px) */
@@ -63,7 +63,7 @@
   /* ---- DOM ---- */
   const mount = () => { if (T.el) return; const ui = document.getElementById('ui'); if (!ui) return; const col = houseCol();
     const el = document.createElement('div'); el.id = 'tut'; el.className = 'tut'; el.style.setProperty('--hc', col);
-    el.innerHTML = '<div class="tut-wrap"><div class="tut-card"><canvas class="tut-face" width="96" height="96"></canvas><div class="tut-body"><div class="tut-who"></div><div class="tut-txt"></div></div><div class="tut-check">✓</div></div><button class="tut-skip" type="button">SKIP TUTORIAL</button></div><div class="tut-ring"></div>';
+    el.innerHTML = '<div class="tut-wrap"><div class="tut-card"><canvas class="tut-face" width="96" height="96"></canvas><div class="tut-body"><div class="tut-who"></div><div class="tut-txt"></div></div><div class="tut-arrow" aria-hidden="true"></div><div class="tut-check">✓</div><button class="tut-skip" type="button" aria-label="Skip the tutorial">SKIP</button></div></div><div class="tut-ring"></div>';
     ui.appendChild(el); T.el = el; T.card = el.querySelector('.tut-card'); T.ring = el.querySelector('.tut-ring'); T.txt = el.querySelector('.tut-txt'); T.who = el.querySelector('.tut-who'); T.face = el.querySelector('.tut-face');
     el.querySelector('.tut-skip').addEventListener('click', ev => { ev.preventDefault(); T.skip(); }); el.classList.toggle('off', !!(R.ui && R.ui.cur)); drawFace(); };
   const teardown = () => { offAll(); if (T.el) T.el.remove(); T.el = T.card = T.ring = T.txt = T.who = T.face = null; T.step = -1; T.doneAt = null; };
@@ -120,7 +120,7 @@
 
   /* ---- flow ---- */
   const enter = i => { const st = S[i]; if (!st) return; offAll(); T.step = i; T.wait = 0; T.doneAt = null; T.lay = 1;
-    if (T.card) { T.card.classList.remove('ok'); T.txt.textContent = st.txt; const c = coach(); T.who.textContent = (c && c.name ? c.name + ' · ' : '') + 'Master-at-arms · ' + (i + 1) + '/' + N; T.card.classList.remove('in'); void T.card.offsetWidth; T.card.classList.add('in'); }
+    if (T.card) { T.card.classList.remove('ok'); T.txt.textContent = st.txt; const c = coach(); T.who.textContent = (c && c.name ? c.name + ' · ' : '') + (i + 1) + '/' + N; T.card.classList.remove('tut-in'); void T.card.offsetWidth; T.card.classList.add('tut-in'); }
     if (st.on) for (const ev in st.on) on(ev, st.on[ev]);
     try { st.enter && st.enter(); } catch (e) { console.error('tut enter', e); }
     R.bus.emit('tutorial', i, 'enter'); };
@@ -134,10 +134,20 @@
   const findTarget = name => { const o = T.targets[name]; if (typeof o === 'function') { try { return o(); } catch (e) { return null; } } if (o && o.nodeType) return o;
     const sel = typeof o === 'string' ? o : TARGETS[name]; if (!sel) return null;
     for (const s of sel.split(',')) { try { const el = document.querySelector(s.trim()); if (el) return el; } catch (e) {} } return null; };
-  const layoutRing = () => { const ring = T.ring; if (!ring) return; const st = S[T.step]; if (!st || !st.ring || st.ring === 'drop' || st.ring === 'npc' || T.doneAt != null) { ring.style.display = 'none'; return; }
+  /* the arrow on the card points from the card toward the ring (8 directions) */
+  const ARROWS = ['→', '↘', '↓', '↙', '←', '↖', '↑', '↗'];
+  const pointAt = (tx, ty) => { const a = T.el && T.el.querySelector('.tut-arrow'); if (!a || !T.card) return; if (tx == null) { a.textContent = ''; return; }
+    const b = T.card.getBoundingClientRect(), cx = b.left + b.width / 2, cy = b.top + b.height / 2;
+    if (tx >= b.left && tx <= b.right && ty >= b.top && ty <= b.bottom) { a.textContent = ''; return; }
+    const k = Math.round(Math.atan2(ty - cy, tx - cx) / (Math.PI / 4)); const ch = ARROWS[(k + 8) % 8]; if (a.textContent !== ch) a.textContent = ch; };
+  const layoutRing = () => { const ring = T.ring; if (!ring) return; const st = S[T.step];
+    if (st && (st.ring === 'drop' || st.ring === 'npc') && T.doneAt == null) { const e = worldTarget(st.ring); const s = e && R.w2s ? R.w2s(e.x, e.y, 0) : null; pointAt(s && !s.behind ? s.x : null, s && !s.behind ? s.y : null); }
+    else if (!st || !st.ring || T.doneAt != null) pointAt(null);
+    if (!st || !st.ring || st.ring === 'drop' || st.ring === 'npc' || T.doneAt != null) { ring.style.display = 'none'; return; }
     const el = findTarget(st.ring); let x, y, w, h, guess = false;
     if (el) { const b = el.getBoundingClientRect(); if (b.width < 4 || b.height < 4) { ring.style.display = 'none'; return; } x = b.left - 8; y = b.top - 8; w = b.width + 16; h = b.height + 16; }
     else { const g = GUESS[st.ring]; if (!g) { ring.style.display = 'none'; return; } w = h = g[2]; x = g[0] * R.vw - w / 2; y = g[1] * R.vh - h / 2; guess = st.ring !== 'joy'; }
+    pointAt(x + w / 2, y + h / 2);
     ring.style.display = 'block'; ring.style.left = x + 'px'; ring.style.top = y + 'px'; ring.style.width = w + 'px'; ring.style.height = h + 'px'; ring.classList.toggle('guess', guess); ring.classList.toggle('sq', Math.abs(w - h) > 12); };
   /* ---- the ring over a world thing (a drop, the quest npc) on the 2D overlay, with a chevron at the screen edge when it is off screen ---- */
   const worldTarget = kind => { const p = R.player; if (!p) return null; let best = null, bd = Infinity;

@@ -97,7 +97,10 @@
   /* a mob stops at the edge of a safe POI radius */
   C.keepOut = e => {
     if (e.ignoreSafe) return;
+    /* a mob first seen inside a safe radius (spawned there by a quest, an event or a test) may stay in that one: it is never teleported out */
+    const first = !e.koSeen; e.koSeen = 1;
     const pushOut = p => { const sr = C.safeR(p); if (!sr) return; const dx = e.x - p.x, dy = e.y - p.y; if (Math.abs(dx) >= sr || Math.abs(dy) >= sr) return; const d = Math.hypot(dx, dy); if (d >= sr) return;
+      const pid = p.id || (p.x + ',' + p.y); if (first) { (e.koIn = e.koIn || {})[pid] = 1; return; } if (e.koIn && e.koIn[pid]) return;
       if (d < 1e-6) { e.x = p.x + sr + 0.5; return; } const k = (sr + 0.5) / d; e.x = p.x + dx * k; e.y = p.y + dy * k; };
     const L = safePois();
     if (L) { for (const p of L) pushOut(p); return; }
@@ -108,6 +111,11 @@
      o: { kind:'phys'|'fire'|'ice'|'holy', mult, crit (true forces, number = chance), critMult, knock (units), stun/slow (s), burn/bleed (s, true = 3),
           dot ('burn'|'bleed' alias, or truthy for an internal tick), pierce (0..1 of def ignored), noAnim, silent, force }
      returns {src,tgt,dmg,crit,kind,absorbed,killed,blocked} or null when the target cannot be hit. */
+  /* the one damage formula (docs/rpg-balance.md): a hit of the attacker's atk deals B.dmg(atk, def) = atk²/(atk+def); a hit of
+     raw damage d (atk × a skill's mult) deals d × B.dmg(atk, def) / atk, so multipliers stay linear.  Fallback: the same formula. */
+  C.defK = (atk, def) => { atk = Math.max(1e-6, num(atk, 1)); def = Math.max(0, num(def, 0)); if (!def) return 1;
+    const B = R.data.balance; if (B && typeof B.dmg === 'function' && atk >= 8) { try { const v = B.dmg(atk, def); if (v > 0 && isFinite(v)) return Math.min(1, v / atk); } catch (e) {} }
+    return atk / (atk + def); };
   R.hit = C.hit = (src, tgt, dmg, o) => {
     o = o || {};
     if (!tgt || tgt.dead || NOT_HIT[tgt.kind]) return null;
@@ -122,7 +130,7 @@
     if (!dot) {
       if (src && src.status && src.status.atkBuff > t) dmg *= 1.2;
       const def = Math.max(0, num(tgt.def, 0) * (1 - R.clamp(num(o.pierce, 0), 0, 1)));
-      dmg *= 100 / (100 + def);
+      dmg *= C.defK(src && num(src.atk, 0) > 0 ? src.atk : dmg, def);
       if (o.crit === true) crit = true;
       else { let cc = typeof o.crit === 'number' ? o.crit : (src ? num(src.crit, 0) : 0); if (cc > 1) cc /= 100; if (cc > 0 && rnd() < cc) crit = true; }
       if (crit) dmg *= num(o.critMult, 1.6);
@@ -246,12 +254,13 @@
     if (C.isWalker(e)) for (const w of R.near(e.x, e.y, 200, m => m !== e && m.kind === 'mob' && m.team === e.team && C.isWight(m))) { w.lastHitBy = e.lastHitBy || by || e; w.hp = 0; R.kill(w); }
     if (e.summoner && e.summoner.ai && e.summoner.ai.summons) e.summoner.ai.summons = e.summoner.ai.summons.filter(s => s !== e);
     if (R.sfx && fn(R.sfx, 'play')) R.sfx.play('die', 0.6);
-    if (e.noReward) return;
+    if (e.noReward) { e.xpGiven = true; e.looted = true; return; }   /* the player's and the loot module's own 'kill' listeners check these */
     const K = killedMap(); if (K) K[e.type] = (K[e.type] || 0) + 1;
     const xp = C.xpFor(e);
     if (R.player && fn(R.player, 'gainXp')) R.player.gainXp(xp, e);
     else if (R.sys.player && fn(R.sys.player, 'gainXp')) R.sys.player.gainXp(xp, e);
     else if (R.state && R.state.p) { R.state.p.xp = (R.state.p.xp || 0) + xp; R.bus.emit('xp', xp); }
+    e.xpGiven = true;                                   /* xp exactly once per kill, whoever else listens to 'kill' */
     e.gold = C.goldFor(e);
     if (R.loot && fn(R.loot, 'drop')) R.loot.drop(e, by);
     else if (R.state && R.state.p && e.gold > 0) { R.state.p.gold = (R.state.p.gold || 0) + e.gold; R.bus.emit('gold', e.gold); if (R.fx && fn(R.fx, 'num')) R.fx.num(e.x, e.y - 30, '+' + e.gold, '#e3b661'); }

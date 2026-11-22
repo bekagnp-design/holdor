@@ -11,7 +11,9 @@
   const SAFE = 160;         // no spawns inside this radius around a POI
   const FAR = 1400;         // mobs farther than this from the player are despawned
   const CD = 6;             // seconds between spawn batches
-  world.CELL = CELL; world.MASK = MASK; world.POI_R = POI_R; world.SAFE = SAFE; world.FAR = FAR;
+  const SEAT_SAFE = 600;    // no ambient spawns this close to a house seat: the start is calm
+  world.CELL = CELL; world.MASK = MASK; world.POI_R = POI_R; world.SAFE = SAFE; world.FAR = FAR; world.SEAT_SAFE = SEAT_SAFE;
+  world.extraBlocked = null; // fn(x, y, r) → true when something on the ground (09_nature's trees / rocks) stands there; slide checks it
   world.populate = true;    // dungeons / intro set false: no ambient spawns (despawning of far mobs still runs)
   world.cur = null;         // the player's current region id (null = none yet / open sea)
   world.lastGood = null;    // the last player position in an allowed region (gate pushback goes toward it)
@@ -29,7 +31,7 @@
     polys = (d.regions || []).map(r => (r.poly && r.poly.length >= 3) ? r.poly.map(p => [P(p, 0), P(p, 1)]) : null);
     return d;
   };
-  world.reset = () => { bound = null; cache = null; world.cur = null; world.lastGood = null; inside = {}; };
+  world.reset = () => { bound = null; cache = null; world.cur = null; world.lastGood = null; inside = {}; cd = 0; };
   world.size = () => { const d = W(); return (d && d.size && d.size.length === 2) ? d.size : [R.W || 7200, R.H || 12288]; };
   world.inWorld = (x, y) => { const s = world.size(); return x >= 0 && y >= 0 && x < s[0] && y < s[1]; };
   world.regions = () => { const d = W(); return (d && d.regions) || []; };
@@ -69,13 +71,19 @@
   };
   world.walkable = (x, y) => !world.blocked(x, y);
 
-  // moves e by (dx,dy) with an axis-separated slide against the mask; an entity already inside a wall may leave it
+  // things standing on the ground (trees, boulders: 09_nature's R.nature.blockedAt) and anything chained on world.extraBlocked
+  world.obstacleAt = (x, y, r) => { try { if (typeof world.extraBlocked === 'function' && world.extraBlocked(x, y, r)) return true;
+    const N = R.nature; return !!(N && typeof N.blockedAt === 'function' && N.blockedAt(x, y, r || 0)); } catch (e) { return false; } };
+  // moves e by (dx,dy) with an axis-separated slide against the mask and the ground obstacles; an entity already inside a wall
+  // (or a tree) may leave it. Two forms: slide(e, dx, dy) → moved?  ·  slide(x, y, nx, ny, r) → {x, y} (21_player's contract)
   const sgn = v => (v > 0 ? 1 : v < 0 ? -1 : 0);
-  world.slide = (e, dx, dy) => {
+  world.slide = (e, dx, dy, ny0, r0) => {
+    if (typeof e === 'number') { const q = { x: e, y: dx, r: r0 || 12 }; if (typeof dy === 'number' && typeof ny0 === 'number') world.slide(q, dy - e, ny0 - dx); return { x: q.x, y: q.y }; }
     if (!e || (!dx && !dy)) return false;
-    const r = Math.min(e.r || 12, 40) * 0.6, free = world.blocked(e.x, e.y); let moved = false;
-    if (dx) { const nx = e.x + dx; if (free || (!world.blocked(nx, e.y) && !world.blocked(nx + sgn(dx) * r, e.y))) { e.x = nx; moved = true; } else if (e.vx) e.vx = 0; }
-    if (dy) { const ny = e.y + dy; if (free || (!world.blocked(e.x, ny) && !world.blocked(e.x, ny + sgn(dy) * r))) { e.y = ny; moved = true; } else if (e.vy) e.vy = 0; }
+    const r = Math.min(e.r || 12, 40) * 0.6, free = world.blocked(e.x, e.y), fly = !!(e.fly || e.kind === 'drop' || e.ghost);
+    const or = Math.min(e.r || 12, 24) * 0.5, inObst = fly || world.obstacleAt(e.x, e.y, or); let moved = false;
+    if (dx) { const nx = e.x + dx; if ((free || (!world.blocked(nx, e.y) && !world.blocked(nx + sgn(dx) * r, e.y))) && (inObst || !world.obstacleAt(nx, e.y, or))) { e.x = nx; moved = true; } else if (e.vx) e.vx = 0; }
+    if (dy) { const ny = e.y + dy; if ((free || (!world.blocked(e.x, ny) && !world.blocked(e.x, ny + sgn(dy) * r))) && (inObst || !world.obstacleAt(e.x, ny, or))) { e.y = ny; moved = true; } else if (e.vy) e.vy = 0; }
     const s = world.size(); e.x = R.clamp(e.x, 0, s[0] - 1); e.y = R.clamp(e.y, 0, s[1] - 1);
     return moved;
   };
@@ -101,16 +109,20 @@
     for (let t = 0; t < tries && out.length < n; t++) {
       const a = rng() * Math.PI * 2, dist = min + (max - min) * rng(), px = x + Math.cos(a) * dist, py = y + Math.sin(a) * dist;
       if (!world.inWorld(px, py) || world.blocked(px, py) || (safe > 0 && world.inPoi(px, py, safe))) continue;
+      if (o.seats && world.nearSeat(px, py, o.seats > 1 ? o.seats : SEAT_SAFE)) continue;            // o.seats: keep the house seats calm
       if (home && t < tries / 2 && world.regionAt(px, py) !== home) continue;      // prefer the home region, relax after half the tries
       out.push({ x: Math.round(px), y: Math.round(py) });
     }
     return out;
   };
+  world.seats = () => world.pois().filter(p => p.seat);
+  world.nearSeat = (x, y, r = SEAT_SAFE) => { for (const p of world.pois()) if (p.seat && (p.x - x) ** 2 + (p.y - y) ** 2 < r * r) return p; return null; };
   world.spawnTableAt = (x, y) => { const d = W(); if (!d || !d.spawns) return null; const rg = world.regionAt(x, y); if (!rg) return null; return d.spawns.find(s => s.region === rg.id) || null; };
 
   // where a new character of this house stands: the house seat POI, 20 units south of its marker
   world.startPos = house => {
     const d = W(), s = world.size(), fall = { x: s[0] / 2, y: s[1] / 2 }; if (!d) return fall;
+    if (typeof d.startPos === 'function' && d.start && d.start[house]) { try { const q = d.startPos(house); if (q && typeof q.x === 'number' && !world.blocked(q.x, q.y)) return { x: q.x, y: q.y }; } catch (e) {} }
     const st = d.start, ps = world.pois(); let p = null;
     if (st) { const id = typeof st === 'string' ? st : st[house]; if (typeof id === 'string') p = world.poi(id); }
     if (!p) p = ps.find(q => q.house === house && q.seat) || ps.find(q => q.house === house && q.type === 'castle') || ps.find(q => q.house === house) || null;
@@ -124,28 +136,41 @@
   const store = () => { let s = null; try { s = R.acc ? R.acc() : null; } catch (e) {} s = s && s.world; if (!s) s = R.state && R.state.p; return s || null; };
   world.store = store;
   const flags = () => { const S = store(); if (!S) return null; return S.flags = S.flags || {}; };
-  world.gateOpen = id => { const rg = typeof id === 'string' ? world.regionOf(id) : id; if (!rg || !rg.gate) return true; const f = flags(); return !!(f && f['gate:' + rg.id]); };
+  // the player's house: its home region (rg.home, or the data's gates[].homeOf) is never gated for him
+  world.house = () => { try { const a = R.acc ? R.acc() : null; return (a && a.house) || (R.state && R.state.acc && R.state.acc.house) || (R.state && R.state.p && R.state.p.house) || null; } catch (e) { return null; } };
+  world.isHome = rg => { const h = world.house(); if (!h || !rg) return false; if (rg.home === h) return true;
+    const d = W(), g = d && Array.isArray(d.gates) ? d.gates.find(q => q && q.region === rg.id) : null; return !!(g && Array.isArray(g.homeOf) && g.homeOf.indexOf(h) >= 0); };
+  world.gateOpen = id => { const rg = typeof id === 'string' ? world.regionOf(id) : id; if (!rg || !rg.gate) return true; if (world.isHome(rg)) return true; const f = flags(); return !!(f && f['gate:' + rg.id]); };
   world.openGate = id => { const f = flags(); if (!f || f['gate:' + id]) return false; f['gate:' + id] = 1; R.save(); R.bus.emit('gate', id, true); return true; };
-  const bossName = id => { const B = R.data && R.data.bosses; const b = B ? (Array.isArray(B) ? B.find(x => x && x.id === id) : B[id]) : null; return (b && b.name) || id || 'its guardian'; };
+  // the display name of a boss: R.boss / R.bosses (13_bosses) or R.data.bosses (array or map), never a raw id
+  const bossName = id => { let b = null; try { const B = R.data && R.data.bosses; b = B ? (Array.isArray(B) ? B.find(x => x && x.id === id) : (B[id] || Object.values(B).find(x => x && x.id === id))) : null;
+      if (!b) { const S = R.bosses || R.boss; const L = S && (S.list || S.defs || S.data); if (L) b = Array.isArray(L) ? L.find(x => x && x.id === id) : L[id]; } } catch (e) { b = null; }
+    if (b && b.name) return b.name; return 'its guardian'; };
+  world.bossName = bossName;
   // a region boss dies → its gate opens (the boss module may also set the flag itself; this is the safety net)
   R.bus.on('kill', e => { if (!e || (e.kind !== 'boss' && !e.boss)) return; const key = e.type || e.boss || e.bossId;
     for (const rg of world.regions()) if (rg.gate && rg.gate.boss === key && !world.gateOpen(rg) && world.openGate(rg.id) && R.ui && R.ui.toast) R.ui.toast('The way to ' + (rg.name || rg.id) + ' is open', '#8be26a'); });
 
   /* ---- the watcher: region changes, gate pushback, POI discovery (every 0.5 s) ---- */
   let acc = 0, toastT = -9, inside = {};
+  // back toward the last good spot (always known here: no last good spot = no pushback), at most PUSH units per check and never
+  // onto a blocked cell (then straight onto the last good spot, which was walkable); the next check pushes again while still inside
+  const PUSH = 60; world.PUSH = PUSH;
   const pushBack = (p, rg) => {
-    const lg = world.lastGood; let dx = 0, dy = 1;
-    if (lg) { const L = Math.hypot(lg.x - p.x, lg.y - p.y); if (L > 1) { dx = (lg.x - p.x) / L; dy = (lg.y - p.y) / L; } }
-    for (let i = 0; i < 12 && world.regionAt(p.x, p.y) === rg; i++) { p.x += dx * 40; p.y += dy * 40; }   // 40 units back, more only while still inside
-    if (lg && world.regionAt(p.x, p.y) === rg) { p.x = lg.x; p.y = lg.y; }
+    const lg = world.lastGood; if (!lg) return;
+    const L = Math.hypot(lg.x - p.x, lg.y - p.y);
+    if (L <= PUSH) { p.x = lg.x; p.y = lg.y; }
+    else { const nx = p.x + (lg.x - p.x) / L * PUSH, ny = p.y + (lg.y - p.y) / L * PUSH; if (world.blocked(nx, ny)) { p.x = lg.x; p.y = lg.y; } else { p.x = nx; p.y = ny; } }
     p.vx = 0; p.vy = 0;
-    if (R.t - toastT > 2) { toastT = R.t; if (R.ui && R.ui.toast) R.ui.toast('The way north is held by ' + bossName(rg.gate && rg.gate.boss) + ' — defeat it first', '#f0b060'); R.bus.emit('gate', rg.id, false); }
+    if (R.t - toastT > 2) { toastT = R.t; if (R.ui && R.ui.toast) R.ui.toast('The way into ' + (rg.name || rg.id) + ' is held by ' + bossName(rg.gate && rg.gate.boss) + ' — defeat it first', '#f0b060'); R.bus.emit('gate', rg.id, false); }
   };
   world.enterCheck = () => {
     const p = R.player; if (!p || !W()) return;
     const S = store(), rg = world.regionAt(p.x, p.y), id = rg ? rg.id : null;
     if (id !== world.cur) {
-      if (rg && !world.gateOpen(rg)) { pushBack(p, rg); return; }     // refused: the player stays in the previous region
+      // refused: the player stays in the previous region. Only a WALK into a gated region is refused: the first placement
+      // (a load, a new hero, no region yet and no last good spot) and dungeons (populate off, blocked swapped) are accepted
+      if (rg && !world.gateOpen(rg) && world.lastGood && !(R.dungeons && R.dungeons.active) && !(R.dg && R.dg.active)) { pushBack(p, rg); return; }
       world.cur = id;
       if (rg) { if (S) { const f = flags(); const dr = f.regions = f.regions || {}; if (!dr[id]) { dr[id] = 1; R.save(); } } R.bus.emit('enter', id, rg); }
     }
@@ -175,7 +200,7 @@
     if (!tab || !tab.mobs || !tab.mobs.length) return 0;
     const dens = tab.density == null ? 1 : tab.density, lo = Math.round(8 * dens), hi = Math.max(lo, Math.round(14 * dens));
     const live = world.liveMobs().length; if (live >= lo) return 0;
-    const tgt = lo + Math.floor(rng() * (hi - lo + 1)), pts = world.spawnAround(p.x, p.y, tgt - live, { rng });
+    const tgt = lo + Math.floor(rng() * (hi - lo + 1)), pts = world.spawnAround(p.x, p.y, tgt - live, { rng, seats: true });
     const la = tab.lvl ? tab.lvl[0] : 1, lb = tab.lvl ? tab.lvl[1] : la;
     for (const q of pts) world.spawnMob(pick(tab.mobs, rng), q.x, q.y, la + Math.floor(rng() * (lb - la + 1)));
     return pts.length;

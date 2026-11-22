@@ -52,15 +52,25 @@
     banner: { name: 'Banner', beh: 'banner', w: 20, h: 40, r: 4, spd: 0, flee: 0, fleeR: 0, group: [1, 1], place: 'castle', wt: 0, prop: 1, z: 70, note: 'flaps in the house colour' } };
   for (const k in S) S[k].id = k;
   W.BIOMES = { north: ['hare', 'deer', 'raven', 'wolf'], reach: ['sheep', 'chicken', 'butterfly', 'raven'], crownlands: ['sheep', 'chicken', 'butterfly', 'raven'],
-    riverlands: ['heron', 'frog', 'butterfly'], dorne: ['lizard', 'vulture', 'scorpion'], coast: ['gull', 'crab'], beyond: ['snowfox', 'eyes', 'mammoth'] };
+    riverlands: ['heron', 'frog', 'butterfly'], dorne: ['lizard', 'vulture', 'scorpion'], coast: ['gull', 'crab'], beyond: ['snowfox', 'eyes', 'mammoth'],
+    // the real regions of 11_world_data.js that need their own mix (every place different)
+    wolfswood: ['deer', 'wolf', 'raven', 'eyes'], stormlands: ['deer', 'hare', 'frog', 'raven'], westerlands: ['hare', 'deer', 'lizard', 'raven'],
+    vale: ['hare', 'raven', 'vulture', 'lizard'], iron: ['gull', 'crab', 'raven'], ash: ['gull', 'crab', 'lizard', 'raven'], wall: ['snowfox', 'raven', 'wolf'] };
   const EXTRA = { riverlands: [{ id: 'fish', name: 'Fish', when: 'any', note: 'jump with a splash every 6–10 s' }] };
   // the biome of a region (A07's data, any naming): beyond | north | coast | riverlands | dorne | crownlands | reach, null for no region
   const BIO = [[/beyond|always|winter|frostfang|haunted|thenn/, 'beyond'], [/north|wolfswood|barrow|gift|wall|vale|mountain|moon|snow|frost|ice|tundra/, 'north'],
     [/iron|coast|shore|island|sea|bay|salt|stepstone|pyke/, 'coast'], [/river|trident|neck|marsh|swamp|lake|god/, 'riverlands'], [/dorne|desert|sand|dune|red/, 'dorne'],
     [/crown|king|dragonstone|blackwater/, 'crownlands'], [/reach|storm|west|plain|grass|forest|wood|field|garden|lannis|rock|sun|wet|hot|cold/, 'reach']];
-  W.biomeOf = reg => { if (!reg) return null; if (typeof reg === 'string') reg = { biome: reg }; const s = String(reg.biome || reg.id || reg.name || '').toLowerCase(); if (!s) return null;
+  // the region ids of 11_world_data.js win over the biome word (its 'wall' biome covers the Wall, beyond and the Lands of Always Winter)
+  W.REGION_BIOME = { dorne: 'dorne', reach: 'reach', stormlands: 'stormlands', westerlands: 'westerlands', ironislands: 'iron', dragonstone: 'ash', north: 'north',
+    crownlands: 'crownlands', westcoast: 'coast', riverlands: 'riverlands', vale: 'vale', farnorth: 'north', wall: 'wall', beyond: 'beyond', winter: 'beyond' };
+  W.biomeOf = reg => { if (!reg) return null; if (typeof reg === 'string') reg = { biome: reg };
+    const id = String(reg.id || '').toLowerCase(); if (id && W.REGION_BIOME[id] && W.BIOMES[W.REGION_BIOME[id]]) return W.REGION_BIOME[id];
+    const s = String(reg.biome || reg.id || reg.name || '').toLowerCase(); if (!s) return null;
     if (W.BIOMES[s]) return s; for (const [re, b] of BIO) if (re.test(s)) return b; return 'reach'; };
-  W.biomeAt = (x, y) => { const w = world(); if (!w || !fn(w, 'regionAt')) return null; try { return W.biomeOf(w.regionAt(x, y)); } catch (e) { return null; } };
+  // the Wolfswood: the west of the Far North (around Deepwood Motte) is its own forest
+  W.biomeAt = (x, y) => { const w = world(); if (!w || !fn(w, 'regionAt')) return null; try { const rg = w.regionAt(x, y), b = W.biomeOf(rg);
+    if (rg && rg.id === 'farnorth' && x < 3100) return 'wolfswood'; return b; } catch (e) { return null; } };
   W.describe = biome => { const b = (biome && typeof biome === 'object') ? W.biomeOf(biome) : (W.BIOMES[biome] ? biome : W.biomeOf(biome)); if (!b) return [];
     return (W.BIOMES[b] || []).map(id => ({ id, name: S[id].name, when: S[id].when || 'any', note: S[id].note })).concat(EXTRA[b] || []); };
   W.list = () => R.ents.filter(e => e.kind === 'critter' && !e.dead && !e.prop);

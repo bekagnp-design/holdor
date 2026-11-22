@@ -44,8 +44,11 @@
   P.STEP_T = 0.28; P.RIPPLE_T = 0.4; P.HITSTOP = 0.045; P.FLASH = 0.08; P.BIG_HIT = 0.15;
   P.TELEPORT = 60; P.SLOPE_DX = 8; P.STEEP = 0.9; P.UP_MAX = 0.35; P.DOWN_MAX = 0.15; P.WADE = 0.55; P.WADE_D = 0.5;
   P.ARROW_VZ = 120; P.STUCK_T = 6; P.PRINT_T = 10; P.RIPPLE_LIFE = 0.9; P.SAMPLE_T = 0.049; P.MOVING = 20;
-  P.prints = []; P.stuck = []; P.ripples = []; P.stats = { ms: 0, movers: 0, steps: 0 };
+  P.ACC = 1450; P.BRAKE = 1750; P.ICE_GRIP = 0.14; P.DODGE_EXIT = 0.45; P.SUB = 6; P.FALL_V = 160; P.SWIM = 0.4; P.UP_DEAD = 0.06;
+  P.KILL_V = 170; P.LAND_V = 220; P.UNSTICK_V = 150;
+  P.prints = []; P.stuck = []; P.ripples = []; P.stats = { ms: 0, movers: 0, steps: 0, cols: 0 };
   const MOVER = { player: 1, companion: 1, mob: 1, boss: 1, npc: 1 };
+  const LIGHT = { critter: 1 };                       /* collide with trees / rocks / walls only (no terrain feel, no footsteps) */
   const fn = (o, k) => (o && typeof o[k] === 'function' ? o[k] : null);
   const num = (v, d) => (typeof v === 'number' && isFinite(v) ? v : d);
   const hyp = Math.hypot, now = () => (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now());
@@ -64,7 +67,12 @@
   };
   const regAt = (x, y) => { const f = fn(R.world, 'regionAt'); if (!f) return null; try { return f(x, y); } catch (e) { return null; } };
   const regStr = r => (r ? ((r.biome || '') + ' ' + (r.id || '') + ' ' + (r.name || '')).toLowerCase() : '');
-  P.climateAt = (x, y) => { const s = regStr(regAt(x, y)); return COLD.test(s) ? 'cold' : SAND.test(s) ? 'sand' : 'temperate'; };
+  const climOf = s => (COLD.test(s) ? 'cold' : SAND.test(s) ? 'sand' : 'temperate');
+  P.climateAt = (x, y) => climOf(regStr(regAt(x, y)));
+  /* ice: frozen water in the cold, and glassy patches (a fixed noise field, ~20 % of the ground) beyond the Wall / in the Always Winter */
+  const ICE_RG = /winter|beyond|glacier|always/;
+  P.icePatch = (x, y) => Math.sin(x * 0.0041 + 1.3) * Math.cos(y * 0.0037 - 0.7) + 0.5 * Math.sin((x + y) * 0.0093) > 0.55;
+  P.iceAt = (x, y) => { const rs = regStr(regAt(x, y)); if (climOf(rs) !== 'cold') return false; return P.depthAt(x, y) > 0 || (ICE_RG.test(rs) && P.icePatch(x, y)); };
   P.depthAt = (x, y) => {
     const f = fn(R.water, 'depth');
     if (f) { let d = 0; try { d = num(f(x, y), 0); } catch (e) { d = 0; } return d < 0 ? 0 : d > 1 ? 1 : d; }
@@ -87,20 +95,20 @@
     if (!force && e.physT != null && R.t - e.physT < P.SAMPLE_T) return;
     e.physT = R.t;
     e.grad = e.fly ? null : P.gradAt(e.x, e.y); e.steep = !!(e.grad && e.grad.m > P.STEEP);
-    e.clim = P.climateAt(e.x, e.y);
-    const d = e.fly ? 0 : P.depthAt(e.x, e.y); e.depth = d; e.onIce = d > 0 && e.clim === 'cold';
+    const rs = regStr(regAt(e.x, e.y)); e.clim = climOf(rs);
+    const d = e.fly ? 0 : P.depthAt(e.x, e.y); e.depth = d; e.onIce = e.clim === 'cold' && (d > 0 || (ICE_RG.test(rs) && P.icePatch(e.x, e.y)));
   };
   /* the displacement (dx,dy) of length d, corrected by the entity's cached terrain samples: the uphill part of a > 0.9 slope
      is removed (a wall you can still walk along), gentler slopes slow up to 35 % / speed 15 % downhill, water scales by depth */
   const correct = (e, dx, dy, d) => {
     let tx = dx, ty = dy; if (e.fly || !(d > 1e-9)) return [tx, ty];
     const g = e.grad;
-    if (g && g.m > 1e-6) {
+    if (g && g.m > P.UP_DEAD) {
       const ux = g.x / g.m, uy = g.y / g.m, up = dx * ux + dy * uy;            /* units climbed along the uphill direction */
       if (up > 0) { if (g.m > P.STEEP) { tx -= up * ux; ty -= up * uy; } else { const k = 1 - Math.min(P.UP_MAX, up / d * g.m * 0.7); tx *= k; ty *= k; } }
       else if (up < 0) { const k = 1 + Math.min(P.DOWN_MAX, -up / d * g.m * 0.5); tx *= k; ty *= k; }
     }
-    const dp = e.depth || 0; if (dp > 0 && !e.onIce) { const k = dp >= P.WADE_D ? P.WADE : 1 - (1 - P.WADE) * (dp / P.WADE_D); tx *= k; ty *= k; }
+    const dp = e.depth || 0; if (dp > 0 && !e.onIce) { const k = dp >= 1 ? P.SWIM : dp >= P.WADE_D ? P.WADE : 1 - (1 - P.WADE) * (dp / P.WADE_D); tx *= k; ty *= k; }
     return [tx, ty];
   };
   P.speedFactor = (e, dx, dy) => { const d = hyp(dx, dy); if (!(d > 1e-9)) return 1; const c = correct(e, dx, dy, d); return hyp(c[0], c[1]) / d; };
@@ -115,11 +123,55 @@
     const sl = !e.fly && fn(R.world, 'slide'); if (sl) { if (sl.length >= 4) { const q = sl(e.x, e.y, e.x + dx, e.y + dy, e.r); if (q && typeof q.x === 'number') { e.x = q.x; e.y = q.y; } } else sl(e, dx, dy); return; }
     e.x = R.clamp(e.x + dx, 0, R.W || 1e9); e.y = R.clamp(e.y + dy, 0, R.H || 1e9);
   };
+  /* ---- colliders: circles from A43's chunks (rocks = ch.obst, tree trunks / farms / mills from ch.recs), the four towers of every
+     seat castle (A37's castle: corners at ±150·1.45, radius 26·1.45) and P.extra (tests / other modules: {x,y,r}). A 60-unit grid,
+     rebuilt when the chunk set changes. Entities collide with their body (0.55 × e.r, ≤ 11), not their hit radius. ---- */
+  const TREE = P.TREE = { pine_l: 7, pine_m: 6, pine_s: 4.5, birch: 4.5, deadtree: 5, blackpine: 6.5, weirwood: 10, willow: 7, oak: 7, fir: 6, elm: 7, benttree: 6, goldtree: 7, palm: 5, cactus: 6, stump: 6, farm: 15, mill: 16, haystack: 9 };
+  const CC = 60; let grid = new Map(), gridSig = null; P.extra = P.extra || []; P.colliderCount = 0;
+  const gk = (cx, cy) => cx * 4099 + cy;
+  const addC = (x, y, r) => { if (!(r > 0) || !isFinite(x) || !isFinite(y)) return; const o = { x, y, r }; P.colliderCount++;
+    for (let cx = Math.floor((x - r) / CC), cx1 = Math.floor((x + r) / CC); cx <= cx1; cx++) for (let cy = Math.floor((y - r) / CC), cy1 = Math.floor((y + r) / CC); cy <= cy1; cy++) { const k = gk(cx, cy); let a = grid.get(k); if (!a) grid.set(k, a = []); a.push(o); } };
+  const seatPois = () => { const W = R.data && R.data.world, ps = W && W.pois; if (!ps) return []; return (Array.isArray(ps) ? ps : Object.values(ps)).filter(q => q && q.seat && (q.type === 'castle' || q.kind === 'castle') && typeof q.x === 'number'); };
+  P.towers = () => { const out = []; for (const q of seatPois()) for (const c of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) out.push({ x: q.x + c[0] * 217.5, y: q.y + c[1] * 217.5, r: 37 }); return out; };
+  P.rebuildColliders = () => {
+    grid = new Map(); P.colliderCount = 0; const N = R.nature;
+    if (N && N.chunks && typeof N.chunks.values === 'function') for (const ch of N.chunks.values()) { if (!ch) continue;
+      for (const o of ch.obst || []) addC(o.x, o.y, o.r);
+      const rc = ch.recs || {}; for (const t in rc) { const tr = TREE[t]; if (!tr) continue; for (const q of rc[t]) addC(q.x, q.y, tr * num(q.s, 1)); } }
+    for (const o of P.towers()) addC(o.x, o.y, o.r);
+    for (const o of P.extra) if (o) addC(o.x, o.y, o.r);
+  };
+  const colSig = () => { const N = R.nature; let sg = P.extra.length + '|' + ((R.data && R.data.world && R.data.world.pois) ? 1 : 0) + '|';
+    if (N && N.chunks && typeof N.chunks.forEach === 'function') N.chunks.forEach((ch, k) => { sg += k + ':' + (ch && ch.n || 0) + ';'; }); return sg; };
+  const bodyR = e => Math.min(11, 0.55 * num(e.r, 12));
+  /* push e out of every collider it overlaps (two passes); returns true when it touched one */
+  P.collide = e => {
+    if (!grid.size || e.fly || e.noCollide2) return false;
+    const br = bodyR(e); let hit = false;
+    for (let pass = 0; pass < 2; pass++) { let moved = false;
+      const cx0 = Math.floor((e.x - br) / CC), cx1 = Math.floor((e.x + br) / CC), cy0 = Math.floor((e.y - br) / CC), cy1 = Math.floor((e.y + br) / CC);
+      for (let cx = cx0; cx <= cx1; cx++) for (let cy = cy0; cy <= cy1; cy++) { const a = grid.get(gk(cx, cy)); if (!a) continue;
+        for (const o of a) { const dx = e.x - o.x, dy = e.y - o.y, min = o.r + br; if (dx > min || dx < -min || dy > min || dy < -min) continue; const d2 = dx * dx + dy * dy; if (d2 >= min * min) continue;
+          const d = Math.sqrt(d2); let ux, uy; if (d > 1e-6) { ux = dx / d; uy = dy / d; } else { ux = 1; uy = 0; }
+          const nx = o.x + ux * (min + 0.01), ny = o.y + uy * (min + 0.01);
+          if (!blockedAt(nx, ny)) { e.x = nx; e.y = ny; moved = hit = true; }
+          const I = e.imp; if (I) { const vn = I.x * ux + I.y * uy; if (vn < 0) { I.x -= vn * ux * 1.3; I.y -= vn * uy * 1.3; } } } }
+      if (!moved) break; }
+    return hit;
+  };
+  P.collidersNear = (x, y, r) => { const out = [], seen = new Set(); for (let cx = Math.floor((x - r) / CC); cx <= Math.floor((x + r) / CC); cx++) for (let cy = Math.floor((y - r) / CC); cy <= Math.floor((y + r) / CC); cy++) { const a = grid.get(gk(cx, cy)); if (a) for (const o of a) if (!seen.has(o)) { seen.add(o); out.push(o); } } return out; };
+  const blockedAt = (x, y) => { const b = fn(R.world, 'blocked'); if (!b) return false; try { return !!b(x, y); } catch (e) { return false; } };
+  P.blockedAt = blockedAt;
+  /* a displacement in sub-steps of ≤ P.SUB units, each slid against the mask and pushed out of colliders: no tunnelling */
+  P.move = (e, dx, dy) => {
+    if (!dx && !dy) return; const n = Math.min(12, Math.max(1, Math.ceil(Math.max(Math.abs(dx), Math.abs(dy)) / P.SUB)));
+    for (let i = 0; i < n; i++) { P.moveEnt(e, dx / n, dy / n); P.collide(e); }
+  };
   P.impulse = (e, ix, iy, o) => {
     if (!e || (!ix && !iy) || !isFinite(ix) || !isFinite(iy)) return e;
-    o = o || {}; let k = o.raw ? 1 : (e.kind === 'boss' ? 0.15 : P.isBig(e) ? 0.3 : 1);
+    o = o || {}; const m = P.massOf(e); let k = o.raw ? 1 : (e.kind === 'boss' ? 0.15 : m >= 1.4 ? 0.57 / m : 1 / Math.max(0.5, m));
     const I = e.imp = e.imp || { x: 0, y: 0 }; I.x += ix * k; I.y += iy * k;
-    const m = hyp(I.x, I.y); if (m > 1200) { I.x *= 1200 / m; I.y *= 1200 / m; }
+    const im = hyp(I.x, I.y); if (im > 1200) { I.x *= 1200 / im; I.y *= 1200 / im; }
     e.impT = R.t; return e;
   };
   P.vel = e => (e && e.vel) || { x: 0, y: 0 };
@@ -184,10 +236,14 @@
     P.freeze(t); P.flashEnt(t);
     const sh = fn(R.fx, 'shake'); if (sh) sh(Math.min(14, 3 + 40 * frac), 0.18);
   });
-  R.bus.on('kill', e => {
+  /* a mob that dies tumbles: along its knock when it had one, else launched away from the killing blow (P.KILL_V u/s) */
+  R.bus.on('kill', (e, by) => {
     if (P.off || !e || e.tumble) return;
     const I = e.imp, recent = (e.impT != null && R.t - e.impT < 0.5) || (I && hyp(I.x, I.y) > 30);
-    if (recent) P.tumble(e, I && (I.x || I.y) ? I : null);
+    if (recent) { P.tumble(e, I && (I.x || I.y) ? I : null); return; }
+    if (!by || noTumble(e)) return;
+    const dx = e.x - num(by.x, e.x), dy = e.y - num(by.y, e.y), m = hyp(dx, dy); if (!(m > 1e-6)) return;
+    P.impulse(e, dx / m * P.KILL_V, dy / m * P.KILL_V, { src: by }); P.tumble(e, { x: dx, y: dy });
   });
   R.bus.on('spawn', e => { if (isMover(e)) e.prev = { x: e.x, y: e.y }; });
 
@@ -254,22 +310,85 @@
     R.bus.emit('land', p); R.bus.emit('projend', p);
     return true;
   };
+  /* the hero's weight: his own displacement becomes a target velocity (slope / water corrected) that his real velocity e.walk reaches at
+     P.ACC (full speed in ~0.12 s) and leaves at P.BRAKE (a stop in ~0.1 s, a reversal in ~0.2 s); on ice both × P.ICE_GRIP, so he
+     slides. A dodge is immediate (its exit is capped at 45 % of the walk speed so it does not skid on). A wall or a tree that stops
+     him also stops his velocity. */
+  const heroStep = (e, dx, dy, d2, dt, held) => {
+    const W = e.walk || (e.walk = { x: 0, y: 0 });
+    if (held) { e.x -= dx; e.y -= dy; return; }
+    let tx = dx, ty = dy; if (d2 > 1e-8) { const c = correct(e, dx, dy, Math.sqrt(d2)); tx = c[0]; ty = c[1]; }
+    const ivx = tx / dt, ivy = ty / dt; let dodge = false; try { dodge = typeof e.dodging === 'function' && !!e.dodging(); } catch (x) { dodge = false; }
+    if (dodge) { W.x = ivx; W.y = ivy; e.wasDodge = true; }
+    else {
+      if (e.wasDodge) { e.wasDodge = false; const m = hyp(W.x, W.y), cap = Math.max(hyp(ivx, ivy), num(e.spd, 170) * P.DODGE_EXIT); if (m > cap) { W.x *= cap / m; W.y *= cap / m; } }
+      const grip = e.onIce ? P.ICE_GRIP : 1, ddx = ivx - W.x, ddy = ivy - W.y, dm = hyp(ddx, ddy);
+      if (dm > 1e-9) { const im = hyp(ivx, ivy), wm = hyp(W.x, W.y), along = wm > 1e-6 ? (ivx * W.x + ivy * W.y) / wm : im;
+        const st = (im > 1 && along >= wm - 1 ? P.ACC : P.BRAKE) * grip * dt; if (dm <= st) { W.x = ivx; W.y = ivy; } else { W.x += ddx / dm * st; W.y += ddy / dm * st; } }
+    }
+    const x0 = e.x - dx, y0 = e.y - dy, wx = W.x * dt, wy = W.y * dt;
+    if (Math.abs(wx - dx) > 1e-9 || Math.abs(wy - dy) > 1e-9) P.move(e, wx - dx, wy - dy); else P.collide(e);
+    const ax = (e.x - x0) / dt, ay = (e.y - y0) / dt; if (hyp(ax, ay) < hyp(W.x, W.y) - 1) { W.x = ax; W.y = ay; }
+  };
+  /* falling: when the ground drops away faster than P.FALL_V u/s (a bank taken at a sprint, a dodge off a ledge) the hero leaves it,
+     falls with P.G and lands: 'landed'(e, speed) and, over P.LAND_V u/s, a camera kick + dust */
+  const land = (e, v) => {
+    R.bus.emit('landed', e, v);
+    if (v < P.LAND_V) return; e.landT = R.t;
+    const sh = fn(R.fx, 'shake'); if (sh) try { sh(Math.min(10, 2 + v / 70), 0.16); } catch (x) {}
+    const sp = fn(R.fx, 'spawn'); if (sp) try { sp('dust', e.x, e.y + 2, { col: DUST[e.surface] || DUST.grass, n: 3 }); } catch (x) {}
+    if (R.sfx && typeof R.sfx.play === 'function') try { R.sfx.play('land', Math.min(1, v / 500)); } catch (x) {}
+  };
+  const fallStep = (e, dt) => {
+    if (e.fly || e.tumble) return;
+    const g = P.heightAt(e.x, e.y), gp = e.gy; e.gy = g; if (gp == null) return;
+    let z = num(e.z, 0), vz = num(e.vz, 0);
+    if (!e.air) { const drop = gp - g; if (drop / dt > P.FALL_V && z <= 0.01) { e.air = true; z = drop; vz = 0; } else return; }
+    else z += gp - g;
+    vz -= P.G * dt; z += vz * dt;
+    if (z <= 0) { z = 0; e.air = false; const v = -vz; vz = 0; land(e, v); }
+    e.z = z; e.vz = vz;
+  };
+  /* nothing ends inside a blocked cell: back to where it was; an entity that was already inside (spawned there) walks out toward the
+     nearest free point at P.UNSTICK_V u/s (never a teleport). NPCs and bosses are only ever put back, never walked. */
+  const DIRS = []; for (let k = 0; k < 8; k++) DIRS.push([Math.cos(k * Math.PI / 4), Math.sin(k * Math.PI / 4)]);
+  const unstick = (e, x0, y0, dt) => {
+    if (e.fly || !blockedAt(e.x, e.y)) return false;
+    if (!blockedAt(x0, y0)) { e.x = x0; e.y = y0; if (e.imp) { e.imp.x = 0; e.imp.y = 0; } if (e.walk) { e.walk.x = 0; e.walk.y = 0; } return true; }
+    if (e.kind === 'npc' || e.kind === 'boss') return false;
+    for (const r of [24, 48, 96, 160, 240, 360]) for (const d of DIRS) if (!blockedAt(e.x + d[0] * r, e.y + d[1] * r)) { e.x += d[0] * P.UNSTICK_V * dt; e.y += d[1] * P.UNSTICK_V * dt; return true; }
+    return false;
+  };
+  /* critters: trees / rocks / walls and the mask, nothing else (their own module moves them; flyers and perches are left alone) */
+  const lightStep = (e, dt) => {
+    if (e.dead || e.fly || num(e.z, 0) > 20 || (e.ai && (e.ai.st === 'fly' || e.ai.st === 'perch'))) { e.prev = null; return; }
+    const pv = e.prev; if (!pv) { e.prev = { x: e.x, y: e.y }; return; }
+    const dx = e.x - pv.x, dy = e.y - pv.y;
+    if (dx * dx + dy * dy <= P.TELEPORT * P.TELEPORT && (dx || dy)) { P.collide(e); unstick(e, pv.x, pv.y, dt); }
+    pv.x = e.x; pv.y = e.y;
+  };
+  /* a loot drop bounces once (A17 integrates z / vz; a second rebound is cancelled here) */
+  const dropStep = e => { if (e.dead) return; if (num(e.z, 0) <= 0 && e.vz > 0) { e.bounces = (e.bounces || 0) + 1; if (e.bounces > 1) e.vz = 0; } };
   R.addSys('physPost', { order: 101, update(dt) {
     if (P.off || !(dt > 0)) return;
     const t0 = now(), movers = [], ents = R.ents; let nMov = 0;
+    const sg = colSig(); if (sg !== gridSig) { gridSig = sg; P.rebuildColliders(); }
     for (let i = ents.length - 1; i >= 0; i--) {
       const e = ents[i];
       if (e.kind === 'proj') { arrowStep(e, dt); continue; }
+      if (e.kind === 'drop') { dropStep(e); continue; }
+      if (LIGHT[e.kind]) { lightStep(e, dt); continue; }
       if (!isMover(e)) continue;
       movers.push(e);
       const pv = e.prev; if (!pv) { e.prev = { x: e.x, y: e.y }; e.vel = e.vel || { x: 0, y: 0 }; continue; }
-      const alive = !e.dead;
+      const alive = !e.dead, hero = alive && e.kind === 'player', held = e.stunMicro > 0;
       let dx = e.x - pv.x, dy = e.y - pv.y, d2 = dx * dx + dy * dy;
-      if (d2 > P.TELEPORT * P.TELEPORT) { pv.x = e.x; pv.y = e.y; e.vel = { x: 0, y: 0 }; e.stepT = 0; sample(e, true); continue; }
+      if (d2 > P.TELEPORT * P.TELEPORT) { pv.x = e.x; pv.y = e.y; e.vel = { x: 0, y: 0 }; e.stepT = 0; if (e.walk) { e.walk.x = 0; e.walk.y = 0; } e.gy = null; if (e.air) { e.air = false; e.z = 0; e.vz = 0; } sample(e, true); continue; }
       const I = e.imp, hasImp = !!(I && (I.x || I.y));
-      if (alive && (d2 > 1e-8 || hasImp)) sample(e);
-      /* 1. what the other modules moved this step, corrected for slope, water and hit-stop */
-      if (alive && d2 > 1e-8) {
+      if (alive && (d2 > 1e-8 || hasImp || hero)) sample(e);
+      /* 1. what the other modules moved this step, corrected for slope, water and hit-stop; the hero gets his weight */
+      if (hero) heroStep(e, dx, dy, d2, dt, held);
+      else if (alive && d2 > 1e-8) {
         let tx = 0, ty = 0;
         if (!(e.stunMicro > 0)) { const c = correct(e, dx, dy, Math.sqrt(d2)); tx = c[0]; ty = c[1]; }
         if (tx !== dx || ty !== dy) P.moveEnt(e, tx - dx, ty - dy);
@@ -278,10 +397,14 @@
       if (alive && !e.fly && e.steep && e.grad && e.grad.m > 1e-6 && !(e.stunMicro > 0)) P.moveEnt(e, -e.grad.x / e.grad.m * 60 * dt, -e.grad.y / e.grad.m * 60 * dt);
       /* 3. impulses (corpses slide too), friction by surface */
       if (hasImp && !(e.stunMicro > 0)) {
-        P.moveEnt(e, I.x * dt, I.y * dt);
+        P.move(e, I.x * dt, I.y * dt);
         const k = Math.exp(-P.frictionOf(e) * dt); I.x *= k; I.y *= k;
         if (I.x * I.x + I.y * I.y < 9) { I.x = 0; I.y = 0; }
       }
+      /* 3b. trees, rocks and towers push out what the other modules moved; nothing ends inside a blocked cell */
+      else if (!hero && alive && d2 > 1e-8 && e.kind !== 'npc') P.collide(e);
+      if (e.x !== pv.x || e.y !== pv.y) unstick(e, pv.x, pv.y, dt);
+      if (hero) fallStep(e, dt);
       /* 4. the measured velocity */
       dx = e.x - pv.x; dy = e.y - pv.y;
       const v = e.vel || (e.vel = { x: 0, y: 0 }); v.x = dx / dt; v.y = dy / dt; pv.x = e.x; pv.y = e.y;

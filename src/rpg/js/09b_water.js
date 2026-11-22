@@ -160,9 +160,9 @@
     ' float bandM = smoothstep(0.44, 0.5, g) * (1.0 - smoothstep(0.5, 0.63, g)) * roll;',
     ' float bandT = smoothstep(uLevel + 0.3, uLevel + 1.5, hgt) * (1.0 - smoothstep(uLevel + 4.0, uLevel + 6.0, hgt));',
     ' float fn = smoothstep(0.3, 0.75, n1.g * 0.6 + n2.r * 0.4 + 0.08); float foam = max(bandM, bandT) * fn * (1.0 - uRiver);',
-    ' float edge = abs(vAcross) + (n2.r - 0.5) * 0.5; float riverFoam = smoothstep(0.55, 0.95, edge) * 0.55 * uRiver * step(vDepth, 0.75);',
+    ' float edge = abs(vAcross) + (n2.r - 0.5) * 0.5; float riverFoam = smoothstep(0.6, 0.95, edge) * 0.3 * uRiver * step(vDepth, 0.75);',
     ' if (uRiver > 0.5) { if (vDepth < 0.75) { if (edge > 0.98) discard; } else if (g < 0.49) discard; }',
-    ' foam = max(foam, riverFoam) + bandM * fn * uRiver * step(0.75, vDepth);',
+    ' foam = max(foam, riverFoam) + bandM * fn * 0.35 * uRiver * step(0.75, vDepth);',
     ' col = mix(col, uFoam, clamp(foam, 0.0, 1.0)); col *= 1.0 - 0.6 * uNight;',
     ' float a = mix(uAlpha * smoothstep(0.46, 0.54, g) + foam * 0.15, 1.0, uRiver);',
     ' gl_FragColor = vec4(col, clamp(a, 0.0, 1.0));',
@@ -195,9 +195,9 @@
     for (let k = 0; k < N; k++) { if (kind[k] !== 2) continue; const x = k % w, y = (k / w) | 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = x + dx, Y = y + dy; if (X >= 0 && Y >= 0 && X < w && Y < h && kind[Y * w + X] !== 3) lakeSet[Y * w + X] = 1; } }
     // lake surfaces: per connected lake, the 90th percentile of the ground height + 1.5 (flat)
     let nLakes = 0; for (let k0 = 0; k0 < N; k0++) { if (!lakeSet[k0] || lakeId[k0] >= 0) continue; const id = nLakes++, hs = [], q = [k0]; lakeId[k0] = id;
-      while (q.length) { const k = q.pop(); hs.push(groundY((k % w + .5) * CS, (((k / w) | 0) + .5) * CS)); const x = k % w, y = (k / w) | 0;
+      while (q.length) { const k = q.pop(); if (kind[k] !== 2) hs.push(groundY((k % w + .5) * CS, (((k / w) | 0) + .5) * CS)); const x = k % w, y = (k / w) | 0;
         for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= w || Y >= h) continue; const m = Y * w + X; if (lakeSet[m] && lakeId[m] < 0) { lakeId[m] = id; q.push(m); } } }
-      hs.sort((a, b) => a - b); lakeY[id] = hs[Math.min(hs.length - 1, Math.floor(hs.length * 0.9))] + 1.5; }
+      hs.sort((a, b) => a - b); lakeY[id] = hs.length ? hs[Math.min(hs.length - 1, Math.floor(hs.length * 0.6))] - 1 : 2; }
     for (let k = 0; k < N; k++) {
       const x = k % w, y = (k / w) | 0, cx = (x + .5) * CS, cy = (y + .5) * CS;
       if (kind[k] === 1) { const fx = flowX[k] / 127, fy = flowY[k] / 127, L = CS * 1.15, Wd = CS * 0.62, px = -fy, py = fx; const P = [];
@@ -209,6 +209,38 @@
     geo.setAttribute('aAcross', new T.Float32BufferAttribute(across, 1)); geo.setAttribute('aDepth', new T.Float32BufferAttribute(depth, 1)); geo.setIndex(idx); geo.computeBoundingSphere();
     rivers = new T.Mesh(geo, matRiv); rivers.name = 'water-rivers'; rivers.renderOrder = 5; rivers.frustumCulled = true; R3.scene.add(rivers); Wt.rivers = rivers; riversDirty = false;
   }
+  /* the renderer's heightmap reads dark art as high ground, so the God's Eye and the river lines come out as ridges ("the dark blob
+     near the Rills"). Carve them once per heightmap: lake vertices drop below the lake level, river vertices to just under their
+     banks; the terrain tiles' Y (R.render3d.terrainTiles) and R.render3d.heightmap.data (what groundY reads) are lowered in place. */
+  Wt.carved = 0;
+  function carve() {
+    const hm = R3 && R3.heightmap, H = hm && hm.data; if (!H || !kind || hm.waterCarved || !(hm.w > 2) || !(hm.h > 2) || H.length !== hm.w * hm.h) return false;
+    const NX = hm.w, NY = hm.h, DX = R.W / (NX - 1), DZ = R.H / (NY - 1), M = NX * NY, wk = new Uint8Array(M), H0 = Float32Array.from(H);
+    const ns = new Uint8Array(M);
+    for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) { let q = 0, sc = 0;
+      for (const oy of [-14, 0, 14]) for (const ox of [-14, 0, 14]) { const c = cellOf(Math.min(R.W - 1, Math.max(0, i * DX + ox)), Math.min(R.H - 1, Math.max(0, j * DZ + oy))); if (c < 0) continue; const v = kind[c]; if (v === 3) sc++; else if (v === 2) q = 2; else if (v === 1 && q !== 2) q = 1; }
+      wk[j * NX + i] = sc ? 0 : q; ns[j * NX + i] = sc; }
+    let n = 0;
+    // the sea: the art's olive wash reads as a plateau in the renderer, so every vertex the mask calls sea goes under the sea plane
+    // (level + 2), the shoreline vertices to the waterline, and the first land ring is eased down into a beach
+    for (let k = 0; k < M; k++) { const sc = ns[k]; if (!sc) continue; const want = sc >= 9 ? Wt.level - 8 : Wt.level + 6 - sc * 1.4; if (want < H[k]) { H[k] = want; n++; } }
+    for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) { const k = j * NX + i; if (ns[k]) continue; let near = false;
+      for (let dj = -1; dj <= 1 && !near; dj++) for (let di = -1; di <= 1; di++) { const I = i + di, J = j + dj; if (I >= 0 && J >= 0 && I < NX && J < NY && ns[J * NX + I] >= 3) { near = true; break; } }
+      if (near) { const want = 8 + (H0[k] - 8) * 0.45; if (want < H[k]) { H[k] = want; n++; } } }
+    for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) { const k = j * NX + i, q = wk[k]; if (!q) continue; let sm = 0, c = 0;
+      for (let dj = -2; dj <= 2; dj++) for (let di = -2; di <= 2; di++) { const I = i + di, J = j + dj; if (I < 0 || J < 0 || I >= NX || J >= NY) continue; const m = J * NX + I; if (!wk[m] && !ns[m] && H0[m] > 0.5) { sm += H0[m]; c++; } }
+      const ref = c ? sm / c : H0[k]; const want = q === 2 ? ref - 9 : ref - 3; if (want < H[k]) { H[k] = Math.max(1, want); n++; } }
+    const tiles = R3.terrainTiles || (R3.terrain && R3.terrain.children) || [];
+    for (const m of tiles) { const g = m && m.geometry, pa = g && g.attributes && g.attributes.position; if (!pa) continue; let ch = false;
+      for (let v = 0; v < pa.count; v++) { const i = Math.round(pa.getX(v) / DX), j = Math.round(pa.getZ(v) / DZ); if (i < 0 || j < 0 || i >= NX || j >= NY) continue; const y = H[j * NX + i]; if (Math.abs(pa.getY(v) - y) > 0.01) { pa.setY(v, y); ch = true; } }
+      if (ch) { pa.needsUpdate = true; try { g.computeVertexNormals(); g.computeBoundingSphere(); } catch (e) {} } }
+    hm.waterCarved = true; Wt.carved = n;
+    // chunks of trees / reeds already placed on the old heights are rebuilt (R.nature, A46), props re-seated by the renderer's own rebuilds
+    try { const Nt = R.nature; if (n && Nt && Nt.chunks && typeof Nt.build === 'function') for (const ch of Array.from(Nt.chunks.values())) if (ch && ch.cx != null) Nt.build(ch.cx, ch.cy, ch.lod); } catch (e) {}
+    R.bus.emit('terrain', 'water');
+    return true;
+  }
+  Wt.carve = () => { try { return carve(); } catch (e) { return false; } };
   function attach(r3) {
     r3 = r3 || R.render3d; if (!T || !r3 || !r3.scene || R3 === r3) return; R3 = r3;
     if (!U) {
@@ -220,7 +252,7 @@
       Wt.uniforms = U;
       matSea = new T.ShaderMaterial({ uniforms: U, vertexShader: VS, fragmentShader: FS, transparent: true, depthWrite: false, fog: true, side: T.DoubleSide });
       // the rivers share every uniform object but uRiver / uOrigin / the colours
-      const UR = Object.assign({}, U, { uRiver: { value: 1 }, uOrigin: { value: new T.Vector2() }, uDeep: { value: new T.Color(0.09, 0.33, 0.40) }, uShallow: { value: new T.Color(0.30, 0.56, 0.58) }, uAlpha: { value: 1 } });
+      const UR = Object.assign({}, U, { uRiver: { value: 1 }, uOrigin: { value: new T.Vector2() }, uDeep: { value: new T.Color(0.05, 0.19, 0.27) }, uShallow: { value: new T.Color(0.12, 0.31, 0.38) }, uAlpha: { value: 1 } });
       matRiv = new T.ShaderMaterial({ uniforms: UR, vertexShader: VS, fragmentShader: FS, transparent: false, fog: true, side: T.DoubleSide });
       Wt.matSea = matSea; Wt.matRiv = matRiv;
     }
@@ -252,6 +284,6 @@
       U.uNight.value = A.nightK != null ? A.nightK : (A.night ? 1 : 0); U.uLevel.value = Wt.level;
       const sd = (R3 && R3.uniforms && R3.uniforms.sunDir && R3.uniforms.sunDir.value) || (A.sunDir && A.sunDir.y > 0.05 ? A.sunDir : null) || DEF_SUN;
       U.uSun.value.set(sd.x, Math.max(0.08, sd.y), sd.z).normalize();
-      if (R3) { if (R3.heightmap !== lastHm) { lastHm = R3.heightmap; infoDirty = true; riversDirty = true; } if (infoDirty && kind) buildInfo(); if (riversDirty && kind) { buildRivers(); Wt.stats.drawCalls = 1 + (rivers ? 1 : 0); } follow(); }
+      if (R3) { if (R3.heightmap !== lastHm) { lastHm = R3.heightmap; infoDirty = true; riversDirty = true; } if (kind && R3.heightmap && !R3.heightmap.waterCarved && Wt.carve()) { infoDirty = true; riversDirty = true; } if (infoDirty && kind) buildInfo(); if (riversDirty && kind) { buildRivers(); Wt.stats.drawCalls = 1 + (rivers ? 1 : 0); } follow(); }
     } });
 })();

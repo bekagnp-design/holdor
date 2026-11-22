@@ -5,6 +5,7 @@
      active          true while a finger holds the joystick.
      look {dx,dy}    screen px dragged on the right half (not on a button) since the last step; snapshot per step, 0 when idle. Keys Q/E add -6/+6 to dx per step while held.
      pinch           two-finger pinch anywhere on the right half: scale factor since the last step (>1 = fingers apart), 1 when idle. Mouse wheel too.
+                     look.pinch = the same (the renderer consumes look.dx / look.pinch); lastLook {dx,dy,pinch} = this step's values, never consumed.
      pressed(name)   true for the step in which the button went down (cleared at the end of R.step: sys 'input' order 999 + 'step:end').
      down(name)      true while held.      names: attack dodge skill1 skill2 skill3 potion interact sprint map inv menu quests chat
      interact        set {label, icon?, fn?} to show the INTERACT pill, null to hide (polled every step; setInteract() applies at once).
@@ -16,7 +17,7 @@
 (function () {
   const ui = document.getElementById('ui'); if (!ui || !window.R) return;
   const DEAD = 10, RAD = 56, KEYROT = 6;
-  const I = R.input = { move: { x: 0, y: 0 }, aim: { x: 1, y: 0 }, active: false, look: { dx: 0, dy: 0 }, pinch: 1, interact: null, enabled: true, DEAD, RAD };
+  const I = R.input = { move: { x: 0, y: 0 }, aim: { x: 1, y: 0 }, active: false, look: { dx: 0, dy: 0, pinch: 1 }, lastLook: { dx: 0, dy: 0, pinch: 1 }, pinch: 1, interact: null, enabled: true, DEAD, RAD };
   const dn = {}, pr = {}; I.down = n => !!dn[n]; I.pressed = n => !!pr[n];
   I.names = ['attack', 'dodge', 'skill1', 'skill2', 'skill3', 'potion', 'interact', 'sprint', 'map', 'inv', 'menu', 'quests', 'chat'];
   const UIB = { map: 1, inv: 1, menu: 1, quests: 1, chat: 1 };          // allowed while a screen is open (toggles)
@@ -121,7 +122,7 @@
     const n = KEYS[c]; if (!n) return; e.preventDefault(); root.classList.add('kb'); if (e.repeat || held[c]) return; held[c] = 1; press(n, 'key'); });
   window.addEventListener('keyup', e => { const c = code(e); if (!c || !held[c]) return; held[c] = 0; if (MV[c]) { kbVec(); return; } if (ROT[c]) return; const n = KEYS[c]; if (n) release(n); });
   /* ---- reset / visibility ---- */
-  I.reset = () => { joyEnd(); looks.length = 0; acc.dx = acc.dy = 0; acc.pinch = 1; I.look.dx = I.look.dy = 0; I.pinch = 1;
+  I.reset = () => { joyEnd(); looks.length = 0; acc.dx = acc.dy = 0; acc.pinch = 1; I.look.dx = I.look.dy = 0; I.look.pinch = I.pinch = 1; I.lastLook = { dx: 0, dy: 0, pinch: 1 };
     for (const k in dn) dn[k] = false; for (const k in pr) pr[k] = false; for (const c in held) held[c] = 0; keyMove = { x: 0, y: 0 }; setMove(0, 0);
     for (const n in btns) { btns[n]._pid = null; btns[n].classList.remove('dn'); } };
   I.show = v => { root.classList.toggle('off', !v); if (!v) I.reset(); };
@@ -138,7 +139,9 @@
   I.setInteract = o => { I.interact = o || null; applyInteract(I.interact); };
   const poll = () => { if (I.interact !== curInt) applyInteract(I.interact || null); else if (curInt && inter.querySelector('.lb').textContent !== (curInt.label || 'INTERACT') + '') applyInteract(curInt); };
   /* ---- step hooks: look/pinch are a per-step snapshot (published before every system), pressed() lasts one step ---- */
-  const preStep = () => { I.look.dx = acc.dx + kbRot(); I.look.dy = acc.dy; I.pinch = acc.pinch; acc.dx = acc.dy = 0; acc.pinch = 1; };
+  // the renderer (08_render.js) consumes look.dx and look.pinch (sets them back to 0 / 1) when it turns / zooms the camera;
+  // I.pinch and I.lastLook keep this step's values for everyone else
+  const preStep = () => { I.look.dx = acc.dx + kbRot(); I.look.dy = acc.dy; I.look.pinch = I.pinch = acc.pinch; I.lastLook = { dx: I.look.dx, dy: I.look.dy, pinch: acc.pinch }; acc.dx = acc.dy = 0; acc.pinch = 1; };
   const endStep = () => { for (const k in pr) pr[k] = false; };
   R.bus.on('step:end', endStep);                                            // if core emits it too: clearing twice is harmless
   const pre = { order: -1000, update: preStep };

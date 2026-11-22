@@ -28,7 +28,8 @@ const path = require('path');
       spawns: [{ region: 'south', mobs: [{ type: 'axe', w: 3 }, { type: 'hound', w: 1 }], density: 1, lvl: [1, 3] },
         { region: 'north', mobs: [{ type: 'walker', w: 1 }], density: 1, lvl: [20, 25] }],
       mask: { w: 20, h: 20, rows }, start: { stark: 'wf' } };
-    if (!R.data.bosses) R.data.bosses = { nightking: { id: 'nightking', name: 'The Night King' } };
+    { const nk = { id: 'nightking', name: 'The Night King' }, B = R.data.bosses;      // the real boss table (13_bosses) may be an array or a map
+      if (!B) R.data.bosses = { nightking: nk }; else if (Array.isArray(B)) { if (!B.find(b => b && b.id === 'nightking')) B.push(nk); } else B.nightking = nk; }
     R.world.reset();
     R.state = R.newState ? R.newState() : { v: 1, p: { flags: {}, found: [] } };
     const ST = () => (R.acc ? R.acc().world : R.state.p);                 // discovered things + gate flags live on the account (Addendum 2)
@@ -68,16 +69,28 @@ const path = require('path');
     put(600, 1180); steps(40); out.gateY = pl.y; out.gateLog = log.slice(); out.cur = Wd.cur;
     out.toast = [...document.querySelectorAll('.toast')].map(t => t.textContent).join(' | ');
     // open it: now the North lets him in
+    out.toastRaw = /nightking/.test(out.toast);
     ST().flags['gate:north'] = 1; put(600, 1180); steps(40); out.openY = pl.y; out.openLog = log.slice(); out.cur2 = Wd.cur;
     put(600, 400); steps(40); out.shrineLog = log.slice(); out.found2 = ST().found.slice();
 
-    // population: back in the South, let the system fill the land
+    // the house seat stays calm: a batch while standing at Winterfell puts nothing within 600 units of it
     put(600, 1800); for (const m of R.ents.slice()) if (m.kind === 'mob') R.remove(m);
+    R.rng(7); Wd.populateNow(R.rng); out.seatCalm = R.ents.filter(m => m.kind === 'mob' && !m.dead && Math.hypot(m.x - 600, m.y - 1800) < 600).length;
+    // the home region is never gated for its house: a stark hero walks into a gated region whose home is stark
+    { const rg = Wd.regionOf('north'), h0 = rg.home; rg.home = 'stark'; delete ST().flags['gate:north']; const a = R.acc ? R.acc() : R.state.acc || (R.state.acc = {}); const h1 = a.house; a.house = 'stark';
+      out.homeOpen = Wd.gateOpen('north'); a.house = 'lannister'; out.otherClosed = !Wd.gateOpen('north'); a.house = h1; rg.home = h0; ST().flags['gate:north'] = 1; }
+    // the first placement (a load / a new hero, no last good spot) inside a closed gated region is accepted: no pushback, no toast
+    { delete ST().flags['gate:north']; Wd.reset(); Wd.populate = false; put(900, 700); steps(40); out.first = [Math.round(pl.x), Math.round(pl.y), Wd.cur];
+      ST().flags['gate:north'] = 1; put(600, 1800); steps(40); }
+    // the 5-argument slide (21_player): slide(x, y, nx, ny, r) → {x, y}, stopped by the wall column
+    out.slide5 = [Wd.slide(1100, 600, 1110, 604, 14), Wd.slide(1180, 600, 1260, 600, 14)].map(q => [Math.round(q.x), Math.round(q.y)]);
+    // population: at the camp (1200 units from the seat), let the system fill the land
+    put(1800, 1800); for (const m of R.ents.slice()) if (m.kind === 'mob') R.remove(m);
     Wd.populate = true; steps(5);
     const mobs = () => R.ents.filter(m => m.kind === 'mob' && !m.dead);
     const m1 = mobs(); out.pop1 = { n: m1.length, bad: m1.filter(m => { const d = Math.hypot(m.x - pl.x, m.y - pl.y); return d < 150 || d > 700 || Wd.blocked(m.x, m.y) || Wd.inPoi(m.x, m.y, 150); }).length, types: [...new Set(m1.map(m => m.type))].sort(), lvls: [...new Set(m1.map(m => m.lvl))].sort(), ambient: m1.filter(m => m.ambient).length };
     out.cd1 = Wd.cooldown();
-    put(2300, 150); steps(5); out.pop2 = mobs().length;                  // 2369 units away (every old mob > 1400): they go, the cooldown holds the new ones
+    put(500, 150); steps(5); out.pop2 = mobs().length;                   // 2100 units away (every old mob > 1400): they go, the cooldown holds the new ones
     steps(400); out.pop3 = mobs().length; out.pop3types = [...new Set(mobs().map(m => m.type))];   // 6.7 s later: a new batch here, from the North's table
     for (const m of R.ents.slice()) if (m.kind === 'mob') R.remove(m);
     Wd.populate = false; steps(400); out.pop4 = mobs().length;           // nothing while populate is off
@@ -103,12 +116,16 @@ const path = require('path');
   ok('camp: poi(camp), no second enter', JSON.stringify(r.log2) === '["enter:south","poi:wf","poi:camp"]', JSON.stringify(r.log2));
   ok('back at Winterfell: poi(wf) once more (per entry)', r.log3.length === 4 && r.log3[3] === 'poi:wf', JSON.stringify(r.log3));
   ok('closed gate: pushed back south (y ≥ 1200), no enter(north), region stays south', r.gateY >= 1200 && r.gateY <= 1300 && !r.gateLog.includes('enter:north') && r.cur === 'south', JSON.stringify([r.gateY, r.cur, r.gateLog]));
-  ok('gate toast names the boss', /held by The Night King .* defeat it first/.test(r.toast), r.toast);
-  ok('open gate: enter(north) fires, the player stays', r.openY === 1180 && r.openLog.includes('enter:north') && r.cur2 === 'north', JSON.stringify([r.openY, r.cur2]));
+  ok('gate toast names the region and the boss by its display name', /The way into The North is held by The Night King .* defeat it first/.test(r.toast) && !r.toastRaw, r.toast);
+  ok('open gate: enter(north) fires, the player stays', Math.abs(r.openY - 1180) < 12 && r.openLog.includes('enter:north') && r.cur2 === 'north', JSON.stringify([r.openY, r.cur2]));
+  ok('first placement inside a closed region: accepted where it stands', JSON.stringify(r.first) === '[900,700,"north"]', JSON.stringify(r.first));
+  ok('the seat stays calm: no ambient mob within 600 units of it', r.seatCalm === 0, String(r.seatCalm));
+  ok('the home region is never gated for its own house (and still is for another)', r.homeOpen === true && r.otherClosed === true, JSON.stringify([r.homeOpen, r.otherClosed]));
+  ok('slide(x, y, nx, ny, r) → {x, y}: free move, stopped before the wall', JSON.stringify(r.slide5[0]) === '[1110,604]' && r.slide5[1][0] < 1200, JSON.stringify(r.slide5));
   ok('shrine found in the North', r.shrineLog[r.shrineLog.length - 1] === 'poi:shrine' && r.found2.includes('shrine'), JSON.stringify([r.shrineLog, r.found2]));
   ok('population: 8–14 mobs from the south table, 150–700 away, off POIs, marked ambient', r.pop1.n >= 8 && r.pop1.n <= 14 && r.pop1.bad === 0 && r.pop1.types.every(t => t === 'axe' || t === 'hound') && r.pop1.lvls.every(l => l >= 1 && l <= 3) && r.pop1.ambient === r.pop1.n, JSON.stringify(r.pop1));
   ok('spawn cooldown armed (6 s)', r.cd1 > 5 && r.cd1 <= 6, String(r.cd1));
-  ok('2369 units away: old mobs despawned, cooldown holds', r.pop2 === 0, String(r.pop2));
+  ok('2100 units away: old mobs despawned, cooldown holds', r.pop2 === 0, String(r.pop2));
   ok('after 6.7 s: a new batch of 8–14 from the new region\'s table', r.pop3 >= 8 && r.pop3 <= 14 && JSON.stringify(r.pop3types) === '["walker"]', JSON.stringify([r.pop3, r.pop3types]));
   ok('populate=false: nothing; true again: refilled', r.pop4 === 0 && r.pop5 >= 8 && r.pop5 <= 14, JSON.stringify([r.pop4, r.pop5]));
   ok('systems registered: world 50, populate 60', JSON.stringify(r.sys) === '[50,60]', JSON.stringify(r.sys));

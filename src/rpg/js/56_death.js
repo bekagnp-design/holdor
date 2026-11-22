@@ -49,10 +49,13 @@
   // the run's kills: the player module's own count when it keeps one, else the count kept here from the 'kill' events
   R.bus.on('kill', e => { const p = P(); if (!p || !e || (e.kind !== 'mob' && e.kind !== 'boss') || (R.player && R.player.dead)) return; p.runKills = (p.runKills || 0) + 1; if (e.kind === 'boss') p.runBosses = (p.runBosses || 0) + 1; });
   // one record per death, whoever asks first (the 'death' event or A12 opening the screen)
-  function record(by) {
+  // by: the killer (entity or name) — never the fallen hero himself ('death' is emitted with the player entity first, the killer's name second)
+  function record(by, kname) {
     if (D && !D.left) return D;
     const p = P() || {}; const A = ensureAcc();
-    const k = (R.player && R.player.lastHitBy) || by || null;
+    const self = x => !!x && typeof x === 'object' && (x === R.player || x.kind === 'player');
+    const lh = R.player && R.player.lastHitBy;
+    const k = (lh && !self(lh) && lh) || (by && !self(by) && by) || (R.player && R.player.killer) || kname || null;
     const d = { at: now(), hero: p.hero != null ? p.hero : (R.player && R.player.type) || null, lvl: num(p.lvl) || 1, left: false };
     d.name = p.name || champName(d.hero) || 'The hero';
     d.killer = killerName(k); d.klvl = k && typeof k === 'object' && num(k.lvl) ? k.lvl : 0;
@@ -189,15 +192,20 @@
   };
 
   /* ---- events ---- */
-  R.bus.on('death', by => {
-    const d = record(by); fadeIn();
+  R.bus.on('death', (by, kname) => {
+    const d = record(by, typeof kname === 'string' ? kname : null); fadeIn();
     clearTimeout(openT);
     openT = setTimeout(() => { openT = 0; if (D === d && !d.left && R.ui.cur !== 'death') R.ui.open('death'); }, cfg.fade);
   });
-  R.bus.on('newhero', () => { if (D) D.left = true; finish(); });
-  // closed from outside (Telegram's back button) while the hero still lies there: the sheet comes back
+  const left = () => { if (D) D.left = true; finish(); };
+  R.bus.on('newhero', left); R.bus.on('start', e => { if (D && !D.left && e && !e.dead) left(); }); R.bus.on('ride', left);
+  // closed from outside (Telegram's back button) while the hero still lies there: the death sheet comes back, or — after a reload, with no
+  // death record in memory — the heroes screen (the dead hero must not be left lying in the world with nothing to choose)
   R.bus.on('screen', n => {
-    if (n != null || !stillDead()) return;
-    clearTimeout(reopenT); reopenT = setTimeout(() => { reopenT = 0; if (stillDead() && R.ui.cur == null) R.ui.open('death'); }, 600);
+    if (n != null) return;
+    const deadHero = () => !!(R.player && R.player.dead === true && R.running);
+    if (!stillDead() && !deadHero()) return;
+    clearTimeout(reopenT); reopenT = setTimeout(() => { reopenT = 0; if (R.ui.cur != null) return;
+      if (stillDead()) R.ui.open('death'); else if (deadHero()) { if (R.screens.heroes) R.ui.open('heroes', { afterDeath: true }); } }, 600);
   });
 })();

@@ -44,7 +44,7 @@
   const bossName = b => { const m = R.data.bosses && findIn(R.data.bosses, b); return (m && m.name) || cap(b); };
   const champName = c => { const m = R.data.champs && findIn(R.data.champs, c); return (m && m.name) || cap(c); };
   const itemName = i => { const I = R.data.items; const m = I && (findIn(I, i) || findIn(I.bases, i) || findIn(I.mats, i)); return (m && m.name) || cap(i); };
-  const plural = (s, n) => n === 1 || /s$/i.test(s) ? s : s + 's';
+  const plural = (s, n) => n === 1 || /s$/i.test(s) ? s : /man$/i.test(s) ? s.replace(/man$/i, 'men') : /f$/.test(s) ? s.replace(/f$/, 'ves') : /(ch|sh|x)$/i.test(s) ? s + 'es' : /[^aeiou]y$/i.test(s) ? s.slice(0, -1) + 'ies' : s + 's';
   const xy = o => o && typeof o.x === 'number' && typeof o.y === 'number' ? { x: o.x, y: o.y } : null;
   const poiPos = id => xy(poiData(id));
   const npcPos = id => { const e = npcEnt(id); if (e) return { x: e.x, y: e.y }; const d = npcData(id); return xy(d) || (d && d.poi ? poiPos(d.poi) : null); };
@@ -108,7 +108,9 @@
     s.st = 'turned'; R.bus.emit('quest', id, 'turned'); sfx('quest_turn');
     toast('Quest complete' + (got.length ? '  ' + got.join('  ') : ''), '#e3b661');
     const f = flags(); const next = Q().filter(n => n.prev === id);
-    if (q.main) { const nx = next.find(n => n.main && canAccept(n)) || Q().find(n => n.main && canAccept(n)); if (nx) { f.track = nx.id; toast('Next: ' + nx.title + ' — ' + npcName(nx.giver), '#f3e7c4'); } else if (f.track === id) delete f.track; }
+    // the story flows: the next main quest is tracked; when the same person gives it, it is handed over at once (no second visit)
+    if (q.main) { const nx = next.find(n => n.main && canAccept(n)) || Q().find(n => n.main && canAccept(n));
+      if (nx) { f.track = nx.id; if (nx.giver === q.giver) accept(nx.id); else toast('Next: ' + nx.title + ' — ' + npcName(nx.giver), '#f3e7c4'); } else if (f.track === id) delete f.track; }
     else if (f.track === id) { const nx = next.find(canAccept); if (nx) f.track = nx.id; else delete f.track; }
     refresh(); R.save(); return true; };
   const track = id => { if (!get(id)) return false; flags().track = id; refresh(); R.save(); return true; };

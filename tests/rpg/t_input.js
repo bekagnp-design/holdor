@@ -10,8 +10,13 @@ const SC = path.join(ROOT, '.shots') + '/'; fs.mkdirSync(SC, { recursive: true }
   const page = await ctx.newPage();
   const errors = []; page.on('pageerror', e => errors.push('PE:' + e.message + ' @ ' + (e.stack || '').split('\n').slice(0, 2).join(' | ')));
   page.on('console', m => { if (m.type() === 'error' && !/ERR_|Failed to load|net::/.test(m.text())) errors.push('C:' + m.text()); });
+  // a running game: a saved hero with the tutorial finished, so no intro screen hides the controls
+  const save = require('./lib').fakeSave({ house: 'stark', lvl: 3 }); save.acc.world.flags.tut = 8;
+  await page.addInitScript(s => { try { if (!sessionStorage.getItem('t_input')) { sessionStorage.setItem('t_input', '1'); localStorage.setItem('holdor_rpg', JSON.stringify(s)); } } catch (e) {} }, save);
   await page.goto('file://' + HTML);
   await page.waitForFunction(() => window.R && R.input && R.input.el && R.step, { timeout: 20000 });
+  await page.waitForFunction(() => R.running || (R.ui && R.ui.cur), null, { timeout: 8000 }).catch(() => {});
+  await page.evaluate(() => { if (R.ui.cur) R.ui.close(); R.stop && R.stop(); });
   await page.evaluate(() => { window.__btns = []; R.bus.on('btn', (n, src) => window.__btns.push(n + ':' + src)); });
   const cdp = await ctx.newCDPSession(page);
   // CDP touch: touchStart lists every active point (new ones press), touchMove lists all points, touchEnd lists the RELEASED points ([] = all).
@@ -21,7 +26,7 @@ const SC = path.join(ROOT, '.shots') + '/'; fs.mkdirSync(SC, { recursive: true }
   const OUT = {}; let fails = 0; const ok = (k, v, info) => { OUT[k] = (v ? 'OK' : 'FAIL') + (info ? ' ' + info : ''); if (!v) fails++; };
   const ev = (fn, ...a) => page.evaluate(fn, ...a);
   const centre = id => ev(id => { const r = document.getElementById(id).getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width, h: r.height, vis: r.width > 0 && getComputedStyle(document.getElementById(id)).display !== 'none' }; }, id);
-  const snap = () => ev(() => ({ move: { x: +R.input.move.x.toFixed(3), y: +R.input.move.y.toFixed(3) }, active: R.input.active, look: { dx: R.input.look.dx, dy: R.input.look.dy }, pinch: +R.input.pinch.toFixed(3), atkDn: R.input.down('attack'), atkPr: R.input.pressed('attack'), btns: window.__btns.slice() }));
+  const snap = () => ev(() => ({ move: { x: +R.input.move.x.toFixed(3), y: +R.input.move.y.toFixed(3) }, active: R.input.active, look: { dx: (R.input.lastLook || R.input.look).dx, dy: (R.input.lastLook || R.input.look).dy }, pinch: +R.input.pinch.toFixed(3), atkDn: R.input.down('attack'), atkPr: R.input.pressed('attack'), btns: window.__btns.slice() }));
   const step = n => ev(n => { for (let i = 0; i < (n || 1); i++) R.step(); }, n);
 
   // 1. a touch drag on the left half drives the joystick
@@ -73,7 +78,7 @@ const SC = path.join(ROOT, '.shots') + '/'; fs.mkdirSync(SC, { recursive: true }
   for (const k of ['k', '1', '2', '3', 'r', 'f', 'Escape', 'm', 'i', 'l', 'c']) await page.keyboard.press(k);
   s = await snap(); const want = ['dodge', 'skill1', 'skill2', 'skill3', 'potion', 'interact', 'menu', 'map', 'inv', 'quests', 'chat'].map(x => x + ':key');
   ok('K 1 2 3 R F Esc M I L C → ' + want.map(x => x.split(':')[0]).join(' '), JSON.stringify(s.btns) === JSON.stringify(want), JSON.stringify(s.btns));
-  await step(1);
+  await page.waitForTimeout(80); await ev(() => { for (let i = 0; i < 4 && R.ui.cur; i++) R.ui.close(); }); await step(1);
   // 6. typing in an input does not fire game keys
   await ev(() => { window.__btns = []; const i = document.createElement('input'); i.id = 'tin'; document.body.appendChild(i); i.focus(); });
   await page.keyboard.press('j'); s = await snap(); ok('typing in an input: J ignored', !s.btns.length && !s.atkPr, JSON.stringify(s.btns));
@@ -87,7 +92,7 @@ const SC = path.join(ROOT, '.shots') + '/'; fs.mkdirSync(SC, { recursive: true }
   ok('screen open → no joystick', !s.active && s.move.x === 0, '');
   await page.keyboard.press('j'); s = await snap(); ok('screen open → gameplay key J ignored', !s.atkPr && !s.btns.includes('attack:key'), JSON.stringify(s.btns));
   await page.keyboard.press('Escape'); s = await snap(); ok('screen open → Esc still emits menu', s.btns.includes('menu:key'), JSON.stringify(s.btns));
-  await ev(() => R.ui.close()); const shown = await ev(() => getComputedStyle(document.getElementById('ctl')).display);
+  await page.waitForTimeout(80); await ev(() => { for (let i = 0; i < 4 && R.ui.cur; i++) R.ui.close(); }); const shown = await ev(() => getComputedStyle(document.getElementById('ctl')).display);
   await ev(() => { window.__btns = []; }); await page.touchscreen.tap(A.x, A.y); s = await snap(); await step(1);
   ok('screen closed → controls back, ATTACK works', shown === 'block' && s.btns.includes('attack:btn'), shown + ' ' + JSON.stringify(s.btns));
   // 8. the contextual INTERACT pill
@@ -118,7 +123,8 @@ const SC = path.join(ROOT, '.shots') + '/'; fs.mkdirSync(SC, { recursive: true }
     R.state = R.newState ? R.newState() : { opts: { haptic: 1 } }; const a = R.haptic('medium'); R.state.opts.haptic = 0; const b = R.haptic('heavy'); R.state.opts.haptic = 1; return { a, b, log: window.__hap }; });
   ok('R.haptic: medium sent, blocked when opts.haptic = 0', hap.a === true && hap.b === false && hap.log.join() === 'i:medium', JSON.stringify(hap));
   // 12. the top-right row emits map / inv / menu
-  await ev(() => { window.__btns = []; }); for (const id of ['b-map', 'b-inv', 'b-menu']) { const c = await centre(id); await page.touchscreen.tap(c.x, c.y); }
+  await ev(() => { window.__btns = []; }); for (const id of ['b-map', 'b-inv', 'b-menu']) { await ev(() => { if (R.ui.cur) R.ui.close(); }); const c = await centre(id); await page.touchscreen.tap(c.x, c.y); await page.waitForTimeout(60); }
+  await ev(() => { if (R.ui.cur) R.ui.close(); });
   s = await snap(); ok('top row taps → map inv menu', JSON.stringify(s.btns) === JSON.stringify(['map:btn', 'inv:btn', 'menu:btn']), JSON.stringify(s.btns));
   // screenshot with the joystick held and a cooldown running
   await ev(() => { R.input.setCooldown(2, 0.6); R.input.setPotions(3); R.input.setSkill(0, { label: 'Slash' }); R.input.setSkill(1, { label: 'Shield' }); R.input.setSkill(2, { label: 'Rally' }); R.input.interact = { label: 'TALK' }; R.step(); });

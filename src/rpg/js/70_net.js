@@ -93,7 +93,9 @@
     if (r.wallet) N.wal = r.wallet;
     const srv = r.state && r.state.p ? r.state : null, loc = R.state && R.state.p ? R.state : null;
     if (srv && (!loc || (srv.saved || 0) > (loc.saved || 0) || (fresh(loc) && !fresh(srv)))) {   // the server is newer (or local is an untouched new save): take it
-      R.state = srv; N.pulled = true; N.dirty = false; sig = hash(srv); store(srv); emit('load', srv);
+      store(srv); let ok = false; if (typeof R.load === 'function') { try { ok = R.load(JSON.parse(JSON.stringify(srv))); } catch (e) { ok = false; } }   // core migrates + fills + installs the p.* aliases, emits 'load'
+      if (!ok) { R.state = srv; emit('load', srv); }
+      N.pulled = true; N.dirty = false; sig = hash(R.state); emit('netload', R.state);                                                   // the boot re-routes (world / heroes / intro)
     } else if (loc && (!srv || (loc.saved || 0) > (srv.saved || 0))) {                           // local is newer: push it
       sig = ''; mark(); await push(false);
     } else if (loc) sig = hash(loc);
@@ -132,7 +134,7 @@
   /* ---- the old wallet rides over once ---- */
   let importing = false;
   N.wallet = { import: async () => {
-    if (!N.on || !R.state || !R.state.p || importing) return false;
+    if (!N.on || !R.state || !R.state.p || !R.state.p.hero || R.state.p.dead || importing) return false;   // only into a living hero (the intro's blank hero waits)
     const w = R.state.wallet = R.state.wallet || { imported: false };
     if (w.imported) return false;
     importing = true;
@@ -148,7 +150,7 @@
       for (const id in champs) {
         if (!id || clamp(Math.floor(+champs[id] || 1), 1, 60) < 1) continue;
         if (acc.champs[id] && acc.champs[id].unlocked) continue;
-        if (R.heroes && R.heroes.unlock) { try { R.heroes.unlock(id); } catch (e) {} }
+        if (R.heroes && R.heroes.unlock) { try { R.heroes.unlock(id, 'import'); } catch (e) {} }
         if (!acc.champs[id] || !acc.champs[id].unlocked) acc.champs[id] = Object.assign(acc.champs[id] || {}, { unlocked: 1, runs: (acc.champs[id] && acc.champs[id].runs) || 0 });
         n++;
       }

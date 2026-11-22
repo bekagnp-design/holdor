@@ -46,12 +46,15 @@
     if (R.state.p && R.state.p.champs && !a._mig) { for (const id in R.state.p.champs) if (champ(id)) a.champs[id] = a.champs[id] || { unlocked: 1, runs: 0 }; a._mig = 1; } return a; };
   const house = () => { const a = acc(); return (a && a.house) || 'stark'; };
   const isUnlocked = id => { const a = acc(); return !!(a && a.champs[id] && a.champs[id].unlocked); };
-  const starter = h => { const ids = houseIds(h || house()); return ids[0] || null; };
+  // one starter rule with core / intro (R.firstChamp = A10's R.champs.first): Stark → brienne, …
+  const starter = h => { h = h || house(); const ids = houseIds(h); if (typeof R.firstChamp === 'function') { try { const f = R.firstChamp(h); if (f && ids.includes(f)) return f; } catch (e) {} } return ids[0] || null; };
   const ensureStarter = () => { const a = acc(); if (!a) return null; const h = a.house; if (houseIds(h).some(isUnlocked)) return null; const id = starter(h); if (!id) return null; a.champs[id] = Object.assign(a.champs[id] || {}, { unlocked: 1, runs: a.champs[id] && a.champs[id].runs || 0 }); R.save(); return id; };
   const unlock = (id, why) => { const a = acc(); const c = champ(id); if (!a || !c) return false; const was = isUnlocked(id); a.champs[id] = Object.assign(a.champs[id] || { runs: 0 }, { unlocked: 1 }); if (was) return false;
-    if (why !== 'start') { toast(c.name + ' joins your house', colOf(c.house)); sfx('unlock', 0.7); } R.bus.emit('hero', id, why); R.save(); if (R.ui && R.ui.cur === 'heroes') render(document.getElementById('screen')); return true; };
+    if (why !== 'start' && why !== 'import') { toast(c.name + ' joins your house', colOf(c.house)); sfx('unlock', 0.7); } R.bus.emit('hero', id, why); R.save(); if (R.ui && R.ui.cur === 'heroes') render(document.getElementById('screen')); return true; };
   const current = () => { const p = R.state && R.state.p; if (!p) return null; return p.hero || (p.name && champ(p.name) ? p.name : null); };
-  const best = () => { const a = acc(); if (!a) return { lvl: 0, runs: 0 }; let runs = 0; for (const id in a.champs) runs += (a.champs[id].runs | 0); return { lvl: a.best.lvl | 0, runs: Math.max(runs, a.hall.length), kills: a.best.kills | 0 }; };
+  const alive = () => !!(R.state && R.state.p && R.state.p.hero && !R.state.p.dead && !(R.player && R.player.dead));
+  const runsOf = id => { const a = acc(); if (!a) return 0; let n = 0; for (const h of a.hall) if (h.id === id) n++; return n + (alive() && current() === id ? 1 : 0); };
+  const best = () => { const a = acc(); if (!a) return { lvl: 0, runs: 0 }; let lvl = a.best.lvl | 0; for (const h of a.hall) if ((h.lvl | 0) > lvl) lvl = h.lvl | 0; return { lvl, runs: a.hall.length + (alive() ? 1 : 0), kills: a.best.kills | 0 }; };
   const bestOf = id => { const a = acc(); if (!a) return 0; let b = (a.champs[id] && a.champs[id].best) | 0; for (const h of a.hall) if (h.id === id && h.lvl > b) b = h.lvl; return b; };
   const bump = () => { const a = acc(), p = R.state && R.state.p; if (!a || !p) return; const id = current(); if (p.lvl > (a.best.lvl | 0)) a.best.lvl = p.lvl; if (id && a.champs[id] && p.lvl > (a.champs[id].best | 0)) a.champs[id].best = p.lvl; };
   const killerName = k => { if (!k) return 'the cold'; if (typeof k === 'string') return k; const n = k.name || (k.type && R.data.mobs && R.data.mobs[k.type] && (R.data.mobs[k.type].name || R.data.mobs[k.type].n)) || k.type; return n || 'the cold'; };
@@ -61,7 +64,7 @@
     a.hall.push(e); if (a.hall.length > 200) a.hall.splice(0, a.hall.length - 200); R.bus.emit('hall', e); R.save(); return e; };
   R.bus.on('death', info => { setTimeout(() => { try { fall(info && info.killer, info); } catch (e) {} }, 0); });
   R.bus.on('levelup', bump);
-  const list = h => { h = h || house(); const a = acc(); return houseIds(h).map(id => { const c = champ(id), r = rarOf(id), st = (a && a.champs[id]) || {}; return { id, name: c.name, house: c.house, type: c.type, cls: clsOf(c.type), rar: r.n, rarCol: r.col, col: colOf(c.house), unlocked: !!st.unlocked, runs: st.runs | 0, best: bestOf(id), unlockText: st.unlocked ? '' : unlockText(id), current: current() === id }; }); };
+  const list = h => { h = h || house(); const a = acc(); return houseIds(h).map(id => { const c = champ(id), r = rarOf(id), st = (a && a.champs[id]) || {}; return { id, name: c.name, house: c.house, type: c.type, cls: clsOf(c.type), rar: r.n, rarCol: r.col, col: colOf(c.house), unlocked: !!st.unlocked, runs: runsOf(id), best: bestOf(id), unlockText: st.unlocked ? '' : unlockText(id), current: current() === id }; }); };
 
   /* ---- a portrait element: R.draw.portrait → A_CHAMP art → the initial in the house colour ---- */
   const portrait = (id, size) => { size = size || 96; const c = champ(id) || { name: id, house: 'stark' }; let el = null;
@@ -71,7 +74,7 @@
     el.classList.add('hr-pt'); el.style.width = el.style.height = size + 'px'; if (el.tagName === 'IMG') { el.width = el.height = size; el.draggable = false; } return el; };
 
   /* ---- ride: runs++ then R.newHero (A01) or the minimal fallback ---- */
-  const ride = id => { const a = acc(); const c = champ(id); if (!a || !c || !isUnlocked(id)) return false; a.champs[id].runs = (a.champs[id].runs | 0) + 1; let ok = false;
+  const ride = id => { const a = acc(); const c = champ(id); if (!a || !c || !isUnlocked(id)) return false; let ok = false;   // R.newHero counts the run
     if (typeof R.newHero === 'function') { try { R.newHero(id); ok = true; } catch (e) { console.error('newHero', e); } }
     if (!ok) { const s = R.newState ? R.newState() : { p: {} }; const p = s.p || {}; Object.assign(p, { hero: id, name: c.name, cls: clsOf(c.type).toLowerCase(), house: a.house, lvl: 1, xp: 0, hp: 0, gold: 0, gems: 0, pos: null, created: Date.now(), played: 0 }); R.state.p = p; if (R.player) { R.player.dead = false; R.player.hp = R.player.hpMax; R.player.anim = 'idle'; } }
     R.save(); sfx('ui', 0.5); toast('You ride as ' + c.name, colOf(c.house)); R.bus.emit('ride', id); if (R.ui && R.ui.cur === 'heroes') R.ui.close(); return true; };

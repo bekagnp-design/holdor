@@ -532,14 +532,40 @@
   R3.setSun(55); R3.setFog(0x9fb0c4, 500, 1500);
 
   /* ---------- billboards ---------- */
-  const texCache = new Map(), TEX_MAX = 320, fbCache = {}, sprites = new Map();
+  // texture px per world unit: the hero (64 u) gets a ~150 px tall frame, near the size it shows at on a phone (dpr ≤ 1.5)
+  const PXU = 2.3, TEX_MAX = 200;
+  const texCache = new Map(), fbCache = {}, sprites = new Map();
   // one texture per frame canvas, LRU-capped: an evicted texture is disposed (GPU memory), and re-uploaded if that canvas comes back
   function texFor(cv) { let t = texCache.get(cv); if (t) { texCache.delete(cv); texCache.set(cv, t); }
     else { t = new T.CanvasTexture(cv); t.colorSpace = T.SRGBColorSpace; t.minFilter = T.LinearFilter; t.magFilter = T.LinearFilter; t.generateMipmaps = false; texCache.set(cv, t);
       while (texCache.size > TEX_MAX) { const k0 = texCache.keys().next().value, t0 = texCache.get(k0); texCache.delete(k0); t0.dispose(); } }
     if (cv.dirty) { cv.dirty = false; t.needsUpdate = true; } return t; }
-  // the figure's body height in world units (the frame's meta maps canvas px to it)
-  const bodyH = e => e.h || (e.kind === 'boss' ? 96 : e.kind === 'mob' ? 52 : 60) * clamp((e.r || 14) / 14, .6, 2.5);
+  R3.texCount = () => texCache.size;
+  const D_ = () => R.draw || {};
+  const strip = k => typeof k === 'string' ? k.replace(/^(champ|mob):/, '') : k;
+  function champId(e) { const t = e.type || e.sprite;
+    if (e.kind === 'player') return e.hero || (R.state && R.state.p && R.state.p.hero) || (t && !/^npc:/.test(t) ? strip(t) : null);
+    if (e.kind === 'ghost') return e.hero || strip(e.type) || null;
+    if (e.kind === 'npc') return e.champ || (t && /^champ:/.test(t) ? t.slice(6) : null);
+    if (e.kind === 'companion') return e.champ || strip(t);
+    return null; }
+  function keyFor(e) { if (e.kind === 'mob' || e.kind === 'boss') return strip(e.sprite || e.type); const c = champId(e); if (c) return c; return strip(e.sprite || e.type) || 'hero'; }
+  const isChampKind = e => e.kind === 'player' || e.kind === 'ghost' || e.kind === 'companion' || (e.kind === 'npc' && !!champId(e));
+  const mCache = {};
+  // the figure's body height in world units: mobs from their sheet (R.draw.measure), champions 64, bosses <= 2 x a common mob, critters e.h
+  function heightOf(e) {
+    if (e.bbH) return e.bbH;
+    const D = D_(), k = e.kind;
+    if (k === 'critter') return e.h || 24;
+    if (isChampKind(e)) { let h = 64; if (D.champMeasure) { const id = champId(e); let m = mCache['c:' + id]; if (m === undefined) { try { m = D.champMeasure(id); } catch (x) { m = null; } mCache['c:' + id] = m; } if (m && m.h > 0) h = m.h; } return h * (e.sz || 1); }
+    if (k === 'mob' || k === 'boss') { const key = keyFor(e); let m = mCache['e:' + key]; if (m === undefined) { try { m = D.measure ? D.measure(key) : null; } catch (x) { m = null; } mCache['e:' + key] = m; }
+      const base = m && m.h > 0 ? m.h : 48;
+      if (k === 'boss') return clamp(base * clamp(e.scale || e.sz || 1.6, 1, 2), 56, 100);
+      return clamp(base * (e.sz || e.scale || 1), 16, 120); }
+    if (k === 'npc') return 60;
+    return 60 * clamp((e.r || 14) / 14, .6, 2);
+  }
+  R3.heightOf = heightOf;
   function fbFrame(e) {
     const walk = e.anim === 'walk' ? 1 + (Math.floor((e.animT || 0) * 8) % 2) : 0, boss = e.kind === 'boss', key = e.kind + '|' + e.team + '|' + (e.anim === 'attack' ? 'a' : walk) + (boss ? 'B' : '');
     let c = fbCache[key]; if (c) return c;
@@ -553,24 +579,31 @@
   }
   function glyph(key, draw, size) { let c = fbCache[key]; if (c) return c; c = fbCache[key] = document.createElement('canvas'); c.width = c.height = size; draw(c.getContext('2d'), size); return c; }
   const hexA = (hex, a) => { const n = parseInt(hex.slice(1), 16); return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')'; };
-  function dropFrame(e) { const it = e.item || e, rar = Math.max(0, Math.min(4, it.rar | 0)), col = Rd.RAR[rar]; return glyph('drop' + rar, (g, s) => {
+  // ground glyphs carry their world size: units {w, h} and anchor {x, y} (fractions from the top left)
+  const sized = (c, w, ay) => { if (!c.units) { c.units = { w, h: w }; c.anchor = { x: .5, y: ay }; } return c; };
+  function dropFrame(e) { const it = e.item || e, rar = Math.max(0, Math.min(4, it.rar | 0)), col = Rd.RAR[rar]; return sized(glyph('drop' + rar, (g, s) => {
     const gr = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2); gr.addColorStop(0, hexA(col, .7)); gr.addColorStop(.5, hexA(col, .25)); gr.addColorStop(1, hexA(col, 0)); g.fillStyle = gr; g.fillRect(0, 0, s, s);
-    g.save(); g.translate(s / 2, s / 2); g.rotate(Math.PI / 4); g.fillStyle = col; g.fillRect(-s * .14, -s * .14, s * .28, s * .28); g.fillStyle = 'rgba(255,255,255,.75)'; g.fillRect(-s * .14, -s * .14, s * .12, s * .12); g.restore(); }, 48); }
-  const portalFrame = () => glyph('portal', (g, s) => { const c = s / 2; const gr = g.createRadialGradient(c, c, 0, c, c, c); gr.addColorStop(0, 'rgba(140,220,255,.6)'); gr.addColorStop(.6, 'rgba(120,80,220,.3)'); gr.addColorStop(1, 'rgba(120,80,220,0)'); g.fillStyle = gr; g.fillRect(0, 0, s, s);
-    g.lineWidth = 4; for (let i = 0; i < 3; i++) { g.strokeStyle = i % 2 ? 'rgba(181,123,255,.9)' : 'rgba(127,224,255,.95)'; g.beginPath(); g.arc(c, c, c * (.45 + i * .18), i * 2.1, i * 2.1 + 2.6); g.stroke(); } }, 96);
-  const trapFrame = () => glyph('trap', (g, s) => { const c = s / 2; g.fillStyle = 'rgba(20,16,24,.85)'; g.beginPath(); g.arc(c, c, c * .7, 0, 7); g.fill(); g.fillStyle = '#9a9aa6'; for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; g.beginPath(); g.moveTo(c + Math.cos(a) * c * .3, c + Math.sin(a) * c * .3); g.lineTo(c + Math.cos(a + .25) * c * .5, c + Math.sin(a + .25) * c * .5); g.lineTo(c + Math.cos(a) * c * .95, c + Math.sin(a) * c * .95); g.fill(); } }, 48);
-  function keyFor(e) { if (e.kind === 'mob' || e.kind === 'boss') return e.type; if (e.kind === 'companion') return e.type || e.champ; if (e.kind === 'npc') return e.sprite || e.champ || e.type || 'npc';
-    return e.type || e.hero || e.champ || (e === R.player && R.state && R.state.p && R.state.p.hero) || 'hero'; }
-  const warned = {};
-  function frameFor(e, s) {
+    g.save(); g.translate(s / 2, s / 2); g.rotate(Math.PI / 4); g.fillStyle = col; g.fillRect(-s * .14, -s * .14, s * .28, s * .28); g.fillStyle = 'rgba(255,255,255,.75)'; g.fillRect(-s * .14, -s * .14, s * .12, s * .12); g.restore(); }, 48), 30, .75); }
+  const portalFrame = () => sized(glyph('portal', (g, s) => { const c = s / 2; const gr = g.createRadialGradient(c, c, 0, c, c, c); gr.addColorStop(0, 'rgba(140,220,255,.6)'); gr.addColorStop(.6, 'rgba(120,80,220,.3)'); gr.addColorStop(1, 'rgba(120,80,220,0)'); g.fillStyle = gr; g.fillRect(0, 0, s, s);
+    g.lineWidth = 4; for (let i = 0; i < 3; i++) { g.strokeStyle = i % 2 ? 'rgba(181,123,255,.9)' : 'rgba(127,224,255,.95)'; g.beginPath(); g.arc(c, c, c * (.45 + i * .18), i * 2.1, i * 2.1 + 2.6); g.stroke(); } }, 96), 84, .5);
+  const trapFrame = () => sized(glyph('trap', (g, s) => { const c = s / 2; g.fillStyle = 'rgba(20,16,24,.85)'; g.beginPath(); g.arc(c, c, c * .7, 0, 7); g.fill(); g.fillStyle = '#9a9aa6'; for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; g.beginPath(); g.moveTo(c + Math.cos(a) * c * .3, c + Math.sin(a) * c * .3); g.lineTo(c + Math.cos(a + .25) * c * .5, c + Math.sin(a + .25) * c * .5); g.lineTo(c + Math.cos(a) * c * .95, c + Math.sin(a) * c * .95); g.fill(); } }, 48), 30, .5);
+  // texture scale for R.draw.*Frame: the sheet's box px at scale 1 is learnt from the first frame (meta.h / meta.sc), then frames are asked at H x PXU px
+  const boxH = {};
+  function frameScale(ns, key, wh) { const b = boxH[ns + key]; if (!b) return null; return clamp(Math.round(wh * PXU / 8) * 8, 24, 232) / b; }
+  function learn(ns, key, cv) { if (!boxH[ns + key] && cv && cv.meta && cv.meta.h > 0 && cv.meta.sc > 0) boxH[ns + key] = cv.meta.h / cv.meta.sc; }
+  function viaDraw(ns, key, wh, call) { let sc = frameScale(ns, key, wh); let cv = call(sc || 1); if (!sc && cv) { learn(ns, key, cv); sc = frameScale(ns, key, wh); if (sc) cv = call(sc); } return cv; }
+  function frameFor(e, wh) {
     if (e.kind === 'drop') return dropFrame(e); if (e.kind === 'portal') return portalFrame(); if (e.kind === 'trap') return trapFrame();
-    let cv = null; const anim = e.anim || 'idle', t = e.animT || 0, face = e.face || 1, o = { scale: (s && s.fsc) || 1, e };
-    if (typeof e.frame === 'function') { try { cv = e.frame(anim, t, face, o); } catch (x) { if (!warned.ef) { warned.ef = 1; console.warn('render: e.frame', x); } } }
-    const D = R.draw;
-    if (!cv && D) { try {
-      if ((e.kind === 'player' || e.kind === 'ghost') && D.heroFrame && !e.type) cv = D.heroFrame(anim, t, face, o);
-      else if ((e.kind === 'companion' || e.kind === 'player' || e.kind === 'ghost' || (e.kind === 'npc' && e.champ)) && D.champFrame) cv = D.champFrame(keyFor(e), anim, t, face, o);
-      if (!cv && D.frame) cv = D.frame(keyFor(e), anim, t, face, o);
+    let cv = null; const anim = e.anim || 'idle', t = e.animT || 0, face = e.face || 1;
+    if (typeof e.frame === 'function') { try { cv = e.frame(anim, t, face, { e }); } catch (x) { if (!warned.ef) { warned.ef = 1; console.warn('render: e.frame', x); } } }
+    const D = D_();
+    if (!cv) { try {
+      if (isChampKind(e)) { const id = champId(e);
+        if (id && D.champFrame) cv = viaDraw('c', id, wh, sc => D.champFrame(id, anim, t, face, { scale: sc, e }));
+        else if (e.kind === 'player' && D.heroFrame) cv = viaDraw('h', 'hero', wh, sc => D.heroFrame(anim, t, face, { scale: sc, e })); }
+      if (!cv && D.frame) { const key = keyFor(e);
+        if (!boxH['e' + key] && D.meta) { try { const m = D.meta(key); if (m && m.h > 0) boxH['e' + key] = m.h; } catch (x) {} }
+        cv = viaDraw('e', key, wh, sc => D.frame(key, anim, t, face, { scale: sc, e })); }
     } catch (x) { if (!warned.df) { warned.df = 1; console.warn('render: R.draw.frame', x); } } }
     if (cv && !(cv.width > 0)) cv = null;
     return cv || fbFrame(e);
@@ -579,35 +612,53 @@
     let s = sprites.get(e.id); if (s) return s;
     // DoubleSide so a mirrored (face -1) quad is not culled; forceSinglePass or three draws every transparent DoubleSide object twice
     const mat = new T.SpriteMaterial({ transparent: true, alphaTest: .08, depthWrite: true, side: T.DoubleSide, forceSinglePass: true, fog: true }); const sp = new T.Sprite(mat); sp.center.set(.5, 0); sp.frustumCulled = false;
-    s = { sp, mat, cv: null, tv: 0, ent: e }; sprites.set(e.id, s); scene.add(sp); return s;
+    s = { sp, mat, cv: null, tv: 0, ent: e, wh: 60 }; sprites.set(e.id, s); scene.add(sp); return s;
   }
   // flat discs: shadows (one instanced mesh for every billboard) and the hero's light
   const discGeo = new T.PlaneGeometry(1, 1); discGeo.rotateX(-Math.PI / 2);
   const shadowTex = new T.CanvasTexture(glyph('shadow', (g, s) => { const gr = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2); gr.addColorStop(0, 'rgba(0,0,0,.5)'); gr.addColorStop(.6, 'rgba(0,0,0,.3)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, s, s); }, 64));
-  const shadows = new T.InstancedMesh(discGeo, new T.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }), 96); shadows.frustumCulled = false; shadows.count = 0; shadows.instanceMatrix.setUsage(T.DynamicDrawUsage); scene.add(shadows);
+  const SH_MAX = 128;
+  const shadows = new T.InstancedMesh(discGeo, new T.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), SH_MAX); shadows.frustumCulled = false; shadows.count = 0; shadows.instanceMatrix.setUsage(T.DynamicDrawUsage); shadows.renderOrder = 1; scene.add(shadows);
   const lightTex = new T.CanvasTexture(glyph('light', (g, s) => { const gr = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2); gr.addColorStop(0, 'rgba(255,232,170,.5)'); gr.addColorStop(1, 'rgba(255,232,170,0)'); g.fillStyle = gr; g.fillRect(0, 0, s, s); }, 64));
   const heroLight = new T.Mesh(discGeo, new T.MeshBasicMaterial({ map: lightTex, transparent: true, depthWrite: false, blending: T.AdditiveBlending })); heroLight.scale.set(150, 1, 150); heroLight.visible = false; scene.add(heroLight);
-  const _m = new T.Matrix4(), _q = new T.Quaternion(), _p = new T.Vector3(), _s = new T.Vector3();
+  const _m = new T.Matrix4(), _q = new T.Quaternion(), _p = new T.Vector3(), _s = new T.Vector3(), _f = new T.Frustum(), _pm = new T.Matrix4(), _sph = new T.Sphere();
   const stOn = v => !!v && (typeof v !== 'number' || v > 0);
+  const NOBB = { proj: 1, fx: 1, decal: 1 };
+  const deathT = e => { try { return (R.draw && R.draw.deathTime && e.kind !== 'critter' && R.draw.deathTime(keyFor(e))) || .75; } catch (x) { return .75; } };
   function syncSprites() {
     const hero = R.player, hx = hero ? hero.x : R.cam.x, hy = hero ? hero.y : R.cam.y; let n = 0, ns = 0; const seen = new Set();
+    _pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); _f.setFromProjectionMatrix(_pm);
     for (const e of R.ents) {
+      if (!e || NOBB[e.kind] || e.hidden || e.noDraw) continue;
       if (e !== hero && Math.hypot(e.x - hx, e.y - hy) > CULL_D) continue;
-      let a = 1; if (e.dead) { a = Math.max(0, 1 - (e.animT || 0) / 1.4); if (a <= 0) continue; }
-      if (e.kind === 'ghost') a *= .6; if (e.alpha != null) a *= e.alpha;
-      const s = spriteFor(e); seen.add(e.id); s.ent = e;
-      const cv = frameFor(e); if (cv !== s.cv) { s.cv = cv; s.mat.map = texFor(cv); s.mat.needsUpdate = true; } else if (cv.dirty) texFor(cv);
-      const k = e.sz || 1, w = cv.width * k, h = cv.height * k, flip = e.face < 0 && (e.kind === 'drop' || e.kind === 'portal' || e.kind === 'trap' ? false : (typeof e.frame !== 'function' && !(R.draw && R.draw.frame && R.draw.frame.length >= 4)));
-      s.sp.scale.set(flip ? -w : w, h, 1); const gy = groundY(e.x, e.y), lift = (e.z || 0) + (e.kind === 'drop' ? 6 + Math.sin(R.t * 3 + e.id) * 3 : e.kind === 'portal' || e.kind === 'trap' ? 2 : 0);
+      // the dead play their baked death frames, then fade out over 1.2 s
+      let a = 1; if (e.dead) { const k = (e.animT || 0) - deathT(e); a = k > 0 ? Math.max(0, 1 - k / 1.2) : 1; if (a <= 0) continue; }
+      if (e.kind === 'ghost') a *= .6; if (e.alpha != null) a *= e.alpha; if (e.fade != null) a *= e.fade; if (a <= .01) continue;
+      const wh = heightOf(e), gy = groundY(e.x, e.y);
+      _sph.center.set(e.x, gy + wh / 2 + (e.z || 0), e.y); _sph.radius = wh; if (e !== hero && !_f.intersectsSphere(_sph)) continue;
+      const s = spriteFor(e); seen.add(e.id); s.ent = e; s.wh = wh;
+      const cv = frameFor(e, wh); if (cv !== s.cv) { s.cv = cv; s.mat.map = texFor(cv); s.mat.needsUpdate = true; } else if (cv.dirty) texFor(cv);
+      // canvas px -> world units and the feet anchor: 05_sprites' meta {ax, ay, h}; else units/anchor on the canvas; else critters 1 px = 1 unit (or e.h), feet at the bottom
+      let u, ax = .5, ay = 1; const M = cv.meta;
+      if (M && M.h > 0 && M.ax != null) { u = wh / M.h; ax = M.ax / cv.width; ay = M.ay / cv.height; }
+      else if (cv.units && cv.units.h > 0) { u = cv.units.h / cv.height; if (cv.anchor) { ax = cv.anchor.x; ay = cv.anchor.y; } }
+      else u = e.kind === 'critter' ? (e.h && cv.height > 0 ? e.h / cv.height : 1) : wh / cv.height;
+      const w = cv.width * u, h = cv.height * u;
+      s.sp.scale.set(w, h, 1); s.sp.center.set(ax, 1 - ay);
+      const lift = (e.z || 0) + (e.kind === 'drop' ? 8 + Math.sin(R.t * 3 + e.id) * 3 : e.kind === 'portal' ? 46 : e.kind === 'trap' ? 2 : 0);
       s.sp.position.set(e.x, gy + lift, e.y);
       s.mat.opacity = a; s.mat.rotation = e.tumble && e.tumble.ang ? e.tumble.ang : e.kind === 'portal' ? R.t * 1.5 : 0;
-      const flash = e.flash > 0; if (flash !== s.flash || s.tv !== tintVer) { s.flash = flash; s.tv = tintVer; s.mat.color.copy(flash ? new T.Color(1, 1, 1) : tint); s.mat.blending = flash ? T.AdditiveBlending : T.NormalBlending; s.mat.needsUpdate = true; }
-      if (flash) s.mat.color.setRGB(1.6, 1.5, 1.3);
+      // hit flash: the sprite colour above 1 whitens the frame (no blending / shader change)
+      const flash = e.flash > 0 || (e.hitT != null && R.t - e.hitT < .08);
+      if (flash) s.mat.color.setRGB(2.6, 2.4, 2.2); else if (s.flash || s.tv !== tintVer) s.mat.color.copy(tint);
+      s.flash = flash; s.tv = tintVer;
       s.sp.visible = true; ns++;
-      if (e.kind !== 'drop' && e.kind !== 'portal' && e.kind !== 'trap' && !e.dead && n < 96) { const r = (e.r || 14) * 1.1; _p.set(e.x, gy + 1.2, e.y); _s.set(r * 2.2, 1, r * 1.8); _m.compose(_p, _q, _s); shadows.setMatrixAt(n++, _m); }
+      if (e.kind !== 'drop' && e.kind !== 'portal' && e.kind !== 'trap' && !(e.dead && a < .5) && n < SH_MAX && !(e.kind === 'critter' && (e.z || 0) > 60)) {
+        const r = Math.max((e.r || 12) * 1.15, Math.min(w * .3, wh * .45)), sa = e.z > 0 ? Math.max(.3, 1 - e.z / 120) : 1;
+        _p.set(e.x, gy + 1.5, e.y); _s.set(r * 2.2 * sa, 1, r * 1.5 * sa); _m.compose(_p, _q, _s); shadows.setMatrixAt(n++, _m); }
     }
     shadows.count = n; shadows.instanceMatrix.needsUpdate = true;
-    for (const [id, s] of sprites) if (!seen.has(id)) { scene.remove(s.sp); s.mat.dispose(); sprites.delete(id); }
+    for (const [id, s] of sprites) if (!seen.has(id)) { if (!s.ent.dead && R.ents.indexOf(s.ent) >= 0) { s.sp.visible = false; continue; } scene.remove(s.sp); s.mat.dispose(); sprites.delete(id); }
     if (hero) { heroLight.visible = true; heroLight.position.set(hero.x, groundY(hero.x, hero.y) + 1.6, hero.y); } else heroLight.visible = false;
     R3.stats.sprites = ns;
   }
@@ -652,25 +703,87 @@
     R3.stats.props = n;
   }
 
-  /* ---------- camera + projection ---------- */
-  R.cam.yaw = R.cam.yaw || 0; R.cam.pitch = R.cam.pitch || 35 * DEG; R.cam.dist = R.cam.dist || 420;
+  /* ---------- camera + projection ----------
+     Third person behind the hero: yaw 0 looks north; the camera sits at target - forward x dist, forward = (sin yaw, -cos yaw) on the
+     ground, so A12's P.camDir (stick up = forward, right = (cos yaw, sin yaw)) moves the hero away from the camera at any yaw.
+     A right-half drag (R.input.look.dx) and Q/E turn it (drag right = turn right), R.input.pinch zooms 300..700 (default 420), the pitch
+     follows the zoom (30 deg close .. 40 deg far). Yaw / distance ease toward their targets; a value written to R.cam.yaw / R.cam.dist
+     from outside (tests, cut-scenes) is taken as the new target and snapped to. */
+  R.cam.yaw = R.cam.yaw || 0; R.cam.dist = R.cam.dist || 420; R.cam.pitch = R.cam.pitch || 35 * DEG;
+  const CAM = { yawT: R.cam.yaw, distT: R.cam.dist, yawOut: R.cam.yaw, distOut: R.cam.dist, DMIN: 300, DMAX: 700, PMIN: 30, PMAX: 40, TURN: .0065 };
+  R3.camCfg = CAM;
   const camT = new T.Vector3(R.W / 2, 30, R.H / 2); let camInit = false, lastPlayer = null; const look = { x: 0, y: 0 };
   Rd.snapCam = () => { camInit = false; };
   function updateCam() {
-    const C = R.cam, p = R.player, lk = R.input && R.input.look;
-    if (lk) { if (lk.dx) { C.yaw -= lk.dx * .006; lk.dx = 0; } if (lk.pinch && lk.pinch !== 1) { C.dist = C.dist / lk.pinch; lk.pinch = 1; } }
-    C.dist = clamp(C.dist, 300, 700); C.pitch = clamp(C.pitch, 20 * DEG, 70 * DEG);
+    const C = R.cam, p = R.player, I = R.input, lk = I && I.look;
+    if (C.yaw !== CAM.yawOut) { CAM.yawT = C.yaw; } if (C.dist !== CAM.distOut) { CAM.distT = C.dist; }
+    if (lk && lk.dx && isFinite(lk.dx)) CAM.yawT += lk.dx * CAM.TURN;
+    const pin = I && (I.pinch != null ? I.pinch : lk && lk.pinch); if (pin && pin !== 1 && isFinite(pin) && pin > 0) CAM.distT /= pin;
+    CAM.distT = clamp(CAM.distT, CAM.DMIN, CAM.DMAX);
+    if (!camInit) { C.yaw = CAM.yawT; C.dist = CAM.distT; }
+    else { C.yaw = lerp(C.yaw, CAM.yawT, .32); if (Math.abs(C.yaw - CAM.yawT) < 1e-4) C.yaw = CAM.yawT; C.dist = lerp(C.dist, CAM.distT, .18); if (Math.abs(C.dist - CAM.distT) < .05) C.dist = CAM.distT; }
+    CAM.yawOut = C.yaw; CAM.distOut = C.dist;
+    if (!C.pitchLock) C.pitch = (CAM.PMIN + (CAM.PMAX - CAM.PMIN) * (C.dist - CAM.DMIN) / (CAM.DMAX - CAM.DMIN)) * DEG;
+    C.pitch = clamp(C.pitch, 15 * DEG, 75 * DEG);
     if (p && p !== lastPlayer) { lastPlayer = p; camInit = false; }
     let tx = camT.x, ty = camT.z, dx = 0, dy = 0;
-    if (p) { tx = p.x; ty = p.y; const mv = R.input && R.input.move; if (mv && (mv.x || mv.y)) { dx = mv.x; dy = mv.y; } else if (p.vx || p.vy) { dx = p.vx; dy = p.vy; } const l = Math.hypot(dx, dy); if (l > .01) { dx /= l; dy /= l; } else dx = dy = 0; }
-    look.x = lerp(look.x, dx * 30, .08); look.y = lerp(look.y, dy * 30, .08); tx += look.x; ty += look.y;
-    const k = camInit ? .12 : 1; if (!camInit || Math.hypot(tx - camT.x, ty - camT.z) > 1500) { camT.set(tx, 0, ty); camInit = true; } else { camT.x = lerp(camT.x, tx, k); camT.z = lerp(camT.z, ty, k); }
-    camT.x = clamp(camT.x, 0, R.W); camT.z = clamp(camT.z, 0, R.H); camT.y = lerp(camT.y, groundY(camT.x, camT.z) + 24, k);
-    const cp = Math.cos(C.pitch), sp = Math.sin(C.pitch), cx = camT.x + Math.sin(C.yaw) * cp * C.dist, cz = camT.z + Math.cos(C.yaw) * cp * C.dist; let cy = camT.y + sp * C.dist;
-    const gc = groundY(clamp(cx, 0, R.W), clamp(cz, 0, R.H)) + 40; if (cy < gc) cy = gc;
+    // a small lookahead along the hero's world velocity
+    if (p) { tx = p.x; ty = p.y; dx = p.vx || 0; dy = p.vy || 0; const l = Math.hypot(dx, dy); if (l > 20) { dx /= l; dy /= l; } else dx = dy = 0; }
+    look.x = lerp(look.x, dx * 34, .06); look.y = lerp(look.y, dy * 34, .06); tx += look.x; ty += look.y;
+    const k = camInit ? .14 : 1; if (!camInit || Math.hypot(tx - camT.x, ty - camT.z) > 1500) { camT.set(tx, 0, ty); camInit = true; camT.y = groundY(clamp(tx, 0, R.W), clamp(ty, 0, R.H)) + 30; } else { camT.x = lerp(camT.x, tx, k); camT.z = lerp(camT.z, ty, k); }
+    camT.x = clamp(camT.x, 0, R.W); camT.z = clamp(camT.z, 0, R.H); camT.y = lerp(camT.y, groundY(camT.x, camT.z) + 30, camInit ? .1 : 1);
+    const cp = Math.cos(C.pitch), sp = Math.sin(C.pitch), fx = Math.sin(C.yaw), fz = -Math.cos(C.yaw);
+    const cx = camT.x - fx * cp * C.dist, cz = camT.z - fz * cp * C.dist; let cy = camT.y + sp * C.dist;
+    // keep the camera above the ground under it and halfway back (hills behind the hero)
+    const gc = Math.max(groundY(clamp(cx, 0, R.W), clamp(cz, 0, R.H)), groundY(clamp((cx + camT.x) / 2, 0, R.W), clamp((cz + camT.z) / 2, 0, R.H)) - 10) + 40; if (cy < gc) cy = gc;
     camera.position.set(cx, cy, cz); camera.lookAt(camT); camera.updateMatrixWorld(true);
     C.x = camT.x; C.y = camT.z; C.z = (R.vh / 2) / (camera.position.distanceTo(camT) * Math.tan(camera.fov * DEG / 2));
+    C.fwd = { x: fx, y: fz };
   }
+
+  /* ---------- see-through: props / trees / houses in front of the hero are dithered away ----------
+     Every non-shader mesh material in the scene (A37's props, A43's nature, the simple POI props) gets a screen-space test in its
+     fragment shader (chained after the module's own onBeforeCompile, its cache key kept + '|occ'): a fragment nearer to the camera than
+     the hero and inside an ellipse around the hero and the fight around him is discarded by a 4x4 ordered dither (a soft see-through
+     hole, no transparency sorting); anything within 120 units of the camera fades too. */
+  const OCC = { uOccP: { value: new T.Vector4(0, 0, 0, 0) }, uOccR: { value: new T.Vector3(.32, .42, 1) } };
+  R3.occ = OCC;
+  const OCC_V = 'varying vec4 vOccC;\n', OCC_F = 'varying vec4 vOccC; uniform vec4 uOccP; uniform vec3 uOccR;\n' +
+    'float occB(vec2 p){ vec2 q = mod(floor(p), 4.0); float i = q.x + q.y * 4.0;\n' +
+    ' return (i<0.5?0.0:i<1.5?8.0:i<2.5?2.0:i<3.5?10.0:i<4.5?12.0:i<5.5?4.0:i<6.5?14.0:i<7.5?6.0:i<8.5?3.0:i<9.5?11.0:i<10.5?1.0:i<11.5?9.0:i<12.5?15.0:i<13.5?7.0:i<14.5?13.0:5.0) / 16.0 + 0.03; }\n' +
+    'void occTest(){ if (uOccP.w < 0.5) return; vec2 n = vOccC.xy / vOccC.w; float dz = vOccC.w;\n' +
+    ' vec2 d = vec2((n.x - uOccP.x) * uOccR.z / uOccR.x, (n.y - uOccP.y) / uOccR.y); float r = length(d);\n' +
+    ' float k = (1.0 - smoothstep(0.55, 1.0, r)) * step(dz, uOccP.z - 18.0) * 0.92;\n' +
+    ' k = max(k, 1.0 - smoothstep(70.0, 130.0, dz));\n' +
+    ' if (k > 0.0 && k >= occB(gl_FragCoord.xy)) discard; }\n';
+  const MAIN = /void\s+main\s*\(\s*\)\s*\{/;
+  function occPatch(m) {
+    if (!m || m.__occ || m.isShaderMaterial || m.isRawShaderMaterial || m.isSpriteMaterial || m.isPointsMaterial || m.isLineBasicMaterial) return;
+    if (!(m.isMeshLambertMaterial || m.isMeshPhongMaterial || m.isMeshBasicMaterial || m.isMeshStandardMaterial || m.isMeshToonMaterial || m.isMeshMatcapMaterial)) return;
+    m.__occ = true; const prev = m.onBeforeCompile, prevKey = m.customProgramCacheKey;
+    m.onBeforeCompile = function (sh, rr) {
+      if (typeof prev === 'function') { try { prev.call(this, sh, rr); } catch (e) {} }
+      if (!/#include <project_vertex>/.test(sh.vertexShader) || !MAIN.test(sh.fragmentShader)) return;
+      sh.uniforms.uOccP = OCC.uOccP; sh.uniforms.uOccR = OCC.uOccR;
+      sh.vertexShader = OCC_V + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n vOccC = gl_Position;');
+      sh.fragmentShader = OCC_F + sh.fragmentShader.replace(MAIN, 'void main() {\n occTest();');
+    };
+    m.customProgramCacheKey = function () { let k = ''; try { k = typeof prevKey === 'function' ? prevKey.call(this) : ''; } catch (e) {} return k + '|occ' + (typeof prev === 'function' ? String(prev).length : 0); };
+    m.needsUpdate = true;
+  }
+  let occN = 0;
+  function occScan() { scene.traverse(o => { if (!o.isMesh || o === shadows || o === heroLight || (o.parent && o.parent.name === 'terrain')) return; const mm = o.material; if (Array.isArray(mm)) mm.forEach(occPatch); else occPatch(mm); }); }
+  const _hv = new T.Vector3();
+  function occUpdate() {
+    if ((occN++ % 30) === 0) occScan();
+    const p = R.player; if (!p || R3.occOff) { OCC.uOccP.value.w = 0; return; }
+    const gy = groundY(p.x, p.y) + 30; _hv.set(p.x, gy, p.y).applyMatrix4(camera.matrixWorldInverse); const d = -_hv.z;
+    _hv.set(p.x, gy, p.y).project(camera);
+    // clip w = view depth; the hole is centred a bit above the hero's middle, wide enough for the mobs around him
+    OCC.uOccP.value.set(_hv.x, _hv.y + .04, d, d > 0 ? 1 : 0);
+    const zoom = 420 / Math.max(200, R.cam.dist || 420); OCC.uOccR.value.set(.34 * zoom, .3 * zoom, camera.aspect);
+  }
+
   const _v = new T.Vector3();
   R.w2s = (x, y, z) => { _v.set(x, groundY(x, y) + (z || 0), y).applyMatrix4(camera.matrixWorldInverse); if (_v.z > -camera.near) return { x: -1e4, y: -1e4, behind: true, d: 0 };
     const d = -_v.z; _v.applyMatrix4(camera.projectionMatrix); return { x: (_v.x + 1) / 2 * R.vw, y: (1 - _v.y) / 2 * R.vh, behind: false, d }; };
@@ -684,9 +797,11 @@
   function overlay(ctx) {
     ctx.setTransform(R.dpr, 0, 0, R.dpr, 0, 0); ctx.clearRect(0, 0, R.vw, R.vh); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
     Rd.hook('boss', 'drawTelegraphs', ctx);
+    drawProjs(ctx);
     const hero = R.player, hx = hero ? hero.x : R.cam.x, hy = hero ? hero.y : R.cam.y;
     for (const s of sprites.values()) { const e = s.ent; if (!e || e.dead || e.kind === 'drop' || e.kind === 'portal' || e.kind === 'trap') continue;
-      const h = (s.cv ? s.cv.height : 56) * (e.sz || 1), f = R.w2s(e.x, e.y, e.z || 0), top = R.w2s(e.x, e.y, (e.z || 0) + h); if (f.behind || top.behind) continue;
+      if (!s.sp.visible || e.kind === 'critter' || e.noBar && e.kind !== 'npc' && e.kind !== 'boss') continue;
+      const h = s.wh || 60, f = R.w2s(e.x, e.y, e.z || 0), top = R.w2s(e.x, e.y, (e.z || 0) + h); if (f.behind || top.behind) continue;
       const zl = Math.max(.2, (f.y - top.y) / h); if (f.x < -80 || f.x > R.vw + 80 || f.y < -40 || f.y > R.vh + 120) continue;
       ctx.globalAlpha = e.kind === 'ghost' ? .7 : 1; Rd.drawOverhead(ctx, e, { x: f.x, y: f.y }, zl, h); }
     ctx.globalAlpha = 1;
@@ -705,12 +820,19 @@
 
   /* ---------- the system ---------- */
   let vw = 0, vh = 0, dpr = 0, lastState = null, ready = false;
-  function resize() { if (vw === R.vw && vh === R.vh && dpr === R.dpr) return; vw = R.vw; vh = R.vh; dpr = R.dpr; renderer.setPixelRatio(Math.min(dpr, 1.5)); renderer.setSize(vw, vh, false); camera.aspect = vw / vh; camera.updateProjectionMatrix(); }
+  // portrait phones get a taller field of view so the sides of a fight stay on screen; the pixel ratio is capped at 1.5 (1 on software GL)
+  function resize() { if (vw === R.vw && vh === R.vh && dpr === R.dpr) return; vw = R.vw; vh = R.vh; dpr = R.dpr; renderer.setPixelRatio(Math.min(dpr || 1, R3.software ? 1 : 1.5)); renderer.setSize(vw, vh, false);
+    camera.aspect = vw / Math.max(1, vh); camera.fov = camera.aspect < .62 ? 64 : camera.aspect < 1 ? 58 : 50; camera.updateProjectionMatrix(); }
+  // projectiles (kind 'proj') on the overlay at chest height: A11's R.combat.drawProj when present, else a short streak
+  function drawProjs(ctx) { const C = R.combat, dp = C && typeof C.drawProj === 'function' ? C.drawProj : null; const hero = R.player; if (!hero) return;
+    for (const e of R.ents) { if (!e || e.kind !== 'proj' || e.dead || Math.abs(e.x - hero.x) > 1200 || Math.abs(e.y - hero.y) > 1200) continue; const q = e.z == null ? Object.assign({}, e, { z: 30 }) : e;
+      try { if (dp) dp(ctx, q); else { const a = R.w2s(e.x, e.y, q.z), l = Math.hypot(e.vx || 0, e.vy || 0) || 1, b = R.w2s(e.x - (e.vx || 0) / l * 14, e.y - (e.vy || 0) / l * 14, q.z); if (!a.behind && !b.behind) { ctx.strokeStyle = e.col || '#f1dca3'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); } } } catch (x) {}
+    } }
   R.sys.render.update = function () { resize(); if (!terrain) buildTerrain(); updateCam(); if (R.state !== lastState) { lastState = R.state; Rd.fogCheck(); } };
   R.sys.render.draw = function (ctx) {
     const t0 = performance.now(); resize(); if (!terrain) buildTerrain(); if (!camInit) updateCam();
     if (!fogTex.image.__drawn && Rd.fogCanvas) { fogTex.image.__drawn = true; refreshFog(); }
-    syncProps(); syncSprites();
+    syncProps(); syncSprites(); occUpdate();
     renderer.render(scene, camera); R3.stats.calls = renderer.info.render.calls;
     overlay(ctx);
     if (!ready) { ready = true; R.bus.emit('render3d', R3); }
