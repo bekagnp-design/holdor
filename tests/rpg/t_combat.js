@@ -23,7 +23,7 @@ const ok = (c, name, info) => { console.log((c ? 'OK   ' : 'FAIL ') + name + (in
        population, region gates, physics impulses and the player's stat recalculation do not move or rescale the test entities */
     const KEEP = ['combat', 'ai', 'proj'];
     T.isolate = () => { R.sysList = R.sysList.filter(s => KEEP.includes(s.name) || KEEP.some(k => R.sys[k] === s)); if (R.phys) R.phys.off = true; };
-    T.reset = (hp = 400) => { T.isolate(); R.ents.length = 0; R.state = R.newState(); R.t = 0; R.rng(7);
+    T.reset = (hp = 400) => { R.combat.TEST_TEMPER = 'aggressive'; T.isolate(); R.ents.length = 0; R.state = R.newState(); R.t = 0; R.rng(7);
       R.player = R.spawn({ kind: 'player', team: 0, x: 1000, y: 1000, hp, hpMax: hp, atk: 20, def: 10, crit: 0, r: 14, face: 1, name: 'Hero' });
       T.hits = []; T.kills = []; T.xp = 0; T.gold = 0; return R.player; };
     T.steps = n => { for (let i = 0; i < n; i++) R.step(); };
@@ -189,6 +189,22 @@ const ok = (c, name, info) => { console.log((c ? 'OK   ' : 'FAIL ') + name + (in
   r = await pg.evaluate(() => { T.reset(); R.player.lvl = 1; for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; R.spawnMob('axe', 1000 + Math.cos(a) * 200, 1000 + Math.sin(a) * 200, 1); }
     T.steps(60); return { chasers: R.combat.chasers(R.player), cap: R.combat.maxChasers(R.player) }; });
   ok(r.chasers === 2 && r.cap === 2, 'pack aggro cap: a level 1–3 hero is chased by at most 2 mobs at once', r);
+  /* 15. temper: a passive (yellow) mob never starts a fight, answers a hit, calms when it loses the hero; an aggressive
+     (red) field mob comes only inside C.RED_R; bosses / elites / events / dungeons are aggressive; ~1 in 5 field mobs is red */
+  r = await pg.evaluate(() => { T.reset(); const C = R.combat; C.TEST_TEMPER = null;
+    const p = R.spawnMob('axe', 1100, 1000, 1, { temper: 'passive' }); T.steps(300); const quiet = { tgt: !!p.ai.tgt, hp: R.player.hp, col: p.hostileCol };
+    R.hit(R.player, p, 1); T.steps(30); const angry = { tgt: p.ai.tgt === R.player, col: p.hostileCol };
+    R.remove(p);
+    const a = R.spawnMob('axe', 1400, 1000, 1, { temper: 'aggressive' }); a.ai.t = 1e9; T.steps(60); const far = { tgt: !!a.ai.tgt, aggro: a.aggro };
+    a.x = 1180; a.ai.home = { x: 1180, y: 1000 }; T.steps(30); const near = !!a.ai.tgt; R.remove(a);
+    const ev = R.spawnMob('axe', 3000, 3000, 1, { event: 'horde' }).temper, el = R.spawnMob('axe', 3000, 3100, 1, { elite: true }).temper, dg = R.spawnMob('axe', 3000, 3200, 1, { dungeon: 'x' }).temper;
+    let red = 0; for (let i = 0; i < 200; i++) { const m = R.spawnMob('axe', 8000 + i * 30, 8000, 1); if (m.temper === 'aggressive') red++; R.remove(m); }
+    return { quiet, hpMax: R.player.hpMax, angry, far, near, ev, el, dg, red, R_: C.RED_R }; });
+  ok(!r.quiet.tgt && r.quiet.hp === r.hpMax && r.quiet.col === '#f2cf4a', 'a passive (yellow) mob next to the hero never attacks him', r.quiet);
+  ok(r.angry.tgt && r.angry.col === '#e5463f', 'a hit provokes the passive mob: it turns on the hero and shows red', r.angry);
+  ok(!r.far.tgt && r.far.aggro === r.R_ && r.near, 'an aggressive (red) field mob waits outside its radius and comes inside it', r);
+  ok(r.ev === 'aggressive' && r.el === 'aggressive' && r.dg === 'aggressive', 'event, elite and dungeon mobs are always aggressive', r);
+  ok(r.red > 20 && r.red < 70, 'about one field mob in five is aggressive', r.red);
 
   await b.close();
   console.log(fails ? 'FAILED ' + fails : 'ALL OK');

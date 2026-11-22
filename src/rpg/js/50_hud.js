@@ -133,7 +133,7 @@
     for (const e of R.ents) {
       if (e === P || e.dead) continue; const [dx, dy] = rp(e.x - px, e.y - py); if (dx * dx + dy * dy > MOBR * MOBR) continue;
       let col = null, r = 2;
-      if (e.kind === 'mob') col = '#e14b4b'; else if (e.kind === 'boss') { col = '#ff6a3c'; r = 3.5; } else if (e.kind === 'companion') col = '#7fd06a';
+      if (e.kind === 'mob') col = e.hostileCol || '#e14b4b'; else if (e.kind === 'boss') { col = '#ff6a3c'; r = 3.5; } else if (e.kind === 'companion') col = '#7fd06a';
       else if (e.kind === 'ghost') col = '#4fd8e8'; else if (e.kind === 'npc') { col = '#e3b661'; r = 1.8; } else if (e.kind === 'portal') { col = '#b48cff'; r = 2.6; }
       if (col) dot(g, c + dx * k, c + dy * k, r, col);
     }

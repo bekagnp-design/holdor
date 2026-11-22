@@ -348,7 +348,7 @@ const ok = (c, msg, extra) => { console.log((c ? 'OK   ' : 'FAIL ') + msg + (ext
   /* 17. a crowd around the hero settles without jitter */
   const cr = await pg.evaluate(() => {
     __clear(); __flat(); const p = R.player, S = __S; __put(S.x, S.y); p.hp = p.hpMax = 1e9; p.inv = 1e9;
-    const ms = []; for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; const m = R.spawnMob('axe', S.x + Math.cos(a) * 150, S.y + Math.sin(a) * 150, 3); m.atk = 0; ms.push(m); }
+    const ms = []; for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; const m = R.spawnMob('axe', S.x + Math.cos(a) * 150, S.y + Math.sin(a) * 150, 3, { temper: 'aggressive' }); m.atk = 0; ms.push(m); }
     for (let i = 0; i < 180; i++) R.step();
     window.__dbg = ms.map(m => ({ st: m.ai && m.ai.st, off: m.ai && m.ai.off, d: Math.round(Math.hypot(m.x - p.x, m.y - p.y)), dead: m.dead, inE: R.ents.includes(m), tgt: !!(m.ai && m.ai.tgt) }));
     let rev = 0, n = 0, amp = 0; const last = ms.map(m => ({ x: m.x, y: m.y, dx: 0, dy: 0 }));
