@@ -131,6 +131,8 @@
   const closeCard = () => { if (card) { card.remove(); card = null; } };
   const openCard = p => { closeCard(); const kind = p.kind || p.type || 'town', H = house(p.house), name = (p.name || p.n || p.id) + '';
     card = document.createElement('div'); card.className = 'mp-card'; card.dataset.poi = p.id;
+    /* landscape: the card is a side panel, on the side away from the place it describes */
+    try { if (p.x != null) { const q = toS(p.x, p.y); if (q && q.x > vw / 2) card.classList.add('lft'); } } catch (e) {}
     const kTxt = (KIND[kind] || kind) + (H ? ' · House ' + (H.n || H.name || p.house) : p.region ? ' · ' + (p.region + '').replace(/[_-]/g, ' ') : '');
     const d = R.player ? Math.hypot(R.player.x - p.x, R.player.y - p.y) : null;
     card.innerHTML = '<button class="mp-cx" aria-label="Close">✕</button><div class="k"></div><h3></h3><p></p><div class="d"></div>';

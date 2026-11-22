@@ -557,7 +557,7 @@ html.q-wide .dlg{width:min(720px,calc(100% - 24px));margin:0 auto;max-height:cal
 .tw-vrow b{font:800 16px var(--f-display)}
 .tw-bar{height:10px;border-radius:6px;background:rgba(0,0,0,.45);overflow:hidden}
 .tw-bar i{display:block;height:100%;background:linear-gradient(90deg,#e14b4b,#7fd06a);border-radius:6px;transition:width .4s ease-out}
-.tw-rest{min-height:64px;font-size:20px}
+.tw-rest{min-height:64px;font-size:20px;margin-bottom:12px}
 .tw-hint{margin:0 6px;text-align:center;font-size:14px;line-height:1.35;color:var(--muted)}
 /* smith */
 .tw-smith{display:flex;flex-direction:column;gap:8px;flex:1}
@@ -903,6 +903,8 @@ html.q-s #hud-tl{width:min(calc(34 * var(--vw,1vw)),280px)}html.q-s #hud-row{wid
 .mp-me{position:absolute;right:12px;bottom:calc(64px + env(safe-area-inset-bottom));width:48px;height:48px;min-height:48px;border-radius:50%;padding:0;font-size:22px;line-height:1;background:rgba(6,11,20,.78)}
 .mp-card{position:absolute;left:8px;right:8px;bottom:calc(60px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#152236,#0b1220);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:14px 56px 14px 14px;box-shadow:0 12px 30px rgba(0,0,0,.6);animation:mpUp .22s ease-out}
 .mp-card:has(.mp-go){padding-right:14px}
+html.q-wide .mp-card{left:auto;right:calc(8px + env(safe-area-inset-right));top:calc(max(10px,env(safe-area-inset-top)) + 58px);bottom:calc(64px + env(safe-area-inset-bottom));width:min(330px,calc(50% - 16px));overflow-y:auto;overscroll-behavior:contain}
+html.q-wide .mp-card.lft{right:auto;left:calc(8px + env(safe-area-inset-left))}
 @keyframes mpUp{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
 .mp-card .k{font:700 11px var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-right:40px}
 .mp-card h3{margin:4px 0 4px;font:800 22px/1.1 var(--f-display);color:#f3e7c4;padding-right:40px}
@@ -15667,6 +15669,8 @@ try{
   const closeCard = () => { if (card) { card.remove(); card = null; } };
   const openCard = p => { closeCard(); const kind = p.kind || p.type || 'town', H = house(p.house), name = (p.name || p.n || p.id) + '';
     card = document.createElement('div'); card.className = 'mp-card'; card.dataset.poi = p.id;
+    /* landscape: the card is a side panel, on the side away from the place it describes */
+    try { if (p.x != null) { const q = toS(p.x, p.y); if (q && q.x > vw / 2) card.classList.add('lft'); } } catch (e) {}
     const kTxt = (KIND[kind] || kind) + (H ? ' · House ' + (H.n || H.name || p.house) : p.region ? ' · ' + (p.region + '').replace(/[_-]/g, ' ') : '');
     const d = R.player ? Math.hypot(R.player.x - p.x, R.player.y - p.y) : null;
     card.innerHTML = '<button class="mp-cx" aria-label="Close">✕</button><div class="k"></div><h3></h3><p></p><div class="d"></div>';

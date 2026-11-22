@@ -70,7 +70,7 @@
 .tw-vrow b{font:800 16px var(--f-display)}
 .tw-bar{height:10px;border-radius:6px;background:rgba(0,0,0,.45);overflow:hidden}
 .tw-bar i{display:block;height:100%;background:linear-gradient(90deg,#e14b4b,#7fd06a);border-radius:6px;transition:width .4s ease-out}
-.tw-rest{min-height:64px;font-size:20px}
+.tw-rest{min-height:64px;font-size:20px;margin-bottom:12px}
 .tw-hint{margin:0 6px;text-align:center;font-size:14px;line-height:1.35;color:var(--muted)}
 /* smith */
 .tw-smith{display:flex;flex-direction:column;gap:8px;flex:1}

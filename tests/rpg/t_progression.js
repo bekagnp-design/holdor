@@ -82,7 +82,7 @@ function stub(lvl, cls) {
       const small = [...r.querySelectorAll('button')].filter(x => { const k = x.getBoundingClientRect(); return k.height < 44 || k.width < 44; }).length;
       return { cur: R.ui.cur, nodes: r ? r.querySelectorAll('[data-node]').length : 0, pri: pri && pri.textContent, priH: bb && bb.height, small, sw: document.documentElement.scrollWidth }; });
     L.ok('browser: talents screen opens with 12 nodes', v.cur === 'talents' && v.nodes === 12, JSON.stringify(v));
-    L.ok('browser: every button ≥ 44 px, no sideways scroll', v.small === 0 && v.sw <= 390, JSON.stringify(v));
+    L.ok('browser: every button ≥ 44 px, no sideways scroll (844×390 landscape)', v.small === 0 && v.sw <= 844, JSON.stringify(v));
     const tp1 = await L.tap(page, '#talents [data-node="k_edge1"]', { timeout: 60000 }); if (!tp1) console.log('  tap 1 returned false');
     await page.waitForFunction(() => /RENDING/.test(document.querySelector('#talents .pg-pri').textContent), null, { timeout: 15000, polling: 100 }).catch(() => {});
     const pri1 = await page.evaluate(() => document.querySelector('#talents .pg-pri').textContent);
@@ -93,11 +93,16 @@ function stub(lvl, cls) {
     const s1 = await page.evaluate(() => ({ t: Object.assign({}, R.state.p.talents), un: R.prog.unspent(), crit: R.prog.mods().critAdd, rk: document.querySelectorAll('#talents [data-node="k_edge1"] .pg-rk i.on').length }));
     L.ok('browser: a real tap spends a point', s1.t.k_edge1 === 1 && s1.un === 1 && s1.crit === 3 && s1.rk === 1, JSON.stringify(s1));
     await SHOT(page, 'p1_talents');
-    await page.setViewportSize({ width: 360, height: 640 }); await page.waitForTimeout(600);
-    const v2 = await page.evaluate(() => { const r = document.querySelector('#talents'); const pri = r.querySelector('.pg-pri').getBoundingClientRect(); return { sw: document.documentElement.scrollWidth, priB: Math.round(pri.bottom), sh: document.getElementById('screen').scrollHeight }; });
-    L.ok('browser: 360×640 fits (no sideways scroll)', v2.sw <= 360, JSON.stringify(v2));
-    await SHOT(page, 'p1_talents_360');
-    await page.setViewportSize({ width: 390, height: 844 });
+    // the small landscape phone: 640×360 (no turn: the window is already wide)
+    await page.setViewportSize({ width: 640, height: 360 }); await page.waitForTimeout(600);
+    const v2 = await page.evaluate(() => { const r = document.querySelector('#talents'); const pri = r.querySelector('.pg-pri').getBoundingClientRect(); const scr = document.getElementById('screen');
+      const small = [...r.querySelectorAll('button')].filter(x => { const k = x.getBoundingClientRect(); return k.height < 44 || k.width < 44; }).length;
+      return { sw: document.documentElement.scrollWidth, ssw: scr.scrollWidth - scr.clientWidth, priB: Math.round(pri.bottom), priH: Math.round(pri.height), sh: scr.scrollHeight, small, rot: R.rot, vw: R.vw, vh: R.vh }; });
+    L.ok('browser: 640×360 landscape fits (no sideways scroll, buttons still ≥ 44 px)', v2.sw <= 640 && v2.ssw <= 1 && v2.small === 0 && v2.rot === false, JSON.stringify(v2));
+    await SHOT(page, 'p1_talents_640');
+    const reach = await page.evaluate(() => { const scr = document.getElementById('screen'), pri = document.querySelector('#talents .pg-pri'); pri.scrollIntoView({ block: 'nearest' }); const r = pri.getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), vh: innerHeight, hit: document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) === pri || pri.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)) }; });
+    L.ok('browser: 640×360 — the primary LEARN button scrolls fully into view and nothing covers it', reach.top >= 0 && reach.bottom <= reach.vh && reach.hit, JSON.stringify(reach));
+    await page.setViewportSize({ width: 844, height: 390 });
     // save → reload keeps the talents
     const pre = await page.evaluate(() => { R.ui.close(); R.save(true); const j = JSON.parse(localStorage.getItem('holdor_rpg') || 'null'); return { saved: j && j.p && j.p.talents, lvl: j && j.p && j.p.lvl }; });
     L.ok('browser: the save written before the reload carries the talents', pre.saved && pre.saved.k_edge1 === 1, JSON.stringify(pre));
