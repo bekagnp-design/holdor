@@ -82,7 +82,7 @@ CHROMIUM_PATH=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome node tests/rp
   **v40b applied the same day** (migration `holdor_v40b_rpg_hardening`, after a security review): presence clamps
   coordinates (int overflow), boards cap client-written numbers, chat 12/min serialised per player, new `rpg_save_if`
   (refuses a stale save: a slow phone never overwrites newer progress), `rpg_chat_block` / `rpg_chat_report`; local test
-  `backend/test/v40b_test.py`; all 10 `rpg_*` hashes equal the files. Telegram: test 1 released (PR #51 beta, #52 root).
+  `backend/test/v40b_test.py`; all 10 `rpg_*` hashes equal the files. Telegram: test 1 released (PR #51 beta, #52 root); test 2 (PR #53, #54) and test 2.1 (PR #55, #56: the hero's back view fix) the same day.
 - The TD game's sources stay in `src/` as an archive, buildable with `python3 src/build.py <path>` → a path of your
   choice, never `beta/`. Its docs are history; `docs/build-backlog.md` keeps every TD version's section.
 - Next: v2.0.1 hotfixes from the first day → v2.1 guilds + co-op boss raids → v2.2 PvP duels (Crownlands arena) →

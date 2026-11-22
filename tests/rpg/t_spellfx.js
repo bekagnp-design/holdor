@@ -23,6 +23,10 @@ const { ok, skip } = L;
   /* a quiet arena: the hero at a fixed spot, no mobs, camera snapped; R.running = false so rAF draws nothing (the test steps and draws by hand) */
   const arena = () => E(() => {
     R.running = false; const p = R.player; const S = R.spellfx;
+    // no ambient spawns while the test idles (an axeman walking up killed the hero mid-suite); the hero alive, no death screen
+    if (R.world) R.world.populate = false; p.dead = false; if (R.ui && R.ui.cur) R.ui.close();
+    // the 'cast' event as 22_skills emits it (G6): (id, src, {x, y, dir, ang, x0, y0, kind, r, slot})
+    window.__emit = (id, extra) => { const sk = R.data.skills[id], q = R.player; R.bus.emit('cast', id, q, Object.assign({ x: q.x, y: q.y, dir: { x: 1, y: 0 }, ang: 0, x0: q.x, y0: q.y, kind: R.skills.element ? R.skills.element(sk) : 'phys', r: sk.r || sk.range || 120, slot: 0 }, extra || {})); };
     // a cast the way R.skills.cast does it (executor, then the 'cast' event) when castId refuses (the save's hero may carry another class)
     window.__cast = id => { const D = R.data.skills, sk = D[id]; R.player.cd = {}; if (R.skills.castId(id)) return true; const ok = R.skills.EX[sk.kind](sk, R.skills.val(id, 3), R.player) !== false; R.bus.emit('cast', id, 0); return ok; };
     for (const e of R.ents) if (e.kind === 'mob' || e.kind === 'boss' || e.kind === 'drop' || e.kind === 'proj' || e.kind === 'trap' || e.kind === 'critter') e.dead = true;
@@ -48,6 +52,7 @@ const { ok, skip } = L;
     ['whirl (cast k_whirl)', 'bus', 'k_whirl', [50, -30]],
     ['charge dust wake (cast k_lunge after a move)', 'dash', 'k_lunge', null],
     ['war cry shock ring (cast k_taunt)', 'bus', 'k_taunt', [80, -60]],
+    ['old signature: cast (id, slot) still draws (k_cleave)', 'old', 'k_cleave', [50, -30]],
     ['volley streaks + impact puffs (EX.volley + cast r_volley)', 'ex', 'r_volley', [40, -220]],
     ['snare green mist (EX.trap → trap entity)', 'ex', 'r_snare', null],
     ['level-up pillar + spiral motes (bus levelup)', 'lvl', null, null]
@@ -59,8 +64,9 @@ const { ok, skip } = L;
     await arena(); if (foe) await dummy(foe[0], foe[1]);
     const r = await E(([how, id]) => { const S = R.spellfx, p = R.player, D = R.data.skills; let fired = false;
       if (how === 'castId') fired = __cast(id);
-      else if (how === 'bus') { R.bus.emit('cast', id, 0); fired = true; }
-      else if (how === 'dash') { R.step(); const x0 = p.x; p.x += 160; R.bus.emit('cast', id, 0); p.x = x0 + 160; fired = true; }
+      else if (how === 'bus') { __emit(id); fired = true; }
+      else if (how === 'old') { R.bus.emit('cast', id, 0); fired = true; }
+      else if (how === 'dash') { R.step(); const x0 = p.x, y0 = p.y; p.x += 160; __emit(id, { x0, y0 }); fired = true; }
       else if (how === 'ex') { const sk = D[id]; fired = R.skills.EX[sk.kind](sk, R.skills.val(id, 3), p) !== false; R.bus.emit('cast', id, 0); }
       else if (how === 'lvl') { R.bus.emit('levelup', R.state.p.lvl); fired = true; }
       let peak = { pts: 0, decal: 0, beam: 0 }; let calls = 0;
@@ -73,7 +79,15 @@ const { ok, skip } = L;
     ok(name + ': pools back to idle, batches hidden', end.idle && end.vis === 0 && end.calls === 0, JSON.stringify(end));
   }
   // kinds that tell themselves apart: the nova and the cleave draw ground decals, the heal and the level-up draw beams
-  ok('frost / cleave use ground decals, heal / level-up use beams', results[CASES[1][0]].peak.decal > 0 && results[CASES[5][0]].peak.decal > 0 && results[CASES[2][0]].peak.beam > 0 && results[CASES[11][0]].peak.beam > 0);
+  ok('frost / cleave use ground decals, heal / level-up use beams', results[CASES[1][0]].peak.decal > 0 && results[CASES[5][0]].peak.decal > 0 && results[CASES[2][0]].peak.beam > 0 && results[CASES[12][0]].peak.beam > 0);
+  ok('cleave and war cry are big: ≥ 20 sprites + ≥ 2 decals each', results[CASES[5][0]].peak.pts >= 20 && results[CASES[5][0]].peak.decal >= 2 && results[CASES[8][0]].peak.pts >= 10 && results[CASES[8][0]].peak.decal >= 2, JSON.stringify([results[CASES[5][0]].peak, results[CASES[8][0]].peak]));
+
+  /* ---- every real skill of R.data.skills (three classes + the hero's signature) draws something on its 'cast' ---- */
+  await arena();
+  const every = await E(() => { const S = R.spellfx, D = R.data.skills; try { R.skills.sigSkill && R.skills.sigSkill(); } catch (e) {} const out = { n: 0, none: [] };
+    for (const id of Object.keys(D)) { const sk = D[id]; if (!sk || !sk.kind) continue; S.clear(); out.n++; __emit(id); R.step(); const c = S.count(); if (!(c.pts > 0 || c.decal > 0 || c.beam > 0)) out.none.push(id + ':' + sk.kind); }
+    out.sig = Object.keys(D).filter(k => /^sig_/.test(k)); S.clear(); return out; });
+  ok('every skill id (' + every.n + ', signatures ' + every.sig.length + ') maps to an effect', every.n >= 18 && every.none.length === 0, JSON.stringify(every));
 
   /* ---- loot: tokens bob, rare+ get a beam, gold is a coin cluster; a pickup flies into the hero ---- */
   await arena();
@@ -91,6 +105,8 @@ const { ok, skip } = L;
     R.step(); R.step(); const m1 = S.count().mover; for (let i = 0; i < 6; i++) R.step(); R.drawAll(); const tok = S.stats.n.gem + S.stats.n.coin;
     for (let i = 0; i < 40; i++) R.step(); return { took, m1, tok, m2: S.count().mover, drops: S.count().drops }; });
   ok('pickup: a magnet arc per taken drop, done in under a second', pick.took === 3 && pick.m1 === 3 && pick.m2 === 0 && pick.drops === 3, JSON.stringify(pick));
+  const auto = await E(() => { const S = R.spellfx, p = R.player; S.clear(); const g = R.loot.spawn('gold', p.x + 10, p.y, { amount: 5, scatter: false }); const m0 = S.count().mover; R.step(); return { m0, m1: S.count().mover, taken: !!g.taken }; });
+  ok('pickup: a drop the hero takes in its first step (auto pickup, the \'pickup\' event) still flies', auto.taken && auto.m1 >= 1, JSON.stringify(auto));
   await E(() => { for (const e of R.ents) if (e.kind === 'drop') { e.dead = true; } R.ents = R.ents.filter(e => !e.dead); });
   const lootEnd = await untilIdle(300); ok('loot: idle once the drops are gone', lootEnd.idle && lootEnd.c.drops === 0 && lootEnd.calls === 0, JSON.stringify(lootEnd));
 
@@ -101,7 +117,9 @@ const { ok, skip } = L;
   await E(() => { for (let i = 0; i < 12; i++) R.step(); R.drawAll(); }); await snap('spellfx_fireball_hit');
   await arena(); await dummy(70, -60); await E(() => { __cast('m_frost'); for (let i = 0; i < 12; i++) R.step(); R.drawAll(); }); await snap('spellfx_frost');
   await arena(); await E(() => { __cast('m_tinct'); for (let i = 0; i < 24; i++) R.step(); R.drawAll(); }); await snap('spellfx_heal');
-  await arena(); await dummy(60, -40); await E(() => { R.bus.emit('cast', 'k_cleave', 0); for (let i = 0; i < 6; i++) R.step(); R.drawAll(); }); await snap('spellfx_cleave');
+  await arena(); await dummy(60, -40); await E(() => { __emit('k_cleave', { ang: -0.6 }); for (let i = 0; i < 6; i++) R.step(); R.drawAll(); }); await snap('spellfx_cleave');
+  await arena(); await dummy(90, -70); await E(() => { __emit('k_taunt'); for (let i = 0; i < 10; i++) R.step(); R.drawAll(); }); await snap('spellfx_warcry');
+  await arena(); await E(() => { const p = R.player; const x0 = p.x - 160; __emit('k_lunge', { x0, y0: p.y }); for (let i = 0; i < 6; i++) R.step(); R.drawAll(); }); await snap('spellfx_charge');
   await arena(); await E(() => { R.bus.emit('levelup', 31); for (let i = 0; i < 40; i++) R.step(); R.drawAll(); }); await snap('spellfx_levelup');
 
   /* ---- cost: everything at once (casts, shots, zones, 20 drops) — the layer's own update + buffer write per frame ---- */

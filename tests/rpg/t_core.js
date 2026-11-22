@@ -64,7 +64,13 @@ const { ok } = L;
       // world scale: a ws-less save (the old 1× world of test 1) is rescaled to R.WS once; a save at R.WS stays
       const old = JSON.parse(JSON.stringify(keep)); delete old.ws; old.p.pos = { x: 1000, y: 2000 }; R.load(old); o.ws = { pos: R.state.p.pos, ws: R.state.ws, WS: R.WS };
       const cur = JSON.parse(JSON.stringify(keep)); cur.ws = R.WS; cur.p.pos = { x: 1000, y: 2000 }; R.load(cur); o.ws.same = R.state.p.pos.x === 1000 && R.state.p.pos.y === 2000 && R.state.ws === R.WS;
-      R.state = keep;
+      // the hero's talents + XP ledger (P1) survive save → load (localStorage and a raw object), a save without them gets empty ones, a new hero none
+      const tk = JSON.parse(JSON.stringify(keep)); tk.p.talents = { k_edge1: 1, k_iron1: 2 }; tk.p.prog = { poi: { a: 1 }, reg: { north: 1 }, kin: { wolf: 1 }, mile: { 10: 1 } }; R.load(tk); R.save(true);
+      const tRaw = JSON.parse(localStorage.getItem('holdor_rpg')).p; R.state = null; R.load();
+      o.tal = { raw: tRaw.talents, rawProg: tRaw.prog, back: R.state.p.talents, prog: R.state.p.prog };
+      const tn = JSON.parse(JSON.stringify(keep)); delete tn.p.talents; delete tn.p.prog; R.load(tn); o.tal.none = { t: R.state.p.talents, g: R.state.p.prog };
+      o.tal.blank = R.blankHero('x').talents;
+      R.state = keep; R.save(true);
       return new Promise(res => setTimeout(() => { o.debouncedLater = JSON.parse(localStorage.getItem('holdor_rpg')).p.gold === 5; o.saved = saved; res(o); }, 1000)); });
     ok('p.flags/found/quests/bosses/killed/ach/title alias acc.world.* / acc.*, settable, R.acc(), not serialised in p', sv.alias && sv.aliasSet && sv.notSerialised, JSON.stringify([sv.alias, sv.aliasSet, sv.notSerialised]));
     ok('save(true): v2, gold, player pos + hp + dead, acc.world.flags + acc.title, the save time stamp (R.net keeps the newer)', sv.raw.v === 2 && sv.raw.gold === 123 && sv.raw.pos.x === 1000 && sv.raw.pos.y === 2000 && sv.raw.hp === 100 && sv.raw.dead === false && sv.raw.flags.re === 2 && sv.raw.title === 'Lord' && sv.raw.pflags === undefined && sv.raw.stamp, JSON.stringify(sv.raw));
@@ -72,6 +78,8 @@ const { ok } = L;
     ok('save(): debounced (not at once, written within 1 s), save event fired', sv.debouncedNotYet && sv.debouncedLater && sv.saved >= 2, JSON.stringify([sv.debouncedNotYet, sv.debouncedLater, sv.saved]));
     ok('a v1 save migrates to v2 (world progress → acc.world, ach/title → acc, house → acc, the starter unlocked, opts filled)', sv.mig && sv.migOk);
     ok('world scale: a ws-less save has p.pos × R.WS and ws written; a save at R.WS is untouched', sv.ws && sv.ws.pos.x === Math.round(1000 * sv.ws.WS) && sv.ws.pos.y === Math.round(2000 * sv.ws.WS) && sv.ws.ws === sv.ws.WS && sv.ws.same, JSON.stringify(sv.ws));
+    ok('save → load keeps p.talents + p.prog (localStorage round-trip); a save without them gets {} / an empty ledger; blankHero has {}', sv.tal && sv.tal.raw.k_edge1 === 1 && sv.tal.back.k_edge1 === 1 && sv.tal.back.k_iron1 === 2 && sv.tal.prog.kin.wolf === 1 && sv.tal.prog.mile[10] === 1 && sv.tal.rawProg.reg.north === 1
+      && sv.tal.none.t && !Object.keys(sv.tal.none.t).length && sv.tal.none.g && sv.tal.none.g.poi && sv.tal.blank && !Object.keys(sv.tal.blank).length, JSON.stringify(sv.tal));
     ok('doors: an account without a hero or fallen → intro, a living hero → world, no state → intro', sv.door && sv.door.join() === 'intro,world,intro', JSON.stringify(sv.door));
 
     /* newHero keeps the account */

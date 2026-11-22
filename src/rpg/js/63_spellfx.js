@@ -1,11 +1,12 @@
 /* HOLDOR RPG — 63_spellfx.js (S1): the 3D spell + loot effect layer, inside R.render3d.scene (complements 60_vfx's 2D overlay).
    Five pooled batches, all built once, hidden while empty (0 draw calls idle, ≤ 6 busy):
-     pts   — THREE.Points, additive: embers, sparks, motes, fireball heads, arrow streaks, sparkles
-     mist  — THREE.Points, normal blending: dust wakes, green mist, dark feathers
+     pts   — instanced camera-facing quads (sprites, one soft round texture), additive: embers, sparks, motes, fireball heads, streaks, swooshes
+     mist  — the same sprites, normal blending: dust wakes, green mist, dark feathers   (THREE.Points did not draw on SwiftShader / ANGLE)
      decal — instanced ground quads, additive, one canvas atlas (ring · crescent · soft disc · star burst): novas, shock rings, cleave arcs, scorch, pools
      beam  — instanced open cylinders, additive, vertical fade: heal columns, loot beams, the level-up pillar
      gem / coin — InstancedMesh (Lambert): item tokens bobbing over a drop, gold coins spinning as a cluster
-   Hooks (bus): 'cast' (id, slot) → by R.data.skills[id].kind; R.skills.shots (tagged on 'cast') → fireballs / flasks / arrows in flight + impacts;
+   Hooks (bus): 'cast' (id, src, {x, y, dir, ang, x0, y0, tx, ty, kind, r, slot}) from 22_skills — also the older (id, slot) / ({id, fx, x, y}) — → by R.data.skills[id].kind
+   (every class skill and every hero signature, sig_* kinds included); 'pickup' (drop, item) from 32_loot → magnet arc; R.skills.shots (tagged on 'cast') → fireballs / flasks / arrows in flight + impacts;
    R.skills.zones → arrow rain, fire rain, wildfire pools; R.ents kind 'proj' → streak trails, 'projend' → impact puffs; kind 'trap' → green mist;
    kind 'drop' → tokens + rarity beams (rare+), 'remove' of a taken drop → magnet arc + sparkle into the hero; 'hit' {kind fire/ice/poison}
    → a small 3D burst; 'heal' {tgt} → motes; 'levelup' → light pillar + spiralling motes.
@@ -117,23 +118,47 @@
       ring(x, y, pal, 10, 60, 0.6, { fol: !!o.fol });
       motes(x, y, pal, 22, { r0: 8, r1: 34, h0: 2, h1: H * 0.9, vy0: 50, vy1: 120, l0: 0.8, l1: 1.4, orbit: true, fol: !!o.fol, spread: 0.5 }); },
     smallheal(x, y) { motes(x, y, PAL.holy, 6, { r0: 6, r1: 20, h0: 10, h1: 50, l0: 0.5, l1: 0.9, spread: 0.2 }); },
-    cleave(x, y, o) { o = o || {}; const pal = o.pal || PAL.steel; const r = o.r || 90; const ang = o.ang || 0; const q = W(x, y, 4);
-      if ((o.arc || 110) >= 360) { decal(q[0], q[1], q[2], { r0: r * 0.7, r1: r * 1.1, life: 0.32, col: pal.mid, a: 1, cell: 1, rot: ang, vrot: 16 });
-        decal(q[0], q[1], q[2], { r0: r * 0.6, r1: r * 1.05, life: 0.32, col: pal.ring, a: 0.8, cell: 1, rot: ang + Math.PI, vrot: 16 }); ring(x, y, pal, r * 0.4, r * 1.15, 0.3, { a: 0.6 }); }
-      else { decal(q[0], q[1], q[2], { r0: r * 0.75, r1: r * 1.12, life: 0.3, col: pal.mid, a: 1, cell: 1, rot: ang, vrot: 2.5, sx: 1 });
-        decal(q[0], q[1] + 0.5, q[2], { r0: r * 0.55, r1: r * 0.9, life: 0.24, col: pal.core, a: 0.6, cell: 1, rot: ang, vrot: 3 }); }
-      const n = cnt(10), g = gY(x, y), span = Math.min(TAU, ((o.arc || 110) * Math.PI) / 180);
+    // Cleave / Whirl: a bright ground crescent in front of the hero + an additive swoosh of sprites sweeping the arc at chest height
+    cleave(x, y, o) { o = o || {}; const pal = o.pal || PAL.steel; const r = o.r || 90; const ang = o.ang || 0; const q = W(x, y, 4); const whirl = (o.arc || 110) >= 360;
+      if (whirl) { decal(q[0], q[1], q[2], { r0: r * 0.8, r1: r * 1.2, life: 0.4, col: pal.mid, a: 1, cell: 1, rot: ang, vrot: 16 });
+        decal(q[0], q[1], q[2], { r0: r * 0.7, r1: r * 1.15, life: 0.4, col: pal.ring, a: 0.9, cell: 1, rot: ang + Math.PI, vrot: 16 }); ring(x, y, pal, r * 0.4, r * 1.25, 0.36, { a: 0.9 });
+        decal(q[0], q[1] - 0.4, q[2], { r0: r * 0.6, r1: r * 1.1, life: 0.3, col: pal.ember, a: 0.5, cell: 2 }); }
+      else { decal(q[0], q[1], q[2], { r0: r * 0.85, r1: r * 1.3, life: 0.36, col: pal.mid, a: 1, cell: 1, rot: ang, vrot: 2.5, sx: 1 });
+        decal(q[0], q[1] + 0.5, q[2], { r0: r * 0.7, r1: r * 1.1, life: 0.3, col: pal.core, a: 0.9, cell: 1, rot: ang, vrot: 3 });
+        decal(q[0], q[1] + 0.8, q[2], { r0: r * 0.95, r1: r * 1.4, life: 0.26, col: o.bleed ? '#ff6a5a' : pal.ring, a: 0.7, cell: 1, rot: ang, vrot: 2 }); }
+      const g = gY(x, y), span = whirl ? TAU : Math.min(TAU, ((o.arc || 110) * Math.PI) / 180), H = heroH();
+      // the swoosh: sprites laid along the arc one after another (a sweep), big and bright, then a trailing ribbon
+      const m = cnt(whirl ? 26 : 16); for (let i = 0; i < m; i++) { const k = i / (m - 1 || 1), a = ang + (k - 0.5) * span, d = r * 0.82;
+        const hy = g + H * (0.42 + 0.18 * Math.sin(k * Math.PI)); const tip = Math.sin(k * Math.PI);
+        part(x + Math.cos(a) * d, hy, y + Math.sin(a) * d, { life: 0.2, s0: 20 + 18 * tip, s1: 6, col: i % 3 ? pal.mid : pal.core, a: 0.95, delay: k * (whirl ? 0.16 : 0.08) });
+        part(x + Math.cos(a) * d * 0.8, hy - 4, y + Math.sin(a) * d * 0.8, { life: 0.26, s0: 12 + 10 * tip, s1: 3, col: o.bleed && i % 2 ? '#ff4a4a' : pal.ring, a: 0.7, delay: k * (whirl ? 0.16 : 0.08) + 0.03 }); }
+      const n = cnt(12);
       for (let i = 0; i < n; i++) { const a = ang + (i / (n - 1 || 1) - 0.5) * span, d = r * rr(0.8, 1.05);
-        part(x + Math.cos(a) * d, g + rr(14, 36), y + Math.sin(a) * d, { vx: Math.cos(a) * 120, vz: Math.sin(a) * 120, vy: rr(20, 90), life: rr(0.2, 0.4), s0: rr(4, 8), s1: 1, col: o.bleed && i % 2 ? '#ff4a4a' : pal.core, grav: 300, drag: 2 }); } },
+        part(x + Math.cos(a) * d, g + rr(14, 36), y + Math.sin(a) * d, { vx: Math.cos(a) * 160, vz: Math.sin(a) * 160, vy: rr(20, 90), life: rr(0.22, 0.42), s0: rr(6, 11), s1: 1, col: o.bleed && i % 2 ? '#ff4a4a' : pal.core, grav: 300, drag: 2 }); }
+      part(x + Math.cos(ang) * r * 0.5, g + H * 0.5, y + Math.sin(ang) * r * 0.5, { life: 0.12, s0: 70, s1: 100, col: pal.core, a: 0.5 }); },
+    // a small casting flash at the hero's hand (spells that draw through shots / zones, traps, summons)
+    cast(x, y, pal, ang) { const g = gY(x, y), H = heroH(); const hx = x + Math.cos(ang || 0) * 14, hz = y + Math.sin(ang || 0) * 14;
+      part(hx, g + H * 0.6, hz, { life: 0.18, s0: 40, s1: 64, col: pal.core, a: 0.8 }); part(hx, g + H * 0.6, hz, { life: 0.3, s0: 26, s1: 10, col: pal.mid, a: 0.8 });
+      ring(x, y, pal, 8, 52, 0.32, { a: 0.8 });
+      const n = cnt(8); for (let i = 0; i < n; i++) { const a = rnd() * TAU; part(hx, g + H * 0.6, hz, { vx: Math.cos(a) * rr(60, 140), vz: Math.sin(a) * rr(60, 140), vy: rr(20, 120), life: rr(0.25, 0.45), s0: rr(5, 9), s1: 1, col: i & 1 ? pal.ember : pal.mid, grav: 200, drag: 2 }); } },
     dash(x0, y0, x1, y1, o) { o = o || {}; const L = Math.hypot(x1 - x0, y1 - y0) || 1, ux = (x1 - x0) / L, uy = (y1 - y0) / L; const n = cnt(Math.max(4, Math.min(16, Math.round(L / 12))));
       for (let i = 0; i < n; i++) { const k = i / (n - 1 || 1), x = x0 + (x1 - x0) * k + rr(-8, 8), y = y0 + (y1 - y0) * k + rr(-8, 8); const g = gY(x, y);
         part(x, g + rr(3, 10), y, { vx: -uy * rr(-50, 50) - ux * 30, vz: ux * rr(-50, 50) - uy * 30, vy: rr(15, 45), life: rr(0.6, 1.0), s0: rr(14, 22), s1: rr(36, 54), col: '#b8a27e', a: 0.42, mist: true, drag: 1.6, delay: k * 0.12 });
         if (i % 2 === 0) part(x, g + rr(16, 40), y, { vx: ux * 200, vz: uy * 200, life: 0.18, s0: 6, s1: 1, col: '#fff4dc', a: 0.8, drag: 4, delay: k * 0.1 }); }
-      if (!o.quiet) ring(x1, y1, PAL.war, 10, 46, 0.3, { a: 0.6 }); },
+      // the streak: a line of bright sprites along the path, oldest first, at chest height
+      const H = heroH(), m = cnt(Math.max(8, Math.min(22, Math.round(L / 8))));
+      for (let i = 0; i < m; i++) { const k = i / (m - 1 || 1), x = x0 + (x1 - x0) * k, y = y0 + (y1 - y0) * k, g = gY(x, y);
+        part(x, g + H * 0.5, y, { life: 0.16 + 0.22 * k, s0: 16 + 12 * k, s1: 4, col: i % 3 ? PAL.war.mid : PAL.war.core, a: 0.9 });
+        part(x, g + H * 0.25, y, { life: 0.12 + 0.18 * k, s0: 10 + 8 * k, s1: 2, col: PAL.war.ember, a: 0.7 }); }
+      const qq = W(x0, y0, 3); decal(qq[0], qq[1], qq[2], { r0: 12, r1: 40, life: 0.35, col: '#b8a27e', a: 0.6, cell: 2 });
+      if (!o.quiet) { ring(x1, y1, PAL.war, 10, 60, 0.34, { a: 0.9 }); part(x1, gY(x1, y1) + H * 0.5, y1, { life: 0.14, s0: 60, s1: 90, col: PAL.war.core, a: 0.6 }); } },
     warcry(x, y, o) { o = o || {}; const pal = o.pal || PAL.war, r = o.r || 200; const g = gY(x, y);
-      ring(x, y, pal, 16, r, 0.5, { a: 1 }); ring(x, y, pal, 12, r * 0.7, 0.6, { a: 0.55, delay: 0.1 });
+      ring(x, y, pal, 16, r, 0.55, { a: 1 }); ring(x, y, pal, 12, r * 0.7, 0.6, { a: 0.8, delay: 0.1 }); ring(x, y, pal, 8, r * 0.45, 0.5, { a: 0.7, delay: 0.2 });
+      { const qb = W(x, y, 0); beam(qb[0], qb[1], qb[2], { r: 22, h: heroH() * 1.8, life: 0.4, col: pal.ember, a: 0.35, grow: 0.1 }); }
       const q = W(x, y, 3); decal(q[0], q[1], q[2], { r0: 30, r1: r * 0.6, life: 0.45, col: pal.ember, a: 0.5, cell: 3, rot: rnd() * TAU, ease: 1 });
-      part(x, g + 40, y, { life: 0.28, s0: 160, s1: 240, col: pal.core, a: 0.55 }); part(x, g + 40, y, { life: 0.5, s0: 90, s1: 120, col: pal.mid, a: 0.35 });
+      part(x, g + 40, y, { life: 0.2, s0: 90, s1: 130, col: pal.core, a: 0.4 }); part(x, g + 40, y, { life: 0.4, s0: 60, s1: 80, col: pal.mid, a: 0.25 });
+      // the shock front: sprites riding the expanding ring at knee height (the ground ring alone vanishes on snow)
+      const nf = cnt(24); for (let i = 0; i < nf; i++) { const a = (i / nf) * TAU; part(x + Math.cos(a) * 20, g + 14, y + Math.sin(a) * 20, { vx: Math.cos(a) * r * 1.9, vz: Math.sin(a) * r * 1.9, life: 0.5, s0: 16, s1: 8, col: i & 1 ? pal.ember : pal.dark, a: 0.95, drag: 1.2 }); }
       const n = cnt(14); for (let i = 0; i < n; i++) { const a = rnd() * TAU; part(x + Math.cos(a) * 18, g + rr(10, 50), y + Math.sin(a) * 18, { vx: Math.cos(a) * rr(140, 260), vz: Math.sin(a) * rr(140, 260), vy: rr(40, 140), life: rr(0.35, 0.6), s0: rr(4, 8), s1: 1, col: pal.mid, grav: 260, drag: 2 }); } },
     strike(x, y, o) { burst(x, y, 30, (o && o.pal) || PAL.steel, 10, { flash: 50, sp0: 100, sp1: 240, up0: 20, up1: 160 }); ring(x, y, PAL.steel, 8, 40, 0.25, { a: 0.7 }); },
     impact(x, y, h, pal, o) { o = o || {}; const q = W(x, y, h == null ? 24 : h); const n = cnt(o.n || 5);
@@ -174,27 +199,37 @@
   let lastHX = null, lastHY = null;            // the hero's position at the end of the previous step (a dash's start)
   const nearestFoe = (x, y, r) => { let b = null, bd = r * r; for (const e of R.ents) { if (e.dead || e.team !== 1 || !(e.hp > 0) || e.kind === 'drop' || e.kind === 'trap') continue; const d = (e.x - x) ** 2 + (e.y - y) ** 2; if (d < bd) { bd = d; b = e; } } return b; };
   const shotKind = new WeakMap();
-  function onCast(id, slot) {
+  const isEnt = q => !!(q && typeof q === 'object' && typeof q.x === 'number' && typeof q.y === 'number' && (q.kind || q.id != null || q.hp != null));
+  function onCast(id, a1, a2) {
     if (!SF.on) return; const D = R.data && R.data.skills; let sk = null, o = null;
     if (id && typeof id === 'object') { o = id; sk = (D && D[o.id]) || o; } else sk = D && D[id];
-    const p = hero(); if (!sk || !p) return; const kind = (o && o.fx) || sk.fx || sk.kind; const x = (o && o.x != null) ? o.x : p.x, y = (o && o.y != null) ? o.y : p.y;
+    // G6: (id, src, info); older: (id, slot) or ({id, fx, x, y})
+    const src = isEnt(a1) ? a1 : null; const info = a2 && typeof a2 === 'object' ? a2 : (a1 && typeof a1 === 'object' && !src ? a1 : null); if (info && !o) o = info;
+    const p = src || R.player; if (!sk || !p) return; const kind = (o && o.fx) || sk.fx || sk.kind; const x = (o && o.x != null) ? o.x : p.x, y = (o && o.y != null) ? o.y : p.y;
+    const elem = (o && o.kind) || '';
     // tag this step's new shots with the skill (fireball / flask / arrows)
     const S = R.skills && R.skills.shots; if (S) for (const s of S) if (!shotKind.has(s) && Math.abs(s.t0 - R.t) < 1e-6) shotKind.set(s, sk.kind === 'fire_bolt' ? 'fire' : sk.kind === 'wildfire' ? 'wild' : sk.line ? 'shaft' : 'arrow');
-    const t = nearestFoe(x, y, (sk.range || 90) + 40); let ang = t ? Math.atan2(t.y - y, t.x - x) : (p.face >= 0 ? 0 : Math.PI);
-    if (!t) { const m = R.input && R.input.move; if (m && (Math.abs(m.x) > 0.2 || Math.abs(m.y) > 0.2)) ang = Math.atan2(m.y, m.x); }
+    const t = (o && o.tx != null && o.ty != null) ? { x: o.tx, y: o.ty } : nearestFoe(x, y, (sk.range || 90) + 40);
+    let ang = t ? Math.atan2(t.y - y, t.x - x) : (o && typeof o.ang === 'number') ? o.ang : (o && o.dir && (o.dir.x || o.dir.y)) ? Math.atan2(o.dir.y || 0, o.dir.x || 0) : (p.face >= 0 ? 0 : Math.PI);
+    if (!t && !(o && (typeof o.ang === 'number' || o.dir))) { const m = R.input && R.input.move; if (m && (Math.abs(m.x) > 0.2 || Math.abs(m.y) > 0.2)) ang = Math.atan2(m.y, m.x); }
+    const palE = elem === 'fire' ? PAL.fire : elem === 'frost' ? PAL.frost : elem === 'holy' ? PAL.holy : elem === 'poison' ? PAL.wild : null;
     switch (kind) {
-      case 'melee_aoe': FX.cleave(x, y, { r: sk.range || 90, arc: sk.arc || 110, ang, bleed: sk.dot === 'bleed' }); break;
-      case 'dash_strike': if (lastHX != null && Math.hypot(p.x - lastHX, p.y - lastHY) > 8) FX.dash(lastHX, lastHY, p.x, p.y); else FX.dash(x - Math.cos(ang) * (sk.dash || 160), y - Math.sin(ang) * (sk.dash || 160), x, y); break;
+      case 'melee_aoe': FX.cleave(x, y, { r: sk.range || 90, arc: sk.arc || 110, ang, bleed: sk.dot === 'bleed', pal: palE && palE !== PAL.holy ? palE : null }); break;
+      case 'dash_strike': { let sx = null, sy = null; if (o && o.x0 != null && Math.hypot(x - o.x0, y - o.y0) > 8) { sx = o.x0; sy = o.y0; } else if (lastHX != null && Math.hypot(p.x - lastHX, p.y - lastHY) > 8) { sx = lastHX; sy = lastHY; }
+        if (sx != null) FX.dash(sx, sy, x, y); else FX.dash(x - Math.cos(ang) * (sk.dash || 160), y - Math.sin(ang) * (sk.dash || 160), x, y); break; }
       case 'taunt': FX.warcry(x, y, { r: sk.range || 200 }); break;
       case 'buff': FX.warcry(x, y, { r: 130, pal: PAL.fire }); break;
-      case 'heal': FX.heal(x, y, { fol: true }); break;
+      case 'heal': FX.heal(x, y, { fol: p === R.player }); break;
       case 'shield': FX.shield(x, y); break;
       case 'frost_nova': FX.frost(x, y, { r: sk.r || 130 }); break;
       case 'strike': if (t) FX.strike(t.x, t.y); else FX.cleave(x, y, { r: 60, arc: 90, ang }); break;
       case 'debuff': FX.dread(x, y, { r: sk.r || 160 }); break;
-      case 'summon_raven': FX.feathers(x, y); break;
-      case 'volley': { const g = gY(x, y); part(x + Math.cos(ang) * 20, g + 34, y + Math.sin(ang) * 20, { life: 0.12, s0: 26, s1: 40, col: PAL.arrow.core, a: 0.6 }); break; }
-      default: break;   // fire_bolt / wildfire / rain draw through their shots and zones
+      case 'summon_raven': FX.feathers(x, y); FX.cast(x, y, PAL.dread); break;
+      case 'volley': { const g = gY(x, y); part(x + Math.cos(ang) * 20, g + 34, y + Math.sin(ang) * 20, { life: 0.14, s0: 34, s1: 52, col: PAL.arrow.core, a: 0.7 }); break; }
+      case 'trap': FX.cast(x, y, PAL.wild); break;
+      case 'fire_bolt': case 'wildfire': FX.cast(x, y, kind === 'wildfire' ? PAL.wild : PAL.fire, ang); break;
+      case 'rain': FX.cast(x, y, palE === PAL.fire || sk.fire ? PAL.fire : PAL.arrow, ang); break;
+      default: FX.cast(x, y, palE || PAL.steel, ang); break;   // fire_bolt / wildfire / rain also draw through their shots and zones
     }
   }
 
@@ -204,6 +239,7 @@
   const projSeen = new Map();                  // proj ent → {x, y, h, fire}
   const trapSeen = new Map();
   const drops = new Map();                     // drop ent → {t0, seed, col, rar, sub}
+  const picked = new WeakSet();                // drops whose magnet arc already flew (the 'pickup' event or the e.taken scan, whichever comes first)
   const palOfShot = k => k === 'fire' ? PAL.fire : k === 'wild' ? PAL.wild : PAL.arrow;
   function trackShots() {
     const S = R.skills && R.skills.shots; const cur = new Set();
@@ -242,7 +278,7 @@
           drops.set(e, { t0: R.t, seed: rnd() * TAU, rar, sub: e.sub, col: e.sub === 'item' || e.sub === 'mat' ? rarCol(rar) : e.col || '#e3b661' }); } } }
     for (const [e, q] of projSeen) if (!seenP.has(e)) { projSeen.delete(e); if (near(q.x, q.y)) FX.impact(q.x, q.y, q.h, q.fire ? PAL.fire : PAL.arrow, { n: 4, dust: !q.fire }); }
     for (const [e, q] of trapSeen) if (!seenT.has(e)) { trapSeen.delete(e); if (near(q.x, q.y)) FX.mist(q.x, q.y, { r: 40, n: 10, a: 0.4 }); }
-    for (const [e, q] of drops) if (e.dead || !seenD.has(e)) { drops.delete(e); if (e.taken && near(e.x, e.y)) { const m = FX.pickup(e.x, e.y, q.col); if (m) { m.gold = q.sub === 'gold'; m.h0 = (e.z || 0) + 14; } } }
+    for (const [e, q] of drops) if (e.dead || !seenD.has(e)) { drops.delete(e); if (e.taken && !picked.has(e) && near(e.x, e.y)) { picked.add(e); const m = FX.pickup(e.x, e.y, q.col); if (m) { m.gold = q.sub === 'gold'; m.h0 = (e.z || 0) + 14; } } }
   }
 
   /* ---------------- simulation (one fixed step) ---------------- */
@@ -289,9 +325,11 @@
       g.strokeStyle = lg; g.lineWidth = i % 2 ? 2 : 3.5; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(a) * L, Math.sin(a) * L); g.stroke(); }
     for (let i = 0; i < 24; i++) { const a = (i / 24) * TAU; g.fillStyle = 'rgba(255,255,255,0.5)'; g.beginPath(); g.arc(Math.cos(a) * S * 0.4, Math.sin(a) * S * 0.4, 1.8, 0, TAU); g.fill(); }
     g.restore(); const t = new T.CanvasTexture(c); t.needsUpdate = true; return t; }
-  const PV = `attribute vec4 aC; attribute float aS; uniform float uScale; uniform float uMax; varying vec4 vC;
-    void main(){ vC = aC; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = clamp(aS * uScale / max(1.0, -mv.z), 1.0, uMax); gl_Position = projectionMatrix * mv; }`;
-  const PF = `uniform sampler2D uMap; varying vec4 vC; void main(){ float t = texture2D(uMap, gl_PointCoord).a; float a = vC.a * t; if (a < 0.004) discard; gl_FragColor = vec4(vC.rgb, a); }`;
+  // sprites: one camera-facing quad per particle (instanced), iS = its diameter in world units, at least uMinPx drawing-buffer pixels
+  const PV = `attribute vec3 iP; attribute vec4 iC; attribute float iS; uniform float uScale; uniform float uMinPx; varying vec4 vC; varying vec2 vU;
+    void main(){ vC = iC; vU = uv; vec4 mv = modelViewMatrix * vec4(iP, 1.0); float d = max(1.0, -mv.z); float s = max(iS, uMinPx * d / uScale);
+      mv.xy += position.xy * s; gl_Position = projectionMatrix * mv; }`;
+  const PF = `uniform sampler2D uMap; varying vec4 vC; varying vec2 vU; void main(){ float t = texture2D(uMap, vU).a; float a = vC.a * t; if (a < 0.004) discard; gl_FragColor = vec4(vC.rgb, a); }`;
   const DV = `attribute vec3 iP; attribute vec3 iS; attribute vec4 iC; attribute float iK; varying vec2 vU; varying vec4 vC;
     void main(){ vC = iC; float c = cos(iS.z), s = sin(iS.z); vec2 q = vec2(position.x * iS.x, position.y * iS.y); vec3 w = iP + vec3(q.x * c - q.y * s, 0.0, q.x * s + q.y * c);
       vec2 cell = vec2(mod(iK, 2.0), floor(iK / 2.0 + 0.01)); vU = vec2((uv.x + cell.x) * 0.5, (uv.y + 1.0 - cell.y) * 0.5);
@@ -305,11 +343,13 @@
   function build(R3_) {
     if (G || !R3_ || !R3_.scene) return; R3 = R3_; gY = typeof R3.groundY === 'function' ? R3.groundY : gY;
     try {
-      const glow = glowTex(), atlas = atlasTex(); const uScale = { value: 400 }, uTime = { value: 0 }; let mx = 256; try { const gl = R3.renderer.getContext(); const rg = gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE); if (rg && rg[1] > 1) mx = Math.min(512, rg[1]); } catch (e) {} const uMax = { value: mx };
-      const mkPts = (blend, cap) => { const geo = new T.BufferGeometry(); const pos = new T.BufferAttribute(new Float32Array(cap * 3), 3), col = new T.BufferAttribute(new Float32Array(cap * 4), 4), sz = new T.BufferAttribute(new Float32Array(cap), 1);
-        pos.setUsage(T.DynamicDrawUsage); col.setUsage(T.DynamicDrawUsage); sz.setUsage(T.DynamicDrawUsage); geo.setAttribute('position', pos); geo.setAttribute('aC', col); geo.setAttribute('aS', sz); geo.setDrawRange(0, 0);
-        const mat = new T.ShaderMaterial({ uniforms: { uMap: { value: glow }, uScale, uMax }, vertexShader: PV, fragmentShader: PF, transparent: true, depthWrite: false, depthTest: true, blending: blend });
-        const o = new T.Points(geo, mat); o.frustumCulled = false; o.visible = false; o.renderOrder = blend === T.AdditiveBlending ? 12 : 11; o.name = 'spellfx-pts'; return { o, pos, col, sz }; };
+      const glow = glowTex(), atlas = atlasTex(); const uScale = { value: 400 }, uTime = { value: 0 }, uMinPx = { value: 3 };
+      const sprBase = new T.PlaneGeometry(1, 1);
+      const mkPts = (blend, cap) => { const geo = new T.InstancedBufferGeometry(); geo.setIndex(sprBase.index); geo.setAttribute('position', sprBase.attributes.position); geo.setAttribute('uv', sprBase.attributes.uv);
+        const pos = new T.InstancedBufferAttribute(new Float32Array(cap * 3), 3), col = new T.InstancedBufferAttribute(new Float32Array(cap * 4), 4), sz = new T.InstancedBufferAttribute(new Float32Array(cap), 1);
+        pos.setUsage(T.DynamicDrawUsage); col.setUsage(T.DynamicDrawUsage); sz.setUsage(T.DynamicDrawUsage); geo.setAttribute('iP', pos); geo.setAttribute('iC', col); geo.setAttribute('iS', sz); geo.instanceCount = 0;
+        const mat = new T.ShaderMaterial({ uniforms: { uMap: { value: glow }, uScale, uMinPx }, vertexShader: PV, fragmentShader: PF, transparent: true, depthWrite: false, depthTest: true, blending: blend, side: T.DoubleSide });
+        const o = new T.Mesh(geo, mat); o.frustumCulled = false; o.visible = false; o.renderOrder = blend === T.AdditiveBlending ? 12 : 11; o.name = blend === T.AdditiveBlending ? 'spellfx-pts' : 'spellfx-mist'; return { o, pos, col, sz }; };
       const mkInst = (base, attrs, mat, cap, order) => { const geo = new T.InstancedBufferGeometry(); geo.setIndex(base.index); for (const k in base.attributes) geo.setAttribute(k, base.attributes[k]);
         const A = {}; for (const [k, n] of attrs) { A[k] = new T.InstancedBufferAttribute(new Float32Array(cap * n), n); A[k].setUsage(T.DynamicDrawUsage); geo.setAttribute(k, A[k]); } geo.instanceCount = 0;
         const o = new T.Mesh(geo, mat); o.frustumCulled = false; o.visible = false; o.renderOrder = order; return { o, A }; };
@@ -329,16 +369,17 @@
   }
 
   /* ---------------- write the GPU buffers (once per drawn frame) ---------------- */
+  const SZK = 1.5;   // sprite sizes × 1.5: readable on a phone at the follow camera's distance
   function write() {
     const g = G; const cam = R3.camera; let calls = 0;
     // point size scale: drawing-buffer px per world unit at depth 1
     const H = (R3.renderer && R3.renderer.domElement && R3.renderer.domElement.height) || (R.vh * (R.dpr || 1)); g.uScale.value = H * 0.5 / Math.tan(((cam.fov || 60) * Math.PI / 180) / 2); g.uTime.value = R.t;
     // particles → two clouds
     let na = 0, nm = 0; const A = g.pts, M = g.mist, pa = A.pos.array, ca = A.col.array, sa = A.sz.array, pm = M.pos.array, cm = M.col.array, sm = M.sz.array;
-    for (let j = 0; j < pN; j++) { const i = pLive[j]; const a0 = P.age[i]; if (a0 < 0) continue; const k = a0 / P.life[i]; const fade = Math.min(1, k * 10) * (1 - k * k); const s = P.s0[i] + (P.s1[i] - P.s0[i]) * k;
+    for (let j = 0; j < pN; j++) { const i = pLive[j]; const a0 = P.age[i]; if (a0 < 0) continue; const k = a0 / P.life[i]; const fade = Math.min(1, k * 10) * (1 - k * k); const s0 = P.s0[i] + (P.s1[i] - P.s0[i]) * k, s = s0 <= 40 ? s0 * SZK : Math.max(60, s0);
       if (P.bl[i]) { const o = nm * 3, c = nm * 4; pm[o] = P.x[i]; pm[o + 1] = P.y[i]; pm[o + 2] = P.z[i]; cm[c] = P.r[i]; cm[c + 1] = P.g[i]; cm[c + 2] = P.b[i]; cm[c + 3] = P.a[i] * fade; sm[nm++] = s; }
       else { const o = na * 3, c = na * 4; pa[o] = P.x[i]; pa[o + 1] = P.y[i]; pa[o + 2] = P.z[i]; ca[c] = P.r[i]; ca[c + 1] = P.g[i]; ca[c + 2] = P.b[i]; ca[c + 3] = P.a[i] * fade; sa[na++] = s; } }
-    const flush = (B, n) => { B.o.geometry.setDrawRange(0, n); B.o.visible = n > 0; if (n) { B.pos.needsUpdate = B.col.needsUpdate = B.sz.needsUpdate = true; calls++; } };
+    const flush = (B, n) => { B.o.geometry.instanceCount = n; B.o.visible = n > 0; if (n) { B.pos.needsUpdate = B.col.needsUpdate = B.sz.needsUpdate = true; calls++; } };
     flush(A, na); flush(M, nm);
     // decals: transient + drop halos
     const DA = g.decal.A, dP = DA.iP.array, dS = DA.iS.array, dC = DA.iC.array, dK = DA.iK.array; let nd = 0; const dmax = DCAP + GCAP + CCAP;
@@ -386,7 +427,12 @@
   /* ---------------- bus hooks ---------------- */
   try {
     R.bus.on('cast', onCast);
-    R.bus.on('levelup', () => { const p = hero(); if (SF.on && p) FX.levelup(p.x, p.y); });
+    R.bus.on('levelup', () => { const p = R.player; if (SF.on && p) FX.levelup(p.x, p.y); });
+    // 32_loot: 'pickup' (drop entity, item | {sub, amount}) — the drop may be taken in the step it spawned, before any scan saw it
+    R.bus.on('pickup', (e, it) => { if (!SF.on || !e || typeof e !== 'object' || typeof e.x !== 'number' || picked.has(e)) return; picked.add(e); if (!near(e.x, e.y)) return;
+      const q = drops.get(e); const sub = e.sub || (it && it.sub) || ''; const item = e.item || (it && it.rar != null ? it : null);
+      const col = q ? q.col : sub === 'gold' ? '#ffd36a' : (sub === 'item' || sub === 'mat') ? rarCol(item ? item.rar : 0) : (e.col || '#e3b661');
+      const m = FX.pickup(e.x, e.y, col); if (m) { m.gold = sub === 'gold'; m.h0 = (e.z || 0) + 14; } });
     let hitBudget = 0, hitT = 0;
     R.bus.on('hit', h => { if (!SF.on || !h || !h.tgt) return; const k = h.kind; if (k !== 'fire' && k !== 'ice' && k !== 'poison' && k !== 'wild') return;
       if (R.t - hitT > 0.5) { hitT = R.t; hitBudget = 0; } if (++hitBudget > 12) return; const e = h.tgt; if (!near(e.x, e.y)) return;

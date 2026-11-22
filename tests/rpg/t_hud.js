@@ -97,7 +97,7 @@ const px = n => Math.round(n * 10) / 10;
   await page.evaluate(() => { R.towns = { inside: () => ({ id: 'winterfell', name: 'Winterfell' }) }; R.screens.shop = { open(arg) { window.__shop = arg; }, close() {} }; }); await steps(page);
   const tb = await page.$eval('#hud-town', el => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, d: getComputedStyle(el).display, t: el.textContent }; });
   ok('TOWN pill shows with the name, ≥ 44 px', /flex/.test(tb.d) && tb.h >= 44 && /TOWN/.test(tb.t) && /Winterfell/.test(tb.t), JSON.stringify(tb));
-  await page.tap('#hud-town', { force: true }); await page.waitForTimeout(250);
+  await page.tap('#hud-town', { force: true }); await page.waitForFunction(() => R.ui.cur === 'shop', null, { timeout: 4000, polling: 50 }).catch(() => {}); await page.waitForTimeout(100);
   const sh = await page.evaluate(() => ({ cur: R.ui.cur, arg: window.__shop && window.__shop.name, hid: getComputedStyle(document.getElementById('hud')).visibility }));
   ok('TOWN tap opens the shop screen and the HUD hides', sh.cur === 'shop' && sh.arg === 'Winterfell' && sh.hid === 'hidden', JSON.stringify(sh));
   await page.evaluate(() => R.ui.close()); await page.waitForTimeout(250);
@@ -155,6 +155,21 @@ const px = n => Math.round(n * 10) / 10;
   // the screenshot: banner + mobs + town + 25 % hp
   await page.evaluate(() => { R.player.hp = 250; R.towns.inside = () => ({ id: 'winterfell', name: 'Winterfell' }); R.state.p.gold = 1620; R.bus.emit('enter', 'riverlands'); for (let i = 0; i < 7; i++) R.step(); });
   await page.waitForTimeout(700); await page.screenshot({ path: SC + 'rpg_hud.png' });
+  // the tutorial card + an achievement card at spawn: the achievement queues under the card in the message column, never over it
+  const ta = await page.evaluate(() => { document.querySelectorAll('#ui>.ach-toast,#tut').forEach(e => e.remove());
+    const t = document.createElement('div'); t.id = 'tut'; t.className = 'tut'; t.innerHTML = '<div class="tut-wrap"><div class="tut-card" style="height:64px">x</div></div>'; document.getElementById('ui').appendChild(t);
+    const a = document.createElement('div'); a.className = 'ach-toast'; a.style.height = '60px'; a.textContent = 'First Steps'; document.getElementById('ui').appendChild(a);
+    R.hud.stack(); const tw = t.querySelector('.tut-wrap').getBoundingClientRect(); const o = { tutB: Math.round(tw.bottom), tutT: Math.round(tw.top), achT: Math.round(parseFloat(a.style.top)), achH: a.offsetHeight };   /* the card's own top: its entrance slides it from above */ t.remove(); a.remove(); return o; });
+  ok('the achievement card queues below the tutorial card (no overlap)', ta.achT >= ta.tutB, JSON.stringify(ta));
+  // the quest-direction label: at the arrow's tip, ≥ 60 px from the hero's screen position (feet and body centre), for a mark in every direction
+  const wl = await page.evaluate(() => { const out = []; const P = R.player; const c = document.createElement('canvas').getContext('2d'); R.ui.close && R.ui.close();
+    // a fixed tilted projection (the 3D camera is not rendering here): ground scaled 0.5 × 0.3, height 1.6 px a unit, the hero's feet at 60 % of the screen
+    const w2s0 = R.w2s; R.w2s = (x, y, z) => ({ x: (x - P.x) * 0.5 + R.vw / 2, y: (y - P.y) * 0.3 + R.vh * 0.6 - (z || 0) * 1.6 });
+    for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4, mk = { id: 'q', x: P.x + Math.cos(a) * 4000, y: P.y + Math.sin(a) * 4000, kind: 'go' };
+      R.quests = { markers: () => [mk], tracked: () => 'q' }; R.hud.drawWay(c); const L = R.hud.wayLabel; if (!L) { out.push({ k, none: 1 }); continue; }
+      out.push({ k, d: Math.round(Math.hypot(L.x - L.hx, L.y - L.hy)), dm: Math.round(Math.hypot(L.x - L.hx, L.y - L.midY)), tip: Math.round(Math.hypot(L.x - L.tip.x, L.y - L.tip.y)) }); }
+    R.w2s = w2s0; R.quests = { markers: () => [] }; return out; });
+  ok('the "! N paces" label stays ≥ 60 px from the hero (feet and body) in all 8 directions, near the arrow tip', wl.length === 8 && wl.every(o => o.none || (o.d >= 60 && o.dm >= 60 && o.tip < 200)) && wl.filter(o => !o.none).length >= 6, JSON.stringify(wl));
   await page.close();
   // small phone
   const p2 = await mk(360, 740); await setup(p2);

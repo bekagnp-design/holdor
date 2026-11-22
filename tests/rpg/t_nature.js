@@ -25,11 +25,12 @@ if (!process.env.RPG_HTML && process.env.HOLDOR_RPG_HTML) process.env.RPG_HTML =
     const st = await page.evaluate(seat => { R.stop(); const p = R.player, wf = R.world.poi(seat), hp0 = p.hp; let near = 0, nearWho = [];
       for (let i = 0; i < 1200; i++) { R.step(); if (i % 30 === 0) for (const e of R.ents) if ((e.kind === 'mob' || e.kind === 'boss') && !e.dead && e.team !== 0 && Math.hypot(e.x - p.x, e.y - p.y) < 400) { near++; if (nearWho.length < 4) nearWho.push(e.type + ' L' + e.lvl + ' @' + Math.round(Math.hypot(e.x - p.x, e.y - p.y)) + (e.ambient ? ' amb' : '') + (e.quest ? ' quest' : '')); } }
       R.start && R.start();
-      return { d: Math.round(Math.hypot(p.x - wf.x, p.y - wf.y)), blocked: R.world.blocked(p.x, p.y), cur: R.world.cur, hp0, hp: p.hp, near, nearWho,
+      const sp = R.spawnPoint ? R.spawnPoint(R.state.acc ? R.state.acc.house : undefined) : null, spD = sp ? Math.round(Math.hypot(sp.x - wf.x, sp.y - wf.y)) : (wf.r || 160) + 40;
+      return { d: Math.round(Math.hypot(p.x - wf.x, p.y - wf.y)), spD, r: wf.r || 160, blocked: R.world.blocked(p.x, p.y), cur: R.world.cur, hp0, hp: p.hp, near, nearWho,
         bossNear: R.ents.filter(e => e.kind === 'boss' && Math.hypot(e.x - p.x, e.y - p.y) < 800).map(e => e.name),
         ambient: R.ents.filter(e => e.kind === 'mob' && e.ambient && !e.dead).map(e => ({ d: Math.round(Math.hypot(e.x - wf.x, e.y - wf.y)), l: e.lvl })) }; }, seat);
     const lv = st.ambient.filter(a => a.d < 1500).map(a => a.l);
-    L.ok(house + ' start: at ' + seat + ' on walkable ground in ' + region + ', no pushback, no gate toast', st.d < 200 && !st.blocked && st.cur === region && !toasts.some(t => /held by|defeat it first/.test(t)), JSON.stringify({ d: st.d, cur: st.cur, toasts }));
+    L.ok(house + ' start: at ' + seat + ' on walkable ground in ' + region + ', no pushback, no gate toast', Math.abs(st.d - st.spD) <= 40 && st.d <= st.r + 300 && !st.blocked && st.cur === region && !toasts.some(t => /held by|defeat it first/.test(t)), JSON.stringify({ d: st.d, spD: st.spD, r: st.r, cur: st.cur, toasts }));
     L.ok(house + ' start: 20 s idle → hp unchanged, no mob / boss within 400 units', st.hp >= st.hp0 && st.near === 0 && !st.bossNear.length, JSON.stringify({ hp0: st.hp0, hp: st.hp, near: st.near, who: st.nearWho, boss: st.bossNear }));
     // spawned ≥ 600 away; an idle mob may wander a few steps after 20 s, so 540 is the line
     L.ok(house + ' start: no ambient mob within 600 of the seat (±wander), the ones within 1500 at the bottom of the band', st.ambient.every(a => a.d >= 540) && lv.every(l => l <= 2), JSON.stringify(st.ambient.slice(0, 14)));
@@ -64,8 +65,17 @@ if (!process.env.RPG_HTML && process.env.HOLDOR_RPG_HTML) process.env.RPG_HTML =
   const SPOTS = [['north', 3250, 2750], ['wolfswood', 2150, 1950], ['riverlands', 3600, 6250], ['reach', 2500, 9850], ['westerlands', 1500, 8350], ['stormlands', 5250, 9800], ['dorne', 5000, 11250], ['ironislands', 800, 6000], ['beyond', 4000, 420], ['dragonstone', 6720, 7290], ['crackclaw', 5650, 7900]];
   let disposed0 = null;
   for (const [name, x, y] of SPOTS) {
-    const r = await page.evaluate(([x, y]) => {
+    const r = await page.evaluate(([x, y, name]) => {
       const WS = (R.data.world.W || 7200) / 7200; x *= WS; y *= WS;
+      // the spots are in the 7200 grid; at R.WS the coasts moved: when the spot's chunk is mostly sea / another biome, walk out
+      // in rings (≤ 4000) to the nearest chunk that is mostly open land of this biome (Dragonstone and Crackclaw are small coasts)
+      const N0 = R.nature, wetAt = (a, b) => R.world.blocked(a, b) || !!(R.water && R.water.ready && R.water.isWater && R.water.isWater(a, b));
+      const landOk = (qx, qy) => { let k = 0; const x0 = Math.floor(qx / N0.CHUNK) * N0.CHUNK, y0 = Math.floor(qy / N0.CHUNK) * N0.CHUNK;
+        for (let i = 0; i < 5; i++) for (let j = 0; j < 5; j++) { const a = x0 + (i + .5) * 120, b = y0 + (j + .5) * 120;
+          if (!wetAt(a, b) && N0.biomeAt(a, b) === name && !R.world.pois().some(pp => Math.hypot(pp.x - a, pp.y - b) < N0.keepOf(pp) + 60)) k++; } return k; };
+      const moved = landOk(x, y) < 17; if (moved) { let best = null, bk = -1;
+        for (let d = 300; d <= 4000 && bk < 21; d += 300) for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2, qx = x + Math.cos(a) * d, qy = y + Math.sin(a) * d, k = landOk(qx, qy); if (k > bk) { bk = k; best = [qx, qy]; } }
+        if (best) { x = Math.floor(best[0] / N0.CHUNK) * N0.CHUNK + N0.CHUNK / 2; y = Math.floor(best[1] / N0.CHUNK) * N0.CHUNK + N0.CHUNK / 2; } }
       const p = R.player, N = R.nature; p.x = x; p.y = y; p.vx = p.vy = 0; p.hp = p.hpMax; p.inv = R.t + 99; R.world.lastGood = null; R.world.cur = null;
       for (const e of R.ents.slice()) if ((e.kind === 'mob' || e.kind === 'boss') && Math.hypot(e.x - x, e.y - y) < 900) R.remove(e);
       R.cam.dist = 700; if (R.camSnap) R.camSnap(); N.refresh(); N.buildAll(); for (let i = 0; i < 3; i++) R.step();
@@ -74,9 +84,9 @@ if (!process.env.RPG_HTML && process.env.HOLDOR_RPG_HTML) process.env.RPG_HTML =
         for (const k in c.recs) for (const q of c.recs[k]) { n++;
           if (R.world.blocked(q.x, q.y)) bad.push(k + ' in the sea'); else if (R.world.roadNear(q.x, q.y, N.ROAD_R - 1)) bad.push(k + ' on a road');
           else { const po = R.world.pois().find(pp => Math.hypot(pp.x - q.x, pp.y - q.y) < N.keepOf(pp) - 1); if (po) bad.push(k + ' in ' + po.id); } } }
-      return { n: N.chunks.size, biome: ch && ch.biome, kinds: ch ? Object.keys(ch.recs).length : 0, inst: ch ? ch.n : 0, maxDraw, maxInst, bad: bad.slice(0, 5), nbad: bad.length, all: n,
+      return { at: [Math.round(x), Math.round(y)], moved, n: N.chunks.size, biome: ch && ch.biome, kinds: ch ? Object.keys(ch.recs).length : 0, inst: ch ? ch.n : 0, maxDraw, maxInst, bad: bad.slice(0, 5), nbad: bad.length, all: n,
         grass: N.grassCount(), obst: N.obstacles.length, disposed: N.stats.disposed.meshes, attached: !!(R.render3d && R.render3d.scene.getObjectByName('nature')) };
-    }, [x, y]);
+    }, [x, y, name]);
     await page.waitForTimeout(250);
     await L.shot(page, 'nature_' + name);
     if (disposed0 == null) disposed0 = r.disposed;

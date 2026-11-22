@@ -167,7 +167,8 @@
   const next = () => { const a = q.shift(); if (!a) { showing = false; return; } showing = true; const ui = document.getElementById('ui'); if (!ui) { showing = false; return; }
     const d = document.createElement('div'); d.className = 'ach-toast'; d.dataset.id = a.id;
     d.innerHTML = '<div class="ach-ti">' + icon(a.icon) + '</div><div class="ach-tb"><div class="ach-tk">Achievement</div><div class="ach-tn">' + esc(a.name) + '</div><div class="ach-tr">' + rewardTxt(a) + '</div></div>';
-    ui.appendChild(d); let gone = false; const bye = () => { if (gone) return; gone = true; d.classList.add('out'); setTimeout(() => { d.remove(); next(); }, 360); };
+    ui.appendChild(d); const re = () => { try { R.hud && R.hud.stack && R.hud.stack(); } catch (e) {} }; re(); requestAnimationFrame(re); setTimeout(re, 120);   // the HUD's message column: under the tutorial card
+    let gone = false; const bye = () => { if (gone) return; gone = true; d.classList.add('out'); setTimeout(() => { d.remove(); next(); }, 360); };
     d.addEventListener('pointerdown', bye); setTimeout(bye, 3200); };
   const toast = a => { q.push(a); if (!showing) next(); };
   const unlock = a => { const s = STORE(); if (!s || has(a.id)) return false; s.ach.push(a.id); const r = a.reward || {}; if (r.gems) payGems(r.gems);

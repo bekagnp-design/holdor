@@ -24,6 +24,7 @@
   const SEAT_EASY = 1500;   // ambient mobs spawned this close to a house seat take the bottom of the region's level band (1–2 at home)
   world.CELL = CELL; world.MASK = MASK; world.POI_R = POI_R; world.SAFE = SAFE; world.FAR = FAR; world.SEAT_SAFE = SEAT_SAFE;
   world.extraBlocked = null; // fn(x, y, r) → true when something on the ground (09_nature's trees / rocks) stands there; slide checks it
+  let spawnC = {};          // seat id → its spawn point (world.seatSpawn)
   world.populate = true;    // dungeons / intro set false: no ambient spawns (despawning of far mobs still runs)
   world.cur = null;         // the player's current region id (null = none yet / open sea)
   world.lastGood = null;    // the last player position in an allowed region (gate pushback goes toward it)
@@ -41,7 +42,7 @@
     polys = (d.regions || []).map(r => (r.poly && r.poly.length >= 3) ? r.poly.map(p => [P(p, 0), P(p, 1)]) : null);
     return d;
   };
-  world.reset = () => { bound = null; cache = null; world.cur = null; world.lastGood = null; inside = {}; cd = 0; };
+  world.reset = () => { bound = null; cache = null; spawnC = {}; world.cur = null; world.lastGood = null; inside = {}; cd = 0; };
   world.size = () => { const d = W(); return (d && d.size && d.size.length === 2) ? d.size : [R.W || 7200, R.H || 12288]; };
   world.inWorld = (x, y) => { const s = world.size(); return x >= 0 && y >= 0 && x < s[0] && y < s[1]; };
   world.regions = () => { const d = W(); return (d && d.regions) || []; };
@@ -91,7 +92,9 @@
   // (or a tree) may leave it. Two forms: slide(e, dx, dy) → moved?  ·  slide(x, y, nx, ny, r) → {x, y} (21_player's contract)
   const sgn = v => (v > 0 ? 1 : v < 0 ? -1 : 0);
   world.slide = (e, dx, dy, ny0, r0) => {
-    if (typeof e === 'number') { const q = { x: e, y: dx, r: r0 || 12 }; if (typeof dy === 'number' && typeof ny0 === 'number') world.slide(q, dy - e, ny0 - dx); return { x: q.x, y: q.y }; }
+    // the point form walks in ≤ 6-unit sub-steps: a long move (a dash, a big frame) stops at the next trunk instead of jumping it
+    if (typeof e === 'number') { const q = { x: e, y: dx, r: r0 || 12 }; if (typeof dy === 'number' && typeof ny0 === 'number') { const tx = dy - e, ty = ny0 - dx, n = Math.max(1, Math.min(48, Math.ceil(Math.hypot(tx, ty) / 6)));
+        for (let i = 0; i < n; i++) { const ox = q.x, oy = q.y; world.slide(q, tx / n, ty / n); if (q.x === ox && q.y === oy) break; } } return { x: q.x, y: q.y }; }
     if (!e || (!dx && !dy)) return false;
     const r = Math.min(e.r || 12, 40) * 0.6, free = world.blocked(e.x, e.y), fly = !!(e.fly || e.kind === 'drop' || e.ghost);
     const or = Math.min(e.r || 12, 24) * 0.5, inObst = fly || world.obstacleAt(e.x, e.y, or); let moved = false;
@@ -131,8 +134,16 @@
   world.seats = () => world.pois().filter(p => p.seat);
   world.nearSeat = (x, y, r = SEAT_SAFE) => { for (const p of world.pois()) if (p.seat && (p.x - x) ** 2 + (p.y - y) ** 2 < r * r) return p; return null; };
   // a calm place: within r of a house seat, a town (or any POI with a hub / an inn in a town), or inside any POI's safe radius
+  // where a new life of a seat's house stands (00_core R.spawnPoint: the courtyard south of the seat, (poi.r or 160) + 40 out);
+  // cached per seat id, the canonical courtyard point when the core has no spawnPoint yet
+  world.seatSpawn = p => { if (!p) return null; const k = p.id || (p.x + ',' + p.y); if (spawnC[k]) return spawnC[k];
+    let sp = { x: p.x, y: p.y + (+p.r > 0 ? +p.r : 160) + 40 };
+    try { if (p.house && typeof R.spawnPoint === 'function') { const q = R.spawnPoint(p.house); if (q && isFinite(q.x) && isFinite(q.y) && Math.hypot(q.x - p.x, q.y - p.y) < 700) sp = { x: q.x, y: q.y }; } } catch (e) {}
+    return (spawnC[k] = sp); };
+  // a seat is calm within r of its centre and within r of its spawn point (the start never sees an ambient mob close by)
   world.calmAt = (x, y, r = SEAT_SAFE) => { for (const p of world.pois()) { const d2 = (p.x - x) ** 2 + (p.y - y) ** 2;
-    if (d2 < SAFE * SAFE) return p; if ((p.seat || p.hub || p.type === 'town') && d2 < r * r) return p; } return null; };
+    if (d2 < SAFE * SAFE) return p; if ((p.seat || p.hub || p.type === 'town') && d2 < r * r) return p;
+    if (p.seat && d2 < (r + 700) * (r + 700)) { const sp = world.seatSpawn(p); if (sp && (sp.x - x) ** 2 + (sp.y - y) ** 2 < r * r) return p; } } return null; };
   world.spawnTableAt = (x, y) => { const d = W(); if (!d || !d.spawns) return null; const rg = world.regionAt(x, y); if (!rg) return null; return d.spawns.find(s => s.region === rg.id) || null; };
 
   // where a new character of this house stands: the house seat POI, 20 units south of its marker
@@ -202,8 +213,12 @@
   const addSys = (name, s) => (R.addSys ? R.addSys(name, s) : (s.name = name, R.sys[name] = s, R.sysList = Object.values(R.sys).sort((a, b) => (a.order || 0) - (b.order || 0)), s));
   // inside a dungeon instance (44_dungeons teleports the hero to its own rooms) the open world does not watch: no region enter,
   // no discovery, no gate, no ambient population
-  world.inDungeon = () => { try { return !!(R.dungeons && R.dungeons.active); } catch (e) { return false; } };
-  addSys('world', { order: 50, update(dt) { acc += dt; if (acc < 0.5) return; acc = 0; if (world.inDungeon()) { world.lastGood = null; return; } world.enterCheck(); } });
+  // one meaning: world.inDungeon() is a function (44_dungeons sets world.suspend / R.dungeons.active only); inDng() survives
+  // anything else written into world.inDungeon by an older module
+  const inDng = () => { try { return !!(world.suspend || (R.dungeons && R.dungeons.active)); } catch (e) { return false; } };
+  world.inDungeon = inDng;
+  const inDngNow = () => { const f = world.inDungeon; if (typeof f === 'function' && f !== inDng) { try { return !!f() || inDng(); } catch (e) { return inDng(); } } return inDng(); };
+  addSys('world', { order: 50, update(dt) { acc += dt; if (acc < 0.5) return; acc = 0; if (inDngNow()) { world.lastGood = null; return; } world.enterCheck(); } });
 
   /* ---- ambient population: 8–14 live mobs around the player from the region's spawn table ---- */
   let cd = 0;
@@ -226,7 +241,7 @@
     return pts.length;
   };
   addSys('populate', { order: 60, update(dt) {
-    const p = R.player; if (!p || !R.state || world.inDungeon()) return;
+    const p = R.player; if (!p || !R.state || inDngNow()) return;
     for (let i = R.ents.length - 1; i >= 0; i--) { const e = R.ents[i]; if (e.kind === 'mob' && !e.persist && !e.quest && Math.hypot(e.x - p.x, e.y - p.y) > FAR) R.remove(e); }
     cd -= dt; if (cd > 0 || world.populate === false) return;
     cd = CD; world.populateNow();

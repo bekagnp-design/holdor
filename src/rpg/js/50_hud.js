@@ -4,8 +4,9 @@
    "Lv 12 · 340/1,120" and the gold / gem chips (count-up). Tap the block → the hero sheet ('btn' 'inv'). Under it: #qtrack (A18 renders the
    tracker; tap → quest log), the TOWN pill. Top-right: A02's row (map · bag · menu), the 96-px round minimap under it (tap → map), the chat
    button (#prChat, A38) under the minimap. The message column (top-centre, under all of that): ONE bar (#bossbar > #dgbar > #evbar, the others
-   wait with data-hud-yield), A24's achievement card, the tutorial card, the region title, the toasts — stacked by stack() so nothing overlaps. Bottom: A02's controls.
-   Hooks: R.hud = {el, mm, E, refresh(), banner(id), stack(), last, shown}. */
+   wait with data-hud-yield), the tutorial card, A24's achievement card (queued under the card), the region title, the toasts — stacked by stack() so
+   nothing overlaps; C1's town banner (compact, ≤ 64 px: 50_hud.css) finds its line below them. Bottom: A02's controls.
+   Hooks: R.hud = {el, mm, E, refresh(), banner(id), stack(), last, shown, drawWay(ctx), wayLabel (the last quest-distance label: x, y, hx, hy, midY, tip)}. */
 (function () {
   const HOUSE_COL = { stark: '#a9bdd0', lannister: '#e3b661', targaryen: '#e14b4b', greyjoy: '#d8b74a', tyrell: '#7fd06a', martell: '#f08a3c', baratheon: '#e0c14a' };
   const CLS = { knight: 'Knight', ranger: 'Ranger', maester: 'Maester' };
@@ -181,9 +182,9 @@
     for (const id of BARS) { const b = document.getElementById(id); if (!b) continue;
       if (!lead && shownEl(b)) { lead = b; if (b.style.top !== y + 'px') b.style.top = y + 'px'; y = Math.max(y, b.getBoundingClientRect().bottom + GAP); }
       else if (lead && shownEl(b)) b.setAttribute('data-hud-yield', '1'); }
-    for (const a of ui.querySelectorAll(':scope>.ach-toast')) { if (a.style.top !== y + 'px') a.style.top = y + 'px'; y += a.offsetHeight + GAP; }   // A24's unlock card
     const tw = document.querySelector('#tut:not(.off) .tut-wrap');
     if (tw && shownEl(tw)) { if (tw.style.top !== y + 'px') tw.style.top = y + 'px'; y += tw.offsetHeight + GAP; }
+    for (const a of ui.querySelectorAll(':scope>.ach-toast')) { if (a.style.top !== y + 'px') a.style.top = y + 'px'; y += a.offsetHeight + GAP; }   // A24's unlock card: queued under the tutorial card, never over it
     const rg = E['hud-region']; if (rg.classList.contains('on')) { if (rg.style.top !== y + 'px') rg.style.top = y + 'px'; y += rg.offsetHeight + GAP; }
     // toasts: the same line twice while the first is up → one; at most the 2 newest visible (the older ones are hidden, they expire on their own)
     const seen = new Set(); for (const t of ui.querySelectorAll(':scope>.toast')) { const k = t.textContent; if (seen.has(k)) { t.remove(); continue; } seen.add(k); }
@@ -251,18 +252,28 @@
     if (!hs || hs.behind) return; const col = '#e3b661', ch = qGlyph(m), t = R.t || 0;
     const onScreen = ts && !ts.behind && ts.x > 30 && ts.x < R.vw - 30 && ts.y > 230 && ts.y < R.vh - 260;
     ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    if (onScreen) { const by = ts.y - 34 - Math.sin(t * 4) * 4; ctx.shadowColor = '#000'; ctx.shadowBlur = 8; glyph(ctx, ts.x, by, 11, ch, true); ctx.shadowBlur = 0; ctx.restore(); return; }
+    if (onScreen) { wayLabel = null; const by = ts.y - 34 - Math.sin(t * 4) * 4; ctx.shadowColor = '#000'; ctx.shadowBlur = 8; glyph(ctx, ts.x, by, 11, ch, true); ctx.shadowBlur = 0; ctx.restore(); return; }
     const a = s2 && !s2.behind ? Math.atan2(s2.y - hs.y, s2.x - hs.x) : Math.atan2(dy, dx), rr = 74 + Math.sin(t * 5) * 3, x = hs.x + Math.cos(a) * rr, y = hs.y + Math.sin(a) * rr * .62;
     ctx.translate(x, y); ctx.rotate(a); ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = 6; ctx.fillStyle = col; ctx.strokeStyle = '#1a130a'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(16, 0); ctx.lineTo(-8, -11); ctx.lineTo(-3, 0); ctx.lineTo(-8, 11); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.rotate(-a); ctx.shadowBlur = 0;
-    const paces = Math.max(1, Math.round(d / PACE)), txt = (paces >= 1000 ? (paces / 1000).toFixed(1) + 'k' : paces) + ' paces', ox = Math.cos(a) * 30, oy = Math.sin(a) * 22 + 2;
-    ctx.font = '800 12px Cinzel,Georgia,serif'; ctx.lineWidth = 3.5; ctx.strokeStyle = 'rgba(6,9,14,.9)'; ctx.strokeText(ch + '  ' + txt, ox, oy); ctx.fillStyle = '#f3e7c4'; ctx.fillText(ch + '  ' + txt, ox, oy);
+    ctx.restore(); ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    // the distance label sits past the arrow's tip, outside the hero: ≥ WAY_GAP px from his feet and his body's centre, never on his body column
+    const paces = Math.max(1, Math.round(d / PACE)), txt = ch + '  ' + (paces >= 1000 ? (paces / 1000).toFixed(1) + 'k' : paces) + ' paces';
+    ctx.font = '800 12px Cinzel,Georgia,serif'; const tw = ctx.measureText(txt).width || txt.length * 7, ux = Math.cos(a), uy = Math.sin(a);
+    let hd = null; try { hd = R.w2s(P.x, P.y, 34); } catch (e) {} const headY = hd && !hd.behind ? Math.min(hs.y - 40, hd.y - 8) : hs.y - 80, midY = (hs.y + headY) / 2;
+    let lx = x + ux * (16 + 8 + Math.abs(ux) * tw / 2), ly = y + uy * (16 + 8 + Math.abs(uy) * 7);
+    const clear = () => Math.hypot(lx - hs.x, ly - hs.y) >= WAY_GAP && Math.hypot(lx - hs.x, ly - midY) >= WAY_GAP && !(Math.abs(lx - hs.x) < tw / 2 + 18 && ly > headY - 10 && ly < hs.y + 10);
+    for (let k = 0; k < 40 && !clear(); k++) { lx += ux * 6; ly += uy * 6; }
+    lx = Math.max(tw / 2 + 6, Math.min(R.vw - tw / 2 - 6, lx)); ly = Math.max(14, Math.min(R.vh - 14, ly));
+    ctx.lineWidth = 3.5; ctx.strokeStyle = 'rgba(6,9,14,.9)'; ctx.strokeText(txt, lx, ly); ctx.fillStyle = '#f3e7c4'; ctx.fillText(txt, lx, ly);
+    wayLabel = { x: lx, y: ly, w: tw, hx: hs.x, hy: hs.y, midY, headY, tip: { x: x + ux * 16, y: y + uy * 16 }, txt };
     ctx.restore(); };
+  const WAY_GAP = 60; let wayLabel = null;
 
   /* ---- system: ≤ 10 refreshes a second ---- */
   let acc = 0.1;
   let warned = 0;   // the HUD never breaks the frame: a half-built save (no acc yet) only skips this refresh
-  R.addSys('hud', { order: 950, update(dt) { acc += dt; if (acc < 0.1) return; acc = 0; try { refresh(); } catch (e) { if (!warned++) console.warn('hud', e); } },
+  R.addSys('hud', { order: 950, update(dt) { acc += dt; if (acc < 0.1) return; acc = 0; try { refresh(); } catch (e) { if (!warned++) console.warn('hud', e); } try { stack(); } catch (e) {} },   // the column restacks even when a refresh broke
     draw(ctx) { try { drawWay(ctx); } catch (e) { if (!warned++) console.warn('hud way', e); } } });
-  R.hud = { el: root, mm, E, refresh, banner, stack, last, shown, trackedMark, drawWay, resetPortrait: () => { portKey = ''; faceKey = ''; }, drawMini: () => R.player && drawMini(R.player) };
+  R.hud = { el: root, mm, E, refresh, banner, stack, last, shown, trackedMark, drawWay, get wayLabel() { return wayLabel; }, resetPortrait: () => { portKey = ''; faceKey = ''; }, drawMini: () => R.player && drawMini(R.player) };
 })();

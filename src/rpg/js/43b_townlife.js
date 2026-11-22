@@ -1,5 +1,6 @@
 /* HOLDOR RPG — 43b_townlife.js (C1): towns that read at a glance and invite you in.
-   1. Entry banner: walking into a castle / town / village (distance to the POI ≤ its r + 30, left again past r + 200) shows ONE short banner per
+   1. Entry banner (compact since test 3: ≤ 64 px, a small crest, name · subtitle on one line, the services button beside it — 50_hud.css):
+      walking into a castle / town / village (distance to the POI ≤ its r + 30, left again past r + 200) shows ONE short banner per
       visit (5.2 s of game time) — a heraldic shield in the house colour, the place's name, "Seat of House Stark" / "Town · The North", and the
       services-here quick list ("Smith · Inn · Market · 3 quests"): a ≥ 44-px button that opens R.screens.town (43_towns) for that POI. The banner sits in
       the HUD's message column (top-centre, from #hud-slot down) and moves below whatever is shown there (the bars, the tutorial card, the
@@ -130,7 +131,7 @@
   TL.obstacles = obstacles;
   const placeBanner = () => {
     if (!ban || !banOn) return;
-    const vw = window.innerWidth, w = Math.min(vw - 24, 360), x = (vw - w) / 2, hgt = ban.offsetHeight || 96;
+    const vw = window.innerWidth, w = Math.min(vw - 24, 360), x = (vw - w) / 2, hgt = ban.offsetHeight || 60;   // compact: ≤ 64 px (50_hud.css)
     const slot = document.getElementById('hud-slot'); let y = slot ? slot.getBoundingClientRect().top : 210;
     const obs = obstacles();
     for (let k = 0; k < 8; k++) { let moved = false;

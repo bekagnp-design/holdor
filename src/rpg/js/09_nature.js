@@ -752,15 +752,17 @@ ${bill ? `  vec2 dC = cameraPosition.xz - iPos.xz; float aB = atan(dC.x, dC.y); 
   function bendUpdate(dt) {
     ensureU(); const arr = U.uBend.value, out = []; let ph = null;
     if (R.phys && typeof R.phys.benders === 'function') { try { ph = R.phys.benders(); } catch (e) { ph = null; } }
-    if (Array.isArray(ph) && ph.length) { for (const b of ph) { if (out.length >= NB) break; if (b && isFinite(b.x)) out.push({ x: b.x, y: b.y != null ? b.y : b.z, r: b.r || 20, k: b.k != null ? b.k : 1 }); } }
-    else { const p = R.player;
-      if (p && typeof p.x === 'number' && !p.dead) { const v = spdOf(p); out.push({ x: p.x, y: p.y, r: 20, k: .6 + .4 * Math.min(1, v / 80) });
+    // R.phys.benders() leads (the hero first, the moving mobs); the hero's wake and the standing movers it leaves out are added after it
+    const hasPh = Array.isArray(ph) && ph.length;
+    if (hasPh) { for (const b of ph) { if (out.length >= NB) break; if (b && isFinite(b.x)) out.push({ x: b.x, y: b.y != null ? b.y : b.z, r: b.r || 20, k: b.k != null ? b.k : 1 }); } }
+    { const p = R.player;
+      if (p && typeof p.x === 'number' && !p.dead) { const v = spdOf(p); if (!hasPh) out.push({ x: p.x, y: p.y, r: 20, k: .6 + .4 * Math.min(1, v / 80) });
         wakeT -= dt; if (wakeT <= 0 && v > 15) { wakeT = .2; wake.unshift({ x: p.x, y: p.y, t: R.t }); if (wake.length > 3) wake.length = 3; }
-        for (const q of wake) { const a = R.t - q.t; if (a < 0 || a > 1.2 || (q.x - p.x) ** 2 + (q.y - p.y) ** 2 < 100) continue; out.push({ x: q.x, y: q.y, r: 18, k: .9 * Math.exp(-a * 3) * Math.cos(a * 4.5) }); }
+        for (const q of wake) { const a = R.t - q.t; if (a < 0 || a > 1.2 || (q.x - p.x) ** 2 + (q.y - p.y) ** 2 < 100 || out.length >= NB) continue; out.push({ x: q.x, y: q.y, r: 18, k: .9 * Math.exp(-a * 3) * Math.cos(a * 4.5) }); }
         const near = []; for (const e of R.ents) { if (e === p || e.dead || e.fly || e.prop || (e.z || 0) > 12 || !BEND_KIND[e.kind]) continue;
           const d2 = (e.x - p.x) ** 2 + (e.y - p.y) ** 2; if (d2 < 450 * 450) near.push([d2, e]); }
         near.sort((a, b) => a[0] - b[0]);
-        for (const it of near) { if (out.length >= NB) break; const e = it[1], v = spdOf(e); out.push({ x: e.x, y: e.y, r: Math.max(10, Math.min(40, (e.r || 12) * 1.15)), k: .45 + .55 * Math.min(1, v / 50) }); } } }
+        for (const it of near) { if (out.length >= NB) break; const e = it[1], v = spdOf(e); if (hasPh && out.some(b => (b.x - e.x) ** 2 + (b.y - e.y) ** 2 < 16)) continue; out.push({ x: e.x, y: e.y, r: Math.max(10, Math.min(40, (e.r || 12) * 1.15)), k: .45 + .55 * Math.min(1, v / 50) }); } } }
     for (let i = 0; i < NB; i++) { const b = out[i]; if (b) arr[i].set(b.x, b.y, b.r, b.k); else arr[i].set(0, 0, 0, 0); }
     N._bend = out;
   }
