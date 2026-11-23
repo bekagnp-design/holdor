@@ -2,7 +2,7 @@
 // gold conserved (coins + carried + banked = minted), robbery, banking, every god's skill, the end screen, no page errors.
 const { chromium } = require('playwright'); const path = require('path');
 const EXE = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome';
-const FILE = path.resolve(process.env.GOLD_HTML || path.join(__dirname, '..', '..', 'src', 'gold', 'index.html'));
+const FILE = path.resolve(process.env.GOLD_HTML || path.join(__dirname, '..', '..', 'beta', 'index.html'));
 let fails = 0; const ok = (c, m, i) => { console.log((c ? 'OK   ' : 'FAIL ') + m + (i !== undefined ? '  ' + JSON.stringify(i) : '')); if (!c) fails++; };
 (async () => {
   const b = await chromium.launch({ executablePath: EXE });
@@ -11,6 +11,7 @@ let fails = 0; const ok = (c, m, i) => { console.log((c ? 'OK   ' : 'FAIL ') + m
     const errs = []; pg.on('pageerror', e => errs.push(e.message)); pg.on('console', m => { if (m.type() === 'error' && !/telegram|ERR_FAILED/i.test(m.text())) errs.push(m.text()); });
     await pg.route(/telegram\.org/, r => r.abort());
     await pg.goto('file://' + FILE); await pg.waitForFunction(() => window.G);
+    await pg.evaluate(() => { if (G.setDayGod) G.setDayGod('none'); G.beforePlay = null; try { localStorage.setItem('hg_profile', JSON.stringify({ name: 'Tester', country: 'GE' })); } catch (e) {} });
     await pg.screenshot({ path: path.join(__dirname, '..', '..', '.shots', 'gold_title_' + w + '.png') });
     const btn = await pg.locator('#play').boundingBox(); ok(btn && btn.height >= 44 && btn.y + btn.height <= h, w + 'x' + h + ': PLAY visible, >= 44 px', btn);
     await pg.locator('.god[data-god="thor"]').tap(); await pg.locator('#play').tap(); await pg.waitForTimeout(300);
@@ -21,11 +22,16 @@ let fails = 0; const ok = (c, m, i) => { console.log((c ? 'OK   ' : 'FAIL ') + m
     await pg.mouse.move(w * 0.3, h * 0.6); await pg.mouse.down(); await pg.mouse.move(w * 0.3 + 50, h * 0.6, { steps: 4 }); await pg.waitForTimeout(500);
     const p1 = await pg.evaluate(() => ({ x: G.S.me.x, y: G.S.me.y, jx: G.joy.dx })); await pg.mouse.up();
     ok(p1.x - p0.x > 30, 'a drag to the right moves the hero right', { dx: Math.round(p1.x - p0.x), jx: p1.jx });
+    const dm = await pg.evaluate(() => { const lay = () => JSON.stringify([G.S.ps.map(p => [Math.round(p.x), Math.round(p.y)]), G.S.coins.map(c => [Math.round(c.x), Math.round(c.y)]), G.S.vaults.map(v => [Math.round(v.x), Math.round(v.y)])]);
+      const god0 = G.S.me.god; G.setMap(7); G.start(god0); const a = lay(); G.step(600); const c10 = JSON.stringify(G.S.coins.slice(-5).map(c => [Math.round(c.x), Math.round(c.y)]));
+      G.start(god0); const b = lay(); G.step(600); const c10b = JSON.stringify(G.S.coins.slice(-5).map(c => [Math.round(c.x), Math.round(c.y)])); G.setMap(8); G.start(god0); const d = lay(); G.setMap(null); G.start(god0);
+      return { same: a === b, sameCoins: c10 === c10b, differs: a !== d, no: G.mapNo }; });
+    ok(dm.same && dm.differs && dm.no >= 1, 'the daily map: the same start, coins and vaults on the same map; another map differs', dm);
     const r = await pg.evaluate(() => {
       const S = G.S, out = { checks: [] }; const off0 = G.total() - S.minted;
       // robbery: the lighter one touches the heavier one
       const far = [[600, 600], [3400, 600], [600, 3400], [3400, 3400], [2000, 2000]].map(([x, y]) => ({ x, y })).sort((m, n) => Math.min(...S.vaults.map(v => Math.hypot(v.x - n.x, v.y - n.y))) - Math.min(...S.vaults.map(v => Math.hypot(v.x - m.x, v.y - m.y))))[0];
-      const a = S.ps[1], c = S.ps[2]; S.pairT = {}; a.carry = 0; c.carry = 200; a.x = far.x; a.y = far.y; c.x = far.x + 20; c.y = far.y; const before = G.total() - S.minted;
+      const a = S.ps[1], c = S.ps[2]; S.pairT = {}; a.cd = c.cd = S.t + 99; a.inv = c.inv = a.imm = c.imm = 0; a.carry = 0; c.carry = 200; a.x = far.x; a.y = far.y; c.x = far.x + 20; c.y = far.y; const before = G.total() - S.minted;
       G.step(1); out.rob = { a: a.carry, c: c.carry, conserved: G.total() - S.minted === before };
       // banking: stand in a vault 1.5 s
       const v = G.VAULTS[0], q = S.ps[3];

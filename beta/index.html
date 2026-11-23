@@ -39,24 +39,40 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 #err{position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#5a1414;color:#fff;font:12px monospace;padding:6px;border-radius:8px;display:none;white-space:pre-wrap}
 .big{font:900 46px/1 Georgia,serif;color:var(--gold)}
 .lines{font:15px/1.5 Georgia,serif;color:#cfd6e2;text-align:center}
+.extra{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(100%,600px)}.extra:empty,.links:empty{display:none}
+/* a short landscape window (a phone held sideways): the title and end screens in two columns, so PLAY stays on screen */
+@media (max-height:430px) and (min-aspect-ratio:4/3){
+  #title.on,#end.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);grid-auto-rows:min-content;column-gap:20px;row-gap:8px;align-content:safe center;align-items:start;justify-items:center}
+  #title>*,#end>*{margin:0!important;width:100%}
+  #title>h1{grid-column:1;grid-row:1}#title>.rule{grid-column:1;grid-row:2}#titleExtra{grid-column:1;grid-row:3/7}
+  #gods{grid-column:2;grid-row:1/4}#play{grid-column:2;grid-row:4}#best{grid-column:2;grid-row:5}#titleLinks{grid-column:2;grid-row:6}
+  #end>.small{grid-column:1;grid-row:1}#eRank{grid-column:1;grid-row:2}#eLines{grid-column:1;grid-row:3/7}
+  #endExtra{grid-column:2;grid-row:1}#again{grid-column:2;grid-row:2}#share{grid-column:2;grid-row:3}#change{grid-column:2;grid-row:4}
+  .pri,.sec{width:100%}
+  #gods{grid-template-columns:repeat(2,minmax(0,1fr))}#gods .god{min-height:78px;padding:6px 6px}
+}
+.links{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;width:min(100%,600px)}.links .sec{width:auto;flex:1 1 140px}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-<div id="hud"><div class="tl" id="hTL"></div><div class="tc" id="hTC"></div><div class="tr" id="hTR"></div></div>
+<div id="hud"><div class="tl" id="hTL"></div><div class="tc" id="hTC"></div><div class="tr" id="hTR"></div><div id="hudExtra"></div></div>
 <button id="sk">SKILL</button>
 <div id="toast"></div>
 <div class="scr on" id="title">
   <h1>HEAVY GOLD</h1>
   <p class="rule">The lighter one robs the heavier one. Only gold in a vault is yours, and the vaults move.<br>One coin appears every second. Every 50 s a coin is worth half.<br>Drag anywhere to move. The round button is your god's skill.</p>
   <div class="gods" id="gods"></div>
+  <div id="titleExtra" class="extra"></div>
   <button class="pri" id="play">PLAY</button>
   <div class="small" id="best"></div>
+  <div id="titleLinks" class="links"></div>
 </div>
 <div class="scr" id="end">
   <div class="small">ROUND OVER</div>
   <div class="big" id="eRank"></div>
   <div class="lines" id="eLines"></div>
+  <div id="endExtra" class="extra"></div>
   <button class="pri" id="again">PLAY AGAIN</button>
   <button class="sec" id="share">Challenge a friend</button>
   <button class="sec" id="change">Change god</button>
@@ -69,6 +85,13 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   const errBox = document.getElementById('err');
   const showErr = m => { errBox.style.display = 'block'; errBox.textContent += m + '\n'; };
   window.addEventListener('error', e => showErr('Error: ' + (e.message || e)));
+
+  /* ---------- hooks for the modules (src/gold/js/*.js): G.on(event, fn), G.addMod(name, fn(p, value) → value) ----------
+     events: start(S) · step(dt) · pickup(p, coin) · rob(thief, victim, take, loss) · bank(p, amount) · skill(p) · end(S, res) · draw(ctx, k, ox, oy) · hud(S) · title()
+     mods:   speed · cd · dash · thorR · thorShare · lokiT · chainT · rob (the victim's share lost) · bankT · coinValue (p = null) · view (camera scale) */
+  const BUS = {}, MODS = {};
+  const emit = (e, ...a) => { for (const f of BUS[e] || []) { try { f(...a); } catch (x) { showErr(e + ': ' + (x && x.message || x)); } } };
+  const mod = (n, p, v) => { for (const f of MODS[n] || []) { try { const r = f(p, v); if (typeof r === 'number' && isFinite(r)) v = r; } catch (x) { showErr('mod ' + n + ': ' + (x && x.message || x)); } } return v; };
 
   /* ---------- Telegram ---------- */
   const TG = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData !== undefined ? window.Telegram.WebApp : null;
@@ -106,11 +129,17 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   }
   const GK = Object.keys(GODS);
   const BOTN = ['Ares', 'Freya', 'Anubis', 'Odin', 'Athena', 'Dali', 'Tyr'];
-  const rnd = (() => { let s = (Date.now() ^ 0x9e3779b9) >>> 0; const f = () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; f.seed = n => { s = n >>> 0; }; return f; })();
+  const mkRnd = seed => { let s = seed >>> 0; const f = () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; f.seed = n => { s = n >>> 0; }; return f; };
+  const rnd = mkRnd(Date.now() ^ 0x9e3779b9);   // the bots' choices, spills, decoys
+  /* the daily map (the owner's choice, 2026-11-23): one map a UTC day for everyone — the same start spots, the same coins at the same
+     seconds, the same vault spots — so every result of the day can be compared. Map #1 is 2026-11-23. */
+  const MAP0 = Date.UTC(2026, 10, 23);
+  let mapNo = Math.max(1, Math.floor((Date.now() - MAP0) / 86400000) + 1), mapForced = null;
+  const mapRnd = mkRnd(0);
   const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const radius = p => Math.min(58, 17 + Math.sqrt(Math.max(0, p.carry)) * 1.1);
-  const speed = p => (p.god === 'hermes' ? 1.08 : 1) * 270 / Math.sqrt(1 + p.carry / 110);
+  const speed = p => mod('speed', p, (p.god === 'hermes' ? 1.08 : 1) * 270 / Math.sqrt(1 + p.carry / 110));
 
   let S = null, god = 'hermes', paused = false;
   try { const g = localStorage.getItem('hg_god'); if (GODS[g]) god = g; } catch (e) {}
@@ -127,39 +156,44 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 
   /* n spots far apart and away from the edges (and from the given points) */
   function spots(n, avoid) { const out = []; for (let i = 0; i < n; i++) { let best = null, bd = -1;
-      for (let k = 0; k < 40; k++) { const q = { x: 450 + rnd() * (WORLD - 900), y: 450 + rnd() * (WORLD - 900) }; const d = Math.min(1e9, ...out.concat(avoid).map(o => dist(o, q)));
+      for (let k = 0; k < 40; k++) { const q = { x: 450 + mapRnd() * (WORLD - 900), y: 450 + mapRnd() * (WORLD - 900) }; const d = Math.min(1e9, ...out.concat(avoid).map(o => dist(o, q)));
         if (d > bd) { bd = d; best = q; } } out.push(best); } return out; }
   const nearestVault = p => { let bv = S.vaults[0], bd = 1e9; for (const v of S.vaults) { const d = dist(v, p); if (d < bd) { bd = d; bv = v; } } return bv; };
   function start(g) {
     god = GODS[g] ? g : god; try { localStorage.setItem('hg_god', god); } catch (e) {}
+    if (mapForced == null) mapNo = Math.max(1, Math.floor((Date.now() - MAP0) / 86400000) + 1);
+    mapRnd.seed(Math.imul(mapNo, 2654435761) ^ 0x5bd1e995);   // the same map all day
     const ps = []; let id = 0;
     const me = mkP('You', god, false, id++); ps.push(me);
     for (let i = 0; i < BOTS; i++) ps.push(mkP(BOTN[i], GK[(i + 1) % 4], true, id++));
     S = { t: 0, ps, me, coins: [], decoys: [], fx: [], veins: [], pairT: {}, vaults: [], vNext: VAULT_MOVE, nextCoin: COIN_T, minted: 0, over: false, camX: 0, camY: 0, hudT: 0 };
     S.vaults = spots(VAULT_N, []).map(q => ({ x: q.x, y: q.y, r: VAULT_R, nx: null, ny: null }));
-    for (const p of ps) { for (let k = 0; k < 80; k++) { p.x = 250 + rnd() * (WORLD - 500); p.y = 250 + rnd() * (WORLD - 500);
+    for (const p of ps) { for (let k = 0; k < 80; k++) { p.x = 250 + mapRnd() * (WORLD - 500); p.y = 250 + mapRnd() * (WORLD - 500);
       if (S.vaults.every(v => dist(v, p) > 500) && ps.every(q => q === p || !q.placed || dist(q, p) > 500)) break; } p.placed = true; }
     S.camX = me.x; S.camY = me.y;
-    for (let i = 0; i < START_COINS; i++) { addCoin(250 + rnd() * (WORLD - 500), 250 + rnd() * (WORLD - 500), FIRST_VALUE); S.minted += FIRST_VALUE; }
+    for (let i = 0; i < START_COINS; i++) { addCoin(250 + mapRnd() * (WORLD - 500), 250 + mapRnd() * (WORLD - 500), FIRST_VALUE); S.minted += FIRST_VALUE; }
     $('title').classList.remove('on'); $('end').classList.remove('on'); $('hud').classList.add('on');
     const sk = $('sk'); sk.classList.add('on'); sk.textContent = GODS[god].sk; sk.style.borderColor = GODS[god].c;
     joy.on = false; keys.clear();
+    emit('start', S);
     toast(('ontouchstart' in window ? 'Drag anywhere to move. ' : 'WASD to move. ') + 'Bank gold in a VAULT.', 3000); setTimeout(() => { if (S && !S.over && S.t < 7) toast('Green ring: you can rob them. Red ring: they can rob you.', 3400); }, 3200);
   }
 
   function useSkill(p) {
     if (!S || S.over || p.cd > S.t) return false;
-    const G = GODS[p.god]; p.cd = S.t + G.cd;
-    if (p.god === 'hermes') { p.dash = S.t + 0.3; fx({ kind: 'ring', x: p.x, y: p.y, r: 40, c: G.c }); }
+    const G = GODS[p.god]; p.cdT = mod('cd', p, G.cd); p.cd = S.t + p.cdT;
+    if (p.god === 'hermes') { p.dash = S.t + mod('dash', p, 0.3); fx({ kind: 'ring', x: p.x, y: p.y, r: 40, c: G.c }); }
     else if (p.god === 'thor') {
-      fx({ kind: 'ring', x: p.x, y: p.y, r: 170, c: G.c, life: 0.6 });
-      let hits = 0; for (const q of S.ps) { if (q === p || q.carry <= p.carry || q.imm > S.t || q.inv > S.t || dist(p, q) > 170) continue; hits++; const loss = Math.ceil(q.carry * 0.25); q.carry -= loss; q.lost += loss; q.bankT = 0; spill(q.x, q.y, loss, radius(q) + 26);
+      const TR = mod('thorR', p, 170), TS = mod('thorShare', p, 0.25);
+      fx({ kind: 'ring', x: p.x, y: p.y, r: TR, c: G.c, life: 0.6 });
+      let hits = 0; for (const q of S.ps) { if (q === p || q.carry <= p.carry || q.imm > S.t || q.inv > S.t || dist(p, q) > TR) continue; hits++; const loss = Math.ceil(q.carry * TS); q.carry -= loss; q.lost += loss; q.bankT = 0; spill(q.x, q.y, loss, radius(q) + 26);
         fx({ kind: 'text', x: q.x, y: q.y - 30, s: '-' + loss, c: '#9fb2ff' }); if (q === S.me) { toast(p.name + ' struck you: -' + loss); haptic('heavy'); } }
       if (!hits) { p.cd = S.t + 1; if (p === S.me) toast('No richer rival in reach'); }
     }
-    else if (p.god === 'loki') { p.inv = S.t + 3; const da = Math.atan2(p.fy, p.fx) + (rnd() < 0.5 ? 1.57 : -1.57); S.decoys.push({ owner: p, x: p.x, y: p.y, vx: Math.cos(da) * 200, vy: Math.sin(da) * 200, carry: Math.max(p.carry, 40), until: S.t + 3 }); fx({ kind: 'ring', x: p.x, y: p.y, r: 50, c: G.c }); }
-    else if (p.god === 'amirani') { p.imm = S.t + 3; fx({ kind: 'ring', x: p.x, y: p.y, r: 60, c: G.c }); }
+    else if (p.god === 'loki') { const LT = mod('lokiT', p, 3); p.inv = S.t + LT; const da = Math.atan2(p.fy, p.fx) + (rnd() < 0.5 ? 1.57 : -1.57); S.decoys.push({ owner: p, x: p.x, y: p.y, vx: Math.cos(da) * 200, vy: Math.sin(da) * 200, carry: Math.max(p.carry, 40), until: S.t + LT }); fx({ kind: 'ring', x: p.x, y: p.y, r: 50, c: G.c }); }
+    else if (p.god === 'amirani') { p.imm = S.t + mod('chainT', p, 3); fx({ kind: 'ring', x: p.x, y: p.y, r: 60, c: G.c }); }
     if (p === S.me) haptic('medium');
+    emit('skill', p);
     return true;
   }
 
@@ -170,13 +204,14 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const H = a.carry > b.carry ? a : b, L = H === a ? b : a;
     if (S.vaults.some(v => dist(v, H) < v.r)) { fx({ kind: 'text', x: H.x, y: H.y - 34, s: 'safe', c: '#e8b84a' }); return; }
     if (H.imm > S.t || H.inv > S.t) { fx({ kind: 'text', x: H.x, y: H.y - 34, s: H.imm > S.t ? 'chained' : 'missed', c: '#ee6a4c' }); return; }
-    const loss = Math.ceil(H.carry * ROB); if (loss <= 0) return;
+    const loss = Math.ceil(H.carry * mod('rob', H, ROB)); if (loss <= 0) return;
     const take = Math.ceil(loss / 2);
     H.carry -= loss; H.lost += loss; H.bankT = 0; L.carry += take; L.robs++; L.best = Math.max(L.best, take);
     spill(H.x, H.y, loss - take, radius(H) + 24);
     fx({ kind: 'text', x: L.x, y: L.y - 34, s: '+' + take, c: '#ffd36a' }); fx({ kind: 'text', x: H.x, y: H.y - 34, s: '-' + loss, c: '#ff7a7a' });
     if (L === S.me) { toast('You robbed ' + H.name + ': +' + take); haptic('light'); }
     if (H === S.me) { toast(L.name + ' robbed you: -' + loss); haptic('heavy'); }
+    emit('rob', L, H, take, loss);
   }
 
   /* ---------- bots ---------- */
@@ -222,9 +257,9 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     if (!S || S.over) return;
     S.t += dt; const t = S.t;
     while (t >= S.nextCoin && S.nextCoin <= ROUND) {   // one coin a second; its worth halves every HALVE_T seconds
-      const v = coinValue(S.nextCoin - COIN_T); S.nextCoin += COIN_T; const x = 120 + rnd() * (WORLD - 240), y = 120 + rnd() * (WORLD - 240);
+      const v = Math.max(1, Math.round(mod('coinValue', null, coinValue(S.nextCoin - COIN_T)))); S.nextCoin += COIN_T; const x = 120 + mapRnd() * (WORLD - 240), y = 120 + mapRnd() * (WORLD - 240);
       addCoin(x, y, v); S.minted += v; S.veins.push({ x, y, t, reward: v });
-      if (Math.abs(S.nextCoin - 1 - HALVE_T) < 0.01 || Math.abs(S.nextCoin - 1 - 2 * HALVE_T) < 0.01) toast('Halving! A coin is now worth ' + coinValue(S.nextCoin - COIN_T));
+      if (Math.abs(S.nextCoin - 1 - HALVE_T) < 0.01 || Math.abs(S.nextCoin - 1 - 2 * HALVE_T) < 0.01) toast('Halving! A coin is now worth ' + Math.max(1, Math.round(mod('coinValue', null, coinValue(S.nextCoin - COIN_T)))));
     }
     if (!S.warn && ROUND - t <= 20) { S.warn = true; toast('20 s left: bank your gold or lose it!', 3000); haptic('medium'); }
     if (t >= S.vNext - VAULT_WARN && S.vaults[0].nx == null) {   // the new spots show 3 s before the vaults move
@@ -242,11 +277,11 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     S.decoys = S.decoys.filter(d => d.until > t);
     // coins
     for (let i = S.coins.length - 1; i >= 0; i--) { const c = S.coins[i];
-      for (const p of S.ps) { const r = radius(p) + 5; const dx = c.x - p.x, dy = c.y - p.y; if (dx * dx + dy * dy < r * r) { p.carry += c.v; S.coins[i] = S.coins[S.coins.length - 1]; S.coins.pop(); break; } } }
+      for (const p of S.ps) { const r = radius(p) + 5; const dx = c.x - p.x, dy = c.y - p.y; if (dx * dx + dy * dy < r * r) { p.carry += c.v; S.coins[i] = S.coins[S.coins.length - 1]; S.coins.pop(); emit('pickup', p, c); break; } } }
     // vaults
     for (const p of S.ps) {
       const v = S.vaults.find(v => dist(v, p) < v.r);
-      if (v && p.carry > 0) { p.bankT += dt; if (p.bankT >= BANK_T) { p.bank += p.carry; fx({ kind: 'text', x: p.x, y: p.y - 40, s: 'banked ' + p.carry, c: '#e8b84a', life: 1.2 });
+      if (v && p.carry > 0) { p.bankT += dt; if (p.bankT >= mod('bankT', p, BANK_T)) { const amt = p.carry; p.bank += p.carry; emit('bank', p, amt); fx({ kind: 'text', x: p.x, y: p.y - 40, s: 'banked ' + p.carry, c: '#e8b84a', life: 1.2 });
         if (p === me) { toast('Banked ' + p.carry + ' gold'); haptic('medium'); } p.carry = 0; p.bankT = 0; } }
       else p.bankT = 0;
     }
@@ -256,6 +291,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
       if (d < ra + rb) { const o = (ra + rb - d) / 2, nx = dx / d, ny = dy / d; a.x -= nx * o; a.y -= ny * o; b.x += nx * o; b.y += ny * o; a.vx -= nx * 120; a.vy -= ny * 120; b.vx += nx * 120; b.vy += ny * 120; contact(a, b); } }
     S.fx = S.fx.filter(f => t - f.t < f.life);
     S.veins = S.veins.filter(v => t - v.t < 1.2);
+    emit('step', dt);
     if (t >= ROUND) end();
   }
 
@@ -264,17 +300,19 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   function end() {
     S.over = true; const me = S.me; const order = S.ps.slice().sort((a, b) => b.bank - a.bank); lastRank = order.indexOf(me) + 1;
     try { if (me.bank > best()) localStorage.setItem('hg_best', String(me.bank)); } catch (e) {}
-    $('hud').classList.remove('on'); $('sk').classList.remove('on');
+    $('hud').classList.remove('on'); $('sk').classList.remove('on'); clearTimeout(toastT); $('toast').style.opacity = 0;
     $('eRank').textContent = '#' + lastRank + ' of ' + S.ps.length;
+    $('end').querySelector('.small').textContent = 'ROUND OVER · MAP #' + mapNo;
     const lines = ['Banked <b>' + me.bank + '</b> gold as ' + GODS[me.god].n,
       'Robberies: ' + me.robs + (me.best ? ' (best +' + me.best + ')' : '') + ' · stolen from you: ' + me.lost,
       me.carry ? 'Not banked, lost at the bell: ' + me.carry : 'Nothing left unbanked',
       'Winner: ' + (order[0] === me ? 'you' : order[0].name + ' (bot)') + ' · ' + order[0].bank,
-      'All the gold that appeared this round: ' + S.minted + ' (8, then 4, then 2 a coin)',
+      'All the gold that appeared this round: ' + S.minted + ' (a coin\'s worth halved every 50 s)',
       'Your best: ' + Math.max(best(), me.bank), '<span class="small">The other ' + BOTS + ' heroes are bots.</span>'];
     $('eLines').innerHTML = lines.join('<br>');
     $('end').classList.add('on');
     haptic('heavy');
+    emit('end', S, { map: mapNo, rank: lastRank, of: S.ps.length, bank: me.bank, god: me.god, robs: me.robs, lost: me.lost, carry: me.carry, minted: S.minted, best: me.best });
   }
   function share() {
     const me = S ? S.me : null, url = 'https://t.me/HoldorTDBot/play';
@@ -295,8 +333,8 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   const joyEnd = e => { if (joy.on && e.pointerId === joy.id) { joy.on = false; joy.dx = joy.dy = 0; } };
   cv.addEventListener('pointerup', joyEnd); cv.addEventListener('pointercancel', joyEnd);
   $('sk').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (S) useSkill(S.me); });
-  window.addEventListener('keydown', e => { const k = e.key.toLowerCase(); if (k === ' ' || k === 'j') { if (S) useSkill(S.me); e.preventDefault(); return; } keys.add(k); });
-  window.addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
+  window.addEventListener('keydown', e => { const tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return; const k = e.key.toLowerCase(); if (k === ' ' || k === 'j') { if (S) useSkill(S.me); e.preventDefault(); return; } keys.add(k); });
+  window.addEventListener('keyup', e => { const tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA') return; keys.delete(e.key.toLowerCase()); });
   window.addEventListener('blur', () => keys.clear());
   document.addEventListener('visibilitychange', () => { paused = document.hidden; });
 
@@ -307,24 +345,26 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const c2 = b.querySelector('canvas').getContext('2d'); c2.fillStyle = G.c; c2.beginPath(); c2.arc(40, 40, 38, 0, TAU); c2.fill(); sym(c2, k, 40, 40, 34);
     b.addEventListener('click', () => { god = k; drawGods(); }); gEl.appendChild(b); } };
   drawGods();
-  $('best').textContent = (best() ? 'Your best: ' + best() + ' gold · ' : '') + BOTS + ' bots · 2:30 round';
-  $('play').addEventListener('click', () => start(god));
-  $('again').addEventListener('click', () => start(god));
-  $('change').addEventListener('click', () => { $('end').classList.remove('on'); $('title').classList.add('on'); drawGods(); $('best').textContent = (best() ? 'Your best: ' + best() + ' gold · ' : '') + BOTS + ' bots · 2:30 round'; });
+  $('best').textContent = 'Today: Map #' + mapNo + ' · ' + (best() ? 'your best ' + best() + ' · ' : '') + BOTS + ' bots · 2:30';
+  /* a module may hold PLAY back (the profile asks for a name and a country first): window.G.beforePlay() === false */
+  const go = () => { if (window.G && typeof window.G.beforePlay === 'function' && window.G.beforePlay() === false) return; start(god); };
+  $('play').addEventListener('click', go);
+  $('again').addEventListener('click', go);
+  $('change').addEventListener('click', () => { $('end').classList.remove('on'); $('title').classList.add('on'); drawGods(); emit('title'); $('best').textContent = 'Today: Map #' + mapNo + ' · ' + (best() ? 'your best ' + best() + ' · ' : '') + BOTS + ' bots · 2:30'; });
   $('share').addEventListener('click', share);
 
   /* ---------- draw ---------- */
   function hud() {
     const me = S.me, left = Math.max(0, ROUND - S.t), mm = Math.floor(left / 60), ss = Math.floor(left % 60);
     $('hTL').innerHTML = 'Carry <span class="c">' + me.carry + '</span><br>Banked ' + me.bank;
-    const cv_ = coinValue(S.t), toHalf = HALVE_T - (S.t % HALVE_T);
-    $('hTC').innerHTML = '<b' + (left <= 20 ? ' style="color:#ff6a5a"' : '') + '>' + mm + ':' + String(ss).padStart(2, '0') + '</b>Coin = ' + cv_ + (cv_ > 2 ? ' · halves in ' + Math.ceil(toHalf) + ' s' : '') + ' · vaults move in ' + Math.max(0, Math.ceil(S.vNext - S.t)) + ' s';
+    const cv_ = Math.max(1, Math.round(mod('coinValue', null, coinValue(S.t)))), toHalf = HALVE_T - (S.t % HALVE_T);
+    $('hTC').innerHTML = '<b' + (left <= 20 ? ' style="color:#ff6a5a"' : '') + '>' + mm + ':' + String(ss).padStart(2, '0') + '</b>Coin ' + cv_ + (cv_ > 2 ? ' · halves in ' + Math.ceil(toHalf) + ' s' : '') + '<br>Vaults move in ' + Math.max(0, Math.ceil(S.vNext - S.t)) + ' s';
     const order = S.ps.slice().sort((a, b) => b.bank - a.bank).slice(0, 5);
     if (!order.includes(me)) order[4] = me;
     $('hTR').innerHTML = order.map(p => '<div class="' + (p === me ? 'me' : '') + '">' + (p === me ? 'You' : p.name) + ' ' + p.bank + '</div>').join('');
     const sk = $('sk'), G = GODS[me.god], cd = Math.max(0, me.cd - S.t);
     sk.textContent = cd > 0 ? Math.ceil(cd) + ' s' : G.sk;
-    sk.style.background = cd > 0 ? 'conic-gradient(rgba(232,184,74,.35) ' + (360 * (1 - cd / G.cd)) + 'deg, rgba(10,16,28,.72) 0)' : 'rgba(10,16,28,.72)';
+    sk.style.background = cd > 0 ? 'conic-gradient(rgba(232,184,74,.35) ' + (360 * (1 - cd / (me.cdT || G.cd))) + 'deg, rgba(10,16,28,.72) 0)' : 'rgba(10,16,28,.72)';
   }
   function arrow(wx, wy, col, label, k) {
     const sx = (wx - S.camX) * k + VW / 2, sy = (wy - S.camY) * k + VH / 2;
@@ -332,6 +372,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const a = Math.atan2(sy - VH / 2, sx - VW / 2), m = 44;
     const ex = clamp(VW / 2 + Math.cos(a) * VW, m, VW - m); let ey = clamp(VH / 2 + Math.sin(a) * VH, m + 40, VH - m);
     if (ex > VW - 150) ey = Math.min(ey, VH - 140);   // keep clear of the skill button
+    if (ex < 116 && ey < 162) ey = 162;                // and of the minimap under the top-left text
     ctx.save(); ctx.translate(ex, ey); ctx.rotate(a); ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(-8, -9); ctx.lineTo(-8, 9); ctx.closePath(); ctx.fill(); ctx.restore();
     if (label) { ctx.fillStyle = col; ctx.font = '700 11px Georgia'; ctx.textAlign = 'center'; ctx.fillText(label, ex - Math.cos(a) * 22, ey - Math.sin(a) * 22 + 4); }
   }
@@ -351,13 +392,13 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const nm = (p === S.me && !fake) ? 'You' : p.name + (p.bot ? ' · bot' : '');
     ctx.strokeText(nm, sx, sy - r - 18); ctx.fillStyle = '#e9eef5'; ctx.fillText(nm, sx, sy - r - 18);
     if (p.carry > 0) { const s = String(p.carry); ctx.strokeText(s, sx, sy - r - 5); ctx.fillStyle = '#ffd36a'; ctx.fillText(s, sx, sy - r - 5); }
-    if (p.bankT > 0) { ctx.strokeStyle = '#ffd36a'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(sx, sy, r + 5, -Math.PI / 2, -Math.PI / 2 + TAU * p.bankT / BANK_T); ctx.stroke(); }
+    if (p.bankT > 0) { ctx.strokeStyle = '#ffd36a'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(sx, sy, r + 5, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, p.bankT / mod('bankT', p, BANK_T))); ctx.stroke(); }
     ctx.globalAlpha = 1;
   }
   function draw() {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.fillStyle = '#070c16'; ctx.fillRect(0, 0, VW, VH);
     if (!S) return;
-    const me = S.me; let k = clamp(Math.sqrt(VW * VH) / 680, 0.65, 1.5) / (1 + (radius(me) - 17) / 140);
+    const me = S.me; let k = mod('view', me, clamp(Math.sqrt(VW * VH) / 680, 0.65, 1.5) / (1 + (radius(me) - 17) / 140));
     S.camX += (me.x - S.camX) * 0.18; S.camY += (me.y - S.camY) * 0.18;
     const ox = VW / 2 - S.camX * k, oy = VH / 2 - S.camY * k;
     // stone ground: the arena a shade lighter than the void, pebbles and cracks from a hash of each 250-unit tile
@@ -390,12 +431,13 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     for (const f of S.fx) { const age = (S.t - f.t) / f.life, sx = ox + f.x * k, sy = oy + f.y * k;
       if (f.kind === 'ring') { ctx.strokeStyle = f.c; ctx.globalAlpha = 1 - age; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(sx, sy, f.r * k * (0.4 + age * 0.6), 0, TAU); ctx.stroke(); ctx.globalAlpha = 1; }
       else if (f.kind === 'text') { ctx.globalAlpha = 1 - age; ctx.font = '900 16px Georgia'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.85)'; ctx.strokeText(f.s, sx, sy - age * 30); ctx.fillStyle = f.c; ctx.fillText(f.s, sx, sy - age * 30); ctx.globalAlpha = 1; } }
+    emit('draw', ctx, k, ox, oy);
     // arrows: the nearest vault while carrying, fresh veins
     if (me.carry > 0) { const bv = nearestVault(me); arrow(bv.x, bv.y, '#e8b84a', 'VAULT', k); }
     if (!onScreen && S.coins.length) { let bc = S.coins[0], bd = 1e9; for (const c of S.coins) { const d = dist(c, me); if (d < bd) { bd = d; bc = c; } } arrow(bc.x, bc.y, '#ffd36a', 'gold', k); }
     // joystick
     if (joy.on) { ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(joy.x0, joy.y0, JR, 0, TAU); ctx.stroke(); ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(joy.x0 + joy.dx * JR, joy.y0 + joy.dy * JR, 22, 0, TAU); ctx.fill(); }
-    if (!S.over && S.t - S.hudT > 0.1) { S.hudT = S.t; hud(); }
+    if (!S.over && S.t - S.hudT > 0.1) { S.hudT = S.t; hud(); emit('hud', S); }
   }
 
   /* ---------- loop ---------- */
@@ -409,8 +451,1229 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   requestAnimationFrame(frame);
 
   /* ---------- test hooks (public, like HOLDOR's R) ---------- */
-  window.G = { start, step: n => { for (let i = 0; i < (n || 1); i++) step(1 / 60); }, get S() { return S; }, get VAULTS() { return S ? S.vaults : []; }, GODS, BOTS, useSkill, rnd, joy, total: () => S ? S.coins.reduce((s, c) => s + c.v, 0) + S.ps.reduce((s, p) => s + p.carry + p.bank, 0) : 0 };
+  window.G = { start, step: n => { for (let i = 0; i < (n || 1); i++) step(1 / 60); }, get S() { return S; }, get VAULTS() { return S ? S.vaults : []; }, GODS, BOTS, useSkill,
+    on: (e, f) => { (BUS[e] = BUS[e] || []).push(f); }, addMod: (n, f) => { (MODS[n] = MODS[n] || []).push(f); }, mod, emit, toast, haptic, sym, radius, dist, fx: o => S && fx(o), TG, $, showErr,
+    WORLD, ROUND, HALVE_T, BANK_T, ROB, coinValue, get mapNo() { return mapNo; }, setMap: n => { mapForced = n == null ? null : Math.max(1, n | 0); if (mapForced != null) mapNo = mapForced; }, mkRnd, nearestVault: p => nearestVault(p), get god() { return god; }, get W() { return VW; }, get H() { return VH; }, profile: { name: '', country: '' }, rnd, joy, total: () => S ? S.coins.reduce((s, c) => s + c.v, 0) + S.ps.reduce((s, p) => s + p.carry + p.bank, 0) : 0 };
 })();
+</script>
+<script>/* 10_net.js */
+(function(){try{
+/* Heavy Gold — net (10_net.js). Supabase over fetch: Telegram login → a session token → the hg_* RPCs (src/gold/GOLD.md).
+   G.net = { on, token, pending, err, ready, login(), rpc(name, args) }
+   - On load (after every module has loaded), when G.TG && G.TG.initData: tg_login(init_data) once. The token is kept in
+     sessionStorage ('hg_token', tied to this initData), so a reload in the same Telegram launch reuses it without a new login.
+     Without Telegram, or when the login fails, the game stays offline and nothing is sent.
+   - login(): resolves true when online. It tries again only when asked (a user action), at most once per 20 s after a failure.
+   - rpc(name, args): resolves the server's JSON, or null when offline or on any error (G.net.err has the text); it never throws.
+     An 8 s timeout per call. A call made while the login is in flight waits for it. A null `token` in args is filled with the
+     session token. A dead session ('bad session') logs in again once and repeats the call once.
+   - G.emit('net', on) whenever the online state changes (on = true / false). */
+(function () {
+  const URL_ = 'https://acimxvnupgpronpohheb.supabase.co', KEY = 'sb_publishable_IdiZ6FC3GwAEZ8AkBeBg0g_doDtulMB';
+  const TK = 'hg_token', TIMEOUT = 8000, RETRY_MS = 20000;
+  const N = G.net = { on: false, token: null, pending: false, err: null, calls: 0, url: URL_, key: KEY };
+  let emitted = false, loginP = null, lastFail = 0, readyRes = null;
+  N.ready = new Promise(r => { readyRes = r; });
+
+  const init = () => { try { const T = G.TG; return T && typeof T.initData === 'string' && T.initData.length > 0 ? T.initData : ''; } catch (e) { return ''; } };
+  const hash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + ':' + s.length; };
+  const setOn = v => { N.on = !!v; if (N.on !== emitted) { emitted = N.on; try { G.emit('net', N.on); } catch (e) {} } };
+  const keep = t => { try { if (t) sessionStorage.setItem(TK, JSON.stringify({ h: hash(init()), t })); else sessionStorage.removeItem(TK); } catch (e) {} };
+  const kept = () => { try { const o = JSON.parse(sessionStorage.getItem(TK) || 'null'); return o && o.t && o.h === hash(init()) ? String(o.t) : null; } catch (e) { return null; } };
+  const dead = m => /bad[ _]?session|no[ _]?session|bad[ _]?token|invalid[ _]?token|session (expired|not found)/i.test(String(m || ''));
+
+  /* one POST, 8 s for the whole exchange; resolves {v} or {e} (never rejects) */
+  async function post(name, args) {
+    let to = 0; const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = new Promise((_, rej) => { to = setTimeout(() => { rej(new Error('timeout')); try { if (ctl) ctl.abort(); } catch (e) {} }, TIMEOUT); });
+    try {
+      N.calls++;
+      const r = await Promise.race([fetch(URL_ + '/rest/v1/rpc/' + name, { method: 'POST', headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify(args || {}), signal: ctl ? ctl.signal : undefined }), timer]);
+      const txt = await Promise.race([r.text(), timer]);
+      let j = null; try { j = txt ? JSON.parse(txt) : null; } catch (e) { j = null; }
+      if (!r.ok) return { e: (j && (j.message || j.hint || j.code || j.error)) || ('http ' + r.status) };
+      return { v: j };
+    } catch (e) { return { e: String((e && e.message) || e || 'network') }; }
+    finally { clearTimeout(to); }
+  }
+
+  N.login = (force) => {
+    if (N.on && N.token) return Promise.resolve(true);
+    if (loginP) return loginP;
+    const id = init();
+    if (!id) return Promise.resolve(false);
+    if (!force && lastFail && Date.now() - lastFail < RETRY_MS) return Promise.resolve(false);
+    N.pending = true;
+    loginP = (async () => {
+      const x = await post('tg_login', { init_data: id });
+      const r = x.v;
+      if (r && r.token) { N.token = String(r.token); keep(N.token); N.err = null; lastFail = 0; setOn(true); return true; }
+      N.err = x.e || (r && r.error) || 'login failed'; lastFail = Date.now(); N.token = null; setOn(false); return false;
+    })().catch(() => false).then(v => { loginP = null; N.pending = false; if (readyRes) { readyRes(v); readyRes = null; } return v; });
+    return loginP;
+  };
+
+  const withToken = args => { if (args && typeof args === 'object' && Object.prototype.hasOwnProperty.call(args, 'token') && args.token == null) return Object.assign({}, args, { token: N.token }); return args; };
+  N.rpc = async (name, args) => {
+    try {
+      if (!N.on && loginP) await loginP;
+      if (!N.on || !N.token) return null;
+      const tok = N.token;
+      let x = await post(name, withToken(args));
+      const bad = y => dead(y.e) || (y.v && typeof y.v === 'object' && !Array.isArray(y.v) && dead(y.v.error));
+      if (bad(x)) {                                               // the session died: log in again once, repeat once
+        if (N.token === tok) { N.token = null; keep(null); N.on = false; }
+        const ok = await N.login(true); if (!ok) return null;
+        const a2 = args && typeof args === 'object' && args.token === tok ? Object.assign({}, args, { token: N.token }) : withToken(args);
+        x = await post(name, a2);
+        if (bad(x)) { N.err = x.e || 'bad session'; return null; }
+      }
+      if (x.e !== undefined) { N.err = x.e; return null; }
+      N.err = null; return x.v === undefined ? null : x.v;
+    } catch (e) { N.err = String((e && e.message) || e); return null; }
+  };
+
+  /* boot after every module has loaded, so their G.on('net') listeners hear the first change */
+  const boot = () => {
+    const t = init() ? kept() : null;
+    if (t) { N.token = t; setOn(true); if (readyRes) { readyRes(true); readyRes = null; } return; }
+    if (init()) N.login(true); else if (readyRes) { readyRes(false); readyRes = null; }
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(boot, 0)); else setTimeout(boot, 0);
+})();
+
+}catch(e){(window.G&&G.showErr?G.showErr:console.error)("module 10_net.js: "+(e&&e.message||e));}})();
+</script>
+<script>/* 20_profile.js */
+(function(){try{
+/* Heavy Gold — profile (20_profile.js): the player's name and country (src/gold/GOLD.md).
+   - G.beforePlay: PLAY opens the profile screen until a valid name and country exist (a gate set earlier is chained after it,
+     a module loading later must chain this one: `const prev = G.beforePlay; G.beforePlay = () => mine() && (!prev || prev() !== false)`).
+     After SAVE the screen closes and taps #play again, so every gate runs once more.
+   - Name: 3–16 characters, letters (any script), digits, space, _ or -; prefilled from Telegram's first_name when there is one.
+   - Country: every ISO 3166-1 alpha-2 code, its flag emoji (regional indicator letters) and English name, with a search field;
+     Georgia is suggested at the top only when Telegram's language_code is 'ka'.
+   - Saved to localStorage 'hg_profile' {name, country} and, online, to hg_profile_set. When the game comes online
+     (G.on('net')), hg_profile_get first: a server profile wins; with none on the server, the local one is sent.
+   - Fills G.profile (the same object) and emits G.emit('profile', G.profile). A "name · flag" button in #titleLinks edits it.
+   - Also public: G.COUNTRIES ([code, name] sorted by name), G.flag(code), G.countryName(code), G.profileUI {open, close, valid, sync}. */
+(function () {
+  const LS = 'hg_profile';
+  const RAW = 'AD:Andorra|AE:United Arab Emirates|AF:Afghanistan|AG:Antigua and Barbuda|AI:Anguilla|AL:Albania|AM:Armenia|AO:Angola|AQ:Antarctica|' +
+    'AR:Argentina|AS:American Samoa|AT:Austria|AU:Australia|AW:Aruba|AX:Åland Islands|AZ:Azerbaijan|BA:Bosnia and Herzegovina|BB:Barbados|' +
+    'BD:Bangladesh|BE:Belgium|BF:Burkina Faso|BG:Bulgaria|BH:Bahrain|BI:Burundi|BJ:Benin|BL:Saint Barthélemy|BM:Bermuda|BN:Brunei|BO:Bolivia|' +
+    'BQ:Caribbean Netherlands|BR:Brazil|BS:Bahamas|BT:Bhutan|BV:Bouvet Island|BW:Botswana|BY:Belarus|BZ:Belize|CA:Canada|CC:Cocos (Keeling) Islands|' +
+    'CD:Congo (DRC)|CF:Central African Republic|CG:Congo (Republic)|CH:Switzerland|CI:Côte d’Ivoire|CK:Cook Islands|CL:Chile|CM:Cameroon|CN:China|' +
+    'CO:Colombia|CR:Costa Rica|CU:Cuba|CV:Cape Verde|CW:Curaçao|CX:Christmas Island|CY:Cyprus|CZ:Czechia|DE:Germany|DJ:Djibouti|DK:Denmark|' +
+    'DM:Dominica|DO:Dominican Republic|DZ:Algeria|EC:Ecuador|EE:Estonia|EG:Egypt|EH:Western Sahara|ER:Eritrea|ES:Spain|ET:Ethiopia|FI:Finland|' +
+    'FJ:Fiji|FK:Falkland Islands|FM:Micronesia|FO:Faroe Islands|FR:France|GA:Gabon|GB:United Kingdom|GD:Grenada|GE:Georgia|GF:French Guiana|' +
+    'GG:Guernsey|GH:Ghana|GI:Gibraltar|GL:Greenland|GM:Gambia|GN:Guinea|GP:Guadeloupe|GQ:Equatorial Guinea|GR:Greece|' +
+    'GS:South Georgia and the South Sandwich Islands|GT:Guatemala|GU:Guam|GW:Guinea-Bissau|GY:Guyana|HK:Hong Kong|HM:Heard and McDonald Islands|' +
+    'HN:Honduras|HR:Croatia|HT:Haiti|HU:Hungary|ID:Indonesia|IE:Ireland|IL:Israel|IM:Isle of Man|IN:India|IO:British Indian Ocean Territory|IQ:Iraq|' +
+    'IR:Iran|IS:Iceland|IT:Italy|JE:Jersey|JM:Jamaica|JO:Jordan|JP:Japan|KE:Kenya|KG:Kyrgyzstan|KH:Cambodia|KI:Kiribati|KM:Comoros|' +
+    'KN:Saint Kitts and Nevis|KP:North Korea|KR:South Korea|KW:Kuwait|KY:Cayman Islands|KZ:Kazakhstan|LA:Laos|LB:Lebanon|LC:Saint Lucia|' +
+    'LI:Liechtenstein|LK:Sri Lanka|LR:Liberia|LS:Lesotho|LT:Lithuania|LU:Luxembourg|LV:Latvia|LY:Libya|MA:Morocco|MC:Monaco|MD:Moldova|' +
+    'ME:Montenegro|MF:Saint Martin|MG:Madagascar|MH:Marshall Islands|MK:North Macedonia|ML:Mali|MM:Myanmar|MN:Mongolia|MO:Macao|' +
+    'MP:Northern Mariana Islands|MQ:Martinique|MR:Mauritania|MS:Montserrat|MT:Malta|MU:Mauritius|MV:Maldives|MW:Malawi|MX:Mexico|MY:Malaysia|' +
+    'MZ:Mozambique|NA:Namibia|NC:New Caledonia|NE:Niger|NF:Norfolk Island|NG:Nigeria|NI:Nicaragua|NL:Netherlands|NO:Norway|NP:Nepal|NR:Nauru|' +
+    'NU:Niue|NZ:New Zealand|OM:Oman|PA:Panama|PE:Peru|PF:French Polynesia|PG:Papua New Guinea|PH:Philippines|PK:Pakistan|PL:Poland|' +
+    'PM:Saint Pierre and Miquelon|PN:Pitcairn Islands|PR:Puerto Rico|PS:Palestine|PT:Portugal|PW:Palau|PY:Paraguay|QA:Qatar|RE:Réunion|' +
+    'RO:Romania|RS:Serbia|RU:Russia|RW:Rwanda|SA:Saudi Arabia|SB:Solomon Islands|SC:Seychelles|SD:Sudan|SE:Sweden|SG:Singapore|SH:Saint Helena|' +
+    'SI:Slovenia|SJ:Svalbard and Jan Mayen|SK:Slovakia|SL:Sierra Leone|SM:San Marino|SN:Senegal|SO:Somalia|SR:Suriname|SS:South Sudan|' +
+    'ST:São Tomé and Príncipe|SV:El Salvador|SX:Sint Maarten|SY:Syria|SZ:Eswatini|TC:Turks and Caicos Islands|TD:Chad|' +
+    'TF:French Southern Territories|TG:Togo|TH:Thailand|TJ:Tajikistan|TK:Tokelau|TL:Timor-Leste|TM:Turkmenistan|TN:Tunisia|TO:Tonga|' +
+    'TR:Türkiye|TT:Trinidad and Tobago|TV:Tuvalu|TW:Taiwan|TZ:Tanzania|UA:Ukraine|UG:Uganda|UM:U.S. Outlying Islands|US:United States|' +
+    'UY:Uruguay|UZ:Uzbekistan|VA:Vatican City|VC:Saint Vincent and the Grenadines|VE:Venezuela|VG:British Virgin Islands|' +
+    'VI:U.S. Virgin Islands|VN:Vietnam|VU:Vanuatu|WF:Wallis and Futuna|WS:Samoa|YE:Yemen|YT:Mayotte|ZA:South Africa|ZM:Zambia|ZW:Zimbabwe';
+  /* other names people search for */
+  const ALIAS = { TR: 'turkey', CZ: 'czech republic', CI: 'ivory coast', SZ: 'swaziland', MM: 'burma', NL: 'holland', GB: 'uk great britain britain england scotland wales northern ireland',
+    US: 'usa america united states of america', MK: 'macedonia', CV: 'cabo verde', TL: 'east timor', VA: 'holy see', CD: 'democratic republic kinshasa drc', CG: 'brazzaville',
+    AE: 'uae emirates', RU: 'russian federation', KR: 'korea', KP: 'korea dprk', BQ: 'bonaire saba sint eustatius', FK: 'malvinas', PS: 'gaza west bank', BN: 'brunei darussalam' };
+  const COUNTRIES = RAW.split('|').map(s => [s.slice(0, 2), s.slice(3)]).sort((a, b) => a[1].localeCompare(b[1], 'en'));
+  const CC = {}; for (const [c, n] of COUNTRIES) CC[c] = n;
+  const flag = c => /^[A-Z]{2}$/.test(String(c || '')) ? String.fromCodePoint(...[...c].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65)) : '';
+  const fold = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’']/g, '').toLowerCase();
+  G.COUNTRIES = COUNTRIES; G.flag = flag; G.countryName = c => CC[c] || '';
+
+  /* ---- the name rules ---- */
+  const OK_CH = /^[\p{L}\p{M}\p{Nd} _-]+$/u, BAD_CH = /[^\p{L}\p{M}\p{Nd} _-]/gu;
+  const tidy = s => String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
+  const nlen = s => [...s].length;
+  const valid = s => { const n = tidy(s); return nlen(n) >= 3 && nlen(n) <= 16 && OK_CH.test(n); };
+  const cleanName = s => tidy([...tidy(String(s || '').replace(BAD_CH, ''))].slice(0, 16).join(''));
+  const MSG = { name_taken: 'That name is taken', bad_name: '3–16 letters, digits, space, _ or -', bad_country: 'Pick a country' };
+  const HINT = '3–16 letters, digits, space, _ or -';
+
+  const tgUser = () => { try { const u = G.TG && G.TG.initDataUnsafe && G.TG.initDataUnsafe.user; return u || null; } catch (e) { return null; } };
+  const read = () => { try { const o = JSON.parse(localStorage.getItem(LS) || 'null'); if (o && valid(o.name) && CC[o.country]) return { name: tidy(o.name), country: o.country }; } catch (e) {} return null; };
+  const write = p => { try { localStorage.setItem(LS, JSON.stringify({ name: p.name, country: p.country })); } catch (e) {} };
+  let needFix = '';    // the server refused the local profile when it synced ('name_taken' …): PLAY asks again
+  const has = () => !!(G.profile && valid(G.profile.name) && CC[G.profile.country]);
+  const apply = (name, country) => {
+    G.profile = G.profile || {}; G.profile.name = tidy(name); G.profile.country = country; write(G.profile);
+    paintBtn(); try { G.emit('profile', G.profile); } catch (e) {}
+  };
+
+  /* ---- styles ---- */
+  const css = document.createElement('style');
+  css.textContent = [
+    '.hgScr{background:var(--bg,#070c16);z-index:20}',
+    '.hgP{flex:1 1 auto;min-height:0;width:min(100%,640px);display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"head" "list" "foot";gap:10px}',
+    '.hgPhead{grid-area:head;display:flex;flex-direction:column;gap:6px}',
+    '.hgPlist{grid-area:list;display:flex;flex-direction:column;gap:6px;min-height:0}',
+    '.hgPfoot{grid-area:foot;display:flex;flex-direction:column;align-items:center;gap:8px}',
+    '.hgH{margin:0;font:900 20px/1.2 Georgia,serif;letter-spacing:.08em;color:var(--gold,#e8b84a);text-align:center}',
+    '.hgIn{width:100%;min-height:48px;border-radius:12px;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:var(--ink,#f3e7c4);font:700 18px Georgia,serif;padding:0 14px;outline:none;user-select:text;-webkit-user-select:text;touch-action:manipulation}',
+    '.hgIn:focus{border-color:var(--gold,#e8b84a)}.hgIn::placeholder{color:#6f7d92;font-weight:400}',
+    '.hgMsg{font:13px/1.3 Georgia,serif;color:var(--muted,#8d9bb0);text-align:center;min-height:17px}.hgMsg.bad{color:#ff8a7a;font-weight:700}',
+    '.hgSel{font:15px/1.3 Georgia,serif;text-align:center;color:#cfd6e2}.hgSel b{color:var(--ink,#f3e7c4)}.hgSel.bad{color:#ff8a7a;font-weight:700}',
+    '.hgList{flex:1 1 auto;min-height:92px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;align-content:start;padding:2px;border-radius:12px}',
+    '.hgC{min-height:44px;display:flex;align-items:center;gap:8px;text-align:left;border-radius:10px;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--ink,#f3e7c4);font:14px/1.2 Georgia,serif;padding:4px 8px;cursor:pointer;touch-action:pan-y}',
+    '.hgC .f{font-size:22px;line-height:1;flex:none}.hgC.sel{border-color:var(--gold,#e8b84a);background:rgba(232,184,74,.16)}.hgC[hidden],.hgLbl[hidden]{display:none}',
+    '.hgLbl{grid-column:1/-1;font:12px Georgia,serif;color:var(--muted,#8d9bb0);letter-spacing:.08em;text-transform:uppercase;padding:4px 2px 0}',
+    '.hgNone{grid-column:1/-1;font:14px Georgia,serif;color:var(--muted,#8d9bb0);text-align:center;padding:12px}',
+    '#hgMe{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '@media (orientation:landscape) and (max-height:540px){.hgP{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"head list" "foot list";gap:8px 16px}.hgH{font-size:18px}.hgPfoot{justify-content:flex-start}}'
+  ].join('\n');
+  document.head.appendChild(css);
+
+  /* ---- the screen ---- */
+  const scr = document.createElement('div'); scr.className = 'scr hgScr'; scr.id = 'hgProf';
+  scr.innerHTML = '<div class="hgP"><div class="hgPhead"><h2 class="hgH">YOUR NAME &amp; COUNTRY</h2>' +
+    '<input id="hgName" class="hgIn" type="text" maxlength="16" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" enterkeyhint="done" placeholder="Your name" aria-label="Your name">' +
+    '<div class="hgMsg" id="hgPErr" role="alert"></div><div class="hgSel" id="hgSel"></div></div>' +
+    '<div class="hgPlist"><input id="hgSearch" class="hgIn" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" placeholder="Search a country" aria-label="Search a country">' +
+    '<div class="hgList" id="hgList"></div></div>' +
+    '<div class="hgPfoot"><button class="pri" id="hgSave">SAVE</button><button class="sec" id="hgBack">Back</button></div></div>';
+  document.body.appendChild(scr);
+  const $q = id => scr.querySelector('#' + id);
+  const nameIn = $q('hgName'), searchIn = $q('hgSearch'), list = $q('hgList'), errEl = $q('hgPErr'), selEl = $q('hgSel'), saveB = $q('hgSave'), backB = $q('hgBack');
+  /* the core's keydown (space / J = skill, WASD) must not eat the letters typed here */
+  for (const el of [nameIn, searchIn]) for (const t of ['keydown', 'keyup', 'keypress']) el.addEventListener(t, e => e.stopPropagation());
+
+  let sel = '', pendingPlay = false, busy = false, touched = false, built = false;
+  const suggestGE = () => { const u = tgUser(); return !!(u && String(u.language_code || '').toLowerCase().split(/[-_]/)[0] === 'ka'); };
+  const mkBtn = (c, n, extra) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'hgC' + (extra ? ' ' + extra : ''); b.dataset.cc = c;
+    const f = document.createElement('span'); f.className = 'f'; f.textContent = flag(c); const t = document.createElement('span'); t.textContent = n; b.append(f, t);
+    b._k = fold(n + ' ' + c + ' ' + (ALIAS[c] || '')); return b; };
+  function build() {
+    if (built) return; built = true; list.textContent = '';
+    if (suggestGE()) {
+      const l1 = document.createElement('div'); l1.className = 'hgLbl hgSugL'; l1.textContent = 'Suggested'; list.appendChild(l1);
+      list.appendChild(mkBtn('GE', CC.GE, 'hgSug'));
+      const l2 = document.createElement('div'); l2.className = 'hgLbl hgSugL'; l2.textContent = 'All countries'; list.appendChild(l2);
+    }
+    for (const [c, n] of COUNTRIES) list.appendChild(mkBtn(c, n));
+    const none = document.createElement('div'); none.className = 'hgNone'; none.id = 'hgNone'; none.hidden = true; none.textContent = 'No country matches'; list.appendChild(none);
+  }
+  list.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.hgC'); if (!b) return; pick(b.dataset.cc); });
+  function pick(c) {
+    if (!CC[c]) return; sel = c; touched = true;
+    for (const b of list.querySelectorAll('.hgC')) b.classList.toggle('sel', b.dataset.cc === c);
+    paintSel(); if (errEl.dataset.code === 'bad_country') msg('');
+  }
+  function paintSel() {
+    selEl.classList.remove('bad');
+    if (sel) { selEl.textContent = ''; const b = document.createElement('b'); b.textContent = flag(sel) + ' ' + CC[sel]; selEl.append('Country: ', b); }
+    else selEl.textContent = 'Country: pick one below';
+  }
+  function filter() {
+    const q = fold(tidy(searchIn.value)); let n = 0;
+    for (const b of list.querySelectorAll('.hgC')) { const show = !q ? true : (b.classList.contains('hgSug') ? false : (b._k.indexOf(q) >= 0)); b.hidden = !show; if (show && !b.classList.contains('hgSug')) n++; }
+    for (const l of list.querySelectorAll('.hgSugL')) l.hidden = !!q;
+    const none = list.querySelector('#hgNone'); if (none) none.hidden = n > 0;
+    return n;
+  }
+  searchIn.addEventListener('input', () => { filter(); list.scrollTop = 0; });
+  searchIn.addEventListener('keydown', e => { if (e.key === 'Enter') { const vis = [...list.querySelectorAll('.hgC:not(.hgSug)')].filter(b => !b.hidden); if (vis.length === 1) pick(vis[0].dataset.cc); searchIn.blur(); } });
+  nameIn.addEventListener('input', () => { touched = true; if (errEl.classList.contains('bad') && errEl.dataset.code !== 'bad_country') msg(''); });
+  nameIn.addEventListener('keydown', e => { if (e.key === 'Enter') nameIn.blur(); });
+  function msg(code, text) {
+    errEl.dataset.code = code || '';
+    if (!code) { errEl.classList.remove('bad'); errEl.textContent = HINT; return; }
+    errEl.classList.add('bad'); errEl.textContent = text || MSG[code] || 'Could not save. Try again.';
+    if (code === 'bad_country') selEl.classList.add('bad');
+  }
+
+  function open(forPlay) {
+    build(); pendingPlay = !!forPlay; busy = false; touched = false; saveB.disabled = false; saveB.textContent = 'SAVE';
+    const p = has() ? G.profile : read();
+    const u = tgUser();
+    nameIn.value = p ? p.name : (u && u.first_name ? cleanName(u.first_name) : '');
+    sel = p && CC[p.country] ? p.country : '';
+    for (const b of list.querySelectorAll('.hgC')) b.classList.toggle('sel', b.dataset.cc === sel);
+    searchIn.value = ''; filter(); paintSel(); msg(needFix ? needFix : '');
+    scr.classList.add('on');
+    list.scrollTop = 0;
+    if (sel) { const b = list.querySelector('.hgC:not(.hgSug)[data-cc="' + sel + '"]'); if (b) { try { list.scrollTop = Math.max(0, b.offsetTop - list.offsetTop - list.clientHeight / 2 + b.offsetHeight / 2); } catch (e) {} } }
+  }
+  function close() { scr.classList.remove('on'); try { nameIn.blur(); searchIn.blur(); } catch (e) {} pendingPlay = false; }
+
+  async function save() {
+    if (busy) return;
+    const name = tidy(nameIn.value);
+    if (!valid(name)) { msg('bad_name'); return; }
+    if (!CC[sel]) { msg('bad_country'); return; }
+    const country = sel, go = pendingPlay;
+    busy = true; saveB.disabled = true; saveB.textContent = 'SAVING…';
+    let res = null, online = false;
+    try { if (G.net && G.TG) online = await G.net.login(); } catch (e) { online = false; }
+    if (online) res = await G.net.rpc('hg_profile_set', { token: null, name, country });
+    busy = false; saveB.disabled = false; saveB.textContent = 'SAVE';
+    if (res && res.error) { msg(res.error); return; }
+    if (res && res.ok) { needFix = ''; apply(res.name || name, CC[res.country] ? res.country : country); }
+    else { needFix = ''; apply(name, country); if (online) G.toast('Saved on this phone. The server did not answer.', 2400); }
+    close();
+    if (go) { const b = G.$('play'); if (b) b.click(); }
+  }
+  saveB.addEventListener('click', save);
+  backB.addEventListener('click', close);
+
+  /* ---- the title button ---- */
+  const btn = document.createElement('button'); btn.className = 'sec'; btn.id = 'hgMe'; btn.type = 'button';
+  function paintBtn() { btn.textContent = has() ? (needFix ? 'Name taken: change it' : G.profile.name + ' · ' + flag(G.profile.country)) : 'Your name & country'; }
+  btn.addEventListener('click', () => open(false));
+  const links = G.$('titleLinks'); if (links) links.appendChild(btn);
+
+  /* ---- the gate ---- */
+  const prevGate = G.beforePlay;
+  G.beforePlay = () => {
+    if (!has() || needFix) { open(true); return false; }
+    return typeof prevGate === 'function' ? prevGate() : true;
+  };
+
+  /* ---- sync when the game is online: the server's profile wins; with none there, the local one goes up ---- */
+  let syncing = null;
+  function sync() {
+    if (syncing) return syncing;
+    syncing = (async () => {
+      if (!G.net || !G.net.on) return false;
+      const r = await G.net.rpc('hg_profile_get', { token: null });
+      if (!r || typeof r !== 'object' || r.error) return false;
+      if (r.name && CC[r.country]) {
+        needFix = ''; apply(r.name, r.country);
+        if (scr.classList.contains('on') && !touched && !busy) { nameIn.value = G.profile.name; pick(G.profile.country); touched = false; }
+        return true;
+      }
+      const loc = has() ? { name: G.profile.name, country: G.profile.country } : read();
+      if (!loc) return false;
+      const s = await G.net.rpc('hg_profile_set', { token: null, name: loc.name, country: loc.country });
+      if (s && s.ok) { needFix = ''; apply(s.name || loc.name, CC[s.country] ? s.country : loc.country); return true; }
+      if (s && s.error) { needFix = s.error; paintBtn(); if (!(G.S && !G.S.over)) G.toast((MSG[s.error] || 'The server refused your name') + ': tap your name to change it', 3000); }
+      return false;
+    })().catch(() => false).then(v => { syncing = null; return v; });
+    return syncing;
+  }
+  G.on('net', on => { if (on) sync(); });
+  G.on('title', paintBtn);
+
+  /* ---- start ---- */
+  const p0 = read(); if (p0) { G.profile = G.profile || {}; G.profile.name = p0.name; G.profile.country = p0.country; }
+  paintBtn();
+  if (G.net && G.net.on) sync();
+  G.profileUI = { open, close, valid, sync, get needFix() { return needFix; } };
+})();
+
+}catch(e){(window.G&&G.showErr?G.showErr:console.error)("module 20_profile.js: "+(e&&e.message||e));}})();
+</script>
+<script>/* 30_board.js */
+(function(){try{
+/* Heavy Gold — boards (30_board.js): the round submit, the weekly / all-time boards, the top-3 podium (src/gold/GOLD.md).
+   - On `end`, online and with a profile: hg_round_submit(token, r), r = {god, banked, rank, heroes, robs, lost, minted, day}.
+     #endExtra shows "This week: total X · best Y · #rank" (or the server's error, or "Saved only on this phone"), then this
+     week's top 3 (flag + name + total, #1 bigger, the player's own row marked) and a Leaderboard button.
+   - #titleExtra: a podium, "LAST WEEK'S CHAMPIONS" from hg_board(token, 'last'); when last week has no rounds,
+     "THIS WEEK SO FAR" from 'week'; nothing when neither has rounds or the game is offline. A single row in a short landscape window.
+   - The board screen (#titleLinks and #endExtra buttons): THIS WEEK / ALL TIME × PLAYERS / COUNTRIES, a totals line,
+     the player's own row highlighted, "You: #N" pinned when he is outside the top 20, one CLOSE.
+   - Only server data is shown (never a Telegram id: only name, country, total, best, rounds, players, gold are read).
+   - G.board = { open(), close(), load(scope, fresh), top3(scope) }: top3('title' | 'end' | 'last' | 'week') returns the rows
+     last rendered there ({rank, name, country, flag, total, mine}), [] when nothing was rendered. */
+(function () {
+  const num = v => { const n = Number(v); return isFinite(n) ? Math.round(n) : 0; };
+  const fmt = v => num(v).toLocaleString('en-US');
+  const code = v => { const s = String(v == null ? '' : v).toUpperCase(); return /^[A-Z]{2}$/.test(s) ? s : ''; };
+  const flag = c => (typeof G.flag === 'function' ? G.flag(c) : '') || '';
+  const cname = c => (typeof G.countryName === 'function' && G.countryName(c)) || c || '—';
+  const arr = v => Array.isArray(v) ? v : [];
+  const pl = (n, one, many) => fmt(n) + ' ' + (num(n) === 1 ? one : many);
+  const online = () => !!(G.net && G.net.on);
+  const hasTG = () => { try { return !!(G.TG && typeof G.TG.initData === 'string' && G.TG.initData.length); } catch (e) { return false; } };
+  const hasProfile = () => !!(G.profile && G.profile.name && G.profile.country);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+  /* ---- styles ---- */
+  const css = document.createElement('style');
+  css.textContent = [
+    '.hgScr{background:var(--bg,#070c16);z-index:20}',
+    '.hgB{flex:1 1 auto;min-height:0;width:min(100%,640px);display:flex;flex-direction:column;gap:8px}',
+    '.hgBtop{display:flex;align-items:baseline;justify-content:space-between;gap:4px 12px;flex-wrap:wrap}',
+    '.hgBtop h2{margin:0;font:900 20px/1.2 Georgia,serif;letter-spacing:.08em;color:var(--gold,#e8b84a)}',
+    '.hgTot{font:13px/1.3 Georgia,serif;color:var(--muted,#8d9bb0)}',
+    '.hgTabs{display:flex;gap:8px;flex-wrap:wrap}.hgTabs[hidden]{display:none}',
+    '.hgSeg{display:flex;flex:1 1 220px;border:2px solid rgba(255,255,255,.18);border-radius:12px;overflow:hidden}',
+    '.hgSeg button{flex:1 1 0;min-height:44px;border:0;background:transparent;color:var(--ink,#f3e7c4);font:700 14px Georgia,serif;letter-spacing:.06em;cursor:pointer;padding:0 6px}',
+    '.hgSeg button+button{border-left:2px solid rgba(255,255,255,.12)}.hgSeg button.on{background:rgba(232,184,74,.22);color:var(--gold,#e8b84a)}',
+    '.hgBody{flex:1 1 auto;min-height:64px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;border-radius:12px;background:rgba(255,255,255,.03)}',
+    '.hgRow{display:grid;grid-template-columns:32px 26px minmax(0,1fr) 64px 52px 54px;align-items:center;gap:4px;padding:6px 8px;font:14px/1.25 Georgia,serif;border-bottom:1px solid rgba(255,255,255,.06)}',
+    '.hgRow.hd{position:sticky;top:0;background:#0d1420;color:var(--muted,#8d9bb0);font-size:12px;letter-spacing:.04em;z-index:1}',
+    '.hgRow .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hgRow .v{text-align:right}.hgRow .k{color:var(--muted,#8d9bb0)}.hgRow .fl{font-size:18px;line-height:1}',
+    '.hgRow.me{background:rgba(232,184,74,.18);color:var(--gold,#e8b84a);font-weight:700}.hgRow.me .k{color:var(--gold,#e8b84a)}',
+    '.hgPin{display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--gold,#e8b84a);border-radius:12px;font:700 14px/1.25 Georgia,serif;color:var(--gold,#e8b84a);background:rgba(232,184,74,.1);flex-wrap:wrap}.hgPin[hidden]{display:none}',
+    '.hgPin .n{flex:1 1 90px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink,#f3e7c4)}.hgPin .s{font-weight:400;color:#cfd6e2}',
+    '.hgNote{padding:18px 12px;text-align:center;font:15px/1.4 Georgia,serif;color:#cfd6e2;display:flex;flex-direction:column;align-items:center;gap:10px}',
+    '.hgB>.pri{align-self:center;flex:none}',
+    /* the podium */
+    '.hgPod{width:100%;display:flex;flex-direction:column;align-items:center;gap:2px}.hgPod[hidden]{display:none}',
+    '.hgPodH{font:700 12px/1.2 Georgia,serif;letter-spacing:.14em;color:var(--muted,#8d9bb0);text-align:center}',
+    '.hgPodRow{display:flex;justify-content:center;align-items:flex-end;gap:8px;width:100%}',
+    '.hgPl{flex:1 1 0;min-width:0;max-width:190px;display:flex;flex-direction:column;align-items:center;text-align:center}',
+    '.hgPl.p1{flex-grow:1.5;max-width:240px}',
+    '.hgPl .rk{font:900 12px/1.2 Georgia,serif;opacity:.85}',
+    '.hgPl .nm{display:flex;align-items:center;justify-content:center;gap:5px;max-width:100%;white-space:nowrap;font:800 16px/1.2 Georgia,serif}',
+    '.hgPl .nm .n{overflow:hidden;text-overflow:ellipsis;min-width:0}.hgPl .nm .f{flex:none}',
+    '.hgPl .g{font:13px/1.2 Georgia,serif;color:#cfd6e2}.hgPl .g b{color:var(--ink,#f3e7c4)}',
+    '.hgPl .bar{width:72%;border-radius:6px 6px 0 0;margin-top:3px}',
+    '.hgPl.p1 .nm{font-size:26px;color:#e8b84a}.hgPl.p1.long .nm{font-size:21px}.hgPl.p1 .rk{color:#e8b84a}.hgPl.p1 .bar{height:16px;background:linear-gradient(180deg,#e8b84a,#7a5618)}',
+    '.hgPl.p2 .nm,.hgPl.p2 .rk{color:#c9d2dc}.hgPl.p2 .bar{height:10px;background:linear-gradient(180deg,#c9d2dc,#58606a)}',
+    '.hgPl.p3 .nm,.hgPl.p3 .rk{color:#d08a4e}.hgPl.p3 .bar{height:6px;background:linear-gradient(180deg,#d08a4e,#6a3e1c)}',
+    '.hgPl.me .nm .n{text-decoration:underline;text-underline-offset:3px}',
+    /* the end screen */
+    '.hgEnd{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}',
+    '.hgEndT{display:flex;flex-direction:column;align-items:center;gap:6px;max-width:100%;min-width:0}',
+    '.hgWeek{text-align:center;font:700 15px/1.35 Georgia,serif;color:var(--ink,#f3e7c4)}.hgWeek.soft{font-weight:400;color:#cfd6e2}',
+    '.hgTop{display:flex;flex-direction:column;align-items:center;gap:1px;max-width:100%}.hgTop[hidden]{display:none}',
+    '.hgTopH{font:700 11px/1.2 Georgia,serif;letter-spacing:.14em;color:var(--muted,#8d9bb0)}',
+    '.hgT{display:flex;align-items:baseline;gap:6px;max-width:100%;font:14px/1.3 Georgia,serif;color:#cfd6e2;white-space:nowrap}',
+    '.hgT .n{overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:11em;color:var(--ink,#f3e7c4)}.hgT .r{font-weight:900}.hgT .g{color:var(--gold,#e8b84a)}',
+    '.hgT.t1{font-size:17px}.hgT.t1 .r{color:#e8b84a}.hgT.t2 .r{color:#c9d2dc}.hgT.t3 .r{color:#d08a4e}',
+    '.hgT.me .n{color:var(--gold,#e8b84a);font-weight:700}.hgT .you{font:700 11px Georgia,serif;color:#1c1207;background:var(--gold,#e8b84a);border-radius:6px;padding:0 5px;align-self:center}',
+    '#hgEndBoard{width:min(100%,360px)}',
+    /* a short landscape window: the end box is one band (the two lines left, the button right); the board rows tighter */
+    '@media (orientation:landscape) and (max-height:540px){.hgBtop h2{font-size:18px}.hgB{gap:6px}.hgRow{padding:4px 8px}',
+    '.hgEnd{flex-direction:row;justify-content:center;gap:12px}.hgEndT{gap:2px;align-items:flex-start;flex:0 1 auto}.hgWeek{font-size:14px;text-align:left}',
+    '.hgTop{flex-direction:row;flex-wrap:wrap;justify-content:flex-start;gap:0 12px}.hgTopH{display:none}.hgT,.hgT.t1{font-size:13px}.hgT.t1 .n,.hgT.t1 .g{font-size:15px}.hgT .n{max-width:8em}',
+    '#hgEndBoard{width:auto;flex:none;padding:0 18px}}',
+    /* the podium in a short landscape window: one thin row, the heading inline */
+    '@media (orientation:landscape) and (max-height:500px){.hgPod{flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:0 14px;width:100%;max-width:100%}',
+    '.hgPodH{font-size:11px}.hgPodRow{width:auto;max-width:100%;flex-wrap:wrap;align-items:baseline;gap:4px 14px}',
+    '.hgPl,.hgPl.p1{flex:0 1 auto;flex-direction:row;align-items:baseline;gap:5px;max-width:200px}.hgPl .rk{font-size:11px}',
+    '.hgPl .bar{display:none}.hgPl .nm{font-size:13px;gap:4px}.hgPl.p1 .nm,.hgPl.p1.long .nm{font-size:17px}.hgPl .g{font-size:11px}.hgPl .nm .n{max-width:8.5em}}'
+  ].join('\n');
+  document.head.appendChild(css);
+
+  /* ---- data ---- */
+  const cache = {}, inflight = {};
+  function load(scope, fresh) {
+    const c = cache[scope];
+    if (!fresh && c && Date.now() - c.at < 30000) return Promise.resolve(c.d);
+    if (inflight[scope]) return inflight[scope];
+    if (!online()) return Promise.resolve(null);
+    inflight[scope] = G.net.rpc('hg_board', { token: null, scope }).then(d => {
+      if (d && typeof d === 'object' && !Array.isArray(d) && !d.error) { cache[scope] = { at: Date.now(), d }; return d; }
+      return null;
+    }).catch(() => null).then(d => { delete inflight[scope]; return d; });
+    return inflight[scope];
+  }
+  const players = d => arr(d && d.players).map((p, i) => ({ rank: i + 1, name: String((p && p.name) || ''), country: code(p && p.country), total: num(p && p.total), best: num(p && p.best), rounds: num(p && p.rounds), mine: !!(p && p.mine) }));
+  const countries = d => arr(d && d.countries).map(c => ({ country: code(c && c.country), players: num(c && c.players), rounds: num(c && c.rounds), gold: num(c && c.gold) }))
+    .sort((a, b) => b.gold - a.gold || b.players - a.players || b.rounds - a.rounds);
+  const shown = { title: [], end: [], last: [], week: [] };
+  const top3rows = d => players(d).slice(0, 3).map(p => ({ rank: p.rank, name: p.name, country: p.country, flag: flag(p.country), total: p.total, mine: p.mine }));
+
+  /* ---- the title podium ---- */
+  /* the podium sits first in #titleExtra while it has rows, and is taken out otherwise (an empty #titleExtra stays hidden) */
+  const pod = el('div', 'hgPod'); pod.id = 'hgPod'; pod.hidden = true;
+  const tEx = G.$('titleExtra');
+  const podHide = () => { pod.hidden = true; pod.textContent = ''; if (pod.parentNode) pod.parentNode.removeChild(pod); shown.title = []; shown.last = []; };
+  let podSeq = 0;
+  async function podium() {
+    const my = ++podSeq;
+    if (!online()) { podHide(); return; }
+    let scope = 'last', d = await load('last'), rows = top3rows(d);
+    if (!rows.length) { scope = 'week'; d = await load('week'); rows = top3rows(d); }
+    if (my !== podSeq) return;
+    if (!rows.length || !online()) { podHide(); return; }
+    if (tEx && tEx.firstChild !== pod) tEx.insertBefore(pod, tEx.firstChild);
+    pod.textContent = '';
+    pod.dataset.scope = scope;
+    pod.appendChild(el('div', 'hgPodH', scope === 'last' ? "LAST WEEK'S CHAMPIONS" : 'THIS WEEK SO FAR'));
+    const row = el('div', 'hgPodRow');
+    for (const i of [1, 0, 2]) {         // #2 · #1 · #3
+      const p = rows[i]; if (!p) continue;
+      const b = el('div', 'hgPl p' + p.rank + (p.mine ? ' me' : '') + ([...p.name].length > 9 ? ' long' : '')); b.dataset.rank = p.rank;
+      b.appendChild(el('div', 'rk', '#' + p.rank));
+      const nm = el('div', 'nm'); if (p.flag) nm.appendChild(el('span', 'f', p.flag)); nm.appendChild(el('span', 'n', p.name)); b.appendChild(nm);
+      const g = el('div', 'g'); g.appendChild(el('b', null, fmt(p.total))); g.append(' gold'); b.appendChild(g);
+      b.appendChild(el('div', 'bar'));
+      row.appendChild(b);
+    }
+    pod.appendChild(row); pod.hidden = false;
+    shown.title = rows; shown[scope] = rows; if (scope === 'week') shown.last = [];
+  }
+
+  /* ---- the end screen ---- */
+  const endBox = el('div', 'hgEnd'); endBox.id = 'hgEnd';
+  const weekEl = el('div', 'hgWeek'); weekEl.id = 'hgWeek';
+  const topEl = el('div', 'hgTop'); topEl.id = 'hgTop'; topEl.hidden = true;
+  const endBtn = el('button', 'sec', 'Leaderboard'); endBtn.id = 'hgEndBoard'; endBtn.type = 'button';
+  const endText = el('div', 'hgEndT'); endText.append(weekEl, topEl);
+  endBox.append(endText, endBtn);
+  const eEx = G.$('endExtra'); if (eEx) eEx.appendChild(endBox);
+  const ERR = { too_fast: 'Not counted: too soon after your last round', bad_round: 'The server did not accept this round',
+    no_profile: 'Pick a name and a country to join the board' };
+  const line = (t, soft) => { weekEl.textContent = t; weekEl.classList.toggle('soft', !!soft); };
+  function endTop(d) {
+    const rows = top3rows(d); topEl.textContent = '';
+    if (!rows.length) { topEl.hidden = true; shown.end = []; return; }
+    topEl.appendChild(el('div', 'hgTopH', "THIS WEEK'S TOP 3"));
+    for (const p of rows) {
+      const r = el('div', 'hgT t' + p.rank + (p.mine ? ' me' : '')); r.dataset.rank = p.rank;
+      r.appendChild(el('span', 'r', '#' + p.rank));
+      if (p.flag) r.appendChild(el('span', 'f', p.flag));
+      r.appendChild(el('span', 'n', p.name));
+      r.appendChild(el('span', 'g', fmt(p.total)));
+      if (p.mine) r.appendChild(el('span', 'you', 'YOU'));
+      topEl.appendChild(r);
+    }
+    topEl.hidden = false; shown.end = rows; shown.week = rows;
+  }
+  let endSeq = 0;
+  G.on('start', () => { endSeq++; });
+  G.on('end', (S, res) => { submit(res).catch(() => line('Saved only on this phone', true)); });
+  async function submit(res) {
+    const my = ++endSeq; topEl.hidden = true; topEl.textContent = ''; shown.end = [];
+    if (!res || typeof res !== 'object') { line('Saved only on this phone', true); return; }
+    const r = { god: String(res.god || ''), banked: num(res.bank), rank: num(res.rank), heroes: num(res.of), robs: num(res.robs), lost: num(res.lost), minted: num(res.minted),
+      day: G.dayGod && G.dayGod.key ? String(G.dayGod.key) : '' };
+    if (!hasProfile() || !G.net) { line('Saved only on this phone', true); return; }
+    line('Saving to the weekly board…', true);
+    let on = online(); if (!on && hasTG()) { try { on = await G.net.login(); } catch (e) { on = false; } }
+    if (my !== endSeq) return;
+    if (!on) { line('Saved only on this phone', true); return; }
+    const x = await G.net.rpc('hg_round_submit', { token: null, r });
+    if (my !== endSeq) return;
+    if (x && x.ok && x.week) { const w = x.week; line('This week: total ' + fmt(w.total) + ' · best ' + fmt(w.best) + ' · #' + fmt(w.rank)); delete cache.week; delete cache.all; }
+    else if (x && x.error) line(ERR[x.error] || 'The server did not save this round', true);
+    else line('No answer from the server · saved only on this phone', true);
+    const d = await load('week', true);
+    if (my !== endSeq) return;
+    endTop(d);
+    if (scr.classList.contains('on')) render();
+  }
+
+  /* ---- the board screen ---- */
+  const scr = el('div', 'scr hgScr'); scr.id = 'hgBoard';
+  const box = el('div', 'hgB');
+  const top = el('div', 'hgBtop'); const h2 = el('h2', null, 'LEADERBOARD'); const tot = el('div', 'hgTot'); tot.id = 'hgTot'; top.append(h2, tot);
+  const tabs = el('div', 'hgTabs'); tabs.id = 'hgTabs';
+  const seg = (id, items) => { const s = el('div', 'hgSeg'); s.id = id; for (const [k, t] of items) { const b = el('button', null, t); b.type = 'button'; b.dataset.k = k; s.appendChild(b); } return s; };
+  const segScope = seg('hgScope', [['week', 'THIS WEEK'], ['all', 'ALL TIME']]), segKind = seg('hgKind', [['players', 'PLAYERS'], ['countries', 'COUNTRIES']]);
+  tabs.append(segScope, segKind);
+  const body = el('div', 'hgBody'); body.id = 'hgBody';
+  const pin = el('div', 'hgPin'); pin.id = 'hgPin'; pin.hidden = true;
+  const closeB = el('button', 'pri', 'CLOSE'); closeB.id = 'hgClose'; closeB.type = 'button';
+  box.append(top, tabs, body, pin, closeB); scr.appendChild(box); document.body.appendChild(scr);
+  let scope = 'week', kind = 'players', state = {};   // state[scope] = 'loading' | 'error'
+  segScope.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; scope = b.dataset.k; render(); fetchScope(); });
+  segKind.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; kind = b.dataset.k; render(); });
+  closeB.addEventListener('click', () => close());
+
+  function cell(cls, text) { return el('span', cls, text); }
+  function note(text, retry) {
+    const n = el('div', 'hgNote'); n.appendChild(el('div', null, text));
+    if (retry) { const b = el('button', 'sec', 'Try again'); b.type = 'button'; b.id = 'hgRetry'; b.addEventListener('click', () => { delete state[scope]; open(true); }); n.appendChild(b); }
+    body.appendChild(n);
+  }
+  function render() {
+    for (const b of segScope.children) b.classList.toggle('on', b.dataset.k === scope);
+    for (const b of segKind.children) b.classList.toggle('on', b.dataset.k === kind);
+    body.textContent = ''; pin.hidden = true; pin.textContent = ''; tot.textContent = '';
+    if (!online()) {
+      tabs.hidden = true;
+      if (!hasTG()) note('Open HOLDOR in Telegram to see the boards');
+      else if (G.net && G.net.pending) note('Connecting…');
+      else note('Could not reach the server.', true);
+      return;
+    }
+    tabs.hidden = false;
+    const c = cache[scope];
+    if (!c) { if (state[scope] === 'error') note('Could not load the board.', true); else note('Loading…'); return; }
+    const d = c.d, t = d.totals || {};
+    tot.textContent = pl(t.players, 'player', 'players') + ' · ' + pl(t.rounds, 'round', 'rounds') + (scope === 'week' ? ' this week' : ' in all');
+    if (kind === 'players') {
+      const ps = players(d);
+      if (!ps.length) { note(scope === 'week' ? 'No rounds yet this week. Be the first.' : 'No rounds yet. Be the first.'); }
+      else {
+        const hd = el('div', 'hgRow hd'); hd.append(cell('k', '#'), cell(), cell('n', 'Name'), cell('v', 'Total'), cell('v', 'Best'), cell('v', 'Rounds')); body.appendChild(hd);
+        for (const p of ps) {
+          const r = el('div', 'hgRow' + (p.mine ? ' me' : '')); r.dataset.rank = p.rank;
+          r.append(cell('k', String(p.rank)), cell('fl', flag(p.country)), cell('n', p.name), cell('v', fmt(p.total)), cell('v', fmt(p.best)), cell('v', fmt(p.rounds)));
+          body.appendChild(r);
+        }
+      }
+      const me = d.me && typeof d.me === 'object' ? d.me : null, inList = ps.some(p => p.mine);
+      if (me && num(me.rank) > 0 && (!inList || num(me.rank) > 20)) {
+        pin.appendChild(el('b', null, 'You: #' + fmt(me.rank)));
+        pin.appendChild(el('span', 'n', (hasProfile() ? flag(G.profile.country) + ' ' + G.profile.name : '')));
+        pin.appendChild(el('span', 's', 'total ' + fmt(me.total) + ' · best ' + fmt(me.best) + ' · ' + pl(me.rounds, 'round', 'rounds')));
+        pin.hidden = false;
+      } else if (!me && !inList && hasProfile()) {
+        pin.appendChild(el('span', 's', scope === 'week' ? 'You: no rounds this week yet' : 'You: no rounds yet')); pin.hidden = false;
+      }
+    } else {
+      const cs = countries(d);
+      if (!cs.length) { note('No countries on the board yet.'); return; }
+      const hd = el('div', 'hgRow hd'); hd.append(cell('k', '#'), cell(), cell('n', 'Country'), cell('v', 'Players'), cell('v', 'Rounds'), cell('v', 'Gold')); body.appendChild(hd);
+      const mine = hasProfile() ? G.profile.country : '';
+      cs.forEach((c, i) => {
+        const r = el('div', 'hgRow' + (c.country && c.country === mine ? ' me' : '')); r.dataset.cc = c.country;
+        r.append(cell('k', String(i + 1)), cell('fl', flag(c.country)), cell('n', cname(c.country)), cell('v', fmt(c.players)), cell('v', fmt(c.rounds)), cell('v', fmt(c.gold)));
+        body.appendChild(r);
+      });
+    }
+  }
+  async function fetchScope(fresh) {
+    if (!online()) return;
+    const sc = scope; if (!cache[sc] || fresh) state[sc] = 'loading';
+    const d = await load(sc, !!fresh);
+    state[sc] = d ? 'ok' : 'error';
+    if (scr.classList.contains('on') && scope === sc) render();
+  }
+  async function open(fresh) {
+    fresh = fresh === true;
+    scr.classList.add('on'); body.scrollTop = 0; render();
+    if (!online() && hasTG() && G.net) { const p = G.net.login(true); render(); await p; render(); }   // "Connecting…" while the login runs
+    fetchScope(fresh);
+  }
+  function close() { scr.classList.remove('on'); }
+
+  const tBtn = el('button', 'sec', 'Leaderboard'); tBtn.id = 'hgTitleBoard'; tBtn.type = 'button';
+  const links = G.$('titleLinks'); if (links) links.appendChild(tBtn);
+  tBtn.addEventListener('click', open); endBtn.addEventListener('click', open);
+
+  G.on('net', on => { podium(); if (scr.classList.contains('on')) { render(); if (on) fetchScope(); } });
+  G.on('title', () => podium());
+  G.on('profile', () => { if (scr.classList.contains('on')) render(); });
+  G.board = { open, close, load, render, podium, top3: s => (shown[s || 'title'] || []).map(r => Object.assign({}, r)) };
+  if (online()) podium();
+})();
+
+}catch(e){(window.G&&G.showErr?G.showErr:console.error)("module 30_board.js: "+(e&&e.message||e));}})();
+</script>
+<script>/* 40_daygod.js */
+(function(){try{
+/* 40_daygod.js — the day god. Every UTC day one god's rule holds in every arena, the same for everyone (the weekly boards stay fair).
+   The week's days carry the gods' names, so each day's rule belongs to that day's god:
+     Sun  Sol     Sun day        every hero 12 % faster                  (mod speed)
+     Mon  Máni    Moon night     dark beyond ~340 units around you       (draw: an overlay with a soft hole; coins glimmer, rivals hidden)
+     Tue  Tyr     Tyr's law      a robbery takes 50 % instead of 35 %   (mod rob)
+     Wed  Odin    Odin's ravens  skill cooldowns 30 % shorter            (mod cd)
+     Thu  Thor    Thor's day     every 30 s lightning hits the richest carrier (>= 10, not in a vault): 25 % spills as coins
+     Fri  Freya   Freya's gold   coins worth 50 % more                   (mod coinValue; the start coins too, minted adjusted)
+     Sat  Saturn  Saturn's hour  banking takes 0.75 s instead of 1.5     (mod bankT)
+   API: G.dayGod = { key, name, rule, day, desc, ... } (the day in force: today's UTC day, or the forced one),
+        G.setDayGod(key | 'none' | null) forces a day ('none' = no rule, null = back to the real UTC day); it takes effect at the next G.start.
+        G.dayGod.active = the key in force in the running (or last) round; G.dayGod.visible(p) = false for a hero hidden by the Moon night.
+        G.on('lightning', (p, loss) => …) after each strike (an event of this module, sent with G.emit).
+   Slots: a banner in #titleExtra, a chip in #hudExtra (under the carry/bank block), a line in #endExtra. Gold is conserved. */
+(() => {
+  const G = window.G; if (!G || !G.on || !G.addMod) return;
+  const DAYS = [   // index = UTC weekday, 0 = Sunday
+    { key: 'sol',    name: 'Sol',    rule: 'Sun day',       day: 'Sunday',    col: '#ffcf5a', desc: 'every hero runs 12% faster' },
+    { key: 'mani',   name: 'Máni',   rule: 'Moon night',    day: 'Monday',    col: '#a9c4ff', desc: 'darkness past your light; coins still glimmer' },
+    { key: 'tyr',    name: 'Tyr',    rule: "Tyr's law",     day: 'Tuesday',   col: '#ff8a5a', desc: 'a robbery takes 50% instead of 35%' },
+    { key: 'odin',   name: 'Odin',   rule: "Odin's ravens", day: 'Wednesday', col: '#8fd3c8', desc: 'skill cooldowns are 30% shorter' },
+    { key: 'thor',   name: 'Thor',   rule: "Thor's day",    day: 'Thursday',  col: '#7b93ff', desc: 'lightning strikes the richest every 30 s' },
+    { key: 'freya',  name: 'Freya',  rule: "Freya's gold",  day: 'Friday',    col: '#ffa8c8', desc: 'every coin is worth 50% more' },
+    { key: 'saturn', name: 'Saturn', rule: "Saturn's hour", day: 'Saturday',  col: '#d9c38a', desc: 'banking takes 0.75 s instead of 1.5 s' },
+  ];
+  DAYS.forEach((d, i) => { d.dow = i; });
+  const NONE = { key: 'none', name: '', rule: '', day: '', col: '#8d9bb0', desc: '', dow: -1 };
+  const BY = {}; for (const d of DAYS) BY[d.key] = d; BY.none = NONE;
+  const LIGHT = 340, ROB = 0.5, CD = 0.7, BANK = 0.5, SPEED = 1.12, COIN = 1.5;
+  const STRIKE_T = 30, STRIKE_MIN = 10, STRIKE_SHARE = 0.25, BOLT_LIFE = 0.6, DARK = '4,7,18';
+  const TAU = Math.PI * 2, clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+  const $ = id => document.getElementById(id);
+
+  const today = () => DAYS[new Date().getUTCDay()];
+  const msLeft = () => { const n = Date.now(); return (Math.floor(n / 864e5) + 1) * 864e5 - n; };
+  const left = () => { const m = Math.max(1, Math.ceil(msLeft() / 6e4)), h = Math.floor(m / 60); return (h ? h + ' h ' : '') + (m % 60) + ' m'; };
+  const nextOf = d => d.dow < 0 ? null : DAYS[(d.dow + 1) % 7];
+
+  let forced = null, sel = today(), act = null, nextStrike = STRIKE_T, bolts = [];
+  const running = () => !!(G.S && !G.S.over);
+  const is = k => !!act && act.key === k;
+
+  const DG = G.dayGod = { LIGHT, all: DAYS.map(d => Object.assign({}, d)), active: null, forced: false, strikes: [], drawn: 0, flashes: 0, view: null,
+    visible: p => { const S = G.S; if (!is('mani') || !S || !p || p === S.me) return true; return G.dist(S.me, p) <= LIGHT; },
+    timeLeft: msLeft };
+  const sync = d => { Object.assign(DG, { key: d.key, name: d.name, rule: d.rule, day: d.day, desc: d.desc, col: d.col, dow: d.dow, forced: !!forced });
+    const n = nextOf(d); DG.next = n ? { key: n.key, name: n.name, rule: n.rule, day: n.day } : null; };
+  sync(sel);
+
+  /* forcing a day (tests, the integrator): 'none' turns the module off, null goes back to the real UTC day; the next G.start applies it */
+  G.setDayGod = key => {
+    if (key == null || key === '' || key === 'today' || key === 'auto') forced = null;
+    else if (BY[key]) forced = key; else return false;
+    sel = forced ? BY[forced] : today(); sync(sel); banner(); return true;
+  };
+
+  /* ---------- the rules ---------- */
+  G.addMod('rob', (p, v) => is('tyr') ? (Math.abs(v - G.ROB) < 1e-9 ? ROB : v * ROB / G.ROB) : v);
+  G.addMod('cd', (p, v) => is('odin') ? v * CD : v);
+  G.addMod('bankT', (p, v) => is('saturn') ? v * BANK : v);
+  G.addMod('speed', (p, v) => is('sol') ? v * SPEED : v);
+  G.addMod('coinValue', (p, v) => is('freya') ? Math.max(1, Math.round(v * COIN)) : v);
+
+  G.on('start', S => {
+    if (!forced) sel = today();
+    act = sel; sync(act); DG.active = act.key; DG.strikes = []; bolts = []; nextStrike = STRIKE_T;
+    if (act.key === 'freya') for (const c of S.coins) { const v = Math.max(1, Math.round(c.v * COIN)); S.minted += v - c.v; c.v = v; }   // the start coins too; minted keeps the sum
+    chip(true);
+  });
+
+  /* Thor's day: a strike every 30 s on the hero carrying the most gold, if he carries >= 10 and stands outside the vaults.
+     25 % of his carry spills as coins around him, as the core spills (no gold leaves the round). */
+  const addCoin = (S, x, y, v) => { S.coins.push({ x: clamp(x, 12, G.WORLD - 12), y: clamp(y, 12, G.WORLD - 12), v }); };
+  const spill = (S, x, y, amount, r) => { if (amount <= 0) return; const n = Math.min(40, amount); let rest = amount;
+    for (let i = 0; i < n; i++) { const v = i === n - 1 ? rest : Math.max(1, Math.floor(amount / n)); rest -= v; if (v <= 0) continue; const a = G.rnd() * TAU, d = r * (0.7 + G.rnd() * 0.8); addCoin(S, x + Math.cos(a) * d, y + Math.sin(a) * d, v); } };
+  const label = p => p === G.S.me ? 'you' : p.name + (p.bot ? ' (bot)' : '');
+  function strike(S) {
+    let q = null; for (const p of S.ps) if (!q || p.carry > q.carry) q = p;
+    const rec = { t: +S.t.toFixed(3), id: q ? q.id : -1, name: q ? q.name : '', before: q ? q.carry : 0, loss: 0, me: q === S.me, hit: false };
+    DG.strikes.push(rec);
+    if (!q || q.carry < STRIKE_MIN) { rec.why = 'poor'; return; }
+    if (S.vaults.some(v => G.dist(v, q) < v.r)) { rec.why = 'vault'; G.fx({ kind: 'text', x: q.x, y: q.y - 40, s: 'spared', c: '#9fc4ff', life: 1 }); G.toast('Lightning spared ' + label(q) + ' in the vault'); return; }
+    const loss = Math.ceil(q.carry * STRIKE_SHARE); q.carry -= loss; q.lost += loss; q.bankT = 0;
+    spill(S, q.x, q.y, loss, G.radius(q) + 26);
+    rec.loss = loss; rec.hit = true;
+    bolts.push({ x: q.x, y: q.y, t: S.t, seed: (Math.floor(G.rnd() * 1e9) | 1) });
+    G.fx({ kind: 'ring', x: q.x, y: q.y, r: 150, c: '#9fc4ff', life: 0.7 }); G.fx({ kind: 'text', x: q.x, y: q.y - 36, s: '-' + loss, c: '#9fc4ff', life: 1.1 });
+    if (q === S.me) { G.toast("Thor's lightning struck you: " + loss + ' gold spilled', 2400); G.haptic('heavy'); }
+    else G.toast('Lightning struck ' + label(q) + ': ' + loss + ' gold spilled', 2000);
+    G.emit('lightning', q, loss);
+  }
+  G.on('step', () => { const S = G.S; if (!S || !is('thor')) return;
+    while (S.t >= nextStrike && nextStrike < G.ROUND) { nextStrike += STRIKE_T; strike(S); } });
+
+  /* ---------- drawing ---------- */
+  G.on('draw', (ctx, k, ox, oy) => {
+    const S = G.S; if (!S || !act) return;
+    DG.view = { k, ox, oy };
+    if (is('mani')) moon(ctx, S, k, ox, oy);
+    if (bolts.length) drawBolts(ctx, S, k, ox, oy);
+  });
+
+  /* Moon night: an overlay, opaque beyond LIGHT units around the hero, with a soft hole; rivals outside the light are covered
+     (their name labels reach into the soft edge, so they get a dark patch too); coins and vaults keep a faint glow */
+  function moon(ctx, S, k, ox, oy) {
+    const me = S.me, W = G.W, H = G.H, L = LIGHT * k, mx = me.x * k + ox, my = me.y * k + oy;
+    ctx.save();
+    const g = ctx.createRadialGradient(mx, my, L * 0.55, mx, my, L);
+    g.addColorStop(0, 'rgba(' + DARK + ',0)'); g.addColorStop(0.45, 'rgba(' + DARK + ',.5)'); g.addColorStop(0.8, 'rgba(' + DARK + ',.9)'); g.addColorStop(1, 'rgba(' + DARK + ',1)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    const hid = S.ps.filter(p => p !== me).concat(S.decoys || []);
+    for (const p of hid) { const d = G.dist(me, p); if (d <= LIGHT || d > LIGHT + 160) continue;
+      // a soft dark blob over the body, the gold glow and the name: opaque over the box, fading out past it
+      const r = G.radius(p) * k, gr = r + Math.min(40, 6 + Math.sqrt(Math.max(0, p.carry || 0)) * 1.6) * k, hw = Math.max(gr, 64) + 6, px = p.x * k + ox, py = p.y * k + oy;
+      const top = py - r - 36, bot = py + gr + 6, cy = (top + bot) / 2, ex = hw * 1.45, ey = (bot - top) / 2 * 1.45;
+      if (px < -ex || px > W + ex || cy < -ey || cy > H + ey) continue;
+      ctx.save(); ctx.translate(px, cy); ctx.scale(ex, ey);
+      const pg = ctx.createRadialGradient(0, 0, 0, 0, 0, 1); pg.addColorStop(0, 'rgba(' + DARK + ',1)'); pg.addColorStop(0.8, 'rgba(' + DARK + ',1)'); pg.addColorStop(1, 'rgba(' + DARK + ',0)');
+      ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(0, 0, 1, 0, TAU); ctx.fill(); ctx.restore(); }
+    const fade = d => clamp((d - LIGHT * 0.55) / (LIGHT * 0.45), 0, 1);
+    for (const v of S.vaults) for (const nx of [false, true]) { const x = nx ? v.nx : v.x, y = nx ? v.ny : v.y; if (x == null) continue;
+      const a = fade(Math.hypot(x - me.x, y - me.y)); if (a <= 0) continue; const sx = x * k + ox, sy = y * k + oy, r = v.r * k;
+      if (sx < -r || sx > W + r || sy < -r || sy > H + r) continue;
+      ctx.strokeStyle = 'rgba(232,184,74,' + (nx ? 0.25 : 0.42) * a + ')'; ctx.lineWidth = 2; ctx.setLineDash(nx ? [4, 10] : [10, 8]); ctx.beginPath(); ctx.arc(sx, sy, r, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+      if (!nx) { ctx.fillStyle = 'rgba(243,231,196,' + 0.4 * a + ')'; ctx.font = '900 ' + Math.round(16 * k + 4) + 'px Georgia'; ctx.textAlign = 'center'; ctx.fillText('VAULT', sx, sy + 6); } }
+    for (const c of S.coins) { const a = fade(Math.hypot(c.x - me.x, c.y - me.y)); if (a <= 0) continue; const sx = c.x * k + ox, sy = c.y * k + oy; if (sx < -30 || sx > W + 30 || sy < -30 || sy > H + 30) continue;
+      const r = (c.v >= 8 ? 8 : c.v >= 4 ? 6.5 : 5) * k + 1, tw = a * (0.8 + 0.2 * Math.sin(S.t * 3 + c.x * 0.013 + c.y * 0.007));
+      const cg = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * 3); cg.addColorStop(0, 'rgba(255,214,110,' + 0.6 * tw + ')'); cg.addColorStop(0.35, 'rgba(255,200,90,' + 0.22 * tw + ')'); cg.addColorStop(1, 'rgba(255,200,90,0)');
+      ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(sx, sy, r * 3, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(255,228,150,' + 0.75 * tw + ')'; ctx.beginPath(); ctx.arc(sx, sy, r * 0.45, 0, TAU); ctx.fill(); }
+    ctx.restore(); DG.drawn++;
+  }
+
+  /* Thor's day: a blue flash over the screen and a jagged bolt from the sky onto the struck hero */
+  function drawBolts(ctx, S, k, ox, oy) {
+    const W = G.W, H = G.H; ctx.save();
+    for (const b of bolts) { const age = S.t - b.t; if (age < 0 || age > BOLT_LIFE) continue; const f = 1 - age / BOLT_LIFE, x = b.x * k + ox, y = b.y * k + oy;
+      if (age < 0.3) { ctx.fillStyle = 'rgba(150,185,255,' + (0.34 * (1 - age / 0.3)) + ')'; ctx.fillRect(0, 0, W, H); DG.flashes++; }
+      if (x < -80 || x > W + 80 || y < -80 || y > H + 80) continue;
+      let h = b.seed + Math.floor(age * 16) * 7919; const rr = () => { h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+      const x0 = x + (rr() - 0.5) * 120, pts = [[x0, -12]], N = 9;
+      for (let i = 1; i < N; i++) { const q = i / N; pts.push([x0 + (x - x0) * q + (rr() - 0.5) * 46, -12 + (y + 12) * q]); } pts.push([x, y]);
+      const path = () => { ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (const p of pts) ctx.lineTo(p[0], p[1]); };
+      ctx.globalAlpha = f; ctx.lineJoin = ctx.lineCap = 'round';
+      ctx.shadowColor = '#9fc4ff'; ctx.shadowBlur = 20; ctx.strokeStyle = 'rgba(160,195,255,.9)'; ctx.lineWidth = 7; path(); ctx.stroke();
+      ctx.shadowBlur = 0; ctx.strokeStyle = '#f4f8ff'; ctx.lineWidth = 2.5; path(); ctx.stroke();
+      const ig = ctx.createRadialGradient(x, y, 0, x, y, 90 * k); ig.addColorStop(0, 'rgba(220,235,255,.75)'); ig.addColorStop(1, 'rgba(150,185,255,0)');
+      ctx.fillStyle = ig; ctx.beginPath(); ctx.arc(x, y, 90 * k, 0, TAU); ctx.fill(); }
+    ctx.restore(); ctx.globalAlpha = 1;
+    bolts = bolts.filter(b => S.t - b.t <= BOLT_LIFE && S.t >= b.t);
+  }
+
+  /* ---------- UI: title banner, HUD chip, end line ---------- */
+  const css = document.createElement('style');
+  css.textContent = '.dg-ban{border:1px solid var(--dg);border-radius:12px;background:rgba(255,255,255,.04);padding:7px 12px;font:14px/1.4 Georgia,serif;color:#cfd6e2;text-align:center;max-width:min(100%,560px);text-wrap:balance}'
+    + '.dg-ban b{color:var(--dg);letter-spacing:.06em}.dg-ban .dg-t{color:var(--muted);white-space:nowrap}'
+    + '@media (max-height:430px){.dg-ban{font-size:12px;line-height:1.3;padding:3px 10px;border-radius:9px}}'
+    + '@media (max-height:380px){.dg-ban{font-size:11.5px;line-height:1.2;padding:1px 10px;margin:-3px 0}}'   // 640×360: PLAY stays on screen
+    + '#dgChip{position:absolute;left:calc(10px + env(safe-area-inset-left));top:calc(56px + env(safe-area-inset-top));display:none;align-items:center;gap:6px;padding:4px 9px 4px 7px;border-radius:999px;'
+    + 'border:1px solid var(--dg);background:rgba(7,12,22,.66);color:var(--ink);font:700 11px/1.1 Georgia,serif;letter-spacing:.07em;white-space:nowrap;pointer-events:none;text-shadow:0 1px 2px #000}'
+    + '#dgChip.on{display:flex}#dgChip i{width:8px;height:8px;border-radius:50%;background:var(--dg);box-shadow:0 0 6px var(--dg)}'
+    + '#dgChip.hot{box-shadow:0 0 12px var(--dg)}#dgChip.hot i{animation:dgp .5s infinite alternate}@keyframes dgp{to{opacity:.25}}'
+    + '#dgEnd b{color:var(--dg)}';
+  document.head.appendChild(css);
+
+  function banner() {
+    const box = $('titleExtra'); if (!box) return;
+    let el = $('dgBanner'); if (!el) { el = document.createElement('div'); el.id = 'dgBanner'; el.className = 'dg-ban'; box.appendChild(el); }
+    if (sel.key === 'none') { el.style.display = 'none'; return; }
+    el.style.display = ''; el.style.setProperty('--dg', sel.col);
+    el.innerHTML = '<b>TODAY · ' + sel.rule.toUpperCase() + '</b> — ' + sel.desc + ' <span class="dg-t">· next god in ' + left() + '</span>';
+  }
+  let chipTxt = '';
+  function chip(force) {
+    const box = $('hudExtra'); if (!box) return;
+    let el = $('dgChip'); if (!el) { el = document.createElement('div'); el.id = 'dgChip'; el.innerHTML = '<i></i><span></span>'; box.appendChild(el); }
+    if (!act || act.key === 'none') { el.classList.remove('on'); chipTxt = ''; return; }
+    const S = G.S; let t = act.rule.toUpperCase(), hot = false;
+    if (act.key === 'thor' && S && nextStrike < G.ROUND) { const s = Math.max(0, Math.ceil(nextStrike - S.t)); t = 'THOR ⚡ ' + s + ' s'; hot = s <= 3; }   /* short: the chip must stay clear of the centre line on a 390 px phone */
+    if (force) { el.style.setProperty('--dg', act.col); el.classList.add('on'); }
+    el.classList.toggle('hot', hot);
+    const tl = $('hTL'); if (tl && tl.offsetHeight) el.style.top = (tl.offsetTop + tl.offsetHeight + 6) + 'px';   // right under the carry/bank block
+    if (t !== chipTxt || force) { chipTxt = t; el.lastChild.textContent = t; }
+  }
+  G.on('hud', () => chip(false));
+  G.on('end', () => {
+    const box = $('endExtra'); if (!box) return;
+    let el = $('dgEnd'); if (!el) { el = document.createElement('div'); el.id = 'dgEnd'; el.className = 'small'; box.appendChild(el); }
+    if (!act || act.key === 'none') { el.style.display = 'none'; return; }
+    el.style.display = ''; el.style.setProperty('--dg', act.col);
+    const n = nextOf(act); el.innerHTML = 'Today: <b>' + act.rule + '</b>' + (n ? ' · next: ' + n.rule + ' in ' + left() : '');
+  });
+  const refresh = () => { if (!forced && !running()) { const t = today(); if (t.key !== sel.key) { sel = t; sync(sel); } } banner(); };
+  G.on('title', refresh);
+  setInterval(() => { const t = $('title'); if (t && t.classList.contains('on')) refresh(); }, 15000);
+  banner();
+})();
+
+}catch(e){(window.G&&G.showErr?G.showErr:console.error)("module 40_daygod.js: "+(e&&e.message||e));}})();
+</script>
+<script>/* 50_training.js */
+(function(){try{
+/* 50_training.js — god training (the owner's idea, 2026-11-23): the player grows with his god across rounds, with a small edge only,
+   so a newcomer and a friend can still beat a veteran.
+   - Each god has his own XP in localStorage 'hg_train' (the player's own save: no server).
+     A round gives XP = banked gold + 5 per robbery + 10 for finishing.
+   - Levels 1..10 (XP 0, 60, 150, 280, 450, 670, 950, 1300, 1700, 2200). Each new level offers one of two perks for that god on the end
+     screen (#endExtra). Every perk can be taken at most 3 times and moves one number by at most 15 % (speed 9 %, robbed share 9 %).
+     9 picks (Lv 2..10) from 12 slots, so two choices are always open.
+   - Perks reach the game only through G.addMod, and only for the human hero (p === G.S.me), never for bots.
+   - The title cards (#gods .god) get "Lv N" and a thin XP bar; the core rebuilds the cards on each tap, a MutationObserver re-decorates them.
+   - Test hooks: G.train = { get(god) → {lvl, xp, prev, next, perks, pending, offer}, reset(), offer(god), factor(god, mod), PERKS, LEVELS }. */
+const G = window.G; if (!G || !G.on || !G.addMod) return;
+const KEY = 'hg_train', LV = [0, 60, 150, 280, 450, 670, 950, 1300, 1700, 2200], MAXL = LV.length, XP_ROB = 5, XP_FINISH = 10, MAXT = 3, CAP = 0.15;
+const num = (v, d) => String(+v.toFixed(d));
+/* step = the relative change of one take; |step| × MAXT ≤ CAP. `what` + base → the before → after line on the button */
+const PERKS = {
+  h_dash:   { god: 'hermes',  mod: 'dash',      n: 'Longer dash',    step: 0.05,  what: 'Dash',     base: () => 0.3,  f: v => num(v, 3) + ' s' },
+  h_speed:  { god: 'hermes',  mod: 'speed',     n: 'Swift feet',     step: 0.03,  what: 'Speed',    base: () => 1,    f: v => '+' + num((v - 1) * 100, 1) + '%' },
+  t_reach:  { god: 'thor',    mod: 'thorR',     n: 'Wider thunder',  step: 0.05,  what: 'Reach',    base: () => 170,  f: v => num(v, 0) },
+  t_share:  { god: 'thor',    mod: 'thorShare', n: 'Heavier strike', step: 0.04,  what: 'Strike',   base: () => 0.25, f: v => num(v * 100, 1) + '%' },
+  l_vanish: { god: 'loki',    mod: 'lokiT',     n: 'Longer vanish',  step: 0.05,  what: 'Vanish',   base: () => 3,    f: v => num(v, 2) + ' s' },
+  l_cd:     { god: 'loki',    mod: 'cd',        n: 'Quick tricks',   step: -0.05, what: 'Cooldown', base: () => (G.GODS.loki || {}).cd || 10, f: v => num(v, 2) + ' s' },
+  a_chain:  { god: 'amirani', mod: 'chainT',    n: 'Longer chains',  step: 0.05,  what: 'Chains',   base: () => 3,    f: v => num(v, 2) + ' s' },
+  a_cd:     { god: 'amirani', mod: 'cd',        n: 'Quick chains',   step: -0.05, what: 'Cooldown', base: () => (G.GODS.amirani || {}).cd || 10, f: v => num(v, 2) + ' s' },
+  bank:     { god: '*',       mod: 'bankT',     n: 'Quick banker',   step: -0.05, what: 'Bank',     base: () => G.BANK_T || 1.5, f: v => num(v, 2) + ' s' },
+  purse:    { god: '*',       mod: 'rob',       n: 'Tight purse',    step: -0.03, what: 'Robbed of', base: () => G.ROB || 0.35, f: v => num(v * 100, 1) + '%' },
+};
+const ORDER = { hermes: ['h_dash', 'h_speed'], thor: ['t_reach', 't_share'], loki: ['l_vanish', 'l_cd'], amirani: ['a_chain', 'a_cd'] };
+const order = g => (ORDER[g] || []).concat(['bank', 'purse']);
+
+/* ---------- the save ---------- */
+let T = { v: 1, g: {} };
+const load = () => { try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o && typeof o === 'object' && o.g && typeof o.g === 'object') T = { v: 1, g: o.g }; } catch (e) {} };
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(T)); } catch (e) {} };
+load();
+const rec = g => { let r = T.g[g]; if (!r || typeof r !== 'object') r = T.g[g] = { xp: 0, p: {} }; if (!r.p || typeof r.p !== 'object') r.p = {}; return r; };
+const xpOf = g => { const r = T.g[g]; const x = r && +r.xp; return isFinite(x) && x > 0 ? Math.floor(x) : 0; };
+const takes = (g, id) => { const r = T.g[g]; const n = r && r.p ? Math.floor(+r.p[id]) : 0; return isFinite(n) ? Math.max(0, Math.min(MAXT, n)) : 0; };
+const lvlOf = xp => { let l = 1; while (l < MAXL && xp >= LV[l]) l++; return l; };
+const used = g => order(g).reduce((s, id) => s + takes(g, id), 0);
+function offer(g) {
+  const pend = lvlOf(xpOf(g)) - 1 - used(g); if (pend <= 0) return [];
+  const open = order(g).filter(id => takes(g, id) < MAXT); if (!open.length) return [];
+  if (open.length === 1) return open;
+  const i = used(g) % open.length; return [open[i], open[(i + 1) % open.length]];
+}
+function get(g) {
+  const xp = xpOf(g), lvl = lvlOf(xp), perks = {};
+  for (const id of order(g)) { const n = takes(g, id); if (n) perks[id] = n; }
+  return { lvl, xp, prev: LV[lvl - 1], next: lvl < MAXL ? LV[lvl] : null, perks, pending: Math.max(0, lvl - 1 - used(g)), offer: offer(g) };
+}
+const frac = s => s.next == null ? 1 : Math.max(0, Math.min(1, (s.xp - s.prev) / (s.next - s.prev)));
+/* the training factor on one number for one god: each perk ≤ MAXT takes, and the product held inside ±CAP */
+function factor(g, m) {
+  let f = 1; for (const id of order(g)) { const P = PERKS[id]; if (P.mod === m) f *= 1 + P.step * takes(g, id); }
+  return Math.max(1 - CAP, Math.min(1 + CAP, f));
+}
+function pick(g, id) {
+  if (!offer(g).includes(id)) return false;
+  const r = rec(g); r.p[id] = takes(g, id) + 1; save(); return true;
+}
+
+/* ---------- the modifiers: the human hero only ---------- */
+for (const m of ['speed', 'cd', 'dash', 'thorR', 'thorShare', 'lokiT', 'chainT', 'bankT', 'rob'])
+  G.addMod(m, (p, v) => { const S = G.S; if (!p || !S || p !== S.me || p.bot) return v; const f = factor(p.god, m); return f === 1 ? v : v * f; });
+
+/* ---------- styles ---------- */
+const st = document.createElement('style');
+st.textContent = '.god{position:relative}' +
+  '.trn-lv{position:absolute;left:8px;top:6px;font:700 11px/1 Georgia,serif;color:#e8b84a;pointer-events:none;letter-spacing:.02em}' +
+  '.trn-cb{position:absolute;left:8px;top:20px;width:32px;height:3px;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden;pointer-events:none}' +
+  '.trn-cb>span{display:block;height:100%;background:#e8b84a}' +
+  '.trn-end{width:min(100%,440px);display:flex;flex-direction:column;align-items:stretch;gap:6px}' +
+  '.trn-head{display:flex;align-items:center;gap:10px;font:700 15px/1.2 Georgia,serif;color:#f3e7c4;white-space:nowrap}' +
+  '.trn-head .x{color:#e8b84a;font-weight:900}' +
+  '.trn-bar{flex:1 1 auto;min-width:60px;height:8px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}' +
+  '.trn-bar>span{display:block;height:100%;background:linear-gradient(90deg,#b8862b,#f0c75e);transition:width .8s ease-out}' +
+  '.trn-sub{font:12px/1.3 Georgia,serif;color:#8d9bb0;text-align:center}' +
+  '.trn-up{font:700 14px/1.3 Georgia,serif;color:#f3e7c4;text-align:center}.trn-up .x{color:#e8b84a}.trn-up em{font-style:normal;color:#e8b84a;font-size:11px;letter-spacing:.08em}' +
+  '.trn-pick{display:flex;flex-direction:column;gap:6px}' +
+  '.trn-row{display:flex;gap:8px;flex:1 1 auto}' +
+  '.trn-row .sec{width:auto;flex:1 1 0;min-width:0;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:5px 8px;line-height:1.2}' +
+  '.trn-row .sec b{font-size:15px}.trn-row .sec small{font:12px/1.2 Georgia,serif;color:#cfd6e2}.trn-row .sec em{font-style:normal;font-weight:400;color:#e8b84a;letter-spacing:.08em;font-size:11px}' +
+  '@media (max-height:430px){.trn-end{width:min(100%,600px);gap:4px}.trn-head{font-size:14px}.trn-sub{display:none}' +
+  '.trn-pick{flex-direction:row;align-items:center;gap:8px}.trn-pick .trn-up{flex:0 0 140px;text-align:left;font-size:13px}.trn-from{display:none}.trn-row .sec{min-height:46px;padding:4px 8px}.trn-row .sec b{font-size:14px}}';
+document.head.appendChild(st);
+
+/* ---------- the title cards ---------- */
+function decorate() {
+  const box = G.$('gods'); if (!box) return;
+  for (const b of box.querySelectorAll('.god')) {
+    const g = b.dataset.god; if (!g) continue;
+    let lv = b.querySelector('.trn-lv'), cb = b.querySelector('.trn-cb');
+    if (!lv) { lv = document.createElement('span'); lv.className = 'trn-lv'; b.appendChild(lv); }
+    if (!cb) { cb = document.createElement('span'); cb.className = 'trn-cb'; cb.appendChild(document.createElement('span')); b.appendChild(cb); }
+    const s = get(g); lv.textContent = 'Lv ' + s.lvl; cb.firstChild.style.width = Math.round(frac(s) * 100) + '%';
+  }
+}
+decorate();
+try { const box = G.$('gods'); if (box && window.MutationObserver) new MutationObserver(decorate).observe(box, { childList: true }); } catch (e) {}
+G.on('title', decorate);
+
+/* ---------- the end screen ---------- */
+let last = null;   // the last round: {god, gain, bank, robs, fromXp, fromLvl, took, fresh}
+const pips = (g, id) => { const n = takes(g, id); return '●'.repeat(n) + '○'.repeat(MAXT - n); };
+const line = (g, id) => { const P = PERKS[id], b = P.base(), n = takes(g, id); return P.what + ' ' + P.f(b * (1 + P.step * n)) + ' → ' + P.f(b * (1 + P.step * (n + 1))); };
+function box() {
+  let el = document.getElementById('trainEnd');
+  const host = G.$('endExtra');
+  if (!el) { el = document.createElement('div'); el.id = 'trainEnd'; el.className = 'trn-end'; }
+  if (host && el.parentNode !== host) host.appendChild(el);
+  else if (!host && !el.parentNode) { const a = G.$('again'); if (a && a.parentNode) a.parentNode.insertBefore(el, a); }
+  return el;
+}
+function renderEnd() {
+  if (!last) return;
+  const el = box(), g = last.god, GD = G.GODS[g] || { n: g, c: '#e8b84a' }, s = get(g);
+  const w = Math.round(frac(s) * 100), w0 = last.fresh ? (s.lvl === last.fromLvl ? Math.round(frac({ xp: last.fromXp, prev: s.prev, next: s.next }) * 100) : 0) : w;
+  const up = s.lvl > last.fromLvl;
+  let h = '<div class="trn-head"><span>' + GD.n + ' · Lv ' + s.lvl + '</span><span class="trn-bar"><span style="width:' + w0 + '%"></span></span><span class="x">+' + last.gain + ' XP</span></div>' +
+    '<div class="trn-sub">Banked ' + last.bank + (last.robs ? ' + ' + last.robs + (last.robs > 1 ? ' robs' : ' rob') + ' ×' + XP_ROB : '') + ' + finish ' + XP_FINISH + ' · ' + (s.next == null ? 'top level' : (s.next - s.xp) + ' XP to Lv ' + (s.lvl + 1)) + '</div>';
+  const off = s.offer;
+  if (off.length) {
+    h += '<div class="trn-pick"><div class="trn-up">' + (up && !last.took ? '<span class="x">Level ' + s.lvl + '!</span> ' : '') + 'Pick a gift<span class="trn-from"> from ' + GD.n + '</span>' + (s.pending > 1 ? ' · ' + s.pending + ' waiting' : '') + '</div><div class="trn-row">' +
+      off.map(id => '<button class="sec" data-perk="' + id + '" style="border-color:' + GD.c + '"><b>' + PERKS[id].n + ' <em>' + pips(g, id) + '</em></b><small>' + line(g, id) + '</small></button>').join('') + '</div></div>';
+  } else if (last.took) h += '<div class="trn-up">Taken: <span class="x">' + PERKS[last.took].n + '</span> <em>' + pips(g, last.took) + '</em></div>';
+  el.innerHTML = h;
+  for (const b of el.querySelectorAll('button[data-perk]')) b.addEventListener('click', () => {
+    if (b.disabled) return; for (const o of el.querySelectorAll('button[data-perk]')) o.disabled = true;
+    const id = b.dataset.perk;
+    if (pick(g, id)) { last.took = id; G.haptic('light'); }
+    last.fresh = false; renderEnd(); decorate();
+  });
+  if (last.fresh && w0 !== w) { const f = el.querySelector('.trn-bar>span'); requestAnimationFrame(() => requestAnimationFrame(() => { f.style.width = w + '%'; })); }
+  last.fresh = false;
+}
+const seen = new WeakSet();
+G.on('end', (S, res) => {
+  if (!res || !G.GODS[res.god] || (S && seen.has(S))) return; if (S) seen.add(S);
+  const g = res.god, bank = Math.max(0, Math.floor(+res.bank || 0)), robs = Math.max(0, Math.floor(+res.robs || 0));
+  const gain = bank + XP_ROB * robs + XP_FINISH, fromXp = xpOf(g);
+  rec(g).xp = fromXp + gain; save();
+  last = { god: g, gain, bank, robs, fromXp, fromLvl: lvlOf(fromXp), took: null, fresh: true };
+  renderEnd(); decorate();
+});
+
+G.train = {
+  get, offer, factor, PERKS, LEVELS: LV.slice(), XP: { rob: XP_ROB, finish: XP_FINISH }, MAX_TAKES: MAXT, CAP,
+  reset() { T = { v: 1, g: {} }; try { localStorage.removeItem(KEY); } catch (e) {} last = null; const el = document.getElementById('trainEnd'); if (el) el.remove(); decorate(); },
+};
+
+}catch(e){(window.G&&G.showErr?G.showErr:console.error)("module 50_training.js: "+(e&&e.message||e));}})();
+</script>
+<script>/* 60_sfx.js */
+(function(){try{
+/* 60_sfx.js — Heavy Gold sound. Every sound is synthesised with WebAudio: no audio files, no URLs.
+   - The AudioContext is made on the first user gesture (iOS and Telegram need that) and never before.
+   - Only events of the human hero, or ones on his screen, make a sound; frequent sounds are throttled.
+   - The halving, the vault-move warning and the last 20 s are read from G.S (S.t crossing the times, the next vault spot
+     appearing), not from the toast text.
+   - A "Sound: on/off" .sec button in #titleLinks, saved in localStorage 'hg_sound' ('on' | 'off').
+   - G.sfx = { play(name, vol), muted (get/set), log: [] (the names played, for tests), names, ready }. */
+(() => {
+  const G = window.G; if (!G) return;
+  const KEY = 'hg_sound', MASTER = 0.9;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  let muted = false; try { muted = localStorage.getItem(KEY) === 'off'; } catch (e) {}
+  let ac = null, out = null, nbuf = null;
+  const log = [], last = {}, recent = [];
+  const ms = () => (window.performance && performance.now ? performance.now() : Date.now());
+
+  /* ---------- the context: made inside a gesture only ---------- */
+  function ensure() {
+    if (muted || !AC) return null;
+    if (!ac) {
+      try {
+        try { if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } catch (e) {}   // mix with the player's music
+        ac = new AC();
+        const comp = ac.createDynamicsCompressor();
+        comp.threshold.value = -16; comp.knee.value = 12; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.2;
+        out = ac.createGain(); out.gain.value = MASTER; out.connect(comp); comp.connect(ac.destination);
+        const b = ac.createBuffer(1, 1, 22050), s = ac.createBufferSource(); s.buffer = b; s.connect(ac.destination); s.start(0);   // the iOS unlock
+      } catch (e) { ac = null; out = null; return null; }
+    }
+    if (ac.state !== 'running' && ac.resume) { try { const p = ac.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+    return ac;
+  }
+  const gesture = () => { if (!muted) ensure(); };
+  for (const ev of ['pointerdown', 'touchstart', 'touchend', 'mousedown', 'click', 'keydown']) window.addEventListener(ev, gesture, { capture: true, passive: true });
+  document.addEventListener('visibilitychange', () => {
+    if (!ac) return;
+    try { const p = document.hidden ? ac.suspend() : (!muted ? ac.resume() : null); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+  });
+
+  /* ---------- building blocks ---------- */
+  const noiseBuf = () => { if (nbuf) return nbuf; const n = Math.floor(ac.sampleRate * 0.8); nbuf = ac.createBuffer(1, n, ac.sampleRate); const d = nbuf.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; return nbuf; };
+  const env = (g, t, a, v, d) => { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, v), t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + d); };
+  const free = (...n) => () => { for (const x of n) { try { x.disconnect(); } catch (e) {} } };
+  /* a tone: f (Hz), f2 (glide target), type, t (start), d (length), v (peak), a (attack), det (cents) */
+  function tone(o) {
+    const osc = ac.createOscillator(), g = ac.createGain();
+    osc.type = o.type || 'sine'; osc.frequency.setValueAtTime(o.f, o.t);
+    if (o.f2) osc.frequency.exponentialRampToValueAtTime(o.f2, o.t + (o.glide || o.d));
+    if (o.det) osc.detune.setValueAtTime(o.det, o.t);
+    env(g, o.t, o.a || 0.004, o.v, o.d);
+    osc.connect(g); g.connect(out); osc.start(o.t); osc.stop(o.t + o.d + 0.05); osc.onended = free(osc, g);
+  }
+  /* filtered noise: ft (filter type), f, f2 (sweep), q, t, d, v, a */
+  function noise(o) {
+    const src = ac.createBufferSource(), flt = ac.createBiquadFilter(), g = ac.createGain();
+    src.buffer = noiseBuf(); flt.type = o.ft || 'bandpass'; flt.frequency.setValueAtTime(o.f, o.t);
+    if (o.f2) flt.frequency.exponentialRampToValueAtTime(o.f2, o.t + o.d);
+    flt.Q.setValueAtTime(o.q || 1, o.t);
+    env(g, o.t, o.a || 0.01, o.v, o.d);
+    src.connect(flt); flt.connect(g); g.connect(out); src.start(o.t, Math.random() * 0.3); src.stop(o.t + o.d + 0.05); src.onended = free(src, flt, g);
+  }
+  const semi = (f, n) => f * Math.pow(2, n / 12);
+
+  /* ---------- the sounds: (t, vol, arg) ---------- */
+  const SND = {
+    // a soft coin tick, higher for a richer coin and for a quick run of pickups
+    pickup(t, k, a) { const v = (a && a.v) || 1, n = (v >= 8 ? 7 : v >= 4 ? 3 : v >= 2 ? 0 : -3) + Math.min(4, (a && a.streak) || 0), f = semi(880, n);
+      tone({ f, t, d: 0.09, v: 0.28 * k, a: 0.002 }); tone({ f: f * 2.76, t, d: 0.035, v: 0.05 * k, a: 0.001 }); },
+    // you robbed someone: a bright rising run
+    rob(t, k) { [784, 1175, 1568].forEach((f, i) => tone({ type: 'triangle', f, t: t + i * 0.055, d: 0.17, v: 0.16 * k }));
+      tone({ f: 3136, t: t + 0.12, d: 0.22, v: 0.04 * k }); },
+    // you were robbed: a low thud
+    robbed(t, k) { tone({ f: 150, f2: 46, glide: 0.22, t, d: 0.34, v: 0.55 * k, a: 0.003 }); noise({ ft: 'lowpass', f: 320, q: 0.8, t, d: 0.13, v: 0.3 * k, a: 0.002 });
+      tone({ type: 'triangle', f: 233, f2: 196, t: t + 0.03, d: 0.26, v: 0.05 * k }); },
+    // two others clash on your screen: a soft muffled pop
+    rob_near(t, k) { noise({ ft: 'bandpass', f: 700, q: 1.4, t, d: 0.09, v: 0.22 * k, a: 0.002 }); tone({ f: 210, f2: 120, t, d: 0.12, v: 0.12 * k }); },
+    // banked: a small chime, a third note for a big deposit
+    bank(t, k, amt) { const notes = [1319, 1976].concat(amt >= 100 ? [2637] : []);
+      notes.forEach((f, i) => { tone({ f, t: t + i * 0.08, d: 0.55, v: 0.14 * k, a: 0.003 }); tone({ f: f * 2.76, t: t + i * 0.08, d: 0.14, v: 0.025 * k, a: 0.002 }); }); },
+    // Hermes: a whoosh
+    skill_hermes(t, k) { noise({ ft: 'bandpass', f: 450, f2: 3200, q: 1.3, t, d: 0.34, v: 0.6 * k, a: 0.09 }); tone({ f: 520, f2: 1250, t, d: 0.22, v: 0.03 * k, a: 0.05 }); },
+    // Thor: a crack, then a rumble
+    skill_thor(t, k) { noise({ ft: 'highpass', f: 2600, q: 0.7, t, d: 0.06, v: 0.22 * k, a: 0.001 }); noise({ ft: 'lowpass', f: 190, f2: 70, q: 0.8, t, d: 0.75, v: 0.7 * k, a: 0.02 });
+      tone({ f: 58, f2: 36, t, d: 0.65, v: 0.35 * k, a: 0.02 }); },
+    // Loki: a shimmer of high notes
+    skill_loki(t, k) { [1760, 2217, 2637, 3136, 2637, 3520].forEach((f, i) => tone({ f, t: t + i * 0.045, d: 0.34, v: 0.05 * k, a: 0.01, det: (Math.random() - 0.5) * 18 })); },
+    // Amirani: two metal clanks
+    skill_amirani(t, k) { for (const [dt, m] of [[0, 1], [0.09, 0.94]]) { noise({ ft: 'highpass', f: 3200, q: 0.8, t: t + dt, d: 0.04, v: 0.08 * k, a: 0.001 });
+      [523, 1330, 2240, 3170].forEach((f, i) => tone({ type: i ? 'sine' : 'triangle', f: f * m, t: t + dt, d: 0.18 - i * 0.03, v: (0.09 - i * 0.015) * k, a: 0.001 })); } },
+    // a halving: two falling notes
+    halving(t, k) { tone({ type: 'triangle', f: 988, t, d: 0.2, v: 0.16 * k }); tone({ f: 494, t, d: 0.2, v: 0.05 * k });
+      tone({ type: 'triangle', f: 659, t: t + 0.2, d: 0.34, v: 0.16 * k }); tone({ f: 330, t: t + 0.2, d: 0.34, v: 0.05 * k }); },
+    // the vaults move soon: a soft bell
+    vault(t, k) { tone({ f: 784, t, d: 1.1, v: 0.13 * k, a: 0.006 }); tone({ f: 1568, t, d: 0.5, v: 0.035 * k, a: 0.004 }); tone({ f: 784 * 2.76, t, d: 0.3, v: 0.02 * k, a: 0.003 }); },
+    // the clock: a wood tick (arg 2: tick-tock)
+    tick(t, k, n) { for (let i = 0; i < (n || 1); i++) { const tt = t + i * 0.2, f = i ? 1250 : 1700;
+      tone({ f, f2: f * 0.7, glide: 0.03, t: tt, d: 0.05, v: 0.14 * k, a: 0.001 }); noise({ ft: 'bandpass', f: f * 1.5, q: 4, t: tt, d: 0.03, v: 0.07 * k, a: 0.001 }); } },
+    // the round is over: a rising chord for first place, a soft cadence otherwise
+    end(t, k, rank) { const ns = rank === 1 ? [523, 659, 784, 1047] : [784, 659, 523];
+      ns.forEach((f, i) => tone({ type: 'triangle', f, t: t + i * 0.11, d: i === ns.length - 1 ? 0.7 : 0.22, v: 0.14 * k })); },
+    // the sound button itself
+    ui(t, k) { tone({ f: 1175, t, d: 0.08, v: 0.12 * k, a: 0.002 }); },
+  };
+  /* the least time between two plays of a sound (ms); the rest are rare and play every time */
+  const GAP = { pickup: 60, rob: 90, robbed: 90, rob_near: 250, skill_hermes: 200, skill_thor: 200, skill_loki: 200, skill_amirani: 200, ui: 80 };
+
+  function play(name, vol, arg) {
+    const fn = SND[name]; if (!fn || muted || !ac || !out || ac.state === 'closed') return false;   // no context before the first gesture
+    const now = ms(), k = vol == null ? 1 : Math.max(0.05, Math.min(1, +vol || 0));
+    if (GAP[name] && last[name] != null && now - last[name] < GAP[name]) return false;
+    while (recent.length && now - recent[0] > 160) recent.shift();
+    if ((name === 'pickup' || k < 1) && recent.length >= 4) return false;   // a crowded moment: drop the small sounds
+    try { fn(ac.currentTime + 0.01, k, arg); } catch (e) { return false; }
+    last[name] = now; recent.push(now);
+    log.push(name); if (log.length > 300) log.splice(0, log.length - 300);
+    return true;
+  }
+
+  /* ---------- mute ---------- */
+  let btn = null;
+  const label = () => { if (btn) { btn.textContent = 'Sound: ' + (muted ? 'off' : 'on'); btn.setAttribute('aria-pressed', String(!muted)); } };
+  function setMuted(v) {
+    muted = !!v; try { localStorage.setItem(KEY, muted ? 'off' : 'on'); } catch (e) {}
+    if (ac && out) { try { out.gain.cancelScheduledValues(ac.currentTime); out.gain.setTargetAtTime(muted ? 0 : MASTER, ac.currentTime, 0.02); } catch (e) {} }
+    if (muted && ac) setTimeout(() => { if (muted && ac && ac.suspend) { try { const p = ac.suspend(); if (p && p.catch) p.catch(() => {}); } catch (e) {} } }, 150);   // silent and idle
+    label();
+  }
+  const links = document.getElementById('titleLinks');
+  if (links) {
+    btn = document.createElement('button'); btn.type = 'button'; btn.className = 'sec'; btn.id = 'hgSound'; label(); links.appendChild(btn);
+    btn.addEventListener('click', () => { setMuted(!muted); if (!muted) { ensure(); play('ui'); } });
+  }
+
+  /* ---------- what the hero hears ---------- */
+  const viewK = me => { const base = Math.min(1.5, Math.max(0.65, Math.sqrt(G.W * G.H) / 680)) / (1 + (G.radius(me) - 17) / 140);
+    try { return typeof G.mod === 'function' ? G.mod('view', me, base) : base; } catch (e) { return base; } };
+  /* is the world point on the human hero's screen (with a margin in world units)? */
+  const seen = (x, y, pad) => { const S = G.S; if (!S) return false; const me = S.me, k = viewK(me) || 1;
+    return Math.abs(x - me.x) < G.W / 2 / k + (pad || 0) && Math.abs(y - me.y) < G.H / 2 / k + (pad || 0); };
+  const skillName = g => SND['skill_' + g] ? 'skill_' + g : 'skill_hermes';
+
+  let prevT = 0, nextSeen = false, lostSeen = 0, streak = 0, streakT = -1e9;
+  G.on('start', S => { prevT = S.t; nextSeen = !!(S.vaults[0] && S.vaults[0].nx != null); lostSeen = S.me.lost; streak = 0; });
+  G.on('pickup', (p, c) => { const S = G.S; if (!S || p !== S.me) return;
+    const now = ms(); streak = now - streakT < 450 ? streak + 1 : 0; streakT = now; play('pickup', 1, { v: c && c.v, streak }); });
+  G.on('rob', (thief, victim) => { const S = G.S; if (!S) return; const me = S.me;
+    if (thief === me) play('rob'); else if (victim === me) play('robbed'); else if (seen(victim.x, victim.y, 40)) play('rob_near', 0.5);
+    lostSeen = me.lost; });
+  G.on('bank', (p, amt) => { const S = G.S; if (S && p === S.me) play('bank', 1, amt); });
+  G.on('skill', p => { const S = G.S; if (!S) return; const me = S.me;
+    if (p === me) play(skillName(p.god)); else if (seen(p.x, p.y, 80)) play(skillName(p.god), 0.35);
+    if (p !== me && p.god === 'thor' && me.lost > lostSeen) play('robbed', 0.9);   // his thunder made you spill
+    lostSeen = me.lost; });
+  G.on('step', () => { const S = G.S; if (!S) return; const a = prevT, t = S.t, RD = G.ROUND || 150, H = G.HALVE_T || 50; prevT = t;
+    for (let n = 1; n * H < RD; n++) if (a < n * H && t >= n * H) play('halving');
+    const nx = !!(S.vaults[0] && S.vaults[0].nx != null); if (nx && !nextSeen) play('vault'); nextSeen = nx;
+    if (a < RD - 20 && t >= RD - 20) play('tick', 1, 2);
+    for (let s = 5; s >= 1; s--) if (a < RD - s && t >= RD - s) play('tick', 0.7, 1);
+    lostSeen = S.me.lost; });
+  G.on('end', (S, res) => { play('end', 1, res && res.rank); });
+
+  const api = { play, log, names: Object.keys(SND), toggle: () => setMuted(!muted) };
+  Object.defineProperty(api, 'muted', { get: () => muted, set: v => setMuted(v), enumerable: true });
+  Object.defineProperty(api, 'ready', { get: () => !!ac, enumerable: true });
+  Object.defineProperty(api, 'state', { get: () => (ac ? ac.state : 'none'), enumerable: true });
+  G.sfx = api;
+})();
+
+}catch(e){(window.G&&G.showErr?G.showErr:console.error)("module 60_sfx.js: "+(e&&e.message||e));}})();
+</script>
+<script>/* 70_minimap.js */
+(function(){try{
+/* 70_minimap.js — Heavy Gold minimap: a 92 px canvas in #hudExtra, under the top-left carry/bank text (clear of the clock,
+   the board and the skill button at 390×844, 844×390 and 640×360). It never takes a touch (pointer-events:none), so a drag
+   that starts on it still moves the hero. It shows the 4000×4000 arena, the camera's view, the two vaults (gold rings) and
+   the next vault spots once they are announced (dashed), you (a white dot with your facing) and the other heroes (dots in
+   their god's colour, larger the more they carry; a vanished Loki shows only as his decoy). No coins. Redrawn on 'hud'
+   (10 times a second) at most. While you carry gold a dashed line leads to the nearest vault, because the core's off-screen
+   vault arrow can fall under this panel (top-left corner). G.minimap = { el, dots, marks, draws, rect(), map(x, y), draw() }:
+   dots/marks are in CSS px inside the canvas, rect() is the canvas box on the page (for a core that keeps arrows clear of it). */
+(() => {
+  const G = window.G; if (!G) return;
+  const host = document.getElementById('hudExtra') || document.getElementById('hud'); if (!host) return;
+  const SZ = 92, PAD = 5, TAU = Math.PI * 2;
+  const css = document.createElement('style');
+  css.textContent = '#hgMini{position:absolute;left:calc(10px + env(safe-area-inset-left));top:calc(84px + env(safe-area-inset-top));width:' + SZ + 'px;height:' + SZ + 'px;pointer-events:none;border-radius:10px;display:block}';
+  document.head.appendChild(css);
+  const cv = document.createElement('canvas'); cv.id = 'hgMini'; cv.setAttribute('aria-hidden', 'true'); host.appendChild(cv);
+  const c = cv.getContext('2d');
+  let dpr = 0;
+  const fit = () => { const d = Math.min(3, Math.max(1, window.devicePixelRatio || 1)); if (d !== dpr) { dpr = d; cv.width = Math.round(SZ * d); cv.height = Math.round(SZ * d); } };
+  fit(); window.addEventListener('resize', () => { fit(); draw(true); });
+
+  const scale = () => (SZ - 2 * PAD) / (G.WORLD || 4000);
+  const map = (x, y) => { const k = scale(); return { x: PAD + x * k, y: PAD + y * k }; };
+  const dotR = carry => 2.2 + Math.min(4.6, Math.sqrt(Math.max(0, carry || 0)) * 0.3);
+  const colOf = g => (G.GODS[g] && G.GODS[g].c) || '#c8cdd6';
+  const viewK = me => { const base = Math.min(1.5, Math.max(0.65, Math.sqrt(G.W * G.H) / 680)) / (1 + (G.radius(me) - 17) / 140);
+    try { return typeof G.mod === 'function' ? G.mod('view', me, base) : base; } catch (e) { return base; } };
+  const panel = () => { const r = 9, w = SZ - 1, h = SZ - 1; c.beginPath(); c.moveTo(0.5 + r, 0.5); c.arcTo(0.5 + w, 0.5, 0.5 + w, 0.5 + h, r); c.arcTo(0.5 + w, 0.5 + h, 0.5, 0.5 + h, r);
+    c.arcTo(0.5, 0.5 + h, 0.5, 0.5, r); c.arcTo(0.5, 0.5, 0.5 + w, 0.5, r); c.closePath(); c.fillStyle = 'rgba(7,12,22,.84)'; c.fill(); };
+
+  const M = { el: cv, dots: [], marks: [], draws: 0, size: SZ, map, draw: () => draw(true), rect: () => cv.getBoundingClientRect() };
+  let lastMs = -1e9;
+  function draw(force) {
+    const now = performance.now(); if (!force && now - lastMs < 95) return; lastMs = now;
+    fit(); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, SZ, SZ);
+    const dots = [], marks = []; M.dots = dots; M.marks = marks; M.draws++;
+    const S = G.S; if (!S) return;
+    panel();
+    const k = scale(), W = G.WORLD || 4000, me = S.me, t = S.t;
+    // the arena border
+    c.strokeStyle = 'rgba(232,184,74,.6)'; c.lineWidth = 1; c.strokeRect(PAD + 0.5, PAD + 0.5, W * k - 1, W * k - 1);
+    // what the screen shows
+    const kv = viewK(me) || 1, hw = G.W / 2 / kv, hh = G.H / 2 / kv, cx = S.camX != null ? S.camX : me.x, cy = S.camY != null ? S.camY : me.y;
+    const x0 = Math.max(0, cx - hw), x1 = Math.min(W, cx + hw), y0 = Math.max(0, cy - hh), y1 = Math.min(W, cy + hh);
+    if (x1 > x0 && y1 > y0) { c.strokeStyle = 'rgba(255,255,255,.2)'; c.strokeRect(PAD + x0 * k, PAD + y0 * k, (x1 - x0) * k, (y1 - y0) * k); }
+    // while you carry gold, a line to the nearest vault (the core's edge arrow can sit under this panel)
+    const nv = me.carry > 0 && S.vaults.length ? G.nearestVault(me) : null;
+    if (nv) { const a = map(me.x, me.y), b = map(nv.x, nv.y); c.strokeStyle = 'rgba(232,184,74,.5)'; c.lineWidth = 1; c.setLineDash([3, 2]); c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); c.setLineDash([]); }
+    // vaults; the next spots (dashed) once announced
+    for (const v of S.vaults) {
+      const p = map(v.x, v.y), r = Math.max(3.5, v.r * k);
+      if (v.nx != null) { const q = map(v.nx, v.ny), al = 0.55 + 0.35 * Math.sin(t * 8);
+        c.strokeStyle = 'rgba(232,184,74,.28)'; c.lineWidth = 1; c.setLineDash([2, 3]); c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(q.x, q.y); c.stroke();
+        c.strokeStyle = 'rgba(232,184,74,' + al.toFixed(2) + ')'; c.lineWidth = 1.3; c.setLineDash([2, 2]); c.beginPath(); c.arc(q.x, q.y, r, 0, TAU); c.stroke(); c.setLineDash([]);
+        marks.push({ kind: 'next', x: q.x, y: q.y, r }); }
+      c.fillStyle = 'rgba(232,184,74,' + (v === nv ? '.5' : '.3') + ')'; c.strokeStyle = '#e8b84a'; c.lineWidth = v === nv ? 2 : 1.4; c.beginPath(); c.arc(p.x, p.y, r, 0, TAU); c.fill(); c.stroke();
+      marks.push({ kind: 'vault', x: p.x, y: p.y, r, nearest: v === nv });
+    }
+    // the other heroes (a vanished one is hidden; his decoy shows as him), the heaviest first so a light dot stays on top
+    const others = [];
+    const seen = p => !(G.dayGod && typeof G.dayGod.visible === 'function') || G.dayGod.visible(p);   // Moon night: only what the hero's light shows
+    for (const p of S.ps) if (p !== me && !(p.inv > t) && seen(p)) others.push({ name: p.name, god: p.god, x: p.x, y: p.y, carry: p.carry, decoy: false });
+    for (const d of S.decoys || []) if (d.owner && d.owner !== me && seen(d)) others.push({ name: d.owner.name, god: d.owner.god, x: d.x, y: d.y, carry: d.carry, decoy: true });
+    others.sort((a, b) => b.carry - a.carry);
+    for (const o of others) { const p = map(o.x, o.y), r = dotR(o.carry), col = colOf(o.god);
+      c.fillStyle = col; c.strokeStyle = 'rgba(0,0,0,.7)'; c.lineWidth = 1; c.beginPath(); c.arc(p.x, p.y, r, 0, TAU); c.fill(); c.stroke();
+      dots.push({ name: o.name, god: o.god, x: p.x, y: p.y, r, c: col, me: false, decoy: o.decoy }); }
+    // you: a white dot and a wedge for your facing
+    { const p = map(me.x, me.y), r = Math.max(2.8, dotR(me.carry)), fl = Math.hypot(me.fx || 0, me.fy || 0) || 1, ux = (me.fx || 1) / fl, uy = (me.fy || 0) / fl;
+      c.globalAlpha = me.inv > t ? 0.55 : 1;
+      c.fillStyle = '#ffffff'; c.strokeStyle = 'rgba(0,0,0,.75)'; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(p.x + ux * (r + 5), p.y + uy * (r + 5)); c.lineTo(p.x - uy * r * 0.9, p.y + ux * r * 0.9); c.lineTo(p.x + uy * r * 0.9, p.y - ux * r * 0.9); c.closePath(); c.fill(); c.stroke();
+      c.beginPath(); c.arc(p.x, p.y, r, 0, TAU); c.fill(); c.stroke();
+      c.globalAlpha = 1;
+      dots.push({ name: me.name, god: me.god, x: p.x, y: p.y, r, c: '#ffffff', me: true, decoy: false, fx: ux, fy: uy }); }
+  }
+  G.on('start', () => { lastMs = -1e9; draw(true); });
+  G.on('hud', () => draw(false));
+  G.minimap = M;
+})();
+
+}catch(e){(window.G&&G.showErr?G.showErr:console.error)("module 70_minimap.js: "+(e&&e.message||e));}})();
 </script>
 </body>
 </html>
