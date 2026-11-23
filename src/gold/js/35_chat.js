@@ -1,17 +1,21 @@
 /* Heavy Gold — chat (35_chat.js): the world chat and the player's own country chat (src/gold/GOLD.md, Wave 5).
-   - Buttons: "Chat" (.sec) in #titleLinks, and during a round a round 44 px button in #hudExtra on the right, under the live board
+   - Buttons: "Chat" (.sec), the first link in #titleLinks, and during a round a round 44 px button in #hudExtra on the right, under the live board
      (#hTR; clear of the clock, the board, the skill button, the minimap and the day chip at 390×844, 844×390 and 640×360).
      A red dot on both when a channel has a message from someone else newer than the last one this player saw.
    - The panel: two tabs, WORLD and the player's country (flag + name); each message shows the flag, the name (👑 for last week's
      champion), the text and a short time (HH:MM today, "21 Nov" before); an input (200 characters at most) with SEND (the screen's
      one primary button) and an English line for each server error ('rate' → "Slow down a little").
      · On the title (no round): a full screen (.scr, z 20).
-     · During a round the game keeps running, so the panel docks: a bottom sheet (42 % of the height) in portrait, a side panel
-       (≤ 40 % of the width, above the skill button) on the right in landscape. The hero at the centre and the free side stay
-       uncovered, so the drag-anywhere joystick still works there. The round's end closes it.
-   - Server (G.net.rpc): hg_chat_list(token, channel, since) every 3 s for the open tab (the first call of each open is since 0,
-     a refresh; then since = the highest id seen), the other tab every 20 s; while closed and online, both channels every 20 s
-     (since-based) for the unread dot. hg_chat_send(token, channel, body). channel = 'world' or 'c:XX' (XX = G.profile.country).
+     · During a round the game keeps running, so the panel docks: a bottom sheet (42 % of the height, left of the skill button) in
+       portrait, a side panel (≤ 40 % of the width, above the skill button) on the right in landscape. The hero at the centre, the
+       skill button and the free side stay uncovered, so the drag-anywhere joystick still works there. The round's end closes it.
+       Landscape with the keyboard up (≤ 300 px tall): while typing, the panel drops its tabs and ✕ so the input and SEND show.
+   - Server (G.net.rpc): hg_chat_list(token, channel, since) every 3 s for the open tab (the first call of each open, and one every
+     30 s after it, is since 0: a refresh that drops what the server now hides, e.g. a message reported 3 times; otherwise since =
+     the highest id seen), the other tab every 20 s; while closed and online, both channels every 20 s (every 60 s during a round)
+     (since-based) for the unread dot. An answer of a full page (50) after since may have skipped older messages, so it replaces
+     what is stored instead of being joined onto it (no silent gap). hg_chat_send(token, channel, body).
+     channel = 'world' or 'c:XX' (XX = G.profile.country).
    - A long press (or the ⋯ on a message from someone else) offers Report (hg_chat_report(token, id): hidden for this player at once)
      and Block (hg_chat_block(token, name): that name's messages go).
    - Offline (no Telegram): "Open HOLDOR in Telegram to chat", nothing is sent and the round has no chat button.
@@ -19,10 +23,11 @@
      body, at, mine and crown are read from a message (never a Telegram id).
    - localStorage: 'hg_chat_seen' {channel: last seen id}, 'hg_chat_hidden' [ids this player reported].
    - G.chat = { open(tab), close(), toggle(), poll(), tab, isOpen, mode ('full' | 'dock'), channel(tab), msgs(channel), unread(channel),
-     seen, OPEN_MS (3000), CLOSED_MS (20000), FIRST_MS (3000: the first closed poll after coming online) }. Tests may shorten the *_MS. */
+     seen, OPEN_MS (3000), CLOSED_MS (20000), FIRST_MS (3000: the first closed poll after coming online), FULL_MS (30000: the open tab's
+     refresh from since 0) }. Tests may shorten the *_MS. */
 (function () {
   const G = window.G; if (!G || !G.on) return;
-  const MAXLEN = 200, KEEP = 200, LONG_MS = 550, SEEN_K = 'hg_chat_seen', HIDE_K = 'hg_chat_hidden';
+  const MAXLEN = 200, KEEP = 200, PAGE = 50, LONG_MS = 550, SEEN_K = 'hg_chat_seen', HIDE_K = 'hg_chat_hidden';
   const ERR = {
     rate: 'Slow down a little',
     too_long: 'Too long: 200 characters at most',
@@ -62,8 +67,8 @@
   };
 
   /* ---- state ---- */
-  const C = G.chat = { OPEN_MS: 3000, CLOSED_MS: 20000, FIRST_MS: 3000 };
-  const store = {};             // channel → { msgs, since, loaded, err, busy, ver }
+  const C = G.chat = { OPEN_MS: 3000, CLOSED_MS: 20000, FIRST_MS: 3000, FULL_MS: 30000 };
+  const store = {};             // channel → { msgs, since, loaded, err, busy, ver, fullAt }
   const st = ch => store[ch] || (store[ch] = { msgs: [], since: 0, loaded: false, err: null, busy: null, ver: 0 });
   const seen0 = load(SEEN_K, {}), seen = seen0 && typeof seen0 === 'object' && !Array.isArray(seen0) ? seen0 : {};
   const hid0 = load(HIDE_K, []), hidden = new Set((Array.isArray(hid0) ? hid0 : []).map(Number).filter(isFinite));
@@ -71,23 +76,33 @@
   const chan = t => t === 'world' ? 'world' : (myCountry() ? 'c:' + myCountry() : '');
   const shown = s => s.msgs.filter(m => !hidden.has(m.id));
   const unread = ch => { if (!ch || !store[ch]) return false; const sn = +seen[ch] || 0; return store[ch].msgs.some(m => m.id > sn && !m.mine && !hidden.has(m.id)); };
-  function add(ch, list, replace) {
-    const s = st(ch), by = new Map(replace ? [] : s.msgs.map(m => [m.id, m]));
+  /* stored messages with id >= from are replaced by the list (from = 0: replace everything; Infinity: merge) */
+  function add(ch, list, from = Infinity) {
+    const s = st(ch), by = new Map(s.msgs.filter(m => m.id < from).map(m => [m.id, m]));
     for (const m of list) by.set(m.id, m);
-    s.msgs = [...by.values()].sort((a, b) => a.id - b.id).slice(-KEEP); s.ver++;
+    const next = [...by.values()].sort((a, b) => a.id - b.id).slice(-KEEP);
+    const same = next.length === s.msgs.length && next.every((m, i) => m.id === s.msgs[i].id && m.crown === s.msgs[i].crown);
+    s.msgs = next; if (!same) s.ver++;
   }
-  /* one list call per channel at a time; full = since 0 (a refresh that also drops messages the server now hides) */
-  async function fetchCh(ch, full) {
+  /* one list call per channel at a time; full = since 0 (a refresh that also drops messages the server now hides);
+     keepOld (the periodic refresh while open): older stored messages the newest page no longer reaches stay for scrolling back */
+  async function fetchCh(ch, full, keepOld) {
     const s = st(ch);
     if (s.busy) { const r = await s.busy; if (!full) return r; }
     const p = (async () => {
-      const r = await G.net.rpc('hg_chat_list', { token: null, channel: ch, since: full ? 0 : s.since });
+      const prev = s.since;
+      const r = await G.net.rpc('hg_chat_list', { token: null, channel: ch, since: full ? 0 : prev });
       if (r == null || typeof r !== 'object') { s.err = 'net'; return { ok: false }; }
       if (!Array.isArray(r) && r.error) { s.err = String(r.error); return { ok: false }; }
       const list = (Array.isArray(r) ? r : Array.isArray(r.msgs) ? r.msgs : []).map(clean).filter(Boolean);
       s.err = null; s.loaded = true;
       const before = s.ver;
-      if (full || list.length) add(ch, list, full);
+      /* what the answer covers: a short page everything after since; a full page (the newest 50) only the ids from its oldest up.
+         A periodic refresh that reaches back to what is stored keeps the older stored messages; any other full page replaces them. */
+      const lo = list.reduce((a, m) => Math.min(a, m.id), Infinity);
+      const from = list.length < PAGE ? (full ? 0 : Infinity) : (full && keepOld && lo <= prev ? lo : 0);
+      if (full || list.length) add(ch, list, from);
+      if (full) s.fullAt = Date.now();
       for (const m of list) if (m.id > s.since) s.since = m.id;
       return { ok: true, changed: s.ver !== before };
     })().catch(() => ({ ok: false })).then(v => { if (s.busy === p) s.busy = null; return v; });
@@ -108,7 +123,7 @@
       if (online() && !document.hidden) {
         if (isOpen) {
           const ch = chan(tab);
-          if (ch) { const full = !!fullNext[ch]; const r = await fetchCh(ch, full); if (r && r.ok && full) fullNext[ch] = false; }
+          if (ch) { const fresh = !!fullNext[ch], full = fresh || Date.now() - (st(ch).fullAt || 0) >= C.FULL_MS; const r = await fetchCh(ch, full, !fresh); if (r && r.ok && full) fullNext[ch] = false; }
           if (isOpen) render();
           const oc = chan(tab === 'world' ? 'country' : 'world');
           if (oc && Date.now() - lastOther >= C.CLOSED_MS) { lastOther = Date.now(); await fetchCh(oc, false); paintDots(); }
@@ -119,7 +134,7 @@
         }
       }
     } catch (e) {}
-    if (g === gen) kick(isOpen ? C.OPEN_MS : C.CLOSED_MS);
+    if (g === gen) kick(isOpen ? C.OPEN_MS : (inRound() ? 3 : 1) * C.CLOSED_MS);
   }
 
   /* ---- styles ---- */
@@ -166,8 +181,13 @@
     '#hgChat.dock .hgChMsg:empty{display:none}#hgChat.dock .hgChList{min-height:40px}',
     '#hgChat.dock .hgCmh{display:inline-flex;margin-right:6px;vertical-align:baseline;max-width:100%}#hgChat.dock .hgCmb{display:inline}',
     '#hgChat.dock .hgChNote{padding:10px 8px;font-size:14px;gap:6px}',
-    '#hgChat.dock .hgChTab{padding:0 6px;gap:4px;letter-spacing:.03em}#hgChat.dock .hgChForm .pri{padding:0 14px}',
-    '@media (orientation:landscape){#hgChat.dock{left:auto;top:calc(6px + env(safe-area-inset-top));bottom:calc(122px + env(safe-area-inset-bottom));width:min(40%,360px);height:auto}#hgChat.dock #hgChTabW{flex:0 1 auto;padding:0 12px}}',
+    '#hgChat.dock .hgChTab{padding:0 6px;gap:4px;letter-spacing:.03em}#hgChat.dock .hgChForm .pri{padding:0 14px}#hgChat.dock #hgChTabW{flex:0 1 auto;padding:0 12px}',
+    /* portrait: the sheet stops left of the skill button (#sk: 88 px, 18 px from the right edge) */
+    '@media (orientation:portrait){#hgChat.dock{right:calc(116px + env(safe-area-inset-right))}}',
+    '@media (orientation:landscape){#hgChat.dock{left:auto;top:calc(6px + env(safe-area-inset-top));bottom:calc(122px + env(safe-area-inset-bottom));width:min(40%,360px);height:auto}}',
+    /* landscape with the soft keyboard up (the WebView shrinks to the space above it): typing, the panel takes the full height and
+       drops the tabs and ✕, so the list, the input and SEND stay visible; they come back when the keyboard goes */
+    '@media (orientation:landscape) and (max-height:300px){#hgChat.dock.typing{bottom:calc(6px + env(safe-area-inset-bottom))}#hgChat.dock.typing .hgChBar{display:none}#hgChat.dock.typing .hgChList{min-height:0}}',
     '@media (orientation:landscape) and (max-height:540px){#hgChat.full .hgChBar{grid-template-columns:auto minmax(0,1fr) 44px;grid-template-areas:"h tabs x"}#hgChat.full .hgChBar h2{font-size:18px}#hgChat.full .hgChNote{padding:10px 12px}}'
   ].join('\n');
   document.head.appendChild(css);
@@ -204,13 +224,15 @@
   box.append(bar, wrap, msgEl, form, menu); scr.appendChild(box); document.body.appendChild(scr);
 
   /* the core's keys (space / J = skill, WASD) must not see what is typed here; Escape closes */
+  input.addEventListener('focus', () => scr.classList.add('typing'));
+  input.addEventListener('blur', () => scr.classList.remove('typing'));
   for (const t of ['keydown', 'keyup', 'keypress']) input.addEventListener(t, e => { e.stopPropagation(); if (t === 'keydown' && e.key === 'Escape') { if (!menu.hidden) closeMenu(); else close(); } });
   window.addEventListener('keydown', e => { if (isOpen && e.key === 'Escape') { if (!menu.hidden) closeMenu(); else close(); } });
 
   /* ---- buttons outside the panel ---- */
   const tBtn = el('button', 'sec', 'Chat'); tBtn.id = 'hgChatBtn'; tBtn.type = 'button';
   const tDot = el('i', 'hgDot'); tDot.hidden = true; tBtn.appendChild(tDot);
-  const links = G.$('titleLinks'); if (links) links.appendChild(tBtn);
+  const links = G.$('titleLinks'); if (links) links.insertBefore(tBtn, links.firstChild);   // first: its dot must be on screen (landscape)
   tBtn.addEventListener('click', () => open());
   const hb = el('button'); hb.id = 'hgChatHud'; hb.type = 'button'; hb.setAttribute('aria-label', 'Chat');
   { const NS = 'http://www.w3.org/2000/svg', sv = document.createElementNS(NS, 'svg'); sv.setAttribute('viewBox', '0 0 24 24'); sv.setAttribute('width', '22'); sv.setAttribute('height', '22'); sv.setAttribute('aria-hidden', 'true');
@@ -402,7 +424,7 @@
   G.on('start', () => { paintHud(); hbTop = -1; if (isOpen && mode === 'full') { mode = 'dock'; shownKey = ''; render(); } });
   G.on('end', () => { if (isOpen && mode === 'dock') close(); });
   G.on('hud', placeHud);
-  G.on('title', () => { paintTabs(); paintDots(); });
+  G.on('title', () => { paintTabs(); paintDots(); if (!isOpen && online() && Date.now() - lastOther >= C.CLOSED_MS) kick(0); });   // back from a round's slower polling
   G.on('net', on => { paintHud(); if (isOpen) { render(); if (on) kick(0); } else if (on) kick(C.FIRST_MS); });
   G.on('profile', () => {
     const cc = chan('country'); if (cc && !(cc in fullNext) && isOpen) fullNext[cc] = true;

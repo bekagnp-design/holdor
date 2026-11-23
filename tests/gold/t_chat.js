@@ -6,7 +6,11 @@
 // text), the source never assigns innerHTML; during a round the round HUD button overlaps nothing, the docked panel leaves the hero
 // and the free side uncovered (the joystick still drags there), the game keeps running, the round's end closes it; offline
 // "Open HOLDOR in Telegram to chat" with nothing sent; a failed login offers Try again; no profile; the layout at 390x844, 844x390
-// and 640x360 (screenshots in .shots/gold_chat_*.png); gold stays conserved.
+// and 640x360 (screenshots in .shots/gold_chat_*.png); the docked panel never covers the skill button (a tap there fires the skill);
+// landscape with the keyboard up (844x170): the input and SEND stay inside the panel; a message hidden for everyone (3 reports)
+// leaves the open chat at the next refresh from since 0 (FULL_MS); a full page of 50 after since replaces the stored list (no
+// silent gap), a refresh keeps older stored messages and rebuilds nothing when nothing changed; closed during a round the unread
+// poll is 3 × slower; gold stays conserved.
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs');
 const EXE = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome';
 const FILE = path.resolve(process.env.GOLD_HTML || path.join(__dirname, '..', '..', 'beta', 'index.html'));
@@ -101,10 +105,11 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
   /* ---------- 1. on the title in Telegram (390x844): the dot, the screen, polling with since, send, errors, tabs, report, block ---------- */
   {
     const T = await setup(b); const { pg, M } = T;
-    const def = await pg.evaluate(() => ({ open: G.chat.OPEN_MS, closed: G.chat.CLOSED_MS, on: G.net.on }));
-    ok(def.open === 3000 && def.closed === 20000 && def.on, 'online; the chat polls every 3 s while open and every 20 s while closed (defaults)', def);
+    const def = await pg.evaluate(() => ({ open: G.chat.OPEN_MS, closed: G.chat.CLOSED_MS, full: G.chat.FULL_MS, on: G.net.on }));
+    ok(def.open === 3000 && def.closed === 20000 && def.full === 30000 && def.on, 'online; the chat polls every 3 s while open (a refresh from since 0 every 30 s) and every 20 s while closed (defaults)', def);
     const tb = await pg.evaluate(() => { const e = document.getElementById('hgChatBtn'), r = e.getBoundingClientRect(); return { in: e.parentElement.id, sec: e.classList.contains('sec'), t: e.firstChild.textContent, h: r.height, dot: !e.querySelector('.hgDot').hidden }; });
     ok(tb.in === 'titleLinks' && tb.sec && tb.t === 'Chat' && tb.h >= 44 && !tb.dot, 'a "Chat" .sec button in #titleLinks (≥ 44 px), no dot before any poll', tb);
+    ok(await pg.evaluate(() => document.getElementById('titleLinks').firstElementChild.id === 'hgChatBtn'), 'Chat is the first link (its dot stays on screen when the links wrap)', null);
     // the first closed poll (FIRST_MS after coming online): both channels, since 0
     await T.until(() => T.lists('world').length >= 1 && T.lists('c:GE').length >= 1, 6000);
     await pg.waitForTimeout(300);
@@ -195,6 +200,14 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     ok(await on(pg, '#hgChTabW .hgDot') && !(await on(pg, '#hgChTabC .hgDot')), 'a new world message while the country tab is open: a dot on the WORLD tab', null);
     await pg.locator('#hgChTabW').tap(); await pg.waitForTimeout(500);
     ok(!(await on(pg, '#hgChTabW .hgDot')) && (await rowsOf(pg)).slice(-1)[0].b === 'are you there?', 'back on WORLD: the message is there, the tab dot goes', null);
+
+    // a message the server hides for everyone (3 reports from others) while the chat is open: the next refresh from since 0 drops it
+    await pg.evaluate(() => { G.chat.FULL_MS = 4000; });
+    const nf = T.lists('world').length; M.reports.push(1, 1, 1);
+    await T.until(() => T.lists('world').slice(nf).some(c => c.body.since === 0), 8000); await pg.waitForTimeout(250);
+    const hf = await rowsOf(pg);
+    ok(!hf.some(r => r.b === 'Hello all') && hf.some(r => r.b === 'Bonjour') && hf.some(r => r.b === 'are you there?'), 'a message hidden for everyone (3 reports) leaves the open chat at the next refresh from since 0 (FULL_MS); the rest stays', { since: T.lists('world').slice(nf).map(c => c.body.since), rows: hf.map(r => r.b) });
+    await pg.evaluate(() => { G.chat.FULL_MS = 30000; });
 
     // report with the ⋯
     const marie = (await rowsOf(pg)).find(r => r.b === 'Bonjour');
@@ -299,6 +312,9 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     M.seed('world', 'Zed', 'BR', 'race you to the vault');
     await pg.evaluate(() => { G.chat.CLOSED_MS = 1000; G.chat.poll(); }); await pg.waitForTimeout(800);
     ok(await on(pg, '#hgChatHud .hgDot'), tag + ' round: a new message lights the dot on the HUD chat button', null);
+    const n1 = T.lists('world').length; await pg.waitForTimeout(3500);
+    const rw = T.lists('world').slice(n1).map(c => c.at), rg = rw.slice(1).map((t, i) => t - rw[i]);
+    ok(rw.length >= 1 && rg.every(d => d > 2500), tag + ' round: closed during a round, the unread poll runs every 3 × CLOSED_MS (60 s by default)', { n: rw.length, rg });
     await pg.screenshot({ path: path.join(SHOTS, 'gold_chat_hud_' + tag + '.png') });
 
     // the docked panel
@@ -313,7 +329,7 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     ok(D.on && D.dock && D.mode === 'dock' && D.rows > 0 && D.send.b <= D.p.b && D.send.r <= D.p.r && D.send.h >= 44 && D.inp.h >= 44 && !D.small, tag + ' round: the chat docks (messages, the input and SEND inside the panel, targets ≥ 44 px)', D);
     ok(!R(D.p, D.hero) && D.p.x >= 0 && D.p.r <= w && D.p.y >= 0 && D.p.b <= h, tag + ' round: the docked panel leaves the hero uncovered', { p: D.p, hero: D.hero });
     if (land) ok(D.p.x >= w * 0.55 && !R(D.p, D.sk), tag + ' round: landscape: a side panel on the right (≤ 45 % of the width), above the skill button; the left side is free', { left: D.p.x, w, sk: D.sk });
-    else ok(D.p.height <= h * 0.5 && D.p.y >= h * 0.5, tag + ' round: portrait: a bottom sheet at most half the height; the top half is free', D.p);
+    else ok(D.p.height <= h * 0.5 && D.p.y >= h * 0.5 && !R(D.p, D.sk), tag + ' round: portrait: a bottom sheet at most half the height, left of the skill button; the top half is free', { p: D.p, sk: D.sk });
     await pg.screenshot({ path: path.join(SHOTS, 'gold_chat_dock_' + tag + '.png') });
     await pg.waitForTimeout(1000);
     const t1 = await pg.evaluate(() => G.S.t);
@@ -331,11 +347,31 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     ok(ty.v === 'j k' && ty.cd === cd0, tag + ' round: typing J and space in the input does not use the skill', ty);
     await pg.locator('#hgChSend').tap(); await pg.waitForTimeout(400);
     ok(T.n('hg_chat_send').slice(-1)[0].body.body === 'j k' && (await rowsOf(pg)).slice(-1)[0].b === 'j k', tag + ' round: SEND works from the docked panel', null);
+    if (land) {   // the soft keyboard up: the WebView shrinks to the space above it
+      await pg.locator('#hgChIn').tap(); await pg.setViewportSize({ width: w, height: 170 }); await pg.waitForTimeout(250);
+      const KB = await pg.evaluate(() => { const p = document.getElementById('hgChat').getBoundingClientRect(), box = id => { const q = document.getElementById(id).getBoundingClientRect(); return { y: q.y, b: q.bottom, h: q.height, x: q.x, r: q.right }; };
+        const inside = q => q.y >= p.y - 0.5 && q.b <= p.bottom + 0.5 && q.x >= p.x - 0.5 && q.r <= p.right + 0.5 && q.h >= 44;
+        const i = box('hgChIn'), s = box('hgChSend');
+        return { p: { y: p.y, b: p.bottom, h: p.height }, inp: inside(i), send: inside(s), list: document.getElementById('hgChList').getBoundingClientRect().height, onScreen: s.b <= innerHeight, focus: document.activeElement && document.activeElement.id }; });
+      await pg.screenshot({ path: path.join(SHOTS, 'gold_chat_dock_keyboard_' + w + 'x170.png') });
+      ok(KB.inp && KB.send && KB.onScreen && KB.list >= 40 && KB.focus === 'hgChIn', tag + ' round: keyboard up (' + w + 'x170): the input and SEND (≥ 44 px) stay inside the docked panel, the list still shows', KB);
+      await pg.setViewportSize({ width: w, height: h }); await pg.waitForTimeout(250);
+      const KB2 = await pg.evaluate(() => ({ bar: getComputedStyle(document.querySelector('#hgChat .hgChBar')).display, x: document.getElementById('hgChX').getBoundingClientRect().height, sk: (() => { const p = document.getElementById('hgChat').getBoundingClientRect(), q = document.getElementById('sk').getBoundingClientRect(); return p.bottom <= q.top; })() }));
+      ok(KB2.bar !== 'none' && KB2.x >= 44 && KB2.sk, tag + ' round: the keyboard gone, the tabs and ✕ are back and the panel is above the skill button again', KB2);
+    }
     await pg.locator('#hgChList .hgCm:not(.me) .hgCmo').last().tap(); await pg.waitForTimeout(150);
     const DM = await pg.evaluate(() => { const p = document.getElementById('hgChat').getBoundingClientRect(); return { on: !document.getElementById('hgChMenu').hidden, btns: [...document.querySelectorAll('#hgChMenu button')].map(e => { const q = e.getBoundingClientRect(); return q.y >= p.y - 0.5 && q.bottom <= p.bottom + 0.5 && q.height >= 44; }) }; });
     ok(DM.on && DM.btns.every(Boolean), tag + ' round: the Report / Block menu fits inside the docked panel', DM);
     await pg.screenshot({ path: path.join(SHOTS, 'gold_chat_dock_menu_' + tag + '.png') });
     await pg.locator('#hgChCancel').tap();
+    // the skill button stays tappable with the chat open: a tap at its centre and near its top fires the skill, never the chat
+    for (const fy of [0.5, 0.25]) {
+      await pg.evaluate(() => { G.S.me.cd = 0; }); const skb = await pg.locator('#sk').boundingBox(), nSend = T.n('hg_chat_send').length;
+      const top = await pg.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); return e && (e.id || e.className); }, [skb.x + skb.width / 2, skb.y + skb.height * fy]);
+      await pg.touchscreen.tap(skb.x + skb.width / 2, skb.y + skb.height * fy); await pg.waitForTimeout(150);
+      const SK = await pg.evaluate(() => ({ fired: G.S.me.cd > G.S.t, menu: !document.getElementById('hgChMenu').hidden, open: G.chat.isOpen }));
+      ok(top === 'sk' && SK.fired && !SK.menu && SK.open && T.n('hg_chat_send').length === nSend, tag + ' round: with the chat docked, a tap on the skill button (' + (fy === 0.5 ? 'centre' : 'upper part') + ') fires the skill, opens no menu and sends nothing', { top, SK });
+    }
     // ✕, the HUD button again, then the round's end closes it
     await pg.locator('#hgChX').tap(); await pg.waitForTimeout(150);
     const cl = await pg.evaluate(() => document.getElementById('hgChat').classList.contains('on'));
@@ -397,6 +433,43 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     await pg.locator('#hgChPick').tap(); await pg.waitForTimeout(200);
     ok(await pg.evaluate(() => document.getElementById('hgProf').classList.contains('on') && !document.getElementById('hgChat').classList.contains('on')), 'its button closes the chat and opens the profile screen', null);
     ok(!T.errs.length && await errHidden(pg), 'no profile: no page errors, #err hidden', T.errs);
+    await T.ctx.close();
+  }
+
+  /* ---------- 6. more than a page (50) between two polls: no silent gap; a refresh keeps older stored messages ---------- */
+  {
+    const T = await setup(b); const { pg, M } = T;
+    await pg.locator('#hgChatBtn').tap(); await pg.waitForTimeout(500);
+    const r0 = await rowsOf(pg);
+    const after = async (since, from) => { await T.until(() => T.lists('world').slice(from).some(c => c.body.since === since), 8000); await pg.waitForTimeout(250); };
+    let n = T.lists('world').length;
+    for (let i = 1; i <= 80; i++) M.seed('world', 'Nika', 'GE', 'bulk ' + i);   // ids 7..86 (the 6 base messages first)
+    await after(6, n);
+    const r1 = await rowsOf(pg);
+    ok(r0.length === 5 && r1.length === 50 && r1[0].b === 'bulk 31' && r1[49].b === 'bulk 80' && !r1.some(r => r.b === 'Hello all'),
+      '80 new messages between two polls: the since poll gets the newest 50 and they replace the list (bulk 31..80, nothing older glued on in front)', { before: r0.length, n: r1.length, first: r1[0] && r1[0].b, last: r1[49] && r1[49].b });
+    n = T.lists('world').length;
+    for (let i = 1; i <= 30; i++) M.seed('world', 'Luka', 'GE', 'more ' + i);   // ids 87..116
+    await after(86, n);
+    const r2 = await rowsOf(pg);
+    ok(r2.length === 80 && r2[0].b === 'bulk 31' && r2[79].b === 'more 30', 'a short page (30) is joined on as usual: 80 messages', { n: r2.length, first: r2[0].b, last: r2[79].b });
+    n = T.lists('world').length; await pg.evaluate(() => { G.chat.FULL_MS = 1500; });
+    await after(0, n);
+    await pg.evaluate(() => { document.querySelector('#hgChList .hgCm').dataset.keep = '1'; });
+    const r3 = await rowsOf(pg);
+    ok(r3.length === 80 && r3[0].b === 'bulk 31' && r3[79].b === 'more 30', 'the refresh from since 0 (the newest 50) reaches back to what is stored, so the 30 older messages stay', { n: r3.length, first: r3[0].b });
+    n = T.lists('world').length; await after(0, n);
+    ok(await pg.evaluate(() => (document.querySelector('#hgChList .hgCm') || { dataset: {} }).dataset.keep === '1'), 'a refresh with nothing new rebuilds nothing (the rows stay the same elements)', null);
+    const m5 = M.msgs.find(m => m.body === 'more 5'); M.reports.push(m5.id, m5.id, m5.id);
+    n = T.lists('world').length; await after(0, n);
+    const r4 = await rowsOf(pg);
+    ok(r4.length === 79 && !r4.some(r => r.b === 'more 5') && r4[0].b === 'bulk 31', 'a message hidden for everyone inside the refreshed page goes; the older stored ones stay', { n: r4.length });
+    await pg.evaluate(() => { G.chat.FULL_MS = 30000; });
+    await pg.locator('#hgChX').tap(); await pg.waitForTimeout(150);
+    n = T.lists('world').length; await pg.locator('#hgChatBtn').tap(); await after(0, n);
+    const want = M.msgs.filter(m => m.channel === 'world' && M.reports.filter(r => r === m.id).length < 3).slice(-50).map(m => m.body), r5 = (await rowsOf(pg)).map(r => r.b);
+    ok(r5.length === 50 && r5.join('|') === want.join('|'), 'opening again shows exactly the server\'s newest 50 (the open refresh replaces what is stored)', { n: r5.length, first: r5[0], want: want[0] });
+    ok(!T.errs.length && await errHidden(pg), 'gap run: no page errors, #err hidden', T.errs);
     await T.ctx.close();
   }
 
