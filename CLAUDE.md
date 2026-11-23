@@ -85,6 +85,7 @@ CHROMIUM_PATH=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome node tests/rp
   `backend/test/v40b_test.py`; all 10 `rpg_*` hashes equal the files. Telegram: test 1 released (PR #51 beta, #52 root); test 2 (PR #53, #54), test 2.1 (PR #55, #56: the hero's back view fix) and test 3 (PR #57, #58: visible spell effects, dungeon crash, clean seat spawns, talents saved) the same day.
   Test 4: mob temper (most field mobs passive/yellow until hit, about one in five aggressive/red within 230 units; bosses, elites, events, dungeons red).
   Test 5: **the game is horizontal** (`src/rpg/ARCH.md` Addendum 3: an upright phone turns `#app` 90°, `R.pt` / `R.rect`, `--vw` / `--vh`, `q-*` classes instead of size media queries; tests at 844×390, `t_landscape.js`).
+- **2026-11-23: the owner took the game down.** The root `index.html` and `beta/index.html` are a placeholder page (`src/soon/index.html`, PR #64 / #65); the RPG sources stay in `src/rpg/` (rebuild with `python3 src/build_rpg.py`). Next: a new simple arena game (working name "Heavy Gold": the lighter player robs the heavier one, a fixed gold supply, mythological gods as heroes), on the same repo and bot.
 - The TD game's sources stay in `src/` as an archive, buildable with `python3 src/build.py <path>` → a path of your
   choice, never `beta/`. Its docs are history; `docs/build-backlog.md` keeps every TD version's section.
 - Next: v2.0.1 hotfixes from the first day → v2.1 guilds + co-op boss raids → v2.2 PvP duels (Crownlands arena) →
