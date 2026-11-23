@@ -1,9 +1,10 @@
 // tests/gold/t_ladder.js — Heavy Gold country ladder + crowns (src/gold/js/36_ladder.js, crowns in 30_board.js), against a mocked server:
-// GOLD.md "UI rules": the ⚔ Ladder icon (.ib) in #titleLinks with a badge "#5▲" (the place; ▲ you lead, ▼ you trail; no text line on
-// the title), the same icon in the board's header; the ladder screen: "LADDER", "⏳ 3 d 4 h", the player's duel pinned
-// ("🇬🇪 #5 · vs 🇹🇷 #4 · 120 : 98 ▲"), countries by position with flag, name, "👤 2 · 🤖 3", score; this week's pairs with the VS
-// line ("🇺🇸 leads", "Tie · 🇧🇷 holds"); "Rest" rows (#1 on an odd week, an unpaired last); the player's country highlighted; a tap
-// shows "🤖 bot1 · bot2 · bot3 · 7 rounds"; last week compact ("🇬🇪 ▲ 95 : 70 🇧🇷"); every visible text short; the end line in
+// GOLD.md "UI rules": the ⚔ Ladder icon (.ib) in #titleLinks right after 💬 Chat, with a badge "#5" and a dot (green you lead, red you
+// trail, gold a tie; no text line on the title), the same icon in the board's header; the ladder screen: "LADDER", "⏳ 3 d 4 h", the
+// player's duel "🇬🇪 120 : 98 🇹🇷 +22" pinned only in landscape (in portrait it would repeat the highlighted pair), countries by
+// position with flag, name, "👤 2", an integer score (the leader's in gold); a "VS" chip between a pair ("=" on a tie); "👤 9 · Rest"
+// rows (#1 on an odd week, an unpaired last) with no extra band; the player's country highlighted; a tap shows "🤖 bot1 · bot2 ·
+// bot3 · 7 rounds"; last week "🇬🇪 95 : 70 🇧🇷 ▲" (▲ moved up, at the end; the only arrow); every visible text short; the end line "⚔ 🇬🇪 135 : 98 🇹🇷 +37" in
 // #endExtra from a fresh hg_ladder asked after hg_round_submit answered (30_board's 'submitted'); the other leads and ties, nothing
 // in a rest week or offline; crowns (👑 on the podium, the board, a crown drawn above the hero when his own row on the 'last' board is
 // crowned, with no extra call); a phone clock ahead of the server at the week's end (no ask loop) and a real week end (one ask); no
@@ -107,10 +108,10 @@ const LADDER = () => {
   const scr = document.getElementById('lgLadder'), rr = s => { const e = typeof s === 'string' ? document.querySelector(s) : s; if (!e) return null; const q = e.getBoundingClientRect(); return { t: Math.round(q.top), b: Math.round(q.bottom), l: Math.round(q.left), r: Math.round(q.right), h: Math.round(q.height), w: Math.round(q.width) }; };
   const cards = [...document.querySelectorAll('#lgBody .lgDuel')].map(c => ({ pair: c.dataset.pair, mine: c.classList.contains('mine'), rest: c.classList.contains('rest'),
     rows: [...c.querySelectorAll('.lgRow')].map(r => ({ cc: r.dataset.cc, pos: r.querySelector('.k').textContent, fl: r.querySelector('.fl').textContent, n: r.querySelector('.n').textContent, m: r.querySelector('.m').textContent, sc: r.querySelector('.sc').textContent, me: r.classList.contains('me') })),
-    vs: (c.querySelector('.lgVs') || {}).textContent }));
+    vs: (c.querySelector('.lgVs') || {}).textContent, lead: [...c.querySelectorAll('.lgRow .sc.lead')].map(e => e.closest('.lgRow').dataset.cc).join() }));
   const small = [...scr.querySelectorAll('button')].filter(e => e.offsetParent).map(e => e.getBoundingClientRect()).filter(q => q.height < 44 || q.width < 44).length;
   const cut = [...scr.querySelectorAll('.lgRow,.lgVs,.lgMine,.lgLastR')].filter(e => e.offsetParent && e.scrollWidth > e.clientWidth + 1).length;
-  return { on: scr.classList.contains('on'), title: scr.querySelector('h2').textContent, top: getComputedStyle(scr).zIndex, ends: document.getElementById('lgEnds').textContent, mine: document.getElementById('lgMine').hidden ? null : document.getElementById('lgMine').textContent,
+  return { on: scr.classList.contains('on'), title: scr.querySelector('h2').textContent, top: getComputedStyle(scr).zIndex, ends: document.getElementById('lgEnds').textContent, mine: document.getElementById('lgMine').hidden ? null : document.getElementById('lgMine').textContent, mineShown: !!document.getElementById('lgMine').offsetParent,
     body: document.getElementById('lgBody').textContent, cards, last: [...document.querySelectorAll('#lgLastWeek .lgLastR')].map(e => e.textContent),
     close: rr('#lgClose'), list: rr('#lgBody'), meRow: rr('#lgBody .lgRow.me'), scroll: scr.scrollHeight - scr.clientHeight, wide: document.documentElement.scrollWidth - window.innerWidth, small, cut,
     xss: window.__xss === 1 || !!scr.querySelector('img') };
@@ -133,8 +134,10 @@ async function playRound(pg) {
     const T = await setup(b, { w: 390, h: 844 }); const { pg } = T;
     await pg.waitForFunction(() => !document.getElementById('lgBadge').hidden && !!document.getElementById('hgPod'), null, { timeout: 4000 }).catch(() => {});
     const L0 = await badge(pg);
-    ok(L0 && L0.text === '#5▲' && /\bup\b/.test(L0.cls) && L0.inBtn === 'lgBtn' && L0.noLine, 'the title: no ladder line, a badge "#5▲" on the ⚔ icon (green: you lead)', L0);
-    ok(L0 && L0.full === '🇬🇪 #5 · vs 🇹🇷 #4 · 120 : 98 ▲', 'the duel line (the ladder and the end screen): "🇬🇪 #5 · vs 🇹🇷 #4 · 120 : 98 ▲"', L0 && L0.full);
+    ok(L0 && L0.text === '#5' && /\bup\b/.test(L0.cls) && L0.inBtn === 'lgBtn' && L0.noLine, 'the title: no ladder line, a badge "#5" with a green dot on the ⚔ icon (you lead)', L0);
+    ok(L0 && L0.full === '⚔ 🇬🇪 120 : 98 🇹🇷 +22', 'the duel line (the end screen): "⚔ 🇬🇪 120 : 98 🇹🇷 +22" (the margin, no arrow)', L0 && L0.full);
+    ok(await pg.evaluate(() => { const b = document.getElementById('lgBtn'), c = document.getElementById('hgChatBtn');
+      return c && c.nextElementSibling === b && getComputedStyle(document.getElementById('lgBadge')).fontSize === '12px' && getComputedStyle(document.getElementById('lgBadge'), '::after').content === '""'; }), 'the ⚔ icon sits right after 💬 Chat (first row of the links); the badge is 12 px with its dot', null);
     ok(T.n('hg_ladder').length === 1 && T.n('hg_ladder')[0].body.token === TOKEN, 'one hg_ladder(token) call at boot', { calls: T.n('hg_ladder').length });
     const pod = await pg.evaluate(() => [...document.querySelectorAll('#hgPod .hgPl')].map(e => ({ r: +e.dataset.rank, t: e.querySelector('.nm').textContent, cr: !!e.querySelector('.nm .hgCr'), first: e.querySelector('.nm').firstElementChild.className })));
     const p1 = pod.find(p => p.r === 1) || {};
@@ -154,14 +157,14 @@ async function playRound(pg) {
     ok(rows.map(r => r.pos + r.fl + r.n).join('|') === '#1🇫🇷👑 France|#2🇯🇵Japan|#3🇺🇸United States|#4🇹🇷Türkiye|#5🇬🇪Georgia|#6🇧🇷Brazil|#7🇩🇪Germany|#8🇺🇦Ukraine',
       'every country by position with its flag and name; 👑 on #1 (the champion country)', rows.map(r => r.pos + r.fl + r.n));
     const ge = rows.find(r => r.cc === 'GE'), fr = rows.find(r => r.cc === 'FR'), tr = rows.find(r => r.cc === 'TR'), ua = rows.find(r => r.cc === 'UA'), jp = rows.find(r => r.cc === 'JP');
-    ok(ge.m === '👤 2 · 🤖 3' && fr.m === '👤 9' && tr.m === '👤 1 · 🤖 4' && ua.m === '👤 0 · 🤖 5', 'members: "👤 N · 🤖 M" (real players, then bots as a number, never named until opened)', [ge.m, fr.m, tr.m, ua.m]);
-    ok(ge.sc === '120' && jp.sc === '150.25' && fr.sc === '310.5' && ua.sc === '0', "each country's score this week (the server's number, up to 2 decimals)", [ge.sc, jp.sc, fr.sc, ua.sc]);
+    ok(ge.m === '👤 2' && fr.m === '👤 9 · Rest' && tr.m === '👤 1' && ua.m === '👤 0 · Rest', 'members: "👤 N" only (the bots only when opened); "· Rest" without a duel', [ge.m, fr.m, tr.m, ua.m]);
+    ok(ge.sc === '120' && jp.sc === '150' && rows.find(r => r.cc === 'US').sc === '151' && fr.sc === '311' && ua.sc === '0', "each country's score as an integer (150.25 vs 151 → 150 : 151)", [ge.sc, jp.sc, fr.sc, ua.sc]);
     const vs = S.cards.map(c => c.vs);
-    ok(vs[1] === 'VS🇺🇸 leads' && vs[2] === 'VS🇬🇪 leads' && vs[3] === 'VSTie · 🇧🇷 holds', 'the VS lines: who leads, as a flag (a tie keeps the higher place: "Tie · 🇧🇷 holds")', vs);
-    ok(vs[0] === 'Rest' && vs[4] === 'Rest' && S.cards[0].rest && S.cards[4].rest, 'the rest rows say "Rest"', [vs[0], vs[4]]);
-    ok(ge.me && rows.filter(r => r.me).length === 1 && S.cards[2].mine && S.mine === '🇬🇪 #5 · vs 🇹🇷 #4 · 120 : 98 ▲', "the player's country highlighted, its duel marked, the same line pinned above the list", { me: rows.filter(r => r.me).map(r => r.cc), mine: S.mine });
-    ok(S.last.join(' | ') === '🇫🇷 200 : 150 🇯🇵 | 🇺🇸 = 90 : 90 🇹🇷 | 🇬🇪 ▲ 95 : 70 🇧🇷 | 🇩🇪 40 : 10 🇺🇦',
-      "last week's results under the list: the winner first (▲ moved up, = held on a tie)", S.last);
+    ok(vs[1] === 'VS' && vs[2] === 'VS' && vs[3] === '=' && S.cards[1].lead === 'US' && S.cards[2].lead === 'GE' && S.cards[3].lead === 'BR', 'a "VS" chip between a pair ("=" on a tie), the leading score marked (a tie: the higher place, 🇧🇷)', S.cards.map(c => [c.vs, c.lead]));
+    ok(vs[0] === undefined && vs[4] === undefined && S.cards[0].rest && S.cards[4].rest, 'the rest rows have no extra band', [vs[0], vs[4]]);
+    ok(ge.me && rows.filter(r => r.me).length === 1 && S.cards[2].mine && S.mine === '🇬🇪 120 : 98 🇹🇷 +22' && !S.mineShown, "the player's country highlighted, its duel marked; the pinned line is hidden in portrait (it repeats the pair)", { me: rows.filter(r => r.me).map(r => r.cc), mine: S.mine, shown: S.mineShown });
+    ok(S.last.join(' | ') === '🇫🇷 200 : 150 🇯🇵 | 🇺🇸 90 : 90 🇹🇷 | 🇬🇪 95 : 70 🇧🇷 ▲ | 🇩🇪 40 : 10 🇺🇦',
+      "last week: the winner first, ▲ at the end only when the lower one moved up", S.last);
     ok(!/bot1/.test(S.body), 'the bots are not named while the rows are closed', null);
     await pg.locator('#lgBody .lgRow[data-cc="GE"]').tap(); await pg.waitForTimeout(150);
     const ex = await pg.evaluate(() => { const r = document.querySelector('#lgBody .lgRow[data-cc="GE"]'), e = r.querySelector('.ex'); return { open: r.classList.contains('open'), aria: r.getAttribute('aria-expanded'), text: e.textContent, shown: getComputedStyle(e).display !== 'none', others: document.querySelectorAll('#lgBody .lgRow.open').length }; });
@@ -192,12 +195,12 @@ async function playRound(pg) {
     await pg.waitForFunction(() => { const e = document.getElementById('lgEnd'); return e && e.isConnected && e.textContent; }, null, { timeout: 5000 }).catch(() => {});
     const E = await pg.evaluate(() => { const e = document.getElementById('lgEnd'), w = document.getElementById('hgEnd'); return { text: e && e.isConnected ? e.innerText : null, parent: e && e.parentNode && e.parentNode.id, afterWeek: !!w && w.nextElementSibling === e }; });
     const sub = T.M.calls.findIndex(c => c.name === 'hg_round_submit'), lad = T.M.calls.map((c, i) => [c, i]).filter(([c, i]) => c.name === 'hg_ladder' && i > sub);
-    ok(R.over && R.conserved && !atEnd && E.text === '🇬🇪 #5 · vs 🇹🇷 #4 · 135 : 98 ▲' && E.parent === 'endExtra' && E.afterWeek,
+    ok(R.over && R.conserved && !atEnd && E.text === '⚔ 🇬🇪 135 : 98 🇹🇷 +37' && E.parent === 'endExtra' && E.afterWeek,
       'the end line in #endExtra (right under the week line), with the score after this round', { E, atEnd });
     ok(sub >= 0 && lad.length === 1 && T.M.calls[lad[0][1]].t >= T.M.calls[sub].t + 200, 'it is asked once, after hg_round_submit has answered', { sub, after: lad.length });
     await pg.screenshot({ path: path.join(SHOTS, 'gold_ladder_end_390.png') });
     await pg.locator('#change').tap(); await pg.waitForTimeout(500);
-    { const B1 = await badge(pg); ok(B1 && B1.text === '#5▲' && B1.full === '🇬🇪 #5 · vs 🇹🇷 #4 · 135 : 98 ▲', 'back on the title, the badge stays "#5▲" and the data has the new score', B1); }
+    { const B1 = await badge(pg); ok(B1 && B1.text === '#5' && /\bup\b/.test(B1.cls) && B1.full === '⚔ 🇬🇪 135 : 98 🇹🇷 +37', 'back on the title, the badge stays "#5" (green) and the data has the new score', B1); }
     await pg.locator('#play').tap(); await pg.waitForTimeout(100);
     ok(!(await pg.evaluate(() => !!document.getElementById('lgEnd'))), 'a new round clears the end line', null);
     await pg.evaluate(() => { let g = 0; while (!G.S.over && g++ < 100000) G.step(60); });
@@ -213,18 +216,21 @@ async function playRound(pg) {
     const t1 = await badge(pg);
     M.lad = { ge: 98 }; await pg.evaluate(() => G.ladder.refresh(true)); await pg.waitForTimeout(300); const t2 = await badge(pg);
     M.lad = { ge: 98, geHigh: true }; await pg.evaluate(() => G.ladder.refresh(true)); await pg.waitForTimeout(300); const t3 = await badge(pg);
-    ok(t1 && t1.full === '🇬🇪 #5 · vs 🇹🇷 #4 · 80 : 98 ▼' && t1.text === '#5▼' && /\bdown\b/.test(t1.cls), 'the rival leads: "80 : 98 ▼", the badge "#5▼" (red)', t1);
-    ok(t2 && t2.full === '🇬🇪 #5 · vs 🇹🇷 #4 · 98 : 98 ▼' && t2.text === '#5▼' && /\btie\b/.test(t2.cls), 'a tie keeps the higher place (Türkiye, #4): "98 : 98 ▼", the badge "#5▼" (gold: a tie)', t2);
-    ok(t3 && t3.full === '🇬🇪 #4 · vs 🇹🇷 #5 · 98 : 98 ▲' && t3.text === '#4▲' && /\btie\b/.test(t3.cls), 'tied from above: Georgia holds #4: "98 : 98 ▲", the badge "#4▲"', t3);
+    ok(t1 && t1.full === '⚔ 🇬🇪 80 : 98 🇹🇷 −18' && t1.text === '#5' && /\bdown\b/.test(t1.cls), 'the rival leads: "80 : 98 🇹🇷 −18", the badge "#5" (red dot)', t1);
+    ok(t2 && t2.full === '⚔ 🇬🇪 98 : 98 🇹🇷 =' && t2.text === '#5' && /\btie\b/.test(t2.cls), 'a tie: "98 : 98 🇹🇷 =", the badge "#5" (gold dot)', t2);
+    ok(t3 && t3.full === '⚔ 🇬🇪 98 : 98 🇹🇷 =' && t3.text === '#4' && /\btie\b/.test(t3.cls), 'tied from above: Georgia #4, "=", the badge "#4"', t3);
+    M.lad = { ge: 98.4 }; await pg.evaluate(() => G.ladder.refresh(true)); await pg.waitForTimeout(300); const t4 = await badge(pg);
+    ok(t4 && t4.full === '⚔ 🇬🇪 98.4 : 98 🇹🇷 +0.4' && /\bup\b/.test(t4.cls), 'scores that would round equal get one decimal: "98.4 : 98 … +0.4"', t4);
+    M.lad = { ge: 98, geHigh: true }; await pg.evaluate(() => G.ladder.refresh(true)); await pg.waitForTimeout(300);
     await pg.locator('#lgBtn').tap(); await pg.waitForTimeout(400);
     const S3 = await pg.evaluate(LADDER);
-    ok(S3.cards.map(c => c.pair).join() === '1,2-3,4-5,6-7,8' && S3.cards[2].rows.map(r => r.cc).join() === 'GE,TR' && S3.cards[2].vs === 'VSTie · 🇬🇪 holds', 'Georgia above Türkiye: the pair (4-5) with Georgia on top, the tie holds for Georgia', S3.cards[2]);
+    ok(S3.cards.map(c => c.pair).join() === '1,2-3,4-5,6-7,8' && S3.cards[2].rows.map(r => r.cc).join() === 'GE,TR' && S3.cards[2].vs === '=' && S3.cards[2].lead === 'GE', 'Georgia above Türkiye: the pair (4-5) with Georgia on top, "=", the tie holds for Georgia (its score marked)', S3.cards[2]);
     await pg.locator('#lgClose').tap();
     M.lad = { rest: true }; await pg.evaluate(() => G.ladder.refresh(true)); await pg.waitForTimeout(300);
     { const B = await badge(pg); ok(B && B.text === '#1' && B.cls === 'lgBadge' && B.full === '', 'the rest week: the badge shows only the place "#1", no duel line', B); }
     await pg.locator('#lgBtn').tap(); await pg.waitForTimeout(400);
     const S4 = await pg.evaluate(LADDER);
-    ok(S4.mine === '🇬🇪 #1 · Rest' && S4.cards[0].rest && S4.cards[0].mine && S4.cards[0].rows[0].n === '👑 Georgia' && S4.cards[0].rows[0].me && S4.cards[1].vs === 'VS🇫🇷 leads',
+    ok(S4.mine === '🇬🇪 #1 · Rest' && S4.cards[0].rest && S4.cards[0].mine && S4.cards[0].rows[0].n === '👑 Georgia' && S4.cards[0].rows[0].me && S4.cards[1].vs === 'VS' && S4.cards[1].lead === 'FR',
       'the rest week on the ladder: "🇬🇪 #1 · Rest", its row crowned and highlighted, the others duel', { mine: S4.mine, c0: S4.cards[0], vs: S4.cards[1].vs });
     await pg.screenshot({ path: path.join(SHOTS, 'gold_ladder_rest_390.png') });
     await pg.locator('#lgClose').tap();
@@ -305,19 +311,24 @@ async function playRound(pg) {
     await pg.waitForFunction(() => !document.getElementById('lgBadge').hidden && !!document.getElementById('hgPod'), null, { timeout: 4000 }).catch(() => {});
     const L = await badge(pg), play = await pg.locator('#play').boundingBox(), wide = await pg.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     const TL = await pg.evaluate(() => { const r = id => { const e = document.getElementById(id); if (!e || !e.offsetParent) return null; const q = e.getBoundingClientRect(); return { t: Math.round(q.top), b: Math.round(q.bottom), l: Math.round(q.left), r: Math.round(q.right) }; };
-      return { links: r('titleLinks'), btn: r('lgBtn') }; });
-    ok(L && L.text === '#5▲' && L.noLine && TL.btn && L.t >= TL.btn.t - 8 && L.r <= TL.btn.r + 10 && L.l >= 0 && L.r <= w && wide <= 0, tag + 'no title line; the badge sits on the ⚔ icon, inside the screen', { L, TL });
+      return { links: r('titleLinks'), btn: r('lgBtn'), chat: r('hgChatBtn') }; });
+    ok(L && L.text === '#5' && L.noLine && TL.btn && L.t >= TL.btn.t - 8 && L.r <= TL.btn.r + 10 && L.l >= 0 && L.r <= w && wide <= 0, tag + 'no title line; the badge sits on the ⚔ icon, inside the screen', { L, TL });
     { const F = await fitOwn(pg, 'title', ['titleExtra', 'titleLinks'], ['lgBtn'], ['helpB']);
       ok(F.own <= Math.max(1, F.core) && F.row === 1 && (F.core > 1 || F.mine.every(q => q.t >= 0 && q.b <= h && q.l >= 0 && q.r <= w)), tag + 'the ⚔ icon adds no scroll to the title, in one row with Rules (on screen where the core fits)', F);
       console.log('INFO ' + tag + 'the title scrolls ' + F.all + ' px with every module, ' + F.core + ' px with the core alone'); }
     if (h > 800) ok(TL.links && TL.links.b <= h && TL.btn && TL.btn.b <= h, tag + 'the links (⚔ Ladder, Sound…) on screen with the podium and the banner', TL);
     ok(play.y >= 0 && play.y + play.height <= h, tag + 'PLAY on screen with the podium', play);
+    ok(TL.btn && TL.chat && TL.btn.t === TL.chat.t && TL.btn.b <= h + Math.max(0, TL.chat.b - h), tag + 'the ⚔ icon is in the first link row, next to 💬 Chat (on screen wherever the first row is)', TL);
     await pg.screenshot({ path: path.join(SHOTS, 'gold_ladder_title_' + w + '.png') });
     await pg.locator('#lgBtn').scrollIntoViewIfNeeded(); await pg.locator('#lgBtn').tap(); await pg.waitForTimeout(400);
+    await pg.screenshot({ path: path.join(SHOTS, 'gold_ladder_closed_' + w + '.png') });
     await pg.locator('#lgBody .lgRow[data-cc="GE"]').tap(); await pg.waitForTimeout(150);
     const S = await pg.evaluate(LADDER);
     ok(S.close.b <= h && S.close.h >= 44 && S.list.h >= 60 && S.scroll <= 1 && S.wide <= 0 && S.small === 0 && S.cut === 0,
       tag + 'the ladder fits (CLOSE on screen, list ≥ 60 px, no page scroll, targets ≥ 44 px, nothing cut)', { close: S.close, list: S.list, scroll: S.scroll, small: S.small, cut: S.cut });
+    if (w > h) { const LC = await pg.evaluate(() => { const r = id => document.getElementById(id).getBoundingClientRect(), m = r('lgMine'), l = r('lgLastWeek'), b = r('lgBody'), c = r('lgClose');
+        return { m: [Math.round(m.left), Math.round(m.right), Math.round(m.bottom)], l: [Math.round(l.left), Math.round(l.right), Math.round(l.top), Math.round(l.bottom)], b: Math.round(b.left), c: Math.round(c.top), n: document.querySelectorAll('#lgLastWeek .lgLastR').length }; });
+      ok(S.mineShown && S.mine === '🇬🇪 120 : 98 🇹🇷 +22' && LC.m[1] <= LC.b && LC.l[1] <= LC.b && LC.l[2] >= LC.m[2] && LC.l[3] <= LC.c + 1 && LC.n === 4, tag + 'landscape: the duel line and last week fill the left column above CLOSE (the list on the right)', LC); }
     ok(S.meRow && S.meRow.t >= S.list.t - 1 && S.meRow.b <= S.list.b + 1, tag + "the player's country is scrolled into view", { me: S.meRow, list: S.list });
     await pg.screenshot({ path: path.join(SHOTS, 'gold_ladder_' + w + '.png') });
     await pg.locator('#lgClose').tap();

@@ -314,6 +314,9 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     await pg.locator('#hgChList .hgCm:not(.me) .hgCmo').last().tap(); await pg.waitForTimeout(150);
     const MF = await pg.evaluate(() => { const m = document.getElementById('hgChMenu'), r = m.getBoundingClientRect(); return { on: !m.hidden, b: r.bottom, btns: [...m.querySelectorAll('button')].map(e => { const q = e.getBoundingClientRect(); return [Math.round(q.y), Math.round(q.bottom), Math.round(q.height)]; }) }; });
     ok(MF.on && MF.btns.every(x => x[0] >= 0 && x[1] <= h && x[2] >= 44), tag + ' title: the Report / Block menu fits on screen (buttons ≥ 44 px)', MF);
+    { const SH = await pg.evaluate(() => { const m = document.getElementById('hgChMenu').getBoundingClientRect(), l = document.getElementById('hgChList').getBoundingClientRect(), b = [...document.querySelectorAll('#hgChMenu .hgChActs button')].map(e => Math.round(e.getBoundingClientRect().top));
+        return { above: Math.round(m.top - l.top), mb: Math.round(m.bottom), lb: Math.round(l.bottom), row: new Set(b).size, h2: !!document.querySelector('#hgChat h2') }; });
+      ok(SH.above >= 40 && SH.row === 1 && !SH.h2, tag + ' title: the menu is a bottom sheet (the messages stay in view above it, its 3 buttons in one row); no CHAT title (the tabs say it)', SH); }
     await pg.locator('#hgChCancel').tap();
     await pg.locator('#hgChTabC').tap(); await pg.waitForTimeout(500); await pg.locator('#hgChTabW').tap(); await pg.waitForTimeout(300);   // both channels seen
     await pg.locator('#hgChX').tap(); await pg.waitForTimeout(150);
@@ -354,6 +357,8 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     ok(!R(D.p, D.hero) && D.p.x >= 0 && D.p.r <= w && D.p.y >= 0 && D.p.b <= h, tag + ' round: the docked panel leaves the hero uncovered', { p: D.p, hero: D.hero });
     if (land) ok(D.p.x >= w * 0.55 && !R(D.p, D.sk), tag + ' round: landscape: a side panel on the right (≤ 45 % of the width), above the skill button; the left side is free', { left: D.p.x, w, sk: D.sk });
     else ok(D.p.height <= h * 0.5 && D.p.y >= h * 0.5 && !R(D.p, D.sk), tag + ' round: portrait: a bottom sheet at most half the height, left of the skill button; the top half is free', { p: D.p, sk: D.sk });
+    { const tr = await pg.evaluate(() => { const q = document.getElementById('hTR').getBoundingClientRect(); return { x: q.x, y: q.y, width: q.width, height: q.height }; });
+      ok(!R(D.p, tr), tag + ' round: the docked panel leaves the live board (#hTR, the top 4) uncovered', { p: D.p, tr }); }
     await pg.screenshot({ path: path.join(SHOTS, 'gold_chat_dock_' + tag + '.png') });
     await pg.waitForTimeout(1000);
     const t1 = await pg.evaluate(() => G.S.t);

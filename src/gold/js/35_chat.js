@@ -2,13 +2,13 @@
    - Buttons: a 💬 "Chat" icon button (.ib), the first link in #titleLinks, and during a round a round 44 px button in #hudExtra on the right, under the live board
      (#hTR; clear of the clock, the board, the skill button, the minimap and the day chip at 390×844, 844×390 and 640×360).
      A red dot on both when a channel has a message from someone else newer than the last one this player saw.
-   - The panel (GOLD.md "UI rules": icons and 1–3 words): two tabs, 🌍 World and the player's country (flag + name); each message
+   - The panel (GOLD.md "UI rules": icons and 1–3 words; no title, the tabs say it): two tabs, 🌍 World and the player's country (flag + name); each message
      shows the flag, the name (👑 for last week's champion), the text and a short time (HH:MM today, "21 Nov" before); an input
      ("Message", 200 characters at most) with ➤ (send, the screen's one primary button) and a 1–3 word line for each error
      ('rate' → "Too fast", 'too_long' → "Too long", 'auth' → "Not signed in", no network → "Offline").
      · On the title (no round): a full screen (.scr, z 20).
      · During a round the game keeps running, so the panel docks: a bottom sheet (42 % of the height, left of the skill button) in
-       portrait, a side panel (≤ 40 % of the width, above the skill button) on the right in landscape. The hero at the centre, the
+       portrait, a side panel (≤ 40 % of the width, under the live board #hTR, above the skill button) on the right in landscape. The hero at the centre, the
        skill button and the free side stay uncovered, so the drag-anywhere joystick still works there. The round's end closes it.
        Landscape with the keyboard up (≤ 300 px tall): while typing, the panel drops its tabs and ✕ so the input and SEND show.
    - Server (G.net.rpc): hg_chat_list(token, channel, since) every 3 s for the open tab (the first call of each open, and one every
@@ -17,7 +17,7 @@
      (since-based) for the unread dot. An answer of a full page (50) after since may have skipped older messages, so it replaces
      what is stored instead of being joined onto it (no silent gap). hg_chat_send(token, channel, body).
      channel = 'world' or 'c:XX' (XX = G.profile.country).
-   - A long press (or the ⋯ on a message from someone else) offers Report (hg_chat_report(token, id): hidden for this player at once)
+   - A long press (or the ⋯ on a message from someone else) opens a bottom sheet over the list (the message quoted) with ⚑ Report (hg_chat_report(token, id): hidden for this player at once)
      and Block (hg_chat_block(token, name): that name's messages go).
    - Offline (no Telegram): "Open in Telegram", nothing is sent and the round has no chat button.
    - Every user text (names, bodies) goes into the page with textContent; this file never uses innerHTML. Only id, name, country,
@@ -143,8 +143,7 @@
   css.textContent = [
     '#hgChat.full{background:var(--bg,#070c16);z-index:20}',
     '.hgCh{flex:1 1 auto;min-height:0;width:min(100%,640px);display:flex;flex-direction:column;gap:8px;position:relative}',
-    '.hgChBar{display:grid;grid-template-columns:minmax(0,1fr) 44px;grid-template-areas:"h x" "tabs tabs";gap:8px;align-items:center}',
-    '.hgChBar h2{grid-area:h;margin:0;font:900 20px/1.2 Georgia,serif;letter-spacing:.08em;color:var(--gold,#e8b84a)}',
+    '.hgChBar{display:grid;grid-template-columns:minmax(0,1fr) 44px;grid-template-areas:"tabs x";gap:8px;align-items:center;min-height:44px}',
     '.hgChTabs{grid-area:tabs;display:flex;min-width:0;border:2px solid rgba(255,255,255,.18);border-radius:12px;overflow:hidden}.hgChTabs[hidden]{display:none}',
     '.hgChTab{flex:1 1 0;min-width:0;min-height:44px;border:0;background:transparent;color:var(--ink,#f3e7c4);font:700 14px Georgia,serif;letter-spacing:.06em;cursor:pointer;padding:0 8px;display:flex;align-items:center;justify-content:center;gap:6px}',
     '.hgChTab+.hgChTab{border-left:2px solid rgba(255,255,255,.12)}.hgChTab.on{background:rgba(232,184,74,.22);color:var(--gold,#e8b84a)}',
@@ -167,9 +166,10 @@
     '.hgChIn{flex:1 1 auto;min-width:0;min-height:44px;border-radius:12px;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:var(--ink,#f3e7c4);font:16px Georgia,serif;padding:0 12px;outline:none;user-select:text;-webkit-user-select:text;touch-action:manipulation}',
     '.hgChIn:focus{border-color:var(--gold,#e8b84a)}.hgChIn::placeholder{color:#6f7d92}',
     '.hgChForm .pri{width:auto;min-width:56px;min-height:44px;flex:none;padding:0 14px;font-size:20px;letter-spacing:0;box-shadow:none}.hgChForm .pri:disabled{opacity:.6}',
-    '.hgChMenu{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:#0a0f1a;border-radius:12px;padding:8px}.hgChMenu[hidden]{display:none}',
+    /* report / block: a bottom sheet over the list (the messages stay in view above it) */
+    '.hgChMenu{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;flex-direction:column;align-items:center;gap:8px;background:#121a28;border:1px solid rgba(232,184,74,.45);border-radius:14px;padding:8px;box-shadow:0 -6px 20px rgba(0,0,0,.6)}.hgChMenu[hidden]{display:none}',
     '.hgChMenu .q{font:14px/1.35 Georgia,serif;color:#cfd6e2;text-align:center;max-width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere;word-break:break-word}',
-    '.hgChActs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:min(100%,420px)}.hgChActs .sec{flex:1 1 120px;width:auto;min-height:44px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 10px}',
+    '.hgChActs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:min(100%,420px)}.hgChActs .sec{flex:1 1 88px;min-width:0;letter-spacing:0;width:auto;min-height:44px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 10px}',
     '.hgDot{position:absolute;top:-3px;right:-3px;width:12px;height:12px;border-radius:50%;background:#ff6a5a;border:2px solid #070c16;pointer-events:none;box-sizing:border-box}.hgDot[hidden]{display:none}',
     '.hgChTab .hgDot{position:static;width:9px;height:9px;border:0;flex:none}',
     '#hgChatBtn{position:relative}#hgChatBtn .hgDot{top:3px;right:3px}',
@@ -178,25 +178,25 @@
     /* docked during a round: the game keeps running around it */
     '#hgChat.dock{inset:auto;left:calc(8px + env(safe-area-inset-left));right:calc(8px + env(safe-area-inset-right));bottom:calc(8px + env(safe-area-inset-bottom));top:auto;height:min(42%,420px);padding:8px;z-index:6;gap:0;overflow:hidden;background:#0a0f1a;border:1px solid rgba(232,184,74,.45);border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.55)}',
     '#hgChat.dock>.hgCh{margin:0;width:100%;gap:6px}',
-    '#hgChat.dock .hgChBar{grid-template-areas:"tabs x"}#hgChat.dock .hgChBar h2{display:none}',
     '#hgChat.dock .hgChMsg:empty{display:none}#hgChat.dock .hgChList{min-height:40px}',
     '#hgChat.dock .hgCmh{display:inline-flex;margin-right:6px;vertical-align:baseline;max-width:100%}#hgChat.dock .hgCmb{display:inline}',
     '#hgChat.dock .hgChNote{padding:10px 8px;font-size:14px;gap:6px}',
     '#hgChat.dock .hgChTab{padding:0 6px;gap:4px;letter-spacing:.03em}#hgChat.dock .hgChForm .pri{padding:0 10px}#hgChat.dock #hgChTabW{flex:0 1 auto;padding:0 12px}',
     /* portrait: the sheet stops left of the skill button (#sk: 88 px, 18 px from the right edge) */
     '@media (orientation:portrait){#hgChat.dock{right:calc(116px + env(safe-area-inset-right))}}',
-    '@media (orientation:landscape){#hgChat.dock{left:auto;top:calc(6px + env(safe-area-inset-top));bottom:calc(122px + env(safe-area-inset-bottom));width:min(40%,360px);height:auto}}',
+    /* landscape: below the live board (#hTR, 8–81 px), so the top 4 stay in view */
+    '@media (orientation:landscape){#hgChat.dock{left:auto;top:calc(88px + env(safe-area-inset-top));bottom:calc(122px + env(safe-area-inset-bottom));width:min(40%,360px);height:auto}}',
     /* landscape with the soft keyboard up (the WebView shrinks to the space above it): typing, the panel takes the full height and
        drops the tabs and ✕, so the list, the input and SEND stay visible; they come back when the keyboard goes */
-    '@media (orientation:landscape) and (max-height:300px){#hgChat.dock.typing{bottom:calc(6px + env(safe-area-inset-bottom))}#hgChat.dock.typing .hgChBar{display:none}#hgChat.dock.typing .hgChList{min-height:0}}',
-    '@media (orientation:landscape) and (max-height:540px){#hgChat.full .hgChBar{grid-template-columns:auto minmax(0,1fr) 44px;grid-template-areas:"h tabs x"}#hgChat.full .hgChBar h2{font-size:18px}#hgChat.full .hgChNote{padding:10px 12px}}'
+    '@media (orientation:landscape) and (max-height:300px){#hgChat.dock.typing{top:calc(6px + env(safe-area-inset-top));bottom:calc(6px + env(safe-area-inset-bottom))}#hgChat.dock.typing .hgChBar{display:none}#hgChat.dock.typing .hgChList{min-height:0}}',
+    '@media (orientation:landscape) and (max-height:540px){#hgChat.full .hgChNote{padding:10px 12px}}'
   ].join('\n');
   document.head.appendChild(css);
 
   /* ---- the panel ---- */
   const scr = el('div', 'scr'); scr.id = 'hgChat'; scr.setAttribute('role', 'dialog'); scr.setAttribute('aria-label', 'Chat');
   const box = el('div', 'hgCh');
-  const bar = el('div', 'hgChBar'); const h2 = el('h2', null, 'CHAT');
+  const bar = el('div', 'hgChBar');   // no "CHAT" title: the tabs say it
   const tabsEl = el('div', 'hgChTabs'); tabsEl.id = 'hgChTabs'; tabsEl.setAttribute('role', 'tablist');
   const mkTab = (t, id) => { const b = el('button', 'hgChTab'); b.type = 'button'; b.id = id; b.dataset.tab = t; b.setAttribute('role', 'tab'); return b; };
   const tW = mkTab('world', 'hgChTabW'), tC = mkTab('country', 'hgChTabC');
@@ -205,7 +205,7 @@
   const tCf = el('span', 'f'), tCn = el('span', 'n'); tC.append(tCf, tCn, cDot);
   tabsEl.append(tW, tC);
   const xB = el('button', 'hgChX', '✕'); xB.type = 'button'; xB.id = 'hgChX'; xB.setAttribute('aria-label', 'Close');
-  bar.append(h2, tabsEl, xB);
+  bar.append(tabsEl, xB);
   const wrap = el('div', 'hgChWrap');
   const list = el('div', 'hgChList'); list.id = 'hgChList'; list.setAttribute('aria-live', 'polite');
   const pill = el('button', 'hgChNew', '↓ New'); pill.type = 'button'; pill.id = 'hgChNew'; pill.hidden = true;
