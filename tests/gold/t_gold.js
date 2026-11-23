@@ -2,7 +2,7 @@
 // gold conserved (coins + carried + banked = minted), robbery, banking, every god's skill, the end screen, no page errors.
 const { chromium } = require('playwright'); const path = require('path');
 const EXE = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome';
-const FILE = path.resolve(process.env.GOLD_HTML || path.join(__dirname, '..', '..', 'src', 'gold', 'index.html'));
+const FILE = path.resolve(process.env.GOLD_HTML || path.join(__dirname, '..', '..', 'beta', 'index.html'));
 let fails = 0; const ok = (c, m, i) => { console.log((c ? 'OK   ' : 'FAIL ') + m + (i !== undefined ? '  ' + JSON.stringify(i) : '')); if (!c) fails++; };
 (async () => {
   const b = await chromium.launch({ executablePath: EXE });

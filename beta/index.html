@@ -39,24 +39,29 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 #err{position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#5a1414;color:#fff;font:12px monospace;padding:6px;border-radius:8px;display:none;white-space:pre-wrap}
 .big{font:900 46px/1 Georgia,serif;color:var(--gold)}
 .lines{font:15px/1.5 Georgia,serif;color:#cfd6e2;text-align:center}
+.extra{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(100%,600px)}.extra:empty,.links:empty{display:none}
+.links{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;width:min(100%,600px)}.links .sec{width:auto;flex:1 1 140px}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-<div id="hud"><div class="tl" id="hTL"></div><div class="tc" id="hTC"></div><div class="tr" id="hTR"></div></div>
+<div id="hud"><div class="tl" id="hTL"></div><div class="tc" id="hTC"></div><div class="tr" id="hTR"></div><div id="hudExtra"></div></div>
 <button id="sk">SKILL</button>
 <div id="toast"></div>
 <div class="scr on" id="title">
   <h1>HEAVY GOLD</h1>
   <p class="rule">The lighter one robs the heavier one. Only gold in a vault is yours, and the vaults move.<br>One coin appears every second. Every 50 s a coin is worth half.<br>Drag anywhere to move. The round button is your god's skill.</p>
   <div class="gods" id="gods"></div>
+  <div id="titleExtra" class="extra"></div>
   <button class="pri" id="play">PLAY</button>
   <div class="small" id="best"></div>
+  <div id="titleLinks" class="links"></div>
 </div>
 <div class="scr" id="end">
   <div class="small">ROUND OVER</div>
   <div class="big" id="eRank"></div>
   <div class="lines" id="eLines"></div>
+  <div id="endExtra" class="extra"></div>
   <button class="pri" id="again">PLAY AGAIN</button>
   <button class="sec" id="share">Challenge a friend</button>
   <button class="sec" id="change">Change god</button>
@@ -69,6 +74,13 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   const errBox = document.getElementById('err');
   const showErr = m => { errBox.style.display = 'block'; errBox.textContent += m + '\n'; };
   window.addEventListener('error', e => showErr('Error: ' + (e.message || e)));
+
+  /* ---------- hooks for the modules (src/gold/js/*.js): G.on(event, fn), G.addMod(name, fn(p, value) → value) ----------
+     events: start(S) · step(dt) · pickup(p, coin) · rob(thief, victim, take, loss) · bank(p, amount) · skill(p) · end(S, res) · draw(ctx, k, ox, oy) · hud(S) · title()
+     mods:   speed · cd · dash · thorR · thorShare · lokiT · chainT · rob (the victim's share lost) · bankT · coinValue (p = null) · view (camera scale) */
+  const BUS = {}, MODS = {};
+  const emit = (e, ...a) => { for (const f of BUS[e] || []) { try { f(...a); } catch (x) { showErr(e + ': ' + (x && x.message || x)); } } };
+  const mod = (n, p, v) => { for (const f of MODS[n] || []) { try { const r = f(p, v); if (typeof r === 'number' && isFinite(r)) v = r; } catch (x) { showErr('mod ' + n + ': ' + (x && x.message || x)); } } return v; };
 
   /* ---------- Telegram ---------- */
   const TG = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData !== undefined ? window.Telegram.WebApp : null;
@@ -110,7 +122,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const radius = p => Math.min(58, 17 + Math.sqrt(Math.max(0, p.carry)) * 1.1);
-  const speed = p => (p.god === 'hermes' ? 1.08 : 1) * 270 / Math.sqrt(1 + p.carry / 110);
+  const speed = p => mod('speed', p, (p.god === 'hermes' ? 1.08 : 1) * 270 / Math.sqrt(1 + p.carry / 110));
 
   let S = null, god = 'hermes', paused = false;
   try { const g = localStorage.getItem('hg_god'); if (GODS[g]) god = g; } catch (e) {}
@@ -144,22 +156,25 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     $('title').classList.remove('on'); $('end').classList.remove('on'); $('hud').classList.add('on');
     const sk = $('sk'); sk.classList.add('on'); sk.textContent = GODS[god].sk; sk.style.borderColor = GODS[god].c;
     joy.on = false; keys.clear();
+    emit('start', S);
     toast(('ontouchstart' in window ? 'Drag anywhere to move. ' : 'WASD to move. ') + 'Bank gold in a VAULT.', 3000); setTimeout(() => { if (S && !S.over && S.t < 7) toast('Green ring: you can rob them. Red ring: they can rob you.', 3400); }, 3200);
   }
 
   function useSkill(p) {
     if (!S || S.over || p.cd > S.t) return false;
-    const G = GODS[p.god]; p.cd = S.t + G.cd;
-    if (p.god === 'hermes') { p.dash = S.t + 0.3; fx({ kind: 'ring', x: p.x, y: p.y, r: 40, c: G.c }); }
+    const G = GODS[p.god]; p.cd = S.t + mod('cd', p, G.cd);
+    if (p.god === 'hermes') { p.dash = S.t + mod('dash', p, 0.3); fx({ kind: 'ring', x: p.x, y: p.y, r: 40, c: G.c }); }
     else if (p.god === 'thor') {
-      fx({ kind: 'ring', x: p.x, y: p.y, r: 170, c: G.c, life: 0.6 });
-      let hits = 0; for (const q of S.ps) { if (q === p || q.carry <= p.carry || q.imm > S.t || q.inv > S.t || dist(p, q) > 170) continue; hits++; const loss = Math.ceil(q.carry * 0.25); q.carry -= loss; q.lost += loss; q.bankT = 0; spill(q.x, q.y, loss, radius(q) + 26);
+      const TR = mod('thorR', p, 170), TS = mod('thorShare', p, 0.25);
+      fx({ kind: 'ring', x: p.x, y: p.y, r: TR, c: G.c, life: 0.6 });
+      let hits = 0; for (const q of S.ps) { if (q === p || q.carry <= p.carry || q.imm > S.t || q.inv > S.t || dist(p, q) > TR) continue; hits++; const loss = Math.ceil(q.carry * TS); q.carry -= loss; q.lost += loss; q.bankT = 0; spill(q.x, q.y, loss, radius(q) + 26);
         fx({ kind: 'text', x: q.x, y: q.y - 30, s: '-' + loss, c: '#9fb2ff' }); if (q === S.me) { toast(p.name + ' struck you: -' + loss); haptic('heavy'); } }
       if (!hits) { p.cd = S.t + 1; if (p === S.me) toast('No richer rival in reach'); }
     }
-    else if (p.god === 'loki') { p.inv = S.t + 3; const da = Math.atan2(p.fy, p.fx) + (rnd() < 0.5 ? 1.57 : -1.57); S.decoys.push({ owner: p, x: p.x, y: p.y, vx: Math.cos(da) * 200, vy: Math.sin(da) * 200, carry: Math.max(p.carry, 40), until: S.t + 3 }); fx({ kind: 'ring', x: p.x, y: p.y, r: 50, c: G.c }); }
-    else if (p.god === 'amirani') { p.imm = S.t + 3; fx({ kind: 'ring', x: p.x, y: p.y, r: 60, c: G.c }); }
+    else if (p.god === 'loki') { const LT = mod('lokiT', p, 3); p.inv = S.t + LT; const da = Math.atan2(p.fy, p.fx) + (rnd() < 0.5 ? 1.57 : -1.57); S.decoys.push({ owner: p, x: p.x, y: p.y, vx: Math.cos(da) * 200, vy: Math.sin(da) * 200, carry: Math.max(p.carry, 40), until: S.t + LT }); fx({ kind: 'ring', x: p.x, y: p.y, r: 50, c: G.c }); }
+    else if (p.god === 'amirani') { p.imm = S.t + mod('chainT', p, 3); fx({ kind: 'ring', x: p.x, y: p.y, r: 60, c: G.c }); }
     if (p === S.me) haptic('medium');
+    emit('skill', p);
     return true;
   }
 
@@ -170,13 +185,14 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const H = a.carry > b.carry ? a : b, L = H === a ? b : a;
     if (S.vaults.some(v => dist(v, H) < v.r)) { fx({ kind: 'text', x: H.x, y: H.y - 34, s: 'safe', c: '#e8b84a' }); return; }
     if (H.imm > S.t || H.inv > S.t) { fx({ kind: 'text', x: H.x, y: H.y - 34, s: H.imm > S.t ? 'chained' : 'missed', c: '#ee6a4c' }); return; }
-    const loss = Math.ceil(H.carry * ROB); if (loss <= 0) return;
+    const loss = Math.ceil(H.carry * mod('rob', H, ROB)); if (loss <= 0) return;
     const take = Math.ceil(loss / 2);
     H.carry -= loss; H.lost += loss; H.bankT = 0; L.carry += take; L.robs++; L.best = Math.max(L.best, take);
     spill(H.x, H.y, loss - take, radius(H) + 24);
     fx({ kind: 'text', x: L.x, y: L.y - 34, s: '+' + take, c: '#ffd36a' }); fx({ kind: 'text', x: H.x, y: H.y - 34, s: '-' + loss, c: '#ff7a7a' });
     if (L === S.me) { toast('You robbed ' + H.name + ': +' + take); haptic('light'); }
     if (H === S.me) { toast(L.name + ' robbed you: -' + loss); haptic('heavy'); }
+    emit('rob', L, H, take, loss);
   }
 
   /* ---------- bots ---------- */
@@ -222,7 +238,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     if (!S || S.over) return;
     S.t += dt; const t = S.t;
     while (t >= S.nextCoin && S.nextCoin <= ROUND) {   // one coin a second; its worth halves every HALVE_T seconds
-      const v = coinValue(S.nextCoin - COIN_T); S.nextCoin += COIN_T; const x = 120 + rnd() * (WORLD - 240), y = 120 + rnd() * (WORLD - 240);
+      const v = Math.max(1, Math.round(mod('coinValue', null, coinValue(S.nextCoin - COIN_T)))); S.nextCoin += COIN_T; const x = 120 + rnd() * (WORLD - 240), y = 120 + rnd() * (WORLD - 240);
       addCoin(x, y, v); S.minted += v; S.veins.push({ x, y, t, reward: v });
       if (Math.abs(S.nextCoin - 1 - HALVE_T) < 0.01 || Math.abs(S.nextCoin - 1 - 2 * HALVE_T) < 0.01) toast('Halving! A coin is now worth ' + coinValue(S.nextCoin - COIN_T));
     }
@@ -242,11 +258,11 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     S.decoys = S.decoys.filter(d => d.until > t);
     // coins
     for (let i = S.coins.length - 1; i >= 0; i--) { const c = S.coins[i];
-      for (const p of S.ps) { const r = radius(p) + 5; const dx = c.x - p.x, dy = c.y - p.y; if (dx * dx + dy * dy < r * r) { p.carry += c.v; S.coins[i] = S.coins[S.coins.length - 1]; S.coins.pop(); break; } } }
+      for (const p of S.ps) { const r = radius(p) + 5; const dx = c.x - p.x, dy = c.y - p.y; if (dx * dx + dy * dy < r * r) { p.carry += c.v; S.coins[i] = S.coins[S.coins.length - 1]; S.coins.pop(); emit('pickup', p, c); break; } } }
     // vaults
     for (const p of S.ps) {
       const v = S.vaults.find(v => dist(v, p) < v.r);
-      if (v && p.carry > 0) { p.bankT += dt; if (p.bankT >= BANK_T) { p.bank += p.carry; fx({ kind: 'text', x: p.x, y: p.y - 40, s: 'banked ' + p.carry, c: '#e8b84a', life: 1.2 });
+      if (v && p.carry > 0) { p.bankT += dt; if (p.bankT >= mod('bankT', p, BANK_T)) { const amt = p.carry; p.bank += p.carry; emit('bank', p, amt); fx({ kind: 'text', x: p.x, y: p.y - 40, s: 'banked ' + p.carry, c: '#e8b84a', life: 1.2 });
         if (p === me) { toast('Banked ' + p.carry + ' gold'); haptic('medium'); } p.carry = 0; p.bankT = 0; } }
       else p.bankT = 0;
     }
@@ -256,6 +272,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
       if (d < ra + rb) { const o = (ra + rb - d) / 2, nx = dx / d, ny = dy / d; a.x -= nx * o; a.y -= ny * o; b.x += nx * o; b.y += ny * o; a.vx -= nx * 120; a.vy -= ny * 120; b.vx += nx * 120; b.vy += ny * 120; contact(a, b); } }
     S.fx = S.fx.filter(f => t - f.t < f.life);
     S.veins = S.veins.filter(v => t - v.t < 1.2);
+    emit('step', dt);
     if (t >= ROUND) end();
   }
 
@@ -275,6 +292,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     $('eLines').innerHTML = lines.join('<br>');
     $('end').classList.add('on');
     haptic('heavy');
+    emit('end', S, { rank: lastRank, of: S.ps.length, bank: me.bank, god: me.god, robs: me.robs, lost: me.lost, carry: me.carry, minted: S.minted, best: me.best });
   }
   function share() {
     const me = S ? S.me : null, url = 'https://t.me/HoldorTDBot/play';
@@ -308,9 +326,11 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     b.addEventListener('click', () => { god = k; drawGods(); }); gEl.appendChild(b); } };
   drawGods();
   $('best').textContent = (best() ? 'Your best: ' + best() + ' gold · ' : '') + BOTS + ' bots · 2:30 round';
-  $('play').addEventListener('click', () => start(god));
-  $('again').addEventListener('click', () => start(god));
-  $('change').addEventListener('click', () => { $('end').classList.remove('on'); $('title').classList.add('on'); drawGods(); $('best').textContent = (best() ? 'Your best: ' + best() + ' gold · ' : '') + BOTS + ' bots · 2:30 round'; });
+  /* a module may hold PLAY back (the profile asks for a name and a country first): window.G.beforePlay() === false */
+  const go = () => { if (window.G && typeof window.G.beforePlay === 'function' && window.G.beforePlay() === false) return; start(god); };
+  $('play').addEventListener('click', go);
+  $('again').addEventListener('click', go);
+  $('change').addEventListener('click', () => { $('end').classList.remove('on'); $('title').classList.add('on'); drawGods(); emit('title'); $('best').textContent = (best() ? 'Your best: ' + best() + ' gold · ' : '') + BOTS + ' bots · 2:30 round'; });
   $('share').addEventListener('click', share);
 
   /* ---------- draw ---------- */
@@ -351,13 +371,13 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const nm = (p === S.me && !fake) ? 'You' : p.name + (p.bot ? ' · bot' : '');
     ctx.strokeText(nm, sx, sy - r - 18); ctx.fillStyle = '#e9eef5'; ctx.fillText(nm, sx, sy - r - 18);
     if (p.carry > 0) { const s = String(p.carry); ctx.strokeText(s, sx, sy - r - 5); ctx.fillStyle = '#ffd36a'; ctx.fillText(s, sx, sy - r - 5); }
-    if (p.bankT > 0) { ctx.strokeStyle = '#ffd36a'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(sx, sy, r + 5, -Math.PI / 2, -Math.PI / 2 + TAU * p.bankT / BANK_T); ctx.stroke(); }
+    if (p.bankT > 0) { ctx.strokeStyle = '#ffd36a'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(sx, sy, r + 5, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, p.bankT / mod('bankT', p, BANK_T))); ctx.stroke(); }
     ctx.globalAlpha = 1;
   }
   function draw() {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.fillStyle = '#070c16'; ctx.fillRect(0, 0, VW, VH);
     if (!S) return;
-    const me = S.me; let k = clamp(Math.sqrt(VW * VH) / 680, 0.65, 1.5) / (1 + (radius(me) - 17) / 140);
+    const me = S.me; let k = mod('view', me, clamp(Math.sqrt(VW * VH) / 680, 0.65, 1.5) / (1 + (radius(me) - 17) / 140));
     S.camX += (me.x - S.camX) * 0.18; S.camY += (me.y - S.camY) * 0.18;
     const ox = VW / 2 - S.camX * k, oy = VH / 2 - S.camY * k;
     // stone ground: the arena a shade lighter than the void, pebbles and cracks from a hash of each 250-unit tile
@@ -390,12 +410,13 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     for (const f of S.fx) { const age = (S.t - f.t) / f.life, sx = ox + f.x * k, sy = oy + f.y * k;
       if (f.kind === 'ring') { ctx.strokeStyle = f.c; ctx.globalAlpha = 1 - age; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(sx, sy, f.r * k * (0.4 + age * 0.6), 0, TAU); ctx.stroke(); ctx.globalAlpha = 1; }
       else if (f.kind === 'text') { ctx.globalAlpha = 1 - age; ctx.font = '900 16px Georgia'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.85)'; ctx.strokeText(f.s, sx, sy - age * 30); ctx.fillStyle = f.c; ctx.fillText(f.s, sx, sy - age * 30); ctx.globalAlpha = 1; } }
+    emit('draw', ctx, k, ox, oy);
     // arrows: the nearest vault while carrying, fresh veins
     if (me.carry > 0) { const bv = nearestVault(me); arrow(bv.x, bv.y, '#e8b84a', 'VAULT', k); }
     if (!onScreen && S.coins.length) { let bc = S.coins[0], bd = 1e9; for (const c of S.coins) { const d = dist(c, me); if (d < bd) { bd = d; bc = c; } } arrow(bc.x, bc.y, '#ffd36a', 'gold', k); }
     // joystick
     if (joy.on) { ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(joy.x0, joy.y0, JR, 0, TAU); ctx.stroke(); ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(joy.x0 + joy.dx * JR, joy.y0 + joy.dy * JR, 22, 0, TAU); ctx.fill(); }
-    if (!S.over && S.t - S.hudT > 0.1) { S.hudT = S.t; hud(); }
+    if (!S.over && S.t - S.hudT > 0.1) { S.hudT = S.t; hud(); emit('hud', S); }
   }
 
   /* ---------- loop ---------- */
@@ -409,8 +430,11 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   requestAnimationFrame(frame);
 
   /* ---------- test hooks (public, like HOLDOR's R) ---------- */
-  window.G = { start, step: n => { for (let i = 0; i < (n || 1); i++) step(1 / 60); }, get S() { return S; }, get VAULTS() { return S ? S.vaults : []; }, GODS, BOTS, useSkill, rnd, joy, total: () => S ? S.coins.reduce((s, c) => s + c.v, 0) + S.ps.reduce((s, p) => s + p.carry + p.bank, 0) : 0 };
+  window.G = { start, step: n => { for (let i = 0; i < (n || 1); i++) step(1 / 60); }, get S() { return S; }, get VAULTS() { return S ? S.vaults : []; }, GODS, BOTS, useSkill,
+    on: (e, f) => { (BUS[e] = BUS[e] || []).push(f); }, addMod: (n, f) => { (MODS[n] = MODS[n] || []).push(f); }, mod, emit, toast, haptic, sym, radius, dist, fx: o => S && fx(o), TG, $, showErr,
+    WORLD, ROUND, HALVE_T, BANK_T, ROB, coinValue, nearestVault: p => nearestVault(p), get god() { return god; }, get W() { return VW; }, get H() { return VH; }, profile: { name: '', country: '' }, rnd, joy, total: () => S ? S.coins.reduce((s, c) => s + c.v, 0) + S.ps.reduce((s, p) => s + p.carry + p.bank, 0) : 0 };
 })();
 </script>
+
 </body>
 </html>
