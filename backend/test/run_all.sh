@@ -7,7 +7,7 @@ set -uo pipefail
 T="$(cd "$(dirname "$0")" && pwd)"; B="$(dirname "$T")"; R="$(dirname "$B")"
 load() { su postgres -c "psql -q -v ON_ERROR_STOP=1 -o /dev/null" || { echo "load failed: $1"; exit 1; }; }
 load reset <<'SQL'
-drop table if exists bot_starts, war_claims, chat_reports, chat_blocks, chat_mutes, chat_msgs, chat_words, task_marks, daily_scores, scores, sessions, players, app_secrets, econ_config, wallets, ledger, econ_ops, battles, progress, chests, econ_flags, battle_limits, econ_legacy, items, summons, payments, referrals, ratings, duels, ad_views cascade;
+drop table if exists hg_cards, hg_ladder_duels, hg_ladder_state, hg_ladder, hg_chat_reports, hg_chat_blocks, hg_chat, hg_alltime, hg_rounds, hg_profiles, bot_starts, war_claims, chat_reports, chat_blocks, chat_mutes, chat_msgs, chat_words, task_marks, daily_scores, scores, sessions, players, app_secrets, econ_config, wallets, ledger, econ_ops, battles, progress, chests, econ_flags, battle_limits, econ_legacy, items, summons, payments, referrals, ratings, duels, ad_views cascade;
 do $$ declare f record; begin
   for f in select p.oid::regprocedure as sig from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public'
   loop execute 'drop function ' || f.sig || ' cascade'; end loop; end $$;
@@ -23,7 +23,7 @@ python3 "$R/src/build.py" >/dev/null && python3 "$T/prepare.py" >/dev/null
 bad=0
 # order matters: v4_test leaves Hold runs for today, which would move seat_test's expected ranks; v5_test uses its own players;
 # econ_test (the app on a managed seat) cleans the test user first
-for t in realms_test.py seat_test.py old_app_test.py v4_test.py v5_test.py v6_test.py v7_test.py v8_test.py v9_test.py v10_test.py v11_test.py v12_test.py v13_test.py v14_test.py v15_test.py v16_test.py v17_test.py v18_test.py v20_test.py v21_test.py v22_test.py v23_test.py v24_test.py v25_test.py v26_test.py v27_test.py v28_test.py v29_test.py v30_test.py v32_test.py v33_test.py v34_test.py v35_test.py v36_test.py v37_test.py v38_test.py v39_test.py v40_test.py v40b_test.py g1_test.py econ_test.py duel_test.py season_test.py tasks_test.py gear_test.py tavern_test.py mastery_test.py stars_test.py daily_test.py; do
+for t in realms_test.py seat_test.py old_app_test.py v4_test.py v5_test.py v6_test.py v7_test.py v8_test.py v9_test.py v10_test.py v11_test.py v12_test.py v13_test.py v14_test.py v15_test.py v16_test.py v17_test.py v18_test.py v20_test.py v21_test.py v22_test.py v23_test.py v24_test.py v25_test.py v26_test.py v27_test.py v28_test.py v29_test.py v30_test.py v32_test.py v33_test.py v34_test.py v35_test.py v36_test.py v37_test.py v38_test.py v39_test.py v40_test.py v40b_test.py g1_test.py g2_test.py econ_test.py duel_test.py season_test.py tasks_test.py gear_test.py tavern_test.py mastery_test.py stars_test.py daily_test.py; do
   if python3 "$T/$t" > "/tmp/holdor_$t.log" 2>&1; then echo "OK   $t"; else echo "FAIL $t  (see /tmp/holdor_$t.log)"; grep -E "^FAIL" "/tmp/holdor_$t.log" | head -5; bad=$((bad+1)); fi
 done
 # the bot's own messages (/start, /play, /help): no database, a fake Telegram
