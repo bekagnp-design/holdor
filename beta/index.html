@@ -129,7 +129,13 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   }
   const GK = Object.keys(GODS);
   const BOTN = ['Ares', 'Freya', 'Anubis', 'Odin', 'Athena', 'Dali', 'Tyr'];
-  const rnd = (() => { let s = (Date.now() ^ 0x9e3779b9) >>> 0; const f = () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; f.seed = n => { s = n >>> 0; }; return f; })();
+  const mkRnd = seed => { let s = seed >>> 0; const f = () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; f.seed = n => { s = n >>> 0; }; return f; };
+  const rnd = mkRnd(Date.now() ^ 0x9e3779b9);   // the bots' choices, spills, decoys
+  /* the daily map (the owner's choice, 2026-11-23): one map a UTC day for everyone — the same start spots, the same coins at the same
+     seconds, the same vault spots — so every result of the day can be compared. Map #1 is 2026-11-23. */
+  const MAP0 = Date.UTC(2026, 10, 23);
+  let mapNo = Math.max(1, Math.floor((Date.now() - MAP0) / 86400000) + 1), mapForced = null;
+  const mapRnd = mkRnd(0);
   const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const radius = p => Math.min(58, 17 + Math.sqrt(Math.max(0, p.carry)) * 1.1);
@@ -150,20 +156,22 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 
   /* n spots far apart and away from the edges (and from the given points) */
   function spots(n, avoid) { const out = []; for (let i = 0; i < n; i++) { let best = null, bd = -1;
-      for (let k = 0; k < 40; k++) { const q = { x: 450 + rnd() * (WORLD - 900), y: 450 + rnd() * (WORLD - 900) }; const d = Math.min(1e9, ...out.concat(avoid).map(o => dist(o, q)));
+      for (let k = 0; k < 40; k++) { const q = { x: 450 + mapRnd() * (WORLD - 900), y: 450 + mapRnd() * (WORLD - 900) }; const d = Math.min(1e9, ...out.concat(avoid).map(o => dist(o, q)));
         if (d > bd) { bd = d; best = q; } } out.push(best); } return out; }
   const nearestVault = p => { let bv = S.vaults[0], bd = 1e9; for (const v of S.vaults) { const d = dist(v, p); if (d < bd) { bd = d; bv = v; } } return bv; };
   function start(g) {
     god = GODS[g] ? g : god; try { localStorage.setItem('hg_god', god); } catch (e) {}
+    if (mapForced == null) mapNo = Math.max(1, Math.floor((Date.now() - MAP0) / 86400000) + 1);
+    mapRnd.seed(Math.imul(mapNo, 2654435761) ^ 0x5bd1e995);   // the same map all day
     const ps = []; let id = 0;
     const me = mkP('You', god, false, id++); ps.push(me);
     for (let i = 0; i < BOTS; i++) ps.push(mkP(BOTN[i], GK[(i + 1) % 4], true, id++));
     S = { t: 0, ps, me, coins: [], decoys: [], fx: [], veins: [], pairT: {}, vaults: [], vNext: VAULT_MOVE, nextCoin: COIN_T, minted: 0, over: false, camX: 0, camY: 0, hudT: 0 };
     S.vaults = spots(VAULT_N, []).map(q => ({ x: q.x, y: q.y, r: VAULT_R, nx: null, ny: null }));
-    for (const p of ps) { for (let k = 0; k < 80; k++) { p.x = 250 + rnd() * (WORLD - 500); p.y = 250 + rnd() * (WORLD - 500);
+    for (const p of ps) { for (let k = 0; k < 80; k++) { p.x = 250 + mapRnd() * (WORLD - 500); p.y = 250 + mapRnd() * (WORLD - 500);
       if (S.vaults.every(v => dist(v, p) > 500) && ps.every(q => q === p || !q.placed || dist(q, p) > 500)) break; } p.placed = true; }
     S.camX = me.x; S.camY = me.y;
-    for (let i = 0; i < START_COINS; i++) { addCoin(250 + rnd() * (WORLD - 500), 250 + rnd() * (WORLD - 500), FIRST_VALUE); S.minted += FIRST_VALUE; }
+    for (let i = 0; i < START_COINS; i++) { addCoin(250 + mapRnd() * (WORLD - 500), 250 + mapRnd() * (WORLD - 500), FIRST_VALUE); S.minted += FIRST_VALUE; }
     $('title').classList.remove('on'); $('end').classList.remove('on'); $('hud').classList.add('on');
     const sk = $('sk'); sk.classList.add('on'); sk.textContent = GODS[god].sk; sk.style.borderColor = GODS[god].c;
     joy.on = false; keys.clear();
@@ -249,7 +257,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     if (!S || S.over) return;
     S.t += dt; const t = S.t;
     while (t >= S.nextCoin && S.nextCoin <= ROUND) {   // one coin a second; its worth halves every HALVE_T seconds
-      const v = Math.max(1, Math.round(mod('coinValue', null, coinValue(S.nextCoin - COIN_T)))); S.nextCoin += COIN_T; const x = 120 + rnd() * (WORLD - 240), y = 120 + rnd() * (WORLD - 240);
+      const v = Math.max(1, Math.round(mod('coinValue', null, coinValue(S.nextCoin - COIN_T)))); S.nextCoin += COIN_T; const x = 120 + mapRnd() * (WORLD - 240), y = 120 + mapRnd() * (WORLD - 240);
       addCoin(x, y, v); S.minted += v; S.veins.push({ x, y, t, reward: v });
       if (Math.abs(S.nextCoin - 1 - HALVE_T) < 0.01 || Math.abs(S.nextCoin - 1 - 2 * HALVE_T) < 0.01) toast('Halving! A coin is now worth ' + Math.max(1, Math.round(mod('coinValue', null, coinValue(S.nextCoin - COIN_T)))));
     }
@@ -294,6 +302,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     try { if (me.bank > best()) localStorage.setItem('hg_best', String(me.bank)); } catch (e) {}
     $('hud').classList.remove('on'); $('sk').classList.remove('on'); clearTimeout(toastT); $('toast').style.opacity = 0;
     $('eRank').textContent = '#' + lastRank + ' of ' + S.ps.length;
+    $('end').querySelector('.small').textContent = 'ROUND OVER · MAP #' + mapNo;
     const lines = ['Banked <b>' + me.bank + '</b> gold as ' + GODS[me.god].n,
       'Robberies: ' + me.robs + (me.best ? ' (best +' + me.best + ')' : '') + ' · stolen from you: ' + me.lost,
       me.carry ? 'Not banked, lost at the bell: ' + me.carry : 'Nothing left unbanked',
@@ -303,7 +312,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     $('eLines').innerHTML = lines.join('<br>');
     $('end').classList.add('on');
     haptic('heavy');
-    emit('end', S, { rank: lastRank, of: S.ps.length, bank: me.bank, god: me.god, robs: me.robs, lost: me.lost, carry: me.carry, minted: S.minted, best: me.best });
+    emit('end', S, { map: mapNo, rank: lastRank, of: S.ps.length, bank: me.bank, god: me.god, robs: me.robs, lost: me.lost, carry: me.carry, minted: S.minted, best: me.best });
   }
   function share() {
     const me = S ? S.me : null, url = 'https://t.me/HoldorTDBot/play';
@@ -336,12 +345,12 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const c2 = b.querySelector('canvas').getContext('2d'); c2.fillStyle = G.c; c2.beginPath(); c2.arc(40, 40, 38, 0, TAU); c2.fill(); sym(c2, k, 40, 40, 34);
     b.addEventListener('click', () => { god = k; drawGods(); }); gEl.appendChild(b); } };
   drawGods();
-  $('best').textContent = (best() ? 'Your best: ' + best() + ' gold · ' : '') + BOTS + ' bots · 2:30 round';
+  $('best').textContent = 'Today: Map #' + mapNo + ' · ' + (best() ? 'your best ' + best() + ' · ' : '') + BOTS + ' bots · 2:30';
   /* a module may hold PLAY back (the profile asks for a name and a country first): window.G.beforePlay() === false */
   const go = () => { if (window.G && typeof window.G.beforePlay === 'function' && window.G.beforePlay() === false) return; start(god); };
   $('play').addEventListener('click', go);
   $('again').addEventListener('click', go);
-  $('change').addEventListener('click', () => { $('end').classList.remove('on'); $('title').classList.add('on'); drawGods(); emit('title'); $('best').textContent = (best() ? 'Your best: ' + best() + ' gold · ' : '') + BOTS + ' bots · 2:30 round'; });
+  $('change').addEventListener('click', () => { $('end').classList.remove('on'); $('title').classList.add('on'); drawGods(); emit('title'); $('best').textContent = 'Today: Map #' + mapNo + ' · ' + (best() ? 'your best ' + best() + ' · ' : '') + BOTS + ' bots · 2:30'; });
   $('share').addEventListener('click', share);
 
   /* ---------- draw ---------- */
@@ -444,7 +453,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   /* ---------- test hooks (public, like HOLDOR's R) ---------- */
   window.G = { start, step: n => { for (let i = 0; i < (n || 1); i++) step(1 / 60); }, get S() { return S; }, get VAULTS() { return S ? S.vaults : []; }, GODS, BOTS, useSkill,
     on: (e, f) => { (BUS[e] = BUS[e] || []).push(f); }, addMod: (n, f) => { (MODS[n] = MODS[n] || []).push(f); }, mod, emit, toast, haptic, sym, radius, dist, fx: o => S && fx(o), TG, $, showErr,
-    WORLD, ROUND, HALVE_T, BANK_T, ROB, coinValue, nearestVault: p => nearestVault(p), get god() { return god; }, get W() { return VW; }, get H() { return VH; }, profile: { name: '', country: '' }, rnd, joy, total: () => S ? S.coins.reduce((s, c) => s + c.v, 0) + S.ps.reduce((s, p) => s + p.carry + p.bank, 0) : 0 };
+    WORLD, ROUND, HALVE_T, BANK_T, ROB, coinValue, get mapNo() { return mapNo; }, setMap: n => { mapForced = n == null ? null : Math.max(1, n | 0); if (mapForced != null) mapNo = mapForced; }, mkRnd, nearestVault: p => nearestVault(p), get god() { return god; }, get W() { return VW; }, get H() { return VH; }, profile: { name: '', country: '' }, rnd, joy, total: () => S ? S.coins.reduce((s, c) => s + c.v, 0) + S.ps.reduce((s, p) => s + p.carry + p.bank, 0) : 0 };
 })();
 </script>
 <script>/* 10_net.js */

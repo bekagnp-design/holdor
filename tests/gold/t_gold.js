@@ -22,6 +22,11 @@ let fails = 0; const ok = (c, m, i) => { console.log((c ? 'OK   ' : 'FAIL ') + m
     await pg.mouse.move(w * 0.3, h * 0.6); await pg.mouse.down(); await pg.mouse.move(w * 0.3 + 50, h * 0.6, { steps: 4 }); await pg.waitForTimeout(500);
     const p1 = await pg.evaluate(() => ({ x: G.S.me.x, y: G.S.me.y, jx: G.joy.dx })); await pg.mouse.up();
     ok(p1.x - p0.x > 30, 'a drag to the right moves the hero right', { dx: Math.round(p1.x - p0.x), jx: p1.jx });
+    const dm = await pg.evaluate(() => { const lay = () => JSON.stringify([G.S.ps.map(p => [Math.round(p.x), Math.round(p.y)]), G.S.coins.map(c => [Math.round(c.x), Math.round(c.y)]), G.S.vaults.map(v => [Math.round(v.x), Math.round(v.y)])]);
+      const god0 = G.S.me.god; G.setMap(7); G.start(god0); const a = lay(); G.step(600); const c10 = JSON.stringify(G.S.coins.slice(-5).map(c => [Math.round(c.x), Math.round(c.y)]));
+      G.start(god0); const b = lay(); G.step(600); const c10b = JSON.stringify(G.S.coins.slice(-5).map(c => [Math.round(c.x), Math.round(c.y)])); G.setMap(8); G.start(god0); const d = lay(); G.setMap(null); G.start(god0);
+      return { same: a === b, sameCoins: c10 === c10b, differs: a !== d, no: G.mapNo }; });
+    ok(dm.same && dm.differs && dm.no >= 1, 'the daily map: the same start, coins and vaults on the same map; another map differs', dm);
     const r = await pg.evaluate(() => {
       const S = G.S, out = { checks: [] }; const off0 = G.total() - S.minted;
       // robbery: the lighter one touches the heavier one
