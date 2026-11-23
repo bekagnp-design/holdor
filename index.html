@@ -11,6 +11,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 #c{position:fixed;inset:0;width:100%;height:100%;display:block}
 .scr{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));background:rgba(7,12,22,.9);z-index:10;overflow:auto}
 .scr.on{display:flex}
+.scr{justify-content:flex-start}.scr>:first-child{margin-top:auto}.scr>:last-child{margin-bottom:auto}
+@media (max-height:430px){.scr{gap:8px}.big{font-size:34px}.lines{font-size:13px;line-height:1.35}.sec{min-height:44px}h1{font-size:32px}.rule{font-size:14px}.god{min-height:88px}}
 h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold);text-shadow:0 0 24px rgba(232,184,74,.35);text-align:center}
 .rule{margin:0;font:italic 16px/1.35 Georgia,serif;color:#cfd6e2;text-align:center;max-width:440px}
 .gods{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:min(100%,600px)}
@@ -33,7 +35,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 .tr .me{color:var(--gold);font-weight:700}
 #sk{position:fixed;right:calc(18px + env(safe-area-inset-right));bottom:calc(22px + env(safe-area-inset-bottom));width:88px;height:88px;border-radius:50%;border:3px solid var(--gold);background:rgba(10,16,28,.72);color:var(--ink);font:800 14px Georgia,serif;z-index:6;display:none;pointer-events:auto;touch-action:none}
 #sk.on{display:block}
-#toast{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:7;pointer-events:none;font:700 16px Georgia,serif;color:var(--ink);text-shadow:0 2px 6px #000;text-align:center;white-space:nowrap}
+#toast{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:7;pointer-events:none;font:700 16px Georgia,serif;color:var(--ink);text-shadow:0 2px 6px #000;text-align:center;width:max-content;max-width:calc(100vw - 32px);background:rgba(7,12,22,.78);padding:6px 12px;border-radius:10px;opacity:0;transition:opacity .25s}
 #err{position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#5a1414;color:#fff;font:12px monospace;padding:6px;border-radius:8px;display:none;white-space:pre-wrap}
 .big{font:900 46px/1 Georgia,serif;color:var(--gold)}
 .lines{font:15px/1.5 Georgia,serif;color:#cfd6e2;text-align:center}
@@ -46,7 +48,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 <div id="toast"></div>
 <div class="scr on" id="title">
   <h1>HEAVY GOLD</h1>
-  <p class="rule">The lighter one robs the heavier one. Only gold in a vault is yours, and the vaults move.<br>One coin appears every second. Every 50 s a coin is worth half.</p>
+  <p class="rule">The lighter one robs the heavier one. Only gold in a vault is yours, and the vaults move.<br>One coin appears every second. Every 50 s a coin is worth half.<br>Drag anywhere to move. The round button is your god's skill.</p>
   <div class="gods" id="gods"></div>
   <button class="pri" id="play">PLAY</button>
   <div class="small" id="best"></div>
@@ -142,7 +144,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     $('title').classList.remove('on'); $('end').classList.remove('on'); $('hud').classList.add('on');
     const sk = $('sk'); sk.classList.add('on'); sk.textContent = GODS[god].sk; sk.style.borderColor = GODS[god].c;
     joy.on = false; keys.clear();
-    toast('Grab gold, bank it in a VAULT. Vaults move!', 2600); setTimeout(() => { if (S && !S.over && S.t < 6) toast('Green ring: you can rob them. Red ring: they can rob you.', 3200); }, 2600);
+    toast(('ontouchstart' in window ? 'Drag anywhere to move. ' : 'WASD to move. ') + 'Bank gold in a VAULT.', 3000); setTimeout(() => { if (S && !S.over && S.t < 7) toast('Green ring: you can rob them. Red ring: they can rob you.', 3400); }, 3200);
   }
 
   function useSkill(p) {
@@ -151,10 +153,11 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     if (p.god === 'hermes') { p.dash = S.t + 0.3; fx({ kind: 'ring', x: p.x, y: p.y, r: 40, c: G.c }); }
     else if (p.god === 'thor') {
       fx({ kind: 'ring', x: p.x, y: p.y, r: 170, c: G.c, life: 0.6 });
-      for (const q of S.ps) { if (q === p || q.carry <= p.carry || q.imm > S.t || dist(p, q) > 170) continue; const loss = Math.ceil(q.carry * 0.25); q.carry -= loss; q.lost += loss; q.bankT = 0; spill(q.x, q.y, loss, radius(q) + 26);
+      let hits = 0; for (const q of S.ps) { if (q === p || q.carry <= p.carry || q.imm > S.t || q.inv > S.t || dist(p, q) > 170) continue; hits++; const loss = Math.ceil(q.carry * 0.25); q.carry -= loss; q.lost += loss; q.bankT = 0; spill(q.x, q.y, loss, radius(q) + 26);
         fx({ kind: 'text', x: q.x, y: q.y - 30, s: '-' + loss, c: '#9fb2ff' }); if (q === S.me) { toast(p.name + ' struck you: -' + loss); haptic('heavy'); } }
+      if (!hits) { p.cd = S.t + 1; if (p === S.me) toast('No richer rival in reach'); }
     }
-    else if (p.god === 'loki') { p.inv = S.t + 3; S.decoys.push({ owner: p, x: p.x, y: p.y, vx: p.vx || p.fx * 150, vy: p.vy || p.fy * 150, carry: Math.max(p.carry, 40), until: S.t + 3 }); fx({ kind: 'ring', x: p.x, y: p.y, r: 50, c: G.c }); }
+    else if (p.god === 'loki') { p.inv = S.t + 3; const da = Math.atan2(p.fy, p.fx) + (rnd() < 0.5 ? 1.57 : -1.57); S.decoys.push({ owner: p, x: p.x, y: p.y, vx: Math.cos(da) * 200, vy: Math.sin(da) * 200, carry: Math.max(p.carry, 40), until: S.t + 3 }); fx({ kind: 'ring', x: p.x, y: p.y, r: 50, c: G.c }); }
     else if (p.god === 'amirani') { p.imm = S.t + 3; fx({ kind: 'ring', x: p.x, y: p.y, r: 60, c: G.c }); }
     if (p === S.me) haptic('medium');
     return true;
@@ -165,7 +168,8 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     if ((S.pairT[key] || 0) > S.t) return; S.pairT[key] = S.t + 1.0;
     if (Math.abs(a.carry - b.carry) < 1) return;
     const H = a.carry > b.carry ? a : b, L = H === a ? b : a;
-    if (H.imm > S.t) { fx({ kind: 'text', x: H.x, y: H.y - 34, s: 'chained', c: '#ee6a4c' }); return; }
+    if (S.vaults.some(v => dist(v, H) < v.r)) { fx({ kind: 'text', x: H.x, y: H.y - 34, s: 'safe', c: '#e8b84a' }); return; }
+    if (H.imm > S.t || H.inv > S.t) { fx({ kind: 'text', x: H.x, y: H.y - 34, s: H.imm > S.t ? 'chained' : 'missed', c: '#ee6a4c' }); return; }
     const loss = Math.ceil(H.carry * ROB); if (loss <= 0) return;
     const take = Math.ceil(loss / 2);
     H.carry -= loss; H.lost += loss; H.bankT = 0; L.carry += take; L.robs++; L.best = Math.max(L.best, take);
@@ -222,6 +226,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
       addCoin(x, y, v); S.minted += v; S.veins.push({ x, y, t, reward: v });
       if (Math.abs(S.nextCoin - 1 - HALVE_T) < 0.01 || Math.abs(S.nextCoin - 1 - 2 * HALVE_T) < 0.01) toast('Halving! A coin is now worth ' + coinValue(S.nextCoin - COIN_T));
     }
+    if (!S.warn && ROUND - t <= 20) { S.warn = true; toast('20 s left: bank your gold or lose it!', 3000); haptic('medium'); }
     if (t >= S.vNext - VAULT_WARN && S.vaults[0].nx == null) {   // the new spots show 3 s before the vaults move
       const ns = spots(VAULT_N, S.vaults); S.vaults.forEach((v, i) => { v.nx = ns[i].x; v.ny = ns[i].y; }); toast('Vaults move in ' + VAULT_WARN + ' s');
     }
@@ -313,7 +318,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const me = S.me, left = Math.max(0, ROUND - S.t), mm = Math.floor(left / 60), ss = Math.floor(left % 60);
     $('hTL').innerHTML = 'Carry <span class="c">' + me.carry + '</span><br>Banked ' + me.bank;
     const cv_ = coinValue(S.t), toHalf = HALVE_T - (S.t % HALVE_T);
-    $('hTC').innerHTML = '<b>' + mm + ':' + String(ss).padStart(2, '0') + '</b>Coin = ' + cv_ + (cv_ > 2 ? ' · halves in ' + Math.ceil(toHalf) + ' s' : '') + ' · vaults move in ' + Math.max(0, Math.ceil(S.vNext - S.t)) + ' s';
+    $('hTC').innerHTML = '<b' + (left <= 20 ? ' style="color:#ff6a5a"' : '') + '>' + mm + ':' + String(ss).padStart(2, '0') + '</b>Coin = ' + cv_ + (cv_ > 2 ? ' · halves in ' + Math.ceil(toHalf) + ' s' : '') + ' · vaults move in ' + Math.max(0, Math.ceil(S.vNext - S.t)) + ' s';
     const order = S.ps.slice().sort((a, b) => b.bank - a.bank).slice(0, 5);
     if (!order.includes(me)) order[4] = me;
     $('hTR').innerHTML = order.map(p => '<div class="' + (p === me ? 'me' : '') + '">' + (p === me ? 'You' : p.name) + ' ' + p.bank + '</div>').join('');
