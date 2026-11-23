@@ -11,21 +11,22 @@
         G.setDayGod(key | 'none' | null) forces a day ('none' = no rule, null = back to the real UTC day); it takes effect at the next G.start.
         G.dayGod.active = the key in force in the running (or last) round; G.dayGod.visible(p) = false for a hero hidden by the Moon night.
         G.on('lightning', (p, loss) => …) after each strike (an event of this module, sent with G.emit).
-   Slots: a chip button in #titleExtra (#dgBanner: icon + rule; a tap pops the effect and the next god), a chip in #hudExtra
-   (icon + rule; Thor's day: the seconds to the next strike), nothing on the end screen. Gold is conserved. */
+   Slots: a chip button in #titleExtra (#dgBanner: icon + rule; a tap pops the effect and the next god, just under the chip), a chip in #hudExtra
+   (icon + the effect in ≤ 2 words, G.dayGod.hud; Thor's day: the seconds to the next strike), nothing on the end screen. Gold is conserved. */
 (() => {
   const G = window.G; if (!G || !G.on || !G.addMod) return;
   const DAYS = [   // index = UTC weekday, 0 = Sunday
-    { key: 'sol',    name: 'Sol',    rule: 'Sun day',       ic: '☀️', day: 'Sunday',    col: '#ffcf5a', desc: 'Everyone 12% faster' },
-    { key: 'mani',   name: 'Máni',   rule: 'Moon night',    ic: '🌙', day: 'Monday',    col: '#a9c4ff', desc: 'Dark past your light' },
-    { key: 'tyr',    name: 'Tyr',    rule: "Tyr's law",     ic: '⚖️', day: 'Tuesday',   col: '#ff8a5a', desc: 'Robbery takes 50%' },
-    { key: 'odin',   name: 'Odin',   rule: "Odin's ravens", ic: '🐦', day: 'Wednesday', col: '#8fd3c8', desc: 'Skills recharge 30% faster' },
-    { key: 'thor',   name: 'Thor',   rule: "Thor's day",    ic: '⚡', day: 'Thursday',  col: '#7b93ff', desc: 'Lightning hits the richest' },
-    { key: 'freya',  name: 'Freya',  rule: "Freya's gold",  ic: '🌸', day: 'Friday',    col: '#ffa8c8', desc: 'Coins worth 50% more' },
-    { key: 'saturn', name: 'Saturn', rule: "Saturn's hour", ic: '⏳', day: 'Saturday',  col: '#d9c38a', desc: 'Banking twice as fast' },
-  ];   /* UI (the owner: "too much text"): a chip = icon + rule (2 words); desc ≤ 4 words, shown only on a tap */
+    { key: 'sol',    name: 'Sol',    rule: 'Sun day',       ic: '☀️', day: 'Sunday',    col: '#ffcf5a', hud: '+12% speed',  desc: 'Everyone +12% speed' },
+    { key: 'mani',   name: 'Máni',   rule: 'Moon night',    ic: '🌙', day: 'Monday',    col: '#a9c4ff', hud: 'Dark',        desc: 'Darkness' },
+    { key: 'tyr',    name: 'Tyr',    rule: "Tyr's law",     ic: '⚖️', day: 'Tuesday',   col: '#ff8a5a', hud: 'Rob 50%',     desc: 'Robbery takes 50%' },
+    { key: 'odin',   name: 'Odin',   rule: "Odin's ravens", ic: '🐦', day: 'Wednesday', col: '#8fd3c8', hud: 'Fast skills', desc: 'Skills −30% wait' },
+    { key: 'thor',   name: 'Thor',   rule: "Thor's day",    ic: '⚡', day: 'Thursday',  col: '#7b93ff', hud: 'Richest hit', desc: 'Richest hit · 30 s' },
+    { key: 'freya',  name: 'Freya',  rule: "Freya's gold",  ic: '🌸', day: 'Friday',    col: '#ffa8c8', hud: 'Coins ×1.5',  desc: 'Coins ×1.5' },
+    { key: 'saturn', name: 'Saturn', rule: "Saturn's hour", ic: '⏳', day: 'Saturday',  col: '#d9c38a', hud: 'Fast bank',   desc: 'Bank 2× faster' },
+  ];   /* UI (the owner: "too much text"): the title chip = icon + the god's day (2 words); the HUD chip = icon + the effect (≤ 2 words,
+          Thor: the seconds to the next strike); desc ≤ 4 words, shown only in the chip's pop with the next god */
   DAYS.forEach((d, i) => { d.dow = i; });
-  const NONE = { key: 'none', name: '', rule: '', ic: '', day: '', col: '#8d9bb0', desc: '', dow: -1 };
+  const NONE = { key: 'none', name: '', rule: '', ic: '', day: '', col: '#8d9bb0', hud: '', desc: '', dow: -1 };
   const BY = {}; for (const d of DAYS) BY[d.key] = d; BY.none = NONE;
   const LIGHT = 340, ROB = 0.5, CD = 0.7, BANK = 0.5, SPEED = 1.12, COIN = 1.5;
   const STRIKE_T = 30, STRIKE_MIN = 10, STRIKE_SHARE = 0.25, BOLT_LIFE = 0.6, DARK = '4,7,18';
@@ -44,7 +45,7 @@
   const DG = G.dayGod = { LIGHT, all: DAYS.map(d => Object.assign({}, d)), active: null, forced: false, strikes: [], drawn: 0, flashes: 0, view: null,
     visible: p => { const S = G.S; if (!is('mani') || !S || !p || p === S.me) return true; return G.dist(S.me, p) <= LIGHT; },
     timeLeft: msLeft };
-  const sync = d => { Object.assign(DG, { key: d.key, name: d.name, rule: d.rule, ic: d.ic, day: d.day, desc: d.desc, col: d.col, dow: d.dow, forced: !!forced });
+  const sync = d => { Object.assign(DG, { key: d.key, name: d.name, rule: d.rule, ic: d.ic, day: d.day, hud: d.hud, desc: d.desc, col: d.col, dow: d.dow, forced: !!forced });
     const n = nextOf(d); DG.next = n ? { key: n.key, name: n.name, rule: n.rule, ic: n.ic, day: n.day } : null; };
   sync(sel);
 
@@ -156,19 +157,30 @@
   css.textContent = '.dg-ban{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:0 16px;border:1.5px solid var(--dg);border-radius:999px;background:rgba(255,255,255,.04);'
     + 'color:var(--ink);font:700 15px/1 Georgia,serif;white-space:nowrap;cursor:pointer;flex:0 0 auto;width:auto!important;max-width:100%;justify-self:center}'
     + '.dg-ban i,#dgChip i{font-style:normal;font-size:17px;line-height:1}#dgChip i{font-size:13px}'
-    + '#dgPop{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:30;pointer-events:none;font:700 15px Georgia,serif;color:var(--ink);text-shadow:0 2px 6px #000;text-align:center;width:max-content;max-width:calc(100vw - 32px);'
-    + 'background:rgba(7,12,22,.94);border:1px solid var(--dg);padding:7px 14px;border-radius:10px;opacity:0;transition:opacity .25s}#dgPop.on{opacity:1}'
+    + '#dgPop{position:fixed;left:16px;top:0;z-index:30;pointer-events:none;font:700 15px/1.25 Georgia,serif;color:var(--ink);text-shadow:0 2px 6px #000;text-align:center;width:max-content;max-width:calc(100vw - 32px);display:flex;flex-direction:column;gap:2px;'
+    + 'background:rgba(7,12,22,.94);border:1px solid var(--dg);padding:7px 14px;border-radius:10px;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}#dgPop.on{opacity:1;visibility:visible}'
+    + '#dgPop small{font:700 12px/1.2 Georgia,serif;color:#b9c3d3}'
     + '#dgChip{position:absolute;left:calc(10px + env(safe-area-inset-left));top:calc(56px + env(safe-area-inset-top));display:none;align-items:center;gap:5px;padding:3px 9px 3px 7px;border-radius:999px;'
     + 'border:1px solid var(--dg);background:rgba(7,12,22,.66);color:var(--ink);font:700 11px/1.1 Georgia,serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;text-shadow:0 1px 2px #000}'
     + '#dgChip.on{display:flex}#dgChip.hot{box-shadow:0 0 12px var(--dg)}#dgChip.hot i{animation:dgp .5s infinite alternate}@keyframes dgp{to{opacity:.25}}';
   document.head.appendChild(css);
 
-  /* a tap's one line: the effect and the next god (a pop of its own: the core's #toast sits under the title screen) */
+  /* a tap's pop, just under the chip (above it if there is no room), inside the 16 px gutters: the effect, then the next god
+     (a pop of its own: the core's #toast sits under the title screen) */
   let popT = 0;
-  const popText = () => { const n = nextOf(sel); return sel.desc + (n ? ' · next ' + n.ic + ' ' + left() : ''); };
+  const popText = () => { const n = nextOf(sel); return [sel.ic + ' ' + sel.desc, n ? 'Next: ' + n.name + ' · ' + left() : '']; };
   function pop() {
-    let el = $('dgPop'); if (!el) { el = document.createElement('div'); el.id = 'dgPop'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
-    el.style.setProperty('--dg', sel.col); el.textContent = popText(); el.classList.add('on');
+    let el = $('dgPop'); if (!el) { el = document.createElement('div'); el.id = 'dgPop'; el.setAttribute('role', 'status'); el.innerHTML = '<span></span><small></small>'; document.body.appendChild(el); }
+    const [a, b] = popText(); el.style.setProperty('--dg', sel.col); el.firstChild.textContent = a; el.lastChild.textContent = b; el.lastChild.style.display = b ? '' : 'none';
+    const ban = $('dgBanner'), W = innerWidth, H = innerHeight, pw = el.offsetWidth, ph = el.offsetHeight;
+    const r = ban && ban.offsetParent ? ban.getBoundingClientRect() : { left: W / 2, width: 0, top: H * 0.2, bottom: H * 0.2 };
+    /* under the chip, else above it, else beside it (right, then left), else on the chip itself (a tight portrait title); never on the title, the cards, the god's line or PLAY */
+    const cx = clamp(r.left + r.width / 2 - pw / 2, 16, Math.max(16, W - 16 - pw)), cy = r.top + r.height / 2 - ph / 2;
+    const keep = [$('play'), $('gods'), $('gdesc'), document.querySelector('#title h1')].filter(e => e && e.offsetParent).map(e => e.getBoundingClientRect());
+    const free = ([x, y]) => x >= 16 - 0.5 && x + pw <= W - 16 + 0.5 && y >= 8 && y + ph <= H - 8 && !keep.some(q => x < q.right && q.left < x + pw && y < q.bottom && q.top < y + ph);
+    const at = [[cx, r.bottom + 6], [cx, r.top - ph - 6], [r.right + 8, cy], [r.left - 8 - pw, cy], [cx, cy]].find(free) || [cx, clamp(r.bottom + 6, 8, Math.max(8, H - ph - 8))];
+    el.style.left = at[0] + 'px'; el.style.top = at[1] + 'px';
+    el.classList.add('on');
     clearTimeout(popT); popT = setTimeout(() => el.classList.remove('on'), 2600);
   }
   G.on('start', () => { const el = $('dgPop'); if (el) el.classList.remove('on'); });
@@ -186,7 +198,7 @@
     const box = $('hudExtra'); if (!box) return;
     let el = $('dgChip'); if (!el) { el = document.createElement('div'); el.id = 'dgChip'; el.innerHTML = '<i></i><span></span>'; box.appendChild(el); }
     if (!act || act.key === 'none') { el.classList.remove('on'); chipTxt = ''; return; }
-    const S = G.S; let t = act.rule, hot = false;
+    const S = G.S; let t = act.hud, hot = false;
     if (act.key === 'thor' && S && nextStrike < G.ROUND) { const s = Math.max(0, Math.ceil(nextStrike - S.t)); t = s + ' s'; hot = s <= 3; }   // "⚡ 12 s": the next strike
     if (force) { el.style.setProperty('--dg', act.col); el.classList.add('on'); el.firstChild.textContent = act.ic; }
     el.classList.toggle('hot', hot);

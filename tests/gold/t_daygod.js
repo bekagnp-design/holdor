@@ -1,7 +1,7 @@
 // tests/gold/t_daygod.js — the day god (src/gold/js/40_daygod.js): today's god follows the UTC weekday; each of the 7 rules, forced with
 // G.setDayGod, does what it says, measured through G.step (robbery share, cooldown, lightning at 30 s on the richest, coin worth, banking
 // time, speed, the Moon night overlay read back from the canvas); 'none' is neutral; gold is conserved on every day; the title chip (icon + rule,
-// a tap pops the effect + the next god), the HUD chip (icon + ≤ 2 words) show, stay short and overlap nothing at 390×844, 844×390 and 640×360;
+// a tap pops the effect + the next god right at the chip), the HUD chip (icon + the effect, ≤ 2 words) show, stay short and overlap nothing at 390×844, 844×390 and 640×360;
 // the chip adds no title scroll; the end screen carries no day line; no page errors. Screenshots: .shots/gold_day_*.png
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs');
 const EXE = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome';
@@ -189,18 +189,25 @@ function helpers() {
     const p = await open(w, h), tag = w + 'x' + h;
     const ban = await p.evaluate(keys => keys.map(k => { G.setDayGod(k); const el = G.$('dgBanner'), r = el.getBoundingClientRect(), box = e => { const q = (typeof e === 'string' ? document.querySelector(e) : e).getBoundingClientRect(); return { x: q.x, y: q.y, width: q.width, height: q.height }; };
       return { k, text: el.textContent, btn: el.tagName === 'BUTTON', ban: box(el), others: ['h1', '#gods', '#gdesc', '#play', '#best', '#titleLinks'].map(box), play: box('#play'), sw: document.documentElement.scrollWidth }; }), KEYS);
-    const all = await p.evaluate(() => G.dayGod.all.map(d => ({ ic: d.ic, rule: d.rule, desc: d.desc })));
+    const all = await p.evaluate(() => G.dayGod.all.map(d => ({ ic: d.ic, rule: d.rule, hud: d.hud, desc: d.desc })));
     const banOk = ban.every((r, i) => r.btn && r.text === all[i].ic + all[i].rule && all[i].rule.split(' ').length <= 2 && r.ban.height >= 44 && r.ban.x >= 0 && r.ban.x + r.ban.width <= w && r.sw <= w && !r.others.some(o => R(o, r.ban)));
     ok(banOk, tag + ': the title chip "<icon> <rule>" (2 words, a >= 44 px button) shows for each day and overlaps nothing', ban.map(r => [r.text, Math.round(r.ban.y), Math.round(r.ban.height), Math.round(r.ban.width)]));
     ok(ban.every(r => r.play.height >= 44 && r.play.y + r.play.height <= h) , tag + ': PLAY stays on screen with the chip', ban.map(r => [Math.round(r.play.y + r.play.height), Math.round(r.ban.height)]));
-    ok(all.every(d => d.desc.split(' ').length <= 4), tag + ': every effect line is at most 4 words', all.map(d => d.desc));
+    ok(all.every(d => d.desc.split(' ').filter(x => x !== '·').length <= 4 && d.hud.split(' ').length <= 2), tag + ': every effect line is at most 4 words, every HUD effect at most 2', all.map(d => [d.desc, d.hud]));
     // the chip adds no scroll to the title: the title's overflow is the same with the chip hidden
     const sc = await p.evaluate(() => { G.setDayGod('odin'); const t = G.$('title'), el = G.$('dgBanner'); const a = t.scrollHeight - t.clientHeight; el.style.display = 'none'; const b = t.scrollHeight - t.clientHeight; el.style.display = ''; return { withChip: a, without: b }; });
     ok(sc.withChip <= Math.max(0, sc.without), tag + ': the day chip adds no scroll to the title', sc);
     // a real tap pops the effect and the next god in one short line
     await p.evaluate(() => G.setDayGod('mani')); await p.locator('#dgBanner').tap(); await p.waitForTimeout(350);
-    const pop = await p.evaluate(() => { const e = G.$('dgPop'), r = e && e.getBoundingClientRect(); return e && { text: e.textContent, op: +getComputedStyle(e).opacity, x: r.x, w: r.width, y: r.y, h: r.height }; });
-    ok(pop && /^Dark past your light · next ⚖️ \d+ (h|m)$/.test(pop.text) && pop.text.length <= 40 && pop.op > 0.5 && pop.x >= 0 && pop.x + pop.w <= w && pop.y >= 0, tag + ': a tap on the chip pops "Dark past your light · next ⚖️ 7 h"', pop);
+    const pop = await p.evaluate(() => { const e = G.$('dgPop'), r = e && e.getBoundingClientRect(), box = q => { const o = q && q.getBoundingClientRect(); return o && { x: o.x, y: o.y, width: o.width, height: o.height }; };
+      return e && { a: e.firstChild.textContent, b: e.lastChild.textContent, op: +getComputedStyle(e).opacity, x: r.x, w: r.width, y: r.y, h: r.height, ban: box(G.$('dgBanner')),
+        cover: [['h1', box(document.querySelector('#title h1') || document.querySelector('h1'))], ['god', box(document.querySelector('#gods .god.sel'))], ['gdesc', box(G.$('gdesc'))], ['play', box(G.$('play'))]] }; });
+    const pr = pop && { x: pop.x, y: pop.y, width: pop.w, height: pop.h }, hit = pop ? pop.cover.filter(([, o]) => o && o.width && R(o, pr)).map(o => o[0]) : ['?'];
+    const nextTo = pop && (((Math.abs(pop.y - (pop.ban.y + pop.ban.height)) <= 8 || Math.abs(pop.y + pop.h - pop.ban.y) <= 8) && pop.x + pop.w > pop.ban.x && pop.x < pop.ban.x + pop.ban.width)
+      || ((Math.abs(pop.x - (pop.ban.x + pop.ban.width)) <= 10 || Math.abs(pop.x + pop.w - pop.ban.x) <= 10) && pop.y + pop.h > pop.ban.y && pop.y < pop.ban.y + pop.ban.height)
+      || (Math.abs(pop.x + pop.w / 2 - (pop.ban.x + pop.ban.width / 2)) <= 2 && Math.abs(pop.y + pop.h / 2 - (pop.ban.y + pop.ban.height / 2)) <= 2));   // under / above, beside, or on the chip
+    ok(pop && pop.a === '🌙 Darkness' && /^Next: Tyr · \d+ (h|m)$/.test(pop.b) && pop.op > 0.5, tag + ': a tap on the chip pops "🌙 Darkness" / "Next: Tyr · 7 h"', pop && [pop.a, pop.b, pop.op]);
+    ok(pop && nextTo && pop.x >= 16 - 0.5 && pop.x + pop.w <= w - 16 + 0.5 && pop.y >= 0 && pop.y + pop.h <= h && !hit.length, tag + ': the pop sits right at the chip, inside the 16 px gutters, over neither the title, the picked god, its line nor PLAY', pop && { pop: [Math.round(pop.x), Math.round(pop.y), Math.round(pop.w), Math.round(pop.h)], ban: pop.ban, hit });
     await p.screenshot({ path: path.join(SHOTS, 'gold_day_pop_' + w + '.png') });
     await p.evaluate(() => G.setDayGod('thor')); await p.screenshot({ path: path.join(SHOTS, 'gold_day_title_' + w + '.png') });
     const hud = [];
@@ -212,10 +219,11 @@ function helpers() {
       { const r = hud[hud.length - 1]; r.hit = r.others.filter(([id, o]) => o.width && R(o, r.chip)).map(o => o[0]); delete r.others; }
       if (k === 'thor' || k === 'mani') await p.screenshot({ path: path.join(SHOTS, 'gold_day_hud_' + k + '_' + w + '.png') });
     }
-    ok(hud.every((r, i) => r.on && r.k === KEYS[i] && (KEYS[i] === 'thor' ? /^⚡\d+ s$/.test(r.text) : r.text === all[i].ic + all[i].rule) && r.chip.height > 10 && r.chip.x >= 0 && r.chip.y >= 0 && r.chip.x + r.chip.width <= w && r.chip.y + r.chip.height <= h && !r.hit.length),
-      tag + ': the HUD chip "<icon> <rule>" ("⚡ N s" on Thor\'s day) overlaps neither carry/bank, the clock, the board nor the skill button', hud.map(r => [r.text, r.hit, Math.round(r.chip.x), Math.round(r.chip.y), Math.round(r.chip.width)]));
+    ok(hud.every((r, i) => r.on && r.k === KEYS[i] && (KEYS[i] === 'thor' ? /^⚡\d+ s$/.test(r.text) : r.text === all[i].ic + all[i].hud && all[i].hud.split(' ').length <= 2) && r.chip.height > 10 && r.chip.x >= 0 && r.chip.y >= 0 && r.chip.x + r.chip.width <= w && r.chip.y + r.chip.height <= h && !r.hit.length),
+      tag + ': the HUD chip "<icon> <effect>" (≤ 2 words: "🌙 Dark", "⚖️ Rob 50%"; "⚡ N s" on Thor\'s day) overlaps neither carry/bank, the clock, the board nor the skill button', hud.map(r => [r.text, r.hit, Math.round(r.chip.x), Math.round(r.chip.y), Math.round(r.chip.width)]));
     const end = await p.evaluate(() => { T.begin('freya', 'hermes'); while (!G.S.over) G.step(600); const box = id => { const q = G.$(id).getBoundingClientRect(); return { x: q.x, y: q.y, width: q.width, height: q.height }; };
-      return { on: G.$('end').classList.contains('on'), dgEnd: !!G.$('dgEnd'), day: /Freya|Today/.test(G.$('end').innerText) }; });
+      return { on: G.$('end').classList.contains('on'), dgEnd: !!G.$('dgEnd'), day: /Today|Freya's|Coins ×1.5|🌸|Next:/.test(G.$('end').innerText), txt: G.$('end').innerText.replace(/\s+/g, ' ') }; });
+    // a bot may be named Freya and win: the check looks for the day's own words
     ok(end.on && !end.dgEnd && !end.day, tag + ': the end screen carries no day-god line', end);
     await p.screenshot({ path: path.join(SHOTS, 'gold_day_end_' + w + '.png') });
     await noErr(p, tag);
