@@ -3,7 +3,8 @@
    - Only events of the human hero, or ones on his screen, make a sound; frequent sounds are throttled.
    - The halving, the vault-move warning and the last 20 s are read from G.S (S.t crossing the times, the next vault spot
      appearing), not from the toast text.
-   - A "Sound: on/off" .sec button in #titleLinks, saved in localStorage 'hg_sound' ('on' | 'off').
+   - A 🔊 / 🔇 "Sound" icon button (.ib, .on while the sound is on) in #titleLinks, before the core's Rules icon;
+     saved in localStorage 'hg_sound' ('on' | 'off').
    - G.sfx = { play(name, vol), muted (get/set), log: [] (the names played, for tests), names, ready }. */
 (() => {
   const G = window.G; if (!G) return;
@@ -118,7 +119,7 @@
 
   /* ---------- mute ---------- */
   let btn = null;
-  const label = () => { if (btn) { btn.textContent = 'Sound: ' + (muted ? 'off' : 'on'); btn.setAttribute('aria-pressed', String(!muted)); } };
+  const label = () => { if (btn) { btn.firstChild.textContent = muted ? '🔇' : '🔊'; btn.classList.toggle('on', !muted); btn.setAttribute('aria-pressed', String(!muted)); btn.setAttribute('aria-label', muted ? 'Sound off' : 'Sound on'); } };
   function setMuted(v) {
     muted = !!v; try { localStorage.setItem(KEY, muted ? 'off' : 'on'); } catch (e) {}
     if (ac && out) { try { out.gain.cancelScheduledValues(ac.currentTime); out.gain.setTargetAtTime(muted ? 0 : MASTER, ac.currentTime, 0.02); } catch (e) {} }
@@ -127,7 +128,8 @@
   }
   const links = document.getElementById('titleLinks');
   if (links) {
-    btn = document.createElement('button'); btn.type = 'button'; btn.className = 'sec'; btn.id = 'hgSound'; label(); links.appendChild(btn);
+    btn = document.createElement('button'); btn.type = 'button'; btn.className = 'ib'; btn.id = 'hgSound'; btn.innerHTML = '<i></i><span>Sound</span>'; label();
+    const help = document.getElementById('helpB'); if (help && help.parentNode === links) links.insertBefore(btn, help); else links.appendChild(btn);   // Rules stays the last icon
     btn.addEventListener('click', () => { setMuted(!muted); if (!muted) { ensure(); play('ui'); } });
   }
 
