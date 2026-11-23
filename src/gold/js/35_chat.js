@@ -1,10 +1,11 @@
 /* Heavy Gold — chat (35_chat.js): the world chat and the player's own country chat (src/gold/GOLD.md, Wave 5).
-   - Buttons: "Chat" (.sec), the first link in #titleLinks, and during a round a round 44 px button in #hudExtra on the right, under the live board
+   - Buttons: a 💬 "Chat" icon button (.ib), the first link in #titleLinks, and during a round a round 44 px button in #hudExtra on the right, under the live board
      (#hTR; clear of the clock, the board, the skill button, the minimap and the day chip at 390×844, 844×390 and 640×360).
      A red dot on both when a channel has a message from someone else newer than the last one this player saw.
-   - The panel: two tabs, WORLD and the player's country (flag + name); each message shows the flag, the name (👑 for last week's
-     champion), the text and a short time (HH:MM today, "21 Nov" before); an input (200 characters at most) with SEND (the screen's
-     one primary button) and an English line for each server error ('rate' → "Slow down a little").
+   - The panel (GOLD.md "UI rules": icons and 1–3 words): two tabs, 🌍 World and the player's country (flag + name); each message
+     shows the flag, the name (👑 for last week's champion), the text and a short time (HH:MM today, "21 Nov" before); an input
+     ("Message", 200 characters at most) with ➤ (send, the screen's one primary button) and a 1–3 word line for each error
+     ('rate' → "Too fast", 'too_long' → "Too long", 'auth' → "Not signed in", no network → "Offline").
      · On the title (no round): a full screen (.scr, z 20).
      · During a round the game keeps running, so the panel docks: a bottom sheet (42 % of the height, left of the skill button) in
        portrait, a side panel (≤ 40 % of the width, above the skill button) on the right in landscape. The hero at the centre, the
@@ -18,7 +19,7 @@
      channel = 'world' or 'c:XX' (XX = G.profile.country).
    - A long press (or the ⋯ on a message from someone else) offers Report (hg_chat_report(token, id): hidden for this player at once)
      and Block (hg_chat_block(token, name): that name's messages go).
-   - Offline (no Telegram): "Open HOLDOR in Telegram to chat", nothing is sent and the round has no chat button.
+   - Offline (no Telegram): "Open in Telegram", nothing is sent and the round has no chat button.
    - Every user text (names, bodies) goes into the page with textContent; this file never uses innerHTML. Only id, name, country,
      body, at, mine and crown are read from a message (never a Telegram id).
    - localStorage: 'hg_chat_seen' {channel: last seen id}, 'hg_chat_hidden' [ids this player reported].
@@ -29,13 +30,13 @@
   const G = window.G; if (!G || !G.on) return;
   const MAXLEN = 200, KEEP = 200, PAGE = 50, LONG_MS = 550, SEEN_K = 'hg_chat_seen', HIDE_K = 'hg_chat_hidden';
   const ERR = {
-    rate: 'Slow down a little',
-    too_long: 'Too long: 200 characters at most',
-    empty: 'Write something first',
-    no_profile: 'Pick a name and a country first',
-    bad_channel: "You can write only in your own country's chat",
-    auth: 'Not signed in. Reopen HOLDOR in Telegram',
-    net: 'Could not send. Check the connection and try again'
+    rate: 'Too fast',
+    too_long: 'Too long',
+    empty: 'Empty',
+    no_profile: 'No profile',
+    bad_channel: 'Not your country',
+    auth: 'Not signed in',
+    net: 'Offline'
   };
   const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -165,13 +166,13 @@
     '.hgChForm{display:flex;gap:8px;align-items:stretch;margin:0}.hgChForm[hidden]{display:none}',
     '.hgChIn{flex:1 1 auto;min-width:0;min-height:44px;border-radius:12px;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:var(--ink,#f3e7c4);font:16px Georgia,serif;padding:0 12px;outline:none;user-select:text;-webkit-user-select:text;touch-action:manipulation}',
     '.hgChIn:focus{border-color:var(--gold,#e8b84a)}.hgChIn::placeholder{color:#6f7d92}',
-    '.hgChForm .pri{width:auto;min-height:44px;flex:none;padding:0 18px;font-size:15px;box-shadow:none}.hgChForm .pri:disabled{opacity:.6}',
+    '.hgChForm .pri{width:auto;min-width:56px;min-height:44px;flex:none;padding:0 14px;font-size:20px;letter-spacing:0;box-shadow:none}.hgChForm .pri:disabled{opacity:.6}',
     '.hgChMenu{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:#0a0f1a;border-radius:12px;padding:8px}.hgChMenu[hidden]{display:none}',
     '.hgChMenu .q{font:14px/1.35 Georgia,serif;color:#cfd6e2;text-align:center;max-width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere;word-break:break-word}',
     '.hgChActs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:min(100%,420px)}.hgChActs .sec{flex:1 1 120px;width:auto;min-height:44px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 10px}',
     '.hgDot{position:absolute;top:-3px;right:-3px;width:12px;height:12px;border-radius:50%;background:#ff6a5a;border:2px solid #070c16;pointer-events:none;box-sizing:border-box}.hgDot[hidden]{display:none}',
     '.hgChTab .hgDot{position:static;width:9px;height:9px;border:0;flex:none}',
-    '#hgChatBtn{position:relative}',
+    '#hgChatBtn{position:relative}#hgChatBtn .hgDot{top:3px;right:3px}',
     '#hgChatHud{position:absolute;right:calc(10px + env(safe-area-inset-right));top:calc(108px + env(safe-area-inset-top));width:44px;height:44px;border-radius:50%;border:2px solid rgba(232,184,74,.75);background:rgba(7,12,22,.72);color:var(--gold,#e8b84a);display:none;place-items:center;pointer-events:auto;cursor:pointer;padding:0;touch-action:manipulation;box-shadow:0 2px 8px rgba(0,0,0,.45)}',
     '#hgChatHud.on{display:grid}#hgChatHud svg{display:block}',
     /* docked during a round: the game keeps running around it */
@@ -181,7 +182,7 @@
     '#hgChat.dock .hgChMsg:empty{display:none}#hgChat.dock .hgChList{min-height:40px}',
     '#hgChat.dock .hgCmh{display:inline-flex;margin-right:6px;vertical-align:baseline;max-width:100%}#hgChat.dock .hgCmb{display:inline}',
     '#hgChat.dock .hgChNote{padding:10px 8px;font-size:14px;gap:6px}',
-    '#hgChat.dock .hgChTab{padding:0 6px;gap:4px;letter-spacing:.03em}#hgChat.dock .hgChForm .pri{padding:0 14px}#hgChat.dock #hgChTabW{flex:0 1 auto;padding:0 12px}',
+    '#hgChat.dock .hgChTab{padding:0 6px;gap:4px;letter-spacing:.03em}#hgChat.dock .hgChForm .pri{padding:0 10px}#hgChat.dock #hgChTabW{flex:0 1 auto;padding:0 12px}',
     /* portrait: the sheet stops left of the skill button (#sk: 88 px, 18 px from the right edge) */
     '@media (orientation:portrait){#hgChat.dock{right:calc(116px + env(safe-area-inset-right))}}',
     '@media (orientation:landscape){#hgChat.dock{left:auto;top:calc(6px + env(safe-area-inset-top));bottom:calc(122px + env(safe-area-inset-bottom));width:min(40%,360px);height:auto}}',
@@ -200,25 +201,25 @@
   const mkTab = (t, id) => { const b = el('button', 'hgChTab'); b.type = 'button'; b.id = id; b.dataset.tab = t; b.setAttribute('role', 'tab'); return b; };
   const tW = mkTab('world', 'hgChTabW'), tC = mkTab('country', 'hgChTabC');
   const wDot = el('i', 'hgDot'), cDot = el('i', 'hgDot'); wDot.hidden = cDot.hidden = true;
-  tW.append(el('span', 'n', 'WORLD'), wDot);
+  tW.append(el('span', 'f', '🌍'), el('span', 'n', 'World'), wDot);
   const tCf = el('span', 'f'), tCn = el('span', 'n'); tC.append(tCf, tCn, cDot);
   tabsEl.append(tW, tC);
-  const xB = el('button', 'hgChX', '✕'); xB.type = 'button'; xB.id = 'hgChX'; xB.setAttribute('aria-label', 'Close the chat');
+  const xB = el('button', 'hgChX', '✕'); xB.type = 'button'; xB.id = 'hgChX'; xB.setAttribute('aria-label', 'Close');
   bar.append(h2, tabsEl, xB);
   const wrap = el('div', 'hgChWrap');
   const list = el('div', 'hgChList'); list.id = 'hgChList'; list.setAttribute('aria-live', 'polite');
-  const pill = el('button', 'hgChNew', 'New messages ↓'); pill.type = 'button'; pill.id = 'hgChNew'; pill.hidden = true;
+  const pill = el('button', 'hgChNew', '↓ New'); pill.type = 'button'; pill.id = 'hgChNew'; pill.hidden = true;
   wrap.append(list, pill);
   const msgEl = el('div', 'hgChMsg'); msgEl.id = 'hgChMsg'; msgEl.setAttribute('role', 'status');
   const form = el('form', 'hgChForm'); form.id = 'hgChForm'; form.setAttribute('autocomplete', 'off');
   const input = el('input', 'hgChIn'); input.id = 'hgChIn'; input.type = 'text'; input.setAttribute('enterkeyhint', 'send'); input.setAttribute('autocomplete', 'off');
   input.setAttribute('autocorrect', 'on'); input.setAttribute('aria-label', 'Message'); input.maxLength = MAXLEN * 2;   // the 200-character rule counts code points (below)
-  const sendB = el('button', 'pri', 'SEND'); sendB.type = 'submit'; sendB.id = 'hgChSend';
+  const sendB = el('button', 'pri', '➤'); sendB.type = 'submit'; sendB.id = 'hgChSend'; sendB.setAttribute('aria-label', 'Send');
   form.append(input, sendB);
   const menu = el('div', 'hgChMenu'); menu.id = 'hgChMenu'; menu.hidden = true;
   const mq = el('div', 'q'); const acts = el('div', 'hgChActs');
-  const repB = el('button', 'sec', 'Report'); repB.type = 'button'; repB.id = 'hgChReport';
-  const blkB = el('button', 'sec', 'Block'); blkB.type = 'button'; blkB.id = 'hgChBlock';
+  const repB = el('button', 'sec', '⚑ Report'); repB.type = 'button'; repB.id = 'hgChReport';
+  const blkB = el('button', 'sec', '⛔ Block'); blkB.type = 'button'; blkB.id = 'hgChBlock';
   const canB = el('button', 'sec', 'Cancel'); canB.type = 'button'; canB.id = 'hgChCancel';
   acts.append(repB, blkB, canB); menu.append(mq, acts);
   box.append(bar, wrap, msgEl, form, menu); scr.appendChild(box); document.body.appendChild(scr);
@@ -230,8 +231,8 @@
   window.addEventListener('keydown', e => { if (isOpen && e.key === 'Escape') { if (!menu.hidden) closeMenu(); else close(); } });
 
   /* ---- buttons outside the panel ---- */
-  const tBtn = el('button', 'sec', 'Chat'); tBtn.id = 'hgChatBtn'; tBtn.type = 'button';
-  const tDot = el('i', 'hgDot'); tDot.hidden = true; tBtn.appendChild(tDot);
+  const tBtn = el('button', 'ib'); tBtn.id = 'hgChatBtn'; tBtn.type = 'button';
+  const tDot = el('b', 'hgDot'); tDot.hidden = true; tBtn.append(el('i', null, '💬'), el('span', null, 'Chat'), tDot);
   const links = G.$('titleLinks'); if (links) links.insertBefore(tBtn, links.firstChild);   // first: its dot must be on screen (landscape)
   tBtn.addEventListener('click', () => open());
   const hb = el('button'); hb.id = 'hgChatHud'; hb.type = 'button'; hb.setAttribute('aria-label', 'Chat');
@@ -264,22 +265,22 @@
   }
   function paintTabs() {
     const c = myCountry();
-    tCf.textContent = c ? flag(c) : ''; tCf.hidden = !c; tCn.textContent = c ? cname(c) : 'COUNTRY';
+    tCf.textContent = c ? flag(c) : '🏳'; tCn.textContent = c ? cname(c) : 'Country';
     tW.classList.toggle('on', tab === 'world'); tC.classList.toggle('on', tab === 'country');
     tW.setAttribute('aria-selected', String(tab === 'world')); tC.setAttribute('aria-selected', String(tab === 'country'));
-    input.placeholder = mode === 'dock' && isOpen ? 'Message' : tab === 'world' ? 'Message to the world' : 'Message to ' + (c ? cname(c) : 'your country');
+    input.placeholder = 'Message';
   }
   /* the line under the list: kind 'bad' (an error, the default), 'good' (done) or 'soft' (a hint) */
   function msg(codeOrNull, text, kind) {
-    const t = text != null ? text : (codeOrNull ? (ERR[codeOrNull] || 'The server did not take the message') : ''), k = t ? (kind || 'bad') : '';
+    const t = text != null ? text : (codeOrNull ? (ERR[codeOrNull] || 'Not sent') : ''), k = t ? (kind || 'bad') : '';
     msgEl.textContent = t; msgEl.classList.toggle('bad', k === 'bad'); msgEl.classList.toggle('good', k === 'good'); msgEl.dataset.code = codeOrNull || '';
   }
   const nearBottom = () => list.scrollHeight - list.scrollTop - list.clientHeight < 12;
   function note(text, retry, pick) {
     list.textContent = ''; pill.hidden = true;
     const n = el('div', 'hgChNote'); n.id = 'hgChNote'; n.appendChild(el('div', null, text));
-    if (retry) { const b = el('button', 'sec', 'Try again'); b.type = 'button'; b.id = 'hgChRetry'; b.addEventListener('click', retry); n.appendChild(b); }
-    if (pick) { const b = el('button', 'sec', 'Pick a name & country'); b.type = 'button'; b.id = 'hgChPick'; b.addEventListener('click', () => { close(); if (G.profileUI && G.profileUI.open) G.profileUI.open(false); }); n.appendChild(b); }
+    if (retry) { const b = el('button', 'sec', '↻ Retry'); b.type = 'button'; b.id = 'hgChRetry'; b.addEventListener('click', retry); n.appendChild(b); }
+    if (pick) { const b = el('button', 'sec', 'Profile'); b.type = 'button'; b.id = 'hgChPick'; b.addEventListener('click', () => { close(); if (G.profileUI && G.profileUI.open) G.profileUI.open(false); }); n.appendChild(b); }
     list.appendChild(n);
   }
   function row(m) {
@@ -301,7 +302,7 @@
     const lastShown = +((list.querySelector('.hgCm:last-child') || {}).dataset || {}).id || 0;
     list.textContent = '';
     const ms = shown(s);
-    if (!ms.length) note(tab === 'world' ? 'No messages yet. Say hello to the world.' : 'No messages yet. Say hello to ' + cname(myCountry()) + '.');
+    if (!ms.length) note('No messages yet');
     else { const fr = document.createDocumentFragment(); for (const m of ms) fr.appendChild(row(m)); list.appendChild(fr); }
     shownKey = key; shownCh = ch;
     if (atB) { list.scrollTop = list.scrollHeight; pill.hidden = true; if (isOpen && !document.hidden) markSeen(ch); }
@@ -312,17 +313,17 @@
     if (!isOpen) { paintDots(); return; }
     scr.classList.toggle('dock', mode === 'dock'); scr.classList.toggle('full', mode === 'full');
     const ch = chan(tab); let txt = null, retry = null, pick = false, showForm = true, showTabs = true;
-    if (!hasTG()) { txt = 'Open HOLDOR in Telegram to chat'; showForm = false; showTabs = false; }
+    if (!hasTG()) { txt = 'Open in Telegram'; showForm = false; showTabs = false; }
     else if (!online()) {
       showForm = false; showTabs = false;
       if (G.net && G.net.pending) txt = 'Connecting…';
-      else { txt = 'Could not reach the server.'; retry = () => { if (G.net) { const p = G.net.login(true); render(); p.then(() => { render(); kick(0); }); } }; }
+      else { txt = 'Offline'; retry = () => { if (G.net) { const p = G.net.login(true); render(); p.then(() => { render(); kick(0); }); } }; }
     }
-    else if (!ch) { txt = "Pick a name and a country to join your country's chat"; pick = mode === 'full'; showForm = false; }
+    else if (!ch) { txt = 'No country yet'; pick = mode === 'full'; showForm = false; }
     else {
       const s = st(ch);
-      if (s.err === 'bad_channel') { txt = "You can read only your own country's chat"; showForm = false; }
-      else if (!s.loaded) { if (s.err) { txt = 'Could not load the chat.'; retry = () => { fullNext[ch] = true; s.err = null; render(); kick(0); }; } else txt = 'Loading…'; }
+      if (s.err === 'bad_channel') { txt = 'Not your country'; showForm = false; }
+      else if (!s.loaded) { if (s.err) { txt = 'Not loaded'; retry = () => { fullNext[ch] = true; s.err = null; render(); kick(0); }; } else txt = 'Loading…'; }
     }
     tabsEl.hidden = !showTabs; form.hidden = !showForm;
     if (txt) { note(txt, retry, pick); shownKey = ''; shownCh = ''; }
@@ -357,7 +358,7 @@
   input.addEventListener('input', () => {
     const v = input.value; if (clen(v) > MAXLEN) input.value = [...v].slice(0, MAXLEN).join('');
     const left = MAXLEN - clen(input.value);
-    if (left <= 20) msg(null, left + (left === 1 ? ' character left' : ' characters left'), 'soft');
+    if (left <= 20) msg(null, left + ' left', 'soft');
     else if (msgEl.textContent && !sending) msg(null);
   });
   for (const ev of ['pointerdown', 'mousedown']) sendB.addEventListener(ev, e => e.preventDefault());   // keep the keyboard up
@@ -389,7 +390,6 @@
     if (!m || m.mine) return;
     menuMsg = m;
     const f = flag(m.country); mq.textContent = (f ? f + ' ' : '') + (m.name || '—') + ': ' + m.body;
-    blkB.textContent = 'Block ' + (m.name || 'this player');
     menu.hidden = false;
   }
   function closeMenu() { menu.hidden = true; menuMsg = null; }
@@ -398,8 +398,8 @@
     const m = menuMsg; if (!m) return; closeMenu();
     const r = online() ? await G.net.rpc('hg_chat_report', { token: null, id: m.id }) : null;
     if (r && typeof r === 'object' && r.ok) {
-      hidden.add(m.id); keep(HIDE_K, [...hidden].slice(-300)); shownKey = ''; render(); msg(null, 'Reported. Thank you.', 'good');
-    } else msg(null, r && r.error ? 'Could not report this message' : 'Could not reach the server. Try again');
+      hidden.add(m.id); keep(HIDE_K, [...hidden].slice(-300)); shownKey = ''; render(); msg(null, '⚑ Reported', 'good');
+    } else msg(null, r && r.error ? 'Not reported' : 'Offline');
   });
   blkB.addEventListener('click', async () => {
     const m = menuMsg; if (!m) return; closeMenu();
@@ -407,8 +407,8 @@
     if (r && typeof r === 'object' && r.ok) {
       const lo = m.name.toLowerCase();
       for (const k in store) { const s = store[k], n = s.msgs.length; s.msgs = s.msgs.filter(x => x.mine || x.name.toLowerCase() !== lo); if (s.msgs.length !== n) s.ver++; }
-      shownKey = ''; render(); msg(null, 'Blocked ' + m.name + '. You will not see their messages.', 'good');
-    } else msg(null, r && r.error ? 'Could not block this player' : 'Could not reach the server. Try again');
+      shownKey = ''; render(); msg(null, '⛔ Blocked', 'good');
+    } else msg(null, r && r.error ? 'Not blocked' : 'Offline');
   });
   list.addEventListener('click', e => { const o = e.target.closest && e.target.closest('.hgCmo'); if (o && o.parentNode) openMenu(+o.parentNode.dataset.id); });
   const lpStop = () => { if (lp) { clearTimeout(lp.t); lp = null; } };

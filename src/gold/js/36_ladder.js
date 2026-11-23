@@ -1,22 +1,24 @@
 /* Heavy Gold — the country ladder and the champion's crown (36_ladder.js; src/gold/GOLD.md, "Wave 5").
    Server: hg_ladder(token) → {week_start, week_end, iso_week, ladder:[{pos, country, real, bots, score, rounds, opp, opp_score, side, crown}],
            mine:{country, pos, opp, score, opp_score, side, ends_at} | null, last:[{week, a, b, a_score, b_score, winner}]}.
-   - The ladder screen (#lgLadder): a "Country ladder" .sec button in #titleLinks and one in the board screen's header (#hgBoard).
-     The countries by position, each with flag, name (👑 for #1), "N players + M bots", this week's score; this week's duels drawn as
-     pairs with a vs line between them (both scores, who leads; a tie keeps the higher place), "Rests this week" for a country without
-     a duel; the player's country highlighted and scrolled into view; "Ends in 3 d 4 h"; last week's results under the list.
-     A tap on a country opens it: its bots by name (bot1…botN, members that never add gold) and its rounds this week. One CLOSE.
-   - The line "🇬🇪 Georgia #5 · this week vs 🇹🇷 Türkiye (#4): 120 vs 98 — you lead" in #endExtra (#lgEnd, after the board module's
-     hg_round_submit has answered: its G.emit('submitted', answer, r); then a fresh hg_ladder), and its short form
-     "🇬🇪 #5 vs 🇹🇷 #4 · 120 vs 98 — you lead" right under the podium in #titleExtra (#lgTitle; not shown in a window at most 380 px tall,
-     where the title's left column is full). Nothing when offline, when the player's country is not on the ladder, or when it rests.
+   - GOLD.md "UI rules" (the owner: "too much text"): icons and numbers, 1–3 word labels, no rule paragraphs.
+   - The ladder screen (#lgLadder): a ⚔ "Ladder" icon button (.ib #lgBtn) in #titleLinks, with a badge (#lgBadge) for the player's
+     place and his duel (▲ he leads / ▼ he trails, e.g. "#5▲"), and the same icon in the board screen's header (#lgFromBoard).
+     Title "LADDER" and "⏳ 3 d 4 h"; the player's duel pinned on top ("🇬🇪 #5 · vs 🇹🇷 #4 · 120 : 98 ▲"); the countries by
+     position: #pos, flag, name (👑 for #1), "👤 2 · 🤖 3" (real members, bots), the score; this week's pairs with a VS line between
+     them ("🇺🇸 leads", or "Tie · 🇧🇷 holds": a tie keeps the higher place), "Rest" for a country without a duel; the player's
+     country highlighted and scrolled into view; last week's results as "🇬🇪 ▲ 95 : 70 🇧🇷" (winner first, ▲ moved up, = held on a tie).
+     A tap on a country opens it: "🤖 bot1 · bot2 · bot3 · 7 rounds" (bots: members that never add gold). One CLOSE.
+   - The end screen: one line in #endExtra (#lgEnd, after the board module's hg_round_submit has answered: its
+     G.emit('submitted', answer, r); then a fresh hg_ladder): "🇬🇪 #5 · vs 🇹🇷 #4 · 135 : 98 ▲". The title shows no line, only the
+     badge. Nothing when offline, when the player's country is not on the ladder, or when it rests (the badge then shows "#pos").
    - The crown: G.profile.crown = the player is the champion, read from the 'last' board (his own row, mine: true, carries crown: true;
      G.board.load shares the podium's request) on every login and again when hg_ladder names a new week; hg_profile_get's crown is
      asked instead only when there is no board module. Cleared offline. In the arena a small crown is drawn above the hero's own
      circle, above his name (the core's drawP writes the name at sy - r - 18), and above his Loki decoys. Board rows and the podium
      get 👑 in 30_board.js. G.net.rpc is not wrapped.
    - Only server data is shown; no Telegram id is read. Every text goes in with textContent.
-   - G.ladder = { open(), close(), load(fresh), refresh(fresh), data (the last normalised answer), text(D, short) (the line, '' when none),
+   - G.ladder = { open(), close(), load(fresh), refresh(fresh) (the badge), data (the last normalised answer), text(D) (the line, '' when none),
      drawCrown(ctx, x, y, alpha, width), crownDrawn (a counter), crownAt / decoyAt ({x, y, w, h} on the screen: the last crown drawn over the
      hero / over his decoy) }. When a fresh hg_ladder answer names a new week, the crown is asked again (the champion changes). */
 (function () {
@@ -26,7 +28,6 @@
   const code = v => { const s = String(v == null ? '' : v).toUpperCase(); return /^[A-Z]{2}$/.test(s) ? s : ''; };
   const flag = c => (typeof G.flag === 'function' ? G.flag(c) : '') || '';
   const cname = c => (typeof G.countryName === 'function' && G.countryName(c)) || c || '—';
-  const who = c => (flag(c) ? flag(c) + ' ' : '') + cname(c);
   const arr = v => Array.isArray(v) ? v : [];
   const fmt = v => int(v).toLocaleString('en-US');
   const fmtS = v => (Math.round(num(v) * 100) / 100).toLocaleString('en-US', { maximumFractionDigits: 2 });
@@ -43,11 +44,10 @@
   css.textContent = [
     '.lgScr{background:var(--bg,#070c16);z-index:21}',
     '.lgBox{flex:1 1 auto;min-height:0;width:min(100%,640px);display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"head" "mine" "list" "foot";gap:8px}',
-    '.lgHead{grid-area:head;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 12px}',
+    '.lgHead{grid-area:head;display:flex;align-items:baseline;justify-content:space-between;gap:2px 12px}',
     '.lgHead h2{margin:0;font:900 20px/1.2 Georgia,serif;letter-spacing:.08em;color:var(--gold,#e8b84a)}',
-    '.lgEnds{font:700 13px/1.3 Georgia,serif;color:var(--ink,#f3e7c4);white-space:nowrap}.lgEnds:empty{display:none}',
-    '.lgRule{flex:1 1 100%;font:13px/1.35 Georgia,serif;color:var(--muted,#8d9bb0)}',
-    '.lgMine{grid-area:mine;border:2px solid var(--gold,#e8b84a);border-radius:12px;background:rgba(232,184,74,.1);padding:7px 10px;font:14px/1.35 Georgia,serif;color:#cfd6e2;text-align:center}.lgMine[hidden]{display:none}',
+    '.lgEnds{font:700 14px/1.3 Georgia,serif;color:var(--ink,#f3e7c4);white-space:nowrap}.lgEnds:empty{display:none}',
+    '.lgMine{grid-area:mine;border:2px solid var(--gold,#e8b84a);border-radius:12px;background:rgba(232,184,74,.1);padding:8px 10px;font:700 17px/1.3 Georgia,serif;color:var(--ink,#f3e7c4);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lgMine[hidden]{display:none}',
     '.lgBody{grid-area:list;min-height:64px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;border-radius:12px;display:flex;flex-direction:column;gap:6px}',
     '.lgFoot{grid-area:foot;display:flex;justify-content:center}',
     '.lgDuel{border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.03);overflow:hidden;flex:none}',
@@ -59,29 +59,25 @@
     '.lgRow .sc{grid-area:sc;font:900 17px/1 Georgia,serif;color:var(--gold,#e8b84a);text-align:right;white-space:nowrap}',
     '.lgRow .ex{grid-area:ex;display:none;font-size:12px;line-height:1.35;color:#cfd6e2;padding-top:3px;white-space:normal}.lgRow.open .ex{display:block}',
     '.lgRow.me{background:rgba(232,184,74,.18)}.lgRow.me .n,.lgRow.me .k{color:var(--gold,#e8b84a)}',
-    '.lgVs{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;padding:3px 10px;font:12px/1.3 Georgia,serif;color:#cfd6e2;border-top:1px dashed rgba(255,255,255,.1);border-bottom:1px dashed rgba(255,255,255,.1);text-align:center}',
+    '.lgVs{display:flex;align-items:center;justify-content:center;gap:6px;padding:3px 10px;font:12px/1.3 Georgia,serif;color:#cfd6e2;border-top:1px dashed rgba(255,255,255,.1);border-bottom:1px dashed rgba(255,255,255,.1);text-align:center;white-space:nowrap}',
     '.lgDuel>.lgVs:last-child{border-bottom:0}',
     '.lgVs .x{font:900 11px Georgia,serif;letter-spacing:.12em;color:#1c1207;background:var(--gold,#e8b84a);border-radius:6px;padding:1px 5px}',
-    '.lgVs b{color:var(--ink,#f3e7c4)}.lgVs.rest{color:var(--muted,#8d9bb0);font-style:italic}',
+    '.lgVs.rest{color:var(--muted,#8d9bb0);font-style:italic}',
     '.lgLast{flex:none;padding:6px 4px 2px;display:flex;flex-direction:column;gap:3px}',
     '.lgLastH{font:700 11px/1.2 Georgia,serif;letter-spacing:.14em;color:var(--muted,#8d9bb0);text-align:center}',
-    '.lgLastR{font:13px/1.35 Georgia,serif;color:#cfd6e2;text-align:center}',
+    '.lgLastR{font:14px/1.35 Georgia,serif;color:#cfd6e2;text-align:center;white-space:nowrap}',
     '.lgNote{padding:18px 12px;text-align:center;font:15px/1.4 Georgia,serif;color:#cfd6e2;display:flex;flex-direction:column;align-items:center;gap:10px}',
-    /* the title / end line: one statement, broken only between its parts */
-    '.lgLine{font:13px/1.35 Georgia,serif;color:#cfd6e2;text-align:center;max-width:100%;text-wrap:balance}',
-    '.lgLine .q{white-space:nowrap}.lgLine .a{color:var(--ink,#f3e7c4);font-weight:700}.lgLine .s{color:var(--gold,#e8b84a);font-weight:700}.lgLine .lgSh{display:none}',
-    '.lgLine .l.up,.lgMine .l.up{color:#5be38a;font-weight:700}.lgLine .l.down,.lgMine .l.down{color:#ff8a7a;font-weight:700}.lgLine .l.tie,.lgMine .l.tie{color:var(--gold,#e8b84a);font-weight:700}',
-    '.lgMine .q{white-space:nowrap}.lgMine{text-wrap:balance}.lgMine .a{color:var(--ink,#f3e7c4);font-weight:700}.lgMine .s{color:var(--gold,#e8b84a);font-weight:700}',
-    '#lgFromBoard{order:3;margin-left:auto;width:auto;min-height:44px;padding:0 14px;font-size:14px;flex:none}',
-    '@media (max-height:430px){.lgLine{font-size:12px;line-height:1.25}}',
-    '@media (max-height:380px){.lgLine .lgF{display:none}.lgLine .lgSh{display:inline}}',
-    /* the title line is always the short form, one tight line under the podium (the day god's banner and the links below stay on
-       screen at 390x844); a window at most 380 px tall (640x360) has no room for it at all: the left column of the title is full */
-    '#lgTitle{margin-top:-6px;font-size:12px;line-height:1.2}#lgTitle .lgF{display:none}#lgTitle .lgSh{display:inline}',
-    '@media (max-height:380px){#lgTitle{display:none}}',
+    /* the end line and the pinned duel: one short line */
+    '.lgLine{font:700 14px/1.3 Georgia,serif;color:var(--ink,#f3e7c4);text-align:center;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.lgLine .s,.lgMine .s{color:var(--gold,#e8b84a)}',
+    '.lgLine .l.up,.lgMine .l.up{color:#5be38a}.lgLine .l.down,.lgMine .l.down{color:#ff8a7a}.lgLine .l.tie,.lgMine .l.tie{color:var(--gold,#e8b84a)}',
+    /* the badge on the title's ⚔ icon: the place, ▲ / ▼ for the duel */
+    '#lgBtn{position:relative}.lgBadge{position:absolute;top:-6px;right:-8px;min-width:22px;padding:1px 4px;border-radius:9px;background:#141a22;border:1.5px solid var(--gold,#e8b84a);color:var(--gold,#e8b84a);font:900 10px/1.2 Georgia,serif;letter-spacing:0;white-space:nowrap;pointer-events:none}',
+    '.lgBadge.up{color:#5be38a;border-color:#5be38a}.lgBadge.down{color:#ff8a7a;border-color:#ff8a7a}.lgBadge[hidden]{display:none}',
+    '#lgFromBoard{order:3;margin-left:auto;flex:none;align-self:center}',
     /* a short landscape window: the head, your duel and CLOSE on the left, the list on the right */
     '@media (orientation:landscape) and (max-height:540px){.lgBox{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);grid-template-rows:auto auto minmax(0,1fr);grid-template-areas:"head list" "mine list" "foot list";gap:8px 16px;width:min(100%,860px)}',
-    '.lgHead h2{font-size:18px}.lgRule{font-size:12px;line-height:1.3}.lgMine{font-size:13px;padding:5px 8px}.lgFoot{align-items:flex-end}.lgFoot .pri{width:100%}.lgRow{min-height:44px;padding:3px 8px}}'
+    '.lgHead h2{font-size:18px}.lgMine{font-size:15px;padding:6px 8px}.lgFoot{align-items:flex-end}.lgFoot .pri{width:100%}.lgRow{min-height:44px;padding:3px 8px}}'
   ].join('\n');
   document.head.appendChild(css);
 
@@ -133,44 +129,37 @@
     return { w: hi, tie: true };
   }
 
-  /* ---- the line: [name #pos] · [this week vs opp (#n):] [a vs b] [— who leads]; null when there is no duel.
-     parts(D, true): the short form for a window at most 380 px tall ("🇬🇪 #5 vs 🇹🇷 #4 · 120 vs 98 — you lead") ---- */
-  function parts(D, short) {
+  /* ---- the line: "🇬🇪 #5 · vs 🇹🇷 #4 · 120 : 98 ▲" (▲ the player's country leads, ▼ it trails; on a tie the higher place holds);
+     null when there is no duel ---- */
+  function duel(D) {
     const m = D && D.mine; if (!m || !m.opp || m.side === 'rest' || m.opp_score == null) return null;
     const me = { pos: m.pos, score: m.score }, op = { pos: m.opp_pos, score: m.opp_score };
-    const up = m.side === 'up' ? op : me, dn = up === me ? op : me, x = lead(up, dn), mineWins = x.w === me;
-    const hold = Math.min(m.pos, m.opp_pos), they = short ? 'they' : cname(m.opp);
-    const l = x.tie ? (mineWins ? '— tied, you hold #' + hold : '— tied, ' + they + (short ? ' hold #' : ' holds #') + hold) : (mineWins ? '— you lead' : '— ' + they + (short ? ' lead' : ' leads'));
-    const sc = [fmtS(m.score) + ' vs ' + fmtS(m.opp_score), 's'], lc = [l, 'l ' + (x.tie ? 'tie' : mineWins ? 'up' : 'down')];
-    if (short) return [[(flag(m.country) || m.country) + ' #' + m.pos + ' vs ' + (flag(m.opp) || m.opp) + ' #' + m.opp_pos, 'a'], [' · ', null], sc, [' ', null], lc];
-    return [[who(m.country) + ' #' + m.pos, 'a'], [' · ', null], ['this week vs ' + who(m.opp) + ' (#' + m.opp_pos + '):', 'b'], [' ', null], sc, [' ', null], lc];
+    const up = m.side === 'up' ? op : me, dn = up === me ? op : me, x = lead(up, dn), win = x.w === me;
+    return { m, win, tie: x.tie, k: x.tie ? 'tie' : win ? 'up' : 'down', mark: win ? '▲' : '▼' };
   }
-  const text = (D, short) => { const p = parts(D, short); return p ? p.map(q => q[0]).join('') : ''; };
+  function parts(D) {
+    const d = duel(D); if (!d) return null; const m = d.m;
+    return [[(flag(m.country) || m.country) + ' #' + m.pos, 'a'], [' · vs ', null], [(flag(m.opp) || m.opp) + ' #' + m.opp_pos, 'a'], [' · ', null],
+      [fmtS(m.score) + ' : ' + fmtS(m.opp_score), 's'], [' ', null], [d.mark, 'l ' + d.k]];
+  }
+  const text = D => { const p = parts(D); return p ? p.map(q => q[0]).join('') : ''; };
   function chunks(box, ps) { for (const [t, c] of ps) { if (c) box.appendChild(el('span', 'q ' + c, t)); else box.appendChild(document.createTextNode(t)); } }
   function fill(box, ps) { box.textContent = ''; chunks(box, ps); }
-  /* a title / end line holds both forms; the CSS shows one */
-  function fillLine(box, D) { box.textContent = ''; const f = el('span', 'lgF'), s = el('span', 'lgSh'); chunks(f, parts(D)); chunks(s, parts(D, true)); box.append(f, s); }
 
-  /* ---- the title line (under the podium) ---- */
-  const tEx = $('titleExtra');
-  const tLine = el('div', 'lgLine'); tLine.id = 'lgTitle';
-  const tHide = () => { tLine.textContent = ''; if (tLine.parentNode) tLine.parentNode.removeChild(tLine); };
-  function tPlace() {
-    if (!tEx) return; const pod = $('hgPod');
-    if (pod && pod.parentNode === tEx) { if (pod.nextSibling !== tLine) tEx.insertBefore(tLine, pod.nextSibling); }
-    else if (tLine.parentNode !== tEx) tEx.insertBefore(tLine, tEx.firstChild);
-  }
+  /* ---- the badge on the title's ⚔ icon (no text line on the title) ---- */
+  const badge = el('b', 'lgBadge'); badge.id = 'lgBadge'; badge.hidden = true;
+  const bHide = () => { badge.hidden = true; badge.textContent = ''; badge.className = 'lgBadge'; };
   let tSeq = 0;
   async function titleLine(fresh) {
     const my = ++tSeq;
-    if (!online()) { tHide(); return; }
+    if (!online()) { bHide(); return; }
     const D = await load(fresh);
     if (my !== tSeq) return;
-    if (!online() || !parts(D)) { tHide(); return; }
-    fillLine(tLine, D); tPlace();
+    const m = D && D.mine;
+    if (!online() || !m || !m.pos) { bHide(); return; }
+    const d = duel(D);
+    badge.textContent = '#' + m.pos + (d ? d.mark : ''); badge.className = 'lgBadge' + (d ? ' ' + d.k : ''); badge.hidden = false;
   }
-  /* the podium arrives later and puts itself first: keep the line right under it */
-  if (tEx && window.MutationObserver) { try { new MutationObserver(() => { if (tLine.parentNode === tEx) { const pod = $('hgPod'); if (pod && pod.parentNode === tEx && pod.nextSibling !== tLine) tEx.insertBefore(tLine, pod.nextSibling); } }).observe(tEx, { childList: true }); } catch (e) {} }
 
   /* ---- the end line (after the round's submit has answered) ---- */
   const eLine = el('div', 'lgLine'); eLine.id = 'lgEnd';
@@ -181,7 +170,7 @@
     const D = await load(true);
     if (my !== endSeq) return;
     if (!online() || !parts(D)) { eHide(); return; }
-    fillLine(eLine, D);
+    fill(eLine, parts(D));
     const ex = $('endExtra'); if (!ex) return;
     const after = $('hgEnd');
     if (after && after.parentNode === ex) ex.insertBefore(eLine, after.nextSibling); else if (eLine.parentNode !== ex) ex.appendChild(eLine);
@@ -209,7 +198,7 @@
   }
   const recheck = () => askCrown(true);
   G.on('net', on => {
-    if (!on) { crownSeq++; setCrown(false); tHide(); eHide(); drop(); if (scr.classList.contains('on')) render(); return; }
+    if (!on) { crownSeq++; setCrown(false); bHide(); eHide(); drop(); if (scr.classList.contains('on')) render(); return; }
     askCrown(false);
     titleLine(); if (scr.classList.contains('on')) refreshScreen(false);
   });
@@ -241,9 +230,8 @@
   /* ---- the ladder screen ---- */
   const scr = el('div', 'scr lgScr'); scr.id = 'lgLadder';
   const box = el('div', 'lgBox');
-  const head = el('div', 'lgHead'); const h2 = el('h2', null, 'COUNTRY LADDER'); const ends = el('div', 'lgEnds'); ends.id = 'lgEnds';
-  const rule = el('div', 'lgRule', 'Each week a country duels the one above or below it. Score: gold per active player. The winner takes the higher place; a tie keeps it.');
-  head.append(h2, ends, rule);
+  const head = el('div', 'lgHead'); const h2 = el('h2', null, 'LADDER'); const ends = el('div', 'lgEnds'); ends.id = 'lgEnds';
+  head.append(h2, ends);
   const mineEl = el('div', 'lgMine'); mineEl.id = 'lgMine'; mineEl.hidden = true;
   const body = el('div', 'lgBody'); body.id = 'lgBody';
   const foot = el('div', 'lgFoot'); const closeB = el('button', 'pri', 'CLOSE'); closeB.id = 'lgClose'; closeB.type = 'button'; foot.appendChild(closeB);
@@ -254,17 +242,17 @@
     if (open1.has(c)) open1.delete(c); else open1.add(c); detail(b); });
 
   let state = '';   // '' | 'loading' | 'error'
-  const left = ms => { if (ms <= 0) return 'Ending now'; const m = Math.floor(ms / 60000), d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mm = m % 60;
-    return 'Ends in ' + (d ? d + ' d ' + h + ' h' : h ? h + ' h ' + mm + ' m' : Math.max(1, mm) + ' m'); };
+  const left = ms => { if (ms <= 0) return '⏳ now'; const m = Math.floor(ms / 60000), d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mm = m % 60;
+    return '⏳ ' + (d ? d + ' d ' + h + ' h' : h ? h + ' h ' + mm + ' m' : Math.max(1, mm) + ' m'); };
   function note(text, retry) {
     const n = el('div', 'lgNote'); n.appendChild(el('div', null, text));
-    if (retry) { const b = el('button', 'sec', 'Try again'); b.type = 'button'; b.id = 'lgRetry'; b.addEventListener('click', () => { state = ''; open(true); }); n.appendChild(b); }
+    if (retry) { const b = el('button', 'sec', '↻ Retry'); b.type = 'button'; b.id = 'lgRetry'; b.addEventListener('click', () => { state = ''; open(true); }); n.appendChild(b); }
     body.appendChild(n);
   }
   function row(r) {
     const b = el('button', 'lgRow' + (r.country === myCC() ? ' me' : '')); b.type = 'button';
     b.dataset.cc = r.country; b.dataset.pos = r.pos;
-    const nm = el('span', 'nm'); nm.append(el('span', 'n', (r.crown ? '👑 ' : '') + cname(r.country)), el('span', 'm', pl(r.real, 'player', 'players') + (r.bots ? ' + ' + pl(r.bots, 'bot', 'bots') : '')));
+    const nm = el('span', 'nm'); nm.append(el('span', 'n', (r.crown ? '👑 ' : '') + cname(r.country)), el('span', 'm', '👤 ' + fmt(r.real) + (r.bots ? ' · 🤖 ' + fmt(r.bots) : '')));
     b._r = r; b.append(el('span', 'k', '#' + r.pos), el('span', 'fl', flag(r.country)), nm, el('span', 'sc', fmtS(r.score)), el('span', 'ex'));
     detail(b); return b;
   }
@@ -273,34 +261,33 @@
     const r = b._r, on = open1.has(r.country), ex = b.querySelector('.ex');
     b.classList.toggle('open', on); b.setAttribute('aria-expanded', String(on));
     if (!on) { ex.textContent = ''; return; }
-    const nb = Math.min(r.bots, 20), bots = []; for (let i = 1; i <= nb; i++) bots.push('bot' + i);
-    ex.textContent = (nb ? 'Bots: ' + bots.join(' · ') + ' (members that add no gold)' : 'No bots') + ' · ' + pl(r.real, 'active player', 'active players') + ' · ' + pl(r.rounds, 'round', 'rounds') + ' this week';
+    const nb = Math.min(r.bots, 5), bots = []; for (let i = 1; i <= nb; i++) bots.push('bot' + i);
+    ex.textContent = (nb ? '🤖 ' + bots.join(' · ') + ' · ' : '') + pl(r.rounds, 'round', 'rounds');
   }
   function vsLine(hi, lo) {
     const x = lead(hi, lo), v = el('div', 'lgVs');
-    v.append(el('span', 'x', 'VS'), el('b', null, fmtS(hi.score) + ' vs ' + fmtS(lo.score)), document.createTextNode('·'),
-      el('span', 'w', x.tie ? 'tied: ' + who(hi.country) + ' holds #' + hi.pos : who(x.w.country) + ' leads'));
+    v.append(el('span', 'x', 'VS'), el('span', 'w', x.tie ? 'Tie · ' + (flag(hi.country) || hi.country) + ' holds' : (flag(x.w.country) || x.w.country) + ' leads'));
     return v;
   }
   function render() {
     body.textContent = ''; mineEl.hidden = true; mineEl.textContent = ''; ends.textContent = '';
     if (!online()) {
-      if (!hasTG()) note('Open HOLDOR in Telegram to see the ladder');
+      if (!hasTG()) note('Open in Telegram');
       else if (G.net && G.net.pending) note('Connecting…');
-      else note('Could not reach the server.', true);
+      else note('Offline', true);
       return;
     }
     const D = cache && cache.D;
-    if (!D) { if (state === 'error') note('Could not load the ladder.', true); else note('Loading…'); return; }
+    if (!D) { if (state === 'error') note('Not loaded', true); else note('Loading…'); return; }
     if (D.ends) ends.textContent = left(D.ends - Date.now());
     // your country
     const cc = myCC(), m = D.mine, ps = parts(D);
     if (ps) { fill(mineEl, ps); mineEl.hidden = false; }
-    else if (m && m.side === 'rest') { mineEl.textContent = who(m.country) + ' #' + m.pos + ' · rests this week'; mineEl.hidden = false; }
-    else if (cc && !D.rows.some(r => r.country === cc)) { mineEl.textContent = 'Play a round to bring ' + who(cc) + ' onto the ladder'; mineEl.hidden = false; }
+    else if (m && m.side === 'rest') { mineEl.textContent = (flag(m.country) || m.country) + ' #' + m.pos + ' · Rest'; mineEl.hidden = false; }
+    else if (cc && !D.rows.some(r => r.country === cc)) { mineEl.textContent = (flag(cc) || cc) + ' · Play to join'; mineEl.hidden = false; }
     // the duels, top to bottom
     const rows = D.rows;
-    if (!rows.length) { note('No country is on the ladder yet. Play a round to put yours on it.'); return; }
+    if (!rows.length) { note('No countries yet'); return; }
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i], n = rows[i + 1], card = el('div', 'lgDuel');
       if (r.side === 'down' && n && n.country === r.opp && n.side === 'up') {
@@ -308,7 +295,7 @@
         if (r.country === cc || n.country === cc) card.classList.add('mine');
         i++;
       } else if (r.side === 'rest' || !r.opp || r.opp_score == null) {
-        card.classList.add('rest'); card.dataset.pair = String(r.pos); card.append(row(r), el('div', 'lgVs rest', 'Rests this week'));
+        card.classList.add('rest'); card.dataset.pair = String(r.pos); card.append(row(r), el('div', 'lgVs rest', 'Rest'));
         if (r.country === cc) card.classList.add('mine');
       } else {   // a pair the list does not hold side by side: the vs line from this row's own numbers
         const o = { pos: r.side === 'up' ? r.pos - 1 : r.pos + 1, score: r.opp_score, country: r.opp }, me_ = { pos: r.pos, score: r.score, country: r.country };
@@ -320,10 +307,9 @@
     if (D.last.length) {
       const lw = el('div', 'lgLast'); lw.id = 'lgLastWeek'; lw.appendChild(el('div', 'lgLastH', 'LAST WEEK'));
       for (const x of D.last) {
-        const aw = x.winner !== x.b, ws = aw ? x.a_score : x.b_score, ls = aw ? x.b_score : x.a_score;
-        const t = x.a_score === x.b_score && aw ? who(x.a) + ' held its place on a tie with ' + who(x.b) + ' · ' + fmtS(x.a_score) + ' vs ' + fmtS(x.b_score)
-          : who(aw ? x.a : x.b) + ' beat ' + who(aw ? x.b : x.a) + (aw ? '' : ' and moved up') + ' · ' + fmtS(ws) + ' vs ' + fmtS(ls);
-        lw.appendChild(el('div', 'lgLastR', t));
+        const aw = x.winner !== x.b, ws = aw ? x.a_score : x.b_score, ls = aw ? x.b_score : x.a_score, f = c => flag(c) || c;
+        const mk = x.a_score === x.b_score && aw ? ' = ' : aw ? ' ' : ' ▲ ';   // = held on a tie, ▲ the lower one moved up
+        lw.appendChild(el('div', 'lgLastR', f(aw ? x.a : x.b) + mk + fmtS(ws) + ' : ' + fmtS(ls) + ' ' + f(aw ? x.b : x.a)));
       }
       body.appendChild(lw);
     }
@@ -353,11 +339,12 @@
   function close() { scr.classList.remove('on'); clearInterval(tick); }
 
   /* ---- the buttons ---- */
-  const tBtn = el('button', 'sec', 'Country ladder'); tBtn.id = 'lgBtn'; tBtn.type = 'button';
+  const ib = id => { const b = el('button', 'ib'); b.id = id; b.type = 'button'; b.setAttribute('aria-label', 'Country ladder'); b.append(el('i', null, '⚔'), el('span', null, 'Ladder')); return b; };
+  const tBtn = ib('lgBtn'); tBtn.appendChild(badge);
   const links = $('titleLinks'); if (links) links.appendChild(tBtn);
   tBtn.addEventListener('click', () => open());
   const bTop = document.querySelector('#hgBoard .hgBtop');
-  if (bTop) { const bb = el('button', 'sec', 'Country ladder'); bb.id = 'lgFromBoard'; bb.type = 'button'; bTop.appendChild(bb); bb.addEventListener('click', () => open()); }
+  if (bTop) { const bb = ib('lgFromBoard'); bTop.appendChild(bb); bb.addEventListener('click', () => open()); }
 
   G.on('title', () => titleLine());
   /* a new country changes `mine` on the server: ask again (the boot-time sync that keeps the same country asks nothing) */
