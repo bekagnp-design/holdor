@@ -6,18 +6,19 @@
      pairs with a vs line between them (both scores, who leads; a tie keeps the higher place), "Rests this week" for a country without
      a duel; the player's country highlighted and scrolled into view; "Ends in 3 d 4 h"; last week's results under the list.
      A tap on a country opens it: its bots by name (bot1…botN, members that never add gold) and its rounds this week. One CLOSE.
-   - The line "🇬🇪 Georgia #5 · this week vs 🇹🇷 Türkiye (#4): 120 vs 98 — you lead" under the podium in #titleExtra (#lgTitle) and in
-     #endExtra (#lgEnd, after the round's hg_round_submit has answered, from a fresh hg_ladder). Nothing when offline, when the
-     player's country is not on the ladder, or when it rests this week.
-   - The crown: G.profile.crown is set from every hg_profile_get answer (the profile module's sync; this module asks itself only when
-     there is no profile module) and cleared offline. In the arena a small crown is drawn above the hero's own circle, above his name
-     (the core's drawP writes the name at sy - r - 18), and above his Loki decoys. Board rows and the podium get 👑 in 30_board.js.
-   - G.net.rpc is wrapped once (the call and its answer unchanged) to see hg_round_submit / hg_profile_get / hg_profile_set answers;
-     G.emit('rpc', name, answer) after each call, for any module that wants it.
+   - The line "🇬🇪 Georgia #5 · this week vs 🇹🇷 Türkiye (#4): 120 vs 98 — you lead" in #endExtra (#lgEnd, after the board module's
+     hg_round_submit has answered: its G.emit('submitted', answer, r); then a fresh hg_ladder), and its short form
+     "🇬🇪 #5 vs 🇹🇷 #4 · 120 vs 98 — you lead" right under the podium in #titleExtra (#lgTitle; not shown in a window at most 380 px tall,
+     where the title's left column is full). Nothing when offline, when the player's country is not on the ladder, or when it rests.
+   - The crown: G.profile.crown = the player is the champion, read from the 'last' board (his own row, mine: true, carries crown: true;
+     G.board.load shares the podium's request) on every login and again when hg_ladder names a new week; hg_profile_get's crown is
+     asked instead only when there is no board module. Cleared offline. In the arena a small crown is drawn above the hero's own
+     circle, above his name (the core's drawP writes the name at sy - r - 18), and above his Loki decoys. Board rows and the podium
+     get 👑 in 30_board.js. G.net.rpc is not wrapped.
    - Only server data is shown; no Telegram id is read. Every text goes in with textContent.
    - G.ladder = { open(), close(), load(fresh), refresh(fresh), data (the last normalised answer), text(D, short) (the line, '' when none),
      drawCrown(ctx, x, y, alpha, width), crownDrawn (a counter), crownAt / decoyAt ({x, y, w, h} on the screen: the last crown drawn over the
-     hero / over his decoy) }. When a fresh hg_ladder answer names a new week, hg_profile_get is asked again (the champion changes). */
+     hero / over his decoy) }. When a fresh hg_ladder answer names a new week, the crown is asked again (the champion changes). */
 (function () {
   const G = window.G; if (!G || !G.on) return;
   const num = v => { const n = Number(v); return isFinite(n) ? n : 0; };
@@ -73,7 +74,11 @@
     '.lgMine .q{white-space:nowrap}.lgMine{text-wrap:balance}.lgMine .a{color:var(--ink,#f3e7c4);font-weight:700}.lgMine .s{color:var(--gold,#e8b84a);font-weight:700}',
     '#lgFromBoard{order:3;margin-left:auto;width:auto;min-height:44px;padding:0 14px;font-size:14px;flex:none}',
     '@media (max-height:430px){.lgLine{font-size:12px;line-height:1.25}}',
-    '@media (max-height:380px){.lgLine .lgF{display:none}.lgLine .lgSh{display:inline}}',   /* 640x360: the left column of the title is full */
+    '@media (max-height:380px){.lgLine .lgF{display:none}.lgLine .lgSh{display:inline}}',
+    /* the title line is always the short form, one tight line under the podium (the day god's banner and the links below stay on
+       screen at 390x844); a window at most 380 px tall (640x360) has no room for it at all: the left column of the title is full */
+    '#lgTitle{margin-top:-6px;font-size:12px;line-height:1.2}#lgTitle .lgF{display:none}#lgTitle .lgSh{display:inline}',
+    '@media (max-height:380px){#lgTitle{display:none}}',
     /* a short landscape window: the head, your duel and CLOSE on the left, the list on the right */
     '@media (orientation:landscape) and (max-height:540px){.lgBox{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);grid-template-rows:auto auto minmax(0,1fr);grid-template-areas:"head list" "mine list" "foot list";gap:8px 16px;width:min(100%,860px)}',
     '.lgHead h2{font-size:18px}.lgRule{font-size:12px;line-height:1.3}.lgMine{font-size:13px;padding:5px 8px}.lgFoot{align-items:flex-end}.lgFoot .pri{width:100%}.lgRow{min-height:44px;padding:3px 8px}}'
@@ -105,7 +110,7 @@
     return { iso: int(d.iso_week), ends: isFinite(t) ? t : 0, rows, mine, last };
   }
   function load(fresh) {
-    if (!fresh && cache && Date.now() - cache.at < TTL && !(cache.D.ends && Date.now() >= cache.D.ends)) return Promise.resolve(cache.D);
+    if (!fresh && cache && Date.now() - cache.at < TTL && !over(cache)) return Promise.resolve(cache.D);
     if (inflight) return fresh ? inflight.then(() => load(true)) : inflight;   // a fresh ask never takes an answer asked for before it
     if (!online()) return Promise.resolve(null);
     const cc = askedCC = myCC();
@@ -117,6 +122,9 @@
     return p;
   }
   const drop = () => { cache = null; inflight = null; askedCC = null; };
+  /* the week of a cached answer is over: only when the answer was fetched before its end (a phone clock ahead of the server gets the
+     same week back after it, and must not ask again and again) */
+  const over = c => !!(c && c.D.ends && c.at < c.D.ends && Date.now() >= c.D.ends);
 
   /* ---- who leads a duel: the higher score; a tie keeps the higher place (the smaller pos) ---- */
   function lead(hi, lo) {   // hi = the upper of the pair {pos, score}, lo = the lower
@@ -181,30 +189,28 @@
   G.on('start', () => { endSeq++; endWait = 0; eHide(); });
   G.on('end', () => { const my = ++endSeq; eHide(); endWait = my; if (!G.board) { endWait = 0; endLine(my); } });
 
-  /* ---- watch the answers (the call and its answer pass through unchanged) ---- */
-  function seen(name, args, r) {
-    if (name === 'hg_profile_get') { if (r && typeof r === 'object' && !Array.isArray(r) && !r.error) setCrown(!!r.crown); }
-    else if (name === 'hg_profile_set') { if (r && r.ok) drop(); }
-    else if (name === 'hg_round_submit') { drop(); if (endWait && endWait === endSeq) { const my = endWait; endWait = 0; endLine(my); } }
-  }
-  if (G.net && typeof G.net.rpc === 'function' && !G.net.rpc.__lg) {
-    const inner = G.net.rpc;
-    const wrapped = async function (name, args) {
-      const r = await inner.call(G.net, name, args);
-      try { seen(name, args, r); } catch (e) { G.showErr && G.showErr('ladder: ' + (e && e.message || e)); }
-      try { G.emit('rpc', name, r); } catch (e) {}
-      return r;
-    };
-    wrapped.__lg = true; G.net.rpc = wrapped;
-  }
+  /* the board module's hg_round_submit has answered (30_board.js: G.emit('submitted', answer, r)): this week's numbers changed */
+  G.on('submitted', () => { drop(); if (endWait && endWait === endSeq) { const my = endWait; endWait = 0; endLine(my); } });
 
   /* ---- the crown ---- */
   function setCrown(v) { if (!G.profile) return; G.profile.crown = !!v; }
-  function recheck() { if (online()) G.net.rpc('hg_profile_get', { token: null }); }   // the answer goes through seen() and sets the crown
-  let ownGet = false;
+  /* am I the champion? His row on the 'last' board is mine and crowned (the same answer the podium uses: no extra call while it is
+     cached); hg_profile_get's crown only when there is no board module. A failed ask keeps the crown as it was. */
+  const isObj = v => !!v && typeof v === 'object' && !Array.isArray(v) && !v.error;
+  let crownSeq = 0;
+  function askCrown(fresh) {
+    const my = ++crownSeq; if (!online()) return Promise.resolve();
+    const brd = G.board && typeof G.board.load === 'function';
+    const p = brd ? G.board.load('last', !!fresh) : G.net.rpc('hg_profile_get', { token: null });
+    return Promise.resolve(p).then(d => {
+      if (my !== crownSeq || !online() || !isObj(d)) return;
+      setCrown(brd ? arr(d.players).some(r => r && r.mine === true && r.crown === true) : d.crown === true);
+    }).catch(() => {});
+  }
+  const recheck = () => askCrown(true);
   G.on('net', on => {
-    if (!on) { setCrown(false); tHide(); eHide(); drop(); if (scr.classList.contains('on')) render(); return; }
-    if (!G.profileUI && !ownGet) { ownGet = true; G.net.rpc('hg_profile_get', { token: null }).then(() => { ownGet = false; }); }   // no profile module: ask ourselves
+    if (!on) { crownSeq++; setCrown(false); tHide(); eHide(); drop(); if (scr.classList.contains('on')) render(); return; }
+    askCrown(false);
     titleLine(); if (scr.classList.contains('on')) refreshScreen(false);
   });
   /* the crown: three points with pearls, a gold band with a garnet; (x, y) = the middle of its base, w = its width in px */
@@ -340,7 +346,7 @@
     scr.classList.add('on'); body.scrollTop = 0; render();
     clearInterval(tick);
     tick = setInterval(() => { if (!scr.classList.contains('on')) { clearInterval(tick); return; }
-      const D = cache && cache.D; if (D && D.ends && Date.now() >= D.ends) refreshScreen(true); else if (D && D.ends) ends.textContent = left(D.ends - Date.now()); }, 20000);
+      const D = cache && cache.D; if (over(cache)) refreshScreen(true); else if (D && D.ends) ends.textContent = left(D.ends - Date.now()); }, 20000);
     if (!online() && hasTG() && G.net) { const p = G.net.login(true); render(); await p; }   // "Connecting…" while the login runs
     await refreshScreen(fresh === true || !cache || Date.now() - cache.at >= TTL);
   }
@@ -362,5 +368,5 @@
   });
 
   const L = G.ladder = { open, close, load, refresh: fresh => titleLine(fresh), text, drawCrown, crownDrawn: 0, crownAt: null, decoyAt: null, data: null };
-  if (online()) titleLine();
+  if (online()) { askCrown(false); titleLine(); }
 })();

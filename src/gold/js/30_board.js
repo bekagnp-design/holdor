@@ -9,6 +9,7 @@
    - Only server data is shown (never a Telegram id: only name, country, total, best, rounds, players, gold, crown are read).
    - Crowns (g2): a row with crown: true (the champion, last week's #1) gets 👑 right before the name, on the board, the podium and
      the end screen's top 3.
+   - G.emit('submitted', answer, r) once hg_round_submit has answered (answer = the server's JSON, or null), for the ladder.
    - G.board = { open(), close(), load(scope, fresh), top3(scope) }: top3('title' | 'end' | 'last' | 'week') returns the rows
      last rendered there ({rank, name, country, flag, total, mine, crown}), [] when nothing was rendered. */
 (function () {
@@ -81,7 +82,8 @@
     '@media (orientation:landscape) and (max-height:500px){.hgPod{flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:0 14px;width:100%;max-width:100%}',
     '.hgPodH{font-size:11px}.hgPodRow{width:auto;max-width:100%;flex-wrap:wrap;align-items:baseline;gap:4px 14px}',
     '.hgPl,.hgPl.p1{flex:0 1 auto;flex-direction:row;align-items:baseline;gap:5px;max-width:200px}.hgPl .rk{font-size:11px}',
-    '.hgPl .bar{display:none}.hgPl .nm{font-size:13px;gap:4px}.hgPl.p1 .nm,.hgPl.p1.long .nm{font-size:17px}.hgPl .g{font-size:11px}.hgPl .nm .n{max-width:8.5em}}'
+    '.hgPl .bar{display:none}.hgPl .nm{font-size:13px;gap:4px}.hgPl.p1 .nm,.hgPl.p1.long .nm{font-size:17px}.hgPl .g{font-size:11px}.hgPl .nm .n{max-width:8.5em}',
+    '.hgPl.p1.crown .rk{display:none}}'   /* the crown says #1: the row stays two lines at 640x360 */
   ].join('\n');
   document.head.appendChild(css);
 
@@ -178,6 +180,7 @@
     if (my !== endSeq) return;
     if (!on) { line('Saved only on this phone', true); return; }
     const x = await G.net.rpc('hg_round_submit', { token: null, r });
+    try { G.emit('submitted', x, r); } catch (e) {}   // the server has answered (x: its answer, or null): the ladder's end line asks now
     if (my !== endSeq) return;
     if (x && x.ok && x.week) { const w = x.week; line('This week: total ' + fmt(w.total) + ' · best ' + fmt(w.best) + ' · #' + fmt(w.rank)); delete cache.week; delete cache.all; }
     else if (x && x.error) line(ERR[x.error] || 'The server did not save this round', true);

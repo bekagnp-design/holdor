@@ -2,10 +2,13 @@
 // the ladder screen (from the title's "Country ladder" and from the board's header): countries by position with flag, name,
 // "N players + M bots", score; this week's pairs with the vs line (both scores, who leads, a tie keeps the higher place); the rest
 // rows (#1 on an odd week, an unpaired last); the player's country highlighted; "Ends in 3 d 4 h"; a tap shows the bots bot1…botN;
-// last week's results; the title line under the podium ("🇬🇪 Georgia #5 · this week vs 🇹🇷 Türkiye (#4): 120 vs 98 — you lead"),
-// the other leads and ties, nothing in a rest week or offline; the end line from a fresh hg_ladder asked after hg_round_submit answered;
-// crowns (👑 on the podium, the board, the end top 3; a crown drawn above the hero when hg_profile_get says crown); offline;
-// no Telegram id and no markup from the server in the DOM; the layout at 390x844, 844x390 and 640x360 (screenshots in .shots/).
+// last week's results; the title line under the podium, short ("🇬🇪 #5 vs 🇹🇷 #4 · 120 vs 98 — you lead"; the full form
+// "🇬🇪 Georgia #5 · this week vs 🇹🇷 Türkiye (#4): 120 vs 98 — you lead" on the ladder and the end screen), the other leads and ties,
+// nothing in a rest week or offline; the end line from a fresh hg_ladder asked after hg_round_submit answered (30_board's 'submitted');
+// crowns (👑 on the podium, the board, the end top 3; a crown drawn above the hero when his own row on the 'last' board is crowned,
+// with no extra call); offline; a phone clock ahead of the server at the week's end (no ask loop) and a real week end (one ask);
+// no Telegram id and no markup from the server in the DOM; the layout at 390x844, 844x390 and 640x360 with a day god's banner
+// (screenshots in .shots/).
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs');
 const EXE = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome';
 const FILE = path.resolve(process.env.GOLD_HTML || path.join(__dirname, '..', '..', 'beta', 'index.html'));
@@ -38,10 +41,11 @@ function ladder(o) {
     last: o.empty ? [] : [{ week: '2026-11-09', a: 'FR', b: 'JP', a_score: 200, b_score: 150, winner: 'FR' }, { week: '2026-11-09', a: 'US', b: 'TR', a_score: 90, b_score: 90, winner: 'US' },
       { week: '2026-11-09', a: 'BR', b: 'GE', a_score: 70, b_score: 95, winner: 'GE' }, { week: '2026-11-09', a: 'DE', b: 'UA', a_score: 40, b_score: 10, winner: 'DE' }] };
 }
-function board(scope, crownAt) {
+function board(scope, crownAt, meChamp) {   // meChamp: the player is last week's #1 (his own row on the 'last' board, crowned)
   const names = ['Giorgi', 'Marie', 'Kenji', 'Ana', 'Luka'], cc = ['GE', 'FR', 'US', 'JP', 'TR'], players = [];
-  for (let i = 0; i < 5; i++) players.push({ name: i === 1 && scope === 'week' ? ME.name : names[i], country: i === 1 && scope === 'week' ? ME.country : cc[i], total: 3000 - i * 111, best: 900 - i * 20, rounds: 40 - i,
-    mine: i === 1 && scope === 'week', crown: i + 1 === crownAt, tg_id: ROWID + 50 + i });
+  const meAt = scope === 'week' ? 1 : meChamp && scope === 'last' ? 0 : -1;
+  for (let i = 0; i < 5; i++) players.push({ name: i === meAt ? ME.name : names[i], country: i === meAt ? ME.country : cc[i], total: 3000 - i * 111, best: 900 - i * 20, rounds: 40 - i,
+    mine: i === meAt, crown: i + 1 === crownAt, tg_id: ROWID + 50 + i });
   return { scope, since: '2026-11-16T00:00:00Z', players, me: scope === 'week' ? { rank: 2, total: 2889, best: 880, rounds: 39 } : null, countries: [{ country: 'GE', players: 2, rounds: 7, gold: 240 }], totals: { players: 30, rounds: 120 } };
 }
 
@@ -64,7 +68,7 @@ async function setup(b, o) {
     if (name === 'hg_profile_get') return send(Object.assign({ name: ME.name, country: ME.country }, M.crown ? { crown: true } : {}));
     if (name === 'hg_profile_set') return send({ ok: true, name: body.name, country: body.country });
     if (name === 'hg_round_submit') { await new Promise(r => setTimeout(r, 250)); M.submitted++; return send({ ok: true, week: { total: 345, best: 200, rounds: 3, rank: 7 } }); }
-    if (name === 'hg_board') return send(board(body.scope, body.scope === 'last' ? 1 : 3));
+    if (name === 'hg_board') return send(board(body.scope, body.scope === 'last' ? 1 : 3, M.crown));
     if (name === 'hg_ladder') { if (M.ladErr) return send({ message: 'no function hg_ladder' }, 404); return send(ladder(M.submitted ? Object.assign({}, M.lad, { ge: 135 }) : M.lad)); }
     return send({ message: 'no function ' + name }, 404);
   });
@@ -74,7 +78,7 @@ async function setup(b, o) {
   }, [{ first_name: 'Nino', language_code: 'en' }, TGID]);
   await pg.addInitScript(p => { localStorage.setItem('hg_profile', JSON.stringify(p)); localStorage.setItem('hg_sound', 'off'); }, ME);
   await pg.goto('file://' + FILE); await pg.waitForFunction(() => window.G && G.net && G.board && G.ladder);
-  await pg.evaluate(() => { if (G.setDayGod) G.setDayGod('none'); });
+  await pg.evaluate(g => { if (G.setDayGod) G.setDayGod(g); }, o.god || 'none');
   if (o.tg !== false) await pg.waitForFunction(() => G.net.on, null, { timeout: 5000 }).catch(() => {});
   await pg.waitForTimeout(500);
   return { ctx, pg, M, errs, n: name => M.calls.filter(c => c.name === name) };
@@ -82,8 +86,8 @@ async function setup(b, o) {
 const noIds = pg => pg.evaluate(([a, b]) => { const c = document.body.cloneNode(true); for (const s of c.querySelectorAll('script,style')) s.remove(); const h = c.outerHTML + document.body.innerText; return !/tg_id/i.test(h) && h.indexOf(String(a)) < 0 && h.indexOf(String(b)) < 0; }, [TGID, ROWID]);
 const errHidden = pg => pg.evaluate(() => getComputedStyle(document.getElementById('err')).display === 'none');
 const titleLine = pg => pg.evaluate(() => { const e = document.getElementById('lgTitle'); if (!e || !e.isConnected) return null; const pod = document.getElementById('hgPod'), r = e.getBoundingClientRect();
-  const lead = [...e.querySelectorAll('.l')].find(x => x.offsetParent);
-  return { text: e.innerText, afterPod: !!pod && pod.isConnected && pod.nextElementSibling === e, inExtra: e.parentNode.id, l: r.left, r: r.right, t: Math.round(r.top), b: Math.round(r.bottom), h: Math.round(r.height), lead: lead ? lead.className : '' }; });
+  const lead = [...e.querySelectorAll('.l')].find(x => x.offsetParent), shown = getComputedStyle(e).display !== 'none';
+  return { shown, text: shown ? e.innerText : '', full: G.ladder.text(G.ladder.data), afterPod: !!pod && pod.isConnected && pod.nextElementSibling === e, inExtra: e.parentNode.id, l: r.left, r: r.right, t: Math.round(r.top), b: Math.round(r.bottom), h: Math.round(r.height), lead: lead ? lead.className : '' }; });
 const LADDER = () => {
   const scr = document.getElementById('lgLadder'), rr = s => { const e = typeof s === 'string' ? document.querySelector(s) : s; if (!e) return null; const q = e.getBoundingClientRect(); return { t: Math.round(q.top), b: Math.round(q.bottom), l: Math.round(q.left), r: Math.round(q.right), h: Math.round(q.height), w: Math.round(q.width) }; };
   const cards = [...document.querySelectorAll('#lgBody .lgDuel')].map(c => ({ pair: c.dataset.pair, mine: c.classList.contains('mine'), rest: c.classList.contains('rest'),
@@ -114,7 +118,8 @@ async function playRound(pg) {
     const T = await setup(b, { w: 390, h: 844 }); const { pg } = T;
     await pg.waitForFunction(() => !!document.getElementById('lgTitle') && !!document.getElementById('hgPod'), null, { timeout: 4000 }).catch(() => {});
     const L0 = await titleLine(pg);
-    ok(L0 && L0.text === '🇬🇪 Georgia #5 · this week vs 🇹🇷 Türkiye (#4): 120 vs 98 — you lead' && /up/.test(L0.lead), 'the title line: "🇬🇪 Georgia #5 · this week vs 🇹🇷 Türkiye (#4): 120 vs 98 — you lead"', L0);
+    ok(L0 && L0.shown && L0.text === '🇬🇪 #5 vs 🇹🇷 #4 · 120 vs 98 — you lead' && /up/.test(L0.lead) && L0.h <= 18, 'the title line, short and on one line: "🇬🇪 #5 vs 🇹🇷 #4 · 120 vs 98 — you lead"', L0);
+    ok(L0 && L0.full === '🇬🇪 Georgia #5 · this week vs 🇹🇷 Türkiye (#4): 120 vs 98 — you lead', 'its full form (the ladder and the end screen): "🇬🇪 Georgia #5 · this week vs 🇹🇷 Türkiye (#4): 120 vs 98 — you lead"', L0 && L0.full);
     ok(L0 && L0.afterPod && L0.inExtra === 'titleExtra' && T.n('hg_ladder').length === 1 && T.n('hg_ladder')[0].body.token === TOKEN, 'the line sits right under the podium in #titleExtra; one hg_ladder(token) call at boot', { L0, calls: T.n('hg_ladder').length });
     const pod = await pg.evaluate(() => [...document.querySelectorAll('#hgPod .hgPl')].map(e => ({ r: +e.dataset.rank, t: e.querySelector('.nm').textContent, cr: !!e.querySelector('.nm .hgCr'), first: e.querySelector('.nm').firstElementChild.className })));
     const p1 = pod.find(p => p.r === 1) || {};
@@ -176,7 +181,7 @@ async function playRound(pg) {
     ok(sub >= 0 && lad.length === 1 && T.M.calls[lad[0][1]].t >= T.M.calls[sub].t + 200, 'it is asked once, after hg_round_submit has answered', { sub, after: lad.length });
     await pg.screenshot({ path: path.join(SHOTS, 'gold_ladder_end_390.png') });
     await pg.locator('#change').tap(); await pg.waitForTimeout(500);
-    ok((await titleLine(pg) || {}).text === '🇬🇪 Georgia #5 · this week vs 🇹🇷 Türkiye (#4): 135 vs 98 — you lead', 'back on the title, the line shows the new score', await titleLine(pg));
+    ok((await titleLine(pg) || {}).text === '🇬🇪 #5 vs 🇹🇷 #4 · 135 vs 98 — you lead', 'back on the title, the line shows the new score', await titleLine(pg));
     await pg.locator('#play').tap(); await pg.waitForTimeout(100);
     ok(!(await pg.evaluate(() => !!document.getElementById('lgEnd'))), 'a new round clears the end line', null);
     await pg.evaluate(() => { let g = 0; while (!G.S.over && g++ < 100000) G.step(60); });
@@ -192,9 +197,9 @@ async function playRound(pg) {
     const t1 = await titleLine(pg);
     M.lad = { ge: 98 }; await pg.evaluate(() => G.ladder.refresh(true)); await pg.waitForTimeout(300); const t2 = await titleLine(pg);
     M.lad = { ge: 98, geHigh: true }; await pg.evaluate(() => G.ladder.refresh(true)); await pg.waitForTimeout(300); const t3 = await titleLine(pg);
-    ok(t1 && t1.text === '🇬🇪 Georgia #5 · this week vs 🇹🇷 Türkiye (#4): 80 vs 98 — Türkiye leads' && /down/.test(t1.lead), 'the rival leads: "— Türkiye leads"', t1);
-    ok(t2 && t2.text === '🇬🇪 Georgia #5 · this week vs 🇹🇷 Türkiye (#4): 98 vs 98 — tied, Türkiye holds #4' && /tie/.test(t2.lead), 'a tie keeps the higher place: "— tied, Türkiye holds #4"', t2);
-    ok(t3 && t3.text === '🇬🇪 Georgia #4 · this week vs 🇹🇷 Türkiye (#5): 98 vs 98 — tied, you hold #4', 'tied from above: "— tied, you hold #4" (the opponent below)', t3);
+    ok(t1 && t1.full === '🇬🇪 Georgia #5 · this week vs 🇹🇷 Türkiye (#4): 80 vs 98 — Türkiye leads' && t1.text === '🇬🇪 #5 vs 🇹🇷 #4 · 80 vs 98 — they lead' && /down/.test(t1.lead), 'the rival leads: "— Türkiye leads" (the title: "— they lead")', t1);
+    ok(t2 && t2.full === '🇬🇪 Georgia #5 · this week vs 🇹🇷 Türkiye (#4): 98 vs 98 — tied, Türkiye holds #4' && t2.text === '🇬🇪 #5 vs 🇹🇷 #4 · 98 vs 98 — tied, they hold #4' && /tie/.test(t2.lead), 'a tie keeps the higher place: "— tied, Türkiye holds #4" (the title: "— tied, they hold #4")', t2);
+    ok(t3 && t3.full === '🇬🇪 Georgia #4 · this week vs 🇹🇷 Türkiye (#5): 98 vs 98 — tied, you hold #4' && t3.text === '🇬🇪 #4 vs 🇹🇷 #5 · 98 vs 98 — tied, you hold #4', 'tied from above: "— tied, you hold #4" (the opponent below)', t3);
     await pg.locator('#lgBtn').tap(); await pg.waitForTimeout(400);
     const S3 = await pg.evaluate(LADDER);
     ok(S3.cards.map(c => c.pair).join() === '1,2-3,4-5,6-7,8' && S3.cards[2].rows.map(r => r.cc).join() === 'GE,TR' && S3.cards[2].vs === 'VS98 vs 98·tied: 🇬🇪 Georgia holds #4', 'Georgia above Türkiye: the pair (4-5) with Georgia on top, the tie holds for Georgia', S3.cards[2]);
@@ -227,6 +232,9 @@ async function playRound(pg) {
   for (const crown of [true, false]) {
     const T = await setup(b, { crown, w: 390, h: 844 }); const { pg } = T;
     const c0 = await pg.evaluate(() => !!G.profile.crown);
+    const lastN = () => T.n('hg_board').filter(c => c.body.scope === 'last').length;
+    ok(T.n('hg_profile_get').length === 1 && lastN() === 1 && await pg.evaluate(() => !G.net.rpc.__lg), 'crown ' + crown + ": read from the podium's 'last' answer: no extra call (hg_profile_get once, the profile's sync; hg_board 'last' once), G.net.rpc not wrapped",
+      { get: T.n('hg_profile_get').length, last: lastN() });
     await pg.locator('#play').tap(); await pg.waitForTimeout(600);
     const C = await pg.evaluate(() => {
       const S = G.S, me = S.me, cv = document.getElementById('c'), dpr = cv.width / innerWidth, at = G.ladder.crownAt;
@@ -249,10 +257,10 @@ async function playRound(pg) {
         return { decoy: !!dc, at, want: sy - r - 31, me: G.ladder.crownAt, dx: at && Math.abs(at.x - ((dc.x - S.camX) * k + innerWidth / 2)) }; });
       ok(dk.decoy && dk.at && dk.dx < 3 && Math.abs(dk.at.y - dk.want) < 3, "Loki's decoy wears the crown, above its own circle and name", dk);
       // a new week in the ladder's answer: hg_profile_get is asked again, and the crown goes when the server says so
-      const n0 = T.n('hg_profile_get').length; T.M.crown = false; T.M.lad = { ends: new Date(Date.parse(ENDS) + 7 * 86400000).toISOString() };
+      const n0 = lastN(), g0 = T.n('hg_profile_get').length; T.M.crown = false; T.M.lad = { ends: new Date(Date.parse(ENDS) + 7 * 86400000).toISOString() };
       await pg.evaluate(() => G.ladder.load(true)); await pg.waitForTimeout(400);
       const c2 = await pg.evaluate(async () => { const a = G.ladder.crownDrawn; await new Promise(r => setTimeout(r, 300)); return { pc: !!G.profile.crown, more: G.ladder.crownDrawn - a }; });
-      ok(T.n('hg_profile_get').length === n0 + 1 && !c2.pc && c2.more === 0, 'a new week: hg_profile_get asked once more; no crown any more when the server gives none', { calls: T.n('hg_profile_get').length - n0, c2 });
+      ok(lastN() === n0 + 1 && T.n('hg_profile_get').length === g0 && !c2.pc && c2.more === 0, "a new week: the 'last' board asked once more (fresh); no crown any more when the server gives none", { calls: lastN() - n0, c2 });
     } else ok(!c0 && C.drawn === 0 && !C.at, 'no crown from hg_profile_get → no crown drawn', C);
     ok(!T.errs.length && await errHidden(pg), 'crown ' + crown + ': no page errors, #err hidden', T.errs);
     await T.ctx.close();
@@ -275,13 +283,19 @@ async function playRound(pg) {
   }
 
   /* ---------- 5. the layout: 390x844, 844x390, 640x360 (title, ladder, board, end) ---------- */
+  /* every real day has a day god, so the title carries his banner too (Thor's is one of the two longest) */
   for (const [w, h] of [[390, 844], [844, 390], [640, 360]]) {
-    const T = await setup(b, { w, h }); const { pg } = T; const tag = w + 'x' + h + ': ';
+    const T = await setup(b, { w, h, god: 'thor' }); const { pg } = T; const tag = w + 'x' + h + ': ';
     await pg.waitForFunction(() => !!document.getElementById('lgTitle') && !!document.getElementById('hgPod'), null, { timeout: 4000 }).catch(() => {});
     const L = await titleLine(pg), play = await pg.locator('#play').boundingBox(), wide = await pg.evaluate(() => document.documentElement.scrollWidth - innerWidth);
-    ok(L && L.afterPod && L.l >= 0 && L.r <= w && wide <= 0 && L.h <= 40, tag + 'the title line under the podium, inside the screen, at most two short lines', L);
-    if (h <= 380) ok(L && L.text === '🇬🇪 #5 vs 🇹🇷 #4 · 120 vs 98 — you lead' && L.h <= 18 && await pg.evaluate(() => G.ladder.text(G.ladder.data, true)) === L.text, tag + 'a window ≤ 380 px tall shows the short form on one line', L);
-    else ok(L && L.text === '🇬🇪 Georgia #5 · this week vs 🇹🇷 Türkiye (#4): 120 vs 98 — you lead', tag + 'the full form', L && L.text);
+    const TL = await pg.evaluate(() => { const r = id => { const e = document.getElementById(id); if (!e || !e.offsetParent) return null; const q = e.getBoundingClientRect(); return { t: Math.round(q.top), b: Math.round(q.bottom), h: Math.round(q.height) }; };
+      return { pod: r('hgPod'), dg: r('dgBanner'), links: r('titleLinks'), btn: r('lgBtn'), rk1: !!(document.querySelector('.hgPl.p1 .rk') || {}).offsetParent }; });
+    if (h <= 380) ok(L && !L.shown && L.full && TL.dg && TL.dg.b <= h && TL.pod && TL.pod.b <= TL.dg.t && TL.pod.h <= 56, tag + "a window ≤ 380 px tall has no title line; the podium stays two rows (the crown stands for #1) and the day god's banner on screen", { L, TL });
+    else {
+      ok(L && L.shown && L.afterPod && L.l >= 0 && L.r <= w && wide <= 0 && L.h <= 18 && L.text === '🇬🇪 #5 vs 🇹🇷 #4 · 120 vs 98 — you lead', tag + 'the title line under the podium: the short form on one line, inside the screen', L);
+      ok(TL.dg && TL.dg.t >= L.b && TL.dg.b <= h, tag + "the day god's banner under it, on screen", TL);
+    }
+    if (h > 800) ok(TL.links && TL.links.b <= h && TL.btn && TL.btn.b <= h, tag + 'the links (Country ladder, Sound…) on screen with the podium, the line and the banner', TL);
     ok(play.y >= 0 && play.y + play.height <= h, tag + 'PLAY on screen with the podium and the line', play);
     await pg.screenshot({ path: path.join(SHOTS, 'gold_ladder_title_' + w + '.png') });
     await pg.locator('#lgBtn').scrollIntoViewIfNeeded(); await pg.locator('#lgBtn').tap(); await pg.waitForTimeout(400);
@@ -305,6 +319,25 @@ async function playRound(pg) {
     ok(E.on && E.line.l >= 0 && E.line.r <= w && E.line.h <= 40 && E.again.b <= h && E.wide <= 0, tag + 'the end line fits, PLAY AGAIN on screen', E);
     await pg.screenshot({ path: path.join(SHOTS, 'gold_ladder_end_' + w + '.png') });
     ok(await noIds(pg) && !T.errs.length && await errHidden(pg), tag + 'no Telegram id in the DOM, no page errors, #err hidden', T.errs);
+    await T.ctx.close();
+  }
+  /* ---------- 6. the week's end: a phone clock ahead of the server asks no more than the cache allows; a real end asks once ---------- */
+  {
+    const T = await setup(b, { lad: { ends: new Date(Date.now() - 60000).toISOString() } }); const { pg, M } = T;   // the server's week "ended" a minute ago
+    const n0 = T.n('hg_ladder').length;
+    for (let i = 0; i < 5; i++) { await pg.evaluate(() => G.emit('title')); await pg.waitForTimeout(100); }
+    ok(n0 === 1 && T.n('hg_ladder').length === n0, 'a clock ahead of the server: 5 title events, no new hg_ladder (the 30 s cache holds)', { boot: n0, after: T.n('hg_ladder').length });
+    const fast = () => pg.evaluate(() => { const si = window.setInterval; window.setInterval = (f, ms, ...a) => si(f, ms === 20000 ? 150 : ms, ...a); try { G.ladder.open(); } finally { window.setInterval = si; } });   // the screen's 20 s tick at 150 ms
+    await fast(); await pg.waitForTimeout(1200);
+    const S = await pg.evaluate(LADDER);
+    ok(S.on && T.n('hg_ladder').length === n0 && S.ends === 'Ending now' && S.cards.length === 5, 'the open ladder: 8 ticks, no new hg_ladder, "Ending now"', { calls: T.n('hg_ladder').length - n0, ends: S.ends });
+    await pg.locator('#lgClose').tap();
+    M.lad = { ends: new Date(Date.now() + 1500).toISOString() }; await pg.evaluate(() => G.ladder.load(true)); await pg.waitForTimeout(200);   // a clock that is right, 1.5 s before the end
+    const n1 = T.n('hg_ladder').length; M.lad = { ends: new Date(Date.now() + 7 * 86400000).toISOString() };   // the next answer: the new week
+    await fast(); await pg.waitForTimeout(2600);
+    const S2 = await pg.evaluate(LADDER);
+    ok(T.n('hg_ladder').length === n1 + 1 && /^Ends in [67] d/.test(S2.ends), 'a real week end with the screen open: one fresh hg_ladder, then the new week', { calls: T.n('hg_ladder').length - n1, ends: S2.ends });
+    ok(!T.errs.length && await errHidden(pg), 'the clock runs: no page errors, #err hidden', T.errs);
     await T.ctx.close();
   }
   await b.close(); console.log(fails ? 'FAILED ' + fails : 'ALL OK'); process.exit(fails ? 1 : 0);
