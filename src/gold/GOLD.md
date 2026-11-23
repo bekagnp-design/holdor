@@ -51,7 +51,8 @@ In a test, route `/telegram\.org|supabase\.co/` to abort unless the test mocks i
     and refuses `banked` outside 0..min(minted, 1500).
   - `hg_board(token uuid, scope text) → {scope, since, players:[{name, country, total, best, rounds, mine}], me:{rank, total, best, rounds} | null,
     countries:[{country, players, rounds, gold}], totals:{players, rounds}}`.
-    `scope` is `'week'` (since Monday 00:00 UTC) or `'all'`. The list holds the top 20 players by total banked, and every country. The token may be null, giving `me` = null.
+    `scope` is `'week'` (since Monday 00:00 UTC), `'last'` (the previous full week, Monday to Monday UTC, with `until`) or `'all'`. The list holds the top 20 players by total banked, and every country. The token may be null, giving `me` = null.
+- The owner's request: the title screen shows LAST WEEK'S CHAMPIONS, the top 3 players big, each with the flag next to the name. It falls back to "THIS WEEK SO FAR", and shows nothing when there are no rounds.
 - Never show a Telegram id. Every number shown is real server data or the player's own save; nothing is invented.
 
 ## Ownership
