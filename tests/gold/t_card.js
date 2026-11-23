@@ -1,12 +1,14 @@
 // tests/gold/t_card.js — Heavy Gold share card (80_card.js): a round with two real robberies by the player (the biggest take is
 // the card's "Robbed <name> (bot) +N"), the 1080×1920 card (size, pixels sampled: not blank, the god's colour in his circle, gold
 // in the banked number, the dark ground), its texts (G.card.last.lines: name, flag + country, #rank of N, vs 7 bots, banked,
-// the robbery, Map #N · the day rule, t.me/HoldorTDBot/play), the preview in the "Share card" button, and the share flows:
+// the robbery, Map #N · the day rule, t.me/HoldorTDBot/play), the preview in the "Share card" button (in the core's #share
+// slot: the end screen grows by nothing in a short landscape window), and the share flows:
 //   Telegram with stories: hg_card_put(token, base64 PNG < 400 KB, the PNG signature, 1080×1920) → shareToStory(url, {text,
 //   widget_link}); "Send to a chat" with the card URL in t.me/share/url; no second upload for the same card;
 //   Telegram desktop: no story, SEND TO A CHAT first, Save image through TG.downloadFile;
 //   a refused upload ('rate'), a server error, a card over the limit: SAVE IMAGE (an <a download> of a real PNG), Send to a chat
-//   without a card URL, Copy link; outside Telegram: no server call, SAVE IMAGE + Copy link;
+//   without a card URL, Copy link ("Link copied." on the card screen itself); a slow uplink (the upload asks for 30 s);
+//   outside Telegram: no server call, SAVE IMAGE + Copy link; a round started while the PNG is still being made;
 // a victim's name with HTML stays text, no Telegram id in the DOM, gold conserved, and the layout at 390x844, 844x390, 640x360
 // (the end screen and the card screen; screenshots in .shots/).
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs');
@@ -45,6 +47,7 @@ async function setup(b, o) {
       if (M.put === 'rate') return send({ error: 'rate' });
       if (M.put === 'down') return send({ message: 'internal error' }, 500);
       if (M.put === 'slow') await new Promise(r => setTimeout(r, 900));
+      if (M.put === 'slow9') { M.stored = (M.stored || 0) + 1; await new Promise(r => setTimeout(r, 9000)); return send({ ok: true, id: CARD_ID, url: CARD_URL }).catch(() => {}); }   // stored at once, answered after 9 s
       return send({ ok: true, id: CARD_ID, url: CARD_URL });
     }
     return send({ message: 'no function ' + name }, 404);
@@ -133,13 +136,15 @@ const near = (a, b, d) => a && b && a.every((v, i) => Math.abs(v - b[i]) <= d);
     ok(px.w === 1080 && px.h === 1920 && px.colors >= 40, 'the card canvas is 1080×1920 and not blank (' + px.colors + ' colours on a coarse grid)', px);
     ok(near(px.god, [123, 147, 255], 6) && px.gold > 4000 && near(px.corner, [7, 12, 22], 6) && px.ground[2] < 60, "the god's colour in his circle (Thor blue), gold in the banked number, the dark stone ground", { god: px.god, gold: px.gold, corner: px.corner, ground: px.ground });
     ok(px.thumb.w >= 60 && px.thumb.colors >= 8, 'the end screen shows a small preview of the card in the button', px.thumb);
-    const eb = await pg.evaluate(() => { const b = document.getElementById('hgCardBtn'), r = b.getBoundingClientRect(), ex = document.getElementById('endExtra');
-      return { text: b.textContent, sec: b.classList.contains('sec'), h: r.height, in: ex.contains(b), last: ex.lastElementChild === b, pri: [...document.querySelectorAll('#end .pri')].filter(e => e.offsetParent).length }; });
-    ok(eb.text === 'Share card' && eb.sec && eb.h >= 44 && eb.in && eb.last && eb.pri === 1, '"Share card" is a .sec button (≥ 44 px), the last item of #endExtra; PLAY AGAIN stays the only primary', eb);
+    const eb = await pg.evaluate(() => { const b = document.querySelector('.hgCardBtn'), r = b.getBoundingClientRect(), ex = document.getElementById('endExtra'), id = e => (e ? e.id : '');
+      return { text: b.textContent, sec: b.classList.contains('sec'), h: r.height, id: b.id, inExtra: ex.contains(b), prev: id(b.previousElementSibling), next: id(b.nextElementSibling),
+        challenge: [...document.querySelectorAll('button')].filter(e => /Challenge a friend/.test(e.textContent)).length, pri: [...document.querySelectorAll('#end .pri')].filter(e => e.offsetParent).length }; });
+    ok(eb.text === 'Share card' && eb.sec && eb.h >= 44 && eb.id === 'share' && !eb.inExtra && eb.prev === 'again' && eb.next === 'change' && !eb.challenge && eb.pri === 1,
+      '"Share card" is a .sec button (≥ 44 px) in the core\'s #share slot, between PLAY AGAIN and Change god (no second "Challenge a friend"); PLAY AGAIN stays the only primary', eb);
     await pg.screenshot({ path: path.join(SHOTS, 'gold_card_end_390.png') });
     fs.writeFileSync(path.join(SHOTS, 'gold_card.png'), Buffer.from((await pg.evaluate(() => G.card.canvas.toDataURL('image/png'))).split(',')[1], 'base64'));
     // share
-    await pg.locator('#hgCardBtn').tap(); await waitState(pg, '^story$');
+    await pg.locator('.hgCardBtn').tap(); await waitState(pg, '^story$');
     const puts = T.n('hg_card_put'), put = puts[0];
     const bin = put && typeof put.body.png === 'string' ? Buffer.from(put.body.png, 'base64') : Buffer.alloc(0), P = png(bin);
     ok(puts.length === 1 && put.body.token === TOKEN && /^[A-Za-z0-9+/]+={0,2}$/.test(put.body.png) && P.sig && P.w === 1080 && P.h === 1920 && P.size < 409600,
@@ -160,7 +165,7 @@ const near = (a, b, d) => a && b && a.every((v, i) => Math.abs(v - b[i]) <= d);
     await pg.locator('#hgCardStory').tap(); await pg.waitForTimeout(100);
     await pg.locator('#hgCardClose').tap(); await pg.waitForTimeout(100);
     const closed = await pg.evaluate(() => ({ card: document.getElementById('hgCard').classList.contains('on'), end: document.getElementById('end').classList.contains('on') }));
-    await pg.locator('#hgCardBtn').tap(); await waitState(pg, '^story$');
+    await pg.locator('.hgCardBtn').tap(); await waitState(pg, '^story$');
     const tg2 = await pg.evaluate(() => window.__tg);
     ok(!closed.card && closed.end && tg2.stories.length === 3 && T.n('hg_card_put').length === 1 && tg2.stories.every(s => s.u === CARD_URL), 'SHARE TO STORY again and "Share card" again reuse the uploaded card (one upload, three stories); Close goes back to the end screen', { closed, stories: tg2.stories.length, puts: T.n('hg_card_put').length });
     const sv = await pg.evaluate(() => { const T = G.TG, o = { phone: G.card.storyOK() }; T.version = '7.2'; o.old = G.card.storyOK(); T.version = '8.0'; T.platform = 'tdesktop'; o.desk = G.card.storyOK(); T.platform = 'android'; o.android = G.card.storyOK(); T.platform = 'ios'; return o; });
@@ -173,12 +178,12 @@ const near = (a, b, d) => a && b && a.every((v, i) => Math.abs(v - b[i]) <= d);
     T.M.put = 'slow';
     await pg.evaluate(() => { let g = 0; while (!G.S.over && g++ < 1000) G.step(600); }); await lastCard(pg);
     const n0 = await pg.evaluate(() => window.__tg.stories.length);
-    await pg.locator('#hgCardBtn').tap();
+    await pg.locator('.hgCardBtn').tap();
     await pg.waitForFunction(() => /Uploading/.test(document.getElementById('hgCardMsg').textContent), null, { timeout: 5000 }).catch(() => {});
     const busyS = await shareState(pg);
     await pg.locator('#hgCardClose').tap(); await waitState(pg, '^story$');
     const a1 = await pg.evaluate(() => ({ n: window.__tg.stories.length, on: document.getElementById('hgCard').classList.contains('on') }));
-    await pg.locator('#hgCardBtn').tap(); await pg.waitForTimeout(250);
+    await pg.locator('.hgCardBtn').tap(); await pg.waitForTimeout(250);
     const a2 = await pg.evaluate(() => window.__tg.stories.length);
     ok(busyS.state === 'busy' && busyS.bs.map(x => x.id).join() === 'hgCardClose' && a1.n === n0 && !a1.on && a2 === n0 + 1 && T.n('hg_card_put').length === 2,
       'closed while uploading ("Uploading your card…", only Close): no story editor opens by itself; "Share card" then shares the uploaded card', { busy: busyS.msg, a1, a2, n0, puts: T.n('hg_card_put').length });
@@ -190,7 +195,7 @@ const near = (a, b, d) => a && b && a.every((v, i) => Math.abs(v - b[i]) <= d);
   {
     const T = await setup(b, { tg: true, platform: 'tdesktop', version: '8.0', dl: true }); const { pg } = T;
     await playRound(pg); await lastCard(pg);
-    await pg.locator('#hgCardBtn').tap(); await waitState(pg, '^chat$');
+    await pg.locator('.hgCardBtn').tap(); await waitState(pg, '^chat$');
     const S = await shareState(pg), tg = await pg.evaluate(() => window.__tg);
     ok(S.state === 'chat' && T.n('hg_card_put').length === 1 && !tg.stories.length && S.pri.join() === 'hgCardChat' && S.bs.map(x => x.id).join() === 'hgCardChat,hgCardSave,hgCardCopy,hgCardClose',
       'Telegram Desktop: the card is uploaded, no story; SEND TO A CHAT (primary), Save image, Copy link, Close', S);
@@ -212,7 +217,7 @@ const near = (a, b, d) => a && b && a.every((v, i) => Math.abs(v - b[i]) <= d);
     const robLine = (L ? L.lines : []).find(s => s.startsWith('Robbed ')) || '';
     const want = R.robs.reduce((m, r) => (r.take > m.take ? r : m), { take: 0 });
     ok(want.name === odd && robLine.startsWith('Robbed <img src=x') && robLine.endsWith(' (bot) +' + want.take), 'a victim named with HTML: the card draws it as plain text (shortened to fit)', robLine);
-    await pg.locator('#hgCardBtn').tap(); await waitState(pg, '^fail$');
+    await pg.locator('.hgCardBtn').tap(); await waitState(pg, '^fail$');
     let S = await shareState(pg); const tg = await pg.evaluate(() => window.__tg);
     ok(S.state === 'fail' && S.err === 'rate' && /Six cards an hour/.test(S.msg) && !tg.stories.length && S.pri.join() === 'hgCardSave' && S.bs.map(x => x.id).join() === 'hgCardSave,hgCardChat,hgCardCopy,hgCardClose',
       "a refused upload ('rate'): the message, SAVE IMAGE (primary), Send to a chat, Copy link; no story", S);
@@ -224,8 +229,9 @@ const near = (a, b, d) => a && b && a.every((v, i) => Math.abs(v - b[i]) <= d);
     const link = (await pg.evaluate(() => window.__tg.links))[0] || '', text = link ? new URL(link).searchParams.get('text') : '';
     ok(link.startsWith('https://t.me/share/url?') && !/hg-card/.test(text) && /I banked \d+ gold as Thor/.test(text), 'Send to a chat without a card URL after a failed upload', text);
     await pg.locator('#hgCardCopy').tap(); await pg.waitForTimeout(150);
-    const cp = await pg.evaluate(() => ({ t: window.__copied, toast: document.getElementById('toast').textContent }));
-    ok(cp.t && cp.t.endsWith(' ' + GAME) && !/hg-card/.test(cp.t) && cp.toast === 'Link copied', 'Copy link copies the line and the game link', cp);
+    const cp = await pg.evaluate(() => { const m = document.getElementById('hgCardMsg'), r = m.getBoundingClientRect();
+      return { t: window.__copied, msg: m.textContent, seen: document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) === m }; });
+    ok(cp.t && cp.t.endsWith(' ' + GAME) && !/hg-card/.test(cp.t) && cp.msg === 'Link copied.' && cp.seen, 'Copy link copies the line and the game link; "Link copied." shows on the card screen itself (not in the toast under it)', cp);
     const xss = await pg.evaluate(() => ({ x: window.__xss || 0, img: document.querySelectorAll('img[src="x"]').length }));
     ok(!xss.x && !xss.img, 'the HTML name never reaches the DOM as markup', xss);
     ok(await noIds(pg) && !T.errs.length && await errHidden(pg), "'rate': no Telegram id, no page errors, #err hidden", T.errs);
@@ -237,14 +243,31 @@ const near = (a, b, d) => a && b && a.every((v, i) => Math.abs(v - b[i]) <= d);
     const T = await setup(b, { tg: true, put: 'down' }); const { pg } = T;
     await playRound(pg); await lastCard(pg);
     await pg.evaluate(() => { G.card.limit = 1000; });
-    await pg.locator('#hgCardBtn').tap(); await waitState(pg, '^fail$');
+    await pg.locator('.hgCardBtn').tap(); await waitState(pg, '^fail$');
     let S = await shareState(pg); const lite = await pg.evaluate(() => G.card.last.lite);
     ok(S.err === 'too_big' && /too big/.test(S.msg) && T.n('hg_card_put').length === 0 && lite && S.pri.join() === 'hgCardSave', 'a card over the limit: the plain card is tried, nothing is uploaded, SAVE IMAGE is offered', { S, lite, puts: T.n('hg_card_put').length });
     await pg.evaluate(() => { G.card.limit = 409600; }); await pg.locator('#hgCardClose').tap();
-    await pg.locator('#hgCardBtn').tap(); await waitState(pg, '^fail$');
+    await pg.locator('.hgCardBtn').tap(); await waitState(pg, '^fail$');
     S = await shareState(pg);
     ok(S.err === 'net' && /Could not upload/.test(S.msg) && T.n('hg_card_put').length === 1 && S.pri.join() === 'hgCardSave', 'a server error on the upload: "Could not upload the card", SAVE IMAGE', { S, puts: T.n('hg_card_put').length });
     ok(!T.errs.length && await errHidden(pg), 'no page errors, #err hidden', T.errs);
+    await T.ctx.close();
+  }
+
+  /* ---------- 4b. a slow uplink: the upload asks G.net.rpc for 30 s, not the 8 s default ---------- */
+  {
+    const T = await setup(b, { tg: true, put: 'slow9' }); const { pg } = T;
+    await playRound(pg); await lastCard(pg);
+    const len = await pg.evaluate(() => { const o = G.net.rpc, n = o.length; window.__putOpt = undefined;
+      G.net.rpc = function (name, args, opt) { if (name === 'hg_card_put') window.__putOpt = opt === undefined ? null : JSON.parse(JSON.stringify(opt)); return o.apply(this, arguments); }; return n; });
+    if (len < 3) T.M.put = 'ok';   // a net module without per-call timeouts would cut the 9 s answer at 8 s: check the request only
+    await pg.locator('.hgCardBtn').tap();
+    await pg.waitForFunction(() => !G.card.busy && /^(story|chat|fail)$/.test(G.card.state), null, { timeout: 20000 }).catch(() => {});
+    const S = await shareState(pg), opt = await pg.evaluate(() => window.__putOpt);
+    ok(opt && opt.timeout >= 30000, 'hg_card_put asks G.net.rpc for a 30 s timeout (a ~430 KB upload on a slow uplink)', opt);
+    if (len >= 3) ok(S.state === 'story' && S.url === CARD_URL && T.n('hg_card_put').length === 1 && T.M.stored === 1, 'the server answers the upload after 9 s: the card is shared, one upload, one stored copy', { state: S.state, err: S.err, puts: T.n('hg_card_put').length, stored: T.M.stored });
+    else console.log('INFO G.net.rpc takes ' + len + ' arguments (no per-call timeout yet): the 9 s upload is not tried');
+    ok(!T.errs.length && await errHidden(pg), 'slow uplink: no page errors, #err hidden', T.errs);
     await T.ctx.close();
   }
 
@@ -253,7 +276,7 @@ const near = (a, b, d) => a && b && a.every((v, i) => Math.abs(v - b[i]) <= d);
     const T = await setup(b, { tg: false }); const { pg } = T;
     const R = await playRound(pg); const L = await lastCard(pg);
     ok(R.over && L && L.lines.includes(ME.name) && L.lines.includes('Map #5 · Moon night'), 'offline: the card is made from the local profile and round', L && L.lines);
-    await pg.locator('#hgCardBtn').tap(); await waitState(pg, '^local$');
+    await pg.locator('.hgCardBtn').tap(); await waitState(pg, '^local$');
     const S = await shareState(pg);
     ok(S.state === 'local' && S.pri.join() === 'hgCardSave' && S.bs.map(x => x.id).join() === 'hgCardSave,hgCardCopy,hgCardClose' && !T.M.calls.length, 'outside Telegram: SAVE IMAGE (primary), Copy link, Close; no server call at all', { S, calls: T.M.calls.map(c => c.name) });
     const [dl] = await Promise.all([pg.waitForEvent('download', { timeout: 5000 }).catch(() => null), pg.locator('#hgCardSave').tap()]);
@@ -262,6 +285,18 @@ const near = (a, b, d) => a && b && a.every((v, i) => Math.abs(v - b[i]) <= d);
     await pg.locator('#hgCardCopy').tap(); await pg.waitForTimeout(150);
     const cp = await pg.evaluate(() => window.__copied);
     ok(cp && cp.includes(GAME) && /Thor/.test(cp), 'offline Copy link copies the line and the game link', cp);
+    // a new round started while the PNG is still being made: no error, and the old card never comes back
+    await pg.locator('#hgCardClose').tap(); await pg.locator('#again').tap(); await pg.waitForTimeout(100);
+    await pg.evaluate(() => { let g = 0; while (!G.S.over && g++ < 1000) G.step(600); }); await lastCard(pg);
+    const race = await pg.evaluate(() => { document.querySelector('.hgCardBtn').click(); const busy = G.card.busy;
+      document.getElementById('hgCardClose').click(); document.getElementById('again').click(); return { busy, running: !!(G.S && !G.S.over) }; });
+    await pg.waitForFunction(() => !G.card.busy, null, { timeout: 8000 }).catch(() => {}); await pg.waitForTimeout(100);
+    const after = await pg.evaluate(() => ({ busy: G.card.busy, state: G.card.state, last: G.card.last, on: document.getElementById('hgCard').classList.contains('on'), running: !G.S.over }));
+    ok(race.busy && race.running && !after.busy && after.state === 'idle' && !after.last && !after.on && after.running && !T.errs.length, 'a round started while the PNG is being made: no page error, the card screen stays closed, no old card', { race, after, errs: T.errs });
+    await pg.evaluate(() => { let g = 0; while (!G.S.over && g++ < 1000) G.step(600); }); await lastCard(pg);
+    await pg.locator('.hgCardBtn').tap(); await waitState(pg, '^local$');
+    const L2 = await pg.evaluate(() => ({ state: G.card.state, sig: G.card.last && G.card.last.sig, img: document.getElementById('hgCardImg').hidden ? 0 : document.getElementById('hgCardImg').naturalWidth }));
+    ok(L2.state === 'local' && L2.sig && L2.img === 1080, 'then the next round shares its own card', { state: L2.state, img: L2.img });
     ok(!T.errs.length && await errHidden(pg), 'offline: no page errors, #err hidden', T.errs);
     await T.ctx.close();
   }
@@ -271,11 +306,19 @@ const near = (a, b, d) => a && b && a.every((v, i) => Math.abs(v - b[i]) <= d);
     const T = await setup(b, { tg: true, w, h }); const { pg } = T, tag = w + 'x' + h + ': ';
     await playRound(pg); await lastCard(pg); await pg.waitForTimeout(150);
     const E = await pg.evaluate(() => { const r = s => { const e = document.querySelector(s).getBoundingClientRect(); return { t: Math.round(e.top), b: Math.round(e.bottom), l: Math.round(e.left), r: Math.round(e.right), h: Math.round(e.height), w: Math.round(e.width) }; };
-      const end = document.getElementById('end'); return { btn: r('#hgCardBtn'), thumb: r('#hgCardThumb'), again: r('#again'), wide: document.documentElement.scrollWidth - window.innerWidth, hs: end.scrollWidth - end.clientWidth }; });
+      const end = document.getElementById('end'), btn = document.querySelector('.hgCardBtn');
+      /* the same end screen with the core's own 46 px "Challenge a friend" in the slot: what the card button costs */
+      const m = () => ({ scroll: end.scrollHeight - end.clientHeight, lines: Math.round(document.getElementById('eLines').getBoundingClientRect().bottom), rank: Math.round(document.getElementById('eRank').getBoundingClientRect().top) });
+      const withCard = m(), plain = document.createElement('button'); plain.className = 'sec'; plain.id = 'share'; plain.textContent = 'Challenge a friend';
+      btn.replaceWith(plain); const core = m(); plain.replaceWith(btn);
+      return { btn: r('.hgCardBtn'), thumb: r('#hgCardThumb'), again: r('#again'), change: r('#change'), wide: document.documentElement.scrollWidth - window.innerWidth, hs: end.scrollWidth - end.clientWidth, withCard, core }; });
     ok(E.btn.h >= 44 && E.btn.l >= 0 && E.btn.r <= w && E.wide <= 0 && E.hs <= 1 && E.thumb.h >= 36 && Math.abs(E.thumb.w / E.thumb.h - 9 / 16) < 0.04, tag + 'the "Share card" button with a 9:16 preview fits the width, ≥ 44 px', E);
     if (w !== 640) ok(E.again.b <= h, tag + 'PLAY AGAIN is on the screen', E.again); else console.log('INFO ' + tag + 'PLAY AGAIN at ' + E.again.t + '–' + E.again.b + ' (the core end screen alone already scrolls here)');
+    if (w > h) ok(E.btn.t >= E.again.b && E.btn.b <= E.change.t && E.withCard.scroll <= E.core.scroll && E.withCard.lines <= E.core.lines && E.withCard.rank <= E.core.rank,
+      tag + 'the card button sits in the #share slot (column 2) and grows the end screen by nothing: the round\'s lines stay where the core puts them', { withCard: E.withCard, core: E.core, btn: E.btn, again: E.again, change: E.change });
+    else ok(E.change.b <= h && E.withCard.scroll <= 0, tag + 'the end screen fits, Change god included', { change: E.change, withCard: E.withCard });
     await pg.screenshot({ path: path.join(SHOTS, 'gold_card_end_' + w + '.png') });
-    await pg.locator('#hgCardBtn').scrollIntoViewIfNeeded(); await pg.locator('#hgCardBtn').tap(); await waitState(pg, '^story$');
+    await pg.locator('.hgCardBtn').scrollIntoViewIfNeeded(); await pg.locator('.hgCardBtn').tap(); await waitState(pg, '^story$');
     const C = await pg.evaluate(() => { const scr = document.getElementById('hgCard'), q = e => { const r = e.getBoundingClientRect(); return { t: Math.round(r.top), b: Math.round(r.bottom), l: Math.round(r.left), r: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }; };
       const img = document.getElementById('hgCardImg'), shown = img.hidden ? document.getElementById('hgCardBig') : img;
       const bs = [...scr.querySelectorAll('button')].filter(e => e.offsetParent).map(e => Object.assign(q(e), { id: e.id, pri: e.classList.contains('pri') }));

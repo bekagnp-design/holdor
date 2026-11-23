@@ -3,9 +3,10 @@
    - On 'end': a 1080×1920 story card on an offscreen canvas: the arena's stone ground, the god's circle with his sign (G.sym),
      the player's name, flag and country, "#rank of N" with the bots counted ("vs 7 bots"), the banked gold big in gold, the best
      robbery ("Robbed Odin (bot) +45"), "Map #N · <the day god's rule>", t.me/HoldorTDBot/play. A small preview of it sits in the
-     "Share card" button, the last item of #endExtra.
+     "Share card" button, which takes the core's "Challenge a friend" slot: the button replaces #share and takes its id, so the
+     short-landscape grid keeps its rows (the card screen's "Send to a chat" / "Copy link" do that button's job, with the card's URL).
    - "Share card" opens the card screen (the card big, one primary action):
-       in Telegram the PNG goes up once per card with hg_card_put(token, base64) (at most G.card.limit bytes; a plainer card
+       in Telegram the PNG goes up once per card with hg_card_put(token, base64), 30 s for the call (at most G.card.limit bytes; a plainer card
        without the stone texture is tried when the first one is too big), then TG.shareToStory(url, {text, widget_link}) where
        stories exist (Bot API 7.8+, not on desktop); "Send to a chat" opens t.me/share/url with the card's URL in the text;
        outside Telegram, or when the upload fails: "Save image" (TG.downloadFile when the card has a URL and Telegram is 8.0+,
@@ -207,22 +208,24 @@
   }
   const pngBlob = async cv => { let b = null; try { b = await pngOf(cv); } catch (e) { b = null; } return b || blobOf(cv); };
   const b64Of = blob => new Promise(res => { try { const fr = new FileReader(); fr.onload = () => { const s = String(fr.result || ''), i = s.indexOf(','); res(i >= 0 ? s.slice(i + 1) : ''); }; fr.onerror = () => res(''); fr.readAsDataURL(blob); } catch (e) { res(''); } });
+  /* the card is pinned for the whole encode: a round that starts meanwhile (card = null) or a redraw never reaches it, and the
+     result is kept in P only while that card is still the current one */
   async function encode() {
-    if (!card) return { ok: false, err: 'canvas' };
-    if (P && P.sig === card.sig && P.limit === limit()) return P;
-    const sig = card.sig;
-    let blob = await pngBlob(card.cv);
-    if (blob && blob.size > limit() && !card.lite && data) { const k = draw(data, true); k.sig = sig; card = k; publish(); paintThumb(); blob = await pngBlob(card.cv); }
-    if (!blob) return (P = { ok: false, err: 'canvas', sig, limit: limit() });
-    const fits = blob.size <= limit(), b64 = fits ? await b64Of(blob) : '';
-    P = { ok: fits && b64.length > 0, err: !fits ? 'too_big' : b64 ? '' : 'canvas', blob, b64, size: blob.size, lite: card.lite, sig, limit: limit() };
-    return P;
+    const c0 = card, d0 = data; if (!c0) return { ok: false, err: 'canvas' };
+    if (P && P.sig === c0.sig && P.limit === limit()) return P;
+    const sig = c0.sig, lim = limit(); let cur = c0;
+    let blob = await pngBlob(cur.cv);
+    if (blob && blob.size > lim && !cur.lite && d0) { cur = draw(d0, true); cur.sig = sig; if (card === c0) { card = cur; publish(); paintThumb(); } blob = await pngBlob(cur.cv); }
+    const keep = r => { if (card === cur) P = r; return r; };
+    if (!blob) return keep({ ok: false, err: 'canvas', sig, limit: lim });
+    const fits = blob.size <= lim, b64 = fits ? await b64Of(blob) : '';
+    return keep({ ok: fits && b64.length > 0, err: !fits ? 'too_big' : b64 ? '' : 'canvas', blob, b64, size: blob.size, lite: cur.lite, sig, limit: lim });
   }
 
   /* ---------- styles ---------- */
   const css = document.createElement('style');
   css.textContent = [
-    '#hgCardBtn{display:flex;align-items:center;justify-content:center;gap:14px;min-height:72px;padding:4px 16px}',
+    '.hgCardBtn{display:flex;align-items:center;justify-content:center;gap:14px;min-height:72px;padding:4px 16px}',
     '#hgCardThumb{width:36px;height:64px;flex:none;border-radius:4px;background:#141a22;box-shadow:0 0 0 1px rgba(232,184,74,.6),0 3px 8px rgba(0,0,0,.55)}',
     '.hgCardScr{background:var(--bg,#070c16);z-index:20}',
     '.hgCd{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(100%,640px)}',
@@ -234,16 +237,21 @@
     '.hgCdMsg{font:15px/1.35 Georgia,serif;color:#cfd6e2;text-align:center;max-width:100%;overflow-wrap:anywhere;min-height:20px;user-select:text;-webkit-user-select:text}',
     '.hgCdBtns{display:flex;flex-direction:column;gap:8px;width:100%}.hgCdBtns:empty{display:none}',
     '.hgCdSide .pri,.hgCdSide .sec{width:100%}',
-    '@media (orientation:landscape) and (max-height:540px){#hgCardBtn{min-height:46px;padding:2px 14px;gap:10px}#hgCardThumb{width:22px;height:39px;border-radius:3px}.hgCdSide{gap:6px}.hgCdMsg{font-size:14px}}'
+    '@media (orientation:landscape) and (max-height:540px){.hgCardBtn{min-height:46px;padding:0 14px;gap:10px}#hgCardThumb{width:22px;height:39px;border-radius:3px}.hgCdSide{gap:6px}.hgCdMsg{font-size:14px}}'
   ].join('\n');
   document.head.appendChild(css);
 
-  /* ---------- the end screen: a "Share card" button with the card's preview ---------- */
-  const btn = el('button', 'sec'); btn.id = 'hgCardBtn'; btn.type = 'button';
+  /* ---------- the end screen: a "Share card" button with the card's preview, in the core's #share slot ---------- */
+  const btn = el('button', 'sec hgCardBtn'); btn.type = 'button';
   const thumb = el('canvas'); thumb.id = 'hgCardThumb'; thumb.width = 72; thumb.height = 128; thumb.setAttribute('aria-hidden', 'true');
   btn.append(thumb, el('span', null, 'Share card'));
-  btn.addEventListener('click', () => { share(); });
-  const place = () => { const ex = G.$('endExtra'); if (ex && ex.lastChild !== btn) ex.appendChild(btn); };
+  let core = null;   // the core's "Challenge a friend": out of the DOM, its listener kept for a round without card data
+  btn.addEventListener('click', () => { if (!data && core) { core.click(); return; } share(); });
+  /* the card button takes #share's place and id (the core's grid row 3 of column 2 in a short landscape window), so the end
+     screen grows by nothing; without a core #share it goes last into #endExtra */
+  const place = () => { if (btn.isConnected) return; const old = G.$('share');
+    if (old && old !== btn) { core = old; btn.id = 'share'; old.replaceWith(btn); return; }
+    btn.id = 'hgCardBtn'; const ex = G.$('endExtra'); if (ex) ex.appendChild(btn); };
   place();
   function paintThumb() {
     if (!card || !thumb.isConnected) return;
@@ -300,6 +308,7 @@
     pv.style.width = w + 'px'; pv.style.height = h + 'px';
     paintBig(w, h);
   }
+  const PUT_MS = 30000;
   const FAIL = { rate: 'Six cards an hour at most. Save this one instead.', too_big: 'The card is too big to upload. Save it instead.',
     bad_png: 'The server refused the card. Save it instead.', auth: 'Your session ended. Save the card instead.', canvas: 'Could not make the image.',
     offline: 'Could not reach the server. Save the card instead.', net: 'Could not upload the card. Save it instead.' };
@@ -343,7 +352,7 @@
       try { T.downloadFile({ url: u, file_name: name }); stats.saves.push('tg'); return 'tg'; } catch (e) {}
     }
     let href = blobUrl; if (!href && card) { try { href = card.cv.toDataURL('image/png'); } catch (e) { href = ''; } }
-    if (!href) { G.toast('Could not make the image'); return ''; }
+    if (!href) { msgEl.textContent = FAIL.canvas; return ''; }   // the card screen covers the toast: its own status line
     const a = document.createElement('a'); a.href = href; a.download = name; a.rel = 'noopener'; a.style.display = 'none';
     document.body.appendChild(a); a.click(); setTimeout(() => { try { a.remove(); } catch (e) {} }, 0);
     stats.saves.push('a');
@@ -356,7 +365,7 @@
     if (!ok) { try { const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
       document.body.appendChild(ta); ta.select(); ok = !!document.execCommand('copy'); ta.remove(); } catch (e) { ok = false; } }
     stats.copies++;
-    if (ok) G.toast('Link copied', 1800); else msgEl.textContent = t;   // nothing could copy: the text to copy by hand
+    msgEl.textContent = ok ? 'Link copied.' : t;   // the card screen covers the toast: its own status line (or the text to copy by hand)
     return ok;
   }
   async function share() {
@@ -377,7 +386,7 @@
         if (my !== seq) return st;
         if (!on || !G.net) { setState('fail', 'offline'); return st; }
         stats.puts++;
-        const r = await G.net.rpc('hg_card_put', { token: null, png: p.b64 }); if (my !== seq) return st;
+        const r = await G.net.rpc('hg_card_put', { token: null, png: p.b64 }, { timeout: PUT_MS }); if (my !== seq) return st;   // ~430 KB up: more than the 8 s default
         if (r && typeof r === 'object' && typeof r.url === 'string' && /^https:\/\/[^\s"'<>\\]+$/.test(r.url)) up = { sig: p.sig, url: r.url, id: String(r.id || '') };
         else { setState('fail', r && typeof r === 'object' && r.error ? String(r.error) : 'net'); return st; }
       }
