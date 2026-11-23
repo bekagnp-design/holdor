@@ -4,6 +4,17 @@ Captured 2026-09-09 from MR B's full feature brief; extended through 2026-09-26.
 
 ## Done
 
+### Heavy Gold — rough test 1 (2026-11-23)
+- **Why:** the owner took the RPG down and wants a very rough version of a new simple arena game to judge whether the idea is worth it and to share with a friend.
+- **What:** `src/gold/index.html`, one file with no build, copied to `beta/index.html` and the root `index.html`. 12 heroes (you and 11 bots, always marked "bot"), 2000×2000 map, a 2:30 round.
+  - Carried gold makes you slower and bigger. On contact the lighter hero robs the heavier one: 35% of the heavier one's carry, half to the thief, half spilled.
+  - 1.5 s in one of 4 vaults banks your carry; only banked gold scores.
+  - New gold arrives in blocks every 10 s, and the reward halves every 5 blocks. No gold is printed: the test checks that coins, carried and banked gold always equal what was minted.
+  - Four gods, one skill each: Hermes dash, Thor thunder (richer rivals nearby spill), Loki vanish plus a decoy the bots chase, Amirani 3 s unrobbable.
+  - A green ring marks rivals you can rob, a red ring those who can rob you. Edge arrows point to the nearest vault and to new gold.
+  - The end screen shows rank, banked gold and robberies, plus a "Challenge a friend" share through Telegram.
+- **Tests:** `tests/gold/t_gold.js` at 390×844 and 844×390: real taps and joystick, robbery, banking, all four skills, a full round with conservation, the end screen, no errors.
+
 ### v2.0.0 — HOLDOR becomes an action RPG (2026-11-22)
 - **Why:** MR B decided on 2026-11-22 to leave tower defense behind: the game is now a real-time action RPG on the Westeros map, an open world gated by level, with other players visible and a zone chat, released straight to Telegram. His second set of decisions the same day (15:10, `src/rpg/ARCH.md` Addendum 2): the world is 3D, the player is one of his champions, there are no companions, and death is permanent for the hero.
 - **What the game is now:** a 3D terrain built from the game's own map art (`src/assets/westeros_1200.webp`, 1200×2048 × 6 = 7200×12288 world units) with three.js (MIT, vendored), a third-person camera behind the hero (yaw by a right-side drag, pitch ~35°, pinch zoom 300–700), the old enemies and champions as billboard sprites, castles / camps / shrines as low-poly meshes; nine regions with level bands from the house's seat toward the Wall and beyond (the Lands of Always Winter, level 50+), gated by level + the region's boss; joystick + ATTACK / DODGE / three skills / potion; `R.hit` with defence, crit, status effects (stun, slow, burn, bleed, shield) and damage kinds; mob AI (idle / patrol / chase / attack / flee), nine bosses with phases and telegraphs; levels 1–60 (`80 + 45·L + 6·L²` XP), +3 stat points per level, three classes × six skills; items (weapon / armor / trinket / potion / mat, rarity 0–4, sets), inventory, loot on the ground; a main quest chain + side and rescue quests, NPC dialog; towns (shop, inn, smith); three instanced dungeons; world events on timers; achievements + titles; the HUD, the world map with fog and fast travel, the intro, a three-minute tutorial, the menu with Telegram integration, level-up and death screens; VFX on a 2D overlay above the WebGL canvas, synth SFX, day/night + weather; presence and a zone chat through Supabase.
