@@ -4,6 +4,18 @@ Captured 2026-09-09 from MR B's full feature brief; extended through 2026-09-26.
 
 ## Done
 
+### Heavy Gold — test 3 (2026-11-23, review fixes)
+- **Review:** a four-lens workflow (logic, phones, balance, first round), with each finding checked by a skeptic: 11 confirmed, 7 rejected as stale.
+- **Fixes:**
+  - A hero standing in a vault cannot be robbed.
+  - A vanished Loki cannot be robbed or struck, and his decoy runs off at a right angle instead of on top of him.
+  - Thor's THUNDER with no richer rival in reach costs 1 s, not 9, and says why.
+  - Toasts wrap inside the screen. The first toast and the title say how to move.
+  - A warning at 20 s left, and the clock turns red.
+  - Title and end screens scroll from the top in a short landscape window.
+  - The test no longer fails at random.
+- **Not done, for the owner to decide:** a vault fee per deposit (the balance lens found that banking every 20–40 gold wins most rounds).
+
 ### Heavy Gold — rough test 2 (2026-11-23, the owner's answers)
 - **Changes from test 1:**
   - The map is 4000×4000, about 15 s across.
