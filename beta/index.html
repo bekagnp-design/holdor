@@ -38,14 +38,14 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 #sk{position:fixed;right:calc(18px + env(safe-area-inset-right));bottom:calc(22px + env(safe-area-inset-bottom));width:88px;height:88px;border-radius:50%;border:3px solid var(--gold);background:rgba(10,16,28,.72);color:var(--ink);font:900 26px Georgia,serif;z-index:6;display:none;pointer-events:auto;touch-action:none;padding:0}
 #sk.on{display:grid;place-items:center}#sk canvas{width:56px;height:56px;grid-area:1/1;pointer-events:none}#sk b{grid-area:1/1;text-shadow:0 1px 4px #000;pointer-events:none}#sk.cd canvas{opacity:.3}
 .coin{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#e8b84a;border:1.5px solid #8a6420;color:#3a2808;font:900 11px Georgia,serif;font-style:normal;vertical-align:-4px;margin-right:3px;text-shadow:none}
-#toast{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:7;pointer-events:none;font:700 16px Georgia,serif;color:var(--ink);text-shadow:0 2px 6px #000;text-align:center;width:max-content;max-width:calc(100vw - 32px);background:rgba(7,12,22,.78);padding:6px 12px;border-radius:10px;opacity:0;transition:opacity .25s}
+#toast{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:30;pointer-events:none;font:700 16px Georgia,serif;color:var(--ink);text-shadow:0 2px 6px #000;text-align:center;width:max-content;max-width:calc(100vw - 32px);background:rgba(7,12,22,.78);padding:6px 12px;border-radius:10px;opacity:0;transition:opacity .25s}
 #err{position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#5a1414;color:#fff;font:12px monospace;padding:6px;border-radius:8px;display:none;white-space:pre-wrap}
 .big{font:900 46px/1 Georgia,serif;color:var(--gold)}
 .lines{font:15px/1.5 Georgia,serif;color:#cfd6e2;text-align:center}
 .extra{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(100%,600px)}.extra:empty,.links:empty{display:none}
 /* icon buttons (the owner, 2026-11-23: "too much text"): an icon, one short word under it; every target >= 52 px */
 .ib{min-width:52px;min-height:52px;padding:4px 6px;border-radius:14px;border:2px solid rgba(255,255,255,.18);background:rgba(255,255,255,.04);color:var(--ink);display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:700 10px Georgia,serif;letter-spacing:.04em;cursor:pointer;position:relative;flex:0 0 auto}
-.ib i{font-style:normal;font-size:22px;line-height:1;display:block}.ib canvas{width:24px;height:24px;display:block}.ib span{color:var(--muted);white-space:nowrap;max-width:76px;overflow:hidden;text-overflow:ellipsis}
+.ib i{font-style:normal;font-size:22px;line-height:1;display:block}.ib canvas{width:24px;height:24px;display:block}.ib span{color:#aab5c6;font-size:11px;white-space:nowrap;max-width:76px;overflow:hidden;text-overflow:ellipsis}
 .links:has(.ib){gap:6px}
 .ib.on{border-color:var(--gold)}
 .hrows{display:flex;flex-direction:column;gap:12px;width:min(100%,380px)}.hrow{display:flex;align-items:center;gap:12px;font:16px/1.3 Georgia,serif;color:#e4e9f1}.hrow>i{flex:0 0 40px;height:40px;display:grid;place-items:center;font-style:normal;font-size:24px}
@@ -66,7 +66,9 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   #gods{grid-template-columns:repeat(2,minmax(0,1fr))}#gods .god{min-height:78px;padding:6px 6px}
 }
 .links{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;width:min(100%,600px)}.links .sec{width:auto;flex:1 1 140px}
-@media (max-height:430px) and (min-aspect-ratio:4/3){.links .ib{min-height:48px}#end>.links,#title>.links{width:auto}}
+@media (max-height:430px) and (min-aspect-ratio:4/3){.links .ib{min-height:48px}#end>.links,#title>.links{width:100%}
+  #gods .god{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:8px;row-gap:0;min-height:58px;justify-items:start;align-content:center;padding:6px 10px}#gods .god canvas{grid-row:1/3;width:36px!important;height:36px!important}#gods .god b{font-size:15px}#gods .god .trn-lv{left:auto;right:8px}#gods .god .trn-cb{left:auto;right:8px}
+  #gdesc{display:none}}
 </style>
 </head>
 <body>
@@ -398,7 +400,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const cc = $('change').querySelector('canvas').getContext('2d'); cc.clearRect(0, 0, 48, 48); cc.fillStyle = GODS[god].c; cc.beginPath(); cc.arc(24, 24, 23, 0, TAU); cc.fill(); sym(cc, god, 24, 24, 22); };
   const bestLine = () => { $('best').textContent = 'Map #' + mapNo + (best() ? ' · best ' + best() : ''); };
   drawGods(); bestLine();
-  setTimeout(() => $('titleLinks').appendChild($('helpB')), 0);   // after the modules' links: Rules comes last
+  window.addEventListener('load', () => $('titleLinks').appendChild($('helpB')));   // after the modules' links: Rules comes last
   $('helpB').addEventListener('click', () => { $('title').classList.remove('on'); $('help').classList.add('on'); });
   $('helpOk').addEventListener('click', () => { $('help').classList.remove('on'); $('title').classList.add('on'); });
   /* a module may hold PLAY back (the profile asks for a name and a country first): window.G.beforePlay() === false */
@@ -614,7 +616,11 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
      Georgia is suggested at the top only when Telegram's language_code is 'ka'.
    - Saved to localStorage 'hg_profile' {name, country} and, online, to hg_profile_set. When the game comes online
      (G.on('net')), hg_profile_get first: a server profile wins; with none on the server, the local one is sent.
-   - Fills G.profile (the same object) and emits G.emit('profile', G.profile). A "name · flag" button in #titleLinks edits it.
+   - Fills G.profile (the same object) and emits G.emit('profile', G.profile). An icon button in #titleLinks edits it:
+     .ib #hgMe = <i>flag</i><span>name</span> (👤 "You" with no profile; a red "!" badge when the server refused the name).
+   - The screen (UI rules: no explanations): YOU + a ✕ icon (#hgBack), the name field, the country, SAVE (the only big button).
+     The country: with one picked, only its chip (#hgSel, "🇬🇪 Georgia 🔍"); a tap on it opens the search + grid; a pick closes them again.
+     The name rule ("3–16 letters, digits, _ -") shows only as an error after a bad try.
    - Also public: G.COUNTRIES ([code, name] sorted by name), G.flag(code), G.countryName(code), G.profileUI {open, close, valid, sync}. */
 (function () {
   const LS = 'hg_profile';
@@ -660,8 +666,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   const nlen = s => [...s].length;
   const valid = s => { const n = tidy(s); return nlen(n) >= 3 && nlen(n) <= 16 && OK_CH.test(n); };
   const cleanName = s => tidy([...tidy(String(s || '').replace(BAD_CH, ''))].slice(0, 16).join(''));
-  const MSG = { name_taken: 'That name is taken', bad_name: '3–16 letters, digits, space, _ or -', bad_country: 'Pick a country' };
-  const HINT = '3–16 letters, digits, space, _ or -';
+  const MSG = { name_taken: 'Name taken', bad_name: '3–16 letters, digits, _ -', bad_country: 'Pick a country' };
 
   const tgUser = () => { try { const u = G.TG && G.TG.initDataUnsafe && G.TG.initDataUnsafe.user; return u || null; } catch (e) { return null; } };
   const read = () => { try { const o = JSON.parse(localStorage.getItem(LS) || 'null'); if (o && valid(o.name) && CC[o.country]) return { name: tidy(o.name), country: o.country }; } catch (e) {} return null; };
@@ -679,34 +684,38 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     '.hgScr{background:var(--bg,#070c16);z-index:20}',
     '.hgP{flex:1 1 auto;min-height:0;width:min(100%,640px);display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"head" "list" "foot";gap:10px}',
     '.hgPhead{grid-area:head;display:flex;flex-direction:column;gap:6px}',
+    '.hgPtop{display:flex;align-items:center;gap:8px}.hgPtop .hgH{flex:1 1 auto;padding-left:60px}.hgPtop .ib{flex:none}',
+    '.hgPlist.pk #hgSearch,.hgPlist.pk .hgList{display:none}.hgPlist:not(.pk) .hgSel{display:none}',
+    '#hgMe span{max-width:46px}',
     '.hgPlist{grid-area:list;display:flex;flex-direction:column;gap:6px;min-height:0}',
     '.hgPfoot{grid-area:foot;display:flex;flex-direction:column;align-items:center;gap:8px}',
     '.hgH{margin:0;font:900 20px/1.2 Georgia,serif;letter-spacing:.08em;color:var(--gold,#e8b84a);text-align:center}',
     '.hgIn{width:100%;min-height:48px;border-radius:12px;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:var(--ink,#f3e7c4);font:700 18px Georgia,serif;padding:0 14px;outline:none;user-select:text;-webkit-user-select:text;touch-action:manipulation}',
     '.hgIn:focus{border-color:var(--gold,#e8b84a)}.hgIn::placeholder{color:#6f7d92;font-weight:400}',
-    '.hgMsg{font:13px/1.3 Georgia,serif;color:var(--muted,#8d9bb0);text-align:center;min-height:17px}.hgMsg.bad{color:#ff8a7a;font-weight:700}',
-    '.hgSel{font:15px/1.3 Georgia,serif;text-align:center;color:#cfd6e2}.hgSel b{color:var(--ink,#f3e7c4)}.hgSel.bad{color:#ff8a7a;font-weight:700}',
+    '.hgMsg{font:700 13px/1.3 Georgia,serif;color:#ff8a7a;text-align:center}.hgMsg:empty{display:none}',
+    '.hgSel{align-self:stretch;min-height:48px;display:flex;align-items:center;justify-content:center;gap:6px;max-width:100%;padding:4px 14px;border-radius:12px;border:2px solid var(--gold,#e8b84a);background:rgba(232,184,74,.12);font:700 17px/1.3 Georgia,serif;color:var(--ink,#f3e7c4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}.hgSel:empty{display:none}',
     '.hgList{flex:1 1 auto;min-height:92px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;align-content:start;padding:2px;border-radius:12px}',
     '.hgC{min-height:44px;display:flex;align-items:center;gap:8px;text-align:left;border-radius:10px;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--ink,#f3e7c4);font:14px/1.2 Georgia,serif;padding:4px 8px;cursor:pointer;touch-action:pan-y}',
     '.hgC .f{font-size:22px;line-height:1;flex:none}.hgC.sel{border-color:var(--gold,#e8b84a);background:rgba(232,184,74,.16)}.hgC[hidden],.hgLbl[hidden]{display:none}',
     '.hgLbl{grid-column:1/-1;font:12px Georgia,serif;color:var(--muted,#8d9bb0);letter-spacing:.08em;text-transform:uppercase;padding:4px 2px 0}',
     '.hgNone{grid-column:1/-1;font:14px Georgia,serif;color:var(--muted,#8d9bb0);text-align:center;padding:12px}',
-    '#hgMe{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-    '@media (orientation:landscape) and (max-height:540px){.hgP{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"head list" "foot list";gap:8px 16px}.hgH{font-size:18px}.hgPfoot{justify-content:flex-start}}'
+    '#hgMe.bad::after{content:"!";position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#e0483a;color:#fff;font:900 12px/18px Georgia,serif;text-align:center}',
+    '.hgP.pk{grid-template-rows:auto auto auto;align-content:center}',
+    '@media (orientation:landscape) and (max-height:540px){.hgP{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"head list" "foot list";gap:8px 16px}.hgP.pk{grid-template-rows:auto auto}.hgH{font-size:18px}.hgPfoot{justify-content:flex-start}}'
   ].join('\n');
   document.head.appendChild(css);
 
   /* ---- the screen ---- */
   const scr = document.createElement('div'); scr.className = 'scr hgScr'; scr.id = 'hgProf';
-  scr.innerHTML = '<div class="hgP"><div class="hgPhead"><h2 class="hgH">YOUR NAME &amp; COUNTRY</h2>' +
-    '<input id="hgName" class="hgIn" type="text" maxlength="16" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" enterkeyhint="done" placeholder="Your name" aria-label="Your name">' +
-    '<div class="hgMsg" id="hgPErr" role="alert"></div><div class="hgSel" id="hgSel"></div></div>' +
-    '<div class="hgPlist"><input id="hgSearch" class="hgIn" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" placeholder="Search a country" aria-label="Search a country">' +
+  scr.innerHTML = '<div class="hgP"><div class="hgPhead"><div class="hgPtop"><h2 class="hgH">YOU</h2><button class="ib" id="hgBack" type="button" aria-label="Back"><i>✕</i></button></div>' +
+    '<input id="hgName" class="hgIn" type="text" maxlength="16" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" enterkeyhint="done" placeholder="Name" aria-label="Name">' +
+    '<div class="hgMsg" id="hgPErr" role="alert"></div></div>' +
+    '<div class="hgPlist" id="hgPlist"><button class="hgSel" id="hgSel" type="button" aria-label="Change country"></button><input id="hgSearch" class="hgIn" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" placeholder="🔍 Country" aria-label="Search a country">' +
     '<div class="hgList" id="hgList"></div></div>' +
-    '<div class="hgPfoot"><button class="pri" id="hgSave">SAVE</button><button class="sec" id="hgBack">Back</button></div></div>';
+    '<div class="hgPfoot"><button class="pri" id="hgSave">SAVE</button></div></div>';
   document.body.appendChild(scr);
   const $q = id => scr.querySelector('#' + id);
-  const nameIn = $q('hgName'), searchIn = $q('hgSearch'), list = $q('hgList'), errEl = $q('hgPErr'), selEl = $q('hgSel'), saveB = $q('hgSave'), backB = $q('hgBack');
+  const boxP = scr.querySelector('.hgP'), plist = $q('hgPlist'), nameIn = $q('hgName'), searchIn = $q('hgSearch'), list = $q('hgList'), errEl = $q('hgPErr'), selEl = $q('hgSel'), saveB = $q('hgSave'), backB = $q('hgBack');
   /* the core's keydown (space / J = skill, WASD) must not eat the letters typed here */
   for (const el of [nameIn, searchIn]) for (const t of ['keydown', 'keyup', 'keypress']) el.addEventListener(t, e => e.stopPropagation());
 
@@ -720,22 +729,29 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     if (suggestGE()) {
       const l1 = document.createElement('div'); l1.className = 'hgLbl hgSugL'; l1.textContent = 'Suggested'; list.appendChild(l1);
       list.appendChild(mkBtn('GE', CC.GE, 'hgSug'));
-      const l2 = document.createElement('div'); l2.className = 'hgLbl hgSugL'; l2.textContent = 'All countries'; list.appendChild(l2);
+      const l2 = document.createElement('div'); l2.className = 'hgLbl hgSugL'; l2.textContent = 'All'; list.appendChild(l2);
     }
     for (const [c, n] of COUNTRIES) list.appendChild(mkBtn(c, n));
-    const none = document.createElement('div'); none.className = 'hgNone'; none.id = 'hgNone'; none.hidden = true; none.textContent = 'No country matches'; list.appendChild(none);
+    const none = document.createElement('div'); none.className = 'hgNone'; none.id = 'hgNone'; none.hidden = true; none.textContent = 'No match'; list.appendChild(none);
   }
   list.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.hgC'); if (!b) return; pick(b.dataset.cc); });
   function pick(c) {
     if (!CC[c]) return; sel = c; touched = true;
     for (const b of list.querySelectorAll('.hgC')) b.classList.toggle('sel', b.dataset.cc === c);
-    paintSel(); if (errEl.dataset.code === 'bad_country') msg('');
+    paintSel(); fold_(true); if (errEl.dataset.code === 'bad_country') msg('');
   }
-  function paintSel() {
-    selEl.classList.remove('bad');
-    if (sel) { selEl.textContent = ''; const b = document.createElement('b'); b.textContent = flag(sel) + ' ' + CC[sel]; selEl.append('Country: ', b); }
-    else selEl.textContent = 'Country: pick one below';
+  /* the chosen country as a chip; nothing before one is picked */
+  function paintSel() { selEl.textContent = sel ? flag(sel) + ' ' + CC[sel] + ' 🔍' : ''; }
+  /* folded: the chip only; unfolded: the search + grid (the chip hidden: the grid marks the pick) */
+  function fold_(on) {
+    on = !!(on && sel); plist.classList.toggle('pk', on); boxP.classList.toggle('pk', on);
+    if (!on) { searchIn.value = ''; filter(); scrollToSel(); }
   }
+  function scrollToSel() {
+    list.scrollTop = 0;
+    if (sel) { const b = list.querySelector('.hgC:not(.hgSug)[data-cc="' + sel + '"]'); if (b) { try { list.scrollTop = Math.max(0, b.offsetTop - list.offsetTop - list.clientHeight / 2 + b.offsetHeight / 2); } catch (e) {} } }
+  }
+  selEl.addEventListener('click', () => fold_(false));
   function filter() {
     const q = fold(tidy(searchIn.value)); let n = 0;
     for (const b of list.querySelectorAll('.hgC')) { const show = !q ? true : (b.classList.contains('hgSug') ? false : (b._k.indexOf(q) >= 0)); b.hidden = !show; if (show && !b.classList.contains('hgSug')) n++; }
@@ -749,9 +765,8 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   nameIn.addEventListener('keydown', e => { if (e.key === 'Enter') nameIn.blur(); });
   function msg(code, text) {
     errEl.dataset.code = code || '';
-    if (!code) { errEl.classList.remove('bad'); errEl.textContent = HINT; return; }
-    errEl.classList.add('bad'); errEl.textContent = text || MSG[code] || 'Could not save. Try again.';
-    if (code === 'bad_country') selEl.classList.add('bad');
+    if (!code) { errEl.classList.remove('bad'); errEl.textContent = ''; return; }
+    errEl.classList.add('bad'); errEl.textContent = text || MSG[code] || 'Not saved · try again';
   }
 
   function open(forPlay) {
@@ -763,8 +778,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     for (const b of list.querySelectorAll('.hgC')) b.classList.toggle('sel', b.dataset.cc === sel);
     searchIn.value = ''; filter(); paintSel(); msg(needFix ? needFix : '');
     scr.classList.add('on');
-    list.scrollTop = 0;
-    if (sel) { const b = list.querySelector('.hgC:not(.hgSug)[data-cc="' + sel + '"]'); if (b) { try { list.scrollTop = Math.max(0, b.offsetTop - list.offsetTop - list.clientHeight / 2 + b.offsetHeight / 2); } catch (e) {} } }
+    fold_(true); scrollToSel();
   }
   function close() { scr.classList.remove('on'); try { nameIn.blur(); searchIn.blur(); } catch (e) {} pendingPlay = false; }
 
@@ -781,7 +795,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     busy = false; saveB.disabled = false; saveB.textContent = 'SAVE';
     if (res && res.error) { msg(res.error); return; }
     if (res && res.ok) { needFix = ''; apply(res.name || name, CC[res.country] ? res.country : country); }
-    else { needFix = ''; apply(name, country); if (online) G.toast('Saved on this phone. The server did not answer.', 2400); }
+    else { needFix = ''; apply(name, country); if (online) G.toast('⚠️ Server error · saved on phone', 2400); }
     close();
     if (go) { const b = G.$('play'); if (b) b.click(); }
   }
@@ -789,10 +803,17 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   backB.addEventListener('click', close);
 
   /* ---- the title button ---- */
-  const btn = document.createElement('button'); btn.className = 'sec'; btn.id = 'hgMe'; btn.type = 'button';
-  function paintBtn() { btn.textContent = has() ? (needFix ? 'Name taken: change it' : G.profile.name + ' · ' + flag(G.profile.country)) : 'Your name & country'; }
+  const btn = document.createElement('button'); btn.className = 'ib'; btn.id = 'hgMe'; btn.type = 'button';
+  const btnI = document.createElement('i'), btnS = document.createElement('span'); btn.append(btnI, btnS);
+  function paintBtn() {
+    const ok = has();
+    btnI.textContent = ok ? (flag(G.profile.country) || '👤') : '👤'; btnS.textContent = ok ? G.profile.name : 'You';
+    btn.classList.toggle('bad', !!(ok && needFix));
+    btn.setAttribute('aria-label', ok ? (needFix ? (MSG[needFix] || 'Name refused') + ': ' : '') + G.profile.name + ' · ' + G.countryName(G.profile.country) : 'Name & country');
+  }
   btn.addEventListener('click', () => open(false));
-  const links = G.$('titleLinks'); if (links) links.appendChild(btn);
+  const links = G.$('titleLinks'), helpB = G.$('helpB');   // before Rules: Rules stays the last icon
+  if (links) { if (helpB && helpB.parentNode === links) links.insertBefore(btn, helpB); else links.appendChild(btn); }
 
   /* ---- the gate ---- */
   const prevGate = G.beforePlay;
@@ -818,7 +839,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
       if (!loc) return false;
       const s = await G.net.rpc('hg_profile_set', { token: null, name: loc.name, country: loc.country });
       if (s && s.ok) { needFix = ''; apply(s.name || loc.name, CC[s.country] ? s.country : loc.country); return true; }
-      if (s && s.error) { needFix = s.error; paintBtn(); if (!(G.S && !G.S.over)) G.toast((MSG[s.error] || 'The server refused your name') + ': tap your name to change it', 3000); }
+      if (s && s.error) { needFix = s.error; paintBtn(); if (!(G.S && !G.S.over)) G.toast('⚠️ ' + (MSG[s.error] || 'Name refused') + ' · tap your name', 3000); }
       return false;
     })().catch(() => false).then(v => { syncing = null; return v; });
     return syncing;
@@ -837,20 +858,21 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 </script>
 <script>/* 30_board.js */
 (function(){try{
-/* Heavy Gold — boards (30_board.js): the round submit, the weekly / all-time boards, the top-3 podium (src/gold/GOLD.md).
+/* Heavy Gold — boards (30_board.js): the round submit, the weekly / all-time boards, the title podium (src/gold/GOLD.md, UI rules).
    - On `end`, online and with a profile: hg_round_submit(token, r), r = {god, banked, rank, heroes, robs, lost, minted, day}.
-     #endExtra shows "This week: total X · best Y · #rank" (or the server's error, or "Saved only on this phone"), then this
-     week's top 3 (flag + name + total, #1 bigger, the player's own row marked) and a Leaderboard button.
-   - #titleExtra: a podium, "LAST WEEK'S CHAMPIONS" from hg_board(token, 'last'); when last week has no rounds,
-     "THIS WEEK SO FAR" from 'week'; nothing when neither has rounds or the game is offline. A single row in a short landscape window.
-   - The board screen (#titleLinks and #endExtra buttons): THIS WEEK / ALL TIME × PLAYERS / COUNTRIES, a totals line,
-     the player's own row highlighted, "You: #N" pinned when he is outside the top 20, one CLOSE.
-   - Only server data is shown (never a Telegram id: only name, country, total, best, rounds, players, gold, crown are read).
-   - Crowns (g2): a row with crown: true (the champion, last week's #1) gets 👑 right before the name, on the board, the podium and
-     the end screen's top 3.
+     #endExtra gets one short line (#hgWeek in #hgEnd): "🏆 #3 · 240 🪙" (this week's rank and total, the server's answer), "Connecting…"
+     while it waits, "Offline · not counted" without a login, "Not counted · server" when the login worked but the call failed (e.g. a
+     missing hg_* function), "Not counted · no name" without a profile, "Not counted · too soon" etc. for a refusal. Nothing else.
+   - #titleExtra: the podium, one compact row #1 #2 #3 (🥇 or 👑 on #1 only; flag + name, the gold under it), headed "LAST WEEK" from hg_board(token, 'last');
+     "THIS WEEK" from 'week' when last week has no rounds; nothing when neither has rounds or the game is offline.
+   - Icon buttons: 🏆 "Boards" in #titleLinks (#hgTitleBoard) and in #endLinks (#hgEndBoard).
+   - The board screen (#hgBoard): BOARDS 🪙 + the player count, tabs Week / Last week / All × Players / Countries, rows rank · flag · name ·
+     gold (my row marked; my own row pinned under the list when I am outside the top 20), CLOSE.
+   - Only server data is shown (never a Telegram id: only name, country, total, rounds, players, gold, crown are read).
+   - Crowns (g2): a row with crown: true (the champion, last week's #1) gets 👑 right before the flag / name, on the board and the podium.
    - G.emit('submitted', answer, r) once hg_round_submit has answered (answer = the server's JSON, or null), for the ladder.
-   - G.board = { open(), close(), load(scope, fresh), top3(scope) }: top3('title' | 'end' | 'last' | 'week') returns the rows
-     last rendered there ({rank, name, country, flag, total, mine, crown}), [] when nothing was rendered. */
+   - G.board = { open(), close(), load(scope, fresh), render(), podium(), top3(scope) }: top3('title' | 'last' | 'week') returns the rows
+     last rendered on the podium ({rank, name, country, flag, total, mine, crown}); top3('end') is [] (the end screen shows no rows). */
 (function () {
   const num = v => { const n = Number(v); return isFinite(n) ? Math.round(n) : 0; };
   const fmt = v => num(v).toLocaleString('en-US');
@@ -858,71 +880,53 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   const flag = c => (typeof G.flag === 'function' ? G.flag(c) : '') || '';
   const cname = c => (typeof G.countryName === 'function' && G.countryName(c)) || c || '—';
   const arr = v => Array.isArray(v) ? v : [];
-  const pl = (n, one, many) => fmt(n) + ' ' + (num(n) === 1 ? one : many);
   const online = () => !!(G.net && G.net.on);
   const hasTG = () => { try { return !!(G.TG && typeof G.TG.initData === 'string' && G.TG.initData.length); } catch (e) { return false; } };
   const hasProfile = () => !!(G.profile && G.profile.name && G.profile.country);
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const ib = (id, icon, word) => { const b = el('button', 'ib'); b.id = id; b.type = 'button'; b.append(el('i', null, icon), el('span', null, word)); return b; };
+  const MEDAL = ['', '🥇', '', ''];   // #1 only: bigger and gold already, left to right
 
   /* ---- styles ---- */
   const css = document.createElement('style');
   css.textContent = [
     '.hgScr{background:var(--bg,#070c16);z-index:20}',
-    '.hgB{flex:1 1 auto;min-height:0;width:min(100%,640px);display:flex;flex-direction:column;gap:8px}',
-    '.hgBtop{display:flex;align-items:baseline;justify-content:space-between;gap:4px 12px;flex-wrap:wrap}',
-    '.hgBtop h2{margin:0;font:900 20px/1.2 Georgia,serif;letter-spacing:.08em;color:var(--gold,#e8b84a)}',
-    '.hgTot{font:13px/1.3 Georgia,serif;color:var(--muted,#8d9bb0)}',
+    '.hgB{flex:1 1 auto;min-height:0;width:min(100%,560px);display:flex;flex-direction:column;gap:8px}',
+    '.hgBtop{display:flex;align-items:center;gap:4px 12px;flex-wrap:wrap}',
+    '.hgBtop h2{margin:0;font:900 20px/1.2 Georgia,serif;letter-spacing:.08em;color:var(--gold,#e8b84a)}.hgU{font-size:18px;line-height:1}',
+    '.hgTot{font:700 13px/1.3 Georgia,serif;color:var(--muted,#8d9bb0);margin-right:auto}',
     '.hgTabs{display:flex;gap:8px;flex-wrap:wrap}.hgTabs[hidden]{display:none}',
-    '.hgSeg{display:flex;flex:1 1 220px;border:2px solid rgba(255,255,255,.18);border-radius:12px;overflow:hidden}',
-    '.hgSeg button{flex:1 1 0;min-height:44px;border:0;background:transparent;color:var(--ink,#f3e7c4);font:700 14px Georgia,serif;letter-spacing:.06em;cursor:pointer;padding:0 6px}',
+    '.hgSeg{display:flex;flex:1 1 220px;border:2px solid rgba(255,255,255,.18);border-radius:12px;overflow:hidden}#hgKind{flex:1 1 160px}',
+    '.hgSeg button{flex:1 1 0;min-height:44px;min-width:44px;border:0;background:transparent;color:var(--ink,#f3e7c4);font:700 14px Georgia,serif;cursor:pointer;padding:0 6px;white-space:nowrap}',
     '.hgSeg button+button{border-left:2px solid rgba(255,255,255,.12)}.hgSeg button.on{background:rgba(232,184,74,.22);color:var(--gold,#e8b84a)}',
+    '.hgBody.nt{flex:0 0 auto;min-height:0}',
     '.hgBody{flex:1 1 auto;min-height:64px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;border-radius:12px;background:rgba(255,255,255,.03)}',
-    '.hgRow{display:grid;grid-template-columns:32px 26px minmax(0,1fr) 64px 52px 54px;align-items:center;gap:4px;padding:6px 8px;font:14px/1.25 Georgia,serif;border-bottom:1px solid rgba(255,255,255,.06)}',
-    '.hgRow.hd{position:sticky;top:0;background:#0d1420;color:var(--muted,#8d9bb0);font-size:12px;letter-spacing:.04em;z-index:1}',
-    '.hgRow .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hgRow .v{text-align:right}.hgRow .k{color:var(--muted,#8d9bb0)}.hgRow .fl{font-size:18px;line-height:1}',
+    '.hgRow{display:grid;grid-template-columns:30px 26px minmax(0,1fr) auto;align-items:center;gap:6px;padding:7px 10px;font:15px/1.25 Georgia,serif;border-bottom:1px solid rgba(255,255,255,.06)}',
+    '.hgRow.c{grid-template-columns:30px 26px minmax(0,1fr) auto auto}',
+    '.hgRow .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hgRow .v{text-align:right;font-weight:700;color:var(--gold,#e8b84a);font-variant-numeric:tabular-nums}',
+    '.hgRow .k{color:var(--muted,#8d9bb0);font-size:13px}.hgRow .fl{font-size:18px;line-height:1}.hgRow .pp{font-size:12px;color:var(--muted,#8d9bb0);white-space:nowrap}',
     '.hgRow.me{background:rgba(232,184,74,.18);color:var(--gold,#e8b84a);font-weight:700}.hgRow.me .k{color:var(--gold,#e8b84a)}',
-    '.hgPin{display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--gold,#e8b84a);border-radius:12px;font:700 14px/1.25 Georgia,serif;color:var(--gold,#e8b84a);background:rgba(232,184,74,.1);flex-wrap:wrap}.hgPin[hidden]{display:none}',
-    '.hgPin .n{flex:1 1 90px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink,#f3e7c4)}.hgPin .s{font-weight:400;color:#cfd6e2}',
+    '.hgPin{border:2px solid var(--gold,#e8b84a);border-radius:12px;overflow:hidden;flex:none}.hgPin[hidden]{display:none}.hgPin .hgRow{border:0}',
     '.hgNote{padding:18px 12px;text-align:center;font:15px/1.4 Georgia,serif;color:#cfd6e2;display:flex;flex-direction:column;align-items:center;gap:10px}',
+    '.hgNote .sec{width:auto;padding:0 22px}',
     '.hgB>.pri{align-self:center;flex:none}',
-    /* the podium */
-    '.hgPod{width:100%;display:flex;flex-direction:column;align-items:center;gap:2px}.hgPod[hidden]{display:none}',
-    '.hgPodH{font:700 12px/1.2 Georgia,serif;letter-spacing:.14em;color:var(--muted,#8d9bb0);text-align:center}',
-    '.hgPodRow{display:flex;justify-content:center;align-items:flex-end;gap:8px;width:100%}',
-    '.hgPl{flex:1 1 0;min-width:0;max-width:190px;display:flex;flex-direction:column;align-items:center;text-align:center}',
-    '.hgPl.p1{flex-grow:1.5;max-width:240px}',
-    '.hgPl .rk{font:900 12px/1.2 Georgia,serif;opacity:.85}',
-    '.hgPl .nm{display:flex;align-items:center;justify-content:center;gap:5px;max-width:100%;white-space:nowrap;font:800 16px/1.2 Georgia,serif}',
-    '.hgPl .nm .n{overflow:hidden;text-overflow:ellipsis;min-width:0}.hgPl .nm .f{flex:none}',
-    '.hgPl .g{font:13px/1.2 Georgia,serif;color:#cfd6e2}.hgPl .g b{color:var(--ink,#f3e7c4)}',
-    '.hgPl .bar{width:72%;border-radius:6px 6px 0 0;margin-top:3px}',
-    '.hgPl.p1 .nm{font-size:26px;color:#e8b84a}.hgPl.p1.long .nm{font-size:21px}.hgPl.p1 .rk{color:#e8b84a}.hgPl.p1 .bar{height:16px;background:linear-gradient(180deg,#e8b84a,#7a5618)}',
-    '.hgPl.p2 .nm,.hgPl.p2 .rk{color:#c9d2dc}.hgPl.p2 .bar{height:10px;background:linear-gradient(180deg,#c9d2dc,#58606a)}',
-    '.hgPl.p3 .nm,.hgPl.p3 .rk{color:#d08a4e}.hgPl.p3 .bar{height:6px;background:linear-gradient(180deg,#d08a4e,#6a3e1c)}',
+    /* the podium: one compact row; the medal, the crown, the flag and the name on one line, the gold under it */
+    '.hgPod{width:100%;display:flex;flex-direction:column;align-items:center;gap:1px}.hgPod[hidden]{display:none}',
+    '.hgPodH{font:700 10px/1.2 Georgia,serif;letter-spacing:.16em;color:var(--muted,#8d9bb0);text-align:center}',
+    '.hgPodRow{display:flex;justify-content:center;align-items:flex-end;gap:12px;width:100%}',
+    '.hgPl{flex:0 1 auto;min-width:0;max-width:30%;display:flex;flex-direction:column;align-items:center;text-align:center}',
+    '.hgPl .nm{display:flex;align-items:center;justify-content:center;gap:4px;max-width:100%;white-space:nowrap;font:800 15px/1.25 Georgia,serif;color:#e4e9f1}',
+    '.hgPl .ln{display:flex;align-items:center;gap:4px;max-width:100%;min-width:0}.hgPl .rk{flex:none;font-size:15px;line-height:1}',
+    '.hgPl .nm .n{overflow:hidden;text-overflow:ellipsis;min-width:0}.hgPl .nm .f{flex:none}.hgPl .nm{min-width:0}',
+    '.hgPl .g{font:700 12px/1.2 Georgia,serif;color:var(--gold,#e8b84a);font-variant-numeric:tabular-nums}',
+    '.hgPl.p1 .nm{font-size:19px;color:#e8b84a}.hgPl.p1 .g{font-size:13px}.hgPl.p1{max-width:40%;flex-shrink:.6}.hgPl.p1.crown .rk{display:none}',
     '.hgPl.me .nm .n{text-decoration:underline;text-underline-offset:3px}',
-    '.hgCr{flex:none;font-style:normal}.hgRow .n .hgCr{margin-right:.25em}.hgPl .nm .hgCr{font-size:.72em;margin-right:-2px}',
-    /* the end screen */
-    '.hgEnd{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}',
-    '.hgEndT{display:flex;flex-direction:column;align-items:center;gap:6px;max-width:100%;min-width:0}',
-    '.hgWeek{text-align:center;font:700 15px/1.35 Georgia,serif;color:var(--ink,#f3e7c4)}.hgWeek.soft{font-weight:400;color:#cfd6e2}',
-    '.hgTop{display:flex;flex-direction:column;align-items:center;gap:1px;max-width:100%}.hgTop[hidden]{display:none}',
-    '.hgTopH{font:700 11px/1.2 Georgia,serif;letter-spacing:.14em;color:var(--muted,#8d9bb0)}',
-    '.hgT{display:flex;align-items:baseline;gap:6px;max-width:100%;font:14px/1.3 Georgia,serif;color:#cfd6e2;white-space:nowrap}',
-    '.hgT .n{overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:11em;color:var(--ink,#f3e7c4)}.hgT .r{font-weight:900}.hgT .g{color:var(--gold,#e8b84a)}',
-    '.hgT.t1{font-size:17px}.hgT.t1 .r{color:#e8b84a}.hgT.t2 .r{color:#c9d2dc}.hgT.t3 .r{color:#d08a4e}',
-    '.hgT.me .n{color:var(--gold,#e8b84a);font-weight:700}.hgT .you{font:700 11px Georgia,serif;color:#1c1207;background:var(--gold,#e8b84a);border-radius:6px;padding:0 5px;align-self:center}',
-    '#hgEndBoard{width:min(100%,360px)}',
-    /* a short landscape window: the end box is one band (the two lines left, the button right); the board rows tighter */
-    '@media (orientation:landscape) and (max-height:540px){.hgBtop h2{font-size:18px}.hgB{gap:6px}.hgRow{padding:4px 8px}',
-    '.hgEnd{flex-direction:row;justify-content:center;gap:12px}.hgEndT{gap:2px;align-items:flex-start;flex:0 1 auto}.hgWeek{font-size:14px;text-align:left}',
-    '.hgTop{flex-direction:row;flex-wrap:wrap;justify-content:flex-start;gap:0 12px}.hgTopH{display:none}.hgT,.hgT.t1{font-size:13px}.hgT.t1 .n,.hgT.t1 .g{font-size:15px}.hgT .n{max-width:8em}',
-    '#hgEndBoard{width:auto;flex:none;padding:0 18px}}',
-    /* the podium in a short landscape window: one thin row, the heading inline */
-    '@media (orientation:landscape) and (max-height:500px){.hgPod{flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:0 14px;width:100%;max-width:100%}',
-    '.hgPodH{font-size:11px}.hgPodRow{width:auto;max-width:100%;flex-wrap:wrap;align-items:baseline;gap:4px 14px}',
-    '.hgPl,.hgPl.p1{flex:0 1 auto;flex-direction:row;align-items:baseline;gap:5px;max-width:200px}.hgPl .rk{font-size:11px}',
-    '.hgPl .bar{display:none}.hgPl .nm{font-size:13px;gap:4px}.hgPl.p1 .nm,.hgPl.p1.long .nm{font-size:17px}.hgPl .g{font-size:11px}.hgPl .nm .n{max-width:8.5em}',
-    '.hgPl.p1.crown .rk{display:none}}'   /* the crown says #1: the row stays two lines at 640x360 */
+    '.hgCr{flex:none;font-style:normal}.hgRow .n .hgCr{margin-right:.25em}.hgPl .nm .hgCr{font-size:.8em}',
+    '@media (max-height:430px){.hgPl .nm{font-size:13px}.hgPl.p1 .nm{font-size:16px}.hgPl .g,.hgPl.p1 .g{font-size:11px}.hgPodRow{gap:8px}}',
+    /* the end screen: one line */
+    '.hgEnd{display:flex;justify-content:center;width:100%;min-width:0}',
+    '.hgWeek{text-align:center;font:700 15px/1.3 Georgia,serif;color:var(--ink,#f3e7c4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.hgWeek.soft{font-weight:400;color:#cfd6e2}',
+    '@media (orientation:landscape) and (max-height:540px){.hgBtop h2{font-size:18px}.hgB{gap:6px}.hgRow{padding:5px 10px}.hgTabs{flex-wrap:nowrap}.hgSeg,#hgKind{flex:1 1 0}}'
   ].join('\n');
   document.head.appendChild(css);
 
@@ -939,11 +943,11 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     }).catch(() => null).then(d => { delete inflight[scope]; return d; });
     return inflight[scope];
   }
-  const players = d => arr(d && d.players).map((p, i) => ({ rank: i + 1, name: String((p && p.name) || ''), country: code(p && p.country), total: num(p && p.total), best: num(p && p.best), rounds: num(p && p.rounds), mine: !!(p && p.mine), crown: !!(p && p.crown === true) }));
+  const players = d => arr(d && d.players).map((p, i) => ({ rank: i + 1, name: String((p && p.name) || ''), country: code(p && p.country), total: num(p && p.total), rounds: num(p && p.rounds), mine: !!(p && p.mine), crown: !!(p && p.crown === true) }));
   const crown = () => { const c = el('span', 'hgCr', '👑'); c.title = "Last week's champion"; return c; };
   const countries = d => arr(d && d.countries).map(c => ({ country: code(c && c.country), players: num(c && c.players), rounds: num(c && c.rounds), gold: num(c && c.gold) }))
     .sort((a, b) => b.gold - a.gold || b.players - a.players || b.rounds - a.rounds);
-  const shown = { title: [], end: [], last: [], week: [] };
+  const shown = { title: [], last: [], week: [] };
   const top3rows = d => players(d).slice(0, 3).map(p => ({ rank: p.rank, name: p.name, country: p.country, flag: flag(p.country), total: p.total, mine: p.mine, crown: p.crown }));
 
   /* ---- the title podium ---- */
@@ -962,81 +966,60 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     if (tEx && tEx.firstChild !== pod) tEx.insertBefore(pod, tEx.firstChild);
     pod.textContent = '';
     pod.dataset.scope = scope;
-    pod.appendChild(el('div', 'hgPodH', scope === 'last' ? "LAST WEEK'S CHAMPIONS" : 'THIS WEEK SO FAR'));
+    pod.appendChild(el('div', 'hgPodH', scope === 'last' ? 'LAST WEEK' : 'THIS WEEK'));
     const row = el('div', 'hgPodRow');
-    for (const i of [1, 0, 2]) {         // #2 · #1 · #3
-      const p = rows[i]; if (!p) continue;
-      const b = el('div', 'hgPl p' + p.rank + (p.mine ? ' me' : '') + ([...p.name].length > 9 ? ' long' : '')); b.dataset.rank = p.rank;
-      b.appendChild(el('div', 'rk', '#' + p.rank));
-      const nm = el('div', 'nm'); if (p.crown) nm.appendChild(crown()); if (p.flag) nm.appendChild(el('span', 'f', p.flag)); nm.appendChild(el('span', 'n', p.name)); b.appendChild(nm);
-      if (p.crown) b.classList.add('crown');
-      const g = el('div', 'g'); g.appendChild(el('b', null, fmt(p.total))); g.append(' gold'); b.appendChild(g);
-      b.appendChild(el('div', 'bar'));
+    for (const p of rows) {
+      const b = el('div', 'hgPl p' + p.rank + (p.mine ? ' me' : '') + (p.crown ? ' crown' : '')); b.dataset.rank = p.rank;
+      const nm = el('div', 'nm');
+      if (p.crown) nm.appendChild(crown());
+      if (p.flag) nm.appendChild(el('span', 'f', p.flag));
+      nm.appendChild(el('span', 'n', p.name));
+      const ln = el('div', 'ln'); if (MEDAL[p.rank]) ln.appendChild(el('span', 'rk', MEDAL[p.rank])); ln.appendChild(nm); b.appendChild(ln);
+      b.appendChild(el('div', 'g', fmt(p.total)));
       row.appendChild(b);
     }
     pod.appendChild(row); pod.hidden = false;
     shown.title = rows; shown[scope] = rows; if (scope === 'week') shown.last = [];
   }
 
-  /* ---- the end screen ---- */
+  /* ---- the end screen: one line ---- */
   const endBox = el('div', 'hgEnd'); endBox.id = 'hgEnd';
   const weekEl = el('div', 'hgWeek'); weekEl.id = 'hgWeek';
-  const topEl = el('div', 'hgTop'); topEl.id = 'hgTop'; topEl.hidden = true;
-  const endBtn = el('button', 'sec', 'Leaderboard'); endBtn.id = 'hgEndBoard'; endBtn.type = 'button';
-  const endText = el('div', 'hgEndT'); endText.append(weekEl, topEl);
-  endBox.append(endText, endBtn);
+  endBox.appendChild(weekEl);
   const eEx = G.$('endExtra'); if (eEx) eEx.appendChild(endBox);
-  const ERR = { too_fast: 'Not counted: too soon after your last round', bad_round: 'The server did not accept this round',
-    no_profile: 'Pick a name and a country to join the board' };
+  const OFF = 'Offline · not counted', SRV = 'Not counted · server';
+  const ERR = { too_fast: 'Not counted · too soon', bad_round: 'Not counted', no_profile: 'Not counted · no name' };
   const line = (t, soft) => { weekEl.textContent = t; weekEl.classList.toggle('soft', !!soft); };
-  function endTop(d) {
-    const rows = top3rows(d); topEl.textContent = '';
-    if (!rows.length) { topEl.hidden = true; shown.end = []; return; }
-    topEl.appendChild(el('div', 'hgTopH', "THIS WEEK'S TOP 3"));
-    for (const p of rows) {
-      const r = el('div', 'hgT t' + p.rank + (p.mine ? ' me' : '')); r.dataset.rank = p.rank;
-      r.appendChild(el('span', 'r', '#' + p.rank));
-      if (p.crown) r.appendChild(crown());
-      if (p.flag) r.appendChild(el('span', 'f', p.flag));
-      r.appendChild(el('span', 'n', p.name));
-      r.appendChild(el('span', 'g', fmt(p.total)));
-      if (p.mine) r.appendChild(el('span', 'you', 'YOU'));
-      topEl.appendChild(r);
-    }
-    topEl.hidden = false; shown.end = rows; shown.week = rows;
-  }
   let endSeq = 0;
   G.on('start', () => { endSeq++; });
-  G.on('end', (S, res) => { submit(res).catch(() => line('Saved only on this phone', true)); });
+  G.on('end', (S, res) => { submit(res).catch(() => line(OFF, true)); });
   async function submit(res) {
-    const my = ++endSeq; topEl.hidden = true; topEl.textContent = ''; shown.end = [];
-    if (!res || typeof res !== 'object') { line('Saved only on this phone', true); return; }
+    const my = ++endSeq;
+    if (!res || typeof res !== 'object') { line(OFF, true); return; }
     const r = { god: String(res.god || ''), banked: num(res.bank), rank: num(res.rank), heroes: num(res.of), robs: num(res.robs), lost: num(res.lost), minted: num(res.minted),
       day: G.dayGod && G.dayGod.key ? String(G.dayGod.key) : '' };
-    if (!hasProfile() || !G.net) { line('Saved only on this phone', true); return; }
-    line('Saving to the weekly board…', true);
+    if (!G.net) { line(OFF, true); return; }
+    if (!hasProfile()) { line(ERR.no_profile, true); return; }
+    line('Connecting…', true);
     let on = online(); if (!on && hasTG()) { try { on = await G.net.login(); } catch (e) { on = false; } }
     if (my !== endSeq) return;
-    if (!on) { line('Saved only on this phone', true); return; }
+    if (!on) { line(OFF, true); return; }
     const x = await G.net.rpc('hg_round_submit', { token: null, r });
     try { G.emit('submitted', x, r); } catch (e) {}   // the server has answered (x: its answer, or null): the ladder's end line asks now
     if (my !== endSeq) return;
-    if (x && x.ok && x.week) { const w = x.week; line('This week: total ' + fmt(w.total) + ' · best ' + fmt(w.best) + ' · #' + fmt(w.rank)); delete cache.week; delete cache.all; }
-    else if (x && x.error) line(ERR[x.error] || 'The server did not save this round', true);
-    else line('No answer from the server · saved only on this phone', true);
-    const d = await load('week', true);
-    if (my !== endSeq) return;
-    endTop(d);
-    if (scr.classList.contains('on')) render();
+    if (x && x.ok && x.week) { const w = x.week; line('🏆 #' + fmt(w.rank) + ' · ' + fmt(w.total) + ' 🪙'); delete cache.week; delete cache.all; }
+    else if (x && x.error) line(ERR[x.error] || 'Not counted', true);
+    else line(online() ? SRV : OFF, true);   // logged in but no answer (a missing hg_* function, a 5xx, a timeout): not "offline"
+    if (scr.classList.contains('on')) { render(); fetchScope(true); }
   }
 
   /* ---- the board screen ---- */
   const scr = el('div', 'scr hgScr'); scr.id = 'hgBoard';
   const box = el('div', 'hgB');
-  const top = el('div', 'hgBtop'); const h2 = el('h2', null, 'LEADERBOARD'); const tot = el('div', 'hgTot'); tot.id = 'hgTot'; top.append(h2, tot);
+  const top = el('div', 'hgBtop'); const h2 = el('h2', null, 'BOARDS'); const unit = el('span', 'hgU', '🪙'); unit.title = 'Gold'; const tot = el('div', 'hgTot'); tot.id = 'hgTot'; top.append(h2, unit, tot);
   const tabs = el('div', 'hgTabs'); tabs.id = 'hgTabs';
   const seg = (id, items) => { const s = el('div', 'hgSeg'); s.id = id; for (const [k, t] of items) { const b = el('button', null, t); b.type = 'button'; b.dataset.k = k; s.appendChild(b); } return s; };
-  const segScope = seg('hgScope', [['week', 'THIS WEEK'], ['all', 'ALL TIME']]), segKind = seg('hgKind', [['players', 'PLAYERS'], ['countries', 'COUNTRIES']]);
+  const segScope = seg('hgScope', [['week', 'Week'], ['last', 'Last week'], ['all', 'All']]), segKind = seg('hgKind', [['players', 'Players'], ['countries', 'Countries']]);
   tabs.append(segScope, segKind);
   const body = el('div', 'hgBody'); body.id = 'hgBody';
   const pin = el('div', 'hgPin'); pin.id = 'hgPin'; pin.hidden = true;
@@ -1047,57 +1030,51 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   segKind.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; kind = b.dataset.k; render(); });
   closeB.addEventListener('click', () => close());
 
-  function cell(cls, text) { return el('span', cls, text); }
+  const cell = (cls, text) => el('span', cls, text);
   function note(text, retry) {
     const n = el('div', 'hgNote'); n.appendChild(el('div', null, text));
-    if (retry) { const b = el('button', 'sec', 'Try again'); b.type = 'button'; b.id = 'hgRetry'; b.addEventListener('click', () => { delete state[scope]; open(true); }); n.appendChild(b); }
+    if (retry) { const b = el('button', 'sec', '↻ Retry'); b.type = 'button'; b.id = 'hgRetry'; b.addEventListener('click', () => { delete state[scope]; open(true); }); n.appendChild(b); }
     body.appendChild(n);
   }
-  function render() {
+  function pRow(p, rank) {
+    const r = el('div', 'hgRow' + (p.mine ? ' me' : '')); r.dataset.rank = rank;
+    const n = cell('n'); if (p.crown) { n.appendChild(crown()); r.classList.add('crown'); } n.append(p.name);
+    r.append(cell('k', String(rank)), cell('fl', flag(p.country)), n, cell('v', fmt(p.total)));
+    return r;
+  }
+  function render() { paint(); body.classList.toggle('nt', !body.querySelector('.hgRow')); }
+  function paint() {
     for (const b of segScope.children) b.classList.toggle('on', b.dataset.k === scope);
     for (const b of segKind.children) b.classList.toggle('on', b.dataset.k === kind);
     body.textContent = ''; pin.hidden = true; pin.textContent = ''; tot.textContent = '';
     if (!online()) {
       tabs.hidden = true;
-      if (!hasTG()) note('Open HOLDOR in Telegram to see the boards');
+      if (!hasTG()) note('Open in Telegram');
       else if (G.net && G.net.pending) note('Connecting…');
-      else note('Could not reach the server.', true);
+      else note('Offline', true);
       return;
     }
     tabs.hidden = false;
     const c = cache[scope];
-    if (!c) { if (state[scope] === 'error') note('Could not load the board.', true); else note('Loading…'); return; }
+    if (!c) { if (state[scope] === 'error') note('Server error', true); else note('Loading…'); return; }
     const d = c.d, t = d.totals || {};
-    tot.textContent = pl(t.players, 'player', 'players') + ' · ' + pl(t.rounds, 'round', 'rounds') + (scope === 'week' ? ' this week' : ' in all');
+    tot.textContent = '👤 ' + fmt(t.players);
     if (kind === 'players') {
       const ps = players(d);
-      if (!ps.length) { note(scope === 'week' ? 'No rounds yet this week. Be the first.' : 'No rounds yet. Be the first.'); }
-      else {
-        const hd = el('div', 'hgRow hd'); hd.append(cell('k', '#'), cell(), cell('n', 'Name'), cell('v', 'Total'), cell('v', 'Best'), cell('v', 'Rounds')); body.appendChild(hd);
-        for (const p of ps) {
-          const r = el('div', 'hgRow' + (p.mine ? ' me' : '')); r.dataset.rank = p.rank;
-          const n = cell('n'); if (p.crown) { n.appendChild(crown()); r.classList.add('crown'); } n.append(p.name);
-          r.append(cell('k', String(p.rank)), cell('fl', flag(p.country)), n, cell('v', fmt(p.total)), cell('v', fmt(p.best)), cell('v', fmt(p.rounds)));
-          body.appendChild(r);
-        }
-      }
+      if (!ps.length) note('No rounds yet');
+      for (const p of ps) body.appendChild(pRow(p, p.rank));
       const me = d.me && typeof d.me === 'object' ? d.me : null, inList = ps.some(p => p.mine);
-      if (me && num(me.rank) > 0 && (!inList || num(me.rank) > 20)) {
-        pin.appendChild(el('b', null, 'You: #' + fmt(me.rank)));
-        pin.appendChild(el('span', 'n', (hasProfile() ? flag(G.profile.country) + ' ' + G.profile.name : '')));
-        pin.appendChild(el('span', 's', 'total ' + fmt(me.total) + ' · best ' + fmt(me.best) + ' · ' + pl(me.rounds, 'round', 'rounds')));
+      if (me && num(me.rank) > 0 && (!inList || num(me.rank) > 20) && hasProfile()) {
+        pin.appendChild(pRow({ name: G.profile.name, country: G.profile.country, total: me.total, mine: true, crown: false }, '#' + fmt(me.rank)));
         pin.hidden = false;
-      } else if (!me && !inList && hasProfile()) {
-        pin.appendChild(el('span', 's', scope === 'week' ? 'You: no rounds this week yet' : 'You: no rounds yet')); pin.hidden = false;
       }
     } else {
       const cs = countries(d);
-      if (!cs.length) { note('No countries on the board yet.'); return; }
-      const hd = el('div', 'hgRow hd'); hd.append(cell('k', '#'), cell(), cell('n', 'Country'), cell('v', 'Players'), cell('v', 'Rounds'), cell('v', 'Gold')); body.appendChild(hd);
+      if (!cs.length) { note('No rounds yet'); return; }
       const mine = hasProfile() ? G.profile.country : '';
       cs.forEach((c, i) => {
-        const r = el('div', 'hgRow' + (c.country && c.country === mine ? ' me' : '')); r.dataset.cc = c.country;
-        r.append(cell('k', String(i + 1)), cell('fl', flag(c.country)), cell('n', cname(c.country)), cell('v', fmt(c.players)), cell('v', fmt(c.rounds)), cell('v', fmt(c.gold)));
+        const r = el('div', 'hgRow c' + (c.country && c.country === mine ? ' me' : '')); r.dataset.cc = c.country;
+        r.append(cell('k', String(i + 1)), cell('fl', flag(c.country)), cell('n', cname(c.country)), cell('pp', '👤 ' + fmt(c.players)), cell('v', fmt(c.gold)));
         body.appendChild(r);
       });
     }
@@ -1117,14 +1094,17 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   }
   function close() { scr.classList.remove('on'); }
 
-  const tBtn = el('button', 'sec', 'Leaderboard'); tBtn.id = 'hgTitleBoard'; tBtn.type = 'button';
-  const links = G.$('titleLinks'); if (links) links.appendChild(tBtn);
-  tBtn.addEventListener('click', open); endBtn.addEventListener('click', open);
+  /* ---- the icon buttons ---- */
+  const tBtn = ib('hgTitleBoard', '🏆', 'Boards'), endBtn = ib('hgEndBoard', '🏆', 'Boards');
+  const links = G.$('titleLinks'), helpB = G.$('helpB');   // before Rules: Rules stays the last icon
+  if (links) { if (helpB && helpB.parentNode === links) links.insertBefore(tBtn, helpB); else links.appendChild(tBtn); }
+  const eLinks = G.$('endLinks'); if (eLinks) eLinks.appendChild(endBtn);
+  tBtn.addEventListener('click', () => open()); endBtn.addEventListener('click', () => open());
 
   G.on('net', on => { podium(); if (scr.classList.contains('on')) { render(); if (on) fetchScope(); } });
   G.on('title', () => podium());
   G.on('profile', () => { if (scr.classList.contains('on')) render(); });
-  G.board = { open, close, load, render, podium, top3: s => (shown[s || 'title'] || []).map(r => Object.assign({}, r)) };
+  G.board = { open, close, load, render, podium, top3: s => (s === 'end' ? [] : (shown[s || 'title'] || [])).map(r => Object.assign({}, r)) };
   if (online()) podium();
 })();
 
@@ -1133,15 +1113,16 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 <script>/* 35_chat.js */
 (function(){try{
 /* Heavy Gold — chat (35_chat.js): the world chat and the player's own country chat (src/gold/GOLD.md, Wave 5).
-   - Buttons: "Chat" (.sec), the first link in #titleLinks, and during a round a round 44 px button in #hudExtra on the right, under the live board
+   - Buttons: a 💬 "Chat" icon button (.ib), the first link in #titleLinks, and during a round a round 44 px button in #hudExtra on the right, under the live board
      (#hTR; clear of the clock, the board, the skill button, the minimap and the day chip at 390×844, 844×390 and 640×360).
      A red dot on both when a channel has a message from someone else newer than the last one this player saw.
-   - The panel: two tabs, WORLD and the player's country (flag + name); each message shows the flag, the name (👑 for last week's
-     champion), the text and a short time (HH:MM today, "21 Nov" before); an input (200 characters at most) with SEND (the screen's
-     one primary button) and an English line for each server error ('rate' → "Slow down a little").
+   - The panel (GOLD.md "UI rules": icons and 1–3 words; no title, the tabs say it): two tabs, 🌍 World and the player's country (flag + name); each message
+     shows the flag, the name (👑 for last week's champion), the text and a short time (HH:MM today, "21 Nov" before); an input
+     ("Message", 200 characters at most) with ➤ (send, the screen's one primary button) and a 1–3 word line for each error
+     ('rate' → "Too fast", 'too_long' → "Too long", 'auth' → "Not signed in", no network → "Offline").
      · On the title (no round): a full screen (.scr, z 20).
      · During a round the game keeps running, so the panel docks: a bottom sheet (42 % of the height, left of the skill button) in
-       portrait, a side panel (≤ 40 % of the width, above the skill button) on the right in landscape. The hero at the centre, the
+       portrait, a side panel (≤ 40 % of the width, under the live board #hTR, above the skill button) on the right in landscape. The hero at the centre, the
        skill button and the free side stay uncovered, so the drag-anywhere joystick still works there. The round's end closes it.
        Landscape with the keyboard up (≤ 300 px tall): while typing, the panel drops its tabs and ✕ so the input and SEND show.
    - Server (G.net.rpc): hg_chat_list(token, channel, since) every 3 s for the open tab (the first call of each open, and one every
@@ -1150,9 +1131,9 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
      (since-based) for the unread dot. An answer of a full page (50) after since may have skipped older messages, so it replaces
      what is stored instead of being joined onto it (no silent gap). hg_chat_send(token, channel, body).
      channel = 'world' or 'c:XX' (XX = G.profile.country).
-   - A long press (or the ⋯ on a message from someone else) offers Report (hg_chat_report(token, id): hidden for this player at once)
+   - A long press (or the ⋯ on a message from someone else) opens a bottom sheet over the list (the message quoted) with ⚑ Report (hg_chat_report(token, id): hidden for this player at once)
      and Block (hg_chat_block(token, name): that name's messages go).
-   - Offline (no Telegram): "Open HOLDOR in Telegram to chat", nothing is sent and the round has no chat button.
+   - Offline (no Telegram): "Open in Telegram", nothing is sent and the round has no chat button.
    - Every user text (names, bodies) goes into the page with textContent; this file never uses innerHTML. Only id, name, country,
      body, at, mine and crown are read from a message (never a Telegram id).
    - localStorage: 'hg_chat_seen' {channel: last seen id}, 'hg_chat_hidden' [ids this player reported].
@@ -1163,13 +1144,13 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   const G = window.G; if (!G || !G.on) return;
   const MAXLEN = 200, KEEP = 200, PAGE = 50, LONG_MS = 550, SEEN_K = 'hg_chat_seen', HIDE_K = 'hg_chat_hidden';
   const ERR = {
-    rate: 'Slow down a little',
-    too_long: 'Too long: 200 characters at most',
-    empty: 'Write something first',
-    no_profile: 'Pick a name and a country first',
-    bad_channel: "You can write only in your own country's chat",
-    auth: 'Not signed in. Reopen HOLDOR in Telegram',
-    net: 'Could not send. Check the connection and try again'
+    rate: 'Too fast',
+    too_long: 'Too long',
+    empty: 'Empty',
+    no_profile: 'No profile',
+    bad_channel: 'Not your country',
+    auth: 'Not signed in',
+    net: 'Offline'
   };
   const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -1276,8 +1257,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   css.textContent = [
     '#hgChat.full{background:var(--bg,#070c16);z-index:20}',
     '.hgCh{flex:1 1 auto;min-height:0;width:min(100%,640px);display:flex;flex-direction:column;gap:8px;position:relative}',
-    '.hgChBar{display:grid;grid-template-columns:minmax(0,1fr) 44px;grid-template-areas:"h x" "tabs tabs";gap:8px;align-items:center}',
-    '.hgChBar h2{grid-area:h;margin:0;font:900 20px/1.2 Georgia,serif;letter-spacing:.08em;color:var(--gold,#e8b84a)}',
+    '.hgChBar{display:grid;grid-template-columns:minmax(0,1fr) 44px;grid-template-areas:"tabs x";gap:8px;align-items:center;min-height:44px}',
     '.hgChTabs{grid-area:tabs;display:flex;min-width:0;border:2px solid rgba(255,255,255,.18);border-radius:12px;overflow:hidden}.hgChTabs[hidden]{display:none}',
     '.hgChTab{flex:1 1 0;min-width:0;min-height:44px;border:0;background:transparent;color:var(--ink,#f3e7c4);font:700 14px Georgia,serif;letter-spacing:.06em;cursor:pointer;padding:0 8px;display:flex;align-items:center;justify-content:center;gap:6px}',
     '.hgChTab+.hgChTab{border-left:2px solid rgba(255,255,255,.12)}.hgChTab.on{background:rgba(232,184,74,.22);color:var(--gold,#e8b84a)}',
@@ -1299,60 +1279,61 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     '.hgChForm{display:flex;gap:8px;align-items:stretch;margin:0}.hgChForm[hidden]{display:none}',
     '.hgChIn{flex:1 1 auto;min-width:0;min-height:44px;border-radius:12px;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:var(--ink,#f3e7c4);font:16px Georgia,serif;padding:0 12px;outline:none;user-select:text;-webkit-user-select:text;touch-action:manipulation}',
     '.hgChIn:focus{border-color:var(--gold,#e8b84a)}.hgChIn::placeholder{color:#6f7d92}',
-    '.hgChForm .pri{width:auto;min-height:44px;flex:none;padding:0 18px;font-size:15px;box-shadow:none}.hgChForm .pri:disabled{opacity:.6}',
-    '.hgChMenu{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:#0a0f1a;border-radius:12px;padding:8px}.hgChMenu[hidden]{display:none}',
+    '.hgChForm .pri{width:auto;min-width:56px;min-height:44px;flex:none;padding:0 14px;font-size:20px;letter-spacing:0;box-shadow:none}.hgChForm .pri:disabled{opacity:.6}',
+    /* report / block: a bottom sheet over the list (the messages stay in view above it) */
+    '.hgChMenu{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;flex-direction:column;align-items:center;gap:8px;background:#121a28;border:1px solid rgba(232,184,74,.45);border-radius:14px;padding:8px;box-shadow:0 -6px 20px rgba(0,0,0,.6)}.hgChMenu[hidden]{display:none}',
     '.hgChMenu .q{font:14px/1.35 Georgia,serif;color:#cfd6e2;text-align:center;max-width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere;word-break:break-word}',
-    '.hgChActs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:min(100%,420px)}.hgChActs .sec{flex:1 1 120px;width:auto;min-height:44px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 10px}',
+    '.hgChActs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:min(100%,420px)}.hgChActs .sec{flex:1 1 88px;min-width:0;letter-spacing:0;width:auto;min-height:44px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 10px}',
     '.hgDot{position:absolute;top:-3px;right:-3px;width:12px;height:12px;border-radius:50%;background:#ff6a5a;border:2px solid #070c16;pointer-events:none;box-sizing:border-box}.hgDot[hidden]{display:none}',
     '.hgChTab .hgDot{position:static;width:9px;height:9px;border:0;flex:none}',
-    '#hgChatBtn{position:relative}',
+    '#hgChatBtn{position:relative}#hgChatBtn .hgDot{top:3px;right:3px}',
     '#hgChatHud{position:absolute;right:calc(10px + env(safe-area-inset-right));top:calc(108px + env(safe-area-inset-top));width:44px;height:44px;border-radius:50%;border:2px solid rgba(232,184,74,.75);background:rgba(7,12,22,.72);color:var(--gold,#e8b84a);display:none;place-items:center;pointer-events:auto;cursor:pointer;padding:0;touch-action:manipulation;box-shadow:0 2px 8px rgba(0,0,0,.45)}',
     '#hgChatHud.on{display:grid}#hgChatHud svg{display:block}',
     /* docked during a round: the game keeps running around it */
     '#hgChat.dock{inset:auto;left:calc(8px + env(safe-area-inset-left));right:calc(8px + env(safe-area-inset-right));bottom:calc(8px + env(safe-area-inset-bottom));top:auto;height:min(42%,420px);padding:8px;z-index:6;gap:0;overflow:hidden;background:#0a0f1a;border:1px solid rgba(232,184,74,.45);border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.55)}',
     '#hgChat.dock>.hgCh{margin:0;width:100%;gap:6px}',
-    '#hgChat.dock .hgChBar{grid-template-areas:"tabs x"}#hgChat.dock .hgChBar h2{display:none}',
     '#hgChat.dock .hgChMsg:empty{display:none}#hgChat.dock .hgChList{min-height:40px}',
     '#hgChat.dock .hgCmh{display:inline-flex;margin-right:6px;vertical-align:baseline;max-width:100%}#hgChat.dock .hgCmb{display:inline}',
     '#hgChat.dock .hgChNote{padding:10px 8px;font-size:14px;gap:6px}',
-    '#hgChat.dock .hgChTab{padding:0 6px;gap:4px;letter-spacing:.03em}#hgChat.dock .hgChForm .pri{padding:0 14px}#hgChat.dock #hgChTabW{flex:0 1 auto;padding:0 12px}',
+    '#hgChat.dock .hgChTab{padding:0 6px;gap:4px;letter-spacing:.03em}#hgChat.dock .hgChForm .pri{padding:0 10px}#hgChat.dock #hgChTabW{flex:0 1 auto;padding:0 12px}',
     /* portrait: the sheet stops left of the skill button (#sk: 88 px, 18 px from the right edge) */
     '@media (orientation:portrait){#hgChat.dock{right:calc(116px + env(safe-area-inset-right))}}',
-    '@media (orientation:landscape){#hgChat.dock{left:auto;top:calc(6px + env(safe-area-inset-top));bottom:calc(122px + env(safe-area-inset-bottom));width:min(40%,360px);height:auto}}',
+    /* landscape: below the live board (#hTR, 8–81 px), so the top 4 stay in view */
+    '@media (orientation:landscape){#hgChat.dock{left:auto;top:calc(88px + env(safe-area-inset-top));bottom:calc(122px + env(safe-area-inset-bottom));width:min(40%,360px);height:auto}}',
     /* landscape with the soft keyboard up (the WebView shrinks to the space above it): typing, the panel takes the full height and
        drops the tabs and ✕, so the list, the input and SEND stay visible; they come back when the keyboard goes */
-    '@media (orientation:landscape) and (max-height:300px){#hgChat.dock.typing{bottom:calc(6px + env(safe-area-inset-bottom))}#hgChat.dock.typing .hgChBar{display:none}#hgChat.dock.typing .hgChList{min-height:0}}',
-    '@media (orientation:landscape) and (max-height:540px){#hgChat.full .hgChBar{grid-template-columns:auto minmax(0,1fr) 44px;grid-template-areas:"h tabs x"}#hgChat.full .hgChBar h2{font-size:18px}#hgChat.full .hgChNote{padding:10px 12px}}'
+    '@media (orientation:landscape) and (max-height:300px){#hgChat.dock.typing{top:calc(6px + env(safe-area-inset-top));bottom:calc(6px + env(safe-area-inset-bottom))}#hgChat.dock.typing .hgChBar{display:none}#hgChat.dock.typing .hgChList{min-height:0}}',
+    '@media (orientation:landscape) and (max-height:540px){#hgChat.full .hgChNote{padding:10px 12px}}'
   ].join('\n');
   document.head.appendChild(css);
 
   /* ---- the panel ---- */
   const scr = el('div', 'scr'); scr.id = 'hgChat'; scr.setAttribute('role', 'dialog'); scr.setAttribute('aria-label', 'Chat');
   const box = el('div', 'hgCh');
-  const bar = el('div', 'hgChBar'); const h2 = el('h2', null, 'CHAT');
+  const bar = el('div', 'hgChBar');   // no "CHAT" title: the tabs say it
   const tabsEl = el('div', 'hgChTabs'); tabsEl.id = 'hgChTabs'; tabsEl.setAttribute('role', 'tablist');
   const mkTab = (t, id) => { const b = el('button', 'hgChTab'); b.type = 'button'; b.id = id; b.dataset.tab = t; b.setAttribute('role', 'tab'); return b; };
   const tW = mkTab('world', 'hgChTabW'), tC = mkTab('country', 'hgChTabC');
   const wDot = el('i', 'hgDot'), cDot = el('i', 'hgDot'); wDot.hidden = cDot.hidden = true;
-  tW.append(el('span', 'n', 'WORLD'), wDot);
+  tW.append(el('span', 'f', '🌍'), el('span', 'n', 'World'), wDot);
   const tCf = el('span', 'f'), tCn = el('span', 'n'); tC.append(tCf, tCn, cDot);
   tabsEl.append(tW, tC);
-  const xB = el('button', 'hgChX', '✕'); xB.type = 'button'; xB.id = 'hgChX'; xB.setAttribute('aria-label', 'Close the chat');
-  bar.append(h2, tabsEl, xB);
+  const xB = el('button', 'hgChX', '✕'); xB.type = 'button'; xB.id = 'hgChX'; xB.setAttribute('aria-label', 'Close');
+  bar.append(tabsEl, xB);
   const wrap = el('div', 'hgChWrap');
   const list = el('div', 'hgChList'); list.id = 'hgChList'; list.setAttribute('aria-live', 'polite');
-  const pill = el('button', 'hgChNew', 'New messages ↓'); pill.type = 'button'; pill.id = 'hgChNew'; pill.hidden = true;
+  const pill = el('button', 'hgChNew', '↓ New'); pill.type = 'button'; pill.id = 'hgChNew'; pill.hidden = true;
   wrap.append(list, pill);
   const msgEl = el('div', 'hgChMsg'); msgEl.id = 'hgChMsg'; msgEl.setAttribute('role', 'status');
   const form = el('form', 'hgChForm'); form.id = 'hgChForm'; form.setAttribute('autocomplete', 'off');
   const input = el('input', 'hgChIn'); input.id = 'hgChIn'; input.type = 'text'; input.setAttribute('enterkeyhint', 'send'); input.setAttribute('autocomplete', 'off');
   input.setAttribute('autocorrect', 'on'); input.setAttribute('aria-label', 'Message'); input.maxLength = MAXLEN * 2;   // the 200-character rule counts code points (below)
-  const sendB = el('button', 'pri', 'SEND'); sendB.type = 'submit'; sendB.id = 'hgChSend';
+  const sendB = el('button', 'pri', '➤'); sendB.type = 'submit'; sendB.id = 'hgChSend'; sendB.setAttribute('aria-label', 'Send');
   form.append(input, sendB);
   const menu = el('div', 'hgChMenu'); menu.id = 'hgChMenu'; menu.hidden = true;
   const mq = el('div', 'q'); const acts = el('div', 'hgChActs');
-  const repB = el('button', 'sec', 'Report'); repB.type = 'button'; repB.id = 'hgChReport';
-  const blkB = el('button', 'sec', 'Block'); blkB.type = 'button'; blkB.id = 'hgChBlock';
+  const repB = el('button', 'sec', '⚑ Report'); repB.type = 'button'; repB.id = 'hgChReport';
+  const blkB = el('button', 'sec', '⛔ Block'); blkB.type = 'button'; blkB.id = 'hgChBlock';
   const canB = el('button', 'sec', 'Cancel'); canB.type = 'button'; canB.id = 'hgChCancel';
   acts.append(repB, blkB, canB); menu.append(mq, acts);
   box.append(bar, wrap, msgEl, form, menu); scr.appendChild(box); document.body.appendChild(scr);
@@ -1364,8 +1345,8 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   window.addEventListener('keydown', e => { if (isOpen && e.key === 'Escape') { if (!menu.hidden) closeMenu(); else close(); } });
 
   /* ---- buttons outside the panel ---- */
-  const tBtn = el('button', 'sec', 'Chat'); tBtn.id = 'hgChatBtn'; tBtn.type = 'button';
-  const tDot = el('i', 'hgDot'); tDot.hidden = true; tBtn.appendChild(tDot);
+  const tBtn = el('button', 'ib'); tBtn.id = 'hgChatBtn'; tBtn.type = 'button';
+  const tDot = el('b', 'hgDot'); tDot.hidden = true; tBtn.append(el('i', null, '💬'), el('span', null, 'Chat'), tDot);
   const links = G.$('titleLinks'); if (links) links.insertBefore(tBtn, links.firstChild);   // first: its dot must be on screen (landscape)
   tBtn.addEventListener('click', () => open());
   const hb = el('button'); hb.id = 'hgChatHud'; hb.type = 'button'; hb.setAttribute('aria-label', 'Chat');
@@ -1398,22 +1379,22 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   }
   function paintTabs() {
     const c = myCountry();
-    tCf.textContent = c ? flag(c) : ''; tCf.hidden = !c; tCn.textContent = c ? cname(c) : 'COUNTRY';
+    tCf.textContent = c ? flag(c) : '🏳'; tCn.textContent = c ? cname(c) : 'Country';
     tW.classList.toggle('on', tab === 'world'); tC.classList.toggle('on', tab === 'country');
     tW.setAttribute('aria-selected', String(tab === 'world')); tC.setAttribute('aria-selected', String(tab === 'country'));
-    input.placeholder = mode === 'dock' && isOpen ? 'Message' : tab === 'world' ? 'Message to the world' : 'Message to ' + (c ? cname(c) : 'your country');
+    input.placeholder = 'Message';
   }
   /* the line under the list: kind 'bad' (an error, the default), 'good' (done) or 'soft' (a hint) */
   function msg(codeOrNull, text, kind) {
-    const t = text != null ? text : (codeOrNull ? (ERR[codeOrNull] || 'The server did not take the message') : ''), k = t ? (kind || 'bad') : '';
+    const t = text != null ? text : (codeOrNull ? (ERR[codeOrNull] || 'Not sent') : ''), k = t ? (kind || 'bad') : '';
     msgEl.textContent = t; msgEl.classList.toggle('bad', k === 'bad'); msgEl.classList.toggle('good', k === 'good'); msgEl.dataset.code = codeOrNull || '';
   }
   const nearBottom = () => list.scrollHeight - list.scrollTop - list.clientHeight < 12;
   function note(text, retry, pick) {
     list.textContent = ''; pill.hidden = true;
     const n = el('div', 'hgChNote'); n.id = 'hgChNote'; n.appendChild(el('div', null, text));
-    if (retry) { const b = el('button', 'sec', 'Try again'); b.type = 'button'; b.id = 'hgChRetry'; b.addEventListener('click', retry); n.appendChild(b); }
-    if (pick) { const b = el('button', 'sec', 'Pick a name & country'); b.type = 'button'; b.id = 'hgChPick'; b.addEventListener('click', () => { close(); if (G.profileUI && G.profileUI.open) G.profileUI.open(false); }); n.appendChild(b); }
+    if (retry) { const b = el('button', 'sec', '↻ Retry'); b.type = 'button'; b.id = 'hgChRetry'; b.addEventListener('click', retry); n.appendChild(b); }
+    if (pick) { const b = el('button', 'sec', 'Profile'); b.type = 'button'; b.id = 'hgChPick'; b.addEventListener('click', () => { close(); if (G.profileUI && G.profileUI.open) G.profileUI.open(false); }); n.appendChild(b); }
     list.appendChild(n);
   }
   function row(m) {
@@ -1435,7 +1416,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const lastShown = +((list.querySelector('.hgCm:last-child') || {}).dataset || {}).id || 0;
     list.textContent = '';
     const ms = shown(s);
-    if (!ms.length) note(tab === 'world' ? 'No messages yet. Say hello to the world.' : 'No messages yet. Say hello to ' + cname(myCountry()) + '.');
+    if (!ms.length) note('No messages yet');
     else { const fr = document.createDocumentFragment(); for (const m of ms) fr.appendChild(row(m)); list.appendChild(fr); }
     shownKey = key; shownCh = ch;
     if (atB) { list.scrollTop = list.scrollHeight; pill.hidden = true; if (isOpen && !document.hidden) markSeen(ch); }
@@ -1446,17 +1427,17 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     if (!isOpen) { paintDots(); return; }
     scr.classList.toggle('dock', mode === 'dock'); scr.classList.toggle('full', mode === 'full');
     const ch = chan(tab); let txt = null, retry = null, pick = false, showForm = true, showTabs = true;
-    if (!hasTG()) { txt = 'Open HOLDOR in Telegram to chat'; showForm = false; showTabs = false; }
+    if (!hasTG()) { txt = 'Open in Telegram'; showForm = false; showTabs = false; }
     else if (!online()) {
       showForm = false; showTabs = false;
       if (G.net && G.net.pending) txt = 'Connecting…';
-      else { txt = 'Could not reach the server.'; retry = () => { if (G.net) { const p = G.net.login(true); render(); p.then(() => { render(); kick(0); }); } }; }
+      else { txt = 'Offline'; retry = () => { if (G.net) { const p = G.net.login(true); render(); p.then(() => { render(); kick(0); }); } }; }
     }
-    else if (!ch) { txt = "Pick a name and a country to join your country's chat"; pick = mode === 'full'; showForm = false; }
+    else if (!ch) { txt = 'No country yet'; pick = mode === 'full'; showForm = false; }
     else {
       const s = st(ch);
-      if (s.err === 'bad_channel') { txt = "You can read only your own country's chat"; showForm = false; }
-      else if (!s.loaded) { if (s.err) { txt = 'Could not load the chat.'; retry = () => { fullNext[ch] = true; s.err = null; render(); kick(0); }; } else txt = 'Loading…'; }
+      if (s.err === 'bad_channel') { txt = 'Not your country'; showForm = false; }
+      else if (!s.loaded) { if (s.err) { txt = 'Not loaded'; retry = () => { fullNext[ch] = true; s.err = null; render(); kick(0); }; } else txt = 'Loading…'; }
     }
     tabsEl.hidden = !showTabs; form.hidden = !showForm;
     if (txt) { note(txt, retry, pick); shownKey = ''; shownCh = ''; }
@@ -1491,7 +1472,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   input.addEventListener('input', () => {
     const v = input.value; if (clen(v) > MAXLEN) input.value = [...v].slice(0, MAXLEN).join('');
     const left = MAXLEN - clen(input.value);
-    if (left <= 20) msg(null, left + (left === 1 ? ' character left' : ' characters left'), 'soft');
+    if (left <= 20) msg(null, left + ' left', 'soft');
     else if (msgEl.textContent && !sending) msg(null);
   });
   for (const ev of ['pointerdown', 'mousedown']) sendB.addEventListener(ev, e => e.preventDefault());   // keep the keyboard up
@@ -1523,7 +1504,6 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     if (!m || m.mine) return;
     menuMsg = m;
     const f = flag(m.country); mq.textContent = (f ? f + ' ' : '') + (m.name || '—') + ': ' + m.body;
-    blkB.textContent = 'Block ' + (m.name || 'this player');
     menu.hidden = false;
   }
   function closeMenu() { menu.hidden = true; menuMsg = null; }
@@ -1532,8 +1512,8 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const m = menuMsg; if (!m) return; closeMenu();
     const r = online() ? await G.net.rpc('hg_chat_report', { token: null, id: m.id }) : null;
     if (r && typeof r === 'object' && r.ok) {
-      hidden.add(m.id); keep(HIDE_K, [...hidden].slice(-300)); shownKey = ''; render(); msg(null, 'Reported. Thank you.', 'good');
-    } else msg(null, r && r.error ? 'Could not report this message' : 'Could not reach the server. Try again');
+      hidden.add(m.id); keep(HIDE_K, [...hidden].slice(-300)); shownKey = ''; render(); msg(null, '⚑ Reported', 'good');
+    } else msg(null, r && r.error ? 'Not reported' : 'Offline');
   });
   blkB.addEventListener('click', async () => {
     const m = menuMsg; if (!m) return; closeMenu();
@@ -1541,8 +1521,8 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     if (r && typeof r === 'object' && r.ok) {
       const lo = m.name.toLowerCase();
       for (const k in store) { const s = store[k], n = s.msgs.length; s.msgs = s.msgs.filter(x => x.mine || x.name.toLowerCase() !== lo); if (s.msgs.length !== n) s.ver++; }
-      shownKey = ''; render(); msg(null, 'Blocked ' + m.name + '. You will not see their messages.', 'good');
-    } else msg(null, r && r.error ? 'Could not block this player' : 'Could not reach the server. Try again');
+      shownKey = ''; render(); msg(null, '⛔ Blocked', 'good');
+    } else msg(null, r && r.error ? 'Not blocked' : 'Offline');
   });
   list.addEventListener('click', e => { const o = e.target.closest && e.target.closest('.hgCmo'); if (o && o.parentNode) openMenu(+o.parentNode.dataset.id); });
   const lpStop = () => { if (lp) { clearTimeout(lp.t); lp = null; } };
@@ -1584,22 +1564,26 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 /* Heavy Gold — the country ladder and the champion's crown (36_ladder.js; src/gold/GOLD.md, "Wave 5").
    Server: hg_ladder(token) → {week_start, week_end, iso_week, ladder:[{pos, country, real, bots, score, rounds, opp, opp_score, side, crown}],
            mine:{country, pos, opp, score, opp_score, side, ends_at} | null, last:[{week, a, b, a_score, b_score, winner}]}.
-   - The ladder screen (#lgLadder): a "Country ladder" .sec button in #titleLinks and one in the board screen's header (#hgBoard).
-     The countries by position, each with flag, name (👑 for #1), "N players + M bots", this week's score; this week's duels drawn as
-     pairs with a vs line between them (both scores, who leads; a tie keeps the higher place), "Rests this week" for a country without
-     a duel; the player's country highlighted and scrolled into view; "Ends in 3 d 4 h"; last week's results under the list.
-     A tap on a country opens it: its bots by name (bot1…botN, members that never add gold) and its rounds this week. One CLOSE.
-   - The line "🇬🇪 Georgia #5 · this week vs 🇹🇷 Türkiye (#4): 120 vs 98 — you lead" in #endExtra (#lgEnd, after the board module's
-     hg_round_submit has answered: its G.emit('submitted', answer, r); then a fresh hg_ladder), and its short form
-     "🇬🇪 #5 vs 🇹🇷 #4 · 120 vs 98 — you lead" right under the podium in #titleExtra (#lgTitle; not shown in a window at most 380 px tall,
-     where the title's left column is full). Nothing when offline, when the player's country is not on the ladder, or when it rests.
+   - GOLD.md "UI rules" (the owner: "too much text"): icons and numbers, 1–3 word labels, no rule paragraphs.
+   - The ladder screen (#lgLadder): a ⚔ "Ladder" icon button (.ib #lgBtn) in #titleLinks, right after the 💬 chat icon, with a badge
+     (#lgBadge) "#5" and a dot for the duel (green he leads, red he trails, gold a tie), and the same icon in the board screen's
+     header (#lgFromBoard). Title "LADDER" and "⏳ 3 d 4 h"; the countries by position: #pos, flag, name (👑 for #1), "👤 2" (real
+     players), the score (integers; a decimal only when a pair would read equal); this week's pairs with a "VS" chip between them
+     ("=" on a tie: the higher place holds), the leading score in gold; "👤 9 · Rest" for a country without a duel; the player's
+     country highlighted and scrolled into view. The player's duel line ("🇬🇪 120 : 98 🇹🇷 +22", or "🇬🇪 #1 · Rest", or
+     "🇬🇪 · Play to join") is pinned in landscape's left column; in portrait only "Play to join" shows (the rest repeats the list).
+     Last week (#lgLastWeek, under the list; the left column in landscape): "🇬🇪 95 : 70 🇧🇷 ▲" (winner first, ▲ the lower one moved up).
+     A tap on a country opens it: "🤖 bot1 · bot2 · bot3 · 7 rounds" (bots: members that never add gold). One CLOSE.
+   - The end screen: one line in #endExtra (#lgEnd, after the board module's hg_round_submit has answered: its
+     G.emit('submitted', answer, r); then a fresh hg_ladder): "⚔ 🇬🇪 135 : 98 🇹🇷 +37" (the margin; "=" on a tie). The title shows
+     no line, only the badge. Nothing when offline, when the player's country is not on the ladder, or when it rests (the badge then shows "#pos").
    - The crown: G.profile.crown = the player is the champion, read from the 'last' board (his own row, mine: true, carries crown: true;
      G.board.load shares the podium's request) on every login and again when hg_ladder names a new week; hg_profile_get's crown is
      asked instead only when there is no board module. Cleared offline. In the arena a small crown is drawn above the hero's own
      circle, above his name (the core's drawP writes the name at sy - r - 18), and above his Loki decoys. Board rows and the podium
      get 👑 in 30_board.js. G.net.rpc is not wrapped.
    - Only server data is shown; no Telegram id is read. Every text goes in with textContent.
-   - G.ladder = { open(), close(), load(fresh), refresh(fresh), data (the last normalised answer), text(D, short) (the line, '' when none),
+   - G.ladder = { open(), close(), load(fresh), refresh(fresh) (the badge), data (the last normalised answer), text(D) (the line, '' when none),
      drawCrown(ctx, x, y, alpha, width), crownDrawn (a counter), crownAt / decoyAt ({x, y, w, h} on the screen: the last crown drawn over the
      hero / over his decoy) }. When a fresh hg_ladder answer names a new week, the crown is asked again (the champion changes). */
 (function () {
@@ -1609,10 +1593,11 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   const code = v => { const s = String(v == null ? '' : v).toUpperCase(); return /^[A-Z]{2}$/.test(s) ? s : ''; };
   const flag = c => (typeof G.flag === 'function' ? G.flag(c) : '') || '';
   const cname = c => (typeof G.countryName === 'function' && G.countryName(c)) || c || '—';
-  const who = c => (flag(c) ? flag(c) + ' ' : '') + cname(c);
   const arr = v => Array.isArray(v) ? v : [];
   const fmt = v => int(v).toLocaleString('en-US');
-  const fmtS = v => (Math.round(num(v) * 100) / 100).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  /* scores as integers; a pair whose numbers differ but round equal gets 1 (then 2) decimals */
+  const dp = (a, b) => { if (b == null || num(a) === num(b)) return 0; for (let d = 0; d < 2; d++) { const f = 10 ** d; if (Math.round(num(a) * f) !== Math.round(num(b) * f)) return d; } return 2; };
+  const fmtS = (v, d) => { const f = 10 ** (d || 0); return (Math.round(num(v) * f) / f).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: d || 0 }); };
   const pl = (n, one, many) => fmt(n) + ' ' + (int(n) === 1 ? one : many);
   const online = () => !!(G.net && G.net.on);
   const hasTG = () => { try { return !!(G.TG && typeof G.TG.initData === 'string' && G.TG.initData.length); } catch (e) { return false; } };
@@ -1625,12 +1610,11 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   const css = document.createElement('style');
   css.textContent = [
     '.lgScr{background:var(--bg,#070c16);z-index:21}',
-    '.lgBox{flex:1 1 auto;min-height:0;width:min(100%,640px);display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"head" "mine" "list" "foot";gap:8px}',
-    '.lgHead{grid-area:head;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 12px}',
+    '.lgBox{flex:1 1 auto;min-height:0;width:min(100%,640px);display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto auto;grid-template-areas:"head" "mine" "list" "last" "foot";gap:8px}',
+    '.lgHead{grid-area:head;display:flex;align-items:baseline;justify-content:space-between;gap:2px 12px}',
     '.lgHead h2{margin:0;font:900 20px/1.2 Georgia,serif;letter-spacing:.08em;color:var(--gold,#e8b84a)}',
-    '.lgEnds{font:700 13px/1.3 Georgia,serif;color:var(--ink,#f3e7c4);white-space:nowrap}.lgEnds:empty{display:none}',
-    '.lgRule{flex:1 1 100%;font:13px/1.35 Georgia,serif;color:var(--muted,#8d9bb0)}',
-    '.lgMine{grid-area:mine;border:2px solid var(--gold,#e8b84a);border-radius:12px;background:rgba(232,184,74,.1);padding:7px 10px;font:14px/1.35 Georgia,serif;color:#cfd6e2;text-align:center}.lgMine[hidden]{display:none}',
+    '.lgEnds{font:700 14px/1.3 Georgia,serif;color:var(--ink,#f3e7c4);white-space:nowrap}.lgEnds:empty{display:none}',
+    '.lgMine{grid-area:mine;border:2px solid var(--gold,#e8b84a);border-radius:12px;background:rgba(232,184,74,.1);padding:8px 10px;font:700 17px/1.3 Georgia,serif;color:var(--ink,#f3e7c4);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lgMine[hidden]{display:none}',
     '.lgBody{grid-area:list;min-height:64px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;border-radius:12px;display:flex;flex-direction:column;gap:6px}',
     '.lgFoot{grid-area:foot;display:flex;justify-content:center}',
     '.lgDuel{border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.03);overflow:hidden;flex:none}',
@@ -1638,33 +1622,34 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     '.lgRow{display:grid;grid-template-columns:34px 26px minmax(0,1fr) auto;grid-template-areas:"k fl nm sc" ". . ex ex";align-items:center;column-gap:6px;width:100%;min-height:48px;padding:5px 10px;border:0;background:transparent;color:var(--ink,#f3e7c4);font:14px/1.25 Georgia,serif;text-align:left;cursor:pointer;touch-action:pan-y}',
     '.lgRow .k{grid-area:k;font-weight:900;color:var(--muted,#8d9bb0)}.lgRow .fl{grid-area:fl;font-size:19px;line-height:1}',
     '.lgRow .nm{grid-area:nm;display:flex;flex-direction:column;min-width:0}.lgRow .n{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-    '.lgRow .m{font-size:12px;color:var(--muted,#8d9bb0);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-    '.lgRow .sc{grid-area:sc;font:900 17px/1 Georgia,serif;color:var(--gold,#e8b84a);text-align:right;white-space:nowrap}',
-    '.lgRow .ex{grid-area:ex;display:none;font-size:12px;line-height:1.35;color:#cfd6e2;padding-top:3px;white-space:normal}.lgRow.open .ex{display:block}',
+    '.lgRow .m{font-size:13px;color:var(--muted,#8d9bb0);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+    '.lgRow .sc{grid-area:sc;font:700 17px/1 Georgia,serif;color:var(--muted,#8d9bb0);text-align:right;white-space:nowrap}.lgRow .sc.lead,.lgDuel.rest .lgRow .sc{font-weight:900;color:var(--gold,#e8b84a)}',
+    '.lgRow .m .rs{font-style:italic;color:#cfd6e2}',
+    '.lgRow .ex{grid-area:ex;display:none;font-size:13px;line-height:1.35;color:#cfd6e2;padding-top:3px;white-space:normal}.lgRow.open .ex{display:block}',
     '.lgRow.me{background:rgba(232,184,74,.18)}.lgRow.me .n,.lgRow.me .k{color:var(--gold,#e8b84a)}',
-    '.lgVs{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;padding:3px 10px;font:12px/1.3 Georgia,serif;color:#cfd6e2;border-top:1px dashed rgba(255,255,255,.1);border-bottom:1px dashed rgba(255,255,255,.1);text-align:center}',
+    '.lgVs{display:flex;align-items:center;justify-content:center;gap:6px;padding:2px 10px;font:13px/1.3 Georgia,serif;color:#cfd6e2;border-top:1px dashed rgba(255,255,255,.1);border-bottom:1px dashed rgba(255,255,255,.1);text-align:center;white-space:nowrap}',
     '.lgDuel>.lgVs:last-child{border-bottom:0}',
-    '.lgVs .x{font:900 11px Georgia,serif;letter-spacing:.12em;color:#1c1207;background:var(--gold,#e8b84a);border-radius:6px;padding:1px 5px}',
-    '.lgVs b{color:var(--ink,#f3e7c4)}.lgVs.rest{color:var(--muted,#8d9bb0);font-style:italic}',
-    '.lgLast{flex:none;padding:6px 4px 2px;display:flex;flex-direction:column;gap:3px}',
-    '.lgLastH{font:700 11px/1.2 Georgia,serif;letter-spacing:.14em;color:var(--muted,#8d9bb0);text-align:center}',
-    '.lgLastR{font:13px/1.35 Georgia,serif;color:#cfd6e2;text-align:center}',
+    '.lgVs .x{font:900 13px Georgia,serif;letter-spacing:.12em;color:#1c1207;background:var(--gold,#e8b84a);border-radius:6px;padding:1px 5px}',
+    '.lgLast{grid-area:last;min-height:0;max-height:30vh;overflow-y:auto;padding:2px 4px;display:flex;flex-direction:column;gap:3px}.lgLast:empty{display:none}',
+    '.lgLastH{font:700 12px/1.2 Georgia,serif;letter-spacing:.14em;color:var(--muted,#8d9bb0);text-align:center}',
+    '.lgLastR{font:14px/1.35 Georgia,serif;color:#cfd6e2;text-align:center;white-space:nowrap}',
     '.lgNote{padding:18px 12px;text-align:center;font:15px/1.4 Georgia,serif;color:#cfd6e2;display:flex;flex-direction:column;align-items:center;gap:10px}',
-    /* the title / end line: one statement, broken only between its parts */
-    '.lgLine{font:13px/1.35 Georgia,serif;color:#cfd6e2;text-align:center;max-width:100%;text-wrap:balance}',
-    '.lgLine .q{white-space:nowrap}.lgLine .a{color:var(--ink,#f3e7c4);font-weight:700}.lgLine .s{color:var(--gold,#e8b84a);font-weight:700}.lgLine .lgSh{display:none}',
-    '.lgLine .l.up,.lgMine .l.up{color:#5be38a;font-weight:700}.lgLine .l.down,.lgMine .l.down{color:#ff8a7a;font-weight:700}.lgLine .l.tie,.lgMine .l.tie{color:var(--gold,#e8b84a);font-weight:700}',
-    '.lgMine .q{white-space:nowrap}.lgMine{text-wrap:balance}.lgMine .a{color:var(--ink,#f3e7c4);font-weight:700}.lgMine .s{color:var(--gold,#e8b84a);font-weight:700}',
-    '#lgFromBoard{order:3;margin-left:auto;width:auto;min-height:44px;padding:0 14px;font-size:14px;flex:none}',
-    '@media (max-height:430px){.lgLine{font-size:12px;line-height:1.25}}',
-    '@media (max-height:380px){.lgLine .lgF{display:none}.lgLine .lgSh{display:inline}}',
-    /* the title line is always the short form, one tight line under the podium (the day god's banner and the links below stay on
-       screen at 390x844); a window at most 380 px tall (640x360) has no room for it at all: the left column of the title is full */
-    '#lgTitle{margin-top:-6px;font-size:12px;line-height:1.2}#lgTitle .lgF{display:none}#lgTitle .lgSh{display:inline}',
-    '@media (max-height:380px){#lgTitle{display:none}}',
+    /* the end line and the pinned duel: one short line */
+    '.lgLine{font:700 14px/1.3 Georgia,serif;color:var(--ink,#f3e7c4);text-align:center;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.lgLine .s,.lgMine .s{color:var(--gold,#e8b84a)}',
+    '.lgLine .l.up,.lgMine .l.up{color:#5be38a}.lgLine .l.down,.lgMine .l.down{color:#ff8a7a}.lgLine .l.tie,.lgMine .l.tie{color:var(--gold,#e8b84a)}',
+    /* the badge on the title's ⚔ icon: the place, ▲ / ▼ for the duel */
+    '#lgBtn{position:relative}.lgBadge{position:absolute;top:-6px;right:-4px;min-width:24px;padding:1px 5px;border-radius:10px;background:#141a22;border:1.5px solid var(--gold,#e8b84a);color:var(--gold,#e8b84a);font:900 12px/1.2 Georgia,serif;letter-spacing:0;white-space:nowrap;pointer-events:none;display:flex;align-items:center;gap:3px}',
+    /* the duel: a dot (green you lead, red you trail, gold a tie), never an arrow (arrows mean last week's moves) */
+    '.lgBadge.up::after,.lgBadge.down::after,.lgBadge.tie::after{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}',
+    '.lgBadge.up{color:#5be38a;border-color:#5be38a}.lgBadge.down{color:#ff8a7a;border-color:#ff8a7a}.lgBadge[hidden]{display:none}',
+    '#lgFromBoard{order:3;margin-left:auto;flex:none;align-self:center}',
     /* a short landscape window: the head, your duel and CLOSE on the left, the list on the right */
-    '@media (orientation:landscape) and (max-height:540px){.lgBox{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);grid-template-rows:auto auto minmax(0,1fr);grid-template-areas:"head list" "mine list" "foot list";gap:8px 16px;width:min(100%,860px)}',
-    '.lgHead h2{font-size:18px}.lgRule{font-size:12px;line-height:1.3}.lgMine{font-size:13px;padding:5px 8px}.lgFoot{align-items:flex-end}.lgFoot .pri{width:100%}.lgRow{min-height:44px;padding:3px 8px}}'
+    /* portrait: the pinned duel would repeat the highlighted pair (the list scrolls to it), so it shows only in landscape's left column */
+    '@media (orientation:portrait){.lgMine.dup{display:none}}',
+    '@media (orientation:landscape) and (max-height:540px){.lgBox{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"head list" "mine list" "last list" "foot list";gap:8px 16px;width:min(100%,860px)}',
+    '.lgLast{max-height:none}',
+    '.lgHead h2{font-size:18px}.lgMine{font-size:15px;padding:6px 8px}.lgFoot{align-items:flex-end}.lgFoot .pri{width:100%}.lgRow{min-height:44px;padding:3px 8px}}'
   ].join('\n');
   document.head.appendChild(css);
 
@@ -1716,44 +1701,38 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     return { w: hi, tie: true };
   }
 
-  /* ---- the line: [name #pos] · [this week vs opp (#n):] [a vs b] [— who leads]; null when there is no duel.
-     parts(D, true): the short form for a window at most 380 px tall ("🇬🇪 #5 vs 🇹🇷 #4 · 120 vs 98 — you lead") ---- */
-  function parts(D, short) {
+  /* ---- the line: "⚔ 🇬🇪 120 : 98 🇹🇷 +22" (the margin: + the player's country leads, − it trails; "=" a tie, where the higher
+     place holds); null when there is no duel ---- */
+  function duel(D) {
     const m = D && D.mine; if (!m || !m.opp || m.side === 'rest' || m.opp_score == null) return null;
     const me = { pos: m.pos, score: m.score }, op = { pos: m.opp_pos, score: m.opp_score };
-    const up = m.side === 'up' ? op : me, dn = up === me ? op : me, x = lead(up, dn), mineWins = x.w === me;
-    const hold = Math.min(m.pos, m.opp_pos), they = short ? 'they' : cname(m.opp);
-    const l = x.tie ? (mineWins ? '— tied, you hold #' + hold : '— tied, ' + they + (short ? ' hold #' : ' holds #') + hold) : (mineWins ? '— you lead' : '— ' + they + (short ? ' lead' : ' leads'));
-    const sc = [fmtS(m.score) + ' vs ' + fmtS(m.opp_score), 's'], lc = [l, 'l ' + (x.tie ? 'tie' : mineWins ? 'up' : 'down')];
-    if (short) return [[(flag(m.country) || m.country) + ' #' + m.pos + ' vs ' + (flag(m.opp) || m.opp) + ' #' + m.opp_pos, 'a'], [' · ', null], sc, [' ', null], lc];
-    return [[who(m.country) + ' #' + m.pos, 'a'], [' · ', null], ['this week vs ' + who(m.opp) + ' (#' + m.opp_pos + '):', 'b'], [' ', null], sc, [' ', null], lc];
+    const up = m.side === 'up' ? op : me, dn = up === me ? op : me, x = lead(up, dn), win = x.w === me;
+    const n = dp(m.score, m.opp_score), dm = num(m.score) - num(m.opp_score);
+    return { m, win, tie: x.tie, n, k: x.tie ? 'tie' : win ? 'up' : 'down', mark: x.tie ? '=' : (dm > 0 ? '+' : '−') + fmtS(Math.abs(dm), n) };
   }
-  const text = (D, short) => { const p = parts(D, short); return p ? p.map(q => q[0]).join('') : ''; };
+  function parts(D, pre) {
+    const d = duel(D); if (!d) return null; const m = d.m;
+    return (pre ? [['⚔ ', null]] : []).concat([[(flag(m.country) || m.country) + ' ', 'a'], [fmtS(m.score, d.n) + ' : ' + fmtS(m.opp_score, d.n), 's'],
+      [' ' + (flag(m.opp) || m.opp) + ' ', 'a'], [d.mark, 'l ' + d.k]]);
+  }
+  const text = D => { const p = parts(D, true); return p ? p.map(q => q[0]).join('') : ''; };
   function chunks(box, ps) { for (const [t, c] of ps) { if (c) box.appendChild(el('span', 'q ' + c, t)); else box.appendChild(document.createTextNode(t)); } }
   function fill(box, ps) { box.textContent = ''; chunks(box, ps); }
-  /* a title / end line holds both forms; the CSS shows one */
-  function fillLine(box, D) { box.textContent = ''; const f = el('span', 'lgF'), s = el('span', 'lgSh'); chunks(f, parts(D)); chunks(s, parts(D, true)); box.append(f, s); }
 
-  /* ---- the title line (under the podium) ---- */
-  const tEx = $('titleExtra');
-  const tLine = el('div', 'lgLine'); tLine.id = 'lgTitle';
-  const tHide = () => { tLine.textContent = ''; if (tLine.parentNode) tLine.parentNode.removeChild(tLine); };
-  function tPlace() {
-    if (!tEx) return; const pod = $('hgPod');
-    if (pod && pod.parentNode === tEx) { if (pod.nextSibling !== tLine) tEx.insertBefore(tLine, pod.nextSibling); }
-    else if (tLine.parentNode !== tEx) tEx.insertBefore(tLine, tEx.firstChild);
-  }
+  /* ---- the badge on the title's ⚔ icon (no text line on the title) ---- */
+  const badge = el('b', 'lgBadge'); badge.id = 'lgBadge'; badge.hidden = true;
+  const bHide = () => { badge.hidden = true; badge.textContent = ''; badge.className = 'lgBadge'; };
   let tSeq = 0;
   async function titleLine(fresh) {
     const my = ++tSeq;
-    if (!online()) { tHide(); return; }
+    if (!online()) { bHide(); return; }
     const D = await load(fresh);
     if (my !== tSeq) return;
-    if (!online() || !parts(D)) { tHide(); return; }
-    fillLine(tLine, D); tPlace();
+    const m = D && D.mine;
+    if (!online() || !m || !m.pos) { bHide(); return; }
+    const d = duel(D);
+    badge.textContent = '#' + m.pos; badge.className = 'lgBadge' + (d ? ' ' + d.k : ''); badge.hidden = false;
   }
-  /* the podium arrives later and puts itself first: keep the line right under it */
-  if (tEx && window.MutationObserver) { try { new MutationObserver(() => { if (tLine.parentNode === tEx) { const pod = $('hgPod'); if (pod && pod.parentNode === tEx && pod.nextSibling !== tLine) tEx.insertBefore(tLine, pod.nextSibling); } }).observe(tEx, { childList: true }); } catch (e) {} }
 
   /* ---- the end line (after the round's submit has answered) ---- */
   const eLine = el('div', 'lgLine'); eLine.id = 'lgEnd';
@@ -1764,7 +1743,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const D = await load(true);
     if (my !== endSeq) return;
     if (!online() || !parts(D)) { eHide(); return; }
-    fillLine(eLine, D);
+    fill(eLine, parts(D, true));
     const ex = $('endExtra'); if (!ex) return;
     const after = $('hgEnd');
     if (after && after.parentNode === ex) ex.insertBefore(eLine, after.nextSibling); else if (eLine.parentNode !== ex) ex.appendChild(eLine);
@@ -1792,7 +1771,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   }
   const recheck = () => askCrown(true);
   G.on('net', on => {
-    if (!on) { crownSeq++; setCrown(false); tHide(); eHide(); drop(); if (scr.classList.contains('on')) render(); return; }
+    if (!on) { crownSeq++; setCrown(false); bHide(); eHide(); drop(); if (scr.classList.contains('on')) render(); return; }
     askCrown(false);
     titleLine(); if (scr.classList.contains('on')) refreshScreen(false);
   });
@@ -1824,31 +1803,34 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   /* ---- the ladder screen ---- */
   const scr = el('div', 'scr lgScr'); scr.id = 'lgLadder';
   const box = el('div', 'lgBox');
-  const head = el('div', 'lgHead'); const h2 = el('h2', null, 'COUNTRY LADDER'); const ends = el('div', 'lgEnds'); ends.id = 'lgEnds';
-  const rule = el('div', 'lgRule', 'Each week a country duels the one above or below it. Score: gold per active player. The winner takes the higher place; a tie keeps it.');
-  head.append(h2, ends, rule);
+  const head = el('div', 'lgHead'); const h2 = el('h2', null, 'LADDER'); const ends = el('div', 'lgEnds'); ends.id = 'lgEnds';
+  head.append(h2, ends);
   const mineEl = el('div', 'lgMine'); mineEl.id = 'lgMine'; mineEl.hidden = true;
   const body = el('div', 'lgBody'); body.id = 'lgBody';
+  const lastEl = el('div', 'lgLast'); lastEl.id = 'lgLastWeek';
   const foot = el('div', 'lgFoot'); const closeB = el('button', 'pri', 'CLOSE'); closeB.id = 'lgClose'; closeB.type = 'button'; foot.appendChild(closeB);
-  box.append(head, mineEl, body, foot); scr.appendChild(box); document.body.appendChild(scr);
+  box.append(head, mineEl, body, lastEl, foot); scr.appendChild(box); document.body.appendChild(scr);
   closeB.addEventListener('click', () => close());
   const open1 = new Set();   // the countries opened by a tap (they stay open across a refresh)
   body.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.lgRow'); if (!b) return; const c = b.dataset.cc;
     if (open1.has(c)) open1.delete(c); else open1.add(c); detail(b); });
 
   let state = '';   // '' | 'loading' | 'error'
-  const left = ms => { if (ms <= 0) return 'Ending now'; const m = Math.floor(ms / 60000), d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mm = m % 60;
-    return 'Ends in ' + (d ? d + ' d ' + h + ' h' : h ? h + ' h ' + mm + ' m' : Math.max(1, mm) + ' m'); };
+  const left = ms => { if (ms <= 0) return '⏳ now'; const m = Math.floor(ms / 60000), d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mm = m % 60;
+    return '⏳ ' + (d ? d + ' d ' + h + ' h' : h ? h + ' h ' + mm + ' m' : Math.max(1, mm) + ' m'); };
   function note(text, retry) {
     const n = el('div', 'lgNote'); n.appendChild(el('div', null, text));
-    if (retry) { const b = el('button', 'sec', 'Try again'); b.type = 'button'; b.id = 'lgRetry'; b.addEventListener('click', () => { state = ''; open(true); }); n.appendChild(b); }
+    if (retry) { const b = el('button', 'sec', '↻ Retry'); b.type = 'button'; b.id = 'lgRetry'; b.addEventListener('click', () => { state = ''; open(true); }); n.appendChild(b); }
     body.appendChild(n);
   }
-  function row(r) {
+  /* a row: #pos, flag, name, "👤 N" (real players; the bots only in the opened detail; "· Rest" without a duel), the score
+     (n decimals, shared by the pair; lead = this row leads its duel) */
+  function row(r, n, ld, rest) {
     const b = el('button', 'lgRow' + (r.country === myCC() ? ' me' : '')); b.type = 'button';
     b.dataset.cc = r.country; b.dataset.pos = r.pos;
-    const nm = el('span', 'nm'); nm.append(el('span', 'n', (r.crown ? '👑 ' : '') + cname(r.country)), el('span', 'm', pl(r.real, 'player', 'players') + (r.bots ? ' + ' + pl(r.bots, 'bot', 'bots') : '')));
-    b._r = r; b.append(el('span', 'k', '#' + r.pos), el('span', 'fl', flag(r.country)), nm, el('span', 'sc', fmtS(r.score)), el('span', 'ex'));
+    const m = el('span', 'm', '👤 ' + fmt(r.real)); if (rest) { m.append(' · ', el('span', 'rs', 'Rest')); }
+    const nm = el('span', 'nm'); nm.append(el('span', 'n', (r.crown ? '👑 ' : '') + cname(r.country)), m);
+    b._r = r; b.append(el('span', 'k', '#' + r.pos), el('span', 'fl', flag(r.country)), nm, el('span', 'sc' + (ld ? ' lead' : ''), fmtS(r.score, n)), el('span', 'ex'));
     detail(b); return b;
   }
   /* an opened country: its bots by name (only while it is open) and its rounds */
@@ -1856,59 +1838,55 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const r = b._r, on = open1.has(r.country), ex = b.querySelector('.ex');
     b.classList.toggle('open', on); b.setAttribute('aria-expanded', String(on));
     if (!on) { ex.textContent = ''; return; }
-    const nb = Math.min(r.bots, 20), bots = []; for (let i = 1; i <= nb; i++) bots.push('bot' + i);
-    ex.textContent = (nb ? 'Bots: ' + bots.join(' · ') + ' (members that add no gold)' : 'No bots') + ' · ' + pl(r.real, 'active player', 'active players') + ' · ' + pl(r.rounds, 'round', 'rounds') + ' this week';
+    const nb = Math.min(r.bots, 5), bots = []; for (let i = 1; i <= nb; i++) bots.push('bot' + i);
+    ex.textContent = (nb ? '🤖 ' + bots.join(' · ') + ' · ' : '') + pl(r.rounds, 'round', 'rounds');
   }
-  function vsLine(hi, lo) {
-    const x = lead(hi, lo), v = el('div', 'lgVs');
-    v.append(el('span', 'x', 'VS'), el('b', null, fmtS(hi.score) + ' vs ' + fmtS(lo.score)), document.createTextNode('·'),
-      el('span', 'w', x.tie ? 'tied: ' + who(hi.country) + ' holds #' + hi.pos : who(x.w.country) + ' leads'));
-    return v;
-  }
+  /* the chip between a pair: "VS", or "=" on a tie (the upper one holds: its score is marked) */
+  function vsLine(x) { const v = el('div', 'lgVs'); v.appendChild(el('span', 'x', x.tie ? '=' : 'VS')); return v; }
   function render() {
-    body.textContent = ''; mineEl.hidden = true; mineEl.textContent = ''; ends.textContent = '';
+    body.textContent = ''; lastEl.textContent = ''; mineEl.hidden = true; mineEl.textContent = ''; mineEl.classList.remove('dup'); ends.textContent = '';
     if (!online()) {
-      if (!hasTG()) note('Open HOLDOR in Telegram to see the ladder');
+      if (!hasTG()) note('Open in Telegram');
       else if (G.net && G.net.pending) note('Connecting…');
-      else note('Could not reach the server.', true);
+      else note('Offline', true);
       return;
     }
     const D = cache && cache.D;
-    if (!D) { if (state === 'error') note('Could not load the ladder.', true); else note('Loading…'); return; }
+    if (!D) { if (state === 'error') note('Not loaded', true); else note('Loading…'); return; }
     if (D.ends) ends.textContent = left(D.ends - Date.now());
     // your country
     const cc = myCC(), m = D.mine, ps = parts(D);
-    if (ps) { fill(mineEl, ps); mineEl.hidden = false; }
-    else if (m && m.side === 'rest') { mineEl.textContent = who(m.country) + ' #' + m.pos + ' · rests this week'; mineEl.hidden = false; }
-    else if (cc && !D.rows.some(r => r.country === cc)) { mineEl.textContent = 'Play a round to bring ' + who(cc) + ' onto the ladder'; mineEl.hidden = false; }
+    if (ps) { fill(mineEl, ps); mineEl.hidden = false; mineEl.classList.add('dup'); }
+    else if (m && m.side === 'rest') { mineEl.textContent = (flag(m.country) || m.country) + ' #' + m.pos + ' · Rest'; mineEl.hidden = false; mineEl.classList.add('dup'); }
+    else if (cc && !D.rows.some(r => r.country === cc)) { mineEl.textContent = (flag(cc) || cc) + ' · Play to join'; mineEl.hidden = false; }
     // the duels, top to bottom
     const rows = D.rows;
-    if (!rows.length) { note('No country is on the ladder yet. Play a round to put yours on it.'); return; }
+    if (!rows.length) { note('No countries yet'); return; }
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i], n = rows[i + 1], card = el('div', 'lgDuel');
       if (r.side === 'down' && n && n.country === r.opp && n.side === 'up') {
-        card.dataset.pair = r.pos + '-' + n.pos; card.append(row(r), vsLine(r, n), row(n));
+        const x = lead(r, n), d = dp(r.score, n.score);
+        card.dataset.pair = r.pos + '-' + n.pos; card.append(row(r, d, x.w === r), vsLine(x), row(n, d, x.w === n));
         if (r.country === cc || n.country === cc) card.classList.add('mine');
         i++;
       } else if (r.side === 'rest' || !r.opp || r.opp_score == null) {
-        card.classList.add('rest'); card.dataset.pair = String(r.pos); card.append(row(r), el('div', 'lgVs rest', 'Rests this week'));
+        card.classList.add('rest'); card.dataset.pair = String(r.pos); card.append(row(r, 0, false, true));
         if (r.country === cc) card.classList.add('mine');
       } else {   // a pair the list does not hold side by side: the vs line from this row's own numbers
         const o = { pos: r.side === 'up' ? r.pos - 1 : r.pos + 1, score: r.opp_score, country: r.opp }, me_ = { pos: r.pos, score: r.score, country: r.country };
-        card.dataset.pair = String(r.pos); card.append(row(r), r.side === 'up' ? vsLine(o, me_) : vsLine(me_, o));
+        const x = r.side === 'up' ? lead(o, me_) : lead(me_, o);
+        card.dataset.pair = String(r.pos); card.append(row(r, dp(r.score, r.opp_score), x.w === me_), vsLine(x));
         if (r.country === cc) card.classList.add('mine');
       }
       body.appendChild(card);
     }
+    /* last week: the winner first, ▲ at the end when the lower one moved up (the only arrow on the screen) */
     if (D.last.length) {
-      const lw = el('div', 'lgLast'); lw.id = 'lgLastWeek'; lw.appendChild(el('div', 'lgLastH', 'LAST WEEK'));
+      lastEl.appendChild(el('div', 'lgLastH', 'LAST WEEK'));
       for (const x of D.last) {
-        const aw = x.winner !== x.b, ws = aw ? x.a_score : x.b_score, ls = aw ? x.b_score : x.a_score;
-        const t = x.a_score === x.b_score && aw ? who(x.a) + ' held its place on a tie with ' + who(x.b) + ' · ' + fmtS(x.a_score) + ' vs ' + fmtS(x.b_score)
-          : who(aw ? x.a : x.b) + ' beat ' + who(aw ? x.b : x.a) + (aw ? '' : ' and moved up') + ' · ' + fmtS(ws) + ' vs ' + fmtS(ls);
-        lw.appendChild(el('div', 'lgLastR', t));
+        const aw = x.winner !== x.b, ws = aw ? x.a_score : x.b_score, ls = aw ? x.b_score : x.a_score, f = c => flag(c) || c, n = dp(ws, ls);
+        lastEl.appendChild(el('div', 'lgLastR', f(aw ? x.a : x.b) + ' ' + fmtS(ws, n) + ' : ' + fmtS(ls, n) + ' ' + f(aw ? x.b : x.a) + (aw ? '' : ' ▲')));
       }
-      body.appendChild(lw);
     }
   }
   function toMine() {
@@ -1936,11 +1914,14 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   function close() { scr.classList.remove('on'); clearInterval(tick); }
 
   /* ---- the buttons ---- */
-  const tBtn = el('button', 'sec', 'Country ladder'); tBtn.id = 'lgBtn'; tBtn.type = 'button';
-  const links = $('titleLinks'); if (links) links.appendChild(tBtn);
+  const ib = id => { const b = el('button', 'ib'); b.id = id; b.type = 'button'; b.setAttribute('aria-label', 'Country ladder'); b.append(el('i', null, '⚔'), el('span', null, 'Ladder')); return b; };
+  const tBtn = ib('lgBtn'); tBtn.appendChild(badge);
+  /* right after the chat icon (35_chat puts it first), so it stays in the first row whatever later modules append */
+  const links = $('titleLinks');
+  if (links) { const ch = $('hgChatBtn'); if (ch && ch.parentNode === links) links.insertBefore(tBtn, ch.nextSibling); else links.insertBefore(tBtn, links.firstChild); }
   tBtn.addEventListener('click', () => open());
   const bTop = document.querySelector('#hgBoard .hgBtop');
-  if (bTop) { const bb = el('button', 'sec', 'Country ladder'); bb.id = 'lgFromBoard'; bb.type = 'button'; bTop.appendChild(bb); bb.addEventListener('click', () => open()); }
+  if (bTop) { const bb = ib('lgFromBoard'); bTop.appendChild(bb); bb.addEventListener('click', () => open()); }
 
   G.on('title', () => titleLine());
   /* a new country changes `mine` on the server: ask again (the boot-time sync that keeps the same country asks nothing) */
@@ -1971,20 +1952,22 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
         G.setDayGod(key | 'none' | null) forces a day ('none' = no rule, null = back to the real UTC day); it takes effect at the next G.start.
         G.dayGod.active = the key in force in the running (or last) round; G.dayGod.visible(p) = false for a hero hidden by the Moon night.
         G.on('lightning', (p, loss) => …) after each strike (an event of this module, sent with G.emit).
-   Slots: a banner in #titleExtra, a chip in #hudExtra (under the carry/bank block), a line in #endExtra. Gold is conserved. */
+   Slots: a chip button in #titleExtra (#dgBanner: icon + rule; a tap pops the effect and the next god, just under the chip), a chip in #hudExtra
+   (icon + the effect in ≤ 2 words, G.dayGod.hud; Thor's day: the seconds to the next strike), nothing on the end screen. Gold is conserved. */
 (() => {
   const G = window.G; if (!G || !G.on || !G.addMod) return;
   const DAYS = [   // index = UTC weekday, 0 = Sunday
-    { key: 'sol',    name: 'Sol',    rule: 'Sun day',       day: 'Sunday',    col: '#ffcf5a', desc: 'every hero runs 12% faster' },
-    { key: 'mani',   name: 'Máni',   rule: 'Moon night',    day: 'Monday',    col: '#a9c4ff', desc: 'darkness past your light; coins still glimmer' },
-    { key: 'tyr',    name: 'Tyr',    rule: "Tyr's law",     day: 'Tuesday',   col: '#ff8a5a', desc: 'a robbery takes 50% instead of 35%' },
-    { key: 'odin',   name: 'Odin',   rule: "Odin's ravens", day: 'Wednesday', col: '#8fd3c8', desc: 'skill cooldowns are 30% shorter' },
-    { key: 'thor',   name: 'Thor',   rule: "Thor's day",    day: 'Thursday',  col: '#7b93ff', desc: 'lightning strikes the richest every 30 s' },
-    { key: 'freya',  name: 'Freya',  rule: "Freya's gold",  day: 'Friday',    col: '#ffa8c8', desc: 'every coin is worth 50% more' },
-    { key: 'saturn', name: 'Saturn', rule: "Saturn's hour", day: 'Saturday',  col: '#d9c38a', desc: 'banking takes 0.75 s instead of 1.5 s' },
-  ];
+    { key: 'sol',    name: 'Sol',    rule: 'Sun day',       ic: '☀️', day: 'Sunday',    col: '#ffcf5a', hud: '+12% speed',  desc: 'Everyone +12% speed' },
+    { key: 'mani',   name: 'Máni',   rule: 'Moon night',    ic: '🌙', day: 'Monday',    col: '#a9c4ff', hud: 'Dark',        desc: 'Darkness' },
+    { key: 'tyr',    name: 'Tyr',    rule: "Tyr's law",     ic: '⚖️', day: 'Tuesday',   col: '#ff8a5a', hud: 'Rob 50%',     desc: 'Robbery takes 50%' },
+    { key: 'odin',   name: 'Odin',   rule: "Odin's ravens", ic: '🐦', day: 'Wednesday', col: '#8fd3c8', hud: 'Fast skills', desc: 'Skills −30% wait' },
+    { key: 'thor',   name: 'Thor',   rule: "Thor's day",    ic: '⚡', day: 'Thursday',  col: '#7b93ff', hud: 'Richest hit', desc: 'Richest hit · 30 s' },
+    { key: 'freya',  name: 'Freya',  rule: "Freya's gold",  ic: '🌸', day: 'Friday',    col: '#ffa8c8', hud: 'Coins ×1.5',  desc: 'Coins ×1.5' },
+    { key: 'saturn', name: 'Saturn', rule: "Saturn's hour", ic: '⏳', day: 'Saturday',  col: '#d9c38a', hud: 'Fast bank',   desc: 'Bank 2× faster' },
+  ];   /* UI (the owner: "too much text"): the title chip = icon + the god's day (2 words); the HUD chip = icon + the effect (≤ 2 words,
+          Thor: the seconds to the next strike); desc ≤ 4 words, shown only in the chip's pop with the next god */
   DAYS.forEach((d, i) => { d.dow = i; });
-  const NONE = { key: 'none', name: '', rule: '', day: '', col: '#8d9bb0', desc: '', dow: -1 };
+  const NONE = { key: 'none', name: '', rule: '', ic: '', day: '', col: '#8d9bb0', hud: '', desc: '', dow: -1 };
   const BY = {}; for (const d of DAYS) BY[d.key] = d; BY.none = NONE;
   const LIGHT = 340, ROB = 0.5, CD = 0.7, BANK = 0.5, SPEED = 1.12, COIN = 1.5;
   const STRIKE_T = 30, STRIKE_MIN = 10, STRIKE_SHARE = 0.25, BOLT_LIFE = 0.6, DARK = '4,7,18';
@@ -1993,7 +1976,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 
   const today = () => DAYS[new Date().getUTCDay()];
   const msLeft = () => { const n = Date.now(); return (Math.floor(n / 864e5) + 1) * 864e5 - n; };
-  const left = () => { const m = Math.max(1, Math.ceil(msLeft() / 6e4)), h = Math.floor(m / 60); return (h ? h + ' h ' : '') + (m % 60) + ' m'; };
+  const left = () => { const m = Math.max(1, Math.ceil(msLeft() / 6e4)), h = Math.floor(m / 60); return h ? h + ' h' : m + ' m'; };   // short: "7 h", "42 m"
   const nextOf = d => d.dow < 0 ? null : DAYS[(d.dow + 1) % 7];
 
   let forced = null, sel = today(), act = null, nextStrike = STRIKE_T, bolts = [];
@@ -2003,8 +1986,8 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   const DG = G.dayGod = { LIGHT, all: DAYS.map(d => Object.assign({}, d)), active: null, forced: false, strikes: [], drawn: 0, flashes: 0, view: null,
     visible: p => { const S = G.S; if (!is('mani') || !S || !p || p === S.me) return true; return G.dist(S.me, p) <= LIGHT; },
     timeLeft: msLeft };
-  const sync = d => { Object.assign(DG, { key: d.key, name: d.name, rule: d.rule, day: d.day, desc: d.desc, col: d.col, dow: d.dow, forced: !!forced });
-    const n = nextOf(d); DG.next = n ? { key: n.key, name: n.name, rule: n.rule, day: n.day } : null; };
+  const sync = d => { Object.assign(DG, { key: d.key, name: d.name, rule: d.rule, ic: d.ic, day: d.day, hud: d.hud, desc: d.desc, col: d.col, dow: d.dow, forced: !!forced });
+    const n = nextOf(d); DG.next = n ? { key: n.key, name: n.name, rule: n.rule, ic: n.ic, day: n.day } : null; };
   sync(sel);
 
   /* forcing a day (tests, the integrator): 'none' turns the module off, null goes back to the real UTC day; the next G.start applies it */
@@ -2033,20 +2016,20 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   const addCoin = (S, x, y, v) => { S.coins.push({ x: clamp(x, 12, G.WORLD - 12), y: clamp(y, 12, G.WORLD - 12), v }); };
   const spill = (S, x, y, amount, r) => { if (amount <= 0) return; const n = Math.min(40, amount); let rest = amount;
     for (let i = 0; i < n; i++) { const v = i === n - 1 ? rest : Math.max(1, Math.floor(amount / n)); rest -= v; if (v <= 0) continue; const a = G.rnd() * TAU, d = r * (0.7 + G.rnd() * 0.8); addCoin(S, x + Math.cos(a) * d, y + Math.sin(a) * d, v); } };
-  const label = p => p === G.S.me ? 'you' : p.name + (p.bot ? ' (bot)' : '');
+  const label = p => p.name + (G.S && G.S.online && p.bot ? ' (bot)' : '');   // as the core names heroes in toasts
   function strike(S) {
     let q = null; for (const p of S.ps) if (!q || p.carry > q.carry) q = p;
     const rec = { t: +S.t.toFixed(3), id: q ? q.id : -1, name: q ? q.name : '', before: q ? q.carry : 0, loss: 0, me: q === S.me, hit: false };
     DG.strikes.push(rec);
     if (!q || q.carry < STRIKE_MIN) { rec.why = 'poor'; return; }
-    if (S.vaults.some(v => G.dist(v, q) < v.r)) { rec.why = 'vault'; G.fx({ kind: 'text', x: q.x, y: q.y - 40, s: 'spared', c: '#9fc4ff', life: 1 }); G.toast('Lightning spared ' + label(q) + ' in the vault'); return; }
+    if (S.vaults.some(v => G.dist(v, q) < v.r)) { rec.why = 'vault'; G.fx({ kind: 'text', x: q.x, y: q.y - 40, s: 'spared', c: '#9fc4ff', life: 1 }); G.toast(q === S.me ? '⚡ Vault saved you' : '⚡ ' + label(q) + ' spared'); return; }
     const loss = Math.ceil(q.carry * STRIKE_SHARE); q.carry -= loss; q.lost += loss; q.bankT = 0;
     spill(S, q.x, q.y, loss, G.radius(q) + 26);
     rec.loss = loss; rec.hit = true;
     bolts.push({ x: q.x, y: q.y, t: S.t, seed: (Math.floor(G.rnd() * 1e9) | 1) });
     G.fx({ kind: 'ring', x: q.x, y: q.y, r: 150, c: '#9fc4ff', life: 0.7 }); G.fx({ kind: 'text', x: q.x, y: q.y - 36, s: '-' + loss, c: '#9fc4ff', life: 1.1 });
-    if (q === S.me) { G.toast("Thor's lightning struck you: " + loss + ' gold spilled', 2400); G.haptic('heavy'); }
-    else G.toast('Lightning struck ' + label(q) + ': ' + loss + ' gold spilled', 2000);
+    if (q === S.me) { G.toast('⚡ −' + loss + " · Thor's lightning", 2400); G.haptic('heavy'); }
+    else G.toast('⚡ −' + loss + ' · ' + label(q), 2000);
     G.emit('lightning', q, loss);
   }
   G.on('step', () => { const S = G.S; if (!S || !is('thor')) return;
@@ -2110,46 +2093,60 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     bolts = bolts.filter(b => S.t - b.t <= BOLT_LIFE && S.t >= b.t);
   }
 
-  /* ---------- UI: title banner, HUD chip, end line ---------- */
+  /* ---------- UI: a title chip (a tap: the effect + the next god), a HUD chip; nothing on the end screen ---------- */
   const css = document.createElement('style');
-  css.textContent = '.dg-ban{border:1px solid var(--dg);border-radius:12px;background:rgba(255,255,255,.04);padding:7px 12px;font:14px/1.4 Georgia,serif;color:#cfd6e2;text-align:center;max-width:min(100%,560px);text-wrap:balance}'
-    + '.dg-ban b{color:var(--dg);letter-spacing:.06em}.dg-ban .dg-t{color:var(--muted);white-space:nowrap}'
-    + '@media (max-height:430px){.dg-ban{font-size:12px;line-height:1.3;padding:3px 10px;border-radius:9px}}'
-    + '@media (max-height:380px){.dg-ban{font-size:11.5px;line-height:1.2;padding:1px 10px;margin:-3px 0}}'   // 640×360: PLAY stays on screen
-    + '#dgChip{position:absolute;left:calc(10px + env(safe-area-inset-left));top:calc(56px + env(safe-area-inset-top));display:none;align-items:center;gap:6px;padding:4px 9px 4px 7px;border-radius:999px;'
-    + 'border:1px solid var(--dg);background:rgba(7,12,22,.66);color:var(--ink);font:700 11px/1.1 Georgia,serif;letter-spacing:.07em;white-space:nowrap;pointer-events:none;text-shadow:0 1px 2px #000}'
-    + '#dgChip.on{display:flex}#dgChip i{width:8px;height:8px;border-radius:50%;background:var(--dg);box-shadow:0 0 6px var(--dg)}'
-    + '#dgChip.hot{box-shadow:0 0 12px var(--dg)}#dgChip.hot i{animation:dgp .5s infinite alternate}@keyframes dgp{to{opacity:.25}}'
-    + '#dgEnd b{color:var(--dg)}';
+  css.textContent = '.dg-ban{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:0 16px;border:1.5px solid var(--dg);border-radius:999px;background:rgba(255,255,255,.04);'
+    + 'color:var(--ink);font:700 15px/1 Georgia,serif;white-space:nowrap;cursor:pointer;flex:0 0 auto;width:auto!important;max-width:100%;justify-self:center}'
+    + '.dg-ban i,#dgChip i{font-style:normal;font-size:17px;line-height:1}#dgChip i{font-size:13px}'
+    + '#dgPop{position:fixed;left:16px;top:0;z-index:30;pointer-events:none;font:700 15px/1.25 Georgia,serif;color:var(--ink);text-shadow:0 2px 6px #000;text-align:center;width:max-content;max-width:calc(100vw - 32px);display:flex;flex-direction:column;gap:2px;'
+    + 'background:rgba(7,12,22,.94);border:1px solid var(--dg);padding:7px 14px;border-radius:10px;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}#dgPop.on{opacity:1;visibility:visible}'
+    + '#dgPop small{font:700 12px/1.2 Georgia,serif;color:#b9c3d3}'
+    + '#dgChip{position:absolute;left:calc(10px + env(safe-area-inset-left));top:calc(56px + env(safe-area-inset-top));display:none;align-items:center;gap:5px;padding:3px 9px 3px 7px;border-radius:999px;'
+    + 'border:1px solid var(--dg);background:rgba(7,12,22,.66);color:var(--ink);font:700 11px/1.1 Georgia,serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;text-shadow:0 1px 2px #000}'
+    + '#dgChip.on{display:flex}#dgChip.hot{box-shadow:0 0 12px var(--dg)}#dgChip.hot i{animation:dgp .5s infinite alternate}@keyframes dgp{to{opacity:.25}}';
   document.head.appendChild(css);
 
+  /* a tap's pop, just under the chip (above it if there is no room), inside the 16 px gutters: the effect, then the next god
+     (a pop of its own: the core's #toast sits under the title screen) */
+  let popT = 0;
+  const popText = () => { const n = nextOf(sel); return [sel.ic + ' ' + sel.desc, n ? 'Next: ' + n.name + ' · ' + left() : '']; };
+  function pop() {
+    let el = $('dgPop'); if (!el) { el = document.createElement('div'); el.id = 'dgPop'; el.setAttribute('role', 'status'); el.innerHTML = '<span></span><small></small>'; document.body.appendChild(el); }
+    const [a, b] = popText(); el.style.setProperty('--dg', sel.col); el.firstChild.textContent = a; el.lastChild.textContent = b; el.lastChild.style.display = b ? '' : 'none';
+    const ban = $('dgBanner'), W = innerWidth, H = innerHeight, pw = el.offsetWidth, ph = el.offsetHeight;
+    const r = ban && ban.offsetParent ? ban.getBoundingClientRect() : { left: W / 2, width: 0, top: H * 0.2, bottom: H * 0.2 };
+    /* under the chip, else above it, else beside it (right, then left), else on the chip itself (a tight portrait title); never on the title, the cards, the god's line or PLAY */
+    const cx = clamp(r.left + r.width / 2 - pw / 2, 16, Math.max(16, W - 16 - pw)), cy = r.top + r.height / 2 - ph / 2;
+    const keep = [$('play'), $('gods'), $('gdesc'), document.querySelector('#title h1')].filter(e => e && e.offsetParent).map(e => e.getBoundingClientRect());
+    const free = ([x, y]) => x >= 16 - 0.5 && x + pw <= W - 16 + 0.5 && y >= 8 && y + ph <= H - 8 && !keep.some(q => x < q.right && q.left < x + pw && y < q.bottom && q.top < y + ph);
+    const at = [[cx, r.bottom + 6], [cx, r.top - ph - 6], [r.right + 8, cy], [r.left - 8 - pw, cy], [cx, cy]].find(free) || [cx, clamp(r.bottom + 6, 8, Math.max(8, H - ph - 8))];
+    el.style.left = at[0] + 'px'; el.style.top = at[1] + 'px';
+    el.classList.add('on');
+    clearTimeout(popT); popT = setTimeout(() => el.classList.remove('on'), 2600);
+  }
+  G.on('start', () => { const el = $('dgPop'); if (el) el.classList.remove('on'); });
   function banner() {
     const box = $('titleExtra'); if (!box) return;
-    let el = $('dgBanner'); if (!el) { el = document.createElement('div'); el.id = 'dgBanner'; el.className = 'dg-ban'; box.appendChild(el); }
+    let el = $('dgBanner');
+    if (!el) { el = document.createElement('button'); el.type = 'button'; el.id = 'dgBanner'; el.className = 'dg-ban'; el.innerHTML = '<i></i><span></span>'; box.appendChild(el);
+      el.addEventListener('click', () => { pop(); if (G.haptic) G.haptic('light'); }); }
     if (sel.key === 'none') { el.style.display = 'none'; return; }
     el.style.display = ''; el.style.setProperty('--dg', sel.col);
-    el.innerHTML = '<b>TODAY · ' + sel.rule.toUpperCase() + '</b> — ' + sel.desc + ' <span class="dg-t">· next god in ' + left() + '</span>';
+    el.firstChild.textContent = sel.ic; el.lastChild.textContent = sel.rule; el.setAttribute('aria-label', sel.rule + ': ' + sel.desc);
   }
   let chipTxt = '';
   function chip(force) {
     const box = $('hudExtra'); if (!box) return;
     let el = $('dgChip'); if (!el) { el = document.createElement('div'); el.id = 'dgChip'; el.innerHTML = '<i></i><span></span>'; box.appendChild(el); }
     if (!act || act.key === 'none') { el.classList.remove('on'); chipTxt = ''; return; }
-    const S = G.S; let t = act.rule.toUpperCase(), hot = false;
-    if (act.key === 'thor' && S && nextStrike < G.ROUND) { const s = Math.max(0, Math.ceil(nextStrike - S.t)); t = 'THOR ⚡ ' + s + ' s'; hot = s <= 3; }   /* short: the chip must stay clear of the centre line on a 390 px phone */
-    if (force) { el.style.setProperty('--dg', act.col); el.classList.add('on'); }
+    const S = G.S; let t = act.hud, hot = false;
+    if (act.key === 'thor' && S && nextStrike < G.ROUND) { const s = Math.max(0, Math.ceil(nextStrike - S.t)); t = s + ' s'; hot = s <= 3; }   // "⚡ 12 s": the next strike
+    if (force) { el.style.setProperty('--dg', act.col); el.classList.add('on'); el.firstChild.textContent = act.ic; }
     el.classList.toggle('hot', hot);
     const tl = $('hTL'); if (tl && tl.offsetHeight) el.style.top = (tl.offsetTop + tl.offsetHeight + 6) + 'px';   // right under the carry/bank block
     if (t !== chipTxt || force) { chipTxt = t; el.lastChild.textContent = t; }
   }
   G.on('hud', () => chip(false));
-  G.on('end', () => {
-    const box = $('endExtra'); if (!box) return;
-    let el = $('dgEnd'); if (!el) { el = document.createElement('div'); el.id = 'dgEnd'; el.className = 'small'; box.appendChild(el); }
-    if (!act || act.key === 'none') { el.style.display = 'none'; return; }
-    el.style.display = ''; el.style.setProperty('--dg', act.col);
-    const n = nextOf(act); el.innerHTML = 'Today: <b>' + act.rule + '</b>' + (n ? ' · next: ' + n.rule + ' in ' + left() : '');
-  });
   const refresh = () => { if (!forced && !running()) { const t = today(); if (t.key !== sel.key) { sel = t; sync(sel); } } banner(); };
   G.on('title', refresh);
   setInterval(() => { const t = $('title'); if (t && t.classList.contains('on')) refresh(); }, 15000);
@@ -2168,12 +2165,14 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
      screen (#endExtra). Every perk can be taken at most 3 times and moves one number by at most 15 % (speed 9 %, robbed share 9 %).
      9 picks (Lv 2..10) from 12 slots, so two choices are always open.
    - Perks reach the game only through G.addMod, and only for the human hero (p === G.S.me), never for bots.
-   - The title cards (#gods .god) get "Lv N" and a thin XP bar; the core rebuilds the cards on each tap, a MutationObserver re-decorates them.
+   - The title cards (#gods .god) get "Lv N" and a thin XP bar once the god has XP (a god never played shows none); the core rebuilds the cards on each tap, a MutationObserver re-decorates them.
+   - The end screen (the owner: "too much text"): one line "Thor Lv 2 [bar] +141 XP"; on a pick, "🎁 Pick one" and two cards
+     (the gift's name, "Reach +5%"); after it "✓ <gift>". No breakdowns.
    - Test hooks: G.train = { get(god) → {lvl, xp, prev, next, perks, pending, offer}, reset(), offer(god), factor(god, mod), PERKS, LEVELS }. */
 const G = window.G; if (!G || !G.on || !G.addMod) return;
 const KEY = 'hg_train', LV = [0, 60, 150, 280, 450, 670, 950, 1300, 1700, 2200], MAXL = LV.length, XP_ROB = 5, XP_FINISH = 10, MAXT = 3, CAP = 0.15;
 const num = (v, d) => String(+v.toFixed(d));
-/* step = the relative change of one take; |step| × MAXT ≤ CAP. `what` + base → the before → after line on the button */
+/* step = the relative change of one take; |step| × MAXT ≤ CAP. `what` names the number on the card ("Reach +5%"); base → the number itself */
 const PERKS = {
   h_dash:   { god: 'hermes',  mod: 'dash',      n: 'Longer dash',    step: 0.05,  what: 'Dash',     base: () => 0.3,  f: v => num(v, 3) + ' s' },
   h_speed:  { god: 'hermes',  mod: 'speed',     n: 'Swift feet',     step: 0.03,  what: 'Speed',    base: () => 1,    f: v => '+' + num((v - 1) * 100, 1) + '%' },
@@ -2184,7 +2183,7 @@ const PERKS = {
   a_chain:  { god: 'amirani', mod: 'chainT',    n: 'Longer chains',  step: 0.05,  what: 'Chains',   base: () => 3,    f: v => num(v, 2) + ' s' },
   a_cd:     { god: 'amirani', mod: 'cd',        n: 'Quick chains',   step: -0.05, what: 'Cooldown', base: () => (G.GODS.amirani || {}).cd || 10, f: v => num(v, 2) + ' s' },
   bank:     { god: '*',       mod: 'bankT',     n: 'Quick banker',   step: -0.05, what: 'Bank',     base: () => G.BANK_T || 1.5, f: v => num(v, 2) + ' s' },
-  purse:    { god: '*',       mod: 'rob',       n: 'Tight purse',    step: -0.03, what: 'Robbed of', base: () => G.ROB || 0.35, f: v => num(v * 100, 1) + '%' },
+  purse:    { god: '*',       mod: 'rob',       n: 'Tight purse',    step: -0.03, what: 'Robbed', base: () => G.ROB || 0.35, f: v => num(v * 100, 1) + '%' },
 };
 const ORDER = { hermes: ['h_dash', 'h_speed'], thor: ['t_reach', 't_share'], loki: ['l_vanish', 'l_cd'], amirani: ['a_chain', 'a_cd'] };
 const order = g => (ORDER[g] || []).concat(['bank', 'purse']);
@@ -2230,20 +2229,19 @@ const st = document.createElement('style');
 st.textContent = '.god{position:relative}' +
   '.trn-lv{position:absolute;left:8px;top:6px;font:700 11px/1 Georgia,serif;color:#e8b84a;pointer-events:none;letter-spacing:.02em}' +
   '.trn-cb{position:absolute;left:8px;top:20px;width:32px;height:3px;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden;pointer-events:none}' +
-  '.trn-cb>span{display:block;height:100%;background:#e8b84a}' +
+  '.trn-cb>span{display:block;height:100%;background:#e8b84a}.trn-lv[hidden],.trn-cb[hidden]{display:none}' +
   '.trn-end{width:min(100%,440px);display:flex;flex-direction:column;align-items:stretch;gap:6px}' +
   '.trn-head{display:flex;align-items:center;gap:10px;font:700 15px/1.2 Georgia,serif;color:#f3e7c4;white-space:nowrap}' +
   '.trn-head .x{color:#e8b84a;font-weight:900}' +
   '.trn-bar{flex:1 1 auto;min-width:60px;height:8px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}' +
   '.trn-bar>span{display:block;height:100%;background:linear-gradient(90deg,#b8862b,#f0c75e);transition:width .8s ease-out}' +
-  '.trn-sub{font:12px/1.3 Georgia,serif;color:#8d9bb0;text-align:center}' +
-  '.trn-up{font:700 14px/1.3 Georgia,serif;color:#f3e7c4;text-align:center}.trn-up .x{color:#e8b84a}.trn-up em{font-style:normal;color:#e8b84a;font-size:11px;letter-spacing:.08em}' +
+  '.trn-up{font:700 14px/1.3 Georgia,serif;color:#e8b84a;text-align:center;white-space:nowrap}' +
   '.trn-pick{display:flex;flex-direction:column;gap:6px}' +
   '.trn-row{display:flex;gap:8px;flex:1 1 auto}' +
-  '.trn-row .sec{width:auto;flex:1 1 0;min-width:0;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:5px 8px;line-height:1.2}' +
-  '.trn-row .sec b{font-size:15px}.trn-row .sec small{font:12px/1.2 Georgia,serif;color:#cfd6e2}.trn-row .sec em{font-style:normal;font-weight:400;color:#e8b84a;letter-spacing:.08em;font-size:11px}' +
-  '@media (max-height:430px){.trn-end{width:min(100%,600px);gap:4px}.trn-head{font-size:14px}.trn-sub{display:none}' +
-  '.trn-pick{flex-direction:row;align-items:center;gap:8px}.trn-pick .trn-up{flex:0 0 140px;text-align:left;font-size:13px}.trn-from{display:none}.trn-row .sec{min-height:46px;padding:4px 8px}.trn-row .sec b{font-size:14px}}';
+  '.trn-row .sec{width:auto;flex:1 1 0;min-width:0;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:5px 8px;line-height:1.2}' +
+  '.trn-row .sec b{font-size:15px;white-space:nowrap}.trn-row .sec small{font:700 13px/1.2 Georgia,serif;color:#e8b84a;white-space:nowrap}' +
+  '@media (max-height:430px){.trn-end{width:min(100%,600px);gap:4px}.trn-head{font-size:14px}' +
+  '.trn-pick{flex-direction:row;align-items:center;gap:8px}.trn-pick .trn-up{flex:0 0 auto;text-align:left;font-size:13px}.trn-row .sec{min-height:48px;padding:4px 8px}.trn-row .sec b{font-size:14px}}';
 document.head.appendChild(st);
 
 /* ---------- the title cards ---------- */
@@ -2254,7 +2252,8 @@ function decorate() {
     let lv = b.querySelector('.trn-lv'), cb = b.querySelector('.trn-cb');
     if (!lv) { lv = document.createElement('span'); lv.className = 'trn-lv'; b.appendChild(lv); }
     if (!cb) { cb = document.createElement('span'); cb.className = 'trn-cb'; cb.appendChild(document.createElement('span')); b.appendChild(cb); }
-    const s = get(g); lv.textContent = 'Lv ' + s.lvl; cb.firstChild.style.width = Math.round(frac(s) * 100) + '%';
+    const s = get(g), fresh = !s.xp && s.lvl < 2; lv.textContent = 'Lv ' + s.lvl; cb.firstChild.style.width = Math.round(frac(s) * 100) + '%';
+    lv.hidden = cb.hidden = fresh;   // a god never played: no badge, no empty bar (four "Lv 1" say nothing)
   }
 }
 decorate();
@@ -2263,8 +2262,8 @@ G.on('title', decorate);
 
 /* ---------- the end screen ---------- */
 let last = null;   // the last round: {god, gain, bank, robs, fromXp, fromLvl, took, fresh}
-const pips = (g, id) => { const n = takes(g, id); return '●'.repeat(n) + '○'.repeat(MAXT - n); };
-const line = (g, id) => { const P = PERKS[id], b = P.base(), n = takes(g, id); return P.what + ' ' + P.f(b * (1 + P.step * n)) + ' → ' + P.f(b * (1 + P.step * (n + 1))); };
+/* the card's second line: the number it moves and by how much, unit-free ("Reach +5%", "Cooldown −5%") */
+const line = id => { const P = PERKS[id], v = Math.round(P.step * 100); return P.what + ' ' + (v < 0 ? '−' + -v : '+' + v) + '%'; };
 function box() {
   let el = document.getElementById('trainEnd');
   const host = G.$('endExtra');
@@ -2277,14 +2276,12 @@ function renderEnd() {
   if (!last) return;
   const el = box(), g = last.god, GD = G.GODS[g] || { n: g, c: '#e8b84a' }, s = get(g);
   const w = Math.round(frac(s) * 100), w0 = last.fresh ? (s.lvl === last.fromLvl ? Math.round(frac({ xp: last.fromXp, prev: s.prev, next: s.next }) * 100) : 0) : w;
-  const up = s.lvl > last.fromLvl;
-  let h = '<div class="trn-head"><span>' + GD.n + ' · Lv ' + s.lvl + '</span><span class="trn-bar"><span style="width:' + w0 + '%"></span></span><span class="x">+' + last.gain + ' XP</span></div>' +
-    '<div class="trn-sub">Banked ' + last.bank + (last.robs ? ' + ' + last.robs + (last.robs > 1 ? ' robs' : ' rob') + ' ×' + XP_ROB : '') + ' + finish ' + XP_FINISH + ' · ' + (s.next == null ? 'top level' : (s.next - s.xp) + ' XP to Lv ' + (s.lvl + 1)) + '</div>';
+  let h = '<div class="trn-head"><span>' + GD.n + ' Lv ' + s.lvl + '</span><span class="trn-bar"><span style="width:' + w0 + '%"></span></span><span class="x">+' + last.gain + ' XP</span></div>';
   const off = s.offer;
   if (off.length) {
-    h += '<div class="trn-pick"><div class="trn-up">' + (up && !last.took ? '<span class="x">Level ' + s.lvl + '!</span> ' : '') + 'Pick a gift<span class="trn-from"> from ' + GD.n + '</span>' + (s.pending > 1 ? ' · ' + s.pending + ' waiting' : '') + '</div><div class="trn-row">' +
-      off.map(id => '<button class="sec" data-perk="' + id + '" style="border-color:' + GD.c + '"><b>' + PERKS[id].n + ' <em>' + pips(g, id) + '</em></b><small>' + line(g, id) + '</small></button>').join('') + '</div></div>';
-  } else if (last.took) h += '<div class="trn-up">Taken: <span class="x">' + PERKS[last.took].n + '</span> <em>' + pips(g, last.took) + '</em></div>';
+    h += '<div class="trn-pick"><div class="trn-up">🎁 Pick one</div><div class="trn-row">' +
+      off.map(id => '<button class="sec" data-perk="' + id + '" style="border-color:' + GD.c + '"><b>' + PERKS[id].n + '</b><small>' + line(id) + '</small></button>').join('') + '</div></div>';
+  } else if (last.took) h += '<div class="trn-up">✓ ' + PERKS[last.took].n + '</div>';
   el.innerHTML = h;
   for (const b of el.querySelectorAll('button[data-perk]')) b.addEventListener('click', () => {
     if (b.disabled) return; for (const o of el.querySelectorAll('button[data-perk]')) o.disabled = true;
@@ -2319,7 +2316,8 @@ G.train = {
    - Only events of the human hero, or ones on his screen, make a sound; frequent sounds are throttled.
    - The halving, the vault-move warning and the last 20 s are read from G.S (S.t crossing the times, the next vault spot
      appearing), not from the toast text.
-   - A "Sound: on/off" .sec button in #titleLinks, saved in localStorage 'hg_sound' ('on' | 'off').
+   - A 🔊 / 🔇 "Sound" icon button (.ib, .on while the sound is on) in #titleLinks, before the core's Rules icon;
+     saved in localStorage 'hg_sound' ('on' | 'off').
    - G.sfx = { play(name, vol), muted (get/set), log: [] (the names played, for tests), names, ready }. */
 (() => {
   const G = window.G; if (!G) return;
@@ -2434,7 +2432,7 @@ G.train = {
 
   /* ---------- mute ---------- */
   let btn = null;
-  const label = () => { if (btn) { btn.textContent = 'Sound: ' + (muted ? 'off' : 'on'); btn.setAttribute('aria-pressed', String(!muted)); } };
+  const label = () => { if (btn) { btn.firstChild.textContent = muted ? '🔇' : '🔊'; btn.classList.toggle('on', !muted); btn.setAttribute('aria-pressed', String(!muted)); btn.setAttribute('aria-label', muted ? 'Sound off' : 'Sound on'); } };
   function setMuted(v) {
     muted = !!v; try { localStorage.setItem(KEY, muted ? 'off' : 'on'); } catch (e) {}
     if (ac && out) { try { out.gain.cancelScheduledValues(ac.currentTime); out.gain.setTargetAtTime(muted ? 0 : MASTER, ac.currentTime, 0.02); } catch (e) {} }
@@ -2443,7 +2441,8 @@ G.train = {
   }
   const links = document.getElementById('titleLinks');
   if (links) {
-    btn = document.createElement('button'); btn.type = 'button'; btn.className = 'sec'; btn.id = 'hgSound'; label(); links.appendChild(btn);
+    btn = document.createElement('button'); btn.type = 'button'; btn.className = 'ib'; btn.id = 'hgSound'; btn.innerHTML = '<i></i><span>Sound</span>'; label();
+    const help = document.getElementById('helpB'); if (help && help.parentNode === links) links.insertBefore(btn, help); else links.appendChild(btn);   // Rules stays the last icon
     btn.addEventListener('click', () => { setMuted(!muted); if (!muted) { ensure(); play('ui'); } });
   }
 
@@ -2574,16 +2573,18 @@ G.train = {
 /* Heavy Gold — share card (80_card.js), wave 5 of src/gold/GOLD.md.
    - The round: the biggest take of a 'rob' where the thief is G.S.me (the victim's name, whether he is a bot, the take).
    - On 'end': a 1080×1920 story card on an offscreen canvas: the arena's stone ground, the god's circle with his sign (G.sym),
-     the player's name, flag and country, "#rank of N" with the bots counted ("vs 7 bots"), the banked gold big in gold, the best
-     robbery ("Robbed Odin (bot) +45"), "Map #N · <the day god's rule>", t.me/HoldorTDBot/play. A small preview of it sits in the
-     "Share card" button, which takes the core's "Challenge a friend" slot: the button replaces #share and takes its id, so the
-     short-landscape grid keeps its rows (the card screen's "Send to a chat" / "Copy link" do that button's job, with the card's URL).
-   - "Share card" opens the card screen (the card big, one primary action):
+     the player's name, his flag, "#rank of N", the banked gold big in gold over a drawn vault (🏦), the best robbery
+     ("Robbed Odin (bot) +45", nothing when there was none), "Map #N · <the day god's rule>", t.me/HoldorTDBot/play. The 📤 "Share" icon button (.ib)
+     takes the core's 📤 "Invite" slot in #endLinks: it replaces #share and takes its id (the card screen's Send / Copy do that
+     button's job, with the card's URL).
+   - A round with 0 banked and no robbery makes no card: the core's 📤 Invite stays in its slot.
+   - "Share" opens the card screen (the card big, one primary action, the rest as icon buttons with one word, a status line of
+     at most 4 words; the owner, 2026-11-23: "too much text"):
        in Telegram the PNG goes up once per card with hg_card_put(token, base64), 30 s for the call (at most G.card.limit bytes; a plainer card
        without the stone texture is tried when the first one is too big), then TG.shareToStory(url, {text, widget_link}) where
-       stories exist (Bot API 7.8+, not on desktop); "Send to a chat" opens t.me/share/url with the card's URL in the text;
-       outside Telegram, or when the upload fails: "Save image" (TG.downloadFile when the card has a URL and Telegram is 8.0+,
-       otherwise an <a download> of the PNG) and "Copy link".
+       stories exist (Bot API 7.8+, not on desktop): STORY; "Send" opens t.me/share/url with the card's URL in the text;
+       outside Telegram, or when the upload fails: "Save" (TG.downloadFile when the card has a URL and Telegram is 8.0+,
+       otherwise an <a download> of the PNG) and "Copy".
    - Only the player's own round and profile are drawn; bots are labelled as bots; no Telegram id is read. Text reaches the DOM
      through textContent only, the card through fillText.
    - G.card = { last: {lines, w, h, lite, sig} | null, canvas, best(), data(), render(), png(), share(), open(), close(), story(),
@@ -2623,8 +2624,6 @@ G.train = {
       god, gname: GD[god] ? GD[god].n : '', gcol: GD[god] ? GD[god].c : GOLD, rank: num(res.rank), of: num(res.of) || ps.length, bots, real: others.length - bots,
       bank: Math.max(0, num(res.bank)), map: num(res.map) || num(G.mapNo) || 1, rule, rcol, best: best ? Object.assign({}, best) : null };
   }
-  const vsLine = d => { const b = d.bots, r = d.real, pl = (n, a, z) => n + ' ' + (n === 1 ? a : z);
-    return !b && !r ? '' : !r ? 'vs ' + pl(b, 'bot', 'bots') : !b ? 'vs ' + pl(r, 'player', 'players') : 'vs ' + pl(r, 'player', 'players') + ' and ' + pl(b, 'bot', 'bots'); };
   const robName = b => b.name + (b.bot ? ' (bot)' : '');
 
   /* ---------- drawing ---------- */
@@ -2676,6 +2675,13 @@ G.train = {
     c.fillStyle = '#ee6a4c'; for (const [dx, dy] of [[-w / 2, -h * 0.62], [0, -h], [w / 2, -h * 0.62]]) { c.beginPath(); c.arc(x + dx, y + dy, h * 0.11, 0, TAU); c.fill(); }
     c.restore();
   }
+  /* the vault, drawn (the 🏦 of the HUD; an emoji glyph is not in every canvas font): a pediment, three columns, a step; base at y */
+  function vault(c, x, y, s) {
+    c.save(); c.fillStyle = '#cfd6e2'; const w = s, h = s * 0.8, top = y - h;
+    c.beginPath(); c.moveTo(x - w / 2, top + h * 0.3); c.lineTo(x, top); c.lineTo(x + w / 2, top + h * 0.3); c.closePath(); c.fill();
+    const cw = w * 0.14; for (const k of [-1, 0, 1]) c.fillRect(x + k * w * 0.32 - cw / 2, top + h * 0.38, cw, h * 0.44);
+    c.fillRect(x - w / 2, y - h * 0.12, w, h * 0.12); c.restore();
+  }
   function draw(d, lite) {
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     const c = cv.getContext('2d'), lines = [], M = 28, CX = W / 2, MAXW = W - 2 * M - 120;
@@ -2693,9 +2699,7 @@ G.train = {
     c.textAlign = 'center'; c.textBaseline = 'alphabetic';
     // the title
     c.font = font(900, 76); c.fillStyle = GOLD; spaced(c, 'HEAVY GOLD', CX, 214, 12); lines.push('HEAVY GOLD');
-    const tag = d.crown ? "LAST WEEK'S CHAMPION" : 'The lighter one robs the heavier one.';
-    if (d.crown) { c.font = font(800, 32); c.fillStyle = GOLD; spaced(c, tag, CX, 270, 6); } else { c.font = font(400, 34, true); c.fillStyle = MUTED; c.fillText(tag, CX, 270); }
-    lines.push(tag);
+    if (d.crown) { const tag = 'CHAMPION'; c.font = font(800, 32); c.fillStyle = GOLD; spaced(c, tag, CX, 270, 8); lines.push(tag); }
     // the god's circle with his sign
     const gx = CX, gy = 490, gr = 150;
     c.lineWidth = 4; c.strokeStyle = 'rgba(232,184,74,.75)'; c.beginPath(); c.arc(gx, gy, gr + 16, 0, TAU); c.stroke();
@@ -2706,10 +2710,9 @@ G.train = {
     if (d.gname) { const s = d.gname.toUpperCase(); c.font = font(800, 40); c.fillStyle = d.gcol; spaced(c, s, CX, 724, 10); lines.push(s); }
     // the player
     if (d.name) { const s = fit(c, d.name, 800, 86, 54, MAXW); c.fillStyle = INK; c.fillText(s, CX, 832); lines.push(s); }
-    if (d.country) { const s = fit(c, (d.flag ? d.flag + ' ' : '') + (d.cname || d.country), 400, 46, 30, MAXW); c.fillStyle = '#cfd6e2'; c.fillText(s, CX, 902); lines.push(s); }
+    if (d.country) { const s = fit(c, d.flag || d.cname || d.country, 400, d.flag ? 64 : 46, 30, MAXW); c.fillStyle = '#cfd6e2'; c.fillText(s, CX, 912); lines.push(s); }
     // the rank
-    if (d.rank > 0 && d.of > 0) { const s = '#' + d.rank + ' of ' + d.of; c.font = font(900, 124); c.fillStyle = d.rank === 1 ? GOLD : INK; c.fillText(s, CX, 1036); lines.push(s);
-      const v = vsLine(d); if (v) { c.font = font(400, 38); c.fillStyle = MUTED; c.fillText(v, CX, 1094); lines.push(v); } }
+    if (d.rank > 0 && d.of > 0) { const s = '#' + d.rank + ' of ' + d.of; c.font = font(900, 124); c.fillStyle = d.rank === 1 ? GOLD : INK; c.fillText(s, CX, 1036); lines.push(s); }
     // the banked gold, big
     for (const [x, y, r] of COINS) coin(c, x, y, r);
     { const s = fmt(d.bank), t = fit(c, s, 900, 250, 120, W - 2 * M - 300);
@@ -2717,18 +2720,17 @@ G.train = {
       c.lineWidth = 9; c.strokeStyle = '#2a1d06'; c.strokeText(t, CX, 1336);
       c.fillStyle = '#c8922e'; c.fillText(t, CX, 1336);                                                          // two flat tones: struck gold
       c.save(); c.beginPath(); c.rect(0, 0, W, 1262); c.clip(); c.fillStyle = '#f4cf6a'; c.fillText(t, CX, 1336); c.restore(); lines.push(t);
-      c.font = font(700, 40); c.fillStyle = '#cfd6e2'; spaced(c, 'GOLD BANKED', CX, 1406, 10); lines.push('GOLD BANKED'); }
+      vault(c, CX, 1430, 74); lines.push('🏦'); }
     // the best robbery
     if (d.best && d.best.take > 0) {
       const tail = ' +' + fmt(d.best.take); let nm = robName(d.best); c.font = font(700, 52);
       const wOf = n => c.measureText('Robbed ' + n + tail).width;
       if (wOf(nm) > MAXW) { const cp = [...d.best.name], bt = d.best.bot ? ' (bot)' : ''; while (cp.length > 1 && wOf(cp.join('') + '…' + bt) > MAXW) cp.pop(); nm = cp.join('') + '…' + bt; }
       runs(c, [['Robbed ', '#cfd6e2'], [nm, INK], [tail, '#ffd36a']], CX, 1506); lines.push('Robbed ' + nm + tail);
-    } else { c.font = font(400, 40, true); c.fillStyle = MUTED; c.fillText('No robbery this round', CX, 1506); lines.push('No robbery this round'); }
+    }   // no robbery: nothing drawn
     // the map of the day and the day god's rule
     { const a = 'Map #' + d.map, b = d.rule ? ' · ' + d.rule : ''; c.font = font(700, 42); runs(c, [[a, '#cfd6e2'], [b, d.rcol || INK]], CX, 1578); lines.push(a + b); }
     // where to play
-    c.font = font(800, 34); c.fillStyle = GOLD; spaced(c, 'PLAY HEAVY GOLD', CX, 1664, 8); lines.push('PLAY HEAVY GOLD');
     c.font = font(700, 52); c.fillStyle = INK; c.fillText(GAME_T, CX, 1730); lines.push(GAME_T);
     return { cv, lines, lite: !!lite };
   }
@@ -2737,7 +2739,7 @@ G.train = {
     if (!data) return null;
     if (G.S && G.S.over) data = snap(G.S, lastRes);
     const sig = JSON.stringify(data);
-    if (!card || card.sig !== sig) { card = draw(data, false); card.sig = sig; P = null; publish(); paintThumb(); }
+    if (!card || card.sig !== sig) { card = draw(data, false); card.sig = sig; P = null; publish(); }
     return card;
   }
   const publish = () => { G.card.last = card ? { lines: card.lines.slice(), w: card.cv.width, h: card.cv.height, lite: card.lite, sig: card.sig } : null; G.card.canvas = card ? card.cv : null; };
@@ -2788,7 +2790,7 @@ G.train = {
     if (P && P.sig === c0.sig && P.limit === limit()) return P;
     const sig = c0.sig, lim = limit(); let cur = c0;
     let blob = await pngBlob(cur.cv);
-    if (blob && blob.size > lim && !cur.lite && d0) { cur = draw(d0, true); cur.sig = sig; if (card === c0) { card = cur; publish(); paintThumb(); } blob = await pngBlob(cur.cv); }
+    if (blob && blob.size > lim && !cur.lite && d0) { cur = draw(d0, true); cur.sig = sig; if (card === c0) { card = cur; publish(); } blob = await pngBlob(cur.cv); }
     const keep = r => { if (card === cur) P = r; return r; };
     if (!blob) return keep({ ok: false, err: 'canvas', sig, limit: lim });
     const fits = blob.size <= lim, b64 = fits ? await b64Of(blob) : '';
@@ -2798,8 +2800,6 @@ G.train = {
   /* ---------- styles ---------- */
   const css = document.createElement('style');
   css.textContent = [
-    '.hgCardBtn{display:flex;align-items:center;justify-content:center;gap:14px;min-height:72px;padding:4px 16px}',
-    '#hgCardThumb{width:36px;height:64px;flex:none;border-radius:4px;background:#141a22;box-shadow:0 0 0 1px rgba(232,184,74,.6),0 3px 8px rgba(0,0,0,.55)}',
     '.hgCardScr{background:var(--bg,#070c16);z-index:20}',
     '.hgCd{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(100%,640px)}',
     '.hgCd.land{flex-direction:row;justify-content:center;gap:20px}',
@@ -2808,36 +2808,29 @@ G.train = {
     '.hgCdSide{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(100%,360px);min-width:0}',
     '.hgCd.land .hgCdSide{flex:0 1 360px}',
     '.hgCdMsg{font:15px/1.35 Georgia,serif;color:#cfd6e2;text-align:center;max-width:100%;overflow-wrap:anywhere;min-height:20px;user-select:text;-webkit-user-select:text}',
-    '.hgCdBtns{display:flex;flex-direction:column;gap:8px;width:100%}.hgCdBtns:empty{display:none}',
-    '.hgCdSide .pri,.hgCdSide .sec{width:100%}',
-    '@media (orientation:landscape) and (max-height:540px){.hgCardBtn{min-height:46px;padding:0 14px;gap:10px}#hgCardThumb{width:22px;height:39px;border-radius:3px}.hgCdSide{gap:6px}.hgCdMsg{font-size:14px}}'
+    '.hgCdBtns{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}',
+    '.hgCdPri{width:100%}.hgCdPri:empty{display:none}.hgCdSide .pri{width:100%}',
+    '.hgCdRow{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;width:100%}',
+    '@media (orientation:landscape) and (max-height:540px){.hgCdSide{gap:6px}.hgCdMsg{font-size:14px}}'
   ].join('\n');
   document.head.appendChild(css);
 
-  /* ---------- the end screen: a "Share card" button with the card's preview, in the core's #share slot ---------- */
-  const btn = el('button', 'sec hgCardBtn'); btn.type = 'button';
-  const thumb = el('canvas'); thumb.id = 'hgCardThumb'; thumb.width = 72; thumb.height = 128; thumb.setAttribute('aria-hidden', 'true');
-  btn.append(thumb, el('span', null, 'Share card'));
-  let core = null;   // the core's "Challenge a friend": out of the DOM, its listener kept for a round without card data
+  /* ---------- the end screen: a 📤 "Share" icon button in the core's #share slot ---------- */
+  const ib = (icon, word) => { const b = el('button', 'ib'); b.type = 'button'; b.append(el('i', null, icon), el('span', null, word)); return b; };
+  const btn = ib('📤', 'Share'); btn.classList.add('hgCardBtn');
+  let core = null;   // the core's 📤 "Invite": out of the DOM, its listener kept for a round without card data
   btn.addEventListener('click', () => { if (!data && core) { core.click(); return; } share(); });
-  /* the card button takes #share's place and id (the core's grid row 3 of column 2 in a short landscape window), so the end
-     screen grows by nothing; without a core #share it goes last into #endExtra */
+  /* the card button takes #share's place and id in #endLinks; without a core #share it goes into #endLinks (or #endExtra) */
   const place = () => { if (btn.isConnected) return; const old = G.$('share');
     if (old && old !== btn) { core = old; btn.id = 'share'; old.replaceWith(btn); return; }
-    btn.id = 'hgCardBtn'; const ex = G.$('endExtra'); if (ex) ex.appendChild(btn); };
+    btn.id = 'hgCardBtn'; const ex = G.$('endLinks') || G.$('endExtra'); if (ex) ex.appendChild(btn); };
   place();
-  function paintThumb() {
-    if (!card || !thumb.isConnected) return;
-    const r = thumb.getBoundingClientRect(); if (!r.width || !r.height) return;
-    const dpr = Math.min(3, window.devicePixelRatio || 1), w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
-    if (thumb.width !== w) thumb.width = w; if (thumb.height !== h) thumb.height = h;
-    const c = thumb.getContext('2d'); c.imageSmoothingEnabled = true; try { c.imageSmoothingQuality = 'high'; } catch (e) {}
-    c.clearRect(0, 0, w, h); c.drawImage(card.cv, 0, 0, w, h);
-  }
   G.on('end', (S, res) => {
     lastRes = res && typeof res === 'object' ? Object.assign({}, res) : {}; dropImg();
     data = snap(S, lastRes); card = null; P = null; up = null; st = 'idle'; err = '';
-    place();
+    /* a round with nothing to show (0 banked, no robbery): no card, the core's 📤 Invite stays */
+    const dead = !data.bank && !data.best;
+    if (dead) { if (core && btn.isConnected) btn.replaceWith(core); btn.hidden = !core; } else { btn.hidden = false; place(); }
     const my = seq; setTimeout(() => { if (my === seq && data) ensure(); }, 40);   // the end screen paints first
   });
 
@@ -2847,8 +2840,10 @@ G.train = {
   img.id = 'hgCardImg'; img.alt = 'Your Heavy Gold card'; img.hidden = true; big.id = 'hgCardBig';
   const msgEl = el('div', 'hgCdMsg'); msgEl.id = 'hgCardMsg'; msgEl.setAttribute('role', 'status');
   const btns = el('div', 'hgCdBtns'); btns.id = 'hgCardBtns';
-  const closeB = el('button', 'sec', 'Close'); closeB.id = 'hgCardClose'; closeB.type = 'button';
-  pv.append(img, big); side.append(msgEl, btns, closeB); box.append(pv, side); scr.appendChild(box); document.body.appendChild(scr);
+  const priBox = el('div', 'hgCdPri'), rowEl = el('div', 'hgCdRow links');
+  const closeB = ib('✕', 'Close'); closeB.id = 'hgCardClose';
+  btns.append(priBox, rowEl);
+  pv.append(img, big); side.append(msgEl, btns); box.append(pv, side); scr.appendChild(box); document.body.appendChild(scr);
   closeB.addEventListener('click', () => close());
   G.on('title', () => close());
   const isOpen = () => scr.classList.contains('on');
@@ -2868,7 +2863,7 @@ G.train = {
     const c = big.getContext('2d'); c.imageSmoothingEnabled = true; try { c.imageSmoothingQuality = 'high'; } catch (e) {} c.drawImage(card.cv, 0, 0, bw, bh);
   }
   /* the card as large as the screen allows: beside the buttons in a wide window, above them in a tall one */
-  const SIDE_H = 20 + 56 + 46 * 3 + 8 * 4;   // the message, a primary and three secondary buttons
+  const SIDE_H = 20 + 56 + 56 + 8 * 3;   // the message, a primary and one row of icon buttons
   function fitScr() {
     if (!isOpen()) return;
     const cs = getComputedStyle(scr), px = v => parseFloat(v) || 0;
@@ -2882,31 +2877,35 @@ G.train = {
     paintBig(w, h);
   }
   const PUT_MS = 30000;
-  const FAIL = { rate: 'Six cards an hour at most. Save this one instead.', too_big: 'The card is too big to upload. Save it instead.',
-    bad_png: 'The server refused the card. Save it instead.', auth: 'Your session ended. Save the card instead.', canvas: 'Could not make the image.',
-    offline: 'Could not reach the server. Save the card instead.', net: 'Could not upload the card. Save it instead.' };
+  /* status lines: at most 4 words */
+  const FAIL = { rate: 'Hourly limit · save it', too_big: 'Too big · save it', bad_png: 'Refused · save it', auth: 'Session ended · save it',
+    canvas: 'No image', offline: 'Offline · save it', net: 'Upload failed · save it' };
+  /* the actions: the primary one big (icon + word), the others icon buttons with one word, then Close */
+  const ACT = { story: ['📸', 'Story', 'hgCardStory', () => story()], chat: ['✈️', 'Send', 'hgCardChat', () => chat()],
+    save: ['💾', 'Save', 'hgCardSave', () => save()], copy: ['🔗', 'Copy', 'hgCardCopy', () => copy()] };
   function paint() {
-    btns.textContent = '';
-    const add = (cls, text, id, fn) => { const b = el('button', cls, text); b.type = 'button'; b.id = id; b.addEventListener('click', () => { fn(); }); btns.appendChild(b); return b; };
+    priBox.textContent = ''; rowEl.textContent = '';
+    const pri = k => { const a = ACT[k], b = el('button', 'pri', a[0] + ' ' + a[1].toUpperCase()); b.type = 'button'; b.id = a[2]; b.addEventListener('click', a[3]); priBox.appendChild(b); };
+    const sec = k => { const a = ACT[k], b = ib(a[0], a[1]); b.id = a[2]; b.addEventListener('click', a[3]); rowEl.appendChild(b); };
     let m = '';
-    if (st === 'busy' || st === 'idle') m = busyMsg || 'Making your card…';
-    else if (st === 'story') { m = 'Your card is ready for your story.'; add('pri', 'SHARE TO STORY', 'hgCardStory', story); add('sec', 'Send to a chat', 'hgCardChat', chat); }
-    else if (st === 'chat') { m = 'Your card is ready.'; add('pri', 'SEND TO A CHAT', 'hgCardChat', chat); add('sec', 'Save image', 'hgCardSave', save); add('sec', 'Copy link', 'hgCardCopy', copy); }
-    else if (st === 'fail') { m = FAIL[err] || FAIL.net; if (err === 'canvas') { add('pri', 'COPY LINK', 'hgCardCopy', copy); add('sec', 'Send to a chat', 'hgCardChat', chat); }
-      else { add('pri', 'SAVE IMAGE', 'hgCardSave', save); add('sec', 'Send to a chat', 'hgCardChat', chat); add('sec', 'Copy link', 'hgCardCopy', copy); } }
-    else if (st === 'local') { m = P && !P.ok && P.err === 'canvas' ? FAIL.canvas : 'Save the card and post it anywhere.'; add('pri', 'SAVE IMAGE', 'hgCardSave', save); add('sec', 'Copy link', 'hgCardCopy', copy); }
+    if (st === 'busy' || st === 'idle') m = busyMsg || 'Making card…';
+    else if (st === 'story') { pri('story'); sec('chat'); sec('save'); }
+    else if (st === 'chat') { pri('chat'); sec('save'); sec('copy'); }
+    else if (st === 'fail') { m = FAIL[err] || FAIL.net; if (err === 'canvas') { pri('copy'); sec('chat'); } else { pri('save'); sec('chat'); sec('copy'); } }
+    else if (st === 'local') { m = P && !P.ok && P.err === 'canvas' ? FAIL.canvas : ''; pri('save'); sec('copy'); }
+    rowEl.appendChild(closeB);
     msgEl.textContent = m;
     fitScr();
   }
   const setState = (s, e) => { st = s; err = e || ''; if (isOpen()) paint(); };
-  window.addEventListener('resize', () => { fitScr(); const e = G.$('end'); if (e && e.classList.contains('on')) paintThumb(); });
+  window.addEventListener('resize', fitScr);
 
   /* ---------- sharing ---------- */
   const cardUrl = () => (up && card && up.sig === card.sig ? up.url : '');
-  const line = () => { const d = data; if (!d) return 'Heavy Gold: the lighter one robs the heavier one.';
-    return 'I banked ' + fmt(d.bank) + ' gold as ' + d.gname + ' in Heavy Gold: #' + d.rank + ' of ' + d.of + (d.bots ? ' (' + d.bots + (d.bots === 1 ? ' bot' : ' bots') + ')' : '') + ', Map #' + d.map + '.'; };
+  const line = () => { const d = data; if (!d) return 'Heavy Gold';
+    return '🏦 ' + fmt(d.bank) + (d.rank > 0 && d.of > 0 ? ' · #' + d.rank + ' of ' + d.of : '') + ' · Heavy Gold — beat it?'; };
   const storyText = () => line().slice(0, 200);
-  const chatText = () => line() + (cardUrl() ? ' My card: ' + cardUrl() : '') + ' Can you beat it?';
+  const chatText = () => line() + (cardUrl() ? ' ' + cardUrl() : '');
   const chatLink = () => 'https://t.me/share/url?url=' + encodeURIComponent(GAME) + '&text=' + encodeURIComponent(chatText());
   function story() {
     const u = cardUrl(); if (!u || !storyOK()) { setState('chat'); return false; }
@@ -2929,7 +2928,7 @@ G.train = {
     const a = document.createElement('a'); a.href = href; a.download = name; a.rel = 'noopener'; a.style.display = 'none';
     document.body.appendChild(a); a.click(); setTimeout(() => { try { a.remove(); } catch (e) {} }, 0);
     stats.saves.push('a');
-    if (inTG()) msgEl.textContent = 'If no download starts, press and hold the card to save it.';
+    if (inTG()) msgEl.textContent = 'Or hold the card';
     return 'a';
   }
   async function copy() {
@@ -2938,7 +2937,7 @@ G.train = {
     if (!ok) { try { const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
       document.body.appendChild(ta); ta.select(); ok = !!document.execCommand('copy'); ta.remove(); } catch (e) { ok = false; } }
     stats.copies++;
-    msgEl.textContent = ok ? 'Link copied.' : t;   // the card screen covers the toast: its own status line (or the text to copy by hand)
+    msgEl.textContent = ok ? 'Link copied' : t;   // the card screen covers the toast: its own status line (or the text to copy by hand)
     return ok;
   }
   async function share() {
@@ -2947,14 +2946,14 @@ G.train = {
     busy = true; const my = seq;
     try {
       ensure(); if (!card) return st;
-      busyMsg = 'Making your card…'; st = 'busy'; open();
+      busyMsg = 'Making card…'; st = 'busy'; open();
       const p = await encode(); if (my !== seq) return st;
       if (p.blob) showImg(p.blob); else dropImg();
       fitScr();
       if (!inTG()) { setState('local'); return st; }
       if (!p.ok) { setState('fail', p.err || 'too_big'); return st; }
       if (!cardUrl()) {
-        busyMsg = 'Uploading your card…'; setState('busy');
+        busyMsg = 'Uploading…'; setState('busy');
         let on = !!(G.net && G.net.on); if (!on && G.net && typeof G.net.login === 'function') { try { on = await G.net.login(); } catch (e) { on = false; } }
         if (my !== seq) return st;
         if (!on || !G.net) { setState('fail', 'offline'); return st; }
@@ -2981,8 +2980,10 @@ G.train = {
 (function(){try{
 /* Heavy Gold — online play (90_online.js) over Supabase Realtime: broadcast + presence on public channels, the publishable key,
    no new server (src/gold/GOLD.md, "Wave 5" and "Online hooks").
-   - PLAY ONLINE: a gold-edged .sec button, first in #titleLinks, shown only online (G.net.on, inside Telegram). PLAY stays the one
-     primary button: it starts at once and works offline; online waits up to 15 s for others.
+   - 🌐 "Online": a gold-edged icon button (.ib), first in #titleLinks, shown only online (G.net.on, inside Telegram). PLAY stays the
+     one primary button: it starts at once and works offline; online waits up to 15 s for others. The lobby screen: a one-word title,
+     the countdown, the seats (flag + name, the bots as one count), one status line, START NOW for the host (2+ players), and icon
+     buttons Invite / Leave (the owner, 2026-11-23: "too much text"). The HUD chip: "🌐 N".
    - Matching: the lobby channel 'hg-lobby' (presence). Only the host of a forming room tracks there ({r: code, n, o, e}); a newcomer reads
      the presence state, joins the fullest open room, or opens his own. Two rooms opened at the same moment merge (the smaller, or the
      higher code, moves). A room is 'hg-r-<code>' (presence: one key per player); the host is the lowest presence key that is alive
@@ -3119,7 +3120,7 @@ G.train = {
     // the profile gate of PLAY (20_profile.js): a name and a country, and no name the server refused (name_taken)
     if (!hasProfile() || (G.profileUI && G.profileUI.needFix)) { pending = code || '*'; if (G.profileUI) G.profileUI.open(false); return; }
     pending = null; O.err = ''; O.phase = 'conn'; show(); paint();
-    clearTimeout(connT); connT = setTimeout(() => { if (!wsUp && O.phase !== 'play' && O.phase !== 'off' && O.phase !== 'err') fail('Could not reach the game server.'); }, O.CONNECT_MS);
+    clearTimeout(connT); connT = setTimeout(() => { if (!wsUp && O.phase !== 'play' && O.phase !== 'off' && O.phase !== 'err') fail('Server unreachable'); }, O.CONNECT_MS);
     if (code && okCode(code)) joinRoom(code, false, true); else findRoom();
   }
   function fail(msg) { cleanup(); O.phase = 'err'; O.err = msg; show(); paint(); }
@@ -3128,7 +3129,7 @@ G.train = {
   function lobbyCh() {
     if (lobby && chans.get(lobby.topic) === lobby) return lobby;
     lobby = channel('hg-lobby', { key: UID, presence: true, pres: onLobby, join: () => { clearTimeout(lobbyT); lobbyT = setTimeout(decide, O.LOBBY_MS); },
-      fail: r => { if (O.phase === 'lobby') fail('The game server is busy. Try again soon.'); O.err = r; } });
+      fail: r => { if (O.phase === 'lobby') fail('Server busy'); O.err = r; } });
     return lobby;
   }
   function leaveLobby() { clearTimeout(lobbyT); clearTimeout(advT); if (lobby) leaveCh(lobby); lobby = null; }
@@ -3171,7 +3172,7 @@ G.train = {
       byLink: !!byLink, lastRoom: now(), hkSince: now(), joinedAt: now(), sq: 0, isq: 0, skN: 0, lastIn: 0, lastPos: null, cm: new Map(), known: new Map(), cid: 0, evq: [],
       buf: {}, pred: new Map(), pendV: 0, lastState: now(), thunderN: 0, finSent: false, over: false, moving: false };
     O.room = code; O.phase = 'wait';
-    R.ch = channel('hg-r-' + code, { key: R.key, presence: true, bc: roomBc, pres: roomPres, join: roomJoined, fail: () => fail('Could not join the room.') });
+    R.ch = channel('hg-r-' + code, { key: R.key, presence: true, bc: roomBc, pres: roomPres, join: roomJoined, fail: () => fail('Room unavailable') });
     R.ch.meta = myMeta();
     R.up = channel('hg-u-' + code + '-' + UID, { presence: false });
     paint();
@@ -3181,7 +3182,7 @@ G.train = {
     if (!R || !R.ch.joined) return;
     if (!R.started) {
       const ms = members();
-      if (ms.findIndex(m => m.k === R.key) >= O.MAX) { const link = R.byLink; shut.set(R.code, now()); cleanupRoom(); if (link) G.toast('That room is full', 2400); findRoom(); return; }
+      if (ms.findIndex(m => m.k === R.key) >= O.MAX) { const link = R.byLink; shut.set(R.code, now()); cleanupRoom(); if (link) G.toast('Room full', 2400); findRoom(); return; }
       if (!R.hk) { if (R.opener || !ms.some(m => m.k !== R.key)) becomeHost(); }   // a joiner waits for the host's 'room' message
       else if (R.hk !== R.key && R.ch.got && !R.ch.P[R.hk]) hostGone(R.hk);
       if (isHost()) { roomMsg(); advert(); if (ms.length >= O.MAX) startRound(); }
@@ -3233,7 +3234,7 @@ G.train = {
   function startFrom(p) {
     const seats = Array.isArray(p.seats) ? p.seats.filter(s => Array.isArray(s) && okU(s[0])).slice(0, O.MAX) : [];
     if (!seats.length) return;
-    if (!seats.some(s => s[0] === UID)) { const link = R.byLink; shut.set(R.code, now()); cleanupRoom(); G.toast(link ? 'That round has already started' : 'The round started without you', 2600); findRoom(); return; }
+    if (!seats.some(s => s[0] === UID)) { const link = R.byLink; shut.set(R.code, now()); cleanupRoom(); G.toast(link ? 'Round already started' : 'Started without you', 2600); findRoom(); return; }
     begin(seats, clamp(num(p.map, G.mapNo) | 0, 1, 1e6), false);
   }
   function begin(seats, map, asHost) {
@@ -3353,7 +3354,7 @@ G.train = {
     }
     if (Array.isArray(m.v)) m.v.forEach((a, i) => { const v = S.vaults[i]; if (!v || !Array.isArray(a)) return;
       const nx = a[2] < 0 ? null : num(a[2]), ny = a[3] < 0 ? null : num(a[3]);
-      if (nx != null && v.nx == null) G.toast('Vaults move in ' + Math.max(1, Math.ceil(S.vNext - S.t)) + ' s');
+      if (nx != null && v.nx == null) G.toast('Vaults move · ' + Math.max(1, Math.ceil(S.vNext - S.t)) + ' s');
       if (Math.abs(v.x - a[0]) > 1 || Math.abs(v.y - a[1]) > 1) me.bankT = 0;
       v.x = num(a[0], v.x); v.y = num(a[1], v.y); v.nx = nx; v.ny = ny; });
     // coins: deltas, a full list every 2 s
@@ -3377,14 +3378,14 @@ G.train = {
     const txt = (p, s, c, life) => G.fx({ kind: 'text', x: p.x, y: p.y - 34, s, c, life: life || 0.8 });
     if (e[0] === 'r') { const L = P(e[1]), H = P(e[2]), take = e[3] | 0, loss = e[4] | 0; if (!L || !H) return;
       txt(L, '+' + take, '#ffd36a'); txt(H, '-' + loss, '#ff7a7a');
-      if (L === me) { G.toast('You robbed ' + who(H) + ': +' + take); G.haptic('light'); }
-      if (H === me) { G.toast(who(L) + ' robbed you: -' + loss); G.haptic('heavy'); }
+      if (L === me) { G.toast('+' + take + ' from ' + who(H)); G.haptic('light'); }
+      if (H === me) { G.toast('−' + loss + ' · ' + who(L) + ' robbed you'); G.haptic('heavy'); }
       G.emit('rob', L, H, take, loss); }
     else if (e[0] === 'b') { const p = P(e[1]), amt = e[2] | 0; if (!p) return; G.fx({ kind: 'text', x: p.x, y: p.y - 40, s: 'banked ' + amt, c: '#e8b84a', life: 1.2 });
-      if (p === me) { G.toast('Banked ' + amt + ' gold'); G.haptic('medium'); me.bankT = 0; } G.emit('bank', p, amt); }
+      if (p === me) { G.toast('🏦 +' + amt); G.haptic('medium'); me.bankT = 0; } G.emit('bank', p, amt); }
     else if (e[0] === 'k') { const p = P(e[1]); if (!p || p === me) return; const g = G.GODS[p.god] || {}; G.fx({ kind: 'ring', x: p.x, y: p.y, r: p.god === 'thor' ? 170 : 50, c: g.c || '#fff', life: 0.6 }); G.emit('skill', p); }
-    else if (e[0] === 't') { const p = P(e[1]), q = P(e[2]), loss = e[3] | 0; if (!p || !q) return; txt(q, '-' + loss, '#9fb2ff'); if (q === me) { G.toast(who(p) + ' struck you: -' + loss); G.haptic('heavy'); } }
-    else if (e[0] === 'm') { const p = P(e[1]); if (p === me) { me.cd = S.t + 1; G.toast('No richer rival in reach'); } }
+    else if (e[0] === 't') { const p = P(e[1]), q = P(e[2]), loss = e[3] | 0; if (!p || !q) return; txt(q, '-' + loss, '#9fb2ff'); if (q === me) { G.toast('⚡ −' + loss + ' · ' + who(p)); G.haptic('heavy'); } }
+    else if (e[0] === 'm') { const p = P(e[1]); if (p === me) { me.cd = S.t + 1; G.toast('No richer rival near'); } }
   }
   function clientStep(S, dt) {
     const rt = S.t - O.INTERP, me = S.me;
@@ -3472,7 +3473,7 @@ G.train = {
   /* ---- invite a friend ---- */
   function invite() {
     if (!R) return;
-    const url = 'https://t.me/HoldorTDBot/play?startapp=room_' + R.code, text = 'Join my Heavy Gold room: the lighter one robs the heavier one.';
+    const url = 'https://t.me/HoldorTDBot/play?startapp=room_' + R.code, text = 'Join my Heavy Gold room';
     hold();
     try { if (G.TG && G.TG.openTelegramLink) { G.TG.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(text)); return; } } catch (e) {}
     if (navigator.share) { navigator.share({ text, url }).catch(() => {}); return; }
@@ -3493,9 +3494,7 @@ G.train = {
   /* ================= UI ================= */
   const css = document.createElement('style');
   css.textContent = [
-    '#hgOnline{flex:1 1 100%;order:-1;border-color:var(--gold,#e8b84a);color:var(--gold,#e8b84a);font-weight:900;letter-spacing:.1em;background:rgba(232,184,74,.08)}#hgOnline[hidden]{display:none}',
-    // a short landscape window: PLAY ONLINE shares one row with the other title links, so the row stays as tall as before
-    '@media (orientation:landscape) and (max-height:540px){#hgOnline{flex:1 1 120px;letter-spacing:.04em}#titleLinks>.sec{flex-basis:120px}}',
+    '#hgOnline{order:-1;border-color:var(--gold,#e8b84a);background:rgba(232,184,74,.1)}#hgOnline span{color:var(--gold,#e8b84a)}#hgOnline[hidden]{display:none}',
     '#hgOn{background:var(--bg,#070c16);z-index:20}',
     '.onB{flex:1 1 auto;min-height:0;width:min(100%,560px);display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"h" "st" "ls" "ft";gap:10px}',
     '.onH{grid-area:h;margin:0;font:900 22px/1.2 Georgia,serif;letter-spacing:.1em;color:var(--gold,#e8b84a);text-align:center}',
@@ -3503,27 +3502,29 @@ G.train = {
     '.onLs{grid-area:ls;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;display:flex;flex-direction:column;gap:4px;padding:2px}',
     '.onP{display:flex;align-items:center;gap:8px;min-height:34px;padding:4px 10px;border-radius:10px;background:rgba(255,255,255,.05);font:15px/1.2 Georgia,serif}',
     '.onP .f{font-size:20px;flex:none;width:26px;text-align:center}.onP .n{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.onP .y{font:700 11px Georgia,serif;color:#1c1207;background:var(--gold,#e8b84a);border-radius:6px;padding:1px 6px}',
-    '.onP.bot{background:transparent;color:var(--muted,#8d9bb0);font-size:13px;min-height:28px}',
-    '.onF{grid-area:ft;display:flex;flex-direction:column;align-items:center;gap:8px}.onF .sec[hidden],.onF .pri[hidden]{display:none}',
-    '.onRow{display:flex;gap:8px;width:min(100%,360px)}.onRow .sec{flex:1 1 0;width:auto}',
+    '.onP.bot{background:rgba(255,255,255,.03);color:var(--ink,#f3e7c4)}',
+    '.onF{grid-area:ft;display:flex;flex-direction:column;align-items:center;gap:8px}.onF [hidden]{display:none!important}',
+    '.onRow{display:flex;gap:6px;justify-content:center}',
+    '@media (orientation:portrait){.onB{grid-template-rows:auto auto auto auto;align-content:center}.onLs{max-height:52vh}}',
     '#onChip{position:absolute;left:calc(10px + env(safe-area-inset-left));bottom:calc(14px + env(safe-area-inset-bottom));display:none;padding:3px 9px;border-radius:999px;border:1px solid rgba(91,227,138,.6);background:rgba(7,12,22,.66);color:#cfe9d8;font:700 11px/1.2 Georgia,serif;letter-spacing:.06em;white-space:nowrap;pointer-events:none;text-shadow:0 1px 2px #000}',
     '#onChip.on{display:block}#onChip.bad{border-color:#ff8a7a;color:#ffc2b8}',
     '@media (orientation:landscape) and (max-height:540px){.onB{width:min(100%,760px);grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);grid-template-areas:"h ls" "st ls" "ft ls";gap:6px 18px}',
-    '.onH{font-size:19px}.onSt b{font-size:32px}.onP{min-height:30px;padding:3px 8px}.onF{justify-content:flex-end}.onF .pri,.onRow{width:100%}}',
+    '.onH{font-size:19px}.onSt b{font-size:32px}.onP{min-height:30px;padding:3px 8px}.onF{justify-content:flex-end}.onF .pri{width:100%}}',
     '@media (orientation:landscape) and (max-height:380px){.onSt{font-size:13px}.onSt b{font-size:26px}.onF{gap:6px}.onF .pri{min-height:48px}.onP{min-height:27px;font-size:14px}}'
   ].join('\n');
   document.head.appendChild(css);
   const scr = el('div', 'scr'); scr.id = 'hgOn';
-  const box = el('div', 'onB'), hH = el('h2', 'onH', 'PLAY ONLINE'), st = el('div', 'onSt'), ls = el('div', 'onLs'), ft = el('div', 'onF');
+  const box = el('div', 'onB'), hH = el('h2', 'onH', 'ONLINE'), st = el('div', 'onSt'), ls = el('div', 'onLs'), ft = el('div', 'onF');
   st.id = 'onSt'; ls.id = 'onList';
-  const bPri = el('button', 'pri', 'INVITE A FRIEND'); bPri.id = 'onInvite'; bPri.type = 'button';
-  const row = el('div', 'onRow');
-  const bStart = el('button', 'sec', 'Start now'); bStart.id = 'onStart'; bStart.type = 'button';
-  const bLeave = el('button', 'sec', 'Leave'); bLeave.id = 'onLeave'; bLeave.type = 'button';
-  const note = el('div', 'small'); note.id = 'onNote';
-  row.append(bStart, bLeave); ft.append(bPri, row, note); box.append(hH, st, ls, ft); scr.appendChild(box); document.body.appendChild(scr);
-  bPri.addEventListener('click', () => { if (O.phase === 'err') { O.phase = 'off'; play(); } else invite(); });
-  bStart.addEventListener('click', () => { if (R && isHost() && !R.started && members().length >= 2) startRound(); });
+  const ib = (icon, word) => { const b = el('button', 'ib'); b.type = 'button'; const w = el('span', null, word); b.append(el('i', null, icon), w); b.word = w; return b; };
+  /* one primary at most: START NOW (the host, 2+ players) or TRY AGAIN (an error); Invite and Leave are icon buttons */
+  const bStart = el('button', 'pri', 'START NOW'); bStart.id = 'onStart'; bStart.type = 'button';
+  const row = el('div', 'onRow links');
+  const bInv = ib('📤', 'Invite'); bInv.id = 'onInvite';
+  const bLeave = ib('✕', 'Leave'); bLeave.id = 'onLeave';
+  row.append(bInv, bLeave); ft.append(bStart, row); box.append(hH, st, ls, ft); scr.appendChild(box); document.body.appendChild(scr);
+  bInv.addEventListener('click', invite);
+  bStart.addEventListener('click', () => { if (O.phase === 'err') { O.phase = 'off'; play(); } else if (R && isHost() && !R.started && members().length >= 2) startRound(); });
   bLeave.addEventListener('click', leave);
   function show() { scr.classList.add('on'); paint(); }
   function hide() { scr.classList.remove('on'); }
@@ -3531,23 +3532,23 @@ G.train = {
     if (!scr.classList.contains('on')) return;
     const ph = O.phase, ms = R && R.ch && R.ch.joined ? members() : [];
     st.textContent = ''; ls.textContent = '';
-    bPri.hidden = false; bPri.textContent = 'INVITE A FRIEND'; bStart.hidden = true; bLeave.textContent = 'Leave';
-    if (ph === 'err') { st.append(O.err || 'Could not reach the game server.'); bPri.textContent = 'TRY AGAIN'; bLeave.textContent = 'Back'; note.textContent = 'Plain PLAY works offline with 7 bots.'; return; }
-    if (ph === 'conn' || ph === 'lobby' || !R || !R.ch.joined) { st.append(wsUp ? 'Finding a room…' : (tries ? 'Reconnecting…' : 'Connecting…')); bPri.hidden = true; note.textContent = 'As ' + ((G.GODS[myGod()] || {}).n || '') + ' · up to ' + O.MAX + ' players, bots fill the empty seats'; return; }
+    bStart.hidden = true; bStart.textContent = 'START NOW'; bInv.hidden = false; bLeave.word.textContent = 'Leave';
+    if (ph === 'err') { st.append(O.err || 'Server unreachable'); bStart.hidden = false; bStart.textContent = 'TRY AGAIN'; bInv.hidden = true; bLeave.word.textContent = 'Back'; return; }
+    if (ph === 'conn' || ph === 'lobby' || !R || !R.ch.joined) { st.append(wsUp ? 'Finding a room…' : (tries ? 'Reconnecting…' : 'Connecting…')); bInv.hidden = true; return; }
     const left = Math.max(0, Math.ceil((R.deadline - now()) / 1000));
-    const b = el('b', null, R.deadline ? left + ' s' : '…'); st.append(b, R.deadline ? (left ? 'until the round starts' : 'Starting…') : 'Waiting for the room');
+    const b = el('b', null, R.deadline ? left + ' s' : '…'); st.append(b); if (!R.deadline || !left) st.append(R.deadline ? 'Starting…' : 'Waiting for host');   // the seats below say who and how many
     for (const m of ms) { const r = el('div', 'onP' + (m.k === R.key ? ' me' : '')); r.dataset.u = m.u; r.append(el('span', 'f', flag(m.c)), el('span', 'n', m.n)); if (m.k === R.key) r.appendChild(el('span', 'y', 'YOU')); ls.appendChild(r); }
     const nb = Math.max(0, (G.BOTS + 1) - Math.min(ms.length, O.MAX));
-    if (nb) ls.appendChild(el('div', 'onP bot', nb + (nb === 1 ? ' bot fills the empty seat' : ' bots fill the empty seats')));
+    if (nb) { const r = el('div', 'onP bot'); r.append(el('span', 'f', '🤖'), el('span', 'n', '× ' + nb)); ls.appendChild(r); }
     bStart.hidden = !(isHost() && ms.length >= 2);
-    note.textContent = 'Room ' + R.code.toUpperCase() + ' · as ' + ((G.GODS[myGod()] || {}).n || '') + ' · ' + ms.length + ' of ' + O.MAX + ' players';
   }
   setInterval(() => { if (scr.classList.contains('on') && O.phase !== 'play') paint(); }, 500);
 
   /* the title button: online only (inside Telegram, logged in) */
-  const tb = el('button', 'sec', 'PLAY ONLINE'); tb.id = 'hgOnline'; tb.type = 'button'; tb.hidden = true;
+  const tb = ib('🌐', 'Online'); tb.id = 'hgOnline'; tb.hidden = true;
   tb.addEventListener('click', () => play());
-  const links = G.$('titleLinks'); if (links) links.insertBefore(tb, links.firstChild);
+  /* first on screen (CSS order -1), but appended: 35_chat keeps the DOM's first place for its Chat button */
+  const links = G.$('titleLinks'); if (links) links.appendChild(tb);
   const vis = () => { tb.hidden = !online(); };
   /* the HUD chip during an online round */
   const ch_ = el('div'); ch_.id = 'onChip'; const hx = G.$('hudExtra'); if (hx) hx.appendChild(ch_);
@@ -3556,13 +3557,13 @@ G.train = {
     const S = G.S, on = !!(R && R.started && S && S === R.S && !S.over);
     ch_.classList.toggle('on', on); if (!on) return;
     const n = R.seats.length, silent = S.client && now() - R.lastState > 1200;
-    const t = silent ? 'ONLINE · waiting for the host…' : 'ONLINE · ' + n + (n === 1 ? ' player' : ' players');
+    const t = silent ? '🌐 …' : '🌐 ' + n;
     if (t !== chipTxt) { chipTxt = t; ch_.textContent = t; } ch_.classList.toggle('bad', silent);
   }
   /* after an online round PLAY AGAIN looks for another online room */
   const again = G.$('again'), endScr = G.$('end');
   let lastOnline = false;
-  G.on('end', S => { lastOnline = !!(S && S.online) && online(); if (again) again.textContent = lastOnline ? 'PLAY ONLINE AGAIN' : 'PLAY AGAIN'; });
+  G.on('end', S => { lastOnline = !!(S && S.online) && online(); if (again) again.textContent = lastOnline ? 'PLAY ONLINE' : 'PLAY AGAIN'; });
   if (endScr) endScr.addEventListener('click', e => { const t = e.target && e.target.closest && e.target.closest('#again'); if (!t || !lastOnline) return; e.stopPropagation(); e.preventDefault(); endScr.classList.remove('on'); G.$('title').classList.add('on'); play(); }, true);
   G.on('start', S => { if (R && S !== R.S && !S.online) { cleanup(); O.phase = 'off'; hide(); } chip(); });
 
