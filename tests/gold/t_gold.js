@@ -14,8 +14,8 @@ let fails = 0; const ok = (c, m, i) => { console.log((c ? 'OK   ' : 'FAIL ') + m
     await pg.screenshot({ path: path.join(__dirname, '..', '..', '.shots', 'gold_title_' + w + '.png') });
     const btn = await pg.locator('#play').boundingBox(); ok(btn && btn.height >= 44 && btn.y + btn.height <= h, w + 'x' + h + ': PLAY visible, >= 44 px', btn);
     await pg.locator('.god[data-god="thor"]').tap(); await pg.locator('#play').tap(); await pg.waitForTimeout(300);
-    const s0 = await pg.evaluate(() => ({ on: !!G.S, god: G.S && G.S.me.god, minted: G.S.minted, total: G.total(), n: G.S.ps.length }));
-    ok(s0.on && s0.god === 'thor' && s0.n === 12 && s0.total === s0.minted, 'a real tap starts a round as Thor with 12 heroes, gold conserved', s0);
+    const s0 = await pg.evaluate(() => ({ on: !!G.S, god: G.S && G.S.me.god, minted: G.S.minted, total: G.total(), n: G.S.ps.length, coins: G.S.coins.length }));
+    ok(s0.on && s0.god === 'thor' && s0.n === 8 && s0.total === s0.minted && s0.coins <= 20, 'a real tap starts a round as Thor with 8 heroes, a few coins, gold conserved', s0);
     // a real joystick drag moves the hero
     const p0 = await pg.evaluate(() => ({ x: G.S.me.x, y: G.S.me.y }));
     await pg.mouse.move(w * 0.3, h * 0.6); await pg.mouse.down(); await pg.mouse.move(w * 0.3 + 50, h * 0.6, { steps: 4 }); await pg.waitForTimeout(500);
@@ -37,20 +37,27 @@ let fails = 0; const ok = (c, m, i) => { console.log((c ? 'OK   ' : 'FAIL ') + m
       for (const g of ['hermes', 'loki', 'amirani']) { me.god = g; me.cd = 0; out[g] = G.useSkill(me); }
       out.inv = me.inv > S.t; out.imm = me.imm > S.t; out.decoys = S.decoys.length; me.god = 'thor';
       out.off = G.total() - S.minted;   // gold the test itself handed out above
+      // vaults move every 20 s, the new spot shows 3 s before; coins arrive one a second, worth 8 → 4 → 2
+      const v0 = S.vaults.map(v => [Math.round(v.x), Math.round(v.y)]).join(); const tm = S.vNext; let warned = false;
+      while (S.t < tm + 0.1) { G.step(1); if (S.vaults[0].nx != null) warned = true; }
+      out.vault = { warned, moved: S.vaults.map(v => [Math.round(v.x), Math.round(v.y)]).join() !== v0, n: S.vaults.length };
+      out.values = [];
       // the rest of the round
-      let guard = 0; while (!S.over && guard++ < 200000) G.step(60);
-      out.over = S.over; out.minted = S.minted; out.total = G.total() - out.off; out.blocks = S.block;
+      let guard = 0; while (!S.over && guard++ < 200000) { G.step(60); const vs = new Set(S.coins.map(c => c.v)); if (S.t > 52 && S.t < 54) out.values.push(...vs); }
+      out.over = S.over; out.minted = S.minted; out.total = G.total() - out.off; out.coinsLeft = S.coins.length;
       out.banks = S.ps.map(p => p.bank); out.robs = S.ps.reduce((s, p) => s + p.robs, 0);
       return out; });
     ok(r.rob.a > 0 && r.rob.c < 200 && r.rob.conserved, 'the lighter one robs the heavier one; gold conserved', r.rob);
     ok(r.bank.banked >= 77 && r.bank.carry === 0, '1.5 s in a vault banks the carried gold', r.bank);
     ok(r.thor.used && r.thor.victim < 300 && r.thor.conserved, 'Thor makes a richer rival nearby spill gold; conserved', r.thor);
     ok(r.hermes && r.loki && r.amirani && r.inv && r.imm && r.decoys >= 1, 'Hermes, Loki (vanish + decoy), Amirani (chains) skills fire', r);
-    ok(r.over && r.blocks === 15 && r.total === r.minted, 'the round ends at 2:30 after 15 blocks; every coin accounted for', { blocks: r.blocks, minted: r.minted, total: r.total });
-    ok(r.robs > 5 && r.banks.filter(x => x > 0).length >= 4, 'bots rob and bank during a round', { robs: r.robs, banks: r.banks });
+    ok(r.vault.warned && r.vault.moved && r.vault.n === 2, '2 vaults move after 20 s and show the new spot first', r.vault);
+    ok(r.over && r.total === r.minted && r.minted > 600 && r.minted < 900, 'the round ends at 2:30; one coin a second (8, 4, 2) minted ~810; every coin accounted for', { minted: r.minted, total: r.total, left: r.coinsLeft });
+    ok(r.values.includes(4), 'after 50 s new coins are worth 4', [...new Set(r.values)]);
+    ok(r.robs > 3 && r.banks.filter(x => x > 0).length >= 3, 'bots rob and bank during a round', { robs: r.robs, banks: r.banks });
     await pg.waitForTimeout(300);
     const e = await pg.evaluate(() => ({ on: document.getElementById('end').classList.contains('on'), rank: document.getElementById('eRank').textContent }));
-    ok(e.on && /#\d+ of 12/.test(e.rank), 'the end screen shows the rank', e);
+    ok(e.on && /#\d+ of 8/.test(e.rank), 'the end screen shows the rank', e);
     await pg.screenshot({ path: path.join(__dirname, '..', '..', '.shots', 'gold_end_' + w + '.png') });
     await pg.locator('#again').tap(); await pg.waitForTimeout(1200);
     await pg.screenshot({ path: path.join(__dirname, '..', '..', '.shots', 'gold_play_' + w + '.png') });
