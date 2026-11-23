@@ -6,9 +6,11 @@
      "THIS WEEK SO FAR" from 'week'; nothing when neither has rounds or the game is offline. A single row in a short landscape window.
    - The board screen (#titleLinks and #endExtra buttons): THIS WEEK / ALL TIME × PLAYERS / COUNTRIES, a totals line,
      the player's own row highlighted, "You: #N" pinned when he is outside the top 20, one CLOSE.
-   - Only server data is shown (never a Telegram id: only name, country, total, best, rounds, players, gold are read).
+   - Only server data is shown (never a Telegram id: only name, country, total, best, rounds, players, gold, crown are read).
+   - Crowns (g2): a row with crown: true (the champion, last week's #1) gets 👑 right before the name, on the board, the podium and
+     the end screen's top 3.
    - G.board = { open(), close(), load(scope, fresh), top3(scope) }: top3('title' | 'end' | 'last' | 'week') returns the rows
-     last rendered there ({rank, name, country, flag, total, mine}), [] when nothing was rendered. */
+     last rendered there ({rank, name, country, flag, total, mine, crown}), [] when nothing was rendered. */
 (function () {
   const num = v => { const n = Number(v); return isFinite(n) ? Math.round(n) : 0; };
   const fmt = v => num(v).toLocaleString('en-US');
@@ -58,6 +60,7 @@
     '.hgPl.p2 .nm,.hgPl.p2 .rk{color:#c9d2dc}.hgPl.p2 .bar{height:10px;background:linear-gradient(180deg,#c9d2dc,#58606a)}',
     '.hgPl.p3 .nm,.hgPl.p3 .rk{color:#d08a4e}.hgPl.p3 .bar{height:6px;background:linear-gradient(180deg,#d08a4e,#6a3e1c)}',
     '.hgPl.me .nm .n{text-decoration:underline;text-underline-offset:3px}',
+    '.hgCr{flex:none;font-style:normal}.hgRow .n .hgCr{margin-right:.25em}.hgPl .nm .hgCr{font-size:.72em;margin-right:-2px}',
     /* the end screen */
     '.hgEnd{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}',
     '.hgEndT{display:flex;flex-direction:column;align-items:center;gap:6px;max-width:100%;min-width:0}',
@@ -95,11 +98,12 @@
     }).catch(() => null).then(d => { delete inflight[scope]; return d; });
     return inflight[scope];
   }
-  const players = d => arr(d && d.players).map((p, i) => ({ rank: i + 1, name: String((p && p.name) || ''), country: code(p && p.country), total: num(p && p.total), best: num(p && p.best), rounds: num(p && p.rounds), mine: !!(p && p.mine) }));
+  const players = d => arr(d && d.players).map((p, i) => ({ rank: i + 1, name: String((p && p.name) || ''), country: code(p && p.country), total: num(p && p.total), best: num(p && p.best), rounds: num(p && p.rounds), mine: !!(p && p.mine), crown: !!(p && p.crown === true) }));
+  const crown = () => { const c = el('span', 'hgCr', '👑'); c.title = "Last week's champion"; return c; };
   const countries = d => arr(d && d.countries).map(c => ({ country: code(c && c.country), players: num(c && c.players), rounds: num(c && c.rounds), gold: num(c && c.gold) }))
     .sort((a, b) => b.gold - a.gold || b.players - a.players || b.rounds - a.rounds);
   const shown = { title: [], end: [], last: [], week: [] };
-  const top3rows = d => players(d).slice(0, 3).map(p => ({ rank: p.rank, name: p.name, country: p.country, flag: flag(p.country), total: p.total, mine: p.mine }));
+  const top3rows = d => players(d).slice(0, 3).map(p => ({ rank: p.rank, name: p.name, country: p.country, flag: flag(p.country), total: p.total, mine: p.mine, crown: p.crown }));
 
   /* ---- the title podium ---- */
   /* the podium sits first in #titleExtra while it has rows, and is taken out otherwise (an empty #titleExtra stays hidden) */
@@ -123,7 +127,8 @@
       const p = rows[i]; if (!p) continue;
       const b = el('div', 'hgPl p' + p.rank + (p.mine ? ' me' : '') + ([...p.name].length > 9 ? ' long' : '')); b.dataset.rank = p.rank;
       b.appendChild(el('div', 'rk', '#' + p.rank));
-      const nm = el('div', 'nm'); if (p.flag) nm.appendChild(el('span', 'f', p.flag)); nm.appendChild(el('span', 'n', p.name)); b.appendChild(nm);
+      const nm = el('div', 'nm'); if (p.crown) nm.appendChild(crown()); if (p.flag) nm.appendChild(el('span', 'f', p.flag)); nm.appendChild(el('span', 'n', p.name)); b.appendChild(nm);
+      if (p.crown) b.classList.add('crown');
       const g = el('div', 'g'); g.appendChild(el('b', null, fmt(p.total))); g.append(' gold'); b.appendChild(g);
       b.appendChild(el('div', 'bar'));
       row.appendChild(b);
@@ -150,6 +155,7 @@
     for (const p of rows) {
       const r = el('div', 'hgT t' + p.rank + (p.mine ? ' me' : '')); r.dataset.rank = p.rank;
       r.appendChild(el('span', 'r', '#' + p.rank));
+      if (p.crown) r.appendChild(crown());
       if (p.flag) r.appendChild(el('span', 'f', p.flag));
       r.appendChild(el('span', 'n', p.name));
       r.appendChild(el('span', 'g', fmt(p.total)));
@@ -228,7 +234,8 @@
         const hd = el('div', 'hgRow hd'); hd.append(cell('k', '#'), cell(), cell('n', 'Name'), cell('v', 'Total'), cell('v', 'Best'), cell('v', 'Rounds')); body.appendChild(hd);
         for (const p of ps) {
           const r = el('div', 'hgRow' + (p.mine ? ' me' : '')); r.dataset.rank = p.rank;
-          r.append(cell('k', String(p.rank)), cell('fl', flag(p.country)), cell('n', p.name), cell('v', fmt(p.total)), cell('v', fmt(p.best)), cell('v', fmt(p.rounds)));
+          const n = cell('n'); if (p.crown) { n.appendChild(crown()); r.classList.add('crown'); } n.append(p.name);
+          r.append(cell('k', String(p.rank)), cell('fl', flag(p.country)), n, cell('v', fmt(p.total)), cell('v', fmt(p.best)), cell('v', fmt(p.rounds)));
           body.appendChild(r);
         }
       }
