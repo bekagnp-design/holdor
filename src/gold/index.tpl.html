@@ -109,7 +109,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   /* the owner's numbers (2026-11-23): a map ~15 s across, 7 bots, one coin a second whose worth halves every 50 s (8 → 4 → 2),
      2 vaults that move every 20 s (the new spot shows 3 s before), robbery 35 % (half to the thief, half spilled) */
   const WORLD = 4000, ROUND = 150, COIN_T = 1, HALVE_T = 50, FIRST_VALUE = 8, START_COINS = 14, BOTS = 7, BANK_T = 1.5, ROB = 0.35, TAU = Math.PI * 2;
-  const VAULT_N = 2, VAULT_R = 120, VAULT_MOVE = 20, VAULT_WARN = 3;
+  const VAULT_N = 2, VAULT_R = 120, VAULT_MOVE = 20, VAULT_WARN = 3, NET_REACH = 12;
   const coinValue = t => Math.max(1, FIRST_VALUE >> Math.floor(t / HALVE_T));
   const GODS = {
     hermes:  { n: 'Hermes',  c: '#5ad1e8', g: 'H', sk: 'DASH',    d: 'Winged dash, a little faster', cd: 4 },
@@ -137,6 +137,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   let mapNo = Math.max(1, Math.floor((Date.now() - MAP0) / 86400000) + 1), mapForced = null;
   const mapRnd = mkRnd(0);
   const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+  const esc = s => String(s).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';');   // a name in innerHTML (online names come from other players)
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const radius = p => Math.min(58, 17 + Math.sqrt(Math.max(0, p.carry)) * 1.1);
   const speed = p => mod('speed', p, (p.god === 'hermes' ? 1.08 : 1) * 270 / Math.sqrt(1 + p.carry / 110));
@@ -159,19 +160,25 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
       for (let k = 0; k < 40; k++) { const q = { x: 450 + mapRnd() * (WORLD - 900), y: 450 + mapRnd() * (WORLD - 900) }; const d = Math.min(1e9, ...out.concat(avoid).map(o => dist(o, q)));
         if (d > bd) { bd = d; best = q; } } out.push(best); } return out; }
   const nearestVault = p => { let bv = S.vaults[0], bd = 1e9; for (const v of S.vaults) { const d = dist(v, p); if (d < bd) { bd = d; bv = v; } } return bv; };
-  function start(g) {
+  /* online hook (90_online.js, GOLD.md "Online hooks"): start(god, {seats:[{name, god, flag, u, me}], client, map}) seats the real
+     players first (hero id = seat index), fills the rest with the same 7 bots as solo; a client (S.client) runs no coins, bots,
+     vaults, robbery or banking: the host's state brings them. start(god) alone is the solo round, unchanged. */
+  function start(g, o) {
     god = GODS[g] ? g : god; try { localStorage.setItem('hg_god', god); } catch (e) {}
     if (mapForced == null) mapNo = Math.max(1, Math.floor((Date.now() - MAP0) / 86400000) + 1);
+    if (o && o.map > 0) mapNo = o.map | 0;   // an online round: the host's map
     mapRnd.seed(Math.imul(mapNo, 2654435761) ^ 0x5bd1e995);   // the same map all day
-    const ps = []; let id = 0;
-    const me = mkP('You', god, false, id++); ps.push(me);
-    for (let i = 0; i < BOTS; i++) ps.push(mkP(BOTN[i], GK[(i + 1) % 4], true, id++));
+    const ps = []; let id = 0, me = null;
+    if (o && o.seats) for (const s of o.seats.slice(0, BOTS + 1)) { const p = mkP(String(s.name || 'Hero'), GODS[s.god] ? s.god : 'hermes', false, id++); p.u = s.u; p.flag = s.flag || ''; p.net = !s.me; ps.push(p); if (s.me) me = p; }
+    if (!me) { me = mkP('You', god, false, id++); ps.unshift(me); ps.forEach((p, i) => { p.id = i; }); }
+    for (let i = 0; ps.length < BOTS + 1; i++) ps.push(mkP(BOTN[i], GK[(i + 1) % 4], true, id++));
     S = { t: 0, ps, me, coins: [], decoys: [], fx: [], veins: [], pairT: {}, vaults: [], vNext: VAULT_MOVE, nextCoin: COIN_T, minted: 0, over: false, camX: 0, camY: 0, hudT: 0 };
+    if (o) { S.online = true; S.client = !!o.client; }
     S.vaults = spots(VAULT_N, []).map(q => ({ x: q.x, y: q.y, r: VAULT_R, nx: null, ny: null }));
     for (const p of ps) { for (let k = 0; k < 80; k++) { p.x = 250 + mapRnd() * (WORLD - 500); p.y = 250 + mapRnd() * (WORLD - 500);
       if (S.vaults.every(v => dist(v, p) > 500) && ps.every(q => q === p || !q.placed || dist(q, p) > 500)) break; } p.placed = true; }
     S.camX = me.x; S.camY = me.y;
-    for (let i = 0; i < START_COINS; i++) { addCoin(250 + mapRnd() * (WORLD - 500), 250 + mapRnd() * (WORLD - 500), FIRST_VALUE); S.minted += FIRST_VALUE; }
+    if (!S.client) for (let i = 0; i < START_COINS; i++) { addCoin(250 + mapRnd() * (WORLD - 500), 250 + mapRnd() * (WORLD - 500), FIRST_VALUE); S.minted += FIRST_VALUE; }
     $('title').classList.remove('on'); $('end').classList.remove('on'); $('hud').classList.add('on');
     const sk = $('sk'); sk.classList.add('on'); sk.textContent = GODS[god].sk; sk.style.borderColor = GODS[god].c;
     joy.on = false; keys.clear();
@@ -181,13 +188,19 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 
   function useSkill(p) {
     if (!S || S.over || p.cd > S.t) return false;
-    const G = GODS[p.god]; p.cdT = mod('cd', p, G.cd); p.cd = S.t + p.cdT;
+    const G = GODS[p.god];
+    if (S.client) {   // an online client: the press goes to the host (90_online.js hears 'skill'); only Hermes's dash moves here
+      if (p !== S.me) return false; p.cdT = mod('cd', p, G.cd); p.cd = S.t + p.cdT;
+      if (p.god === 'hermes') p.dash = S.t + mod('dash', p, 0.3); else if (p.god === 'loki') p.inv = S.t + mod('lokiT', p, 3); else if (p.god === 'amirani') p.imm = S.t + mod('chainT', p, 3);
+      fx({ kind: 'ring', x: p.x, y: p.y, r: p.god === 'thor' ? mod('thorR', p, 170) : 50, c: G.c, life: 0.6 }); haptic('medium'); emit('skill', p); return true;
+    }
+    p.cdT = mod('cd', p, G.cd); p.cd = S.t + p.cdT;
     if (p.god === 'hermes') { p.dash = S.t + mod('dash', p, 0.3); fx({ kind: 'ring', x: p.x, y: p.y, r: 40, c: G.c }); }
     else if (p.god === 'thor') {
       const TR = mod('thorR', p, 170), TS = mod('thorShare', p, 0.25);
       fx({ kind: 'ring', x: p.x, y: p.y, r: TR, c: G.c, life: 0.6 });
       let hits = 0; for (const q of S.ps) { if (q === p || q.carry <= p.carry || q.imm > S.t || q.inv > S.t || dist(p, q) > TR) continue; hits++; const loss = Math.ceil(q.carry * TS); q.carry -= loss; q.lost += loss; q.bankT = 0; spill(q.x, q.y, loss, radius(q) + 26);
-        fx({ kind: 'text', x: q.x, y: q.y - 30, s: '-' + loss, c: '#9fb2ff' }); if (q === S.me) { toast(p.name + ' struck you: -' + loss); haptic('heavy'); } }
+        fx({ kind: 'text', x: q.x, y: q.y - 30, s: '-' + loss, c: '#9fb2ff' }); if (q === S.me) { toast(p.name + ' struck you: -' + loss); haptic('heavy'); } emit('thunder', p, q, loss); }
       if (!hits) { p.cd = S.t + 1; if (p === S.me) toast('No richer rival in reach'); }
     }
     else if (p.god === 'loki') { const LT = mod('lokiT', p, 3); p.inv = S.t + LT; const da = Math.atan2(p.fy, p.fx) + (rnd() < 0.5 ? 1.57 : -1.57); S.decoys.push({ owner: p, x: p.x, y: p.y, vx: Math.cos(da) * 200, vy: Math.sin(da) * 200, carry: Math.max(p.carry, 40), until: S.t + LT }); fx({ kind: 'ring', x: p.x, y: p.y, r: 50, c: G.c }); }
@@ -255,22 +268,23 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   }
   function step(dt) {
     if (!S || S.over) return;
-    S.t += dt; const t = S.t;
+    S.t += dt; const t = S.t, C = !!S.client;   // C: an online client (the host decides coins, vaults, bots, robbery, banking)
     while (t >= S.nextCoin && S.nextCoin <= ROUND) {   // one coin a second; its worth halves every HALVE_T seconds
-      const v = Math.max(1, Math.round(mod('coinValue', null, coinValue(S.nextCoin - COIN_T)))); S.nextCoin += COIN_T; const x = 120 + mapRnd() * (WORLD - 240), y = 120 + mapRnd() * (WORLD - 240);
-      addCoin(x, y, v); S.minted += v; S.veins.push({ x, y, t, reward: v });
+      const v = Math.max(1, Math.round(mod('coinValue', null, coinValue(S.nextCoin - COIN_T)))); S.nextCoin += COIN_T;
+      if (!C) { const x = 120 + mapRnd() * (WORLD - 240), y = 120 + mapRnd() * (WORLD - 240); addCoin(x, y, v); S.minted += v; S.veins.push({ x, y, t, reward: v }); }
       if (Math.abs(S.nextCoin - 1 - HALVE_T) < 0.01 || Math.abs(S.nextCoin - 1 - 2 * HALVE_T) < 0.01) toast('Halving! A coin is now worth ' + Math.max(1, Math.round(mod('coinValue', null, coinValue(S.nextCoin - COIN_T)))));
     }
     if (!S.warn && ROUND - t <= 20) { S.warn = true; toast('20 s left: bank your gold or lose it!', 3000); haptic('medium'); }
-    if (t >= S.vNext - VAULT_WARN && S.vaults[0].nx == null) {   // the new spots show 3 s before the vaults move
+    if (!C && t >= S.vNext - VAULT_WARN && S.vaults[0].nx == null) {   // the new spots show 3 s before the vaults move
       const ns = spots(VAULT_N, S.vaults); S.vaults.forEach((v, i) => { v.nx = ns[i].x; v.ny = ns[i].y; }); toast('Vaults move in ' + VAULT_WARN + ' s');
     }
-    if (t >= S.vNext) { S.vNext += VAULT_MOVE; for (const v of S.vaults) { v.x = v.nx; v.y = v.ny; v.nx = v.ny = null; } for (const p of S.ps) { p.bankT = 0; if (p.bot) p.ai.t = 0; } }
+    if (!C && t >= S.vNext) { S.vNext += VAULT_MOVE; for (const v of S.vaults) { v.x = v.nx; v.y = v.ny; v.nx = v.ny = null; } for (const p of S.ps) { p.bankT = 0; if (p.bot) p.ai.t = 0; } }
     // input
     const me = S.me; let mx = 0, my = 0;
     if (joy.on) { mx = joy.dx; my = joy.dy; }
     else { if (keys.has('a') || keys.has('arrowleft')) mx -= 1; if (keys.has('d') || keys.has('arrowright')) mx += 1; if (keys.has('w') || keys.has('arrowup')) my -= 1; if (keys.has('s') || keys.has('arrowdown')) my += 1; }
     move(me, mx, my, dt);
+    if (!C) {
     for (const p of S.ps) { if (!p.bot) continue; if (t >= p.ai.t) think(p); move(p, p.ai.dx, p.ai.dy, dt); }
     for (const dc of S.decoys) { dc.x = clamp(dc.x + dc.vx * dt, 20, WORLD - 20); dc.y = clamp(dc.y + dc.vy * dt, 20, WORLD - 20);
       for (const p of S.ps) if (p !== dc.owner && dist(p, dc) < radius(p) + 20) { dc.until = 0; fx({ kind: 'text', x: dc.x, y: dc.y - 30, s: 'fooled!', c: '#7fd36a' }); break; } }
@@ -278,8 +292,9 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     // coins
     for (let i = S.coins.length - 1; i >= 0; i--) { const c = S.coins[i];
       for (const p of S.ps) { const r = radius(p) + 5; const dx = c.x - p.x, dy = c.y - p.y; if (dx * dx + dy * dy < r * r) { p.carry += c.v; S.coins[i] = S.coins[S.coins.length - 1]; S.coins.pop(); emit('pickup', p, c); break; } } }
+    }
     // vaults
-    for (const p of S.ps) {
+    if (!C) for (const p of S.ps) {
       const v = S.vaults.find(v => dist(v, p) < v.r);
       if (v && p.carry > 0) { p.bankT += dt; if (p.bankT >= mod('bankT', p, BANK_T)) { const amt = p.carry; p.bank += p.carry; emit('bank', p, amt); fx({ kind: 'text', x: p.x, y: p.y - 40, s: 'banked ' + p.carry, c: '#e8b84a', life: 1.2 });
         if (p === me) { toast('Banked ' + p.carry + ' gold'); haptic('medium'); } p.carry = 0; p.bankT = 0; } }
@@ -287,12 +302,13 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     }
     // contacts
     const ps = S.ps;
-    for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) { const a = ps[i], b = ps[j]; const ra = radius(a), rb = radius(b), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 0.01;
-      if (d < ra + rb) { const o = (ra + rb - d) / 2, nx = dx / d, ny = dy / d; a.x -= nx * o; a.y -= ny * o; b.x += nx * o; b.y += ny * o; a.vx -= nx * 120; a.vy -= ny * 120; b.vx += nx * 120; b.vy += ny * 120; contact(a, b); } }
+    for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) { const a = ps[i], b = ps[j]; if (C && a !== me && b !== me) continue;
+      const ra = radius(a), rb = radius(b), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 0.01, sl = a.net || b.net ? NET_REACH : 0;   // a remote hero's spot is a little old: a touch counts a little farther
+      if (d < ra + rb + sl) { if (d < ra + rb) { const o = (ra + rb - d) / 2, nx = dx / d, ny = dy / d; a.x -= nx * o; a.y -= ny * o; b.x += nx * o; b.y += ny * o; a.vx -= nx * 120; a.vy -= ny * 120; b.vx += nx * 120; b.vy += ny * 120; } if (!C) contact(a, b); } }
     S.fx = S.fx.filter(f => t - f.t < f.life);
     S.veins = S.veins.filter(v => t - v.t < 1.2);
     emit('step', dt);
-    if (t >= ROUND) end();
+    if (t >= ROUND && !C) end();   // a client ends on the host's last state (G.finish)
   }
 
   /* ---------- end ---------- */
@@ -306,14 +322,19 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const lines = ['Banked <b>' + me.bank + '</b> gold as ' + GODS[me.god].n,
       'Robberies: ' + me.robs + (me.best ? ' (best +' + me.best + ')' : '') + ' · stolen from you: ' + me.lost,
       me.carry ? 'Not banked, lost at the bell: ' + me.carry : 'Nothing left unbanked',
-      'Winner: ' + (order[0] === me ? 'you' : order[0].name + ' (bot)') + ' · ' + order[0].bank,
+      'Winner: ' + (order[0] === me ? 'you' : esc(order[0].name) + (order[0].bot ? ' (bot)' : '')) + ' · ' + order[0].bank,
       'All the gold that appeared this round: ' + S.minted + ' (a coin\'s worth halved every 50 s)',
-      'Your best: ' + Math.max(best(), me.bank), '<span class="small">The other ' + BOTS + ' heroes are bots.</span>'];
+      'Your best: ' + Math.max(best(), me.bank), '<span class="small">' + others() + '</span>'];
     $('eLines').innerHTML = lines.join('<br>');
     $('end').classList.add('on');
     haptic('heavy');
-    emit('end', S, { map: mapNo, rank: lastRank, of: S.ps.length, bank: me.bank, god: me.god, robs: me.robs, lost: me.lost, carry: me.carry, minted: S.minted, best: me.best });
+    const res = { map: mapNo, rank: lastRank, of: S.ps.length, bank: me.bank, god: me.god, robs: me.robs, lost: me.lost, carry: me.carry, minted: S.minted, best: me.best };
+    if (S.online) { res.mode = 'online'; res.players = S.ps.filter(p => !p.bot).length; }
+    emit('end', S, res);
   }
+  /* "The other 7 heroes are bots." (solo) or "2 other players and 5 bots." (online) */
+  function others() { const nb = S.ps.filter(p => p.bot).length, np = S.ps.length - 1 - nb;
+    return !np ? 'The other ' + nb + ' heroes are bots.' : np + ' other player' + (np === 1 ? '' : 's') + (nb ? ' and ' + nb + ' bot' + (nb === 1 ? '' : 's') : '') + '.'; }
   function share() {
     const me = S ? S.me : null, url = 'https://t.me/HoldorTDBot/play';
     const text = me ? 'I banked ' + me.bank + ' gold as ' + GODS[me.god].n + ' in Heavy Gold (#' + lastRank + ' of ' + (BOTS + 1) + '). The lighter one robs the heavier one. Beat me:' : 'Heavy Gold: the lighter one robs the heavier one.';
@@ -361,7 +382,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     $('hTC').innerHTML = '<b' + (left <= 20 ? ' style="color:#ff6a5a"' : '') + '>' + mm + ':' + String(ss).padStart(2, '0') + '</b>Coin ' + cv_ + (cv_ > 2 ? ' · halves in ' + Math.ceil(toHalf) + ' s' : '') + '<br>Vaults move in ' + Math.max(0, Math.ceil(S.vNext - S.t)) + ' s';
     const order = S.ps.slice().sort((a, b) => b.bank - a.bank).slice(0, 5);
     if (!order.includes(me)) order[4] = me;
-    $('hTR').innerHTML = order.map(p => '<div class="' + (p === me ? 'me' : '') + '">' + (p === me ? 'You' : p.name) + ' ' + p.bank + '</div>').join('');
+    $('hTR').innerHTML = order.map(p => '<div class="' + (p === me ? 'me' : '') + '">' + (p === me ? 'You' : (p.flag ? p.flag + ' ' : '') + esc(p.name) + (S.online && p.bot ? ' (bot)' : '')) + ' ' + p.bank + '</div>').join('');
     const sk = $('sk'), G = GODS[me.god], cd = Math.max(0, me.cd - S.t);
     sk.textContent = cd > 0 ? Math.ceil(cd) + ' s' : G.sk;
     sk.style.background = cd > 0 ? 'conic-gradient(rgba(232,184,74,.35) ' + (360 * (1 - cd / (me.cdT || G.cd))) + 'deg, rgba(10,16,28,.72) 0)' : 'rgba(10,16,28,.72)';
@@ -389,7 +410,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     if (p.imm > S.t) { ctx.setLineDash([6, 5]); ctx.strokeStyle = '#ffb199'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(sx, sy, r + 7, 0, TAU); ctx.stroke(); ctx.setLineDash([]); }
     sym(ctx, p.god, sx, sy, r * 0.78);
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.font = '700 12px Georgia'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.8)';
-    const nm = (p === S.me && !fake) ? 'You' : p.name + (p.bot ? ' · bot' : '');
+    const nm = (p === S.me && !fake) ? 'You' : (p.flag ? p.flag + ' ' : '') + p.name + (p.bot ? ' · bot' : p.tag ? ' · ' + p.tag : '');
     ctx.strokeText(nm, sx, sy - r - 18); ctx.fillStyle = '#e9eef5'; ctx.fillText(nm, sx, sy - r - 18);
     if (p.carry > 0) { const s = String(p.carry); ctx.strokeText(s, sx, sy - r - 5); ctx.fillStyle = '#ffd36a'; ctx.fillText(s, sx, sy - r - 5); }
     if (p.bankT > 0) { ctx.strokeStyle = '#ffd36a'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(sx, sy, r + 5, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, p.bankT / mod('bankT', p, BANK_T))); ctx.stroke(); }
@@ -424,7 +445,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
       ctx.fillStyle = '#e8b84a'; ctx.beginPath(); ctx.arc(sx, sy, r, 0, TAU); ctx.fill(); ctx.strokeStyle = '#8a6420'; ctx.lineWidth = 1.5; ctx.stroke();
       if (c.v > 1) { ctx.fillStyle = '#3a2808'; ctx.font = '900 ' + Math.max(8, Math.round(r * 1.1)) + 'px Georgia'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(c.v), sx, sy + 0.5); ctx.textBaseline = 'alphabetic'; } }
     // decoys, players
-    for (const dc of S.decoys) drawP({ id: -1, name: dc.owner.name, god: dc.owner.god, bot: dc.owner.bot, x: dc.x, y: dc.y, carry: dc.carry, imm: 0, bankT: 0 }, k, 0.9, true);
+    for (const dc of S.decoys) drawP({ id: -1, name: dc.owner.name, flag: dc.owner.flag, god: dc.owner.god, bot: dc.owner.bot, x: dc.x, y: dc.y, carry: dc.carry, imm: 0, bankT: 0 }, k, 0.9, true);
     const order = S.ps.slice().sort((a, b) => radius(a) - radius(b));
     for (const p of order) drawP(p, k, p.inv > S.t ? (p === me ? 0.35 : 0.1) : 1, false);
     // fx
@@ -453,6 +474,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   /* ---------- test hooks (public, like HOLDOR's R) ---------- */
   window.G = { start, step: n => { for (let i = 0; i < (n || 1); i++) step(1 / 60); }, get S() { return S; }, get VAULTS() { return S ? S.vaults : []; }, GODS, BOTS, useSkill,
     on: (e, f) => { (BUS[e] = BUS[e] || []).push(f); }, addMod: (n, f) => { (MODS[n] = MODS[n] || []).push(f); }, mod, emit, toast, haptic, sym, radius, dist, fx: o => S && fx(o), TG, $, showErr,
+    finish: () => { if (S && !S.over) end(); }, NET_REACH, VAULT_MOVE, VAULT_WARN, COIN_T,
     WORLD, ROUND, HALVE_T, BANK_T, ROB, coinValue, get mapNo() { return mapNo; }, setMap: n => { mapForced = n == null ? null : Math.max(1, n | 0); if (mapForced != null) mapNo = mapForced; }, mkRnd, nearestVault: p => nearestVault(p), get god() { return god; }, get W() { return VW; }, get H() { return VH; }, profile: { name: '', country: '' }, rnd, joy, total: () => S ? S.coins.reduce((s, c) => s + c.v, 0) + S.ps.reduce((s, p) => s + p.carry + p.bank, 0) : 0 };
 })();
 </script>
