@@ -173,10 +173,14 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     await pg.locator('#hgChIn').fill('   '); await pg.locator('#hgChSend').tap(); await pg.waitForTimeout(150);
     const e0 = await msgLine(pg);
     ok(e0.t === ERRTXT.empty && e0.bad && T.n('hg_chat_send').length === nSend0, 'SEND with only spaces: "Write something first", nothing sent', e0);
-    for (const code of ['rate', 'too_long', 'empty', 'no_profile', 'bad_channel', 'auth', 'http500']) {
+    for (const code of ['rate', 'too_long', 'empty', 'no_profile', 'bad_channel', 'http500']) {
       M.force = code; await sendText(pg, 'x'); const e = await msgLine(pg);
       ok(e.t === ERRTXT[code] && e.bad && await pg.locator('#hgChIn').inputValue() === 'x', 'server error ' + code + ': "' + ERRTXT[code] + '" (the text stays in the input)', e);
     }
+    // 'auth' (a dead session): 10_net logs in again once and repeats the send, so the message goes out
+    { const nl = T.n('tg_login').length, ns = T.n('hg_chat_send').length;
+      M.force = 'auth'; await sendText(pg, 'x'); await pg.waitForTimeout(300); const e = await msgLine(pg);
+      ok(T.n('tg_login').length === nl + 1 && T.n('hg_chat_send').length === ns + 2 && !e.bad && await pg.locator('#hgChIn').inputValue() === '', 'server error auth: one new login, the send repeated once and delivered', { e, login: T.n('tg_login').length - nl, sends: T.n('hg_chat_send').length - ns }); }
     await sendText(pg, '\u0007');
     ok((await msgLine(pg)).t === ERRTXT.empty, 'a body of control characters only: the server says empty → "Write something first"', await msgLine(pg));
     await pg.locator('#hgChIn').fill('a'.repeat(250)); await pg.waitForTimeout(80);

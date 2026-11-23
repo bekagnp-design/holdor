@@ -202,7 +202,7 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
         setTimeout(() => { w.send(JSON.stringify({ topic: t, event: 'presence', payload: { type: 'presence', event: 'track', payload: { u: 'evilevil01', n: '<img src=x onerror=window.__x=1>Eve', c: 'XX', g: 'odin' } }, ref: '2', join_ref: '1' })); res('ok'); }, 200); }; }), [URL_, code]);
     ok(evr === 'ok', 'a raw client connects to the fake Realtime server', evr);
     ok(await until(A.pg, () => document.querySelectorAll('#onList .onP:not(.bot)').length === 4, null, 4000), 'Ann\'s list shows 4 players');
-    const lst = await A.pg.evaluate(() => ({ rows: [...document.querySelectorAll('#onList .onP:not(.bot)')].map(e => e.textContent), imgs: document.querySelectorAll('img').length, x: window.__x, bot: document.querySelector('#onList .onP.bot').textContent, start: getComputedStyle(document.getElementById('onStart')).display }));
+    const lst = await A.pg.evaluate(() => ({ rows: [...document.querySelectorAll('#onList .onP:not(.bot)')].map(e => e.textContent), imgs: document.querySelectorAll('#onList img').length, x: window.__x, bot: document.querySelector('#onList .onP.bot').textContent, start: getComputedStyle(document.getElementById('onStart')).display }));
     ok(lst.rows.includes('🇫🇷Bob') && lst.rows.includes('🇺🇸Cat') && lst.rows.includes('img srcx onerror') && !lst.imgs && lst.x === undefined && /4 bots/.test(lst.bot) && lst.start !== 'none',
       'Bob 🇫🇷 and Cat 🇺🇸 listed; the hostile name is shown as cleaned text (no HTML, no flag for a bad country); 4 bots; the host sees Start now', lst);
     const bc0 = await B.pg.evaluate(() => ({ start: getComputedStyle(document.getElementById('onStart')).display, n: document.querySelectorAll('#onList .onP:not(.bot)').length }));
@@ -223,7 +223,7 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
       'the same 8 seats everywhere: Ann, Bob, Cat, the stranger, then 4 bots; the same map', sA);
     ok(sA.flags.slice(0, 3).join(' ') === '🇬🇪 🇫🇷 🇺🇸' && !sA.client && sB.client && sC.client && sB.me === 'Bob' && sC.me === 'Cat', 'flags on the players; Ann hosts, Bob and Cat are clients', { flags: sA.flags, me: [sA.me, sB.me, sC.me] });
     await sleep(600);
-    const hud = await B.pg.evaluate(() => ({ tr: document.getElementById('hTR').innerHTML, chip: document.getElementById('onChip').textContent, imgs: document.querySelectorAll('img').length }));
+    const hud = await B.pg.evaluate(() => ({ tr: document.getElementById('hTR').innerHTML, chip: document.getElementById('onChip').textContent, imgs: document.querySelectorAll('#hTR img, #hud img').length }));
     ok(/\(bot\)/.test(hud.tr) && hud.tr.indexOf('<img') < 0 && /ONLINE · 4 players/.test(hud.chip) && !hud.imgs, 'the HUD board marks bots "(bot)", escapes names; the chip says ONLINE · 4 players', hud);
     for (const P of [A, B, C]) await P.pg.evaluate(() => { for (const p of G.S.ps) { p.inv = 0; } });
 

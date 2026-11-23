@@ -502,9 +502,9 @@
   const wrapRpc = () => {
     const N = G.net; if (!N || typeof N.rpc !== 'function' || N.rpc._online) return;
     const orig = N.rpc;
-    const w = (name, args) => { const S = G.S;
+    const w = (name, args, opt) => { const S = G.S;
       if (name === 'hg_round_submit' && S && S.online && S.over && !S.submitted && args && args.r && typeof args.r === 'object') { S.submitted = true; args = Object.assign({}, args, { r: Object.assign({}, args.r, { mode: 'online', map: G.mapNo }) }); }
-      return orig(name, args); };
+      return orig(name, args, opt); };
     w._online = true; N.rpc = w;
   };
   wrapRpc();

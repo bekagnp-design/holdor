@@ -378,7 +378,8 @@
       const m = clean(r.msg); if (m) { m.mine = true; add(ch, [m]); }
       if (isOpen && chan(tab) === ch) { shownKey = ''; render(); list.scrollTop = list.scrollHeight; pill.hidden = true; markSeen(ch); }
       kick(400);
-    } else msg(r && typeof r === 'object' && r.error ? String(r.error) : 'net');
+    } else msg(r && typeof r === 'object' && r.error ? String(r.error)
+      : (G.net && (!G.net.on || /session|^auth$/i.test(String(G.net.err || ''))) ? 'auth' : 'net'));   // 10_net logs in again once on 'auth'; null after that = still not signed in
   }
 
   /* ---- report / block: the ⋯ on a message or a long press ---- */
