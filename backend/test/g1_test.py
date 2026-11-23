@@ -5,10 +5,11 @@
 # the boards (week / last / all: order, mine, me, countries by the round's country, totals, boundaries, the session TimeZone,
 # the running all-time totals under insert / update / delete / truncate, no Telegram id, the null token), rights (RLS, no table
 # access, internal helpers closed, search_path with pg_temp last against temp-table stand-ins) and re-running the file.
-# Local database only.
+# Local database only (HG_DB picks another local database); it also passes on a database where holdor_g2.sql is loaded
+# (g2 adds functions and tables, no trigger).
 import os, re, json, uuid, threading, datetime, atexit
 import psycopg2
-DSN = dict(host='127.0.0.1', dbname='postgres', user='postgres', password='pg')
+DSN = dict(host='127.0.0.1', dbname=os.environ.get('HG_DB', 'postgres'), user='postgres', password='pg')
 db = psycopg2.connect(**DSN); db.autocommit = True
 def q(sql, *a):
     with db.cursor() as c: c.execute(sql, a); return c.fetchall() if c.description else []
@@ -436,7 +437,8 @@ load(); load()
 after = snap()
 check('re-running the file twice keeps every profile, round, all-time total and board', before == after)
 check('re-running: one function per name, the same indexes and triggers', [r[0] for r in fx] == [r[0] for r in q("select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname like 'hg\\_%%' order by 1")]
-      and len(fx) == 7 and q1("select count(*) from pg_indexes where tablename = 'hg_profiles'") == 2 and q1("select count(*) from pg_indexes where tablename = 'hg_rounds'") == 3
+      and {'hg_int', 'hg_alltime_sync', 'hg_ranked', 'hg_profile_get', 'hg_profile_set', 'hg_round_submit', 'hg_board'} <= {r[0] for r in fx}
+      and q1("select count(*) from pg_indexes where tablename = 'hg_profiles'") == 2 and q1("select count(*) from pg_indexes where tablename = 'hg_rounds'") == 3
       and q1("select count(*) from pg_indexes where tablename = 'hg_alltime'") == 1
       and q1("select count(*) from pg_trigger where tgrelid = 'hg_rounds'::regclass and not tgisinternal") == 2
       and q1("select count(*) from information_schema.columns where table_name = 'hg_rounds' and column_name = 'country'") == 1)

@@ -4,9 +4,9 @@
      sessionStorage ('hg_token', tied to this initData), so a reload in the same Telegram launch reuses it without a new login.
      Without Telegram, or when the login fails, the game stays offline and nothing is sent.
    - login(): resolves true when online. It tries again only when asked (a user action), at most once per 20 s after a failure.
-   - rpc(name, args): resolves the server's JSON, or null when offline or on any error (G.net.err has the text); it never throws.
-     An 8 s timeout per call. A call made while the login is in flight waits for it. A null `token` in args is filled with the
-     session token. A dead session ('bad session') logs in again once and repeats the call once.
+   - rpc(name, args, opt): resolves the server's JSON, or null when offline or on any error (G.net.err has the text); it never throws.
+     An 8 s timeout per call (opt.timeout in ms overrides it). A call made while the login is in flight waits for it. A null `token` in args is filled with the
+     session token. A dead session ('bad session', or the hg_* answer {error:'auth'}) logs in again once and repeats the call once.
    - G.emit('net', on) whenever the online state changes (on = true / false). */
 (function () {
   const URL_ = 'https://acimxvnupgpronpohheb.supabase.co', KEY = 'sb_publishable_IdiZ6FC3GwAEZ8AkBeBg0g_doDtulMB';
@@ -20,12 +20,12 @@
   const setOn = v => { N.on = !!v; if (N.on !== emitted) { emitted = N.on; try { G.emit('net', N.on); } catch (e) {} } };
   const keep = t => { try { if (t) sessionStorage.setItem(TK, JSON.stringify({ h: hash(init()), t })); else sessionStorage.removeItem(TK); } catch (e) {} };
   const kept = () => { try { const o = JSON.parse(sessionStorage.getItem(TK) || 'null'); return o && o.t && o.h === hash(init()) ? String(o.t) : null; } catch (e) { return null; } };
-  const dead = m => /bad[ _]?session|no[ _]?session|bad[ _]?token|invalid[ _]?token|session (expired|not found)/i.test(String(m || ''));
+  const dead = m => /^auth$|bad[ _]?session|no[ _]?session|bad[ _]?token|invalid[ _]?token|session (expired|not found)/i.test(String(m || ''));
 
   /* one POST, 8 s for the whole exchange; resolves {v} or {e} (never rejects) */
-  async function post(name, args) {
+  async function post(name, args, ms) {
     let to = 0; const ctl = typeof AbortController === 'function' ? new AbortController() : null;
-    const timer = new Promise((_, rej) => { to = setTimeout(() => { rej(new Error('timeout')); try { if (ctl) ctl.abort(); } catch (e) {} }, TIMEOUT); });
+    const timer = new Promise((_, rej) => { to = setTimeout(() => { rej(new Error('timeout')); try { if (ctl) ctl.abort(); } catch (e) {} }, ms || TIMEOUT); });
     try {
       N.calls++;
       const r = await Promise.race([fetch(URL_ + '/rest/v1/rpc/' + name, { method: 'POST', headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
@@ -55,18 +55,19 @@
   };
 
   const withToken = args => { if (args && typeof args === 'object' && Object.prototype.hasOwnProperty.call(args, 'token') && args.token == null) return Object.assign({}, args, { token: N.token }); return args; };
-  N.rpc = async (name, args) => {
+  N.rpc = async (name, args, opt) => {
+    const ms = opt && opt.timeout;
     try {
       if (!N.on && loginP) await loginP;
       if (!N.on || !N.token) return null;
       const tok = N.token;
-      let x = await post(name, withToken(args));
+      let x = await post(name, withToken(args), ms);
       const bad = y => dead(y.e) || (y.v && typeof y.v === 'object' && !Array.isArray(y.v) && dead(y.v.error));
       if (bad(x)) {                                               // the session died: log in again once, repeat once
         if (N.token === tok) { N.token = null; keep(null); N.on = false; }
         const ok = await N.login(true); if (!ok) return null;
         const a2 = args && typeof args === 'object' && args.token === tok ? Object.assign({}, args, { token: N.token }) : withToken(args);
-        x = await post(name, a2);
+        x = await post(name, a2, ms);
         if (bad(x)) { N.err = x.e || 'bad session'; return null; }
       }
       if (x.e !== undefined) { N.err = x.e; return null; }

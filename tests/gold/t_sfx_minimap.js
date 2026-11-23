@@ -1,5 +1,5 @@
 // tests/gold/t_sfx_minimap.js — Heavy Gold sound (60_sfx.js) and minimap (70_minimap.js).
-// Sound: the AudioContext is wrapped in an init script that counts contexts and started oscillators; no context before the
+// Sound: a 🔊/🔇 "Sound" .ib icon button in #titleLinks (before Rules); the AudioContext is wrapped in an init script that counts contexts and started oscillators; no context before the
 // first gesture; pickup / rob / robbed / bank / every god's skill / halving / vault warning / 20 s tick / end land in G.sfx.log;
 // a burst of pickups plays once; a robbery far away is silent; mute stops every sound and survives a reload.
 // Minimap: its box overlaps none of the HUD texts or the skill button at 390×844, 844×390 and 640×360; it is retina-sharp and
@@ -59,9 +59,11 @@ const HELP = () => {
     await pg.evaluate(HELP);
     const s0 = await pg.evaluate(() => { const btn = document.getElementById('hgSound'), r = btn && btn.getBoundingClientRect();
       return { made: __ac.made, api: typeof G.sfx.play === 'function' && Array.isArray(G.sfx.log) && G.sfx.muted === false, early: G.sfx.play('bank'), made2: __ac.made,
-        btn: btn && btn.textContent, inLinks: !!(btn && btn.parentElement && btn.parentElement.id === 'titleLinks'), sec: !!(btn && btn.classList.contains('sec')), h: r ? r.height : 0 }; });
+        btn: btn && btn.textContent, on: !!(btn && btn.classList.contains('on')), inLinks: !!(btn && btn.parentElement && btn.parentElement.id === 'titleLinks'), ib: !!(btn && btn.classList.contains('ib')),
+        word: btn && btn.querySelector('span') && btn.querySelector('span').textContent, beforeRules: !!(btn && document.getElementById('helpB') && (btn.compareDocumentPosition(document.getElementById('helpB')) & 4)),
+        h: r ? r.height : 0, w: r ? r.width : 0 }; });
     ok(s0.made === 0 && s0.made2 === 0 && s0.early === false && s0.api, 'no AudioContext before the first gesture (play() does not make one either); G.sfx = {play, muted, log}', s0);
-    ok(s0.btn === 'Sound: on' && s0.inLinks && s0.sec && s0.h >= 44, 'a "Sound: on" .sec button in #titleLinks, >= 44 px', s0);
+    ok(s0.btn === '🔊Sound' && s0.word === 'Sound' && s0.on && s0.inLinks && s0.ib && s0.beforeRules && s0.h >= 48 && s0.w >= 52, 'a 🔊 "Sound" .ib icon button (.on) in #titleLinks, before Rules, >= 52 px', s0);
     await pg.screenshot({ path: path.join(SHOTS, 'gold_sfx_title.png') });
     await play(pg, 'thor');
     const s1 = await pg.evaluate(() => ({ made: __ac.made, state: G.sfx.state, on: !!G.S && !G.S.over }));
@@ -143,18 +145,18 @@ const HELP = () => {
     await pg.waitForTimeout(300);
     await pg.locator('#change').tap(); await pg.waitForTimeout(200);
     await pg.locator('#hgSound').tap();
-    const m1 = await pg.evaluate(() => ({ btn: document.getElementById('hgSound').textContent, saved: localStorage.getItem('hg_sound'), muted: G.sfx.muted }));
-    ok(m1.btn === 'Sound: off' && m1.saved === 'off' && m1.muted === true, 'the button mutes: "Sound: off", saved in hg_sound', m1);
+    const m1 = await pg.evaluate(() => { const b = document.getElementById('hgSound'); return { btn: b.textContent, on: b.classList.contains('on'), saved: localStorage.getItem('hg_sound'), muted: G.sfx.muted }; });
+    ok(m1.btn === '🔇Sound' && !m1.on && m1.saved === 'off' && m1.muted === true, 'the button mutes: 🔇, not .on, saved in hg_sound', m1);
     await play(pg, null);
     const m2 = await pg.evaluate(() => { const S = G.S, me = S.me; __mark(); const c = S.coins[0]; c.x = me.x; c.y = me.y; G.step(1);
       me.cd = 0; G.useSkill(me); const p = G.sfx.play('bank'); return { log: G.sfx.log.slice(), osc: __ac.osc, src: __ac.src, play: p }; });
     ok(!m2.log.length && m2.osc === 0 && m2.src === 0 && m2.play === false, 'muted: a pickup, a skill and play() make no sound', m2);
     await pg.reload(); await pg.waitForFunction(() => window.G && G.sfx); await pg.evaluate(() => { if (G.setDayGod) G.setDayGod('none'); });
-    const m3 = await pg.evaluate(() => ({ muted: G.sfx.muted, btn: document.getElementById('hgSound').textContent, made: __ac.made }));
-    ok(m3.muted && m3.btn === 'Sound: off' && m3.made === 0, 'mute survives a reload', m3);
+    const m3 = await pg.evaluate(() => ({ muted: G.sfx.muted, btn: document.getElementById('hgSound').textContent, on: document.getElementById('hgSound').classList.contains('on'), made: __ac.made }));
+    ok(m3.muted && m3.btn === '🔇Sound' && !m3.on && m3.made === 0, 'mute survives a reload', m3);
     await pg.locator('#hgSound').tap();
-    const m4 = await pg.evaluate(() => ({ muted: G.sfx.muted, btn: document.getElementById('hgSound').textContent, saved: localStorage.getItem('hg_sound'), made: __ac.made, log: G.sfx.log.slice() }));
-    ok(!m4.muted && m4.btn === 'Sound: on' && m4.saved === 'on' && m4.made === 1, 'tapping it again turns the sound on (the tap makes the context)', m4);
+    const m4 = await pg.evaluate(() => ({ muted: G.sfx.muted, btn: document.getElementById('hgSound').textContent, on: document.getElementById('hgSound').classList.contains('on'), saved: localStorage.getItem('hg_sound'), made: __ac.made, log: G.sfx.log.slice() }));
+    ok(!m4.muted && m4.btn === '🔊Sound' && m4.on && m4.saved === 'on' && m4.made === 1, 'tapping it again turns the sound on (🔊, .on; the tap makes the context)', m4);
     const err = await pg.evaluate(() => getComputedStyle(document.getElementById('err')).display);
     ok(!errs.length && err === 'none', 'sound: no page errors, #err hidden', errs);
     await pg.close();
@@ -192,11 +194,16 @@ const HELP = () => {
       lk.inv = 0; S.decoys = [];
       // the next vault spots, once announced, are drawn dashed
       const v0 = S.vaults[0], keep = [v0.nx, v0.ny]; v0.nx = 1000; v0.ny = 3000; G.minimap.draw(); const next = G.minimap.marks.filter(m => m.kind === 'next').length; v0.nx = keep[0]; v0.ny = keep[1]; G.minimap.draw();
-      return { n: dots.length, res, vanish, next, vaults: G.minimap.marks.filter(m => m.kind === 'vault').length, coins: S.coins.length }; });
+      // no text: count fillText / strokeText calls over a few draws (vaults, next spots, decoys, dots)
+      let txt = 0; const ft = cx.fillText, st = cx.strokeText; cx.fillText = function () { txt++; return ft.apply(this, arguments); }; cx.strokeText = function () { txt++; return st.apply(this, arguments); };
+      v0.nx = 1000; v0.ny = 3000; S.decoys.push({ owner: lk, x: 2000, y: 2000, vx: 0, vy: 0, carry: 40, until: S.t + 5 }); me.carry = 20; G.minimap.draw(); v0.nx = keep[0]; v0.ny = keep[1]; S.decoys = []; me.carry = 0; G.minimap.draw();
+      cx.fillText = ft; cx.strokeText = st;
+      return { n: dots.length, res, vanish, next, txt, vaults: G.minimap.marks.filter(m => m.kind === 'vault').length, coins: S.coins.length }; });
     const bad = d.res.filter(o => o.at > 0.5 || o.col > 40);
     ok(d.n === 8 && !bad.length && d.res.filter(o => o.me).length === 1, w + 'x' + h + ': 8 dots at the heroes\' spots, you white, the others in their god\'s colour', bad.length ? bad : d.res.map(o => o.name + ':' + o.col));
     const rs = d.res.map(o => o.r); ok(rs.every((r, i) => !i || r >= rs[i - 1]) && rs[7] > rs[1] + 1, w + 'x' + h + ': a hero who carries more is a larger dot', rs);
     ok(!d.vanish.real && d.vanish.decoy && d.next === 1 && d.vaults === 2, w + 'x' + h + ': a vanished Loki shows only as his decoy; 2 vaults, the next spot once announced', { vanish: d.vanish, next: d.next, vaults: d.vaults });
+    ok(d.txt === 0, w + 'x' + h + ': the minimap draws no text (no labels: dots, rings and lines only)', { textCalls: d.txt });
     // redraws stay at about 10 a second
     const rate = await pg.evaluate(async () => { const a = G.minimap.draws; await new Promise(r => setTimeout(r, 1000)); return G.minimap.draws - a; });
     ok(rate >= 3 && rate <= 11, w + 'x' + h + ': the minimap redraws at most 10 times a second', { perSecond: rate });

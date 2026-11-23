@@ -6,12 +6,14 @@
      screen (#endExtra). Every perk can be taken at most 3 times and moves one number by at most 15 % (speed 9 %, robbed share 9 %).
      9 picks (Lv 2..10) from 12 slots, so two choices are always open.
    - Perks reach the game only through G.addMod, and only for the human hero (p === G.S.me), never for bots.
-   - The title cards (#gods .god) get "Lv N" and a thin XP bar; the core rebuilds the cards on each tap, a MutationObserver re-decorates them.
+   - The title cards (#gods .god) get "Lv N" and a thin XP bar once the god has XP (a god never played shows none); the core rebuilds the cards on each tap, a MutationObserver re-decorates them.
+   - The end screen (the owner: "too much text"): one line "Thor Lv 2 [bar] +141 XP"; on a pick, "🎁 Pick one" and two cards
+     (the gift's name, "Reach +5%"); after it "✓ <gift>". No breakdowns.
    - Test hooks: G.train = { get(god) → {lvl, xp, prev, next, perks, pending, offer}, reset(), offer(god), factor(god, mod), PERKS, LEVELS }. */
 const G = window.G; if (!G || !G.on || !G.addMod) return;
 const KEY = 'hg_train', LV = [0, 60, 150, 280, 450, 670, 950, 1300, 1700, 2200], MAXL = LV.length, XP_ROB = 5, XP_FINISH = 10, MAXT = 3, CAP = 0.15;
 const num = (v, d) => String(+v.toFixed(d));
-/* step = the relative change of one take; |step| × MAXT ≤ CAP. `what` + base → the before → after line on the button */
+/* step = the relative change of one take; |step| × MAXT ≤ CAP. `what` names the number on the card ("Reach +5%"); base → the number itself */
 const PERKS = {
   h_dash:   { god: 'hermes',  mod: 'dash',      n: 'Longer dash',    step: 0.05,  what: 'Dash',     base: () => 0.3,  f: v => num(v, 3) + ' s' },
   h_speed:  { god: 'hermes',  mod: 'speed',     n: 'Swift feet',     step: 0.03,  what: 'Speed',    base: () => 1,    f: v => '+' + num((v - 1) * 100, 1) + '%' },
@@ -22,7 +24,7 @@ const PERKS = {
   a_chain:  { god: 'amirani', mod: 'chainT',    n: 'Longer chains',  step: 0.05,  what: 'Chains',   base: () => 3,    f: v => num(v, 2) + ' s' },
   a_cd:     { god: 'amirani', mod: 'cd',        n: 'Quick chains',   step: -0.05, what: 'Cooldown', base: () => (G.GODS.amirani || {}).cd || 10, f: v => num(v, 2) + ' s' },
   bank:     { god: '*',       mod: 'bankT',     n: 'Quick banker',   step: -0.05, what: 'Bank',     base: () => G.BANK_T || 1.5, f: v => num(v, 2) + ' s' },
-  purse:    { god: '*',       mod: 'rob',       n: 'Tight purse',    step: -0.03, what: 'Robbed of', base: () => G.ROB || 0.35, f: v => num(v * 100, 1) + '%' },
+  purse:    { god: '*',       mod: 'rob',       n: 'Tight purse',    step: -0.03, what: 'Robbed', base: () => G.ROB || 0.35, f: v => num(v * 100, 1) + '%' },
 };
 const ORDER = { hermes: ['h_dash', 'h_speed'], thor: ['t_reach', 't_share'], loki: ['l_vanish', 'l_cd'], amirani: ['a_chain', 'a_cd'] };
 const order = g => (ORDER[g] || []).concat(['bank', 'purse']);
@@ -68,20 +70,19 @@ const st = document.createElement('style');
 st.textContent = '.god{position:relative}' +
   '.trn-lv{position:absolute;left:8px;top:6px;font:700 11px/1 Georgia,serif;color:#e8b84a;pointer-events:none;letter-spacing:.02em}' +
   '.trn-cb{position:absolute;left:8px;top:20px;width:32px;height:3px;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden;pointer-events:none}' +
-  '.trn-cb>span{display:block;height:100%;background:#e8b84a}' +
+  '.trn-cb>span{display:block;height:100%;background:#e8b84a}.trn-lv[hidden],.trn-cb[hidden]{display:none}' +
   '.trn-end{width:min(100%,440px);display:flex;flex-direction:column;align-items:stretch;gap:6px}' +
   '.trn-head{display:flex;align-items:center;gap:10px;font:700 15px/1.2 Georgia,serif;color:#f3e7c4;white-space:nowrap}' +
   '.trn-head .x{color:#e8b84a;font-weight:900}' +
   '.trn-bar{flex:1 1 auto;min-width:60px;height:8px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}' +
   '.trn-bar>span{display:block;height:100%;background:linear-gradient(90deg,#b8862b,#f0c75e);transition:width .8s ease-out}' +
-  '.trn-sub{font:12px/1.3 Georgia,serif;color:#8d9bb0;text-align:center}' +
-  '.trn-up{font:700 14px/1.3 Georgia,serif;color:#f3e7c4;text-align:center}.trn-up .x{color:#e8b84a}.trn-up em{font-style:normal;color:#e8b84a;font-size:11px;letter-spacing:.08em}' +
+  '.trn-up{font:700 14px/1.3 Georgia,serif;color:#e8b84a;text-align:center;white-space:nowrap}' +
   '.trn-pick{display:flex;flex-direction:column;gap:6px}' +
   '.trn-row{display:flex;gap:8px;flex:1 1 auto}' +
-  '.trn-row .sec{width:auto;flex:1 1 0;min-width:0;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:5px 8px;line-height:1.2}' +
-  '.trn-row .sec b{font-size:15px}.trn-row .sec small{font:12px/1.2 Georgia,serif;color:#cfd6e2}.trn-row .sec em{font-style:normal;font-weight:400;color:#e8b84a;letter-spacing:.08em;font-size:11px}' +
-  '@media (max-height:430px){.trn-end{width:min(100%,600px);gap:4px}.trn-head{font-size:14px}.trn-sub{display:none}' +
-  '.trn-pick{flex-direction:row;align-items:center;gap:8px}.trn-pick .trn-up{flex:0 0 140px;text-align:left;font-size:13px}.trn-from{display:none}.trn-row .sec{min-height:46px;padding:4px 8px}.trn-row .sec b{font-size:14px}}';
+  '.trn-row .sec{width:auto;flex:1 1 0;min-width:0;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:5px 8px;line-height:1.2}' +
+  '.trn-row .sec b{font-size:15px;white-space:nowrap}.trn-row .sec small{font:700 13px/1.2 Georgia,serif;color:#e8b84a;white-space:nowrap}' +
+  '@media (max-height:430px){.trn-end{width:min(100%,600px);gap:4px}.trn-head{font-size:14px}' +
+  '.trn-pick{flex-direction:row;align-items:center;gap:8px}.trn-pick .trn-up{flex:0 0 auto;text-align:left;font-size:13px}.trn-row .sec{min-height:48px;padding:4px 8px}.trn-row .sec b{font-size:14px}}';
 document.head.appendChild(st);
 
 /* ---------- the title cards ---------- */
@@ -92,7 +93,8 @@ function decorate() {
     let lv = b.querySelector('.trn-lv'), cb = b.querySelector('.trn-cb');
     if (!lv) { lv = document.createElement('span'); lv.className = 'trn-lv'; b.appendChild(lv); }
     if (!cb) { cb = document.createElement('span'); cb.className = 'trn-cb'; cb.appendChild(document.createElement('span')); b.appendChild(cb); }
-    const s = get(g); lv.textContent = 'Lv ' + s.lvl; cb.firstChild.style.width = Math.round(frac(s) * 100) + '%';
+    const s = get(g), fresh = !s.xp && s.lvl < 2; lv.textContent = 'Lv ' + s.lvl; cb.firstChild.style.width = Math.round(frac(s) * 100) + '%';
+    lv.hidden = cb.hidden = fresh;   // a god never played: no badge, no empty bar (four "Lv 1" say nothing)
   }
 }
 decorate();
@@ -101,8 +103,8 @@ G.on('title', decorate);
 
 /* ---------- the end screen ---------- */
 let last = null;   // the last round: {god, gain, bank, robs, fromXp, fromLvl, took, fresh}
-const pips = (g, id) => { const n = takes(g, id); return '●'.repeat(n) + '○'.repeat(MAXT - n); };
-const line = (g, id) => { const P = PERKS[id], b = P.base(), n = takes(g, id); return P.what + ' ' + P.f(b * (1 + P.step * n)) + ' → ' + P.f(b * (1 + P.step * (n + 1))); };
+/* the card's second line: the number it moves and by how much, unit-free ("Reach +5%", "Cooldown −5%") */
+const line = id => { const P = PERKS[id], v = Math.round(P.step * 100); return P.what + ' ' + (v < 0 ? '−' + -v : '+' + v) + '%'; };
 function box() {
   let el = document.getElementById('trainEnd');
   const host = G.$('endExtra');
@@ -115,14 +117,12 @@ function renderEnd() {
   if (!last) return;
   const el = box(), g = last.god, GD = G.GODS[g] || { n: g, c: '#e8b84a' }, s = get(g);
   const w = Math.round(frac(s) * 100), w0 = last.fresh ? (s.lvl === last.fromLvl ? Math.round(frac({ xp: last.fromXp, prev: s.prev, next: s.next }) * 100) : 0) : w;
-  const up = s.lvl > last.fromLvl;
-  let h = '<div class="trn-head"><span>' + GD.n + ' · Lv ' + s.lvl + '</span><span class="trn-bar"><span style="width:' + w0 + '%"></span></span><span class="x">+' + last.gain + ' XP</span></div>' +
-    '<div class="trn-sub">Banked ' + last.bank + (last.robs ? ' + ' + last.robs + (last.robs > 1 ? ' robs' : ' rob') + ' ×' + XP_ROB : '') + ' + finish ' + XP_FINISH + ' · ' + (s.next == null ? 'top level' : (s.next - s.xp) + ' XP to Lv ' + (s.lvl + 1)) + '</div>';
+  let h = '<div class="trn-head"><span>' + GD.n + ' Lv ' + s.lvl + '</span><span class="trn-bar"><span style="width:' + w0 + '%"></span></span><span class="x">+' + last.gain + ' XP</span></div>';
   const off = s.offer;
   if (off.length) {
-    h += '<div class="trn-pick"><div class="trn-up">' + (up && !last.took ? '<span class="x">Level ' + s.lvl + '!</span> ' : '') + 'Pick a gift<span class="trn-from"> from ' + GD.n + '</span>' + (s.pending > 1 ? ' · ' + s.pending + ' waiting' : '') + '</div><div class="trn-row">' +
-      off.map(id => '<button class="sec" data-perk="' + id + '" style="border-color:' + GD.c + '"><b>' + PERKS[id].n + ' <em>' + pips(g, id) + '</em></b><small>' + line(g, id) + '</small></button>').join('') + '</div></div>';
-  } else if (last.took) h += '<div class="trn-up">Taken: <span class="x">' + PERKS[last.took].n + '</span> <em>' + pips(g, last.took) + '</em></div>';
+    h += '<div class="trn-pick"><div class="trn-up">🎁 Pick one</div><div class="trn-row">' +
+      off.map(id => '<button class="sec" data-perk="' + id + '" style="border-color:' + GD.c + '"><b>' + PERKS[id].n + '</b><small>' + line(id) + '</small></button>').join('') + '</div></div>';
+  } else if (last.took) h += '<div class="trn-up">✓ ' + PERKS[last.took].n + '</div>';
   el.innerHTML = h;
   for (const b of el.querySelectorAll('button[data-perk]')) b.addEventListener('click', () => {
     if (b.disabled) return; for (const o of el.querySelectorAll('button[data-perk]')) o.disabled = true;

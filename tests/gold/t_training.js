@@ -1,13 +1,15 @@
 // tests/gold/t_training.js — god training (src/gold/js/50_training.js): XP after a round (= banked + 5 per robbery + 10 for finishing),
 // a level up offers two perks on the end screen, a real tap takes one, it survives a reload, the perk reaches the game through G.addMod
 // (Hermes dash time, Thor reach) for the human hero only, the cap holds after ten levels and against an edited save, the title cards keep
-// "Lv N" when the core rebuilds them, 390×844 and 844×390 fit, no page errors.
+// "Lv N" when the core rebuilds them, 390×844, 844×390 and 640×360 fit (no scroll added), the texts are short
+// ("Hermes Lv 3 [bar] +141 XP", "🎁 Pick one", cards "Longer dash" / "Dash +5%", "✓ Longer dash"), no badge on an unplayed god, no page errors.
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs');
 const EXE = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome';
 const FILE = path.resolve(process.env.GOLD_HTML || path.join(__dirname, '..', '..', 'beta', 'index.html'));
 const SHOTS = path.join(__dirname, '..', '..', '.shots'); fs.mkdirSync(SHOTS, { recursive: true });
 let fails = 0; const ok = (c, m, i) => { console.log((c ? 'OK   ' : 'FAIL ') + m + (i !== undefined ? '  ' + JSON.stringify(i) : '')); if (!c) fails++; };
 const near = (a, b, e) => Math.abs(a - b) < (e || 1e-6);
+const window_gain = head => (/\+(\d+) XP$/.exec(head || '') || [])[1];   // the "+X XP" at the end of the XP line
 
 /* page helpers (run inside the page) */
 const HOOK = () => { if (!window.__hooked) { window.__hooked = 1; G.on('end', (S, r) => { window.__res = r; }); } };
@@ -43,15 +45,21 @@ const CARDS = () => [...document.querySelectorAll('#gods .god')].map(b => {
   const l = lv && lv.getBoundingClientRect(), c = cb && cb.getBoundingClientRect(), k = cv && cv.getBoundingClientRect();
   const inside = q => q && q.left >= r.left - 0.5 && q.right <= r.right + 0.5 && q.top >= r.top - 0.5 && q.bottom <= r.bottom + 0.5;
   const clear = q => q && k && (q.right <= k.left || q.left >= k.right || q.bottom <= k.top || q.top >= k.bottom), apart = clear(l) && clear(c);
-  return { god: b.dataset.god, sel: b.classList.contains('sel'), text: lv ? lv.textContent : null, want: 'Lv ' + G.train.get(b.dataset.god).lvl, bar: !!(cb && cb.firstChild), fit: inside(l) && inside(c) && !!apart, old: !!b.__old };
+  const s = G.train.get(b.dataset.god), shown = !!(lv && lv.offsetParent && cb && cb.offsetParent), fresh = !s.xp && s.lvl < 2;
+  return { god: b.dataset.god, sel: b.classList.contains('sel'), text: lv ? lv.textContent : null, want: 'Lv ' + s.lvl, bar: !!(cb && cb.firstChild), shown, fresh, fit: fresh ? !shown : shown && inside(l) && inside(c) && !!apart, old: !!b.__old };
 });
 /* the end block: inside the screen's width, ≥ 44 px buttons, no clipped text, no horizontal scroll */
 const ENDBOX = () => {
   const el = document.getElementById('trainEnd'), end = document.getElementById('end'), W = innerWidth, H = innerHeight;
   if (!el) return null; const r = el.getBoundingClientRect();
-  const bs = [...el.querySelectorAll('button[data-perk]')].map(b => { const q = b.getBoundingClientRect(); return { id: b.dataset.perk, sec: b.classList.contains('sec'), h: q.height, w: q.width, l: q.left, r: q.right, t: q.top, b: q.bottom, clip: b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1 }; });
+  const bs = [...el.querySelectorAll('button[data-perk]')].map(b => { const q = b.getBoundingClientRect(); return { id: b.dataset.perk, text: [b.querySelector('b').textContent, b.querySelector('small').textContent], sec: b.classList.contains('sec'), h: q.height, w: q.width, l: q.left, r: q.right, t: q.top, b: q.bottom, clip: b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1 }; });
   const overlap = bs.length === 2 && !(bs[0].r <= bs[1].l || bs[1].r <= bs[0].l || bs[0].b <= bs[1].t || bs[1].b <= bs[0].t);
-  return { text: el.textContent, inX: r.left >= -0.5 && r.right <= W + 0.5, hscroll: end.scrollWidth > end.clientWidth + 1, bs, overlap, W, H,
+  const head = el.querySelector('.trn-head'), up = el.querySelector('.trn-up');
+  /* every visible text node of the block is short (≤ 40 chars): no breakdowns, no explanations */
+  const long = []; const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); for (let n; (n = tw.nextNode());) { const t = n.textContent.trim(); if (t.length > 40) long.push(t); }
+  /* the block adds no scroll to the end screen: the overflow is the same with it hidden */
+  const sc0 = end.scrollHeight - end.clientHeight; el.style.display = 'none'; const sc1 = end.scrollHeight - end.clientHeight; el.style.display = '';
+  return { head: head ? head.textContent : null, up: up ? up.textContent : null, cards: bs.map(x => x.text), long, scroll: { withBlock: sc0, without: sc1 }, text: el.textContent, inX: r.left >= -0.5 && r.right <= W + 0.5, hscroll: end.scrollWidth > end.clientWidth + 1, bs, overlap, W, H,
     again: document.getElementById('again').getBoundingClientRect().bottom, big: bs.every(b => b.h >= 44 && b.w >= 44 && b.l >= 0 && b.r <= W && !b.clip), bar: !!el.querySelector('.trn-bar>span'), fill: (el.querySelector('.trn-bar>span') || {}).style ? el.querySelector('.trn-bar>span').style.width : null };
 };
 
@@ -62,13 +70,13 @@ const ENDBOX = () => {
     /* ---------- A: a fresh player, one round as Hermes ---------- */
     const pg = await page(b, w, h);
     let c = await pg.evaluate(CARDS);
-    ok(c.length === 4 && c.every(x => x.text === 'Lv 1' && x.want === 'Lv 1' && x.bar && x.fit), tag + 'every title card shows "Lv 1" and a thin XP bar inside the card', c);
+    ok(c.length === 4 && c.every(x => x.fresh && !x.shown && x.fit), tag + 'a fresh player: no "Lv 1" badge, no empty bar on any title card', c);
     const play = await pg.locator('#play').boundingBox(); ok(play && play.height >= 44 && play.y + play.height <= h, tag + 'PLAY still fully visible with the level badges', play);
     await pg.screenshot({ path: path.join(SHOTS, 'train_title_' + w + '.png') });
     await pg.evaluate(() => document.querySelectorAll('#gods .god').forEach(x => { x.__old = 1; }));
     await pg.locator('.god[data-god="thor"]').tap(); await pg.waitForTimeout(150);
     c = await pg.evaluate(CARDS);
-    ok(c.length === 4 && c.every(x => !x.old && x.text === x.want && x.bar && x.fit) && c.find(x => x.god === 'thor').sel, tag + 'a god tap rebuilds the cards and the level badges come back', c.map(x => [x.god, x.text, x.sel, x.old]));
+    ok(c.length === 4 && c.every(x => !x.old && x.text === x.want && x.bar && x.fit) && c.find(x => x.god === 'thor').sel, tag + 'a god tap rebuilds the cards (still no badges for unplayed gods)', c.map(x => [x.god, x.text, x.shown, x.sel, x.old]));
     await pg.locator('.god[data-god="hermes"]').tap(); await pg.waitForTimeout(100);
     await pg.locator('#play').tap(); await pg.waitForTimeout(250);
     const s0 = await pg.evaluate(() => ({ god: G.S.me.god, xp: G.train.get('hermes').xp, dash: G.mod('dash', G.S.me, 0.3) }));
@@ -79,8 +87,11 @@ const ENDBOX = () => {
     const want = f1.res ? f1.res.bank + 5 * f1.res.robs + 10 : -1, wantL = t1.L.filter(x => t1.t.xp >= x).length;
     ok(bk.conserved && bk.bank >= 60 && f1.over && t1.t.xp === want && t1.t.lvl === wantL && wantL >= 2, tag + 'after a round XP = banked + 5 per robbery + 10 (banked ' + (f1.res && f1.res.bank) + ', robs ' + (f1.res && f1.res.robs) + ')', { bk, res: f1.res, xp: t1.t.xp, lvl: t1.t.lvl });
     let e = await pg.evaluate(ENDBOX);
-    ok(e && e.text.includes('+' + want + ' XP') && e.bar && e.text.includes('Lv ' + t1.t.lvl), tag + 'the end screen shows "+' + want + ' XP", the level and the bar', e && { text: e.text, fill: e.fill });
-    ok(e && e.bs.length === 2 && e.bs.every(x => x.sec) && e.bs.map(x => x.id).join() === 'h_dash,h_speed' && /Level \d+!/.test(e.text), tag + 'a level up offers two perks as .sec buttons (Hermes: dash or speed)', e && e.bs.map(x => x.id));
+    ok(e && e.head === 'Hermes Lv ' + t1.t.lvl + '+' + want + ' XP' && e.bar, tag + 'the end screen: one line "Hermes Lv ' + t1.t.lvl + ' [bar] +' + want + ' XP"', e && { head: e.head, fill: e.fill });
+    ok(e && e.bs.length === 2 && e.bs.every(x => x.sec) && e.bs.map(x => x.id).join() === 'h_dash,h_speed' && e.up === '🎁 Pick one', tag + 'a level up: "🎁 Pick one", two perks as .sec buttons (Hermes: dash or speed)', e && { up: e.up, ids: e.bs.map(x => x.id) });
+    ok(e && e.cards.length === 2 && e.cards[0][0] === 'Longer dash' && e.cards[0][1] === 'Dash +5%' && e.cards[1][0] === 'Swift feet' && e.cards[1][1] === 'Speed +3%' && !e.long.length && e.text.split(' ').length <= 16,
+      tag + 'each gift card: its name and "Dash +5%", nothing else; no text over 40 characters', e && { cards: e.cards, long: e.long, text: e.text });
+    ok(e && e.scroll.withBlock <= Math.max(0, e.scroll.without), tag + 'the XP block adds no scroll to the end screen', e && e.scroll);
     ok(e && e.inX && !e.hscroll && e.big && !e.overlap, tag + 'the end block fits the width, buttons >= 44 px, no clipped text', e && { inX: e.inX, hs: e.hscroll, bs: e.bs });
     ok(e && e.bs.every(x => x.b <= h) && e.again <= h + 1, tag + 'the perk buttons and PLAY AGAIN are on screen without scrolling', e && { perks: e.bs.map(x => Math.round(x.b)), again: Math.round(e.again) });
     await pg.screenshot({ path: path.join(SHOTS, 'train_end_' + w + '.png') });
@@ -89,7 +100,7 @@ const ENDBOX = () => {
     ok(t2.perks.h_dash === 1 && t2.pending === t1.t.pending - 1, tag + 'a tap on "Longer dash" takes it', t2);
     for (let k = 0; k < 9 && t2.pending > 0; k++) { await pg.locator('#trainEnd button[data-perk]').first().tap(); await pg.waitForTimeout(120); t2 = await pg.evaluate(() => G.train.get('hermes')); }
     e = await pg.evaluate(ENDBOX);
-    ok(t2.pending === 0 && e.bs.length === 0 && /Taken: /.test(e.text), tag + 'every waiting pick taken, the block says what was taken', { perks: t2.perks, text: e.text });
+    ok(t2.pending === 0 && e.bs.length === 0 && /^✓ \S+ \S+$/.test(e.up) && !e.long.length, tag + 'every waiting pick taken: "✓ <gift>"', { perks: t2.perks, up: e.up, text: e.text });
     await pg.screenshot({ path: path.join(SHOTS, 'train_taken_' + w + '.png') });
     await reload(pg);
     const t3 = await pg.evaluate(() => G.train.get('hermes'));
@@ -135,7 +146,8 @@ const ENDBOX = () => {
     c = await pc.evaluate(CARDS); ok(c.find(x => x.god === 'hermes').text === 'Lv 9', tag + 'a saved Hermes at 2195 XP shows Lv 9', c.map(x => [x.god, x.text]));
     await pc.locator('.god[data-god="hermes"]').tap(); await pc.locator('#play').tap(); await pc.waitForTimeout(200);
     await pc.evaluate(FINISH); await pc.waitForTimeout(300);
-    e = await pc.evaluate(ENDBOX); ok(e.bs.length === 2 && /Level 10!/.test(e.text) && /9 waiting/.test(e.text) && await pc.evaluate(() => G.train.get('hermes').lvl) === 10, tag + 'Lv 10: 9 picks wait, two offered at a time', e.text);
+    e = await pc.evaluate(ENDBOX); const t10 = await pc.evaluate(() => G.train.get('hermes'));
+    ok(e.bs.length === 2 && e.up === '🎁 Pick one' && t10.lvl === 10 && t10.pending === 9 && !e.long.length, tag + 'Lv 10: 9 picks wait, two offered at a time ("🎁 Pick one")', { up: e.up, pending: t10.pending });
     ok(e.inX && !e.hscroll && e.big && !e.overlap && e.bs.every(x => x.b <= h) && e.again <= h + 1, tag + 'the longest gift label still fits: perks and PLAY AGAIN on screen', { perks: e.bs.map(x => Math.round(x.b)), again: Math.round(e.again) });
     await pc.screenshot({ path: path.join(SHOTS, 'train_cap_' + w + '.png') });
     const offered = [], bad = []; let n = 0;
@@ -156,10 +168,28 @@ const ENDBOX = () => {
     const cap = await pc.evaluate(() => { const S = G.S, me = S.me; me.cd = 0; G.useSkill(me);
       return { god: me.god, dash: +(me.dash - S.t).toFixed(4), speed: +(G.mod('speed', me, 100)).toFixed(3), bankT: +G.mod('bankT', me, 1.5).toFixed(4), rob: +G.mod('rob', me, 0.35).toFixed(4), thorR: G.mod('thorR', me, 170), lvl: G.train.get('hermes').lvl, pend: G.train.get('hermes').pending }; });
     ok(cap.god === 'hermes' && cap.dash === 0.345 && cap.speed === 109 && cap.bankT === 1.275 && cap.rob === 0.3185 && cap.thorR === 170 && cap.lvl === 10 && cap.pend === 0, tag + 'an edited save (99 takes each) still gives at most dash 0.345 s, speed +9%, bank 1.275 s, robbed 31.85%', cap);
-    const rs = await pc.evaluate(() => { G.train.reset(); return { t: G.train.get('hermes'), save: localStorage.getItem('hg_train'), box: !!document.getElementById('trainEnd'), cards: [...document.querySelectorAll('#gods .trn-lv')].map(x => x.textContent).join(), dash: G.mod('dash', G.S.me, 0.3) }; });
-    ok(rs.t.xp === 0 && rs.t.lvl === 1 && rs.save === null && !rs.box && rs.cards === 'Lv 1,Lv 1,Lv 1,Lv 1' && rs.dash === 0.3, tag + 'G.train.reset() clears the save, the cards and the edge', rs);
+    const rs = await pc.evaluate(() => { G.train.reset(); return { t: G.train.get('hermes'), save: localStorage.getItem('hg_train'), box: !!document.getElementById('trainEnd'), cards: [...document.querySelectorAll('#gods .trn-lv')].map(x => x.offsetParent ? x.textContent : '-').join(), dash: G.mod('dash', G.S.me, 0.3) }; });
+    ok(rs.t.xp === 0 && rs.t.lvl === 1 && rs.save === null && !rs.box && rs.cards === '-,-,-,-' && rs.dash === 0.3, tag + 'G.train.reset() clears the save, the badges and the edge', rs);
     ok(!pc.errs.length && await pc.evaluate(() => getComputedStyle(G.$('err')).display) === 'none', tag + 'no page errors, #err hidden (C)', pc.errs);
     await pc.ctx.close();
+  }
+  /* ---------- D: 640×360 (the smallest landscape): the cards, the end block and PLAY AGAIN on screen, short texts ---------- */
+  {
+    const w = 640, h = 360, tag = w + 'x' + h + ': ';
+    const pd = await page(b, w, h);
+    await reload(pd, { v: 1, g: { thor: { xp: 50, p: {} } } });
+    const c = await pd.evaluate(CARDS); const play = await pd.locator('#play').boundingBox();
+    ok(c.length === 4 && c.every(x => x.text === x.want && x.fit) && play && play.y + play.height <= h, tag + 'the cards keep "Lv N" inside, PLAY on screen', { c: c.map(x => x.text), play });
+    const sc = await pd.evaluate(() => { const t = G.$('title'), q = [...document.querySelectorAll('.trn-lv,.trn-cb')]; const a = t.scrollHeight - t.clientHeight; q.forEach(x => { x.style.display = 'none'; }); const b = t.scrollHeight - t.clientHeight; q.forEach(x => { x.style.display = ''; }); return { withBadges: a, without: b }; });
+    ok(sc.withBadges <= Math.max(0, sc.without), tag + 'the level badges add no scroll to the title', sc);
+    await pd.locator('.god[data-god="thor"]').tap(); await pd.locator('#play').tap(); await pd.waitForTimeout(200);
+    await pd.evaluate(BANK_COINS); await pd.evaluate(FINISH); await pd.waitForTimeout(900);
+    const e = await pd.evaluate(ENDBOX), t = await pd.evaluate(() => G.train.get('thor'));
+    ok(e && window_gain(e.head) && e.head === 'Thor Lv ' + t.lvl + '+' + window_gain(e.head) + ' XP' && e.up === '🎁 Pick one' && e.cards[0][0] === 'Wider thunder' && e.cards[0][1] === 'Reach +5%' && !e.long.length, tag + 'the end block: "Thor Lv N [bar] +X XP", "🎁 Pick one", "Wider thunder" / "Reach +5%"', e && { head: e.head, up: e.up, cards: e.cards });
+    ok(e && e.inX && !e.hscroll && e.big && !e.overlap && e.bs.every(x => x.b <= h) && e.again <= h + 1 && e.scroll.withBlock <= Math.max(0, e.scroll.without), tag + 'perks and PLAY AGAIN on screen, no scroll added', e && { perks: e.bs.map(x => Math.round(x.b)), again: Math.round(e.again), scroll: e.scroll });
+    await pd.screenshot({ path: path.join(SHOTS, 'train_end_' + w + '.png') });
+    ok(!pd.errs.length && await pd.evaluate(() => getComputedStyle(G.$('err')).display) === 'none', tag + 'no page errors, #err hidden (D)', pd.errs);
+    await pd.ctx.close();
   }
   await b.close(); console.log(fails ? 'FAILED ' + fails : 'ALL OK'); process.exit(fails ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });

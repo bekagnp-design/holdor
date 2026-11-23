@@ -1,6 +1,6 @@
 // tests/gold/t_profile.js — Heavy Gold profile + net: the first PLAY opens the profile screen (name prefilled from Telegram,
 // Georgia suggested for 'ka'), validation messages, name_taken from the server, SAVE with real taps, G.profile + localStorage,
-// a reload keeps it (the token reused from sessionStorage), the "name · flag" edit button, the sync on login (server wins / local goes up),
+// a reload keeps it (the token reused from sessionStorage), the flag + name icon button (.ib #hgMe), short texts only (UI rules), the sync on login (server wins / local goes up),
 // a dead session logs in again, rpc never throws (an 8 s timeout gives null), offline saves locally and sends nothing.
 // The network is mocked with page.route (Supabase RPCs) and window.Telegram.WebApp is faked in an init script; telegram.org is aborted.
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs');
@@ -52,15 +52,36 @@ async function setup(b, o) {
 }
 const vis = (pg, sel) => pg.evaluate(s => { const e = document.querySelector(s); return !!e && e.classList.contains('on') && getComputedStyle(e).display !== 'none'; }, sel);
 const msg = pg => pg.evaluate(() => document.getElementById('hgPErr').textContent);
+const chip = pg => pg.evaluate(() => { const b = document.getElementById('hgMe'); return { ib: b.classList.contains('ib'), i: b.querySelector('i').textContent, s: b.querySelector('span').textContent, bad: b.classList.contains('bad'), w: b.getBoundingClientRect().width, h: b.getBoundingClientRect().height, inLinks: b.parentNode.id === 'titleLinks' }; });
+/* UI rules: no visible text on the profile screen longer than 40 characters (country names in the grid are data) */
+const shortTexts = pg => pg.evaluate(() => { const scr = document.getElementById('hgProf'), long = [], w = document.createTreeWalker(scr, NodeFilter.SHOW_TEXT); let n;
+  while ((n = w.nextNode())) { const t = n.textContent.trim(), e = n.parentElement; if (!t || !e.offsetParent || e.closest('.hgC')) continue; if ([...t].length > 40) long.push(t); }
+  for (const i of scr.querySelectorAll('input')) if ([...(i.placeholder || '')].length > 20) long.push(i.placeholder);
+  return { long, all: [...scr.querySelectorAll('h2,.hgMsg,.hgSel,button:not(.hgC),.hgLbl')].filter(e => e.offsetParent).map(e => e.textContent) }; });
+/* the title with this module's chip (other modules' title items set aside: they have their own tests): no added scroll, the chip in the
+   Rules row. `base` = the scroll of the core title alone: when the core fits (base 0), the title must fit with no scroll and every icon on screen. */
+const CORE_MINE = ['hgPod', 'hgMe', 'hgTitleBoard', 'helpB'];
+const titleFits = (pg, w, h) => pg.evaluate(([keep, w, h]) => {
+  const scr = document.getElementById('title'), r = e => e.getBoundingClientRect(), on = b => b.top >= 0 && b.bottom <= h && b.left >= 0 && b.right <= w;
+  const hid = [], hide = ids => { for (const id of ['titleExtra', 'titleLinks']) for (const c of document.getElementById(id).children) if (ids.indexOf(c.id) < 0 && c.style.display !== 'none') { hid.push(c); c.style.display = 'none'; } };
+  hide(['helpB']); const base = scr.scrollHeight - scr.clientHeight; for (const c of hid.splice(0)) c.style.display = '';
+  hide(keep);
+  const help = r(document.getElementById('helpB'));
+  const out = { base, scroll: scr.scrollHeight - scr.clientHeight, play: on(r(document.getElementById('play'))),
+    links: [...document.querySelectorAll('#titleLinks > *')].filter(e => e.offsetParent).map(e => [e.id, base > 1 || on(r(e)), Math.round(r(e).width), Math.round(r(e).height), Math.abs(r(e).top - help.top) < 2]) };
+  for (const c of hid) c.style.display = ''; out.ok = (base > 1 ? out.scroll <= base + 1 : out.scroll <= 1 && out.play) && out.links.every(l => l[1] && l[2] >= 52 && l[3] >= 44 && l[4]); return out; }, [CORE_MINE, w, h]);
+const titleNote = (tag, f) => { if (f.base > 1) console.log('INFO ' + tag + ': the core title alone scrolls ' + f.base + ' px (a core change; see the report); this module adds ' + (f.scroll - f.base) + ' px'); };
 const errHidden = pg => pg.evaluate(() => getComputedStyle(document.getElementById('err')).display === 'none');
 async function fits(pg, w, h, label) {
   const f = await pg.evaluate(() => {
     const scr = document.getElementById('hgProf'), r = s => { const e = scr.querySelector(s).getBoundingClientRect(); return { x: e.x, y: e.y, w: e.width, h: e.height, b: e.bottom, r: e.right }; };
     const small = [...scr.querySelectorAll('button,input')].filter(e => e.offsetParent && !e.hidden).map(e => e.getBoundingClientRect()).filter(b => b.height > 0 && b.height < 44).length;
-    return { save: r('#hgSave'), list: r('#hgList'), name: r('#hgName'), search: r('#hgSearch'), scroll: scr.scrollHeight - scr.clientHeight, wide: document.documentElement.scrollWidth - window.innerWidth, small };
+    const folded = document.getElementById('hgPlist').classList.contains('pk');
+    return { folded, save: r('#hgSave'), list: r('#hgList'), name: r('#hgName'), search: r('#hgSearch'), chip: r('#hgSel'), scroll: scr.scrollHeight - scr.clientHeight, wide: document.documentElement.scrollWidth - window.innerWidth, small };
   });
-  ok(f.save.b <= h && f.save.y >= 0 && f.name.y >= 0 && f.list.h >= 80 && f.search.b <= h && f.scroll <= 1 && f.wide <= 0 && f.small === 0 && f.save.h >= 44,
-    label + ' ' + w + 'x' + h + ': the profile screen fits (name, search, a list ≥ 80 px, SAVE on screen, no scroll, every target ≥ 44 px)', f);
+  const area = f.folded ? f.chip.h >= 44 && f.chip.b <= h && f.chip.y >= 0 : f.list.h >= 80 && f.search.b <= h;
+  ok(f.save.b <= h && f.save.y >= 0 && f.name.y >= 0 && area && f.scroll <= 1 && f.wide <= 0 && f.small === 0 && f.save.h >= 44,
+    label + ' ' + w + 'x' + h + ': the profile screen fits (name, search + a list ≥ 80 px or the country chip, SAVE on screen, no scroll, every target ≥ 44 px)', f);
 }
 
 (async () => {
@@ -74,8 +95,10 @@ async function fits(pg, w, h, label) {
     const net = await pg.evaluate(() => ({ on: G.net.on, token: G.net.token, kept: !!sessionStorage.getItem('hg_token') }));
     ok(net.on && net.token === TOKEN && net.kept, 'G.net is online, the token is kept in sessionStorage', net);
     ok(T.n('hg_profile_get').length === 1, 'online with no profile: hg_profile_get asked once', T.n('hg_profile_get').length);
-    const btn0 = await pg.locator('#hgMe').textContent();
-    ok(/name/i.test(btn0), 'the title has a profile button in #titleLinks', btn0);
+    const tf0 = await titleFits(pg, 390, 844);
+    ok(tf0.ok, '390x844: the title with the profile chip fits (no scroll, PLAY and the icons on screen, the chip in the Rules row)', tf0); titleNote('390x844', tf0);
+    const btn0 = await chip(pg);
+    ok(btn0.ib && btn0.inLinks && btn0.i === '👤' && btn0.s === 'You' && btn0.w >= 52 && btn0.h >= 52, 'the title has a profile icon button in #titleLinks: 👤 "You" with no profile (≥ 52 px)', btn0);
     await pg.locator('#play').tap(); await pg.waitForTimeout(200);
     const s0 = await pg.evaluate(() => ({ round: !!G.S, val: document.getElementById('hgName').value }));
     ok(await vis(pg, '#hgProf') && !s0.round, 'the first PLAY opens the profile screen, no round starts', s0);
@@ -85,11 +108,15 @@ async function fits(pg, w, h, label) {
     ok(sug.n === 249, 'the country list holds all 249 ISO 3166-1 alpha-2 countries', sug.n);
     await pg.screenshot({ path: path.join(SHOTS, 'gold_profile_390.png') });
     await fits(pg, 390, 844, 'portrait');
+    const st0 = await shortTexts(pg);
+    ok(await msg(pg) === '' && st0.all.join('|') === 'YOU|✕|Suggested|All|SAVE' && !st0.long.length, 'the screen says YOU (✕ to go back), no rule hint, no country chip before a pick; SAVE the only big button; every text ≤ 40 characters', st0);
+    const bk = await pg.evaluate(() => { const b = document.getElementById('hgBack').getBoundingClientRect(), h = document.querySelector('#hgProf h2').getBoundingClientRect(); return { w: b.width, h: b.height, row: Math.abs((b.top + b.bottom) / 2 - (h.top + h.bottom) / 2) < 8, big: document.querySelectorAll('#hgProf .pri').length }; });
+    ok(bk.w >= 52 && bk.h >= 52 && bk.row && bk.big === 1, 'Back is a ✕ icon (≥ 52 px) next to the title; one primary button', bk);
     // validation
     await pg.locator('#hgName').fill('ab'); await pg.locator('#hgSave').tap(); await pg.waitForTimeout(100);
-    ok(await msg(pg) === '3–16 letters, digits, space, _ or -', 'a 2-letter name: "3–16 letters, digits, space, _ or -"', await msg(pg));
+    ok(await msg(pg) === '3–16 letters, digits, _ -', 'a 2-letter name: the rule shows as the error "3–16 letters, digits, _ -"', await msg(pg));
     await pg.locator('#hgName').fill('bad$name!'); await pg.locator('#hgSave').tap(); await pg.waitForTimeout(100);
-    ok(await msg(pg) === '3–16 letters, digits, space, _ or -', 'a name with $ and !: the same message', await msg(pg));
+    ok(await msg(pg) === '3–16 letters, digits, _ -', 'a name with $ and !: the same message', await msg(pg));
     await pg.locator('#hgName').fill('Nino'); await pg.locator('#hgSave').tap(); await pg.waitForTimeout(100);
     ok(await msg(pg) === 'Pick a country', 'no country picked: "Pick a country"', await msg(pg));
     ok(T.n('hg_profile_set').length === 0, 'nothing is sent while the form is invalid', T.n('hg_profile_set').length);
@@ -103,11 +130,16 @@ async function fits(pg, w, h, label) {
     await pg.locator('#hgSearch').fill('geor'); await pg.waitForTimeout(80);
     await pg.locator('#hgList .hgC:not(.hgSug)[data-cc="GE"]').tap(); await pg.waitForTimeout(80);
     const selT = await pg.locator('#hgSel').textContent();
-    ok(/\u{1F1EC}\u{1F1EA} Georgia/u.test(selT) && await msg(pg) !== 'Pick a country', 'a tap on Georgia selects it: the line shows the flag and the name', selT);
+    const fo = await pg.evaluate(() => ({ list: !!document.getElementById('hgList').offsetParent, search: !!document.getElementById('hgSearch').offsetParent, chip: !!document.getElementById('hgSel').offsetParent, h: document.getElementById('hgSel').getBoundingClientRect().height }));
+    ok(selT === '\u{1F1EC}\u{1F1EA} Georgia 🔍' && await msg(pg) !== 'Pick a country' && fo.chip && !fo.list && !fo.search && fo.h >= 44, 'a tap on Georgia selects it: the list folds to one chip "🇬🇪 Georgia 🔍" (≥ 44 px), no repeated country', { selT, fo });
+    await pg.locator('#hgSel').tap(); await pg.waitForTimeout(80);
+    const un = await pg.evaluate(() => ({ list: !!document.getElementById('hgList').offsetParent, chip: !!document.getElementById('hgSel').offsetParent, sel: [...document.querySelectorAll('#hgList .hgC.sel')].map(b => b.dataset.cc), q: document.getElementById('hgSearch').value }));
+    ok(un.list && !un.chip && un.sel.indexOf('GE') >= 0 && un.q === '', 'a tap on the chip opens the search and the list again (Georgia marked, the chip hidden)', un);
+    await pg.locator('#hgList .hgC:not(.hgSug)[data-cc="GE"]').tap(); await pg.waitForTimeout(80);
     // name_taken from the server
     await pg.locator('#hgName').fill('Taken'); await pg.locator('#hgSave').tap(); await pg.waitForTimeout(400);
     const tk = await pg.evaluate(() => ({ on: document.getElementById('hgProf').classList.contains('on'), name: G.profile.name, round: !!G.S }));
-    ok(await msg(pg) === 'That name is taken' && tk.on && !tk.name && !tk.round, 'the server says name_taken: "That name is taken", the screen stays, nothing saved', { m: await msg(pg), tk });
+    ok(await msg(pg) === 'Name taken' && tk.on && !tk.name && !tk.round, 'the server says name_taken: "Name taken", the screen stays, nothing saved', { m: await msg(pg), tk });
     // typing with the keyboard: space and J must reach the field (the core's skill keys)
     await pg.locator('#hgName').fill(''); await pg.locator('#hgName').focus(); await pg.keyboard.type('Jaja Nino');
     const typed = await pg.locator('#hgName').inputValue();
@@ -120,8 +152,11 @@ async function fits(pg, w, h, label) {
     ok(sv.round, 'after SAVE the round starts (PLAY goes through)', sv);
     // reload: kept, the token reused
     await pg.reload(); await pg.waitForFunction(() => window.G && G.profileUI); await pg.waitForTimeout(400);
-    const rl = await pg.evaluate(() => ({ p: Object.assign({}, G.profile), btn: document.getElementById('hgMe').textContent, on: G.net.on, token: G.net.token }));
-    ok(rl.p.name === 'Jaja Nino' && rl.p.country === 'GE' && rl.btn === 'Jaja Nino · \u{1F1EC}\u{1F1EA}', 'a reload keeps the profile; the title button shows "name · flag"', rl);
+    const rl = await pg.evaluate(() => ({ p: Object.assign({}, G.profile), on: G.net.on, token: G.net.token }));
+    const c1 = await chip(pg);
+    ok(rl.p.name === 'Jaja Nino' && rl.p.country === 'GE' && c1.ib && c1.i === '\u{1F1EC}\u{1F1EA}' && c1.s === 'Jaja Nino' && !c1.bad, 'a reload keeps the profile; the title icon is the flag, its word the name', { rl, c1 });
+    const lw = await pg.evaluate(() => { const keep = G.profile.name; G.profile.name = 'Aleksandre Gogia'; G.emit('title'); const w = document.getElementById('hgMe').getBoundingClientRect().width; G.profile.name = keep; G.emit('title'); return w; });
+    ok(lw <= 64, 'a long name does not widen the profile icon (≤ 64 px, the name cut)', lw);
     ok(rl.on && rl.token === TOKEN && T.n('tg_login').length === 1, 'a reload in the same launch reuses the token from sessionStorage (no second tg_login)', { on: rl.on, logins: T.n('tg_login').length });
     await pg.locator('#play').tap(); await pg.waitForTimeout(250);
     ok(await pg.evaluate(() => !!G.S && !G.S.over) && !(await vis(pg, '#hgProf')), 'with a profile PLAY starts the round at once', null);
@@ -129,11 +164,18 @@ async function fits(pg, w, h, label) {
     await pg.reload(); await pg.waitForFunction(() => window.G && G.profileUI); await pg.waitForTimeout(300);
     await pg.locator('#hgMe').tap(); await pg.waitForTimeout(200);
     const ed = await pg.evaluate(() => ({ val: document.getElementById('hgName').value, sel: [...document.querySelectorAll('#hgList .hgC.sel')].map(b => b.dataset.cc) }));
-    ok(await vis(pg, '#hgProf') && ed.val === 'Jaja Nino' && ed.sel.indexOf('GE') >= 0, 'the "name · flag" button opens the screen with the saved name and country', ed);
+    const edc = await pg.locator('#hgSel').textContent();
+    ok(await vis(pg, '#hgProf') && ed.val === 'Jaja Nino' && ed.sel.indexOf('GE') >= 0 && edc === '\u{1F1EC}\u{1F1EA} Georgia 🔍', 'the flag + name button opens the screen with the saved name and the country chip', { ed, edc });
+    await fits(pg, 390, 844, 'portrait, folded');
+    await pg.screenshot({ path: path.join(SHOTS, 'gold_profile_folded_390.png') });
+    await pg.locator('#hgBack').tap(); await pg.waitForTimeout(80);
+    ok(!(await vis(pg, '#hgProf')), 'the ✕ closes the screen', null);
+    await pg.locator('#hgMe').tap(); await pg.waitForTimeout(150);
+    await pg.locator('#hgSel').tap(); await pg.waitForTimeout(80);
     await pg.locator('#hgSearch').fill('fran'); await pg.locator('#hgList .hgC[data-cc="FR"]').tap(); await pg.locator('#hgSave').tap(); await pg.waitForTimeout(400);
-    const ed2 = await pg.evaluate(() => ({ on: document.getElementById('hgProf').classList.contains('on'), round: !!G.S, btn: document.getElementById('hgMe').textContent, c: G.profile.country }));
+    const ed2 = await pg.evaluate(() => ({ on: document.getElementById('hgProf').classList.contains('on'), round: !!G.S, btn: document.getElementById('hgMe').querySelector('i').textContent + '|' + document.getElementById('hgMe').querySelector('span').textContent, c: G.profile.country }));
     const set2 = T.n('hg_profile_set').slice(-1)[0];
-    ok(!ed2.on && !ed2.round && ed2.c === 'FR' && ed2.btn === 'Jaja Nino · \u{1F1EB}\u{1F1F7}' && set2.body.country === 'FR', 'editing saves the new country to the server and does not start a round', ed2);
+    ok(!ed2.on && !ed2.round && ed2.c === 'FR' && ed2.btn === '\u{1F1EB}\u{1F1F7}|Jaja Nino' && set2.body.country === 'FR', 'editing saves the new country to the server and does not start a round', ed2);
     ok(!T.errs.length && await errHidden(pg), 'Telegram run: no page errors, #err hidden', T.errs);
     await T.ctx.close();
   }
@@ -155,8 +197,10 @@ async function fits(pg, w, h, label) {
   }
   {
     const T = await setup(b, { tg: { id: TGID, first_name: 'Ana', language_code: 'en' }, local: { name: 'Taken', country: 'IT' } });
+    const cb = await chip(T.pg);
+    ok(cb.bad && cb.s === 'Taken', 'a name the server refused: the chip carries a red "!" badge', cb);
     await T.pg.locator('#play').tap(); await T.pg.waitForTimeout(200);
-    ok(await vis(T.pg, '#hgProf') && await msg(T.pg) === 'That name is taken' && await T.pg.evaluate(() => !G.S), 'a local name the server refuses (name_taken): PLAY asks for a new name', await msg(T.pg));
+    ok(await vis(T.pg, '#hgProf') && await msg(T.pg) === 'Name taken' && await T.pg.evaluate(() => !G.S), 'a local name the server refuses (name_taken): PLAY asks for a new name', await msg(T.pg));
     await T.pg.locator('#hgName').fill('Free Name'); await T.pg.locator('#hgSave').tap(); await T.pg.waitForTimeout(400);
     ok(await T.pg.evaluate(() => !!G.S && G.profile.name === 'Free Name'), 'a free name saves and the round starts', null);
     await T.ctx.close();
@@ -192,11 +236,15 @@ async function fits(pg, w, h, label) {
   for (const [w, h] of [[844, 390], [640, 360]]) {
     const T = await setup(b, { w, h }); const { pg } = T;
     const n0 = await pg.evaluate(() => ({ on: G.net.on, token: G.net.token }));
+    const tf = await titleFits(pg, w, h);
+    ok(tf.ok && tf.links.length >= 3, w + 'x' + h + ': the title with the profile chip adds no scroll (none at all once the core fits); the chip sits in the Rules row', tf); titleNote(w + 'x' + h, tf);
     await pg.locator('#play').tap(); await pg.waitForTimeout(200);
     const v0 = await pg.evaluate(() => ({ val: document.getElementById('hgName').value, sug: !!document.querySelector('#hgList .hgSug') }));
     ok(await vis(pg, '#hgProf') && v0.val === '' && !v0.sug, w + 'x' + h + ' offline: PLAY opens the profile, no name prefilled, no suggestion', v0);
     await pg.screenshot({ path: path.join(SHOTS, 'gold_profile_' + w + '.png') });
     await fits(pg, w, h, 'landscape');
+    const st = await shortTexts(pg);
+    ok(!st.long.length && st.all.join('|') === 'YOU|✕|SAVE', w + 'x' + h + ': the profile screen is short texts only (YOU, ✕, SAVE)', st);
     await pg.locator('#hgName').fill('Local Hero'); await pg.locator('#hgSearch').fill('ital'); await pg.locator('#hgList .hgC[data-cc="IT"]').tap(); await pg.locator('#hgSave').tap(); await pg.waitForTimeout(300);
     const s = await pg.evaluate(() => ({ p: Object.assign({}, G.profile), ls: JSON.parse(localStorage.getItem('hg_profile') || 'null'), round: !!G.S }));
     ok(s.p.name === 'Local Hero' && s.p.country === 'IT' && s.ls && s.ls.country === 'IT' && s.round, w + 'x' + h + ' offline: SAVE keeps the profile locally and the round starts', s);
