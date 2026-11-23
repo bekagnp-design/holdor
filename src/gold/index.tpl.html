@@ -338,7 +338,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const me = S.me, left = Math.max(0, ROUND - S.t), mm = Math.floor(left / 60), ss = Math.floor(left % 60);
     $('hTL').innerHTML = 'Carry <span class="c">' + me.carry + '</span><br>Banked ' + me.bank;
     const cv_ = coinValue(S.t), toHalf = HALVE_T - (S.t % HALVE_T);
-    $('hTC').innerHTML = '<b' + (left <= 20 ? ' style="color:#ff6a5a"' : '') + '>' + mm + ':' + String(ss).padStart(2, '0') + '</b>Coin = ' + cv_ + (cv_ > 2 ? ' · halves in ' + Math.ceil(toHalf) + ' s' : '') + ' · vaults move in ' + Math.max(0, Math.ceil(S.vNext - S.t)) + ' s';
+    $('hTC').innerHTML = '<b' + (left <= 20 ? ' style="color:#ff6a5a"' : '') + '>' + mm + ':' + String(ss).padStart(2, '0') + '</b>Coin ' + cv_ + (cv_ > 2 ? ' · halves in ' + Math.ceil(toHalf) + ' s' : '') + '<br>Vaults move in ' + Math.max(0, Math.ceil(S.vNext - S.t)) + ' s';
     const order = S.ps.slice().sort((a, b) => b.bank - a.bank).slice(0, 5);
     if (!order.includes(me)) order[4] = me;
     $('hTR').innerHTML = order.map(p => '<div class="' + (p === me ? 'me' : '') + '">' + (p === me ? 'You' : p.name) + ' ' + p.bank + '</div>').join('');
@@ -352,6 +352,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const a = Math.atan2(sy - VH / 2, sx - VW / 2), m = 44;
     const ex = clamp(VW / 2 + Math.cos(a) * VW, m, VW - m); let ey = clamp(VH / 2 + Math.sin(a) * VH, m + 40, VH - m);
     if (ex > VW - 150) ey = Math.min(ey, VH - 140);   // keep clear of the skill button
+    if (ex < 116 && ey < 162) ey = 162;                // and of the minimap under the top-left text
     ctx.save(); ctx.translate(ex, ey); ctx.rotate(a); ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(-8, -9); ctx.lineTo(-8, 9); ctx.closePath(); ctx.fill(); ctx.restore();
     if (label) { ctx.fillStyle = col; ctx.font = '700 11px Georgia'; ctx.textAlign = 'center'; ctx.fillText(label, ex - Math.cos(a) * 22, ey - Math.sin(a) * 22 + 4); }
   }
