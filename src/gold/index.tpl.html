@@ -44,8 +44,9 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 .lines{font:15px/1.5 Georgia,serif;color:#cfd6e2;text-align:center}
 .extra{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(100%,600px)}.extra:empty,.links:empty{display:none}
 /* icon buttons (the owner, 2026-11-23: "too much text"): an icon, one short word under it; every target >= 52 px */
-.ib{min-width:56px;min-height:52px;padding:4px 8px;border-radius:14px;border:2px solid rgba(255,255,255,.18);background:rgba(255,255,255,.04);color:var(--ink);display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:700 10px Georgia,serif;letter-spacing:.04em;cursor:pointer;position:relative;flex:0 0 auto}
-.ib i{font-style:normal;font-size:22px;line-height:1;display:block}.ib canvas{width:24px;height:24px;display:block}.ib span{color:var(--muted);white-space:nowrap}
+.ib{min-width:52px;min-height:52px;padding:4px 6px;border-radius:14px;border:2px solid rgba(255,255,255,.18);background:rgba(255,255,255,.04);color:var(--ink);display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:700 10px Georgia,serif;letter-spacing:.04em;cursor:pointer;position:relative;flex:0 0 auto}
+.ib i{font-style:normal;font-size:22px;line-height:1;display:block}.ib canvas{width:24px;height:24px;display:block}.ib span{color:var(--muted);white-space:nowrap;max-width:76px;overflow:hidden;text-overflow:ellipsis}
+.links:has(.ib){gap:6px}
 .ib.on{border-color:var(--gold)}
 .hrows{display:flex;flex-direction:column;gap:12px;width:min(100%,380px)}.hrow{display:flex;align-items:center;gap:12px;font:16px/1.3 Georgia,serif;color:#e4e9f1}.hrow>i{flex:0 0 40px;height:40px;display:grid;place-items:center;font-style:normal;font-size:24px}
 .ring{width:34px;height:34px;border-radius:50%;background:#7b93ff;box-shadow:0 0 0 3px #070c16,0 0 0 6px #5be38a}.ring.red{box-shadow:0 0 0 3px #070c16,0 0 0 6px #ff5a5a}
