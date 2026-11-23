@@ -1,11 +1,11 @@
 // tests/gold/t_chat.js — Heavy Gold chat (35_chat.js) against a mocked server (page.route on the Supabase RPCs, a faked Telegram.WebApp):
-// the Chat button in #titleLinks, the unread dot from the closed 20 s poll (since-based; your own messages never light it), the full
-// screen on the title (WORLD + the country tab with flag and name), each message with flag, name, 👑, text and HH:MM, the 3 s poll
-// with since while open, SEND with real taps, every server error in English ('rate' → "Slow down a little"), the 200-character cap,
+// the 💬 Chat icon button (.ib) in #titleLinks, the unread dot from the closed 20 s poll (since-based; your own messages never light it), the full
+// screen on the title (🌍 World + the country tab with flag and name), each message with flag, name, 👑, text and HH:MM, the 3 s poll
+// with since while open, SEND with real taps, every server error in 1–3 English words ('rate' → "Too fast"), the 200-character cap,
 // tabs, Report (⋯) and Block (long press), no Telegram id in the DOM, no HTML injection ('<img src=x onerror=alert(1)>' renders as
 // text), the source never assigns innerHTML; during a round the round HUD button overlaps nothing, the docked panel leaves the hero
 // and the free side uncovered (the joystick still drags there), the game keeps running, the round's end closes it; offline
-// "Open HOLDOR in Telegram to chat" with nothing sent; a failed login offers Try again; no profile; the layout at 390x844, 844x390
+// "Open in Telegram" with nothing sent; a failed login says "Offline" with ↻ Retry; every visible text short (GOLD.md "UI rules"); no profile; the layout at 390x844, 844x390
 // and 640x360 (screenshots in .shots/gold_chat_*.png); the docked panel never covers the skill button (a tap there fires the skill);
 // landscape with the keyboard up (844x170): the input and SEND stay inside the panel; a message hidden for everyone (3 reports)
 // leaves the open chat at the next refresh from since 0 (FULL_MS); a full page of 50 after since replaces the stored list (no
@@ -19,8 +19,11 @@ const SHOTS = path.join(__dirname, '..', '..', '.shots'); fs.mkdirSync(SHOTS, { 
 let fails = 0; const ok = (c, m, i) => { console.log((c ? 'OK   ' : 'FAIL ') + m + (i !== undefined ? '  ' + JSON.stringify(i) : '')); if (!c) fails++; };
 const TOKEN = '5d2c8e1a-7b3f-4a6e-9c10-2e4f6a8b0c13', TGID = 918273645, MSGTG = 7770001;
 const ME = { name: 'Ann', country: 'GE' };
-const ERRTXT = { rate: 'Slow down a little', too_long: 'Too long: 200 characters at most', empty: 'Write something first', no_profile: 'Pick a name and a country first',
-  bad_channel: "You can write only in your own country's chat", auth: 'Not signed in. Reopen HOLDOR in Telegram', http500: 'Could not send. Check the connection and try again' };
+const ERRTXT = { rate: 'Too fast', too_long: 'Too long', empty: 'Empty', no_profile: 'No profile', bad_channel: 'Not your country', auth: 'Not signed in', http500: 'Offline' };
+/* GOLD.md "UI rules": no visible text node longer than 40 characters in the chat panel, except message bodies and names */
+const longTexts = pg => pg.evaluate(() => { const out = [], s = document.getElementById('hgChat'), wk = document.createTreeWalker(s, NodeFilter.SHOW_TEXT); let n;
+  while ((n = wk.nextNode())) { const t = n.textContent.trim(), e = n.parentElement; if (!t || !e || !e.getClientRects().length) continue;
+    if (e.closest('.hgCmb,.hgCmh .n,#hgChMenu .q')) continue; if ([...t].length > 40) out.push(t); } return out; });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 /* the mocked server: tg_login, the profile, minimal boards, and hg_chat_* with the GOLD.md rules (every message also carries a tg_id the client must never show) */
@@ -84,6 +87,19 @@ async function setup(b, o) {
   const until = async (fn, ms) => { const t0 = Date.now(); while (Date.now() - t0 < (ms || 5000)) { if (fn()) return true; await sleep(50); } return !!fn(); };
   return { ctx, pg, M, errs, n: nm => M.calls.filter(c => c.name === nm), lists, until };
 }
+/* GOLD.md "UI rules": the title fits with no scroll. Other modules' title parts are hidden here (each group checks its own), so this
+   checks that this module's icon adds no scroll to the core's own layout (core = everything but Rules hidden) and keeps PLAY and
+   the icons on screen in one row; the whole page's scroll is printed as INFO */
+async function titleFit(pg, mine) {
+  return pg.evaluate(ids => { const t = document.getElementById('title'), all = t.scrollHeight - t.clientHeight, hid = [];
+    for (const box of ['titleExtra', 'titleLinks']) for (const c of document.getElementById(box).children) if (ids.indexOf(c.id) < 0 && c.id !== 'helpB' && c.style.display !== 'none') { hid.push(c); c.style.display = 'none'; }
+    const own = t.scrollHeight - t.clientHeight;
+    for (const id of ids) { const e = document.getElementById(id); if (e) { e.style.display = 'none'; hid.push(e); } }
+    const core = t.scrollHeight - t.clientHeight; for (const id of ids) { const e = document.getElementById(id); if (e) e.style.display = ''; }
+    const r = id => { const q = document.getElementById(id).getBoundingClientRect(); return { t: Math.round(q.top), b: Math.round(q.bottom), l: Math.round(q.left), r: Math.round(q.right) }; };
+    const res = { all, own, core, play: r('play'), links: ids.concat('helpB').map(r), row: new Set(ids.concat('helpB').map(id => Math.round(document.getElementById(id).getBoundingClientRect().top))).size, H: innerHeight, W: innerWidth };
+    for (const c of hid) c.style.display = ''; return res; }, mine);
+}
 const errHidden = pg => pg.evaluate(() => getComputedStyle(document.getElementById('err')).display === 'none');
 const on = (pg, sel) => pg.evaluate(s => { const e = document.querySelector(s); return !!e && getComputedStyle(e).display !== 'none' && !e.hidden; }, sel);
 const rowsOf = pg => pg.evaluate(() => [...document.querySelectorAll('#hgChList .hgCm')].map(r => ({ id: +r.dataset.id, me: r.classList.contains('me'),
@@ -107,9 +123,9 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     const T = await setup(b); const { pg, M } = T;
     const def = await pg.evaluate(() => ({ open: G.chat.OPEN_MS, closed: G.chat.CLOSED_MS, full: G.chat.FULL_MS, on: G.net.on }));
     ok(def.open === 3000 && def.closed === 20000 && def.full === 30000 && def.on, 'online; the chat polls every 3 s while open (a refresh from since 0 every 30 s) and every 20 s while closed (defaults)', def);
-    const tb = await pg.evaluate(() => { const e = document.getElementById('hgChatBtn'), r = e.getBoundingClientRect(); return { in: e.parentElement.id, sec: e.classList.contains('sec'), t: e.firstChild.textContent, h: r.height, dot: !e.querySelector('.hgDot').hidden }; });
-    ok(tb.in === 'titleLinks' && tb.sec && tb.t === 'Chat' && tb.h >= 44 && !tb.dot, 'a "Chat" .sec button in #titleLinks (≥ 44 px), no dot before any poll', tb);
-    ok(await pg.evaluate(() => document.getElementById('titleLinks').firstElementChild.id === 'hgChatBtn'), 'Chat is the first link (its dot stays on screen when the links wrap)', null);
+    const tb = await pg.evaluate(() => { const e = document.getElementById('hgChatBtn'), r = e.getBoundingClientRect(); return { in: e.parentElement.id, ib: e.classList.contains('ib'), i: e.querySelector('i').textContent, t: e.querySelector('span').textContent, h: r.height, w: r.width, dot: !e.querySelector('.hgDot').hidden }; });
+    ok(tb.in === 'titleLinks' && tb.ib && tb.i === '💬' && tb.t === 'Chat' && tb.h >= 52 && tb.w >= 52 && !tb.dot, 'a 💬 "Chat" icon button (.ib) in #titleLinks (≥ 52 px), no dot before any poll', tb);
+    ok(await pg.evaluate(() => document.querySelector('#titleLinks .ib').id === 'hgChatBtn'), 'Chat is the first icon in #titleLinks', null);
     // the first closed poll (FIRST_MS after coming online): both channels, since 0
     await T.until(() => T.lists('world').length >= 1 && T.lists('c:GE').length >= 1, 6000);
     await pg.waitForTimeout(300);
@@ -123,7 +139,8 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     await pg.locator('#hgChatBtn').tap(); await pg.waitForTimeout(400);
     const o1 = await pg.evaluate(() => { const s = document.getElementById('hgChat'); return { on: s.classList.contains('on'), full: s.classList.contains('full'), mode: G.chat.mode,
       w: document.getElementById('hgChTabW').textContent, c: document.getElementById('hgChTabC').textContent, act: document.querySelector('.hgChTab.on').id, ph: document.getElementById('hgChIn').placeholder }; });
-    ok(o1.on && o1.full && o1.mode === 'full' && o1.w === 'WORLD' && o1.c === '\u{1F1EC}\u{1F1EA}Georgia' && o1.act === 'hgChTabW', 'Chat opens a full screen with two tabs: WORLD and the country (🇬🇪 Georgia), WORLD first', o1);
+    ok(o1.on && o1.full && o1.mode === 'full' && o1.w === '🌍World' && o1.c === '\u{1F1EC}\u{1F1EA}Georgia' && o1.act === 'hgChTabW' && o1.ph === 'Message', 'Chat opens a full screen with two tabs: 🌍 World and the country (🇬🇪 Georgia), World first; the input says "Message"', o1);
+    const ln1 = await longTexts(pg); ok(!ln1.length, 'the chat screen: no visible label longer than 40 characters (message bodies and names aside)', ln1);
     const first = T.lists('world')[n0];
     ok(first && first.body.since === 0, 'opening refreshes the open tab from since 0', first && first.body);
     const rows = await rowsOf(pg);
@@ -185,7 +202,7 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     ok((await msgLine(pg)).t === ERRTXT.empty, 'a body of control characters only: the server says empty → "Write something first"', await msgLine(pg));
     await pg.locator('#hgChIn').fill('a'.repeat(250)); await pg.waitForTimeout(80);
     const cap = await pg.evaluate(() => ({ len: [...document.getElementById('hgChIn').value].length, line: document.getElementById('hgChMsg').textContent }));
-    ok(cap.len === 200 && cap.line === '0 characters left', 'the input keeps at most 200 characters and counts down near the end', cap);
+    ok(cap.len === 200 && cap.line === '0 left', 'the input keeps at most 200 characters and counts down near the end', cap);
     const emo = '😀'.repeat(150);
     await pg.locator('#hgChIn').fill(emo); await pg.waitForTimeout(80);
     ok([...(await pg.locator('#hgChIn').inputValue())].length === 150, 'the 200 counts characters, not UTF-16 units (150 emoji fit)', null);
@@ -195,7 +212,7 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     await pg.locator('#hgChTabC').tap(); await pg.waitForTimeout(500);
     const c1 = T.lists('c:GE').slice(-1)[0], cr = await rowsOf(pg);
     const ph = await pg.locator('#hgChIn').getAttribute('placeholder');
-    ok(c1 && c1.body.since === 0 && cr.length === 1 && cr[0].n === 'Luka' && cr[0].b === 'gamarjoba' && ph === 'Message to Georgia', 'the country tab lists "c:GE" (Luka), the input says "Message to Georgia"', { since: c1 && c1.body.since, rows: cr.map(r => r.n), ph });
+    ok(c1 && c1.body.since === 0 && cr.length === 1 && cr[0].n === 'Luka' && cr[0].b === 'gamarjoba' && ph === 'Message', 'the country tab lists "c:GE" (Luka), the input says "Message"', { since: c1 && c1.body.since, rows: cr.map(r => r.n), ph });
     await sendText(pg, 'gaumarjos');
     ok(T.n('hg_chat_send').slice(-1)[0].body.channel === 'c:GE' && (await rowsOf(pg)).slice(-1)[0].b === 'gaumarjos', 'SEND on the country tab goes to "c:GE"', T.n('hg_chat_send').slice(-1)[0].body);
     await pg.evaluate(() => { G.chat.CLOSED_MS = 1200; });
@@ -217,14 +234,14 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     const marie = (await rowsOf(pg)).find(r => r.b === 'Bonjour');
     await pg.locator('#hgChList .hgCm[data-id="' + marie.id + '"] .hgCmo').tap(); await pg.waitForTimeout(150);
     const mn = await pg.evaluate(() => ({ on: !document.getElementById('hgChMenu').hidden, q: document.querySelector('#hgChMenu .q').textContent, rep: document.getElementById('hgChReport').textContent, blk: document.getElementById('hgChBlock').textContent }));
-    ok(mn.on && mn.q === '\u{1F1EB}\u{1F1F7} Marie: Bonjour' && mn.rep === 'Report' && mn.blk === 'Block Marie', 'the ⋯ on a message offers Report and Block (the message quoted)', mn);
+    ok(mn.on && mn.q === '\u{1F1EB}\u{1F1F7} Marie: Bonjour' && mn.rep === '⚑ Report' && mn.blk === '⛔ Block', 'the ⋯ on a message offers Report and Block (the message quoted)', mn);
     await pg.locator('#hgChCancel').tap(); await pg.waitForTimeout(100);
     ok(!(await on(pg, '#hgChMenu')) && !T.n('hg_chat_report').length, 'Cancel closes it, nothing sent', null);
     await pg.locator('#hgChList .hgCm[data-id="' + marie.id + '"] .hgCmo').tap(); await pg.waitForTimeout(150);
     await pg.locator('#hgChReport').tap(); await pg.waitForTimeout(400);
     const rp = T.n('hg_chat_report').slice(-1)[0], afterRep = await rowsOf(pg);
     ok(rp && rp.body.token === TOKEN && rp.body.id === marie.id, 'Report: hg_chat_report(token, id)', rp && rp.body);
-    ok(!afterRep.some(r => r.id === marie.id) && afterRep.some(r => r.b === 'are you there?') && (await msgLine(pg)).t === 'Reported. Thank you.' &&
+    ok(!afterRep.some(r => r.id === marie.id) && afterRep.some(r => r.b === 'are you there?') && (await msgLine(pg)).t === '⚑ Reported' &&
       (await pg.evaluate(() => JSON.parse(localStorage.getItem('hg_chat_hidden') || '[]'))).indexOf(marie.id) >= 0, 'the reported message is hidden for you at once (and stays hidden: hg_chat_hidden); her other messages stay', afterRep.map(r => r.b));
 
     // block with a long press
@@ -232,10 +249,10 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     const cb = await pg.locator('#hgChList .hgCm[data-id="' + carl.id + '"] .hgCmc').boundingBox();
     await pg.mouse.move(cb.x + 30, cb.y + cb.height / 2); await pg.mouse.down(); await pg.waitForTimeout(750); await pg.mouse.up(); await pg.waitForTimeout(100);
     const mn2 = await pg.evaluate(() => ({ on: !document.getElementById('hgChMenu').hidden, blk: document.getElementById('hgChBlock').textContent }));
-    ok(mn2.on && mn2.blk === 'Block Carl', 'a long press on a message opens the same menu', mn2);
+    ok(mn2.on && mn2.blk === '⛔ Block' && /Carl/.test(await pg.evaluate(() => document.querySelector('#hgChMenu .q').textContent)), 'a long press on a message opens the same menu', mn2);
     await pg.locator('#hgChBlock').tap(); await pg.waitForTimeout(400);
     const bk = T.n('hg_chat_block').slice(-1)[0], afterBlk = await rowsOf(pg);
-    ok(bk && bk.body.name === 'Carl' && bk.body.token === TOKEN && !afterBlk.some(r => r.n === 'Carl') && /^Blocked Carl/.test((await msgLine(pg)).t), 'Block: hg_chat_block(token, "Carl"), both of his messages go', { body: bk && bk.body, rows: afterBlk.map(r => r.n) });
+    ok(bk && bk.body.name === 'Carl' && bk.body.token === TOKEN && !afterBlk.some(r => r.n === 'Carl') && (await msgLine(pg)).t === '⛔ Blocked', 'Block: hg_chat_block(token, "Carl"), both of his messages go', { body: bk && bk.body, rows: afterBlk.map(r => r.n) });
     const mine = (await rowsOf(pg)).find(r => r.me);
     const mb = await pg.locator('#hgChList .hgCm[data-id="' + mine.id + '"] .hgCmc').boundingBox();
     await pg.mouse.move(mb.x + 30, mb.y + mb.height / 2); await pg.mouse.down(); await pg.waitForTimeout(750); await pg.mouse.up(); await pg.waitForTimeout(100);
@@ -261,7 +278,7 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     await pg.evaluate(() => { G.profile.country = 'FR'; G.emit('profile', G.profile); G.chat.open('country'); });
     await pg.waitForTimeout(500);
     const bc = await pg.evaluate(() => ({ note: (document.getElementById('hgChNote') || {}).textContent, form: document.getElementById('hgChForm').hidden }));
-    ok(bc.note === "You can read only your own country's chat" && bc.form, 'the server refuses a country channel (bad_channel): a note, no input', bc);
+    ok(bc.note === 'Not your country' && bc.form, 'the server refuses a country channel (bad_channel): a note, no input', bc);
     await pg.evaluate(() => { G.profile.country = 'GE'; G.emit('profile', G.profile); G.chat.close(); });
 
     const dom = await pg.evaluate(() => document.documentElement.outerHTML);
@@ -297,10 +314,15 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     await pg.locator('#hgChList .hgCm:not(.me) .hgCmo').last().tap(); await pg.waitForTimeout(150);
     const MF = await pg.evaluate(() => { const m = document.getElementById('hgChMenu'), r = m.getBoundingClientRect(); return { on: !m.hidden, b: r.bottom, btns: [...m.querySelectorAll('button')].map(e => { const q = e.getBoundingClientRect(); return [Math.round(q.y), Math.round(q.bottom), Math.round(q.height)]; }) }; });
     ok(MF.on && MF.btns.every(x => x[0] >= 0 && x[1] <= h && x[2] >= 44), tag + ' title: the Report / Block menu fits on screen (buttons ≥ 44 px)', MF);
+    { const SH = await pg.evaluate(() => { const m = document.getElementById('hgChMenu').getBoundingClientRect(), l = document.getElementById('hgChList').getBoundingClientRect(), b = [...document.querySelectorAll('#hgChMenu .hgChActs button')].map(e => Math.round(e.getBoundingClientRect().top));
+        return { above: Math.round(m.top - l.top), mb: Math.round(m.bottom), lb: Math.round(l.bottom), row: new Set(b).size, h2: !!document.querySelector('#hgChat h2') }; });
+      ok(SH.above >= 40 && SH.row === 1 && !SH.h2, tag + ' title: the menu is a bottom sheet (the messages stay in view above it, its 3 buttons in one row); no CHAT title (the tabs say it)', SH); }
     await pg.locator('#hgChCancel').tap();
     await pg.locator('#hgChTabC').tap(); await pg.waitForTimeout(500); await pg.locator('#hgChTabW').tap(); await pg.waitForTimeout(300);   // both channels seen
     await pg.locator('#hgChX').tap(); await pg.waitForTimeout(150);
-    if (w !== 640) { const pl = await pg.evaluate(() => document.getElementById('play').getBoundingClientRect().bottom); ok(pl <= h, tag + ': PLAY stays on screen with the Chat button in #titleLinks', pl); }
+    { const TF = await titleFit(pg, ['hgChatBtn']);
+      ok(TF.own <= Math.max(1, TF.core) && TF.row === 1 && (TF.core > 1 || (TF.play.b <= h && TF.links.every(q => q.t >= 0 && q.b <= h && q.l >= 0 && q.r <= w))), tag + ': the 💬 icon adds no scroll to the title (PLAY and the icons on screen, one row)', TF);
+      console.log('INFO ' + tag + ': the title scrolls ' + TF.all + ' px with every module, ' + TF.core + ' px with the core alone'); }
 
     // a round: the HUD button
     await pg.locator('#play').tap(); await pg.waitForTimeout(300);
@@ -330,10 +352,13 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
         sk: { x: sk.x, y: sk.y, width: sk.width, height: sk.height }, hero: { x: G.W / 2 - hr, y: G.H / 2 - hr, width: 2 * hr, height: 2 * hr }, rows: s.querySelectorAll('.hgCm').length,
         send: { b: send.bottom, r: send.right, h: send.height }, inp: { y: inp.y, h: inp.height }, t0: G.S.t, small: [...s.querySelectorAll('button,input')].filter(e => e.offsetParent && !e.closest('[hidden]')).map(e => e.getBoundingClientRect().height).filter(v => v < 44).length }; });
     const land = w > h;
+    { const ln = await longTexts(pg); ok(!ln.length, tag + ' round: the docked chat: no visible label longer than 40 characters', ln); }
     ok(D.on && D.dock && D.mode === 'dock' && D.rows > 0 && D.send.b <= D.p.b && D.send.r <= D.p.r && D.send.h >= 44 && D.inp.h >= 44 && !D.small, tag + ' round: the chat docks (messages, the input and SEND inside the panel, targets ≥ 44 px)', D);
     ok(!R(D.p, D.hero) && D.p.x >= 0 && D.p.r <= w && D.p.y >= 0 && D.p.b <= h, tag + ' round: the docked panel leaves the hero uncovered', { p: D.p, hero: D.hero });
     if (land) ok(D.p.x >= w * 0.55 && !R(D.p, D.sk), tag + ' round: landscape: a side panel on the right (≤ 45 % of the width), above the skill button; the left side is free', { left: D.p.x, w, sk: D.sk });
     else ok(D.p.height <= h * 0.5 && D.p.y >= h * 0.5 && !R(D.p, D.sk), tag + ' round: portrait: a bottom sheet at most half the height, left of the skill button; the top half is free', { p: D.p, sk: D.sk });
+    { const tr = await pg.evaluate(() => { const q = document.getElementById('hTR').getBoundingClientRect(); return { x: q.x, y: q.y, width: q.width, height: q.height }; });
+      ok(!R(D.p, tr), tag + ' round: the docked panel leaves the live board (#hTR, the top 4) uncovered', { p: D.p, tr }); }
     await pg.screenshot({ path: path.join(SHOTS, 'gold_chat_dock_' + tag + '.png') });
     await pg.waitForTimeout(1000);
     const t1 = await pg.evaluate(() => G.S.t);
@@ -397,7 +422,7 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     const T = await setup(b, { tg: false }); const { pg, M } = T;
     await pg.locator('#hgChatBtn').tap(); await pg.waitForTimeout(300);
     const o = await pg.evaluate(() => ({ on: document.getElementById('hgChat').classList.contains('on'), note: (document.getElementById('hgChNote') || {}).textContent, form: document.getElementById('hgChForm').hidden, tabs: document.getElementById('hgChTabs').hidden, net: G.net.on }));
-    ok(o.on && o.note === 'Open HOLDOR in Telegram to chat' && o.form && o.tabs && !o.net, 'offline: the chat says "Open HOLDOR in Telegram to chat", no input, no tabs', o);
+    ok(o.on && o.note === 'Open in Telegram' && o.form && o.tabs && !o.net, 'offline: the chat says "Open in Telegram", no input, no tabs', o);
     await pg.screenshot({ path: path.join(SHOTS, 'gold_chat_offline_390.png') });
     await pg.locator('#hgChX').tap(); await pg.locator('#play').tap(); await pg.waitForTimeout(600);
     const hb = await pg.evaluate(() => ({ round: !!G.S && !G.S.over, shown: getComputedStyle(document.getElementById('hgChatHud')).display !== 'none' }));
@@ -408,7 +433,7 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     await T.ctx.close();
   }
 
-  /* ---------- 4. Telegram, but the login fails: Connecting…, then Try again ---------- */
+  /* ---------- 4. Telegram, but the login fails: Connecting…, then Offline with ↻ Retry ---------- */
   {
     const T = await setup(b, { loginFail: true }); const { pg } = T;
     await pg.waitForFunction(() => !G.net.pending, null, { timeout: 5000 }).catch(() => {});
@@ -416,9 +441,9 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     const c0 = await pg.evaluate(() => (document.getElementById('hgChNote') || {}).textContent);
     await pg.waitForTimeout(900);
     const c1 = await pg.evaluate(() => { const r = document.getElementById('hgChRetry'); return { note: (document.getElementById('hgChNote') || {}).textContent, retry: r ? r.getBoundingClientRect().height : 0 }; });
-    ok(c0 === 'Connecting…' && /^Could not reach the server\.Try again$/.test(c1.note) && c1.retry >= 44, 'a failed login: "Connecting…" while it tries, then "Could not reach the server." with Try again (≥ 44 px)', { c0, c1 });
+    ok(c0 === 'Connecting…' && c1.note === 'Offline↻ Retry' && c1.retry >= 44, 'a failed login: "Connecting…" while it tries, then "Offline" with ↻ Retry (≥ 44 px)', { c0, c1 });
     const n = T.n('tg_login').length; await pg.locator('#hgChRetry').tap(); await pg.waitForTimeout(200);
-    ok(T.n('tg_login').length === n + 1, 'Try again logs in again', T.n('tg_login').length);
+    ok(T.n('tg_login').length === n + 1, 'Retry logs in again', T.n('tg_login').length);
     ok(!T.errs.length && await errHidden(pg), 'failed login: no page errors, #err hidden', T.errs);
     await T.ctx.close();
   }
@@ -430,10 +455,10 @@ async function sendText(pg, text) { await pg.locator('#hgChIn').fill(text); awai
     const w0 = await rowsOf(pg);
     ok(w0.length === 5 && !w0.some(r => r.me), 'no profile: the world chat still reads (nothing is yours)', w0.map(r => r.n));
     await sendText(pg, 'hi');
-    ok((await msgLine(pg)).t === ERRTXT.no_profile, 'no profile: SEND → the server says no_profile → "Pick a name and a country first"', await msgLine(pg));
+    ok((await msgLine(pg)).t === ERRTXT.no_profile, 'no profile: SEND → the server says no_profile → "No profile"', await msgLine(pg));
     await pg.locator('#hgChTabC').tap(); await pg.waitForTimeout(300);
     const c = await pg.evaluate(() => ({ tab: document.getElementById('hgChTabC').textContent, note: (document.getElementById('hgChNote') || {}).textContent, form: document.getElementById('hgChForm').hidden, pick: !!document.getElementById('hgChPick') }));
-    ok(c.tab === 'COUNTRY' && /^Pick a name and a country to join your country's chat/.test(c.note) && c.form && c.pick && !T.lists().some(x => /^c:/.test(x.body.channel)), 'no profile: the country tab asks for a name and a country (no country channel is asked)', c);
+    ok(c.tab === '🏳Country' && /^No country yet/.test(c.note) && c.form && c.pick && !T.lists().some(x => /^c:/.test(x.body.channel)), 'no profile: the country tab asks for a name and a country (no country channel is asked)', c);
     await pg.locator('#hgChPick').tap(); await pg.waitForTimeout(200);
     ok(await pg.evaluate(() => document.getElementById('hgProf').classList.contains('on') && !document.getElementById('hgChat').classList.contains('on')), 'its button closes the chat and opens the profile screen', null);
     ok(!T.errs.length && await errHidden(pg), 'no profile: no page errors, #err hidden', T.errs);
