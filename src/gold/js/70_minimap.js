@@ -11,7 +11,7 @@
   const host = document.getElementById('hudExtra') || document.getElementById('hud'); if (!host) return;
   const SZ = 92, PAD = 5, TAU = Math.PI * 2;
   const css = document.createElement('style');
-  css.textContent = '#hgMini{position:absolute;left:calc(10px + env(safe-area-inset-left));top:calc(56px + env(safe-area-inset-top));width:' + SZ + 'px;height:' + SZ + 'px;pointer-events:none;border-radius:10px;display:block}';
+  css.textContent = '#hgMini{position:absolute;left:calc(10px + env(safe-area-inset-left));top:calc(84px + env(safe-area-inset-top));width:' + SZ + 'px;height:' + SZ + 'px;pointer-events:none;border-radius:10px;display:block}';
   document.head.appendChild(css);
   const cv = document.createElement('canvas'); cv.id = 'hgMini'; cv.setAttribute('aria-hidden', 'true'); host.appendChild(cv);
   const c = cv.getContext('2d');
@@ -58,8 +58,9 @@
     }
     // the other heroes (a vanished one is hidden; his decoy shows as him), the heaviest first so a light dot stays on top
     const others = [];
-    for (const p of S.ps) if (p !== me && !(p.inv > t)) others.push({ name: p.name, god: p.god, x: p.x, y: p.y, carry: p.carry, decoy: false });
-    for (const d of S.decoys || []) if (d.owner && d.owner !== me) others.push({ name: d.owner.name, god: d.owner.god, x: d.x, y: d.y, carry: d.carry, decoy: true });
+    const seen = p => !(G.dayGod && typeof G.dayGod.visible === 'function') || G.dayGod.visible(p);   // Moon night: only what the hero's light shows
+    for (const p of S.ps) if (p !== me && !(p.inv > t) && seen(p)) others.push({ name: p.name, god: p.god, x: p.x, y: p.y, carry: p.carry, decoy: false });
+    for (const d of S.decoys || []) if (d.owner && d.owner !== me && seen(d)) others.push({ name: d.owner.name, god: d.owner.god, x: d.x, y: d.y, carry: d.carry, decoy: true });
     others.sort((a, b) => b.carry - a.carry);
     for (const o of others) { const p = map(o.x, o.y), r = dotR(o.carry), col = colOf(o.god);
       c.fillStyle = col; c.strokeStyle = 'rgba(0,0,0,.7)'; c.lineWidth = 1; c.beginPath(); c.arc(p.x, p.y, r, 0, TAU); c.fill(); c.stroke();

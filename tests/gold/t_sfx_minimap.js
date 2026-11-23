@@ -29,6 +29,7 @@ async function open(b, w, h) {
   await pg.route(/telegram\.org|supabase\.co/, r => r.abort());
   await pg.addInitScript(AC_SPY);
   await pg.goto('file://' + FILE); await pg.waitForFunction(() => window.G && G.sfx && G.minimap);
+  await pg.evaluate(() => { if (G.setDayGod) G.setDayGod('none'); });   // the day god's Moon night hides heroes on the minimap: test with no day rule
   return { pg, errs };
 }
 /* this suite is not about the profile: let PLAY through, and start the round by hand if a module still holds it */
@@ -148,7 +149,7 @@ const HELP = () => {
     const m2 = await pg.evaluate(() => { const S = G.S, me = S.me; __mark(); const c = S.coins[0]; c.x = me.x; c.y = me.y; G.step(1);
       me.cd = 0; G.useSkill(me); const p = G.sfx.play('bank'); return { log: G.sfx.log.slice(), osc: __ac.osc, src: __ac.src, play: p }; });
     ok(!m2.log.length && m2.osc === 0 && m2.src === 0 && m2.play === false, 'muted: a pickup, a skill and play() make no sound', m2);
-    await pg.reload(); await pg.waitForFunction(() => window.G && G.sfx);
+    await pg.reload(); await pg.waitForFunction(() => window.G && G.sfx); await pg.evaluate(() => { if (G.setDayGod) G.setDayGod('none'); });
     const m3 = await pg.evaluate(() => ({ muted: G.sfx.muted, btn: document.getElementById('hgSound').textContent, made: __ac.made }));
     ok(m3.muted && m3.btn === 'Sound: off' && m3.made === 0, 'mute survives a reload', m3);
     await pg.locator('#hgSound').tap();

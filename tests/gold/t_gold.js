@@ -11,6 +11,7 @@ let fails = 0; const ok = (c, m, i) => { console.log((c ? 'OK   ' : 'FAIL ') + m
     const errs = []; pg.on('pageerror', e => errs.push(e.message)); pg.on('console', m => { if (m.type() === 'error' && !/telegram|ERR_FAILED/i.test(m.text())) errs.push(m.text()); });
     await pg.route(/telegram\.org/, r => r.abort());
     await pg.goto('file://' + FILE); await pg.waitForFunction(() => window.G);
+    await pg.evaluate(() => { if (G.setDayGod) G.setDayGod('none'); G.beforePlay = null; try { localStorage.setItem('hg_profile', JSON.stringify({ name: 'Tester', country: 'GE' })); } catch (e) {} });
     await pg.screenshot({ path: path.join(__dirname, '..', '..', '.shots', 'gold_title_' + w + '.png') });
     const btn = await pg.locator('#play').boundingBox(); ok(btn && btn.height >= 44 && btn.y + btn.height <= h, w + 'x' + h + ': PLAY visible, >= 44 px', btn);
     await pg.locator('.god[data-god="thor"]').tap(); await pg.locator('#play').tap(); await pg.waitForTimeout(300);
@@ -25,7 +26,7 @@ let fails = 0; const ok = (c, m, i) => { console.log((c ? 'OK   ' : 'FAIL ') + m
       const S = G.S, out = { checks: [] }; const off0 = G.total() - S.minted;
       // robbery: the lighter one touches the heavier one
       const far = [[600, 600], [3400, 600], [600, 3400], [3400, 3400], [2000, 2000]].map(([x, y]) => ({ x, y })).sort((m, n) => Math.min(...S.vaults.map(v => Math.hypot(v.x - n.x, v.y - n.y))) - Math.min(...S.vaults.map(v => Math.hypot(v.x - m.x, v.y - m.y))))[0];
-      const a = S.ps[1], c = S.ps[2]; S.pairT = {}; a.carry = 0; c.carry = 200; a.x = far.x; a.y = far.y; c.x = far.x + 20; c.y = far.y; const before = G.total() - S.minted;
+      const a = S.ps[1], c = S.ps[2]; S.pairT = {}; a.cd = c.cd = S.t + 99; a.inv = c.inv = a.imm = c.imm = 0; a.carry = 0; c.carry = 200; a.x = far.x; a.y = far.y; c.x = far.x + 20; c.y = far.y; const before = G.total() - S.minted;
       G.step(1); out.rob = { a: a.carry, c: c.carry, conserved: G.total() - S.minted === before };
       // banking: stand in a vault 1.5 s
       const v = G.VAULTS[0], q = S.ps[3];
