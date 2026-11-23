@@ -148,6 +148,7 @@ Solo play is unchanged: `G.start(god)` with no second argument builds the same r
   - The URL is `wss://acimxvnupgpronpohheb.supabase.co/realtime/v1/websocket?apikey=<publishable key>&vsn=1.0.0`. `G.online.url` (or `window.HG_ONLINE_URL`) overrides it for tests.
   - It speaks Phoenix JSON (`topic, event, payload, ref, join_ref`): `phx_join` with `config {broadcast:{self:false, ack:false}, presence:{enabled, key}, postgres_changes:[], private:false}`, broadcast, presence track, and a heartbeat on `phoenix` every 20 s.
   - It reconnects after 1, 2, 5 and 10 s, then rejoins every channel and tracks again.
+  - `phx_error` / `phx_close` count only for the channel's current join ref (Phoenix closes the old join of a duplicate with the old ref); a channel then rejoins once, 1.5 s later.
   - It is opened only after PLAY ONLINE is tapped and closed after the round.
 - **The channels:**
   - `hg-lobby`: presence. Only the host of a forming room tracks there, with `{r: code, n, o: 1, e: deadline}`.
@@ -159,13 +160,17 @@ Solo play is unchanged: `G.start(god)` with no second argument builds the same r
 - **The state** goes out 4 times a second: `{t, mi, vn, p: [[id, x, y, vx, vy, carry, bank, robs, lost, best, imm, inv, bankT, flags]], v, d, e, ca/cr | cf, seats, map, fin}`.
   - Coins go as deltas, with a full list every 8th state.
   - The events: `r` robbery, `b` bank, `k` skill, `t` thunder, `m` Thor missed, `l` lightning.
-  - Clients draw the others 0.3 s in the past. A client's own coin pickups hide at once and the host confirms them.
+  - Clients draw the others 0.3 s in the past. A client's own coin pickups hide at once, and their gold counts in his carry until the host decides, so `G.total() === G.S.minted` holds on a client too.
 - **Inputs** are `{sq, x, y, vx, vy, sk, m}`: 5 a second while moving (4 a second with 6 or more players) and 1 a second standing still.
-  - `m` holds the player's own numbers (his day god and his training) for the host's `cd`, `thorR`, `thorShare`, `lokiT`, `chainT`, `rob`, `bankT`, clamped there.
-  - The host trusts the positions: it clamps them to the map and does not check speed.
+  - `m` holds the player's own numbers (his day god and his training) for the host's `cd`, `thorR`, `thorShare`, `lokiT`, `chainT`, `rob`, `bankT`, clamped there to the legal range for his god:
+    `cd` 0.595–1 × the god's, `thorR` 170–195.5, `thorShare` 0.25–0.28, `lokiT` and `chainT` 3–3.45, `rob` 0.3185–0.5, `bankT` 0.6375–1.5 (the day god's ×0.7 / ×0.5 / 0.5 with training's ±15 %).
+  - `sk` is the player's running count of skill presses. The host plays one skill each time it grows; a new host adopts it from the first input it hears, so no press is replayed after a hand-over.
+  - The host clamps the positions to the map and caps the move: a budget that fills at 1100 units a second up to 1200 (about the fastest legal hero, Hermes's dash on Sol's day with training), so a console edit cannot teleport a hero.
 - **The round submit:** `G.net.rpc` is wrapped so that `hg_round_submit` for a round that ended online carries `r.mode = 'online'` and `r.map`.
 - **The UI:**
-  - PLAY ONLINE is a gold-edged `.sec`, first in `#titleLinks`, shown only when `G.net.on` inside Telegram. PLAY stays the one primary button.
+  - PLAY ONLINE is a gold-edged `.sec`, first in `#titleLinks`, shown only when `G.net.on` inside Telegram. PLAY stays the one primary button. In a short landscape window it shares one row with the other title links.
+  - PLAY ONLINE keeps PLAY's profile gate: a name and a country, and no name the server refused (`G.profileUI.needFix`).
+  - Robbery and thunder toasts from the host's events name a bot "(bot)".
   - The wait screen `#hgOn` shows the countdown, the players (flag and name, YOU) and "N bots fill the empty seats". INVITE A FRIEND is the primary button; Start now (the host, 2 or more players) and Leave are secondary.
   - INVITE A FRIEND opens `t.me/share/url` with `https://t.me/HoldorTDBot/play?startapp=room_<code>` and holds the room 45 s longer (90 s at most).
   - The HUD chip `#onChip`, bottom left, says "ONLINE · N players" (or "waiting for the host…").

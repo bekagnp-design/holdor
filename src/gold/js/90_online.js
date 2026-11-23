@@ -13,6 +13,8 @@
      events (robbery, bank, skill, thunder). Each client moves its own hero (the core in S.client mode) and sends {x, y, vx, vy, sk}
      5 times a second while moving (once a second standing) on its own channel 'hg-u-<code>-<uid>', which only the host joins, so an
      input costs 2 messages, not one per player. Robbery, banking, coins and vaults are decided only by the host.
+   - The host does not trust a client's numbers: his own skill numbers are clamped to the legal range for his god, his move is capped
+     (1100 units/s, 1200 at once), and his running press count sk is adopted by a new host, never replayed.
    - Clients draw the other heroes 0.3 s in the past, interpolated between the host's states; names with flags, bots "bot", gone "left".
    - The host leaves (presence) or goes silent for 2.5 s: the next lowest alive key takes over from its last state (epoch + 1).
      A host that comes back and hears a newer epoch steps down to a client.
@@ -102,8 +104,10 @@
         if (ch.on.pres) ch.on.pres();
       } else if (ev === 'system') { if (p.status === 'error') { ch.sys = String(p.message || 'error'); O.err = ch.sys; } }
       else if (ev === 'phx_error' || ev === 'phx_close') {
-        ch.joined = false; const wait = ch.sys ? 6000 : 1500;   // a rate limit closes the channel: wait longer
-        setTimeout(() => { if (chans.get(ch.topic) === ch && wsUp) join(ch); }, wait);
+        // only for the current join: Phoenix answers a duplicate join (and a leave) with phx_close carrying the OLD join's ref
+        const jr0 = m.join_ref != null ? m.join_ref : m.ref; if (jr0 != null && String(jr0) !== ch.jref) return;
+        ch.joined = false; const wait = ch.sys ? 6000 : 1500, jr = ch.jref;   // a rate limit closes the channel: wait longer
+        setTimeout(() => { if (chans.get(ch.topic) === ch && wsUp && !ch.joined && ch.jref === jr) join(ch); }, wait);
       }
     } catch (e) { G.showErr('online: ' + ((e && e.message) || e)); }
   }
@@ -131,7 +135,8 @@
   function play(code) {
     if (R && R.over) cleanup();
     if (R || O.phase === 'conn' || O.phase === 'lobby') { show(); return; }
-    if (!hasProfile()) { pending = code || '*'; if (G.profileUI) G.profileUI.open(false); return; }
+    // the profile gate of PLAY (20_profile.js): a name and a country, and no name the server refused (name_taken)
+    if (!hasProfile() || (G.profileUI && G.profileUI.needFix)) { pending = code || '*'; if (G.profileUI) G.profileUI.open(false); return; }
     pending = null; O.err = ''; O.phase = 'conn'; show(); paint();
     clearTimeout(connT); connT = setTimeout(() => { if (!wsUp && O.phase !== 'play' && O.phase !== 'off' && O.phase !== 'err') fail('Could not reach the game server.'); }, O.CONNECT_MS);
     if (code && okCode(code)) joinRoom(code, false, true); else findRoom();
@@ -183,7 +188,7 @@
     const ts = Date.now().toString(36).padStart(9, '0');
     R = { code, key: (opener ? '0' : '1') + ts + UID, opener: !!opener, ch: null, up: null, ups: {}, noHost: new Set(), hk: null, ep: 0, deadline: 0, created: now(), started: false, seats: null,
       byLink: !!byLink, lastRoom: now(), hkSince: now(), joinedAt: now(), sq: 0, isq: 0, skN: 0, lastIn: 0, lastPos: null, cm: new Map(), known: new Map(), cid: 0, evq: [],
-      buf: {}, pred: new Map(), lastState: now(), thunderN: 0, finSent: false, over: false, moving: false };
+      buf: {}, pred: new Map(), pendV: 0, lastState: now(), thunderN: 0, finSent: false, over: false, moving: false };
     O.room = code; O.phase = 'wait';
     R.ch = channel('hg-r-' + code, { key: R.key, presence: true, bc: roomBc, pres: roomPres, join: roomJoined, fail: () => fail('Could not join the room.') });
     R.ch.meta = myMeta();
@@ -255,8 +260,8 @@
     R.started = true; R.lastState = now(); leaveLobby();
     const mine = R.seats.find(s => s[0] === UID);
     G.start(mine ? mine[3] : myGod(), { seats: R.seats.map(s => ({ u: s[0], name: s[1], flag: flag(s[2]), god: s[3], me: s[0] === UID })), client: !asHost, map });
-    const S = G.S; R.S = S; R.cm = new Map(); R.known = new Map(); R.cid = 0; R.buf = {}; R.pred.clear();
-    for (const p of S.ps) if (p.net) p.inT = now();
+    const S = G.S; R.S = S; R.cm = new Map(); R.known = new Map(); R.cid = 0; R.buf = {}; R.pred.clear(); R.pendV = 0;
+    for (const p of S.ps) if (p.net) { p.inT = now(); p.skN = 0; netFrom(p); }   // every client's press counter starts at 0 in a new room
     if (asHost) { hostSubs(); sendState(false); }   // the first state is a full one (sq 1)
     O.phase = 'play'; hide(); chip();
   }
@@ -268,22 +273,37 @@
       R.ups[u] = channel('hg-u-' + R.code + '-' + u, { presence: false, bc: (ev, p) => { if (ev === 'i') onInput(u, p); } }); }
   }
   function dropSubs() { if (!R) return; for (const u in R.ups) leaveCh(R.ups[u]); R.ups = {}; }
-  const MODS = { cd: [1, 20], thorR: [100, 260], thorShare: [0.1, 0.4], lokiT: [1, 5], chainT: [1, 5], rob: [0.2, 0.6], bankT: [0.5, 3] };
-  /* on the host, a remote hero's own numbers (his day god, his training) come with his inputs; clamped */
+  /* on the host, a remote hero's own numbers (his day god, his training) come with his inputs, clamped to the legal range for his god:
+     the day god (40_daygod.js) cuts cd to ×0.7 (Odin), bankT to ×0.5 (Saturn), sets rob 0.5 (Tyr); training (50_training.js) moves a
+     number by at most 15 % (the robbed share −9 %, the strike +12 %). So: cd ≥ 0.595 × base, bankT ≥ 0.6375, rob 0.3185..0.5, ... */
+  const MODS = { cd: g => [((G.GODS[g] || {}).cd || 10) * 0.595, (G.GODS[g] || {}).cd || 10], thorR: [170, 195.5], thorShare: [0.25, 0.28], lokiT: [3, 3.45], chainT: [3, 3.45],
+    rob: [G.ROB * 0.91, Math.max(G.ROB, 0.5)], bankT: [G.BANK_T * 0.425, G.BANK_T] };
   for (const n in MODS) G.addMod(n, (p, v) => (p && p.net && p.nm && typeof p.nm[n] === 'number') ? p.nm[n] : v);
-  const cleanMods = m => { const o = {}; if (!m || typeof m !== 'object') return o; for (const n in MODS) if (typeof m[n] === 'number' && isFinite(m[n])) o[n] = clamp(m[n], MODS[n][0], MODS[n][1]); return o; };
+  const cleanMods = (m, p) => { const o = {}; if (!m || typeof m !== 'object') return o;
+    for (const n in MODS) if (typeof m[n] === 'number' && isFinite(m[n])) { const b = typeof MODS[n] === 'function' ? MODS[n](p.god) : MODS[n]; o[n] = clamp(m[n], b[0], b[1]); } return o; };
+  /* positions come from the player; the host caps how far one may move: a budget that fills at MV_RATE units a second up to MV_CAP
+     (about the fastest legal hero: Hermes's dash on Sol's day with training), so a console edit cannot teleport a hero */
+  const MV_RATE = 1100, MV_CAP = 1200;
+  function netFrom(p) { p.lx = p.x; p.ly = p.y; p.lt = now(); p.mvA = MV_CAP; }   // the move budget starts from where the host has him
   function onInput(u, m) {
     const S = G.S; if (!R || !S || S !== R.S || S.client || S.over) return;
     const p = S.ps.find(q => q.u === u); if (!p || p === S.me) return;
     O.stats.inputsIn++;
-    const W = G.WORLD, r = G.radius(p);
-    p.x = clamp(num(m.x, p.x), r, W - r); p.y = clamp(num(m.y, p.y), r, W - r);
-    p.vx = p.nvx = clamp(num(m.vx), -1200, 1200); p.vy = p.nvy = clamp(num(m.vy), -1200, 1200); p.inT = now();
-    const sp = Math.hypot(p.vx, p.vy); if (sp > 5) { p.fx = p.vx / sp; p.fy = p.vy / sp; }
+    const W = G.WORLD, r = G.radius(p), tn = now();
+    let x = clamp(num(m.x, p.x), r, W - r), y = clamp(num(m.y, p.y), r, W - r);
+    const lx = p.lx == null ? p.x : p.lx, ly = p.ly == null ? p.y : p.ly, d = Math.hypot(x - lx, y - ly);
+    p.mvA = Math.min(MV_CAP, (p.mvA == null ? MV_CAP : p.mvA) + MV_RATE * Math.max(0, tn - (p.lt || tn)) / 1000); p.lt = tn;
+    if (d > p.mvA) { const f = p.mvA / d; x = lx + (x - lx) * f; y = ly + (y - ly) * f; p.mvA = 0; O.stats.capped = (O.stats.capped || 0) + 1; } else p.mvA -= d;
+    p.x = p.lx = x; p.y = p.ly = y;
+    let vx = num(m.vx), vy = num(m.vy); const sp = Math.hypot(vx, vy); if (sp > MV_RATE) { vx *= MV_RATE / sp; vy *= MV_RATE / sp; }
+    p.vx = p.nvx = vx; p.vy = p.nvy = vy; p.inT = tn;
+    const s2 = Math.hypot(vx, vy); if (s2 > 5) { p.fx = vx / s2; p.fy = vy / s2; }
     if (p.tag === 'left') p.tag = '';
-    if (m.m) p.nm = cleanMods(m.m);
+    if (m.m) p.nm = cleanMods(m.m, p);
     const sk = num(m.sk) | 0;
-    if (sk > (p.skN || 0)) { p.skN = sk; if (p.cd - S.t < 0.4) p.cd = Math.min(p.cd, S.t); const n0 = R.thunderN; const ok = G.useSkill(p); if (ok && p.god === 'thor' && R.thunderN === n0) R.evq.push(['m', p.id]); }
+    // the press counter is a running total: a new host adopts it from the first input it hears (no press is replayed after a hand-over)
+    if (p.skN == null) p.skN = sk;
+    else if (sk > p.skN) { p.skN = sk; if (p.cd - S.t < 0.4) p.cd = Math.min(p.cd, S.t); const n0 = R.thunderN; const ok = G.useSkill(p); if (ok && p.god === 'thor' && R.thunderN === n0) R.evq.push(['m', p.id]); }
   }
   const evOn = () => { const S = G.S; return !!(R && S && S === R.S && S.online && !S.client); };
   G.on('rob', (L, H, take, loss) => { if (evOn()) R.evq.push(['r', L.id, H.id, take, loss]); });
@@ -340,12 +360,12 @@
     if (Math.abs(off) > 0.75) S.t = t0; else S.t += off * 0.25;
     S.minted = Math.max(0, num(m.mi, S.minted) | 0);
     S.vNext = num(m.vn, S.vNext);
-    const me = S.me;
+    const me = S.me; let hc = null;   // my carry in the host's eyes; my own pickups he has not confirmed yet are added to it below
     if (Array.isArray(m.p)) for (const a of m.p) {
       if (!Array.isArray(a)) continue; const p = S.ps[a[0] | 0]; if (!p) continue;
       p.carry = Math.max(0, a[5] | 0); p.bank = Math.max(0, a[6] | 0); p.robs = a[7] | 0; p.lost = a[8] | 0; p.best = a[9] | 0;
       const im = S.t + num(a[10]) / 10, iv = S.t + num(a[11]) / 10; p.bankT = num(a[12]) / 20;
-      if (p === me) { const fresh = now() - (R.mySkT || -1e9) < 800; me.imm = fresh ? Math.max(me.imm, im) : im; me.inv = fresh ? Math.max(me.inv, iv) : iv; continue; }
+      if (p === me) { hc = p.carry; const fresh = now() - (R.mySkT || -1e9) < 800; me.imm = fresh ? Math.max(me.imm, im) : im; me.inv = fresh ? Math.max(me.inv, iv) : iv; continue; }
       p.imm = im; p.inv = iv;
       p.tag = (a[13] & 1) ? 'left' : '';
       const b = R.buf[p.id] || (R.buf[p.id] = []); b.push({ t: t0, x: num(a[1], p.x), y: num(a[2], p.y), vx: num(a[3]), vy: num(a[4]) }); if (b.length > 8) b.shift();
@@ -361,26 +381,28 @@
     if (Array.isArray(m.ca)) for (const a of m.ca) if (Array.isArray(a)) { const c = cc(a); cm.set(c.id, c); }
     if (Array.isArray(m.cr)) for (const id of m.cr) { cm.delete(id | 0); R.pred.delete(id | 0); }
     let mx = 0; for (const id of cm.keys()) if (id > mx) mx = id; R.cid = Math.max(R.cid, mx);
+    if (m.fin) R.pred.clear();   // the bell: the host's last word on every coin and carry
     coinsOut(S);
+    if (hc != null) me.carry = hc + R.pendV;   // a hidden coin is in my carry until the host decides it: coins + carries + banks = minted
     if (Array.isArray(m.d)) S.decoys = m.d.filter(a => Array.isArray(a) && S.ps[a[0] | 0]).map(a => ({ owner: S.ps[a[0] | 0], x: num(a[1]), y: num(a[2]), vx: num(a[3]), vy: num(a[4]), carry: Math.max(0, a[5] | 0), until: S.t + num(a[6]) / 10 }));
     if (Array.isArray(m.e)) for (const e of m.e) replay(S, e);
   }
-  function coinsOut(S) {
-    const tn = now(); S.coins = [];
-    for (const c of R.cm.values()) { const pt = R.pred.get(c.id); if (pt != null) { if (tn - pt < 1200) continue; R.pred.delete(c.id); } S.coins.push(c); }
+  function coinsOut(S) {   // R.pendV = the worth of my pickups the host has not confirmed (hidden, and counted in my carry)
+    const tn = now(); S.coins = []; R.pendV = 0;
+    for (const c of R.cm.values()) { const pt = R.pred.get(c.id); if (pt != null) { if (tn - pt < 1200) { R.pendV += c.v; continue; } R.pred.delete(c.id); } S.coins.push(c); }
   }
   function replay(S, e) {
-    if (!Array.isArray(e)) return; const me = S.me, P = i => S.ps[i | 0];
+    if (!Array.isArray(e)) return; const me = S.me, P = i => S.ps[i | 0], who = p => p.name + (p.bot ? ' (bot)' : '');   // bots always say so
     const txt = (p, s, c, life) => G.fx({ kind: 'text', x: p.x, y: p.y - 34, s, c, life: life || 0.8 });
     if (e[0] === 'r') { const L = P(e[1]), H = P(e[2]), take = e[3] | 0, loss = e[4] | 0; if (!L || !H) return;
       txt(L, '+' + take, '#ffd36a'); txt(H, '-' + loss, '#ff7a7a');
-      if (L === me) { G.toast('You robbed ' + H.name + ': +' + take); G.haptic('light'); }
-      if (H === me) { G.toast(L.name + ' robbed you: -' + loss); G.haptic('heavy'); }
+      if (L === me) { G.toast('You robbed ' + who(H) + ': +' + take); G.haptic('light'); }
+      if (H === me) { G.toast(who(L) + ' robbed you: -' + loss); G.haptic('heavy'); }
       G.emit('rob', L, H, take, loss); }
     else if (e[0] === 'b') { const p = P(e[1]), amt = e[2] | 0; if (!p) return; G.fx({ kind: 'text', x: p.x, y: p.y - 40, s: 'banked ' + amt, c: '#e8b84a', life: 1.2 });
       if (p === me) { G.toast('Banked ' + amt + ' gold'); G.haptic('medium'); me.bankT = 0; } G.emit('bank', p, amt); }
     else if (e[0] === 'k') { const p = P(e[1]); if (!p || p === me) return; const g = G.GODS[p.god] || {}; G.fx({ kind: 'ring', x: p.x, y: p.y, r: p.god === 'thor' ? 170 : 50, c: g.c || '#fff', life: 0.6 }); G.emit('skill', p); }
-    else if (e[0] === 't') { const p = P(e[1]), q = P(e[2]), loss = e[3] | 0; if (!p || !q) return; txt(q, '-' + loss, '#9fb2ff'); if (q === me) { G.toast(p.name + ' struck you: -' + loss); G.haptic('heavy'); } }
+    else if (e[0] === 't') { const p = P(e[1]), q = P(e[2]), loss = e[3] | 0; if (!p || !q) return; txt(q, '-' + loss, '#9fb2ff'); if (q === me) { G.toast(who(p) + ' struck you: -' + loss); G.haptic('heavy'); } }
     else if (e[0] === 'm') { const p = P(e[1]); if (p === me) { me.cd = S.t + 1; G.toast('No richer rival in reach'); } }
   }
   function clientStep(S, dt) {
@@ -393,10 +415,10 @@
       else { p.x = c.x; p.y = c.y; } }
     for (const d of S.decoys) { d.x = clamp(d.x + d.vx * dt, 20, G.WORLD - 20); d.y = clamp(d.y + d.vy * dt, 20, G.WORLD - 20); }
     S.decoys = S.decoys.filter(d => d.until > S.t);
-    // my pickups show at once (the host confirms them): a touched coin hides for 1.2 s
+    // my pickups show at once (the host confirms them): a touched coin hides for 1.2 s and its gold is in my carry meanwhile
     const r = G.radius(me) + 5;
     for (let i = S.coins.length - 1; i >= 0; i--) { const c = S.coins[i], dx = c.x - me.x, dy = c.y - me.y;
-      if (dx * dx + dy * dy < r * r) { R.pred.set(c.id, now()); S.coins.splice(i, 1); G.emit('pickup', me, c); } }
+      if (dx * dx + dy * dy < r * r) { R.pred.set(c.id, now()); S.coins.splice(i, 1); me.carry += c.v; R.pendV += c.v; G.emit('pickup', me, c); } }
   }
   function sendInput(force) {
     const S = G.S; if (!R || !S || S !== R.S || !S.client || S.over) return;
@@ -413,7 +435,7 @@
     for (const n in base) { const v = G.mod(n, me, base[n]); if (typeof v === 'number' && isFinite(v)) o[n] = Math.round(v * 1000) / 1000; } return o; }
   function stepDown() {   // a host that hears a newer host becomes a client again
     const S = G.S; if (!S || !R) return;
-    S.client = true; dropSubs(); R.cm = new Map(); for (const c of S.coins) if (c.id != null) R.cm.set(c.id, c); R.buf = {};
+    S.client = true; dropSubs(); R.cm = new Map(); for (const c of S.coins) if (c.id != null) R.cm.set(c.id, c); R.buf = {}; R.pred.clear(); R.pendV = 0;
     for (const p of S.ps) p.net = false;
   }
   function becomeHost() {
@@ -427,7 +449,9 @@
       S.coins = [...R.cm.values()]; R.pred.clear();
       R.known = new Map(S.coins.map(c => [c.id, c])); for (const c of S.coins) R.cid = Math.max(R.cid, c.id);
       S.pairT = {};
-      for (const p of S.ps) { p.net = !p.bot && p !== S.me; if (p.net) { p.inT = now(); p.vx = p.vy = p.nvx = p.nvy = 0; } if (p.bot) p.ai.t = 0; }
+      // remote heroes: the press counter is adopted from each one's first input (null), the move budget starts where he is drawn
+      for (const p of S.ps) { p.net = !p.bot && p !== S.me; if (p.net) { p.inT = now(); p.vx = p.vy = p.nvx = p.nvy = 0; p.skN = null; netFrom(p); } if (p.bot) p.ai.t = 0; }
+      S.me.carry -= R.pendV || 0; R.pendV = 0;   // my predicted pickups go back on the map: the coins in R.cm are the truth now
       const gap = S.minted - G.total();   // only a lost message can open a gap: the gold is kept as a coin, never invented
       if (gap > 0) { S.coins.push({ x: G.WORLD / 2, y: G.WORLD / 2, v: gap }); O.stats.fixes++; } else if (gap < 0) { S.minted -= gap; O.stats.fixes++; }
     }
@@ -489,6 +513,8 @@
   const css = document.createElement('style');
   css.textContent = [
     '#hgOnline{flex:1 1 100%;order:-1;border-color:var(--gold,#e8b84a);color:var(--gold,#e8b84a);font-weight:900;letter-spacing:.1em;background:rgba(232,184,74,.08)}#hgOnline[hidden]{display:none}',
+    // a short landscape window: PLAY ONLINE shares one row with the other title links, so the row stays as tall as before
+    '@media (orientation:landscape) and (max-height:540px){#hgOnline{flex:1 1 120px;letter-spacing:.04em}#titleLinks>.sec{flex-basis:120px}}',
     '#hgOn{background:var(--bg,#070c16);z-index:20}',
     '.onB{flex:1 1 auto;min-height:0;width:min(100%,560px);display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"h" "st" "ls" "ft";gap:10px}',
     '.onH{grid-area:h;margin:0;font:900 22px/1.2 Georgia,serif;letter-spacing:.1em;color:var(--gold,#e8b84a);text-align:center}',
@@ -565,7 +591,7 @@
   const tryLink = () => { if (spUsed || !online()) return; const c = startCode(); if (!c) return; if (G.S && !G.S.over) return; spUsed = true; play(c); };
   G.on('net', () => { vis(); wrapRpc(); tryLink(); });
   G.on('title', vis);
-  G.on('profile', () => { if (pending && hasProfile() && online()) { const c = pending; pending = null; setTimeout(() => play(c === '*' ? '' : c), 0); } });
+  G.on('profile', () => { if (pending && hasProfile() && !(G.profileUI && G.profileUI.needFix) && online()) { const c = pending; pending = null; setTimeout(() => play(c === '*' ? '' : c), 0); } });
   vis(); setTimeout(tryLink, 0);
   window.addEventListener('pagehide', () => { if (R || ws) cleanup(); });
   Object.assign(O, { play: c => play(c), leave, invite, start: () => { if (R && isHost() && !R.started) startRound(); }, members, isHost, sendState, socketURL: wsURL });

@@ -1,23 +1,27 @@
 // tests/gold/t_online.js — Heavy Gold online play (90_online.js) against a local fake Supabase Realtime server: a hand-made WebSocket
 // (http upgrade, RFC 6455 frames) speaking enough of the Phoenix protocol vsn 1.0.0 (phx_join / phx_reply / phx_leave, heartbeat,
-// broadcast with self:false, presence track / untrack, presence_state, presence_diff). The game's socket URL is window.HG_ONLINE_URL.
+// broadcast with self:false, presence track / untrack, presence_state, presence_diff; like Phoenix, a duplicate join and a leave get
+// phx_close with the old join's ref, and a crashed channel gets phx_error). The game's socket URL is window.HG_ONLINE_URL.
 // Three real pages (390x844, 844x390, 640x360) and one raw hostile client: PLAY ONLINE hidden outside Telegram; the lobby puts the
 // second player in the first one's room; a friend link (start_param room_<code>) joins it; the invite link; names cleaned, never HTML;
 // Start now; the same 8 seats on every page (3 players with flags, the rest bots); each page sees the others move; a robbery between two
 // real players, the same carries on all three pages; banking; Loki's vanish + decoy seen by the others; a silent player is "left";
 // gold conserved on the host; the message rate; the host closes → the next one takes over with the gold intact; the end: both submit
 // r.mode = 'online' with r.map; then a room starts at once when it is full (MAX), and a lone player plays with 7 bots. No page errors.
+// Hardening: the title links row at 844x390 / 640x360; console-edited skill numbers clamped on the host; a console teleport capped;
+// gold conserved on a client's page while it picks up coins; one rejoin after phx_error + a socket drop; no phantom skill after a
+// hand-over; a bot's robbery toast says "(bot)".
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs'); const http = require('http'); const crypto = require('crypto');
 const EXE = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome';
 const FILE = path.resolve(process.env.GOLD_HTML || path.join(__dirname, '..', '..', 'beta', 'index.html'));
 const SHOTS = path.join(__dirname, '..', '..', '.shots'); fs.mkdirSync(SHOTS, { recursive: true });
 let fails = 0; const ok = (c, m, i) => { console.log((c ? 'OK   ' : 'FAIL ') + m + (i !== undefined ? '  ' + JSON.stringify(i) : '')); if (!c) fails++; };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const TGIDS = { Ann: 700000101, Bob: 700000202, Cat: 700000303, Dan: 700000404, Eve: 700000505, Fay: 700000606, Gus: 700000707, Hal: 700000808 };
+const TGIDS = { Ann: 700000101, Bob: 700000202, Cat: 700000303, Dan: 700000404, Eve: 700000505, Fay: 700000606, Gus: 700000707, Hal: 700000808, Ivy: 700000909 };
 
 /* ---------------- a fake Realtime server ---------------- */
 function fakeRealtime() {
-  const T = new Map(), conns = new Set(), st = { in: 0, out: 0, inB: 0, outB: 0, joins: 0, tracks: 0, hb: 0, urls: [], byTopic: {} };
+  const T = new Map(), conns = new Set(), st = { in: 0, out: 0, inB: 0, outB: 0, joins: 0, tracks: 0, hb: 0, urls: [], byTopic: {}, dups: 0, joinLog: [] };
   let refN = 0; const pref = () => 'F' + (++refN).toString(36);
   const srv = http.createServer((q, s) => { s.writeHead(404); s.end(); });
   srv.on('upgrade', (req, sock) => {
@@ -66,14 +70,16 @@ function fakeRealtime() {
     const ms = mem(topic), kind = String(topic).replace(/^realtime:(hg-[a-z]+).*/, '$1');
     if (event === 'phx_join') {
       st.joins++; const cfg = (payload && payload.config) || {}, pr = cfg.presence || {};
-      const old = ms.get(c); if (old) { ms.delete(c); if (old.metas) diff(topic, {}, { [old.key]: { metas: old.metas } }); }
-      const me = { key: pr.key || crypto.randomUUID(), pres: !!pr.enabled, metas: null, self: !!(cfg.broadcast && cfg.broadcast.self) };
+      // Phoenix closes the earlier join of a duplicate with phx_close carrying that join's ref
+      const old = ms.get(c); if (old) { st.dups++; send(c, { topic, event: 'phx_close', payload: {}, ref: old.jr }); ms.delete(c); if (old.metas) diff(topic, {}, { [old.key]: { metas: old.metas } }); }
+      const me = { key: pr.key || crypto.randomUUID(), pres: !!pr.enabled, metas: null, self: !!(cfg.broadcast && cfg.broadcast.self), jr: m.ref };
+      st.joinLog.push({ topic, key: me.key, at: Date.now() });
       ms.set(c, me); reply('ok', { postgres_changes: [] });
       if (me.pres) send(c, { topic, event: 'presence_state', payload: presOf(topic), ref: null });
       return;
     }
     const me = ms.get(c); if (!me) return reply('error', { reason: 'unmatched topic' });
-    if (event === 'phx_leave') { ms.delete(c); reply('ok'); if (me.metas) diff(topic, {}, { [me.key]: { metas: me.metas } }); return; }
+    if (event === 'phx_leave') { ms.delete(c); reply('ok'); send(c, { topic, event: 'phx_close', payload: {}, ref: me.jr }); if (me.metas) diff(topic, {}, { [me.key]: { metas: me.metas } }); return; }
     if (event === 'presence') { st.tracks++; const p = payload || {};
       if (p.event === 'track') { const old = me.metas; me.metas = [Object.assign({}, p.payload || {}, { phx_ref: pref() })]; diff(topic, { [me.key]: { metas: me.metas } }, old ? { [me.key]: { metas: old } } : {}); }
       else if (p.event === 'untrack' && me.metas) { const old = me.metas; me.metas = null; diff(topic, {}, { [me.key]: { metas: old } }); }
@@ -87,7 +93,11 @@ function fakeRealtime() {
   function drop(c) { if (!c.alive) return; c.alive = false; conns.delete(c);
     for (const [t, ms] of T) { const m = ms.get(c); if (!m) continue; ms.delete(c); if (m.metas) diff(t, {}, { [m.key]: { metas: m.metas } }); } }
   const kick = (t, suffix) => { let n = 0; for (const [c, m] of mem(t)) { if (!m.key.endsWith(suffix)) continue; n++; try { c.sock.destroy(); } catch (e) {} drop(c); } return n; };   // the network drops one player's socket
-  return new Promise(res => srv.listen(0, '127.0.0.1', () => res({ port: srv.address().port, st, presence: presOf, kick, joined: t => mem(t).size,
+  // a channel process dies on the server: phx_error with its join ref, the member is gone (the socket stays up); returns the sockets
+  const crash = (t, suffix) => { const out = []; for (const [c, m] of [...mem(t)]) { if (!m.key.endsWith(suffix)) continue; out.push(c);
+    send(c, { topic: t, event: 'phx_error', payload: {}, ref: m.jr }); mem(t).delete(c); if (m.metas) diff(t, {}, { [m.key]: { metas: m.metas } }); } return out; };
+  const dropConns = cs => { for (const c of cs) { try { c.sock.destroy(); } catch (e) {} drop(c); } return cs.length; };
+  return new Promise(res => srv.listen(0, '127.0.0.1', () => res({ port: srv.address().port, st, presence: presOf, kick, crash, dropConns, joined: t => mem(t).size,
     close: () => { for (const c of conns) { try { c.sock.destroy(); } catch (e) {} } srv.close(); } })));
 }
 
@@ -150,6 +160,11 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
     const offB = await box(off.pg, '#hgOnline');
     ok(offB && !offB.shown, 'outside Telegram PLAY ONLINE is hidden', offB);
     await off.ctx.close();
+    const I6 = await mkPage(b, { name: 'Ivy', cc: 'NO', w: 640, h: 360, url: URL_ });
+    const r6 = await Promise.all(['#hgOnline', '#hgMe'].map(s => box(I6.pg, s)));
+    ok(r6[0] && r6[0].shown && r6[0].h >= 44 && (!r6[1] || r6[1].y === r6[0].y), '640x360: PLAY ONLINE (>= 44 px) adds no row to the title: it shares the row of the name button', r6);
+    console.log('INFO 640x360: PLAY ONLINE at ' + r6[0].y + '–' + (r6[0].y + r6[0].h) + ' of ' + r6[0].vh + (inView(r6[0]) ? ' (in view)' : ' (the core title alone already scrolls here: its links row starts below the screen)'));
+    await I6.pg.screenshot({ path: path.join(SHOTS, 'online_title_640.png') }); await I6.ctx.close();
 
     const A = await mkPage(b, { name: 'Ann', cc: 'GE', w: 390, h: 844, url: URL_, god: 'thor', cfg: { WAIT: 60 } }); pages.push(A);
     const tb = await box(A.pg, '#hgOnline'), pb = await box(A.pg, '#play');
@@ -174,6 +189,8 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
     await B.pg.screenshot({ path: path.join(SHOTS, 'online_title_844.png') });
     const pl8 = await box(B.pg, '#play');
     ok(inView(pl8), '844x390: PLAY still in view on the title with PLAY ONLINE added', pl8);
+    const row8 = await Promise.all(['#hgOnline', '#hgMe', '#hgTitleBoard'].map(s => box(B.pg, s)));
+    ok(row8[0] && inView(row8[0]) && row8[0].h >= 44 && row8.every(x => !x || (inView(x) && x.y === row8[0].y)), '844x390: PLAY ONLINE, the name button and Leaderboard share one row, all in view', row8);
     await B.pg.locator('#hgOnline').tap();
     ok(await until(B.pg, c => G.online.room === c && G.online.R && G.online.R.ch.joined && G.online.R.hk, code), 'Bob taps PLAY ONLINE and the lobby puts him in Ann\'s room', await B.pg.evaluate(() => G.online.debug()));
     const C = await mkPage(b, { name: 'Cat', cc: 'US', w: 640, h: 360, url: URL_, god: 'loki', sp: 'room_' + code }); pages.push(C);
@@ -210,11 +227,27 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
     ok(/\(bot\)/.test(hud.tr) && hud.tr.indexOf('<img') < 0 && /ONLINE · 4 players/.test(hud.chip) && !hud.imgs, 'the HUD board marks bots "(bot)", escapes names; the chip says ONLINE · 4 players', hud);
     for (const P of [A, B, C]) await P.pg.evaluate(() => { for (const p of G.S.ps) { p.inv = 0; } });
 
-    /* -- the others see Bob move -- */
+    /* -- the others see Bob move (Bob has edited his own numbers in the console meanwhile: window.G is public) -- */
+    await B.pg.evaluate(() => { window.__cheat = true; const c = (n, v) => G.addMod(n, (p, x) => window.__cheat && G.S && p === G.S.me ? v : x);
+      c('cd', 0.5); c('bankT', 0.1); c('rob', 0.05); c('chainT', 9); c('lokiT', 9); c('thorR', 900); c('thorShare', 0.9); });
     const b0 = { B: await hero(B.pg, 'Bob'), A: await hero(A.pg, 'Bob'), C: await hero(C.pg, 'Bob') };
     await B.pg.keyboard.down('d'); await sleep(1300); await B.pg.keyboard.up('d'); await sleep(700);
     const b1 = { B: await hero(B.pg, 'Bob'), A: await hero(A.pg, 'Bob'), C: await hero(C.pg, 'Bob') };
     ok(b1.B.x - b0.B.x > 150 && b1.A.x - b0.A.x > 150 && b1.C.x - b0.C.x > 150 && Math.abs(b1.A.x - b1.B.x) < 40 && Math.abs(b1.C.x - b1.B.x) < 60, 'Bob walks right on his page; the host and Cat see him move there too', { B: [b0.B.x, b1.B.x], A: [b0.A.x, b1.A.x], C: [b0.C.x, b1.C.x] });
+    await until(A.pg, () => { const p = G.S.ps.find(q => q.name === 'Bob'); return p.nm && p.nm.cd < 4; }, null, 4000);
+    const md = await A.pg.evaluate(() => { const p = G.S.ps.find(q => q.name === 'Bob'), r = n => Math.round(G.mod(n, p, -1) * 1e4) / 1e4;
+      return { cd: r('cd'), bankT: r('bankT'), rob: r('rob'), chainT: r('chainT'), lokiT: r('lokiT'), thorR: r('thorR'), thorShare: r('thorShare') }; });
+    await B.pg.evaluate(() => { window.__cheat = false; });
+    ok(md.cd === 2.38 && md.bankT === 0.6375 && md.rob === 0.3185 && md.chainT === 3.45 && md.lokiT === 3.45 && md.thorR === 195.5 && md.thorShare === 0.28,
+      'console-edited numbers reach the host only inside the legal range (Hermes cd >= 4 x 0.595, bank >= 0.6375 s, robbed share >= 31.85 %, skills <= +15 %)', md);
+    const gc = await B.pg.evaluate(() => new Promise(res => { const S = G.S, me = S.me; let c = null, bd = 1e9;
+      for (const k of S.coins) { const d = Math.hypot(k.x - me.x, k.y - me.y); if (d < bd) { bd = d; c = k; } }
+      if (!c) { res({ none: true }); return; }
+      const c0 = me.carry, t0 = performance.now(); let n = 0, off = 0, worst = 0, early = 0; me.x = c.x; me.y = c.y; me.vx = me.vy = 0;
+      const f = () => { const d = G.total() - G.S.minted, dt = performance.now() - t0; n++; if (d) { off++; if (Math.abs(d) > Math.abs(worst)) worst = d; }
+        if (dt < 150) early = Math.max(early, me.carry - c0); if (dt < 1500) requestAnimationFrame(f); else res({ n, off, worst, early, v: c.v, dist: Math.round(bd) }); };
+      requestAnimationFrame(f); }));
+    ok(!gc.none && gc.n > 20 && gc.off === 0 && gc.early >= gc.v, 'Bob steps on a coin: his carry grows at once, and on his page coins + carries + banks = minted in every frame', gc);
 
     /* -- a robbery between two real players: Bob (light) touches Cat (heavy) -- */
     const P0 = await A.pg.evaluate(() => {
@@ -232,11 +265,16 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
     await C.pg.evaluate(P => { const me = G.S.me; me.x = P.x; me.y = P.y; me.vx = me.vy = 0; }, P0);
     await B.pg.evaluate(P => { const me = G.S.me; me.x = P.x + 700; me.y = P.y; me.vx = me.vy = 0;
       G.on('rob', (L) => { if (L === G.S.me && !window.__away) { window.__away = 1; G.S.me.x = P.x + 700; G.S.me.vx = G.S.me.vy = 0; } }); }, P0);
+    // the host moves a hero at most 1200 units at once (then 1100/s): wait until it has both where their pages put them
+    const at = async (P, n) => { const w = await P.pg.evaluate(() => [G.S.me.x, G.S.me.y]);
+      return until(A.pg, ([n, x, y]) => { const p = G.S.ps.find(q => q.name === n); return Math.hypot(p.x - x, p.y - y) < 4; }, [n, w[0], w[1]], 7000); };
+    const placed = (await at(C, 'Cat')) && (await at(B, 'Bob'));
     await sleep(700);
     await B.pg.evaluate(P => { const me = G.S.me; me.x = P.x + 34; me.y = P.y; me.vx = me.vy = 0; }, P0);
     const robbed = await until(A.pg, () => { const b = G.S.ps.find(p => p.name === 'Bob'); return b.robs >= 1; }, null, 4000);
     await sleep(900);
     const rA = { bob: await hero(A.pg, 'Bob'), cat: await hero(A.pg, 'Cat') }, rB = { bob: await hero(B.pg, 'Bob'), cat: await hero(B.pg, 'Cat') }, rC = { bob: await hero(C.pg, 'Bob'), cat: await hero(C.pg, 'Cat') };
+    ok(placed, 'the host has Cat and Bob where their pages put them', { cat: await hero(A.pg, 'Cat'), bob: await hero(A.pg, 'Bob'), P: P0 });
     ok(robbed && rA.bob.carry >= 18 && rA.cat.lost >= 35 && rA.cat.carry < 100 && rA.bob.robs >= 1, 'the host decides the robbery: Bob (lighter) robbed Cat (heavier): 35% lost, half to Bob', { bob: rA.bob.carry, cat: rA.cat.carry, catLost: rA.cat.lost, robs: rA.bob.robs });
     ok(rB.bob.carry === rA.bob.carry && rB.cat.carry === rA.cat.carry && rC.bob.carry === rA.bob.carry && rC.cat.carry === rA.cat.carry && rC.cat.lost === rA.cat.lost,
       'the same carries on all three pages (host, thief, victim)', { A: [rA.bob.carry, rA.cat.carry], B: [rB.bob.carry, rB.cat.carry], C: [rC.bob.carry, rC.cat.carry] });
@@ -258,6 +296,17 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
     const g2 = await gold(A.pg);
     ok(g2.total - g2.minted === P0.off, 'gold conserved on the host after banking', g2);
 
+    /* -- a console teleport: the host moves a hero at most 1200 units at once, then 1100 units a second -- */
+    await sleep(1200);   // the move budget refills
+    const h0 = await hero(A.pg, 'Bob'), cap0 = await A.pg.evaluate(() => G.online.stats.capped || 0);
+    const tp = await B.pg.evaluate(() => { const me = G.S.me, x = me.x < 2000 ? 3800 : 200, y = me.y < 2000 ? 3800 : 200; me.x = x; me.y = y; me.vx = me.vy = 0; return { x, y }; });
+    const far = Math.hypot(tp.x - h0.x, tp.y - h0.y);
+    await until(A.pg, h => { const p = G.S.ps.find(q => q.name === 'Bob'); return Math.hypot(p.x - h.x, p.y - h.y) > 300; }, h0, 3000);
+    const h1 = await hero(A.pg, 'Bob'), step1 = Math.hypot(h1.x - h0.x, h1.y - h0.y);
+    const reach = await until(A.pg, t => { const p = G.S.ps.find(q => q.name === 'Bob'); return Math.hypot(p.x - t.x, p.y - t.y) < 40; }, tp, 7000);
+    const cap1 = await A.pg.evaluate(() => G.online.stats.capped || 0);
+    ok(far > 2000 && step1 > 300 && step1 <= 1550 && reach && cap1 > cap0, 'Bob jumps ' + Math.round(far) + ' units in his console: the host moves him <= 1200 at once, then catches up at 1100 units/s', { far: Math.round(far), first: Math.round(step1), reach, capped: cap1 - cap0 });
+
     /* -- Cat's Loki trick: the others see her vanish and the decoy -- */
     await C.pg.keyboard.press(' ');
     const lk = await until(A.pg, () => { const c = G.S.ps.find(p => p.name === 'Cat'); return c.inv > G.S.t && G.S.decoys.some(d => d.owner === c); }, null, 3000);
@@ -277,16 +326,21 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
 
     /* -- Cat's connection drops: she reconnects, rejoins the room and goes on in the same round -- */
     const uidC = await C.pg.evaluate(() => G.online.uid), upC = 'realtime:hg-u-' + code + '-' + uidC, S0 = await C.pg.evaluate(() => { window.__S0 = G.S; return G.S.t; });
-    const kicked = srv.kick('realtime:hg-r-' + code, uidC);
+    // Cat's room channel crashes on the server (phx_error) and her socket drops 300 ms later
+    const crashAt = Date.now(), dups0 = srv.st.dups, cs = srv.crash('realtime:hg-r-' + code, uidC); await sleep(300); const kicked = srv.dropConns(cs);
     let rejoined = false; for (let i = 0; i < 80 && !rejoined; i++) { await sleep(100); rejoined = srv.joined(upC) > 0 && Object.keys(srv.presence('realtime:hg-r-' + code)).some(k => k.endsWith(uidC)); }
     const c0 = await hero(A.pg, 'Cat'); await C.pg.keyboard.down('a'); await sleep(900); await C.pg.keyboard.up('a'); await sleep(400); const c1 = await hero(A.pg, 'Cat');
     const same = await C.pg.evaluate(() => G.S === window.__S0 && !G.S.over && G.S.client && G.online.phase === 'play');
     ok(kicked === 1 && rejoined && same && c0.x - c1.x > 80 && c1.tag === '', 'Cat\'s socket drops: she reconnects, rejoins room and channel, and the host moves her again in the same round', { kicked, rejoined, same, x: [Math.round(c0.x), Math.round(c1.x)], tag: c1.tag });
+    const jC = srv.st.joinLog.filter(j => j.topic === 'realtime:hg-r-' + code && j.key.endsWith(uidC) && j.at >= crashAt).map(j => j.at - crashAt);
+    ok(jC.length === 1 && srv.st.dups === dups0 && Date.now() - crashAt > 2500, 'the channel error and the drop give exactly one rejoin: no duplicate join, no rejoin loop (a stale phx_close is ignored)', { joinsAtMs: jC, dups: srv.st.dups - dups0 });
 
     /* -- the host leaves: Bob (the next key) takes over from the last state -- */
     for (const P of [A, B, C]) ok(!P.errs.length && await errHidden(P.pg), P.name + ': no page errors so far, #err hidden', P.errs);
     const before = await B.pg.evaluate(() => ({ t: G.S.t, coins: G.S.coins.length, minted: G.S.minted })), keyB = await B.pg.evaluate(() => G.online.R.key);
     await A.pg.evaluate(() => clearInterval(window.__freeze));
+    await B.pg.evaluate(() => { window.__skB = []; G.on('skill', p => window.__skB.push([p.name, !!G.S.client, +G.S.t.toFixed(2)])); });
+    const skC = await C.pg.evaluate(() => G.online.R.skN);
     await A.ctx.close(); pages.splice(pages.indexOf(A), 1);
     const took = await until(B.pg, () => G.online.isHost() && !G.S.client, null, 6000);
     const follows = await until(C.pg, k => { const R = G.online.R; return R && R.hk === k && !G.online.isHost() && G.S.client && R.ep >= 2; }, keyB, 6000);
@@ -299,6 +353,8 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
     ok(s1 - s0 >= 3, 'Cat receives the new host\'s states', { per1200ms: s1 - s0 });
     const mv0 = await hero(B.pg, 'Cat'); await C.pg.keyboard.down('w'); await sleep(1000); await C.pg.keyboard.up('w'); await sleep(500); const mv1 = await hero(B.pg, 'Cat');
     ok(mv0.y - mv1.y > 100, 'Cat\'s inputs now reach Bob, the new host', { y0: Math.round(mv0.y), y1: Math.round(mv1.y) });
+    const ph = await B.pg.evaluate(() => ({ asHost: window.__skB.filter(e => e[0] === 'Cat' && !e[1]), adopted: G.S.ps.find(p => p.name === 'Cat').skN, decoy: G.S.decoys.some(d => d.owner.name === 'Cat') }));
+    ok(skC >= 1 && !ph.asHost.length && !ph.decoy && ph.adopted === skC, 'Cat pressed her skill before the hand-over: the new host adopts her press count and plays no phantom skill', { skC, ph });
 
     /* -- the end: the host's last state ends the round everywhere; each one submits r.mode = 'online' -- */
     await B.pg.evaluate(() => { G.step(Math.max(0, Math.round((G.ROUND - G.S.t - 2) * 60))); });
@@ -345,6 +401,17 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
     const th = await D.pg.evaluate(() => ({ strikes: G.dayGod.strikes.filter(s => s.hit).length, total: G.total(), minted: G.S.minted, carries: G.S.ps.map(p => p.carry) }));
     const te = await E.pg.evaluate(() => ({ carries: G.S.ps.map(p => p.carry), orphan: G.S.coins.filter(c => c.id == null).length, t: G.S.t }));
     ok(th.strikes >= 1 && th.total === th.minted && JSON.stringify(th.carries) === JSON.stringify(te.carries) && !te.orphan, 'Thor\'s day online: the host\'s lightning strikes, gold conserved; the client shows the host\'s carries and coins only', { th, te });
+    /* -- a bot robs a real player: the player's toast names it "(bot)" -- */
+    const spot = await D.pg.evaluate(() => { const S = G.S, e = S.ps.find(p => p.name === 'Eve'); if (!S.vaults.some(v => G.dist(v, e) < v.r + 100)) return null;
+      for (const [x, y] of [[600, 600], [3400, 600], [600, 3400], [3400, 3400], [2000, 2000]]) if (!S.vaults.some(v => Math.hypot(v.x - x, v.y - y) < v.r + 300)) return { x, y }; return null; });
+    if (spot) { await E.pg.evaluate(s => { const me = G.S.me; me.x = s.x; me.y = s.y; me.vx = me.vy = 0; }, spot); await until(D.pg, s => { const e = G.S.ps.find(p => p.name === 'Eve'); return Math.hypot(e.x - s.x, e.y - s.y) < 30; }, spot, 7000); }
+    await E.pg.evaluate(() => { window.__toasts = []; const t = document.getElementById('toast'); new MutationObserver(() => window.__toasts.push(t.textContent)).observe(t, { childList: true, characterData: true, subtree: true }); });
+    const thief = await D.pg.evaluate(() => { const S = G.S, e = S.ps.find(p => p.name === 'Eve'), q = S.ps.find(p => p.bot);
+      S.minted -= q.carry; q.carry = 0; S.minted += 60 - e.carry; e.carry = 60;   // gold stays conserved
+      q.ai.t = 1e9; q.ai.dx = q.ai.dy = 0; q.vx = q.vy = 0; q.imm = q.inv = e.imm = e.inv = 0; q.x = e.x + 10; q.y = e.y; S.pairT = {}; return q.name; });
+    const bt = await until(E.pg, n => window.__toasts.some(t => t.indexOf(n + ' (bot) robbed you: -') === 0), thief, 3000);
+    const g4 = await gold(D.pg);
+    ok(bt && g4.total === g4.minted, 'a bot robs Eve online: her toast says "' + thief + ' (bot) robbed you"; gold conserved on the host', { toasts: await E.pg.evaluate(() => window.__toasts.slice(-3)), g4 });
     const F = await mkPage(b, { name: 'Fay', cc: 'BR', w: 390, h: 844, url: URL_, cfg: { WAIT: 2 } }); pages.push(F);
     await F.pg.locator('#hgOnline').tap();
     const solo = await until(F.pg, () => G.S && G.S.online && G.online.phase === 'play', null, 7000);
