@@ -24,13 +24,18 @@ let fails = 0; const ok = (c, m, i) => { console.log((c ? 'OK   ' : 'FAIL ') + m
     const r = await pg.evaluate(() => {
       const S = G.S, out = { checks: [] }; const off0 = G.total() - S.minted;
       // robbery: the lighter one touches the heavier one
-      const a = S.ps[1], c = S.ps[2]; a.carry = 0; c.carry = 200; a.x = 1000; a.y = 1000; c.x = 1020; c.y = 1000; const before = G.total();
-      G.step(1); out.rob = { a: a.carry, c: c.carry, conserved: G.total() === before };
+      const far = [[600, 600], [3400, 600], [600, 3400], [3400, 3400], [2000, 2000]].map(([x, y]) => ({ x, y })).sort((m, n) => Math.min(...S.vaults.map(v => Math.hypot(v.x - n.x, v.y - n.y))) - Math.min(...S.vaults.map(v => Math.hypot(v.x - m.x, v.y - m.y))))[0];
+      const a = S.ps[1], c = S.ps[2]; S.pairT = {}; a.carry = 0; c.carry = 200; a.x = far.x; a.y = far.y; c.x = far.x + 20; c.y = far.y; const before = G.total() - S.minted;
+      G.step(1); out.rob = { a: a.carry, c: c.carry, conserved: G.total() - S.minted === before };
       // banking: stand in a vault 1.5 s
-      const v = G.VAULTS[0], q = S.ps[3]; for (const o of S.ps) if (o !== q && Math.hypot(o.x - v.x, o.y - v.y) < 400) { o.x = 1000; o.y = 1000; }
+      const v = G.VAULTS[0], q = S.ps[3];
       q.carry = 77; q.bot = false; const bank0 = q.bank; let carried = 0;
-      for (let i = 0; i < 100; i++) { q.x = v.x; q.y = v.y; q.vx = q.vy = 0; if (q.carry) carried = q.carry; G.step(1); }
+      for (let i = 0; i < 100 && q.bank === bank0; i++) { for (const o of S.ps) if (o !== q && Math.hypot(o.x - v.x, o.y - v.y) < 400) { o.x = v.x + (v.x < 2000 ? 1500 : -1500); o.y = v.y; } q.x = v.x; q.y = v.y; q.vx = q.vy = 0; if (q.carry) carried = q.carry; G.step(1); }
       out.bank = { banked: q.bank - bank0, carry: q.carry, carried }; q.bot = true;
+      // a hero in a vault and a vanished hero cannot be robbed
+      const vv = S.vaults[1], h1 = S.ps[5], l1 = S.ps[6]; h1.carry = 90; l1.carry = 0; h1.x = vv.x; h1.y = vv.y; l1.x = vv.x + 20; l1.y = vv.y; h1.bankT = 0; S.pairT = {};
+      const keep = h1.carry; G.step(1); out.safe = { kept: h1.carry === keep || h1.bank > 0, robbed: l1.carry > 0 };
+      const h2 = S.ps[5]; h2.x = 2000; h2.y = 2000; h2.carry = 90; h2.inv = S.t + 3; l1.x = 2015; l1.y = 2000; l1.carry = 0; S.pairT = {}; G.step(1); out.vanish = { robbed: l1.carry > 0 }; h2.inv = 0;
       // skills
       const me = S.me; me.carry = 10; const t3 = S.ps[4]; t3.carry = 300; t3.imm = 0; t3.x = me.x + 60; t3.y = me.y; t3.inv = 0; const tb = G.total();
       me.cd = 0; out.thor = { used: G.useSkill(me), victim: t3.carry, conserved: G.total() === tb };
@@ -49,6 +54,7 @@ let fails = 0; const ok = (c, m, i) => { console.log((c ? 'OK   ' : 'FAIL ') + m
       return out; });
     ok(r.rob.a > 0 && r.rob.c < 200 && r.rob.conserved, 'the lighter one robs the heavier one; gold conserved', r.rob);
     ok(r.bank.banked >= 77 && r.bank.carry === 0, '1.5 s in a vault banks the carried gold', r.bank);
+    ok(!r.safe.robbed && r.vanish && !r.vanish.robbed, 'a hero standing in a vault or vanished (Loki) cannot be robbed', { safe: r.safe, vanish: r.vanish });
     ok(r.thor.used && r.thor.victim < 300 && r.thor.conserved, 'Thor makes a richer rival nearby spill gold; conserved', r.thor);
     ok(r.hermes && r.loki && r.amirani && r.inv && r.imm && r.decoys >= 1, 'Hermes, Loki (vanish + decoy), Amirani (chains) skills fire', r);
     ok(r.vault.warned && r.vault.moved && r.vault.n === 2, '2 vaults move after 20 s and show the new spot first', r.vault);
