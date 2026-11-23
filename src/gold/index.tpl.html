@@ -38,14 +38,14 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 #sk{position:fixed;right:calc(18px + env(safe-area-inset-right));bottom:calc(22px + env(safe-area-inset-bottom));width:88px;height:88px;border-radius:50%;border:3px solid var(--gold);background:rgba(10,16,28,.72);color:var(--ink);font:900 26px Georgia,serif;z-index:6;display:none;pointer-events:auto;touch-action:none;padding:0}
 #sk.on{display:grid;place-items:center}#sk canvas{width:56px;height:56px;grid-area:1/1;pointer-events:none}#sk b{grid-area:1/1;text-shadow:0 1px 4px #000;pointer-events:none}#sk.cd canvas{opacity:.3}
 .coin{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#e8b84a;border:1.5px solid #8a6420;color:#3a2808;font:900 11px Georgia,serif;font-style:normal;vertical-align:-4px;margin-right:3px;text-shadow:none}
-#toast{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:7;pointer-events:none;font:700 16px Georgia,serif;color:var(--ink);text-shadow:0 2px 6px #000;text-align:center;width:max-content;max-width:calc(100vw - 32px);background:rgba(7,12,22,.78);padding:6px 12px;border-radius:10px;opacity:0;transition:opacity .25s}
+#toast{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:30;pointer-events:none;font:700 16px Georgia,serif;color:var(--ink);text-shadow:0 2px 6px #000;text-align:center;width:max-content;max-width:calc(100vw - 32px);background:rgba(7,12,22,.78);padding:6px 12px;border-radius:10px;opacity:0;transition:opacity .25s}
 #err{position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#5a1414;color:#fff;font:12px monospace;padding:6px;border-radius:8px;display:none;white-space:pre-wrap}
 .big{font:900 46px/1 Georgia,serif;color:var(--gold)}
 .lines{font:15px/1.5 Georgia,serif;color:#cfd6e2;text-align:center}
 .extra{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(100%,600px)}.extra:empty,.links:empty{display:none}
 /* icon buttons (the owner, 2026-11-23: "too much text"): an icon, one short word under it; every target >= 52 px */
 .ib{min-width:52px;min-height:52px;padding:4px 6px;border-radius:14px;border:2px solid rgba(255,255,255,.18);background:rgba(255,255,255,.04);color:var(--ink);display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:700 10px Georgia,serif;letter-spacing:.04em;cursor:pointer;position:relative;flex:0 0 auto}
-.ib i{font-style:normal;font-size:22px;line-height:1;display:block}.ib canvas{width:24px;height:24px;display:block}.ib span{color:var(--muted);white-space:nowrap;max-width:76px;overflow:hidden;text-overflow:ellipsis}
+.ib i{font-style:normal;font-size:22px;line-height:1;display:block}.ib canvas{width:24px;height:24px;display:block}.ib span{color:#aab5c6;font-size:11px;white-space:nowrap;max-width:76px;overflow:hidden;text-overflow:ellipsis}
 .links:has(.ib){gap:6px}
 .ib.on{border-color:var(--gold)}
 .hrows{display:flex;flex-direction:column;gap:12px;width:min(100%,380px)}.hrow{display:flex;align-items:center;gap:12px;font:16px/1.3 Georgia,serif;color:#e4e9f1}.hrow>i{flex:0 0 40px;height:40px;display:grid;place-items:center;font-style:normal;font-size:24px}
@@ -66,7 +66,9 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   #gods{grid-template-columns:repeat(2,minmax(0,1fr))}#gods .god{min-height:78px;padding:6px 6px}
 }
 .links{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;width:min(100%,600px)}.links .sec{width:auto;flex:1 1 140px}
-@media (max-height:430px) and (min-aspect-ratio:4/3){.links .ib{min-height:48px}#end>.links,#title>.links{width:auto}}
+@media (max-height:430px) and (min-aspect-ratio:4/3){.links .ib{min-height:48px}#end>.links,#title>.links{width:100%}
+  #gods .god{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:8px;row-gap:0;min-height:58px;justify-items:start;align-content:center;padding:6px 10px}#gods .god canvas{grid-row:1/3;width:36px!important;height:36px!important}#gods .god b{font-size:15px}#gods .god .trn-lv{left:auto;right:8px}#gods .god .trn-cb{left:auto;right:8px}
+  #gdesc{display:none}}
 </style>
 </head>
 <body>
@@ -398,7 +400,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     const cc = $('change').querySelector('canvas').getContext('2d'); cc.clearRect(0, 0, 48, 48); cc.fillStyle = GODS[god].c; cc.beginPath(); cc.arc(24, 24, 23, 0, TAU); cc.fill(); sym(cc, god, 24, 24, 22); };
   const bestLine = () => { $('best').textContent = 'Map #' + mapNo + (best() ? ' · best ' + best() : ''); };
   drawGods(); bestLine();
-  setTimeout(() => $('titleLinks').appendChild($('helpB')), 0);   // after the modules' links: Rules comes last
+  window.addEventListener('load', () => $('titleLinks').appendChild($('helpB')));   // after the modules' links: Rules comes last
   $('helpB').addEventListener('click', () => { $('title').classList.remove('on'); $('help').classList.add('on'); });
   $('helpOk').addEventListener('click', () => { $('help').classList.remove('on'); $('title').classList.add('on'); });
   /* a module may hold PLAY back (the profile asks for a name and a country first): window.G.beforePlay() === false */

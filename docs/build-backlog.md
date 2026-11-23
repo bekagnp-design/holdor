@@ -1049,3 +1049,8 @@ The first way to earn: dragonglass packs and the Starter pack, paid in Telegram 
 - **Taps:** before opening as before (open / the three lucky taps of `lucky.js`). After opening every tap finishes the current card and starts the next; SKIP › lays out the rest. A 4-reward chest takes ~3.6 s untouched. What is granted does not change (the scene still reads `rollChest` / the server's `ECO.roll`).
 - **Files / tests:** `chest145.js` + `.css`, part `98zb_chest.py`, `t_chest145.js` (25 checks incl. 6 taps → 6 cards in 1.1 s, SKIP, COLLECT, Epic/Legendary, lucky taps, a server-shaped roll). Not checked on a phone or with a real signed-in `chest_open`.
 
+
+## Heavy Gold test 5 (2026-11-23)
+- Owner: "too much text". The core and every module follow the UI rules of `src/gold/GOLD.md`: icons and numbers, 1–3 word labels, icon buttons (`.ib`), a Rules screen behind `?`, short toasts, HUD with 💰/🏦, the skill button shows the god's sign, the end screen = rank + 🏦 + three tiles.
+- Wave 5 client: chat (world + country), country ladder with weekly duels, champion's crown, share card (Stories), online play over Supabase Realtime. 10_net: per-call timeout, re-login on `{error:'auth'}`.
+- Backend g2 (`backend/holdor_g2.sql`, Edge Function `hg-card`) is tested locally on top of the fixed g1 (g1 130, g2 155 checks). **Neither g1 nor g2 is applied to Supabase yet** (the confirmation prompt timed out); until then boards, chat, ladder and cards answer "not counted / server error".
