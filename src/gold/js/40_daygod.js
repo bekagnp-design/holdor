@@ -11,20 +11,21 @@
         G.setDayGod(key | 'none' | null) forces a day ('none' = no rule, null = back to the real UTC day); it takes effect at the next G.start.
         G.dayGod.active = the key in force in the running (or last) round; G.dayGod.visible(p) = false for a hero hidden by the Moon night.
         G.on('lightning', (p, loss) => …) after each strike (an event of this module, sent with G.emit).
-   Slots: a banner in #titleExtra, a chip in #hudExtra (under the carry/bank block), a line in #endExtra. Gold is conserved. */
+   Slots: a chip button in #titleExtra (#dgBanner: icon + rule; a tap pops the effect and the next god), a chip in #hudExtra
+   (icon + rule; Thor's day: the seconds to the next strike), nothing on the end screen. Gold is conserved. */
 (() => {
   const G = window.G; if (!G || !G.on || !G.addMod) return;
   const DAYS = [   // index = UTC weekday, 0 = Sunday
-    { key: 'sol',    name: 'Sol',    rule: 'Sun day',       day: 'Sunday',    col: '#ffcf5a', desc: 'every hero runs 12% faster' },
-    { key: 'mani',   name: 'Máni',   rule: 'Moon night',    day: 'Monday',    col: '#a9c4ff', desc: 'darkness past your light; coins still glimmer' },
-    { key: 'tyr',    name: 'Tyr',    rule: "Tyr's law",     day: 'Tuesday',   col: '#ff8a5a', desc: 'a robbery takes 50% instead of 35%' },
-    { key: 'odin',   name: 'Odin',   rule: "Odin's ravens", day: 'Wednesday', col: '#8fd3c8', desc: 'skill cooldowns are 30% shorter' },
-    { key: 'thor',   name: 'Thor',   rule: "Thor's day",    day: 'Thursday',  col: '#7b93ff', desc: 'lightning strikes the richest every 30 s' },
-    { key: 'freya',  name: 'Freya',  rule: "Freya's gold",  day: 'Friday',    col: '#ffa8c8', desc: 'every coin is worth 50% more' },
-    { key: 'saturn', name: 'Saturn', rule: "Saturn's hour", day: 'Saturday',  col: '#d9c38a', desc: 'banking takes 0.75 s instead of 1.5 s' },
-  ];
+    { key: 'sol',    name: 'Sol',    rule: 'Sun day',       ic: '☀️', day: 'Sunday',    col: '#ffcf5a', desc: 'Everyone 12% faster' },
+    { key: 'mani',   name: 'Máni',   rule: 'Moon night',    ic: '🌙', day: 'Monday',    col: '#a9c4ff', desc: 'Dark past your light' },
+    { key: 'tyr',    name: 'Tyr',    rule: "Tyr's law",     ic: '⚖️', day: 'Tuesday',   col: '#ff8a5a', desc: 'Robbery takes 50%' },
+    { key: 'odin',   name: 'Odin',   rule: "Odin's ravens", ic: '🐦', day: 'Wednesday', col: '#8fd3c8', desc: 'Skills recharge 30% faster' },
+    { key: 'thor',   name: 'Thor',   rule: "Thor's day",    ic: '⚡', day: 'Thursday',  col: '#7b93ff', desc: 'Lightning hits the richest' },
+    { key: 'freya',  name: 'Freya',  rule: "Freya's gold",  ic: '🌸', day: 'Friday',    col: '#ffa8c8', desc: 'Coins worth 50% more' },
+    { key: 'saturn', name: 'Saturn', rule: "Saturn's hour", ic: '⏳', day: 'Saturday',  col: '#d9c38a', desc: 'Banking twice as fast' },
+  ];   /* UI (the owner: "too much text"): a chip = icon + rule (2 words); desc ≤ 4 words, shown only on a tap */
   DAYS.forEach((d, i) => { d.dow = i; });
-  const NONE = { key: 'none', name: '', rule: '', day: '', col: '#8d9bb0', desc: '', dow: -1 };
+  const NONE = { key: 'none', name: '', rule: '', ic: '', day: '', col: '#8d9bb0', desc: '', dow: -1 };
   const BY = {}; for (const d of DAYS) BY[d.key] = d; BY.none = NONE;
   const LIGHT = 340, ROB = 0.5, CD = 0.7, BANK = 0.5, SPEED = 1.12, COIN = 1.5;
   const STRIKE_T = 30, STRIKE_MIN = 10, STRIKE_SHARE = 0.25, BOLT_LIFE = 0.6, DARK = '4,7,18';
@@ -33,7 +34,7 @@
 
   const today = () => DAYS[new Date().getUTCDay()];
   const msLeft = () => { const n = Date.now(); return (Math.floor(n / 864e5) + 1) * 864e5 - n; };
-  const left = () => { const m = Math.max(1, Math.ceil(msLeft() / 6e4)), h = Math.floor(m / 60); return (h ? h + ' h ' : '') + (m % 60) + ' m'; };
+  const left = () => { const m = Math.max(1, Math.ceil(msLeft() / 6e4)), h = Math.floor(m / 60); return h ? h + ' h' : m + ' m'; };   // short: "7 h", "42 m"
   const nextOf = d => d.dow < 0 ? null : DAYS[(d.dow + 1) % 7];
 
   let forced = null, sel = today(), act = null, nextStrike = STRIKE_T, bolts = [];
@@ -43,8 +44,8 @@
   const DG = G.dayGod = { LIGHT, all: DAYS.map(d => Object.assign({}, d)), active: null, forced: false, strikes: [], drawn: 0, flashes: 0, view: null,
     visible: p => { const S = G.S; if (!is('mani') || !S || !p || p === S.me) return true; return G.dist(S.me, p) <= LIGHT; },
     timeLeft: msLeft };
-  const sync = d => { Object.assign(DG, { key: d.key, name: d.name, rule: d.rule, day: d.day, desc: d.desc, col: d.col, dow: d.dow, forced: !!forced });
-    const n = nextOf(d); DG.next = n ? { key: n.key, name: n.name, rule: n.rule, day: n.day } : null; };
+  const sync = d => { Object.assign(DG, { key: d.key, name: d.name, rule: d.rule, ic: d.ic, day: d.day, desc: d.desc, col: d.col, dow: d.dow, forced: !!forced });
+    const n = nextOf(d); DG.next = n ? { key: n.key, name: n.name, rule: n.rule, ic: n.ic, day: n.day } : null; };
   sync(sel);
 
   /* forcing a day (tests, the integrator): 'none' turns the module off, null goes back to the real UTC day; the next G.start applies it */
@@ -73,20 +74,20 @@
   const addCoin = (S, x, y, v) => { S.coins.push({ x: clamp(x, 12, G.WORLD - 12), y: clamp(y, 12, G.WORLD - 12), v }); };
   const spill = (S, x, y, amount, r) => { if (amount <= 0) return; const n = Math.min(40, amount); let rest = amount;
     for (let i = 0; i < n; i++) { const v = i === n - 1 ? rest : Math.max(1, Math.floor(amount / n)); rest -= v; if (v <= 0) continue; const a = G.rnd() * TAU, d = r * (0.7 + G.rnd() * 0.8); addCoin(S, x + Math.cos(a) * d, y + Math.sin(a) * d, v); } };
-  const label = p => p === G.S.me ? 'you' : p.name + (p.bot ? ' (bot)' : '');
+  const label = p => p.name + (G.S && G.S.online && p.bot ? ' (bot)' : '');   // as the core names heroes in toasts
   function strike(S) {
     let q = null; for (const p of S.ps) if (!q || p.carry > q.carry) q = p;
     const rec = { t: +S.t.toFixed(3), id: q ? q.id : -1, name: q ? q.name : '', before: q ? q.carry : 0, loss: 0, me: q === S.me, hit: false };
     DG.strikes.push(rec);
     if (!q || q.carry < STRIKE_MIN) { rec.why = 'poor'; return; }
-    if (S.vaults.some(v => G.dist(v, q) < v.r)) { rec.why = 'vault'; G.fx({ kind: 'text', x: q.x, y: q.y - 40, s: 'spared', c: '#9fc4ff', life: 1 }); G.toast('Lightning spared ' + label(q) + ' in the vault'); return; }
+    if (S.vaults.some(v => G.dist(v, q) < v.r)) { rec.why = 'vault'; G.fx({ kind: 'text', x: q.x, y: q.y - 40, s: 'spared', c: '#9fc4ff', life: 1 }); G.toast(q === S.me ? '⚡ Vault saved you' : '⚡ ' + label(q) + ' spared'); return; }
     const loss = Math.ceil(q.carry * STRIKE_SHARE); q.carry -= loss; q.lost += loss; q.bankT = 0;
     spill(S, q.x, q.y, loss, G.radius(q) + 26);
     rec.loss = loss; rec.hit = true;
     bolts.push({ x: q.x, y: q.y, t: S.t, seed: (Math.floor(G.rnd() * 1e9) | 1) });
     G.fx({ kind: 'ring', x: q.x, y: q.y, r: 150, c: '#9fc4ff', life: 0.7 }); G.fx({ kind: 'text', x: q.x, y: q.y - 36, s: '-' + loss, c: '#9fc4ff', life: 1.1 });
-    if (q === S.me) { G.toast("Thor's lightning struck you: " + loss + ' gold spilled', 2400); G.haptic('heavy'); }
-    else G.toast('Lightning struck ' + label(q) + ': ' + loss + ' gold spilled', 2000);
+    if (q === S.me) { G.toast('⚡ −' + loss + " · Thor's lightning", 2400); G.haptic('heavy'); }
+    else G.toast('⚡ −' + loss + ' · ' + label(q), 2000);
     G.emit('lightning', q, loss);
   }
   G.on('step', () => { const S = G.S; if (!S || !is('thor')) return;
@@ -150,46 +151,49 @@
     bolts = bolts.filter(b => S.t - b.t <= BOLT_LIFE && S.t >= b.t);
   }
 
-  /* ---------- UI: title banner, HUD chip, end line ---------- */
+  /* ---------- UI: a title chip (a tap: the effect + the next god), a HUD chip; nothing on the end screen ---------- */
   const css = document.createElement('style');
-  css.textContent = '.dg-ban{border:1px solid var(--dg);border-radius:12px;background:rgba(255,255,255,.04);padding:7px 12px;font:14px/1.4 Georgia,serif;color:#cfd6e2;text-align:center;max-width:min(100%,560px);text-wrap:balance}'
-    + '.dg-ban b{color:var(--dg);letter-spacing:.06em}.dg-ban .dg-t{color:var(--muted);white-space:nowrap}'
-    + '@media (max-height:430px){.dg-ban{font-size:12px;line-height:1.3;padding:3px 10px;border-radius:9px}}'
-    + '@media (max-height:380px){.dg-ban{font-size:11.5px;line-height:1.2;padding:1px 10px;margin:-3px 0}}'   // 640×360: PLAY stays on screen
-    + '#dgChip{position:absolute;left:calc(10px + env(safe-area-inset-left));top:calc(56px + env(safe-area-inset-top));display:none;align-items:center;gap:6px;padding:4px 9px 4px 7px;border-radius:999px;'
-    + 'border:1px solid var(--dg);background:rgba(7,12,22,.66);color:var(--ink);font:700 11px/1.1 Georgia,serif;letter-spacing:.07em;white-space:nowrap;pointer-events:none;text-shadow:0 1px 2px #000}'
-    + '#dgChip.on{display:flex}#dgChip i{width:8px;height:8px;border-radius:50%;background:var(--dg);box-shadow:0 0 6px var(--dg)}'
-    + '#dgChip.hot{box-shadow:0 0 12px var(--dg)}#dgChip.hot i{animation:dgp .5s infinite alternate}@keyframes dgp{to{opacity:.25}}'
-    + '#dgEnd b{color:var(--dg)}';
+  css.textContent = '.dg-ban{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:0 16px;border:1.5px solid var(--dg);border-radius:999px;background:rgba(255,255,255,.04);'
+    + 'color:var(--ink);font:700 15px/1 Georgia,serif;white-space:nowrap;cursor:pointer;flex:0 0 auto;width:auto!important;max-width:100%;justify-self:center}'
+    + '.dg-ban i,#dgChip i{font-style:normal;font-size:17px;line-height:1}#dgChip i{font-size:13px}'
+    + '#dgPop{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:30;pointer-events:none;font:700 15px Georgia,serif;color:var(--ink);text-shadow:0 2px 6px #000;text-align:center;width:max-content;max-width:calc(100vw - 32px);'
+    + 'background:rgba(7,12,22,.94);border:1px solid var(--dg);padding:7px 14px;border-radius:10px;opacity:0;transition:opacity .25s}#dgPop.on{opacity:1}'
+    + '#dgChip{position:absolute;left:calc(10px + env(safe-area-inset-left));top:calc(56px + env(safe-area-inset-top));display:none;align-items:center;gap:5px;padding:3px 9px 3px 7px;border-radius:999px;'
+    + 'border:1px solid var(--dg);background:rgba(7,12,22,.66);color:var(--ink);font:700 11px/1.1 Georgia,serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;text-shadow:0 1px 2px #000}'
+    + '#dgChip.on{display:flex}#dgChip.hot{box-shadow:0 0 12px var(--dg)}#dgChip.hot i{animation:dgp .5s infinite alternate}@keyframes dgp{to{opacity:.25}}';
   document.head.appendChild(css);
 
+  /* a tap's one line: the effect and the next god (a pop of its own: the core's #toast sits under the title screen) */
+  let popT = 0;
+  const popText = () => { const n = nextOf(sel); return sel.desc + (n ? ' · next ' + n.ic + ' ' + left() : ''); };
+  function pop() {
+    let el = $('dgPop'); if (!el) { el = document.createElement('div'); el.id = 'dgPop'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+    el.style.setProperty('--dg', sel.col); el.textContent = popText(); el.classList.add('on');
+    clearTimeout(popT); popT = setTimeout(() => el.classList.remove('on'), 2600);
+  }
+  G.on('start', () => { const el = $('dgPop'); if (el) el.classList.remove('on'); });
   function banner() {
     const box = $('titleExtra'); if (!box) return;
-    let el = $('dgBanner'); if (!el) { el = document.createElement('div'); el.id = 'dgBanner'; el.className = 'dg-ban'; box.appendChild(el); }
+    let el = $('dgBanner');
+    if (!el) { el = document.createElement('button'); el.type = 'button'; el.id = 'dgBanner'; el.className = 'dg-ban'; el.innerHTML = '<i></i><span></span>'; box.appendChild(el);
+      el.addEventListener('click', () => { pop(); if (G.haptic) G.haptic('light'); }); }
     if (sel.key === 'none') { el.style.display = 'none'; return; }
     el.style.display = ''; el.style.setProperty('--dg', sel.col);
-    el.innerHTML = '<b>TODAY · ' + sel.rule.toUpperCase() + '</b> — ' + sel.desc + ' <span class="dg-t">· next god in ' + left() + '</span>';
+    el.firstChild.textContent = sel.ic; el.lastChild.textContent = sel.rule; el.setAttribute('aria-label', sel.rule + ': ' + sel.desc);
   }
   let chipTxt = '';
   function chip(force) {
     const box = $('hudExtra'); if (!box) return;
     let el = $('dgChip'); if (!el) { el = document.createElement('div'); el.id = 'dgChip'; el.innerHTML = '<i></i><span></span>'; box.appendChild(el); }
     if (!act || act.key === 'none') { el.classList.remove('on'); chipTxt = ''; return; }
-    const S = G.S; let t = act.rule.toUpperCase(), hot = false;
-    if (act.key === 'thor' && S && nextStrike < G.ROUND) { const s = Math.max(0, Math.ceil(nextStrike - S.t)); t = 'THOR ⚡ ' + s + ' s'; hot = s <= 3; }   /* short: the chip must stay clear of the centre line on a 390 px phone */
-    if (force) { el.style.setProperty('--dg', act.col); el.classList.add('on'); }
+    const S = G.S; let t = act.rule, hot = false;
+    if (act.key === 'thor' && S && nextStrike < G.ROUND) { const s = Math.max(0, Math.ceil(nextStrike - S.t)); t = s + ' s'; hot = s <= 3; }   // "⚡ 12 s": the next strike
+    if (force) { el.style.setProperty('--dg', act.col); el.classList.add('on'); el.firstChild.textContent = act.ic; }
     el.classList.toggle('hot', hot);
     const tl = $('hTL'); if (tl && tl.offsetHeight) el.style.top = (tl.offsetTop + tl.offsetHeight + 6) + 'px';   // right under the carry/bank block
     if (t !== chipTxt || force) { chipTxt = t; el.lastChild.textContent = t; }
   }
   G.on('hud', () => chip(false));
-  G.on('end', () => {
-    const box = $('endExtra'); if (!box) return;
-    let el = $('dgEnd'); if (!el) { el = document.createElement('div'); el.id = 'dgEnd'; el.className = 'small'; box.appendChild(el); }
-    if (!act || act.key === 'none') { el.style.display = 'none'; return; }
-    el.style.display = ''; el.style.setProperty('--dg', act.col);
-    const n = nextOf(act); el.innerHTML = 'Today: <b>' + act.rule + '</b>' + (n ? ' · next: ' + n.rule + ' in ' + left() : '');
-  });
   const refresh = () => { if (!forced && !running()) { const t = today(); if (t.key !== sel.key) { sel = t; sync(sel); } } banner(); };
   G.on('title', refresh);
   setInterval(() => { const t = $('title'); if (t && t.classList.contains('on')) refresh(); }, 15000);

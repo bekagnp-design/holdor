@@ -1,7 +1,8 @@
 // tests/gold/t_daygod.js — the day god (src/gold/js/40_daygod.js): today's god follows the UTC weekday; each of the 7 rules, forced with
 // G.setDayGod, does what it says, measured through G.step (robbery share, cooldown, lightning at 30 s on the richest, coin worth, banking
-// time, speed, the Moon night overlay read back from the canvas); 'none' is neutral; gold is conserved on every day; the title banner, the HUD
-// chip and the end line show and overlap nothing at 390×844, 844×390 and 640×360; no page errors. Screenshots: .shots/gold_day_*.png
+// time, speed, the Moon night overlay read back from the canvas); 'none' is neutral; gold is conserved on every day; the title chip (icon + rule,
+// a tap pops the effect + the next god), the HUD chip (icon + ≤ 2 words) show, stay short and overlap nothing at 390×844, 844×390 and 640×360;
+// the chip adds no title scroll; the end screen carries no day line; no page errors. Screenshots: .shots/gold_day_*.png
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs');
 const EXE = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome';
 const FILE = path.resolve(process.env.GOLD_HTML || path.join(__dirname, '..', '..', 'beta', 'index.html'));
@@ -87,10 +88,10 @@ function helpers() {
     return out; });
   ok(near(th.s30.t, 30, 0.02) && th.s30.id === 3 && th.s30.before >= 120 && th.s30.loss === Math.ceil(th.s30.before * 0.25) && th.s30.victimCarry === th.s30.before - th.s30.loss && th.s30.other >= 40 && th.s30.coinsNear >= th.s30.loss && th.s30.conserved,
     "Thor's day: at 30 s lightning strikes the richest (120 → 90), 25% spills as coins next to him, the others keep theirs; conserved", th.s30);
-  ok(/Lightning struck .*\(bot\): \d+ gold spilled/.test(th.s30.toast) && /THOR ⚡ \d+ s/.test(th.chip30), 'a toast tells the player; the HUD chip counts down to the next strike', { toast: th.s30.toast, chip: th.chip30 });
+  ok(/^⚡ −\d+ · \S+$/.test(th.s30.toast) && th.s30.toast.split(' ').length <= 6 && /^⚡\d+ s$/.test(th.chip30), 'a short toast "⚡ −30 · <name>"; the HUD chip "⚡ N s" counts down to the next strike', { toast: th.s30.toast, chip: th.chip30 });
   ok(near(th.s60.t, 60, 0.02) && th.s60.why === 'poor' && !th.s60.hit && th.s60.conserved, 'at 60 s nobody carries 10: no strike', th.s60);
   ok(near(th.s90.t, 90, 0.02) && th.s90.why === 'vault' && th.s90.id === 2 && th.s90.inVault === 150 && th.s90.second >= 60 && th.s90.conserved, 'at 90 s the richest stands in a vault: spared, and nobody else is struck', th.s90);
-  ok(near(th.s120.t, 120, 0.02) && th.s120.isMe && th.s120.before >= 90 && th.s120.loss === Math.ceil(th.s120.before * 0.25) && th.s120.me === th.s120.before - th.s120.loss && /struck you: \d+ gold spilled/.test(th.s120.toast) && th.s120.conserved, 'at 120 s the player is the richest: struck (90 → 67), with his own toast', th.s120);
+  ok(near(th.s120.t, 120, 0.02) && th.s120.isMe && th.s120.before >= 90 && th.s120.loss === Math.ceil(th.s120.before * 0.25) && th.s120.me === th.s120.before - th.s120.loss && /^⚡ −\d+ · Thor's lightning$/.test(th.s120.toast) && th.s120.conserved, 'at 120 s the player is the richest: struck (90 → 67), toast "⚡ −23 · Thor\'s lightning"', th.s120);
   await frames(pg, 3);
   const flash = await pg.evaluate(() => G.dayGod.flashes);
   await pg.screenshot({ path: path.join(SHOTS, 'gold_day_thor_strike.png') });
@@ -166,11 +167,11 @@ function helpers() {
     G.start('thor'); r.after = { active: G.dayGod.active, rob: G.mod('rob', me, G.ROB), coin: G.mod('coinValue', null, 8) };
     T.begin('none'); const p = G.S.me; r.none = { key: G.dayGod.key, active: G.dayGod.active, mods: [G.mod('rob', p, 0.35), G.mod('cd', p, 4), G.mod('bankT', p, 1.5), G.mod('speed', p, 270), G.mod('coinValue', null, 8)],
       chip: G.$('dgChip').classList.contains('on'), banner: getComputedStyle(G.$('dgBanner')).display };
-    let n = 0; while (!G.S.over) G.step(60); r.none.strikes = G.dayGod.strikes.length; r.none.end = getComputedStyle(G.$('dgEnd')).display; r.none.drawn = G.dayGod.drawn;
+    let n = 0; while (!G.S.over) G.step(60); r.none.strikes = G.dayGod.strikes.length; r.none.end = G.$('dgEnd') ? getComputedStyle(G.$('dgEnd')).display : 'none'; r.none.drawn = G.dayGod.drawn;
     G.setDayGod(null); r.back = G.dayGod.key; r.today = ['sol', 'mani', 'tyr', 'odin', 'thor', 'freya', 'saturn'][new Date().getUTCDay()]; return r; });
   ok(mid.key === 'freya' && mid.active === 'tyr' && mid.rob === 0.5 && mid.coin === 8 && mid.after.active === 'freya' && mid.after.rob === 0.35 && mid.after.coin === 12, 'a day forced mid-round takes effect at the next G.start', mid);
   ok(mid.none.key === 'none' && mid.none.mods.join() === '0.35,4,1.5,270,8' && !mid.none.chip && mid.none.banner === 'none' && mid.none.end === 'none' && mid.none.strikes === 0 && mid.back === mid.today,
-    "G.setDayGod('none'): no rule, no chip, no banner, no end line; G.setDayGod(null) goes back to today", mid.none);
+    "G.setDayGod('none'): no rule, no chip on the title or the HUD; G.setDayGod(null) goes back to today", mid.none);
 
   // gold is conserved on every day: a whole round each, checked every second
   const cons = await pg.evaluate(() => { const out = {};
@@ -187,11 +188,20 @@ function helpers() {
   for (const [w, h] of [[390, 844], [844, 390], [640, 360]]) {
     const p = await open(w, h), tag = w + 'x' + h;
     const ban = await p.evaluate(keys => keys.map(k => { G.setDayGod(k); const el = G.$('dgBanner'), r = el.getBoundingClientRect(), box = e => { const q = (typeof e === 'string' ? document.querySelector(e) : e).getBoundingClientRect(); return { x: q.x, y: q.y, width: q.width, height: q.height }; };
-      return { k, text: el.textContent, ban: box(el), others: ['h1', '.rule', '#gods', '#play', '#best'].map(box), play: box('#play'), sw: document.documentElement.scrollWidth }; }), KEYS);
-    const rules = await p.evaluate(() => G.dayGod.all.map(d => d.rule.toUpperCase()));
-    const banOk = ban.every((r, i) => r.text.includes('TODAY · ' + rules[i] + ' — ') && /next god in (\d+ h )?\d+ m/.test(r.text) && r.ban.height > 10 && r.ban.x >= 0 && r.ban.x + r.ban.width <= w && r.sw <= w && !r.others.some(o => R(o, r.ban)));
-    ok(banOk, tag + ': the title banner "TODAY · <RULE> — <what it does> · next god in …" shows for each day and overlaps nothing', ban.map(r => [r.text, Math.round(r.ban.y), Math.round(r.ban.height)]));
-    ok(ban.every(r => r.play.height >= 44 && r.play.y + r.play.height <= h) , tag + ': PLAY stays on screen with the banner', ban.map(r => [Math.round(r.play.y + r.play.height), Math.round(r.ban.height)]));
+      return { k, text: el.textContent, btn: el.tagName === 'BUTTON', ban: box(el), others: ['h1', '#gods', '#gdesc', '#play', '#best', '#titleLinks'].map(box), play: box('#play'), sw: document.documentElement.scrollWidth }; }), KEYS);
+    const all = await p.evaluate(() => G.dayGod.all.map(d => ({ ic: d.ic, rule: d.rule, desc: d.desc })));
+    const banOk = ban.every((r, i) => r.btn && r.text === all[i].ic + all[i].rule && all[i].rule.split(' ').length <= 2 && r.ban.height >= 44 && r.ban.x >= 0 && r.ban.x + r.ban.width <= w && r.sw <= w && !r.others.some(o => R(o, r.ban)));
+    ok(banOk, tag + ': the title chip "<icon> <rule>" (2 words, a >= 44 px button) shows for each day and overlaps nothing', ban.map(r => [r.text, Math.round(r.ban.y), Math.round(r.ban.height), Math.round(r.ban.width)]));
+    ok(ban.every(r => r.play.height >= 44 && r.play.y + r.play.height <= h) , tag + ': PLAY stays on screen with the chip', ban.map(r => [Math.round(r.play.y + r.play.height), Math.round(r.ban.height)]));
+    ok(all.every(d => d.desc.split(' ').length <= 4), tag + ': every effect line is at most 4 words', all.map(d => d.desc));
+    // the chip adds no scroll to the title: the title's overflow is the same with the chip hidden
+    const sc = await p.evaluate(() => { G.setDayGod('odin'); const t = G.$('title'), el = G.$('dgBanner'); const a = t.scrollHeight - t.clientHeight; el.style.display = 'none'; const b = t.scrollHeight - t.clientHeight; el.style.display = ''; return { withChip: a, without: b }; });
+    ok(sc.withChip <= Math.max(0, sc.without), tag + ': the day chip adds no scroll to the title', sc);
+    // a real tap pops the effect and the next god in one short line
+    await p.evaluate(() => G.setDayGod('mani')); await p.locator('#dgBanner').tap(); await p.waitForTimeout(350);
+    const pop = await p.evaluate(() => { const e = G.$('dgPop'), r = e && e.getBoundingClientRect(); return e && { text: e.textContent, op: +getComputedStyle(e).opacity, x: r.x, w: r.width, y: r.y, h: r.height }; });
+    ok(pop && /^Dark past your light · next ⚖️ \d+ (h|m)$/.test(pop.text) && pop.text.length <= 40 && pop.op > 0.5 && pop.x >= 0 && pop.x + pop.w <= w && pop.y >= 0, tag + ': a tap on the chip pops "Dark past your light · next ⚖️ 7 h"', pop);
+    await p.screenshot({ path: path.join(SHOTS, 'gold_day_pop_' + w + '.png') });
     await p.evaluate(() => G.setDayGod('thor')); await p.screenshot({ path: path.join(SHOTS, 'gold_day_title_' + w + '.png') });
     const hud = [];
     for (const k of KEYS) {
@@ -202,12 +212,11 @@ function helpers() {
       { const r = hud[hud.length - 1]; r.hit = r.others.filter(([id, o]) => o.width && R(o, r.chip)).map(o => o[0]); delete r.others; }
       if (k === 'thor' || k === 'mani') await p.screenshot({ path: path.join(SHOTS, 'gold_day_hud_' + k + '_' + w + '.png') });
     }
-    ok(hud.every((r, i) => r.on && r.k === KEYS[i] && (r.text.startsWith(rules[i]) || (KEYS[i] === 'thor' && r.text.startsWith('THOR'))) && r.chip.height > 10 && r.chip.x >= 0 && r.chip.y >= 0 && r.chip.x + r.chip.width <= w && r.chip.y + r.chip.height <= h && !r.hit.length),
-      tag + ': the HUD chip names the day and overlaps neither carry/bank, the clock, the board nor the skill button', hud.map(r => [r.text, r.hit, Math.round(r.chip.x), Math.round(r.chip.y), Math.round(r.chip.width)]));
+    ok(hud.every((r, i) => r.on && r.k === KEYS[i] && (KEYS[i] === 'thor' ? /^⚡\d+ s$/.test(r.text) : r.text === all[i].ic + all[i].rule) && r.chip.height > 10 && r.chip.x >= 0 && r.chip.y >= 0 && r.chip.x + r.chip.width <= w && r.chip.y + r.chip.height <= h && !r.hit.length),
+      tag + ': the HUD chip "<icon> <rule>" ("⚡ N s" on Thor\'s day) overlaps neither carry/bank, the clock, the board nor the skill button', hud.map(r => [r.text, r.hit, Math.round(r.chip.x), Math.round(r.chip.y), Math.round(r.chip.width)]));
     const end = await p.evaluate(() => { T.begin('freya', 'hermes'); while (!G.S.over) G.step(600); const box = id => { const q = G.$(id).getBoundingClientRect(); return { x: q.x, y: q.y, width: q.width, height: q.height }; };
-      const e = box('dgEnd'); return { on: G.$('end').classList.contains('on'), text: G.$('dgEnd').textContent, e, others: ['eRank', 'eLines', 'again'].map(id => [id, box(id)]) }; });
-    end.hit = end.others.filter(([id, o]) => R(o, end.e)).map(o => o[0]); delete end.others;
-    ok(end.on && /^Today: Freya's gold · next: Saturn's hour in (\d+ h )?\d+ m$/.test(end.text) && end.e.height > 10 && !end.hit.length, tag + ': the end screen says "Today: <rule>"', end);
+      return { on: G.$('end').classList.contains('on'), dgEnd: !!G.$('dgEnd'), day: /Freya|Today/.test(G.$('end').innerText) }; });
+    ok(end.on && !end.dgEnd && !end.day, tag + ': the end screen carries no day-god line', end);
     await p.screenshot({ path: path.join(SHOTS, 'gold_day_end_' + w + '.png') });
     await noErr(p, tag);
     await p.close();
