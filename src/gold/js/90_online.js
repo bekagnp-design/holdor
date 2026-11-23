@@ -1,7 +1,9 @@
 /* Heavy Gold — online play (90_online.js) over Supabase Realtime: broadcast + presence on public channels, the publishable key,
    no new server (src/gold/GOLD.md, "Wave 5" and "Online hooks").
-   - PLAY ONLINE: a gold-edged .sec button, first in #titleLinks, shown only online (G.net.on, inside Telegram). PLAY stays the one
-     primary button: it starts at once and works offline; online waits up to 15 s for others.
+   - 🌐 "Online": a gold-edged icon button (.ib), first in #titleLinks, shown only online (G.net.on, inside Telegram). PLAY stays the
+     one primary button: it starts at once and works offline; online waits up to 15 s for others. The lobby screen: a one-word title,
+     the countdown, the seats (flag + name, the bots as one count), one status line, START NOW for the host (2+ players), and icon
+     buttons Invite / Leave (the owner, 2026-11-23: "too much text"). The HUD chip: "🌐 N".
    - Matching: the lobby channel 'hg-lobby' (presence). Only the host of a forming room tracks there ({r: code, n, o, e}); a newcomer reads
      the presence state, joins the fullest open room, or opens his own. Two rooms opened at the same moment merge (the smaller, or the
      higher code, moves). A room is 'hg-r-<code>' (presence: one key per player); the host is the lowest presence key that is alive
@@ -138,7 +140,7 @@
     // the profile gate of PLAY (20_profile.js): a name and a country, and no name the server refused (name_taken)
     if (!hasProfile() || (G.profileUI && G.profileUI.needFix)) { pending = code || '*'; if (G.profileUI) G.profileUI.open(false); return; }
     pending = null; O.err = ''; O.phase = 'conn'; show(); paint();
-    clearTimeout(connT); connT = setTimeout(() => { if (!wsUp && O.phase !== 'play' && O.phase !== 'off' && O.phase !== 'err') fail('Could not reach the game server.'); }, O.CONNECT_MS);
+    clearTimeout(connT); connT = setTimeout(() => { if (!wsUp && O.phase !== 'play' && O.phase !== 'off' && O.phase !== 'err') fail('Server unreachable'); }, O.CONNECT_MS);
     if (code && okCode(code)) joinRoom(code, false, true); else findRoom();
   }
   function fail(msg) { cleanup(); O.phase = 'err'; O.err = msg; show(); paint(); }
@@ -147,7 +149,7 @@
   function lobbyCh() {
     if (lobby && chans.get(lobby.topic) === lobby) return lobby;
     lobby = channel('hg-lobby', { key: UID, presence: true, pres: onLobby, join: () => { clearTimeout(lobbyT); lobbyT = setTimeout(decide, O.LOBBY_MS); },
-      fail: r => { if (O.phase === 'lobby') fail('The game server is busy. Try again soon.'); O.err = r; } });
+      fail: r => { if (O.phase === 'lobby') fail('Server busy'); O.err = r; } });
     return lobby;
   }
   function leaveLobby() { clearTimeout(lobbyT); clearTimeout(advT); if (lobby) leaveCh(lobby); lobby = null; }
@@ -190,7 +192,7 @@
       byLink: !!byLink, lastRoom: now(), hkSince: now(), joinedAt: now(), sq: 0, isq: 0, skN: 0, lastIn: 0, lastPos: null, cm: new Map(), known: new Map(), cid: 0, evq: [],
       buf: {}, pred: new Map(), pendV: 0, lastState: now(), thunderN: 0, finSent: false, over: false, moving: false };
     O.room = code; O.phase = 'wait';
-    R.ch = channel('hg-r-' + code, { key: R.key, presence: true, bc: roomBc, pres: roomPres, join: roomJoined, fail: () => fail('Could not join the room.') });
+    R.ch = channel('hg-r-' + code, { key: R.key, presence: true, bc: roomBc, pres: roomPres, join: roomJoined, fail: () => fail('Room unavailable') });
     R.ch.meta = myMeta();
     R.up = channel('hg-u-' + code + '-' + UID, { presence: false });
     paint();
@@ -200,7 +202,7 @@
     if (!R || !R.ch.joined) return;
     if (!R.started) {
       const ms = members();
-      if (ms.findIndex(m => m.k === R.key) >= O.MAX) { const link = R.byLink; shut.set(R.code, now()); cleanupRoom(); if (link) G.toast('That room is full', 2400); findRoom(); return; }
+      if (ms.findIndex(m => m.k === R.key) >= O.MAX) { const link = R.byLink; shut.set(R.code, now()); cleanupRoom(); if (link) G.toast('Room full', 2400); findRoom(); return; }
       if (!R.hk) { if (R.opener || !ms.some(m => m.k !== R.key)) becomeHost(); }   // a joiner waits for the host's 'room' message
       else if (R.hk !== R.key && R.ch.got && !R.ch.P[R.hk]) hostGone(R.hk);
       if (isHost()) { roomMsg(); advert(); if (ms.length >= O.MAX) startRound(); }
@@ -252,7 +254,7 @@
   function startFrom(p) {
     const seats = Array.isArray(p.seats) ? p.seats.filter(s => Array.isArray(s) && okU(s[0])).slice(0, O.MAX) : [];
     if (!seats.length) return;
-    if (!seats.some(s => s[0] === UID)) { const link = R.byLink; shut.set(R.code, now()); cleanupRoom(); G.toast(link ? 'That round has already started' : 'The round started without you', 2600); findRoom(); return; }
+    if (!seats.some(s => s[0] === UID)) { const link = R.byLink; shut.set(R.code, now()); cleanupRoom(); G.toast(link ? 'Round already started' : 'Started without you', 2600); findRoom(); return; }
     begin(seats, clamp(num(p.map, G.mapNo) | 0, 1, 1e6), false);
   }
   function begin(seats, map, asHost) {
@@ -372,7 +374,7 @@
     }
     if (Array.isArray(m.v)) m.v.forEach((a, i) => { const v = S.vaults[i]; if (!v || !Array.isArray(a)) return;
       const nx = a[2] < 0 ? null : num(a[2]), ny = a[3] < 0 ? null : num(a[3]);
-      if (nx != null && v.nx == null) G.toast('Vaults move in ' + Math.max(1, Math.ceil(S.vNext - S.t)) + ' s');
+      if (nx != null && v.nx == null) G.toast('Vaults move · ' + Math.max(1, Math.ceil(S.vNext - S.t)) + ' s');
       if (Math.abs(v.x - a[0]) > 1 || Math.abs(v.y - a[1]) > 1) me.bankT = 0;
       v.x = num(a[0], v.x); v.y = num(a[1], v.y); v.nx = nx; v.ny = ny; });
     // coins: deltas, a full list every 2 s
@@ -396,14 +398,14 @@
     const txt = (p, s, c, life) => G.fx({ kind: 'text', x: p.x, y: p.y - 34, s, c, life: life || 0.8 });
     if (e[0] === 'r') { const L = P(e[1]), H = P(e[2]), take = e[3] | 0, loss = e[4] | 0; if (!L || !H) return;
       txt(L, '+' + take, '#ffd36a'); txt(H, '-' + loss, '#ff7a7a');
-      if (L === me) { G.toast('You robbed ' + who(H) + ': +' + take); G.haptic('light'); }
-      if (H === me) { G.toast(who(L) + ' robbed you: -' + loss); G.haptic('heavy'); }
+      if (L === me) { G.toast('+' + take + ' from ' + who(H)); G.haptic('light'); }
+      if (H === me) { G.toast('−' + loss + ' · ' + who(L) + ' robbed you'); G.haptic('heavy'); }
       G.emit('rob', L, H, take, loss); }
     else if (e[0] === 'b') { const p = P(e[1]), amt = e[2] | 0; if (!p) return; G.fx({ kind: 'text', x: p.x, y: p.y - 40, s: 'banked ' + amt, c: '#e8b84a', life: 1.2 });
-      if (p === me) { G.toast('Banked ' + amt + ' gold'); G.haptic('medium'); me.bankT = 0; } G.emit('bank', p, amt); }
+      if (p === me) { G.toast('🏦 +' + amt); G.haptic('medium'); me.bankT = 0; } G.emit('bank', p, amt); }
     else if (e[0] === 'k') { const p = P(e[1]); if (!p || p === me) return; const g = G.GODS[p.god] || {}; G.fx({ kind: 'ring', x: p.x, y: p.y, r: p.god === 'thor' ? 170 : 50, c: g.c || '#fff', life: 0.6 }); G.emit('skill', p); }
-    else if (e[0] === 't') { const p = P(e[1]), q = P(e[2]), loss = e[3] | 0; if (!p || !q) return; txt(q, '-' + loss, '#9fb2ff'); if (q === me) { G.toast(who(p) + ' struck you: -' + loss); G.haptic('heavy'); } }
-    else if (e[0] === 'm') { const p = P(e[1]); if (p === me) { me.cd = S.t + 1; G.toast('No richer rival in reach'); } }
+    else if (e[0] === 't') { const p = P(e[1]), q = P(e[2]), loss = e[3] | 0; if (!p || !q) return; txt(q, '-' + loss, '#9fb2ff'); if (q === me) { G.toast('⚡ −' + loss + ' · ' + who(p)); G.haptic('heavy'); } }
+    else if (e[0] === 'm') { const p = P(e[1]); if (p === me) { me.cd = S.t + 1; G.toast('No richer rival near'); } }
   }
   function clientStep(S, dt) {
     const rt = S.t - O.INTERP, me = S.me;
@@ -491,7 +493,7 @@
   /* ---- invite a friend ---- */
   function invite() {
     if (!R) return;
-    const url = 'https://t.me/HoldorTDBot/play?startapp=room_' + R.code, text = 'Join my Heavy Gold room: the lighter one robs the heavier one.';
+    const url = 'https://t.me/HoldorTDBot/play?startapp=room_' + R.code, text = 'Join my Heavy Gold room';
     hold();
     try { if (G.TG && G.TG.openTelegramLink) { G.TG.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(text)); return; } } catch (e) {}
     if (navigator.share) { navigator.share({ text, url }).catch(() => {}); return; }
@@ -512,9 +514,7 @@
   /* ================= UI ================= */
   const css = document.createElement('style');
   css.textContent = [
-    '#hgOnline{flex:1 1 100%;order:-1;border-color:var(--gold,#e8b84a);color:var(--gold,#e8b84a);font-weight:900;letter-spacing:.1em;background:rgba(232,184,74,.08)}#hgOnline[hidden]{display:none}',
-    // a short landscape window: PLAY ONLINE shares one row with the other title links, so the row stays as tall as before
-    '@media (orientation:landscape) and (max-height:540px){#hgOnline{flex:1 1 120px;letter-spacing:.04em}#titleLinks>.sec{flex-basis:120px}}',
+    '#hgOnline{order:-1;border-color:var(--gold,#e8b84a);background:rgba(232,184,74,.1)}#hgOnline span{color:var(--gold,#e8b84a)}#hgOnline[hidden]{display:none}',
     '#hgOn{background:var(--bg,#070c16);z-index:20}',
     '.onB{flex:1 1 auto;min-height:0;width:min(100%,560px);display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"h" "st" "ls" "ft";gap:10px}',
     '.onH{grid-area:h;margin:0;font:900 22px/1.2 Georgia,serif;letter-spacing:.1em;color:var(--gold,#e8b84a);text-align:center}',
@@ -523,26 +523,27 @@
     '.onP{display:flex;align-items:center;gap:8px;min-height:34px;padding:4px 10px;border-radius:10px;background:rgba(255,255,255,.05);font:15px/1.2 Georgia,serif}',
     '.onP .f{font-size:20px;flex:none;width:26px;text-align:center}.onP .n{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.onP .y{font:700 11px Georgia,serif;color:#1c1207;background:var(--gold,#e8b84a);border-radius:6px;padding:1px 6px}',
     '.onP.bot{background:transparent;color:var(--muted,#8d9bb0);font-size:13px;min-height:28px}',
-    '.onF{grid-area:ft;display:flex;flex-direction:column;align-items:center;gap:8px}.onF .sec[hidden],.onF .pri[hidden]{display:none}',
-    '.onRow{display:flex;gap:8px;width:min(100%,360px)}.onRow .sec{flex:1 1 0;width:auto}',
+    '.onF{grid-area:ft;display:flex;flex-direction:column;align-items:center;gap:8px}.onF [hidden]{display:none!important}',
+    '.onRow{display:flex;gap:6px;justify-content:center}',
     '#onChip{position:absolute;left:calc(10px + env(safe-area-inset-left));bottom:calc(14px + env(safe-area-inset-bottom));display:none;padding:3px 9px;border-radius:999px;border:1px solid rgba(91,227,138,.6);background:rgba(7,12,22,.66);color:#cfe9d8;font:700 11px/1.2 Georgia,serif;letter-spacing:.06em;white-space:nowrap;pointer-events:none;text-shadow:0 1px 2px #000}',
     '#onChip.on{display:block}#onChip.bad{border-color:#ff8a7a;color:#ffc2b8}',
     '@media (orientation:landscape) and (max-height:540px){.onB{width:min(100%,760px);grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);grid-template-areas:"h ls" "st ls" "ft ls";gap:6px 18px}',
-    '.onH{font-size:19px}.onSt b{font-size:32px}.onP{min-height:30px;padding:3px 8px}.onF{justify-content:flex-end}.onF .pri,.onRow{width:100%}}',
+    '.onH{font-size:19px}.onSt b{font-size:32px}.onP{min-height:30px;padding:3px 8px}.onF{justify-content:flex-end}.onF .pri{width:100%}}',
     '@media (orientation:landscape) and (max-height:380px){.onSt{font-size:13px}.onSt b{font-size:26px}.onF{gap:6px}.onF .pri{min-height:48px}.onP{min-height:27px;font-size:14px}}'
   ].join('\n');
   document.head.appendChild(css);
   const scr = el('div', 'scr'); scr.id = 'hgOn';
-  const box = el('div', 'onB'), hH = el('h2', 'onH', 'PLAY ONLINE'), st = el('div', 'onSt'), ls = el('div', 'onLs'), ft = el('div', 'onF');
+  const box = el('div', 'onB'), hH = el('h2', 'onH', 'ONLINE'), st = el('div', 'onSt'), ls = el('div', 'onLs'), ft = el('div', 'onF');
   st.id = 'onSt'; ls.id = 'onList';
-  const bPri = el('button', 'pri', 'INVITE A FRIEND'); bPri.id = 'onInvite'; bPri.type = 'button';
-  const row = el('div', 'onRow');
-  const bStart = el('button', 'sec', 'Start now'); bStart.id = 'onStart'; bStart.type = 'button';
-  const bLeave = el('button', 'sec', 'Leave'); bLeave.id = 'onLeave'; bLeave.type = 'button';
-  const note = el('div', 'small'); note.id = 'onNote';
-  row.append(bStart, bLeave); ft.append(bPri, row, note); box.append(hH, st, ls, ft); scr.appendChild(box); document.body.appendChild(scr);
-  bPri.addEventListener('click', () => { if (O.phase === 'err') { O.phase = 'off'; play(); } else invite(); });
-  bStart.addEventListener('click', () => { if (R && isHost() && !R.started && members().length >= 2) startRound(); });
+  const ib = (icon, word) => { const b = el('button', 'ib'); b.type = 'button'; const w = el('span', null, word); b.append(el('i', null, icon), w); b.word = w; return b; };
+  /* one primary at most: START NOW (the host, 2+ players) or TRY AGAIN (an error); Invite and Leave are icon buttons */
+  const bStart = el('button', 'pri', 'START NOW'); bStart.id = 'onStart'; bStart.type = 'button';
+  const row = el('div', 'onRow links');
+  const bInv = ib('📤', 'Invite'); bInv.id = 'onInvite';
+  const bLeave = ib('✕', 'Leave'); bLeave.id = 'onLeave';
+  row.append(bInv, bLeave); ft.append(bStart, row); box.append(hH, st, ls, ft); scr.appendChild(box); document.body.appendChild(scr);
+  bInv.addEventListener('click', invite);
+  bStart.addEventListener('click', () => { if (O.phase === 'err') { O.phase = 'off'; play(); } else if (R && isHost() && !R.started && members().length >= 2) startRound(); });
   bLeave.addEventListener('click', leave);
   function show() { scr.classList.add('on'); paint(); }
   function hide() { scr.classList.remove('on'); }
@@ -550,23 +551,23 @@
     if (!scr.classList.contains('on')) return;
     const ph = O.phase, ms = R && R.ch && R.ch.joined ? members() : [];
     st.textContent = ''; ls.textContent = '';
-    bPri.hidden = false; bPri.textContent = 'INVITE A FRIEND'; bStart.hidden = true; bLeave.textContent = 'Leave';
-    if (ph === 'err') { st.append(O.err || 'Could not reach the game server.'); bPri.textContent = 'TRY AGAIN'; bLeave.textContent = 'Back'; note.textContent = 'Plain PLAY works offline with 7 bots.'; return; }
-    if (ph === 'conn' || ph === 'lobby' || !R || !R.ch.joined) { st.append(wsUp ? 'Finding a room…' : (tries ? 'Reconnecting…' : 'Connecting…')); bPri.hidden = true; note.textContent = 'As ' + ((G.GODS[myGod()] || {}).n || '') + ' · up to ' + O.MAX + ' players, bots fill the empty seats'; return; }
+    bStart.hidden = true; bStart.textContent = 'START NOW'; bInv.hidden = false; bLeave.word.textContent = 'Leave';
+    if (ph === 'err') { st.append(O.err || 'Server unreachable'); bStart.hidden = false; bStart.textContent = 'TRY AGAIN'; bInv.hidden = true; bLeave.word.textContent = 'Back'; return; }
+    if (ph === 'conn' || ph === 'lobby' || !R || !R.ch.joined) { st.append(wsUp ? 'Finding a room…' : (tries ? 'Reconnecting…' : 'Connecting…')); bInv.hidden = true; return; }
     const left = Math.max(0, Math.ceil((R.deadline - now()) / 1000));
-    const b = el('b', null, R.deadline ? left + ' s' : '…'); st.append(b, R.deadline ? (left ? 'until the round starts' : 'Starting…') : 'Waiting for the room');
+    const b = el('b', null, R.deadline ? left + ' s' : '…'); st.append(b, R.deadline ? (left ? ms.length + ' / ' + O.MAX + ' players' : 'Starting…') : 'Waiting for host');
     for (const m of ms) { const r = el('div', 'onP' + (m.k === R.key ? ' me' : '')); r.dataset.u = m.u; r.append(el('span', 'f', flag(m.c)), el('span', 'n', m.n)); if (m.k === R.key) r.appendChild(el('span', 'y', 'YOU')); ls.appendChild(r); }
     const nb = Math.max(0, (G.BOTS + 1) - Math.min(ms.length, O.MAX));
-    if (nb) ls.appendChild(el('div', 'onP bot', nb + (nb === 1 ? ' bot fills the empty seat' : ' bots fill the empty seats')));
+    if (nb) { const r = el('div', 'onP bot'); r.append(el('span', 'f', '🤖'), el('span', 'n', '× ' + nb)); ls.appendChild(r); }
     bStart.hidden = !(isHost() && ms.length >= 2);
-    note.textContent = 'Room ' + R.code.toUpperCase() + ' · as ' + ((G.GODS[myGod()] || {}).n || '') + ' · ' + ms.length + ' of ' + O.MAX + ' players';
   }
   setInterval(() => { if (scr.classList.contains('on') && O.phase !== 'play') paint(); }, 500);
 
   /* the title button: online only (inside Telegram, logged in) */
-  const tb = el('button', 'sec', 'PLAY ONLINE'); tb.id = 'hgOnline'; tb.type = 'button'; tb.hidden = true;
+  const tb = ib('🌐', 'Online'); tb.id = 'hgOnline'; tb.hidden = true;
   tb.addEventListener('click', () => play());
-  const links = G.$('titleLinks'); if (links) links.insertBefore(tb, links.firstChild);
+  /* first on screen (CSS order -1), but appended: 35_chat keeps the DOM's first place for its Chat button */
+  const links = G.$('titleLinks'); if (links) links.appendChild(tb);
   const vis = () => { tb.hidden = !online(); };
   /* the HUD chip during an online round */
   const ch_ = el('div'); ch_.id = 'onChip'; const hx = G.$('hudExtra'); if (hx) hx.appendChild(ch_);
@@ -575,13 +576,13 @@
     const S = G.S, on = !!(R && R.started && S && S === R.S && !S.over);
     ch_.classList.toggle('on', on); if (!on) return;
     const n = R.seats.length, silent = S.client && now() - R.lastState > 1200;
-    const t = silent ? 'ONLINE · waiting for the host…' : 'ONLINE · ' + n + (n === 1 ? ' player' : ' players');
+    const t = silent ? '🌐 …' : '🌐 ' + n;
     if (t !== chipTxt) { chipTxt = t; ch_.textContent = t; } ch_.classList.toggle('bad', silent);
   }
   /* after an online round PLAY AGAIN looks for another online room */
   const again = G.$('again'), endScr = G.$('end');
   let lastOnline = false;
-  G.on('end', S => { lastOnline = !!(S && S.online) && online(); if (again) again.textContent = lastOnline ? 'PLAY ONLINE AGAIN' : 'PLAY AGAIN'; });
+  G.on('end', S => { lastOnline = !!(S && S.online) && online(); if (again) again.textContent = lastOnline ? 'PLAY ONLINE' : 'PLAY AGAIN'; });
   if (endScr) endScr.addEventListener('click', e => { const t = e.target && e.target.closest && e.target.closest('#again'); if (!t || !lastOnline) return; e.stopPropagation(); e.preventDefault(); endScr.classList.remove('on'); G.$('title').classList.add('on'); play(); }, true);
   G.on('start', S => { if (R && S !== R.S && !S.online) { cleanup(); O.phase = 'off'; hide(); } chip(); });
 

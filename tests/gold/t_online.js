@@ -2,7 +2,7 @@
 // (http upgrade, RFC 6455 frames) speaking enough of the Phoenix protocol vsn 1.0.0 (phx_join / phx_reply / phx_leave, heartbeat,
 // broadcast with self:false, presence track / untrack, presence_state, presence_diff; like Phoenix, a duplicate join and a leave get
 // phx_close with the old join's ref, and a crashed channel gets phx_error). The game's socket URL is window.HG_ONLINE_URL.
-// Three real pages (390x844, 844x390, 640x360) and one raw hostile client: PLAY ONLINE hidden outside Telegram; the lobby puts the
+// Three real pages (390x844, 844x390, 640x360) and one raw hostile client: the 🌐 Online icon hidden outside Telegram; the lobby puts the
 // second player in the first one's room; a friend link (start_param room_<code>) joins it; the invite link; names cleaned, never HTML;
 // Start now; the same 8 seats on every page (3 players with flags, the rest bots); each page sees the others move; a robbery between two
 // real players, the same carries on all three pages; banking; Loki's vanish + decoy seen by the others; a silent player is "left";
@@ -10,11 +10,13 @@
 // r.mode = 'online' with r.map; then a room starts at once when it is full (MAX), and a lone player plays with 7 bots. No page errors.
 // Hardening: the title links row at 844x390 / 640x360; console-edited skill numbers clamped on the host; a console teleport capped;
 // gold conserved on a client's page while it picks up coins; one rejoin after phx_error + a socket drop; no phantom skill after a
-// hand-over; a bot's robbery toast says "(bot)".
+// hand-over; a bot's robbery toast says "(bot)". Less text (the owner, 2026-11-23): the title icon, the lobby (ONLINE, the countdown,
+// "N / 8 players", 🤖 × N, START NOW, 📤 Invite, ✕ Leave; short text, no scroll), the chip "🌐 N", the core's toast texts.
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs'); const http = require('http'); const crypto = require('crypto');
 const EXE = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome';
 const FILE = path.resolve(process.env.GOLD_HTML || path.join(__dirname, '..', '..', 'beta', 'index.html'));
 const SHOTS = path.join(__dirname, '..', '..', '.shots'); fs.mkdirSync(SHOTS, { recursive: true });
+const AFTER = process.env.GOLD_SHOTS || SHOTS; fs.mkdirSync(AFTER, { recursive: true });
 let fails = 0; const ok = (c, m, i) => { console.log((c ? 'OK   ' : 'FAIL ') + m + (i !== undefined ? '  ' + JSON.stringify(i) : '')); if (!c) fails++; };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const TGIDS = { Ann: 700000101, Bob: 700000202, Cat: 700000303, Dan: 700000404, Eve: 700000505, Fay: 700000606, Gus: 700000707, Hal: 700000808, Ivy: 700000909 };
@@ -148,6 +150,22 @@ const box = (pg, sel) => pg.evaluate(s => { const e = document.querySelector(s);
 const inView = b => !!(b && b.shown && b.x >= 0 && b.y >= 0 && b.x + b.w <= b.vw + 1 && b.y + b.h <= b.vh + 1);
 const hero = (pg, name) => pg.evaluate(n => { const p = G.S.ps.find(q => q.name === n); return p && { x: p.x, y: p.y, carry: p.carry, bank: p.bank, robs: p.robs, lost: p.lost, inv: p.inv > G.S.t, tag: p.tag || '', bot: p.bot }; }, name);
 const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t: +G.S.t.toFixed(2), client: !!G.S.client }));
+const watchToasts = pg => pg.evaluate(() => { window.__toasts = []; const t = document.getElementById('toast'); new MutationObserver(() => window.__toasts.push(t.textContent)).observe(t, { childList: true, characterData: true, subtree: true }); });
+/* visible text nodes of a screen longer than max characters (players' names in the seat list excepted) */
+const longText = (pg, sel, max) => pg.evaluate(([sel, max]) => { const root = document.querySelector(sel), out = [], w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
+  while ((n = w.nextNode())) { const t = n.textContent.replace(/\s+/g, ' ').trim(), e = n.parentElement; if (!t || !e || !e.offsetParent || e.closest('.onP:not(.bot) .n')) continue; if ([...t].length > max) out.push(t); }
+  return out; }, [sel, max]);
+/* the title with the core and this module alone (the other modules' links and #titleExtra hidden for a moment): the Online icon
+   adds no height (the same scroll as the core alone, Online hidden too) and no scroll at all where the core alone has none */
+const titleFit = pg => pg.evaluate(() => { const T = document.getElementById('title'), q = e => { const r = e.getBoundingClientRect(); return { t: Math.round(r.top), b: Math.round(r.bottom), l: Math.round(r.left), r: Math.round(r.right), w: Math.round(r.width), h: Math.round(r.height) }; };
+  const inV = r => r.t >= 0 && r.l >= 0 && r.b <= innerHeight && r.r <= innerWidth, on = document.getElementById('hgOnline'), play = document.getElementById('play');
+  const all = { scroll: T.scrollHeight - T.clientHeight, on: inV(q(on)), play: inV(q(play)) };
+  const others = [...document.querySelectorAll('#titleLinks>*,#titleExtra>*')].filter(e => e.id !== 'hgOnline' && e.id !== 'helpB'), d = others.map(e => e.style.display);
+  others.forEach(e => { e.style.display = 'none'; });
+  const alone = { scroll: T.scrollHeight - T.clientHeight, on: inV(q(on)), play: inV(q(play)), box: q(on) };
+  const h0 = on.hidden; on.hidden = true; alone.core = T.scrollHeight - T.clientHeight; on.hidden = h0;
+  others.forEach((e, i) => { e.style.display = d[i]; });
+  const b = on; return { all, alone, ib: b.classList.contains('ib'), sec: b.classList.contains('sec'), icon: (b.querySelector('i') || {}).textContent, word: (b.querySelector('span') || {}).textContent }; });
 
 (async () => {
   const srv = await fakeRealtime();
@@ -161,17 +179,22 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
     ok(offB && !offB.shown, 'outside Telegram PLAY ONLINE is hidden', offB);
     await off.ctx.close();
     const I6 = await mkPage(b, { name: 'Ivy', cc: 'NO', w: 640, h: 360, url: URL_ });
-    const r6 = await Promise.all(['#hgOnline', '#hgMe'].map(s => box(I6.pg, s)));
-    ok(r6[0] && r6[0].shown && r6[0].h >= 44 && (!r6[1] || r6[1].y === r6[0].y), '640x360: PLAY ONLINE (>= 44 px) adds no row to the title: it shares the row of the name button', r6);
-    console.log('INFO 640x360: PLAY ONLINE at ' + r6[0].y + '–' + (r6[0].y + r6[0].h) + ' of ' + r6[0].vh + (inView(r6[0]) ? ' (in view)' : ' (the core title alone already scrolls here: its links row starts below the screen)'));
-    await I6.pg.screenshot({ path: path.join(SHOTS, 'online_title_640.png') }); await I6.ctx.close();
+    const r6 = await box(I6.pg, '#hgOnline'), f6 = await titleFit(I6.pg);
+    ok(r6 && r6.shown && r6.h >= 48 && r6.w >= 52 && f6.ib && !f6.sec && f6.icon === '🌐' && f6.word === 'Online', '640x360: the 🌐 "Online" icon button (.ib, >= 52 px), no text button', { r6, f6 });
+    ok(f6.alone.scroll <= f6.alone.core && f6.alone.play && (f6.alone.core > 1 || (f6.alone.scroll <= 1 && f6.alone.on)), '640x360: the Online icon adds no height to the title (PLAY in view)', f6);
+    if (f6.alone.core > 1) console.log('INFO 640x360: the core title alone scrolls ' + f6.alone.core + ' px (the links row ends at ' + f6.alone.box.b + ' of 360)');
+    if (f6.all.scroll > 1 || !f6.all.on) console.log('INFO 640x360: with every module the title scrolls ' + f6.all.scroll + ' px (the other modules\' links)');
+    await I6.pg.screenshot({ path: path.join(SHOTS, 'online_title_640.png') }); await I6.pg.screenshot({ path: path.join(AFTER, 'dc_card-online_title_640.png') }); await I6.ctx.close();
 
     const A = await mkPage(b, { name: 'Ann', cc: 'GE', w: 390, h: 844, url: URL_, god: 'thor', cfg: { WAIT: 60 } }); pages.push(A);
     const tb = await box(A.pg, '#hgOnline'), pb = await box(A.pg, '#play');
-    const first = await A.pg.evaluate(() => document.getElementById('titleLinks').firstElementChild.id);
+    const first = await A.pg.evaluate(() => { const bs = [...document.getElementById('titleLinks').children].filter(e => e.offsetParent).map(e => { const r = e.getBoundingClientRect(); return { id: e.id, x: r.left, y: Math.round(r.top) }; }); bs.sort((a, b) => a.y - b.y || a.x - b.x); return bs[0] && bs[0].id; });   // first on screen
     const pri = await A.pg.evaluate(() => [...document.querySelectorAll('#title .pri')].filter(e => getComputedStyle(e).display !== 'none').length);
-    ok(tb && tb.shown && tb.h >= 44 && first === 'hgOnline' && pri === 1 && pb.shown, 'in Telegram PLAY ONLINE shows first in #titleLinks, >= 44 px; PLAY stays the one primary button', { tb, first, pri });
-    await A.pg.screenshot({ path: path.join(SHOTS, 'online_title_390.png') });
+    const f3 = await titleFit(A.pg);
+    ok(tb && tb.shown && tb.h >= 48 && tb.w >= 52 && f3.ib && first === 'hgOnline' && pri === 1 && pb.shown, 'in Telegram the 🌐 Online icon shows first in #titleLinks, >= 52 px; PLAY stays the one primary button', { tb, first, pri });
+    ok(f3.alone.scroll <= 1 && f3.alone.on && f3.alone.play, '390x844: the title with the core and Online fits with no scroll, PLAY and Online in view', f3);
+    if (f3.all.scroll > 1 || !f3.all.on) console.log('INFO 390x844: with every module the title scrolls ' + f3.all.scroll + ' px (the other modules\' links)');
+    await A.pg.screenshot({ path: path.join(SHOTS, 'online_title_390.png') }); await A.pg.screenshot({ path: path.join(AFTER, 'dc_card-online_title_390.png') });
 
     /* -- Ann opens a room -- */
     await A.pg.locator('#hgOnline').tap();
@@ -179,18 +202,19 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
     const code = await A.pg.evaluate(() => G.online.room);
     ok(/^[0-9a-z]{6}$/.test(code), 'a room code', code);
     const wA = await A.pg.evaluate(() => ({ list: [...document.querySelectorAll('#onList .onP')].map(e => e.textContent), st: document.getElementById('onSt').textContent, start: getComputedStyle(document.getElementById('onStart')).display }));
-    ok(wA.list[0] === '🇬🇪AnnYOU' && /7 bots/.test(wA.list[1]) && /\d+ s/.test(wA.st) && wA.start === 'none', 'the wait screen: her flag, name and YOU, "7 bots fill the empty seats", a countdown; no Start now alone', wA);
+    ok(wA.list[0] === '🇬🇪AnnYOU' && wA.list[1] === '🤖× 7' && /^\d+ s1 \/ 8 players$/.test(wA.st) && wA.start === 'none', 'the wait screen: her flag, name and YOU, "🤖 × 7", the countdown and "1 / 8 players"; no START NOW alone', wA);
     await A.pg.locator('#onInvite').tap(); await sleep(150);
     const links = await A.pg.evaluate(() => window.__links.slice());
-    ok(links.length === 1 && links[0].indexOf('https://t.me/share/url?url=' + encodeURIComponent('https://t.me/HoldorTDBot/play?startapp=room_' + code)) === 0, 'INVITE A FRIEND opens the Telegram share with t.me/HoldorTDBot/play?startapp=room_<code>', links[0]);
+    ok(links.length === 1 && links[0].indexOf('https://t.me/share/url?url=' + encodeURIComponent('https://t.me/HoldorTDBot/play?startapp=room_' + code)) === 0, '📤 Invite opens the Telegram share with t.me/HoldorTDBot/play?startapp=room_<code>', links[0]);
 
     /* -- Bob finds it through the lobby; Cat comes by the friend link; a hostile raw client joins too -- */
     const B = await mkPage(b, { name: 'Bob', cc: 'FR', w: 844, h: 390, url: URL_, god: 'hermes' }); pages.push(B);
-    await B.pg.screenshot({ path: path.join(SHOTS, 'online_title_844.png') });
-    const pl8 = await box(B.pg, '#play');
-    ok(inView(pl8), '844x390: PLAY still in view on the title with PLAY ONLINE added', pl8);
-    const row8 = await Promise.all(['#hgOnline', '#hgMe', '#hgTitleBoard'].map(s => box(B.pg, s)));
-    ok(row8[0] && inView(row8[0]) && row8[0].h >= 44 && row8.every(x => !x || (inView(x) && x.y === row8[0].y)), '844x390: PLAY ONLINE, the name button and Leaderboard share one row, all in view', row8);
+    await B.pg.screenshot({ path: path.join(SHOTS, 'online_title_844.png') }); await B.pg.screenshot({ path: path.join(AFTER, 'dc_card-online_title_844.png') });
+    const pl8 = await box(B.pg, '#play'), f8 = await titleFit(B.pg);
+    ok(inView(pl8) && f8.all.on && f8.all.play, '844x390: PLAY and the Online icon in view on the title with every module', { pl8, f8 });
+    ok(f8.alone.scroll <= f8.alone.core && f8.alone.on && f8.alone.play && (f8.alone.core > 1 || f8.alone.scroll <= 1), '844x390: the Online icon adds no height to the title (PLAY and Online in view)', f8);
+    if (f8.alone.core > 1) console.log('INFO 844x390: the core title alone scrolls ' + f8.alone.core + ' px');
+    if (f8.all.scroll > 1) console.log('INFO 844x390: with every module the title scrolls ' + f8.all.scroll + ' px (the other modules\' links)');
     await B.pg.locator('#hgOnline').tap();
     ok(await until(B.pg, c => G.online.room === c && G.online.R && G.online.R.ch.joined && G.online.R.hk, code), 'Bob taps PLAY ONLINE and the lobby puts him in Ann\'s room', await B.pg.evaluate(() => G.online.debug()));
     const C = await mkPage(b, { name: 'Cat', cc: 'US', w: 640, h: 360, url: URL_, god: 'loki', sp: 'room_' + code }); pages.push(C);
@@ -203,14 +227,18 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
     ok(evr === 'ok', 'a raw client connects to the fake Realtime server', evr);
     ok(await until(A.pg, () => document.querySelectorAll('#onList .onP:not(.bot)').length === 4, null, 4000), 'Ann\'s list shows 4 players');
     const lst = await A.pg.evaluate(() => ({ rows: [...document.querySelectorAll('#onList .onP:not(.bot)')].map(e => e.textContent), imgs: document.querySelectorAll('#onList img').length, x: window.__x, bot: document.querySelector('#onList .onP.bot').textContent, start: getComputedStyle(document.getElementById('onStart')).display }));
-    ok(lst.rows.includes('🇫🇷Bob') && lst.rows.includes('🇺🇸Cat') && lst.rows.includes('img srcx onerror') && !lst.imgs && lst.x === undefined && /4 bots/.test(lst.bot) && lst.start !== 'none',
-      'Bob 🇫🇷 and Cat 🇺🇸 listed; the hostile name is shown as cleaned text (no HTML, no flag for a bad country); 4 bots; the host sees Start now', lst);
+    ok(lst.rows.includes('🇫🇷Bob') && lst.rows.includes('🇺🇸Cat') && lst.rows.includes('img srcx onerror') && !lst.imgs && lst.x === undefined && lst.bot === '🤖× 4' && lst.start !== 'none',
+      'Bob 🇫🇷 and Cat 🇺🇸 listed; the hostile name is shown as cleaned text (no HTML, no flag for a bad country); 🤖 × 4; the host sees START NOW', lst);
     const bc0 = await B.pg.evaluate(() => ({ start: getComputedStyle(document.getElementById('onStart')).display, n: document.querySelectorAll('#onList .onP:not(.bot)').length }));
-    ok(bc0.start === 'none' && bc0.n === 4, 'Bob (not the host) sees the same 4 players and no Start now', bc0);
+    ok(bc0.start === 'none' && bc0.n === 4, 'Bob (not the host) sees the same 4 players and no START NOW', bc0);
     for (const P of [A, B, C]) {
-      await P.pg.screenshot({ path: path.join(SHOTS, 'online_wait_' + P.w + '.png') });
-      const inv = await box(P.pg, '#onInvite'), lv = await box(P.pg, '#onLeave'), st = await box(P.pg, '#onSt');
-      ok(inView(inv) && inv.h >= 44 && inView(lv) && lv.h >= 44 && inView(st), P.w + 'x' + P.h + ': the wait screen fits (INVITE A FRIEND, Leave >= 44 px, the countdown in view)', { inv, lv });
+      await P.pg.screenshot({ path: path.join(SHOTS, 'online_wait_' + P.w + '.png') }); await P.pg.screenshot({ path: path.join(AFTER, 'dc_card-online_lobby_' + P.w + '.png') });
+      const inv = await box(P.pg, '#onInvite'), lv = await box(P.pg, '#onLeave'), st = await box(P.pg, '#onSt'), sn = await box(P.pg, '#onStart');
+      const W = await P.pg.evaluate(() => { const s = document.getElementById('hgOn'), q = id => { const e = document.getElementById(id); return { ib: e.classList.contains('ib'), text: e.textContent }; };
+        return { scroll: s.scrollHeight - s.clientHeight, title: document.querySelector('#hgOn .onH').textContent, inv: q('onInvite'), lv: q('onLeave'), pri: [...s.querySelectorAll('.pri')].filter(e => e.offsetParent).length }; });
+      ok(inView(inv) && inv.h >= 48 && inv.w >= 52 && inView(lv) && lv.h >= 48 && inView(st) && (P !== A || (inView(sn) && sn.h >= 44)) && W.scroll <= 1, P.w + 'x' + P.h + ': the wait screen fits with no scroll (Invite, Leave >= 52 px icons, the countdown, START NOW for the host)', { inv, lv, sn, W });
+      const lt = await longText(P.pg, '#hgOn', 20);
+      ok(W.title === 'ONLINE' && W.inv.ib && W.inv.text === '📤Invite' && W.lv.ib && W.lv.text === '✕Leave' && W.pri <= 1 && !lt.length, P.w + 'x' + P.h + ': the lobby text: ONLINE, 📤 Invite, ✕ Leave, at most one primary, no text longer than 20 characters', { W, lt });
     }
 
     /* -- the round -- */
@@ -224,7 +252,8 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
     ok(sA.flags.slice(0, 3).join(' ') === '🇬🇪 🇫🇷 🇺🇸' && !sA.client && sB.client && sC.client && sB.me === 'Bob' && sC.me === 'Cat', 'flags on the players; Ann hosts, Bob and Cat are clients', { flags: sA.flags, me: [sA.me, sB.me, sC.me] });
     await sleep(600);
     const hud = await B.pg.evaluate(() => ({ tr: document.getElementById('hTR').innerHTML, chip: document.getElementById('onChip').textContent, imgs: document.querySelectorAll('#hTR img, #hud img').length }));
-    ok(/\(bot\)/.test(hud.tr) && hud.tr.indexOf('<img') < 0 && /ONLINE · 4 players/.test(hud.chip) && !hud.imgs, 'the HUD board marks bots "(bot)", escapes names; the chip says ONLINE · 4 players', hud);
+    const hb = await B.pg.evaluate(() => { const bots = G.S.ps.filter(p => p.bot).map(p => p.name); return [...document.getElementById('hTR').children].map(e => e.textContent).every(t => !bots.some(n => t.includes(n + ' ')) || t.includes('(bot)')); });
+    ok(hb && hud.tr.indexOf('<img') < 0 && hud.chip === '🌐 4' && !hud.imgs, 'the HUD board marks bots "(bot)", escapes names; the chip says 🌐 4', hud);
     for (const P of [A, B, C]) await P.pg.evaluate(() => { for (const p of G.S.ps) { p.inv = 0; } });
 
     /* -- the others see Bob move (Bob has edited his own numbers in the console meanwhile: window.G is public) -- */
@@ -270,6 +299,7 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
       return until(A.pg, ([n, x, y]) => { const p = G.S.ps.find(q => q.name === n); return Math.hypot(p.x - x, p.y - y) < 4; }, [n, w[0], w[1]], 7000); };
     const placed = (await at(C, 'Cat')) && (await at(B, 'Bob'));
     await sleep(700);
+    await watchToasts(B.pg); await watchToasts(C.pg);
     await B.pg.evaluate(P => { const me = G.S.me; me.x = P.x + 34; me.y = P.y; me.vx = me.vy = 0; }, P0);
     const robbed = await until(A.pg, () => { const b = G.S.ps.find(p => p.name === 'Bob'); return b.robs >= 1; }, null, 4000);
     await sleep(900);
@@ -280,6 +310,8 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
       'the same carries on all three pages (host, thief, victim)', { A: [rA.bob.carry, rA.cat.carry], B: [rB.bob.carry, rB.cat.carry], C: [rC.bob.carry, rC.cat.carry] });
     const evB = await B.pg.evaluate(() => window.__rob.slice()), evC = await C.pg.evaluate(() => window.__rob.slice());
     ok(evB.some(e => e.L === 'Bob' && e.H === 'Cat' && e.me === 'Bob') && evC.some(e => e.L === 'Bob' && e.H === 'Cat' && e.me === 'Cat'), 'both players hear the robbery (toast, sound): Bob as the thief, Cat as the victim', { B: evB, C: evC });
+    const tB = await B.pg.evaluate(() => window.__toasts.slice()), tC = await C.pg.evaluate(() => window.__toasts.slice()), lastR = evB.filter(e => e.me === 'Bob' && e.H === 'Cat').pop() || {};
+    ok(tB.includes('+' + lastR.take + ' from Cat') && tC.includes('−' + lastR.loss + ' · Bob robbed you'), 'the replayed toasts use the core\'s texts: "+N from Cat" (thief), "−N · Bob robbed you" (victim)', { tB, tC, lastR });
     const g1 = await gold(A.pg);
     ok(g1.total - g1.minted === P0.off, 'gold conserved on the host after the robbery (coins + carried + banked = minted)', g1);
 
@@ -292,7 +324,9 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
     }
     await sleep(700);
     const kA = await hero(A.pg, 'Bob'), kB = await hero(B.pg, 'Bob'), tl = await B.pg.evaluate(() => document.getElementById('hTL').textContent);
-    ok(banked && kA.bank >= 18 && kA.carry === 0 && kB.bank === kA.bank && kB.carry === 0 && tl.indexOf('Banked ' + kA.bank) >= 0, 'Bob stands in a vault: the host banks his gold; his page and HUD show the same bank', { host: kA, bob: kB, hud: tl });
+    ok(banked && kA.bank >= 18 && kA.carry === 0 && kB.bank === kA.bank && kB.carry === 0 && tl.indexOf('🏦 ' + kA.bank) >= 0, 'Bob stands in a vault: the host banks his gold; his page and HUD show the same bank', { host: kA, bob: kB, hud: tl });
+    const tB2 = await B.pg.evaluate(() => window.__toasts.slice());
+    ok(tB2.some(t => /^🏦 \+\d+$/.test(t)) && !tB2.some(t => /Banked|gold/.test(t)), 'the bank toast is the core\'s "🏦 +N"', tB2);
     const g2 = await gold(A.pg);
     ok(g2.total - g2.minted === P0.off, 'gold conserved on the host after banking', g2);
 
@@ -322,7 +356,7 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
     const m1 = srv.st, sec = (Date.now() - t0) / 1000, ev = ((m1.in - m0.in) + (m1.out - m0.out)) / sec;
     const rate = { eventsPerS: +ev.toFixed(1), states: +(((m1.byTopic['hg-r'] || {}).sent - (m0.byTopic['hg-r'] || {}).sent) / sec).toFixed(1), inputs: +(((m1.byTopic['hg-u'] || {}).sent - (m0.byTopic['hg-u'] || {}).sent) / sec).toFixed(1) };
     ok(rate.eventsPerS < 60 && rate.states >= 3 && rate.states <= 5.5 && rate.inputs >= 6 && rate.inputs <= 11.5, '4 seated players (2 moving): ~4 states/s, ~5 inputs/s per moving player, well under Free\'s 100 messages/s', rate);
-    for (const P of [A, B, C]) await P.pg.screenshot({ path: path.join(SHOTS, 'online_play_' + P.w + '.png') });
+    for (const P of [A, B, C]) { await P.pg.screenshot({ path: path.join(SHOTS, 'online_play_' + P.w + '.png') }); await P.pg.screenshot({ path: path.join(AFTER, 'dc_card-online_hud_' + P.w + '.png') }); }
 
     /* -- Cat's connection drops: she reconnects, rejoins the room and goes on in the same round -- */
     const uidC = await C.pg.evaluate(() => G.online.uid), upC = 'realtime:hg-u-' + code + '-' + uidC, S0 = await C.pg.evaluate(() => { window.__S0 = G.S; return G.S.t; });
@@ -369,11 +403,16 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
     const rankOf = (banks, n) => banks.slice().sort((x, y) => y[1] - x[1]).findIndex(r => r[0] === n) + 1;
     ok(eB.res.rank === rankOf(eB.banks, 'Bob') && eC.res.rank === rankOf(eB.banks, 'Cat') && eB.res.mode === 'online' && eC.res.mode === 'online' && eB.res.players === 4,
       'each one\'s rank comes from the same banks; res.mode = online', { B: eB.res, C: eC.res });
-    ok(/3 other players and 4 bots/.test(eC.lines) && eB.again === 'PLAY ONLINE AGAIN', 'the end lines count players and bots apart; PLAY AGAIN becomes PLAY ONLINE AGAIN', { lines: eC.lines, again: eB.again });
+    ok(/3 other players and 4 bots/.test(eC.lines) && eB.again === 'PLAY ONLINE', 'the end lines count players and bots apart; PLAY AGAIN becomes PLAY ONLINE', { lines: eC.lines, again: eB.again });
+    const ef = await Promise.all([B, C].map(P => P.pg.evaluate(() => { const e = document.getElementById('end'), inV = el => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth; };
+      const ex = [...document.getElementById('endExtra').children], d = ex.map(k => k.style.display); ex.forEach(k => { k.style.display = 'none'; });
+      const alone = e.scrollHeight - e.clientHeight, again = inV(document.getElementById('again')), icons = [...document.querySelectorAll('#endLinks button')].filter(b => b.offsetParent).every(inV);
+      ex.forEach((k, i) => { k.style.display = d[i]; }); return { alone, again, icons, all: e.scrollHeight - e.clientHeight }; })));
+    ok(ef.every(f => f.alone <= 1 && f.again && f.icons), 'the online end screen (844x390, 640x360) with the core alone fits with no scroll, PLAY ONLINE and the icons on screen', ef);
     const subB = B.M.submits, subC = C.M.submits;
     ok(subB.length === 1 && subC.length === 1 && subB[0].mode === 'online' && subC[0].mode === 'online' && subB[0].map === sA.map && subC[0].map === sA.map && subB[0].banked === eB.res.bank && subC[0].banked === eC.res.bank && subC[0].heroes === 8,
       'both submit their own round: hg_round_submit r.mode = online, r.map = today\'s map, their own bank', { B: subB[0], C: subC[0] });
-    for (const P of [B, C]) await P.pg.screenshot({ path: path.join(SHOTS, 'online_end_' + P.w + '.png') });
+    for (const P of [B, C]) { await P.pg.screenshot({ path: path.join(SHOTS, 'online_end_' + P.w + '.png') }); await P.pg.screenshot({ path: path.join(AFTER, 'dc_card-online_end-online_' + P.w + '.png') }); }
     const ids = await Promise.all([B, C].map(P => P.pg.evaluate(ids => { const h = document.body.innerText + document.body.innerHTML; return ids.every(i => h.indexOf(String(i)) < 0); }, Object.values(TGIDS))));
     ok(ids.every(x => x), 'no Telegram id anywhere on the pages');
     await sleep(2200);
@@ -405,13 +444,13 @@ const gold = pg => pg.evaluate(() => ({ total: G.total(), minted: G.S.minted, t:
     const spot = await D.pg.evaluate(() => { const S = G.S, e = S.ps.find(p => p.name === 'Eve'); if (!S.vaults.some(v => G.dist(v, e) < v.r + 100)) return null;
       for (const [x, y] of [[600, 600], [3400, 600], [600, 3400], [3400, 3400], [2000, 2000]]) if (!S.vaults.some(v => Math.hypot(v.x - x, v.y - y) < v.r + 300)) return { x, y }; return null; });
     if (spot) { await E.pg.evaluate(s => { const me = G.S.me; me.x = s.x; me.y = s.y; me.vx = me.vy = 0; }, spot); await until(D.pg, s => { const e = G.S.ps.find(p => p.name === 'Eve'); return Math.hypot(e.x - s.x, e.y - s.y) < 30; }, spot, 7000); }
-    await E.pg.evaluate(() => { window.__toasts = []; const t = document.getElementById('toast'); new MutationObserver(() => window.__toasts.push(t.textContent)).observe(t, { childList: true, characterData: true, subtree: true }); });
+    await watchToasts(E.pg);
     const thief = await D.pg.evaluate(() => { const S = G.S, e = S.ps.find(p => p.name === 'Eve'), q = S.ps.find(p => p.bot);
       S.minted -= q.carry; q.carry = 0; S.minted += 60 - e.carry; e.carry = 60;   // gold stays conserved
       q.ai.t = 1e9; q.ai.dx = q.ai.dy = 0; q.vx = q.vy = 0; q.imm = q.inv = e.imm = e.inv = 0; q.x = e.x + 10; q.y = e.y; S.pairT = {}; return q.name; });
-    const bt = await until(E.pg, n => window.__toasts.some(t => t.indexOf(n + ' (bot) robbed you: -') === 0), thief, 3000);
+    const bt = await until(E.pg, n => window.__toasts.some(t => /^−\d+ · /.test(t) && t.endsWith(' · ' + n + ' (bot) robbed you')), thief, 3000);
     const g4 = await gold(D.pg);
-    ok(bt && g4.total === g4.minted, 'a bot robs Eve online: her toast says "' + thief + ' (bot) robbed you"; gold conserved on the host', { toasts: await E.pg.evaluate(() => window.__toasts.slice(-3)), g4 });
+    ok(bt && g4.total === g4.minted, 'a bot robs Eve online: her toast says "−N · ' + thief + ' (bot) robbed you"; gold conserved on the host', { toasts: await E.pg.evaluate(() => window.__toasts.slice(-3)), g4 });
     const F = await mkPage(b, { name: 'Fay', cc: 'BR', w: 390, h: 844, url: URL_, cfg: { WAIT: 2 } }); pages.push(F);
     await F.pg.locator('#hgOnline').tap();
     const solo = await until(F.pg, () => G.S && G.S.online && G.online.phase === 'play', null, 7000);
