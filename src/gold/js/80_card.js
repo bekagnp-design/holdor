@@ -1,16 +1,18 @@
 /* Heavy Gold — share card (80_card.js), wave 5 of src/gold/GOLD.md.
    - The round: the biggest take of a 'rob' where the thief is G.S.me (the victim's name, whether he is a bot, the take).
    - On 'end': a 1080×1920 story card on an offscreen canvas: the arena's stone ground, the god's circle with his sign (G.sym),
-     the player's name, flag and country, "#rank of N" with the bots counted ("vs 7 bots"), the banked gold big in gold, the best
-     robbery ("Robbed Odin (bot) +45"), "Map #N · <the day god's rule>", t.me/HoldorTDBot/play. A small preview of it sits in the
-     "Share card" button, which takes the core's "Challenge a friend" slot: the button replaces #share and takes its id, so the
-     short-landscape grid keeps its rows (the card screen's "Send to a chat" / "Copy link" do that button's job, with the card's URL).
-   - "Share card" opens the card screen (the card big, one primary action):
+     the player's name, his flag, "#rank of N", the banked gold big in gold over a drawn vault (🏦), the best robbery
+     ("Robbed Odin (bot) +45", nothing when there was none), "Map #N · <the day god's rule>", t.me/HoldorTDBot/play. The 📤 "Share" icon button (.ib)
+     takes the core's 📤 "Invite" slot in #endLinks: it replaces #share and takes its id (the card screen's Send / Copy do that
+     button's job, with the card's URL).
+   - A round with 0 banked and no robbery makes no card: the core's 📤 Invite stays in its slot.
+   - "Share" opens the card screen (the card big, one primary action, the rest as icon buttons with one word, a status line of
+     at most 4 words; the owner, 2026-11-23: "too much text"):
        in Telegram the PNG goes up once per card with hg_card_put(token, base64), 30 s for the call (at most G.card.limit bytes; a plainer card
        without the stone texture is tried when the first one is too big), then TG.shareToStory(url, {text, widget_link}) where
-       stories exist (Bot API 7.8+, not on desktop); "Send to a chat" opens t.me/share/url with the card's URL in the text;
-       outside Telegram, or when the upload fails: "Save image" (TG.downloadFile when the card has a URL and Telegram is 8.0+,
-       otherwise an <a download> of the PNG) and "Copy link".
+       stories exist (Bot API 7.8+, not on desktop): STORY; "Send" opens t.me/share/url with the card's URL in the text;
+       outside Telegram, or when the upload fails: "Save" (TG.downloadFile when the card has a URL and Telegram is 8.0+,
+       otherwise an <a download> of the PNG) and "Copy".
    - Only the player's own round and profile are drawn; bots are labelled as bots; no Telegram id is read. Text reaches the DOM
      through textContent only, the card through fillText.
    - G.card = { last: {lines, w, h, lite, sig} | null, canvas, best(), data(), render(), png(), share(), open(), close(), story(),
@@ -50,8 +52,6 @@
       god, gname: GD[god] ? GD[god].n : '', gcol: GD[god] ? GD[god].c : GOLD, rank: num(res.rank), of: num(res.of) || ps.length, bots, real: others.length - bots,
       bank: Math.max(0, num(res.bank)), map: num(res.map) || num(G.mapNo) || 1, rule, rcol, best: best ? Object.assign({}, best) : null };
   }
-  const vsLine = d => { const b = d.bots, r = d.real, pl = (n, a, z) => n + ' ' + (n === 1 ? a : z);
-    return !b && !r ? '' : !r ? 'vs ' + pl(b, 'bot', 'bots') : !b ? 'vs ' + pl(r, 'player', 'players') : 'vs ' + pl(r, 'player', 'players') + ' and ' + pl(b, 'bot', 'bots'); };
   const robName = b => b.name + (b.bot ? ' (bot)' : '');
 
   /* ---------- drawing ---------- */
@@ -103,6 +103,13 @@
     c.fillStyle = '#ee6a4c'; for (const [dx, dy] of [[-w / 2, -h * 0.62], [0, -h], [w / 2, -h * 0.62]]) { c.beginPath(); c.arc(x + dx, y + dy, h * 0.11, 0, TAU); c.fill(); }
     c.restore();
   }
+  /* the vault, drawn (the 🏦 of the HUD; an emoji glyph is not in every canvas font): a pediment, three columns, a step; base at y */
+  function vault(c, x, y, s) {
+    c.save(); c.fillStyle = '#cfd6e2'; const w = s, h = s * 0.8, top = y - h;
+    c.beginPath(); c.moveTo(x - w / 2, top + h * 0.3); c.lineTo(x, top); c.lineTo(x + w / 2, top + h * 0.3); c.closePath(); c.fill();
+    const cw = w * 0.14; for (const k of [-1, 0, 1]) c.fillRect(x + k * w * 0.32 - cw / 2, top + h * 0.38, cw, h * 0.44);
+    c.fillRect(x - w / 2, y - h * 0.12, w, h * 0.12); c.restore();
+  }
   function draw(d, lite) {
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     const c = cv.getContext('2d'), lines = [], M = 28, CX = W / 2, MAXW = W - 2 * M - 120;
@@ -120,9 +127,7 @@
     c.textAlign = 'center'; c.textBaseline = 'alphabetic';
     // the title
     c.font = font(900, 76); c.fillStyle = GOLD; spaced(c, 'HEAVY GOLD', CX, 214, 12); lines.push('HEAVY GOLD');
-    const tag = d.crown ? "LAST WEEK'S CHAMPION" : 'The lighter one robs the heavier one.';
-    if (d.crown) { c.font = font(800, 32); c.fillStyle = GOLD; spaced(c, tag, CX, 270, 6); } else { c.font = font(400, 34, true); c.fillStyle = MUTED; c.fillText(tag, CX, 270); }
-    lines.push(tag);
+    if (d.crown) { const tag = 'CHAMPION'; c.font = font(800, 32); c.fillStyle = GOLD; spaced(c, tag, CX, 270, 8); lines.push(tag); }
     // the god's circle with his sign
     const gx = CX, gy = 490, gr = 150;
     c.lineWidth = 4; c.strokeStyle = 'rgba(232,184,74,.75)'; c.beginPath(); c.arc(gx, gy, gr + 16, 0, TAU); c.stroke();
@@ -133,10 +138,9 @@
     if (d.gname) { const s = d.gname.toUpperCase(); c.font = font(800, 40); c.fillStyle = d.gcol; spaced(c, s, CX, 724, 10); lines.push(s); }
     // the player
     if (d.name) { const s = fit(c, d.name, 800, 86, 54, MAXW); c.fillStyle = INK; c.fillText(s, CX, 832); lines.push(s); }
-    if (d.country) { const s = fit(c, (d.flag ? d.flag + ' ' : '') + (d.cname || d.country), 400, 46, 30, MAXW); c.fillStyle = '#cfd6e2'; c.fillText(s, CX, 902); lines.push(s); }
+    if (d.country) { const s = fit(c, d.flag || d.cname || d.country, 400, d.flag ? 64 : 46, 30, MAXW); c.fillStyle = '#cfd6e2'; c.fillText(s, CX, 912); lines.push(s); }
     // the rank
-    if (d.rank > 0 && d.of > 0) { const s = '#' + d.rank + ' of ' + d.of; c.font = font(900, 124); c.fillStyle = d.rank === 1 ? GOLD : INK; c.fillText(s, CX, 1036); lines.push(s);
-      const v = vsLine(d); if (v) { c.font = font(400, 38); c.fillStyle = MUTED; c.fillText(v, CX, 1094); lines.push(v); } }
+    if (d.rank > 0 && d.of > 0) { const s = '#' + d.rank + ' of ' + d.of; c.font = font(900, 124); c.fillStyle = d.rank === 1 ? GOLD : INK; c.fillText(s, CX, 1036); lines.push(s); }
     // the banked gold, big
     for (const [x, y, r] of COINS) coin(c, x, y, r);
     { const s = fmt(d.bank), t = fit(c, s, 900, 250, 120, W - 2 * M - 300);
@@ -144,18 +148,17 @@
       c.lineWidth = 9; c.strokeStyle = '#2a1d06'; c.strokeText(t, CX, 1336);
       c.fillStyle = '#c8922e'; c.fillText(t, CX, 1336);                                                          // two flat tones: struck gold
       c.save(); c.beginPath(); c.rect(0, 0, W, 1262); c.clip(); c.fillStyle = '#f4cf6a'; c.fillText(t, CX, 1336); c.restore(); lines.push(t);
-      c.font = font(700, 40); c.fillStyle = '#cfd6e2'; spaced(c, 'GOLD BANKED', CX, 1406, 10); lines.push('GOLD BANKED'); }
+      vault(c, CX, 1430, 74); lines.push('🏦'); }
     // the best robbery
     if (d.best && d.best.take > 0) {
       const tail = ' +' + fmt(d.best.take); let nm = robName(d.best); c.font = font(700, 52);
       const wOf = n => c.measureText('Robbed ' + n + tail).width;
       if (wOf(nm) > MAXW) { const cp = [...d.best.name], bt = d.best.bot ? ' (bot)' : ''; while (cp.length > 1 && wOf(cp.join('') + '…' + bt) > MAXW) cp.pop(); nm = cp.join('') + '…' + bt; }
       runs(c, [['Robbed ', '#cfd6e2'], [nm, INK], [tail, '#ffd36a']], CX, 1506); lines.push('Robbed ' + nm + tail);
-    } else { c.font = font(400, 40, true); c.fillStyle = MUTED; c.fillText('No robbery this round', CX, 1506); lines.push('No robbery this round'); }
+    }   // no robbery: nothing drawn
     // the map of the day and the day god's rule
     { const a = 'Map #' + d.map, b = d.rule ? ' · ' + d.rule : ''; c.font = font(700, 42); runs(c, [[a, '#cfd6e2'], [b, d.rcol || INK]], CX, 1578); lines.push(a + b); }
     // where to play
-    c.font = font(800, 34); c.fillStyle = GOLD; spaced(c, 'PLAY HEAVY GOLD', CX, 1664, 8); lines.push('PLAY HEAVY GOLD');
     c.font = font(700, 52); c.fillStyle = INK; c.fillText(GAME_T, CX, 1730); lines.push(GAME_T);
     return { cv, lines, lite: !!lite };
   }
@@ -164,7 +167,7 @@
     if (!data) return null;
     if (G.S && G.S.over) data = snap(G.S, lastRes);
     const sig = JSON.stringify(data);
-    if (!card || card.sig !== sig) { card = draw(data, false); card.sig = sig; P = null; publish(); paintThumb(); }
+    if (!card || card.sig !== sig) { card = draw(data, false); card.sig = sig; P = null; publish(); }
     return card;
   }
   const publish = () => { G.card.last = card ? { lines: card.lines.slice(), w: card.cv.width, h: card.cv.height, lite: card.lite, sig: card.sig } : null; G.card.canvas = card ? card.cv : null; };
@@ -215,7 +218,7 @@
     if (P && P.sig === c0.sig && P.limit === limit()) return P;
     const sig = c0.sig, lim = limit(); let cur = c0;
     let blob = await pngBlob(cur.cv);
-    if (blob && blob.size > lim && !cur.lite && d0) { cur = draw(d0, true); cur.sig = sig; if (card === c0) { card = cur; publish(); paintThumb(); } blob = await pngBlob(cur.cv); }
+    if (blob && blob.size > lim && !cur.lite && d0) { cur = draw(d0, true); cur.sig = sig; if (card === c0) { card = cur; publish(); } blob = await pngBlob(cur.cv); }
     const keep = r => { if (card === cur) P = r; return r; };
     if (!blob) return keep({ ok: false, err: 'canvas', sig, limit: lim });
     const fits = blob.size <= lim, b64 = fits ? await b64Of(blob) : '';
@@ -225,8 +228,6 @@
   /* ---------- styles ---------- */
   const css = document.createElement('style');
   css.textContent = [
-    '.hgCardBtn{display:flex;align-items:center;justify-content:center;gap:14px;min-height:72px;padding:4px 16px}',
-    '#hgCardThumb{width:36px;height:64px;flex:none;border-radius:4px;background:#141a22;box-shadow:0 0 0 1px rgba(232,184,74,.6),0 3px 8px rgba(0,0,0,.55)}',
     '.hgCardScr{background:var(--bg,#070c16);z-index:20}',
     '.hgCd{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(100%,640px)}',
     '.hgCd.land{flex-direction:row;justify-content:center;gap:20px}',
@@ -235,36 +236,29 @@
     '.hgCdSide{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(100%,360px);min-width:0}',
     '.hgCd.land .hgCdSide{flex:0 1 360px}',
     '.hgCdMsg{font:15px/1.35 Georgia,serif;color:#cfd6e2;text-align:center;max-width:100%;overflow-wrap:anywhere;min-height:20px;user-select:text;-webkit-user-select:text}',
-    '.hgCdBtns{display:flex;flex-direction:column;gap:8px;width:100%}.hgCdBtns:empty{display:none}',
-    '.hgCdSide .pri,.hgCdSide .sec{width:100%}',
-    '@media (orientation:landscape) and (max-height:540px){.hgCardBtn{min-height:46px;padding:0 14px;gap:10px}#hgCardThumb{width:22px;height:39px;border-radius:3px}.hgCdSide{gap:6px}.hgCdMsg{font-size:14px}}'
+    '.hgCdBtns{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}',
+    '.hgCdPri{width:100%}.hgCdPri:empty{display:none}.hgCdSide .pri{width:100%}',
+    '.hgCdRow{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;width:100%}',
+    '@media (orientation:landscape) and (max-height:540px){.hgCdSide{gap:6px}.hgCdMsg{font-size:14px}}'
   ].join('\n');
   document.head.appendChild(css);
 
-  /* ---------- the end screen: a "Share card" button with the card's preview, in the core's #share slot ---------- */
-  const btn = el('button', 'sec hgCardBtn'); btn.type = 'button';
-  const thumb = el('canvas'); thumb.id = 'hgCardThumb'; thumb.width = 72; thumb.height = 128; thumb.setAttribute('aria-hidden', 'true');
-  btn.append(thumb, el('span', null, 'Share card'));
-  let core = null;   // the core's "Challenge a friend": out of the DOM, its listener kept for a round without card data
+  /* ---------- the end screen: a 📤 "Share" icon button in the core's #share slot ---------- */
+  const ib = (icon, word) => { const b = el('button', 'ib'); b.type = 'button'; b.append(el('i', null, icon), el('span', null, word)); return b; };
+  const btn = ib('📤', 'Share'); btn.classList.add('hgCardBtn');
+  let core = null;   // the core's 📤 "Invite": out of the DOM, its listener kept for a round without card data
   btn.addEventListener('click', () => { if (!data && core) { core.click(); return; } share(); });
-  /* the card button takes #share's place and id (the core's grid row 3 of column 2 in a short landscape window), so the end
-     screen grows by nothing; without a core #share it goes last into #endExtra */
+  /* the card button takes #share's place and id in #endLinks; without a core #share it goes into #endLinks (or #endExtra) */
   const place = () => { if (btn.isConnected) return; const old = G.$('share');
     if (old && old !== btn) { core = old; btn.id = 'share'; old.replaceWith(btn); return; }
-    btn.id = 'hgCardBtn'; const ex = G.$('endExtra'); if (ex) ex.appendChild(btn); };
+    btn.id = 'hgCardBtn'; const ex = G.$('endLinks') || G.$('endExtra'); if (ex) ex.appendChild(btn); };
   place();
-  function paintThumb() {
-    if (!card || !thumb.isConnected) return;
-    const r = thumb.getBoundingClientRect(); if (!r.width || !r.height) return;
-    const dpr = Math.min(3, window.devicePixelRatio || 1), w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
-    if (thumb.width !== w) thumb.width = w; if (thumb.height !== h) thumb.height = h;
-    const c = thumb.getContext('2d'); c.imageSmoothingEnabled = true; try { c.imageSmoothingQuality = 'high'; } catch (e) {}
-    c.clearRect(0, 0, w, h); c.drawImage(card.cv, 0, 0, w, h);
-  }
   G.on('end', (S, res) => {
     lastRes = res && typeof res === 'object' ? Object.assign({}, res) : {}; dropImg();
     data = snap(S, lastRes); card = null; P = null; up = null; st = 'idle'; err = '';
-    place();
+    /* a round with nothing to show (0 banked, no robbery): no card, the core's 📤 Invite stays */
+    const dead = !data.bank && !data.best;
+    if (dead) { if (core && btn.isConnected) btn.replaceWith(core); btn.hidden = !core; } else { btn.hidden = false; place(); }
     const my = seq; setTimeout(() => { if (my === seq && data) ensure(); }, 40);   // the end screen paints first
   });
 
@@ -274,8 +268,10 @@
   img.id = 'hgCardImg'; img.alt = 'Your Heavy Gold card'; img.hidden = true; big.id = 'hgCardBig';
   const msgEl = el('div', 'hgCdMsg'); msgEl.id = 'hgCardMsg'; msgEl.setAttribute('role', 'status');
   const btns = el('div', 'hgCdBtns'); btns.id = 'hgCardBtns';
-  const closeB = el('button', 'sec', 'Close'); closeB.id = 'hgCardClose'; closeB.type = 'button';
-  pv.append(img, big); side.append(msgEl, btns, closeB); box.append(pv, side); scr.appendChild(box); document.body.appendChild(scr);
+  const priBox = el('div', 'hgCdPri'), rowEl = el('div', 'hgCdRow links');
+  const closeB = ib('✕', 'Close'); closeB.id = 'hgCardClose';
+  btns.append(priBox, rowEl);
+  pv.append(img, big); side.append(msgEl, btns); box.append(pv, side); scr.appendChild(box); document.body.appendChild(scr);
   closeB.addEventListener('click', () => close());
   G.on('title', () => close());
   const isOpen = () => scr.classList.contains('on');
@@ -295,7 +291,7 @@
     const c = big.getContext('2d'); c.imageSmoothingEnabled = true; try { c.imageSmoothingQuality = 'high'; } catch (e) {} c.drawImage(card.cv, 0, 0, bw, bh);
   }
   /* the card as large as the screen allows: beside the buttons in a wide window, above them in a tall one */
-  const SIDE_H = 20 + 56 + 46 * 3 + 8 * 4;   // the message, a primary and three secondary buttons
+  const SIDE_H = 20 + 56 + 56 + 8 * 3;   // the message, a primary and one row of icon buttons
   function fitScr() {
     if (!isOpen()) return;
     const cs = getComputedStyle(scr), px = v => parseFloat(v) || 0;
@@ -309,31 +305,35 @@
     paintBig(w, h);
   }
   const PUT_MS = 30000;
-  const FAIL = { rate: 'Six cards an hour at most. Save this one instead.', too_big: 'The card is too big to upload. Save it instead.',
-    bad_png: 'The server refused the card. Save it instead.', auth: 'Your session ended. Save the card instead.', canvas: 'Could not make the image.',
-    offline: 'Could not reach the server. Save the card instead.', net: 'Could not upload the card. Save it instead.' };
+  /* status lines: at most 4 words */
+  const FAIL = { rate: 'Hourly limit · save it', too_big: 'Too big · save it', bad_png: 'Refused · save it', auth: 'Session ended · save it',
+    canvas: 'No image', offline: 'Offline · save it', net: 'Upload failed · save it' };
+  /* the actions: the primary one big (icon + word), the others icon buttons with one word, then Close */
+  const ACT = { story: ['📸', 'Story', 'hgCardStory', () => story()], chat: ['✈️', 'Send', 'hgCardChat', () => chat()],
+    save: ['💾', 'Save', 'hgCardSave', () => save()], copy: ['🔗', 'Copy', 'hgCardCopy', () => copy()] };
   function paint() {
-    btns.textContent = '';
-    const add = (cls, text, id, fn) => { const b = el('button', cls, text); b.type = 'button'; b.id = id; b.addEventListener('click', () => { fn(); }); btns.appendChild(b); return b; };
+    priBox.textContent = ''; rowEl.textContent = '';
+    const pri = k => { const a = ACT[k], b = el('button', 'pri', a[0] + ' ' + a[1].toUpperCase()); b.type = 'button'; b.id = a[2]; b.addEventListener('click', a[3]); priBox.appendChild(b); };
+    const sec = k => { const a = ACT[k], b = ib(a[0], a[1]); b.id = a[2]; b.addEventListener('click', a[3]); rowEl.appendChild(b); };
     let m = '';
-    if (st === 'busy' || st === 'idle') m = busyMsg || 'Making your card…';
-    else if (st === 'story') { m = 'Your card is ready for your story.'; add('pri', 'SHARE TO STORY', 'hgCardStory', story); add('sec', 'Send to a chat', 'hgCardChat', chat); }
-    else if (st === 'chat') { m = 'Your card is ready.'; add('pri', 'SEND TO A CHAT', 'hgCardChat', chat); add('sec', 'Save image', 'hgCardSave', save); add('sec', 'Copy link', 'hgCardCopy', copy); }
-    else if (st === 'fail') { m = FAIL[err] || FAIL.net; if (err === 'canvas') { add('pri', 'COPY LINK', 'hgCardCopy', copy); add('sec', 'Send to a chat', 'hgCardChat', chat); }
-      else { add('pri', 'SAVE IMAGE', 'hgCardSave', save); add('sec', 'Send to a chat', 'hgCardChat', chat); add('sec', 'Copy link', 'hgCardCopy', copy); } }
-    else if (st === 'local') { m = P && !P.ok && P.err === 'canvas' ? FAIL.canvas : 'Save the card and post it anywhere.'; add('pri', 'SAVE IMAGE', 'hgCardSave', save); add('sec', 'Copy link', 'hgCardCopy', copy); }
+    if (st === 'busy' || st === 'idle') m = busyMsg || 'Making card…';
+    else if (st === 'story') { pri('story'); sec('chat'); sec('save'); }
+    else if (st === 'chat') { pri('chat'); sec('save'); sec('copy'); }
+    else if (st === 'fail') { m = FAIL[err] || FAIL.net; if (err === 'canvas') { pri('copy'); sec('chat'); } else { pri('save'); sec('chat'); sec('copy'); } }
+    else if (st === 'local') { m = P && !P.ok && P.err === 'canvas' ? FAIL.canvas : ''; pri('save'); sec('copy'); }
+    rowEl.appendChild(closeB);
     msgEl.textContent = m;
     fitScr();
   }
   const setState = (s, e) => { st = s; err = e || ''; if (isOpen()) paint(); };
-  window.addEventListener('resize', () => { fitScr(); const e = G.$('end'); if (e && e.classList.contains('on')) paintThumb(); });
+  window.addEventListener('resize', fitScr);
 
   /* ---------- sharing ---------- */
   const cardUrl = () => (up && card && up.sig === card.sig ? up.url : '');
-  const line = () => { const d = data; if (!d) return 'Heavy Gold: the lighter one robs the heavier one.';
-    return 'I banked ' + fmt(d.bank) + ' gold as ' + d.gname + ' in Heavy Gold: #' + d.rank + ' of ' + d.of + (d.bots ? ' (' + d.bots + (d.bots === 1 ? ' bot' : ' bots') + ')' : '') + ', Map #' + d.map + '.'; };
+  const line = () => { const d = data; if (!d) return 'Heavy Gold';
+    return '🏦 ' + fmt(d.bank) + (d.rank > 0 && d.of > 0 ? ' · #' + d.rank + ' of ' + d.of : '') + ' · Heavy Gold — beat it?'; };
   const storyText = () => line().slice(0, 200);
-  const chatText = () => line() + (cardUrl() ? ' My card: ' + cardUrl() : '') + ' Can you beat it?';
+  const chatText = () => line() + (cardUrl() ? ' ' + cardUrl() : '');
   const chatLink = () => 'https://t.me/share/url?url=' + encodeURIComponent(GAME) + '&text=' + encodeURIComponent(chatText());
   function story() {
     const u = cardUrl(); if (!u || !storyOK()) { setState('chat'); return false; }
@@ -356,7 +356,7 @@
     const a = document.createElement('a'); a.href = href; a.download = name; a.rel = 'noopener'; a.style.display = 'none';
     document.body.appendChild(a); a.click(); setTimeout(() => { try { a.remove(); } catch (e) {} }, 0);
     stats.saves.push('a');
-    if (inTG()) msgEl.textContent = 'If no download starts, press and hold the card to save it.';
+    if (inTG()) msgEl.textContent = 'Or hold the card';
     return 'a';
   }
   async function copy() {
@@ -365,7 +365,7 @@
     if (!ok) { try { const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
       document.body.appendChild(ta); ta.select(); ok = !!document.execCommand('copy'); ta.remove(); } catch (e) { ok = false; } }
     stats.copies++;
-    msgEl.textContent = ok ? 'Link copied.' : t;   // the card screen covers the toast: its own status line (or the text to copy by hand)
+    msgEl.textContent = ok ? 'Link copied' : t;   // the card screen covers the toast: its own status line (or the text to copy by hand)
     return ok;
   }
   async function share() {
@@ -374,14 +374,14 @@
     busy = true; const my = seq;
     try {
       ensure(); if (!card) return st;
-      busyMsg = 'Making your card…'; st = 'busy'; open();
+      busyMsg = 'Making card…'; st = 'busy'; open();
       const p = await encode(); if (my !== seq) return st;
       if (p.blob) showImg(p.blob); else dropImg();
       fitScr();
       if (!inTG()) { setState('local'); return st; }
       if (!p.ok) { setState('fail', p.err || 'too_big'); return st; }
       if (!cardUrl()) {
-        busyMsg = 'Uploading your card…'; setState('busy');
+        busyMsg = 'Uploading…'; setState('busy');
         let on = !!(G.net && G.net.on); if (!on && G.net && typeof G.net.login === 'function') { try { on = await G.net.login(); } catch (e) { on = false; } }
         if (my !== seq) return st;
         if (!on || !G.net) { setState('fail', 'offline'); return st; }
