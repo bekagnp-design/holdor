@@ -4,6 +4,17 @@ Captured 2026-09-09 from MR B's full feature brief; extended through 2026-09-26.
 
 ## Done
 
+### Heavy Gold — rough test 2 (2026-11-23, the owner's answers)
+- **Changes from test 1:**
+  - The map is 4000×4000, about 15 s across.
+  - 7 bots instead of 11.
+  - Gold: 14 coins at the start, then one coin a second at a random spot, worth 8, then 4 after 50 s, then 2 after 100 s (about 810 gold a round). Fewer glowing dots.
+  - 2 vaults move every 20 s; the new spot shows 3 s before.
+  - Each god's sign in his circle: Hermes a wing, Thor a hammer, Loki a serpent, Amirani a chain.
+  - Stone ground with pebbles and cracks.
+  - An arrow points to the nearest coin when none is on screen.
+- **Tests:** `tests/gold/t_gold.js` now also checks the vaults moving and the halving.
+
 ### Heavy Gold — rough test 1 (2026-11-23)
 - **Why:** the owner took the RPG down and wants a very rough version of a new simple arena game to judge whether the idea is worth it and to share with a friend.
 - **What:** `src/gold/index.html`, one file with no build, copied to `beta/index.html` and the root `index.html`. 12 heroes (you and 11 bots, always marked "bot"), 2000×2000 map, a 2:30 round.

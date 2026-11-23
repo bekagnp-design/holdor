@@ -46,7 +46,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 <div id="toast"></div>
 <div class="scr on" id="title">
   <h1>HEAVY GOLD</h1>
-  <p class="rule">The lighter one robs the heavier one. Only gold in a vault is yours.<br>Gold is never printed: it arrives in blocks, and every 5 blocks the reward halves.</p>
+  <p class="rule">The lighter one robs the heavier one. Only gold in a vault is yours, and the vaults move.<br>One coin appears every second. Every 50 s a coin is worth half.</p>
   <div class="gods" id="gods"></div>
   <button class="pri" id="play">PLAY</button>
   <div class="small" id="best"></div>
@@ -81,16 +81,29 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   window.addEventListener('resize', resize); resize();
 
   /* ---------- rules ---------- */
-  const WORLD = 2000, ROUND = 150, BLOCK_T = 10, HALVE_EVERY = 5, FIRST_REWARD = 300, BANK_T = 1.5, ROB = 0.35, TAU = Math.PI * 2;
-  const VAULTS = [[330, 330], [1670, 330], [330, 1670], [1670, 1670]].map(([x, y]) => ({ x, y, r: 110 }));
+  /* the owner's numbers (2026-11-23): a map ~15 s across, 7 bots, one coin a second whose worth halves every 50 s (8 → 4 → 2),
+     2 vaults that move every 20 s (the new spot shows 3 s before), robbery 35 % (half to the thief, half spilled) */
+  const WORLD = 4000, ROUND = 150, COIN_T = 1, HALVE_T = 50, FIRST_VALUE = 8, START_COINS = 14, BOTS = 7, BANK_T = 1.5, ROB = 0.35, TAU = Math.PI * 2;
+  const VAULT_N = 2, VAULT_R = 120, VAULT_MOVE = 20, VAULT_WARN = 3;
+  const coinValue = t => Math.max(1, FIRST_VALUE >> Math.floor(t / HALVE_T));
   const GODS = {
     hermes:  { n: 'Hermes',  c: '#5ad1e8', g: 'H', sk: 'DASH',    d: 'Winged dash, a little faster', cd: 4 },
     thor:    { n: 'Thor',    c: '#7b93ff', g: 'T', sk: 'THUNDER', d: 'Richer rivals near you spill gold', cd: 9 },
     loki:    { n: 'Loki',    c: '#7fd36a', g: 'L', sk: 'TRICK',   d: 'Vanish, leave a glowing decoy', cd: 10 },
     amirani: { n: 'Amirani', c: '#ee6a4c', g: 'A', sk: 'CHAINS',  d: 'Cannot be robbed for 3 s', cd: 10 },
   };
+  /* each god's sign inside his circle: Hermes a wing, Thor a hammer, Loki a serpent, Amirani a chain */
+  function sym(c, g, x, y, s) {
+    c.save(); c.fillStyle = '#081018'; c.strokeStyle = '#081018'; c.lineCap = 'round';
+    if (g === 'thor') { c.fillRect(x - s * 0.46, y - s * 0.5, s * 0.92, s * 0.36); c.fillRect(x - s * 0.1, y - s * 0.16, s * 0.2, s * 0.68); }
+    else if (g === 'hermes') { for (let i = 0; i < 3; i++) { c.beginPath(); c.ellipse(x + s * (0.06 - i * 0.07), y - s * 0.26 + i * s * 0.26, s * (0.56 - i * 0.12), s * 0.12, -0.35, 0, TAU); c.fill(); } }
+    else if (g === 'loki') { c.lineWidth = s * 0.2; c.beginPath(); c.moveTo(x - s * 0.36, y - s * 0.42); c.bezierCurveTo(x + s * 0.62, y - s * 0.42, x - s * 0.62, y + s * 0.42, x + s * 0.36, y + s * 0.42); c.stroke();
+      c.beginPath(); c.arc(x - s * 0.36, y - s * 0.42, s * 0.16, 0, TAU); c.fill(); }
+    else { c.lineWidth = s * 0.13; c.beginPath(); c.ellipse(x - s * 0.22, y, s * 0.3, s * 0.19, 0, 0, TAU); c.stroke(); c.beginPath(); c.ellipse(x + s * 0.22, y, s * 0.3, s * 0.19, 0, 0, TAU); c.stroke(); }
+    c.restore();
+  }
   const GK = Object.keys(GODS);
-  const BOTN = ['Ares', 'Freya', 'Anubis', 'Odin', 'Athena', 'Ra', 'Dali', 'Tyr', 'Isis', 'Hera', 'Baldr'];
+  const BOTN = ['Ares', 'Freya', 'Anubis', 'Odin', 'Athena', 'Dali', 'Tyr'];
   const rnd = (() => { let s = (Date.now() ^ 0x9e3779b9) >>> 0; const f = () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; f.seed = n => { s = n >>> 0; }; return f; })();
   const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -103,27 +116,33 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 
   /* ---------- round ---------- */
   const mkP = (name, g, bot, id) => ({ id, name, god: g, bot, x: 0, y: 0, vx: 0, vy: 0, fx: 1, fy: 0, carry: 0, bank: 0, cd: 0, imm: 0, inv: 0, dash: 0, bankT: 0, robs: 0, lost: 0, best: 0,
-    ai: { t: 0, dx: 0, dy: 0, th: 60 + Math.floor(rnd() * 160), mode: 'coin' } });
+    ai: { t: 0, dx: 0, dy: 0, th: 18 + Math.floor(rnd() * 40), mode: 'coin' } });
   const addCoin = (x, y, v) => { S.coins.push({ x: clamp(x, 12, WORLD - 12), y: clamp(y, 12, WORLD - 12), v }); };
   const spill = (x, y, amount, r) => { if (amount <= 0) return; const n = Math.min(40, amount); let left = amount;
     for (let i = 0; i < n; i++) { const v = i === n - 1 ? left : Math.max(1, Math.floor(amount / n)); left -= v; if (v <= 0) continue; const a = rnd() * TAU, d = r * (0.7 + rnd() * 0.8); addCoin(x + Math.cos(a) * d, y + Math.sin(a) * d, v); } };
   const fx = (o) => { S.fx.push(Object.assign({ t: S.t, life: 0.8 }, o)); };
   let toastT = 0; const toast = (m, ms) => { const el = $('toast'); el.textContent = m; el.style.opacity = 1; clearTimeout(toastT); toastT = setTimeout(() => { el.style.opacity = 0; }, ms || 1600); };
 
+  /* n spots far apart and away from the edges (and from the given points) */
+  function spots(n, avoid) { const out = []; for (let i = 0; i < n; i++) { let best = null, bd = -1;
+      for (let k = 0; k < 40; k++) { const q = { x: 450 + rnd() * (WORLD - 900), y: 450 + rnd() * (WORLD - 900) }; const d = Math.min(1e9, ...out.concat(avoid).map(o => dist(o, q)));
+        if (d > bd) { bd = d; best = q; } } out.push(best); } return out; }
+  const nearestVault = p => { let bv = S.vaults[0], bd = 1e9; for (const v of S.vaults) { const d = dist(v, p); if (d < bd) { bd = d; bv = v; } } return bv; };
   function start(g) {
     god = GODS[g] ? g : god; try { localStorage.setItem('hg_god', god); } catch (e) {}
     const ps = []; let id = 0;
     const me = mkP('You', god, false, id++); ps.push(me);
-    for (let i = 0; i < 11; i++) ps.push(mkP(BOTN[i], GK[(i + 1) % 4], true, id++));
-    for (const p of ps) { for (let k = 0; k < 60; k++) { p.x = 150 + rnd() * (WORLD - 300); p.y = 150 + rnd() * (WORLD - 300);
-      if (VAULTS.every(v => dist(v, p) > 260) && ps.every(q => q === p || !q.placed || dist(q, p) > 220)) break; } p.placed = true; }
-    S = { t: 0, ps, me, coins: [], decoys: [], fx: [], veins: [], pairT: {}, block: 0, nextBlock: BLOCK_T, minted: 0, over: false, camX: me.x, camY: me.y, hudT: 0 };
-    let g0 = 0; while (g0 < 1200) { const v = rnd() < 0.12 ? 5 : 1; addCoin(rnd() * WORLD, rnd() * WORLD, v); g0 += v; }
-    S.minted = g0;
+    for (let i = 0; i < BOTS; i++) ps.push(mkP(BOTN[i], GK[(i + 1) % 4], true, id++));
+    S = { t: 0, ps, me, coins: [], decoys: [], fx: [], veins: [], pairT: {}, vaults: [], vNext: VAULT_MOVE, nextCoin: COIN_T, minted: 0, over: false, camX: 0, camY: 0, hudT: 0 };
+    S.vaults = spots(VAULT_N, []).map(q => ({ x: q.x, y: q.y, r: VAULT_R, nx: null, ny: null }));
+    for (const p of ps) { for (let k = 0; k < 80; k++) { p.x = 250 + rnd() * (WORLD - 500); p.y = 250 + rnd() * (WORLD - 500);
+      if (S.vaults.every(v => dist(v, p) > 500) && ps.every(q => q === p || !q.placed || dist(q, p) > 500)) break; } p.placed = true; }
+    S.camX = me.x; S.camY = me.y;
+    for (let i = 0; i < START_COINS; i++) { addCoin(250 + rnd() * (WORLD - 500), 250 + rnd() * (WORLD - 500), FIRST_VALUE); S.minted += FIRST_VALUE; }
     $('title').classList.remove('on'); $('end').classList.remove('on'); $('hud').classList.add('on');
     const sk = $('sk'); sk.classList.add('on'); sk.textContent = GODS[god].sk; sk.style.borderColor = GODS[god].c;
     joy.on = false; keys.clear();
-    toast('Grab gold, bank it in a VAULT.', 2400); setTimeout(() => { if (S && !S.over && S.t < 6) toast('Green ring: you can rob them. Red ring: they can rob you.', 3200); }, 2600);
+    toast('Grab gold, bank it in a VAULT. Vaults move!', 2600); setTimeout(() => { if (S && !S.over && S.t < 6) toast('Green ring: you can rob them. Red ring: they can rob you.', 3200); }, 2600);
   }
 
   function useSkill(p) {
@@ -160,22 +179,22 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   function think(p) {
     const a = p.ai, t = S.t; a.t = t + 0.2 + rnd() * 0.08;
     let fx_ = 0, fy_ = 0;
-    if (p.carry > 25 && p.imm <= t) {   // a lighter rival close by is a thief
-      let th = null, td = 210;
+    if (p.carry > 6 && p.imm <= t) {   // a lighter rival close by is a thief
+      let th = null, td = 230;
       for (const q of S.ps) { if (q === p || q.inv > t || q.carry >= p.carry - 3) continue; const d = dist(p, q); if (d < td) { td = d; th = q; } }
       if (th) { fx_ = (p.x - th.x) / (td || 1); fy_ = (p.y - th.y) / (td || 1);
         if (td < 120) { if (p.god === 'amirani' || p.god === 'loki' || p.god === 'hermes') useSkill(p); } }
     }
     let tx = null, ty = null;
-    if (p.carry >= a.th) { let bv = null, bd = 1e9; for (const v of VAULTS) { const d = dist(p, v); if (d < bd) { bd = d; bv = v; } } tx = bv.x; ty = bv.y; a.mode = 'bank'; }
+    if (p.carry >= a.th) { const bv = nearestVault(p); tx = bv.x; ty = bv.y; a.mode = 'bank'; }
     else {
-      let prey = null, pd = 380;
-      for (const q of S.ps) { if (q === p || q.inv > t || q.imm > t || q.carry < p.carry + 15) continue; const d = dist(p, q); if (d < pd) { pd = d; prey = q; } }
-      for (const dc of S.decoys) { if (dc.owner === p || dc.carry < p.carry + 15) continue; const d = dist(p, dc); if (d < pd) { pd = d; prey = dc; } }
+      let prey = null, pd = 460;
+      for (const q of S.ps) { if (q === p || q.inv > t || q.imm > t || q.carry < p.carry + 8) continue; const d = dist(p, q); if (d < pd) { pd = d; prey = q; } }
+      for (const dc of S.decoys) { if (dc.owner === p || dc.carry < p.carry + 8) continue; const d = dist(p, dc); if (d < pd) { pd = d; prey = dc; } }
       if (prey) { tx = prey.x + (prey.vx || 0) * 0.3; ty = prey.y + (prey.vy || 0) * 0.3; a.mode = 'hunt';
         if (pd < 190 && p.god === 'hermes') useSkill(p);
         if (pd < 160 && p.god === 'thor' && prey.carry > p.carry) useSkill(p); }
-      else { let bc = null, bs = 1e9; for (const c of S.coins) { const s = Math.abs(c.x - p.x) + Math.abs(c.y - p.y) - c.v * 25; if (s < bs) { bs = s; bc = c; } }
+      else { let bc = null, bs = 1e9; for (const c of S.coins) { const s = Math.abs(c.x - p.x) + Math.abs(c.y - p.y) - c.v * 30; if (s < bs) { bs = s; bc = c; } }
         if (bc) { tx = bc.x; ty = bc.y; a.mode = 'coin'; } else { tx = WORLD / 2; ty = WORLD / 2; } }
     }
     let dx = tx - p.x, dy = ty - p.y; const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
@@ -198,13 +217,15 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   function step(dt) {
     if (!S || S.over) return;
     S.t += dt; const t = S.t;
-    if (t >= S.nextBlock) {
-      S.nextBlock += BLOCK_T; const reward = Math.floor(FIRST_REWARD / Math.pow(2, Math.floor(S.block / HALVE_EVERY))); S.block++;
-      const x = 220 + rnd() * (WORLD - 440), y = 220 + rnd() * (WORLD - 440), n = Math.max(1, Math.round(reward / 5));
-      for (let i = 0; i < n; i++) { const a = rnd() * TAU, d = Math.sqrt(rnd()) * 110; addCoin(x + Math.cos(a) * d, y + Math.sin(a) * d, 5); }
-      S.minted += n * 5; S.veins.push({ x, y, t, reward: n * 5 });
-      toast('Block ' + S.block + ': +' + (n * 5) + ' gold' + (S.block % HALVE_EVERY === 0 ? ' · next blocks halve' : ''));
+    while (t >= S.nextCoin && S.nextCoin <= ROUND) {   // one coin a second; its worth halves every HALVE_T seconds
+      const v = coinValue(S.nextCoin - COIN_T); S.nextCoin += COIN_T; const x = 120 + rnd() * (WORLD - 240), y = 120 + rnd() * (WORLD - 240);
+      addCoin(x, y, v); S.minted += v; S.veins.push({ x, y, t, reward: v });
+      if (Math.abs(S.nextCoin - 1 - HALVE_T) < 0.01 || Math.abs(S.nextCoin - 1 - 2 * HALVE_T) < 0.01) toast('Halving! A coin is now worth ' + coinValue(S.nextCoin - COIN_T));
     }
+    if (t >= S.vNext - VAULT_WARN && S.vaults[0].nx == null) {   // the new spots show 3 s before the vaults move
+      const ns = spots(VAULT_N, S.vaults); S.vaults.forEach((v, i) => { v.nx = ns[i].x; v.ny = ns[i].y; }); toast('Vaults move in ' + VAULT_WARN + ' s');
+    }
+    if (t >= S.vNext) { S.vNext += VAULT_MOVE; for (const v of S.vaults) { v.x = v.nx; v.y = v.ny; v.nx = v.ny = null; } for (const p of S.ps) { p.bankT = 0; if (p.bot) p.ai.t = 0; } }
     // input
     const me = S.me; let mx = 0, my = 0;
     if (joy.on) { mx = joy.dx; my = joy.dy; }
@@ -219,7 +240,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
       for (const p of S.ps) { const r = radius(p) + 5; const dx = c.x - p.x, dy = c.y - p.y; if (dx * dx + dy * dy < r * r) { p.carry += c.v; S.coins[i] = S.coins[S.coins.length - 1]; S.coins.pop(); break; } } }
     // vaults
     for (const p of S.ps) {
-      const v = VAULTS.find(v => dist(v, p) < v.r);
+      const v = S.vaults.find(v => dist(v, p) < v.r);
       if (v && p.carry > 0) { p.bankT += dt; if (p.bankT >= BANK_T) { p.bank += p.carry; fx({ kind: 'text', x: p.x, y: p.y - 40, s: 'banked ' + p.carry, c: '#e8b84a', life: 1.2 });
         if (p === me) { toast('Banked ' + p.carry + ' gold'); haptic('medium'); } p.carry = 0; p.bankT = 0; } }
       else p.bankT = 0;
@@ -229,7 +250,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) { const a = ps[i], b = ps[j]; const ra = radius(a), rb = radius(b), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 0.01;
       if (d < ra + rb) { const o = (ra + rb - d) / 2, nx = dx / d, ny = dy / d; a.x -= nx * o; a.y -= ny * o; b.x += nx * o; b.y += ny * o; a.vx -= nx * 120; a.vy -= ny * 120; b.vx += nx * 120; b.vy += ny * 120; contact(a, b); } }
     S.fx = S.fx.filter(f => t - f.t < f.life);
-    S.veins = S.veins.filter(v => t - v.t < 8);
+    S.veins = S.veins.filter(v => t - v.t < 1.2);
     if (t >= ROUND) end();
   }
 
@@ -244,15 +265,15 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
       'Robberies: ' + me.robs + (me.best ? ' (best +' + me.best + ')' : '') + ' · stolen from you: ' + me.lost,
       me.carry ? 'Not banked, lost at the bell: ' + me.carry : 'Nothing left unbanked',
       'Winner: ' + (order[0] === me ? 'you' : order[0].name + ' (bot)') + ' · ' + order[0].bank,
-      'Gold that ever existed this round: ' + S.minted + ' · no gold was printed',
-      'Your best: ' + Math.max(best(), me.bank), '<span class="small">The other 11 heroes are bots.</span>'];
+      'All the gold that appeared this round: ' + S.minted + ' (8, then 4, then 2 a coin)',
+      'Your best: ' + Math.max(best(), me.bank), '<span class="small">The other ' + BOTS + ' heroes are bots.</span>'];
     $('eLines').innerHTML = lines.join('<br>');
     $('end').classList.add('on');
     haptic('heavy');
   }
   function share() {
     const me = S ? S.me : null, url = 'https://t.me/HoldorTDBot/play';
-    const text = me ? 'I banked ' + me.bank + ' gold as ' + GODS[me.god].n + ' in Heavy Gold (#' + lastRank + ' of 12). The lighter one robs the heavier one. Beat me:' : 'Heavy Gold: the lighter one robs the heavier one.';
+    const text = me ? 'I banked ' + me.bank + ' gold as ' + GODS[me.god].n + ' in Heavy Gold (#' + lastRank + ' of ' + (BOTS + 1) + '). The lighter one robs the heavier one. Beat me:' : 'Heavy Gold: the lighter one robs the heavier one.';
     try { if (TG && TG.openTelegramLink) { TG.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(text)); return; } } catch (e) {}
     if (navigator.share) { navigator.share({ text, url }).catch(() => {}); return; }
     try { navigator.clipboard.writeText(text + ' ' + url); toast('Link copied'); } catch (e) { toast(url); }
@@ -277,20 +298,22 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   /* ---------- screens ---------- */
   const gEl = $('gods');
   const drawGods = () => { gEl.innerHTML = ''; for (const k of GK) { const G = GODS[k]; const b = document.createElement('button'); b.className = 'god' + (k === god ? ' sel' : ''); b.dataset.god = k;
-    b.innerHTML = '<i style="background:' + G.c + '">' + G.g + '</i><b>' + G.n + '</b><small>' + G.sk + ': ' + G.d + '</small>'; b.addEventListener('click', () => { god = k; drawGods(); }); gEl.appendChild(b); } };
+    b.innerHTML = '<canvas width="80" height="80" style="width:40px;height:40px"></canvas><b>' + G.n + '</b><small>' + G.sk + ': ' + G.d + '</small>';
+    const c2 = b.querySelector('canvas').getContext('2d'); c2.fillStyle = G.c; c2.beginPath(); c2.arc(40, 40, 38, 0, TAU); c2.fill(); sym(c2, k, 40, 40, 34);
+    b.addEventListener('click', () => { god = k; drawGods(); }); gEl.appendChild(b); } };
   drawGods();
-  $('best').textContent = best() ? 'Your best: ' + best() + ' gold · 11 bots · 2:30 round' : '11 bots · 2:30 round';
+  $('best').textContent = (best() ? 'Your best: ' + best() + ' gold · ' : '') + BOTS + ' bots · 2:30 round';
   $('play').addEventListener('click', () => start(god));
   $('again').addEventListener('click', () => start(god));
-  $('change').addEventListener('click', () => { $('end').classList.remove('on'); $('title').classList.add('on'); drawGods(); $('best').textContent = 'Your best: ' + best() + ' gold · 11 bots · 2:30 round'; });
+  $('change').addEventListener('click', () => { $('end').classList.remove('on'); $('title').classList.add('on'); drawGods(); $('best').textContent = (best() ? 'Your best: ' + best() + ' gold · ' : '') + BOTS + ' bots · 2:30 round'; });
   $('share').addEventListener('click', share);
 
   /* ---------- draw ---------- */
   function hud() {
     const me = S.me, left = Math.max(0, ROUND - S.t), mm = Math.floor(left / 60), ss = Math.floor(left % 60);
     $('hTL').innerHTML = 'Carry <span class="c">' + me.carry + '</span><br>Banked ' + me.bank;
-    const nextReward = Math.floor(FIRST_REWARD / Math.pow(2, Math.floor(S.block / HALVE_EVERY)));
-    $('hTC').innerHTML = '<b>' + mm + ':' + String(ss).padStart(2, '0') + '</b>' + (S.block ? 'Block ' + S.block + ' · next +' + nextReward : 'First block +' + nextReward) + ' in ' + Math.ceil(S.nextBlock - S.t) + ' s';
+    const cv_ = coinValue(S.t), toHalf = HALVE_T - (S.t % HALVE_T);
+    $('hTC').innerHTML = '<b>' + mm + ':' + String(ss).padStart(2, '0') + '</b>Coin = ' + cv_ + (cv_ > 2 ? ' · halves in ' + Math.ceil(toHalf) + ' s' : '') + ' · vaults move in ' + Math.max(0, Math.ceil(S.vNext - S.t)) + ' s';
     const order = S.ps.slice().sort((a, b) => b.bank - a.bank).slice(0, 5);
     if (!order.includes(me)) order[4] = me;
     $('hTR').innerHTML = order.map(p => '<div class="' + (p === me ? 'me' : '') + '">' + (p === me ? 'You' : p.name) + ' ' + p.bank + '</div>').join('');
@@ -318,8 +341,8 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
       const mc = S.me.carry; const col = p.carry > mc ? '#5be38a' : p.carry < mc ? '#ff5a5a' : null;
       if (col) { ctx.strokeStyle = col; ctx.lineWidth = Math.max(2.5, 3.5 * k); ctx.beginPath(); ctx.arc(sx, sy, r + 3.5 * k + 2, 0, TAU); ctx.stroke(); } }
     if (p.imm > S.t) { ctx.setLineDash([6, 5]); ctx.strokeStyle = '#ffb199'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(sx, sy, r + 7, 0, TAU); ctx.stroke(); ctx.setLineDash([]); }
-    ctx.fillStyle = '#081018'; ctx.font = '900 ' + Math.max(12, Math.round(r * 0.9)) + 'px Georgia'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(G.g, sx, sy + 1);
-    ctx.textBaseline = 'alphabetic'; ctx.font = '700 12px Georgia'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.8)';
+    sym(ctx, p.god, sx, sy, r * 0.78);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.font = '700 12px Georgia'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.8)';
     const nm = (p === S.me && !fake) ? 'You' : p.name + (p.bot ? ' · bot' : '');
     ctx.strokeText(nm, sx, sy - r - 18); ctx.fillStyle = '#e9eef5'; ctx.fillText(nm, sx, sy - r - 18);
     if (p.carry > 0) { const s = String(p.carry); ctx.strokeText(s, sx, sy - r - 5); ctx.fillStyle = '#ffd36a'; ctx.fillText(s, sx, sy - r - 5); }
@@ -329,27 +352,31 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   function draw() {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.fillStyle = '#070c16'; ctx.fillRect(0, 0, VW, VH);
     if (!S) return;
-    const me = S.me; let k = clamp(Math.sqrt(VW * VH) / 620, 0.7, 1.6) / (1 + (radius(me) - 17) / 140);
+    const me = S.me; let k = clamp(Math.sqrt(VW * VH) / 680, 0.65, 1.5) / (1 + (radius(me) - 17) / 140);
     S.camX += (me.x - S.camX) * 0.18; S.camY += (me.y - S.camY) * 0.18;
     const ox = VW / 2 - S.camX * k, oy = VH / 2 - S.camY * k;
-    // grid + bounds
-    ctx.strokeStyle = 'rgba(255,255,255,.045)'; ctx.lineWidth = 1; ctx.beginPath();
-    const x0 = Math.max(0, Math.floor((S.camX - VW / 2 / k) / 100) * 100), x1 = Math.min(WORLD, S.camX + VW / 2 / k), y0 = Math.max(0, Math.floor((S.camY - VH / 2 / k) / 100) * 100), y1 = Math.min(WORLD, S.camY + VH / 2 / k);
-    for (let x = x0; x <= x1; x += 100) { ctx.moveTo(ox + x * k, oy + y0 * k); ctx.lineTo(ox + x * k, oy + y1 * k); }
-    for (let y = y0; y <= y1; y += 100) { ctx.moveTo(ox + x0 * k, oy + y * k); ctx.lineTo(ox + x1 * k, oy + y * k); }
-    ctx.stroke();
+    // stone ground: the arena a shade lighter than the void, pebbles and cracks from a hash of each 250-unit tile
+    ctx.fillStyle = '#141a22'; ctx.fillRect(ox, oy, WORLD * k, WORLD * k);
+    const T = 250, tx0 = Math.max(0, Math.floor((S.camX - VW / 2 / k) / T)), tx1 = Math.min(WORLD / T - 1, Math.floor((S.camX + VW / 2 / k) / T)), ty0 = Math.max(0, Math.floor((S.camY - VH / 2 / k) / T)), ty1 = Math.min(WORLD / T - 1, Math.floor((S.camY + VH / 2 / k) / T));
+    for (let ix = tx0; ix <= tx1; ix++) for (let iy = ty0; iy <= ty1; iy++) { let h = (ix * 73856093) ^ (iy * 19349663); const hr = () => { h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+      for (let n = 0; n < 7; n++) { const px = ox + (ix * T + hr() * T) * k, py = oy + (iy * T + hr() * T) * k, pr = (3 + hr() * 9) * k; ctx.fillStyle = hr() < 0.5 ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(px, py, pr * 1.4, pr, hr() * 3, 0, TAU); ctx.fill(); }
+      if (hr() < 0.45) { ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1.5; ctx.beginPath(); let cx_ = ox + (ix * T + hr() * T) * k, cy_ = oy + (iy * T + hr() * T) * k; ctx.moveTo(cx_, cy_); for (let m = 0; m < 4; m++) { cx_ += (hr() - 0.5) * 60 * k; cy_ += (hr() - 0.5) * 60 * k; ctx.lineTo(cx_, cy_); } ctx.stroke(); } }
     ctx.strokeStyle = 'rgba(232,184,74,.5)'; ctx.lineWidth = 3; ctx.strokeRect(ox, oy, WORLD * k, WORLD * k);
     // vaults
-    for (const v of VAULTS) { const sx = ox + v.x * k, sy = oy + v.y * k, r = v.r * k;
+    for (const v of S.vaults) if (v.nx != null) { const sx = ox + v.nx * k, sy = oy + v.ny * k, r = v.r * k; ctx.strokeStyle = 'rgba(232,184,74,' + (0.35 + 0.3 * Math.sin(S.t * 8)) + ')'; ctx.lineWidth = 2; ctx.setLineDash([4, 10]); ctx.beginPath(); ctx.arc(sx, sy, r, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(243,231,196,.7)'; ctx.font = '700 ' + Math.round(13 * k + 3) + 'px Georgia'; ctx.textAlign = 'center'; ctx.fillText('NEXT VAULT ' + Math.max(0, Math.ceil(S.vNext - S.t)), sx, sy + 5); }
+    for (const v of S.vaults) { const sx = ox + v.x * k, sy = oy + v.y * k, r = v.r * k;
       const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, r); g.addColorStop(0, 'rgba(232,184,74,.28)'); g.addColorStop(1, 'rgba(232,184,74,.06)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, r, 0, TAU); ctx.fill();
       ctx.strokeStyle = 'rgba(232,184,74,.85)'; ctx.lineWidth = 3; ctx.setLineDash([10, 8]); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle = 'rgba(243,231,196,.85)'; ctx.font = '900 ' + Math.round(16 * k + 4) + 'px Georgia'; ctx.textAlign = 'center'; ctx.fillText('VAULT', sx, sy + 6); }
     // veins
-    for (const v of S.veins) { const age = S.t - v.t, sx = ox + v.x * k, sy = oy + v.y * k; ctx.strokeStyle = 'rgba(255,211,106,' + Math.max(0, 0.8 - age / 10) + ')'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(sx, sy, (120 + (age % 1.5) * 40) * k, 0, TAU); ctx.stroke(); }
-    // coins
-    ctx.fillStyle = '#e8b84a'; ctx.beginPath();
-    for (const c of S.coins) { const sx = ox + c.x * k, sy = oy + c.y * k; if (sx < -10 || sx > VW + 10 || sy < -10 || sy > VH + 10) continue; const r = (c.v >= 5 ? 6.5 : 3.6) * k + 0.8; ctx.moveTo(sx + r, sy); ctx.arc(sx, sy, r, 0, TAU); }
-    ctx.fill();
+    for (const v of S.veins) { const age = (S.t - v.t) / 1.2, sx = ox + v.x * k, sy = oy + v.y * k; ctx.strokeStyle = 'rgba(255,211,106,' + Math.max(0, 0.7 - age * 0.7) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(sx, sy, (8 + age * 40) * k, 0, TAU); ctx.stroke(); }
+    // coins: few and worth more, a soft glow each
+    let onScreen = 0;
+    for (const c of S.coins) { const sx = ox + c.x * k, sy = oy + c.y * k; if (sx < -20 || sx > VW + 20 || sy < -20 || sy > VH + 20) continue; onScreen++;
+      const r = (c.v >= 8 ? 8 : c.v >= 4 ? 6.5 : 5) * k + 1; const g = ctx.createRadialGradient(sx, sy, r * 0.3, sx, sy, r * 2.4); g.addColorStop(0, 'rgba(255,214,110,.45)'); g.addColorStop(1, 'rgba(255,214,110,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, r * 2.4, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#e8b84a'; ctx.beginPath(); ctx.arc(sx, sy, r, 0, TAU); ctx.fill(); ctx.strokeStyle = '#8a6420'; ctx.lineWidth = 1.5; ctx.stroke();
+      if (c.v > 1) { ctx.fillStyle = '#3a2808'; ctx.font = '900 ' + Math.max(8, Math.round(r * 1.1)) + 'px Georgia'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(c.v), sx, sy + 0.5); ctx.textBaseline = 'alphabetic'; } }
     // decoys, players
     for (const dc of S.decoys) drawP({ id: -1, name: dc.owner.name, god: dc.owner.god, bot: dc.owner.bot, x: dc.x, y: dc.y, carry: dc.carry, imm: 0, bankT: 0 }, k, 0.9, true);
     const order = S.ps.slice().sort((a, b) => radius(a) - radius(b));
@@ -359,8 +386,8 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
       if (f.kind === 'ring') { ctx.strokeStyle = f.c; ctx.globalAlpha = 1 - age; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(sx, sy, f.r * k * (0.4 + age * 0.6), 0, TAU); ctx.stroke(); ctx.globalAlpha = 1; }
       else if (f.kind === 'text') { ctx.globalAlpha = 1 - age; ctx.font = '900 16px Georgia'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.85)'; ctx.strokeText(f.s, sx, sy - age * 30); ctx.fillStyle = f.c; ctx.fillText(f.s, sx, sy - age * 30); ctx.globalAlpha = 1; } }
     // arrows: the nearest vault while carrying, fresh veins
-    if (me.carry > 0) { let bv = VAULTS[0], bd = 1e9; for (const v of VAULTS) { const d = dist(v, me); if (d < bd) { bd = d; bv = v; } } arrow(bv.x, bv.y, '#e8b84a', 'VAULT', k); }
-    for (const v of S.veins) if (S.t - v.t < 6) arrow(v.x, v.y, '#ffd36a', '+' + v.reward, k);
+    if (me.carry > 0) { const bv = nearestVault(me); arrow(bv.x, bv.y, '#e8b84a', 'VAULT', k); }
+    if (!onScreen && S.coins.length) { let bc = S.coins[0], bd = 1e9; for (const c of S.coins) { const d = dist(c, me); if (d < bd) { bd = d; bc = c; } } arrow(bc.x, bc.y, '#ffd36a', 'gold', k); }
     // joystick
     if (joy.on) { ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(joy.x0, joy.y0, JR, 0, TAU); ctx.stroke(); ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(joy.x0 + joy.dx * JR, joy.y0 + joy.dy * JR, 22, 0, TAU); ctx.fill(); }
     if (!S.over && S.t - S.hudT > 0.1) { S.hudT = S.t; hud(); }
@@ -377,7 +404,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   requestAnimationFrame(frame);
 
   /* ---------- test hooks (public, like HOLDOR's R) ---------- */
-  window.G = { start, step: n => { for (let i = 0; i < (n || 1); i++) step(1 / 60); }, get S() { return S; }, GODS, VAULTS, useSkill, rnd, joy, total: () => S ? S.coins.reduce((s, c) => s + c.v, 0) + S.ps.reduce((s, p) => s + p.carry + p.bank, 0) : 0 };
+  window.G = { start, step: n => { for (let i = 0; i < (n || 1); i++) step(1 / 60); }, get S() { return S; }, get VAULTS() { return S ? S.vaults : []; }, GODS, BOTS, useSkill, rnd, joy, total: () => S ? S.coins.reduce((s, c) => s + c.v, 0) + S.ps.reduce((s, p) => s + p.carry + p.bank, 0) : 0 };
 })();
 </script>
 </body>
