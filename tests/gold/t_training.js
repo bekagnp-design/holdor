@@ -28,8 +28,14 @@ async function page(b, w, h) {
   pg.ctx = ctx; return pg;
 }
 async function reload(pg, seed) {
-  if (seed !== undefined) await pg.evaluate(s => localStorage.setItem('hg_train', JSON.stringify(s)), seed);
-  await pg.reload(); await pg.waitForFunction(() => window.G && G.train); await pg.evaluate(HOOK);
+  /* a localStorage write can race a fast reload (the new document reads the old value under load): wait, reload, check, retry */
+  for (let i = 0; i < 4; i++) {
+    if (seed !== undefined) await pg.evaluate(s => localStorage.setItem('hg_train', JSON.stringify(s)), seed);
+    const want = await pg.evaluate(() => localStorage.getItem('hg_train')); await pg.waitForTimeout(400);
+    await pg.reload(); await pg.waitForFunction(() => window.G && G.train); await pg.evaluate(HOOK);
+    if (await pg.evaluate(w => localStorage.getItem('hg_train') === w, want)) break;
+    if (seed === undefined) await pg.evaluate(w => { if (w != null) localStorage.setItem('hg_train', w); }, want);   // the module's own save lost to the race: put it back and reload again
+  }
 }
 /* the title cards: every .god shows "Lv N" (= G.train) and a bar, both inside the card, the badge clear of the god's sign */
 const CARDS = () => [...document.querySelectorAll('#gods .god')].map(b => {

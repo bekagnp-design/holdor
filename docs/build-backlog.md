@@ -4,6 +4,24 @@ Captured 2026-09-09 from MR B's full feature brief; extended through 2026-09-26.
 
 ## Done
 
+### Heavy Gold — test 4 (2026-11-23): names, countries, weekly boards, day god, levels, sound, minimap, the daily map
+- **Structure:** the game is now a core (`src/gold/index.tpl.html`) plus modules (`src/gold/js/NN_*.js`, built by `src/build_gold.py`). The contract is `src/gold/GOLD.md`: `G.on` events, `G.addMod` modifiers, UI slots. Five agents built the modules in parallel, each in its own worktree.
+- **Profile and boards** (`10_net`, `20_profile`, `30_board`):
+  - The first PLAY asks for a name (prefilled from Telegram) and a country (249, with flags and search).
+  - Weekly and all-time boards for players and countries.
+  - LAST WEEK'S CHAMPIONS on the title screen: the top 3, big, each with the flag beside the name. It falls back to THIS WEEK SO FAR, and shows nothing when there are no rounds.
+  - "This week: total · best · #rank" and the top 3 on the end screen.
+  - Offline, everything stays on the phone.
+- **Day god** (`40_daygod`): one rule per UTC weekday, for everyone: Moon night, Tyr's law, Odin's ravens, Thor's day, Freya's gold, Saturn's hour, Sun day.
+- **God levels** (`50_training`): XP per god, 10 levels, two small perks offered per level, the edge capped at 15%; bots are unaffected.
+- **Sound and minimap** (`60_sfx`, `70_minimap`): sounds made by WebAudio, with a mute button; a 92 px minimap with the vaults, the next spots and the heroes.
+- **Daily map** (core): one seed per UTC day for spawns, coins and vaults ("Map #N", #1 = 2026-11-23).
+- **Landscape:** the title and end screens use two columns.
+- **Server:** `backend/holdor_g1.sql`, local test `backend/test/g1_test.py` with 130 checks.
+  - A 17-agent review confirmed 12 findings, all fixed: forged rounds bounded (812 / 1218, heroes 8, banked × rank ≤ minted), 140 s between rounds and 100 a day, NFKC names, invisible fillers and look-alikes refused, the word list, ISO countries, combining marks, `pg_temp` in search_path, all-time totals by trigger, the country stored per round, the UTC last-week boundary.
+  - **Not applied to Supabase yet:** the connector's confirmation timed out twice. Until it runs, the client keeps everything on the phone ("No answer from the server · saved only on this phone").
+- **Tests:** `tests/gold/t_gold`, `t_profile`, `t_board`, `t_daygod`, `t_training`, `t_sfx_minimap`, all ALL OK.
+
 ### Heavy Gold — test 3 (2026-11-23, review fixes)
 - **Review:** a four-lens workflow (logic, phones, balance, first round), with each finding checked by a skeptic: 11 confirmed, 7 rejected as stale.
 - **Fixes:**

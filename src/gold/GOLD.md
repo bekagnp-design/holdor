@@ -47,8 +47,12 @@ In a test, route `/telegram\.org|supabase\.co/` to abort unless the test mocks i
   - `hg_profile_set(token uuid, name text, country text) → {ok:true, name, country}`, or `{error: 'bad_name'|'name_taken'|'bad_country'}`.
     The name is 3–16 characters: letters (any script), digits, space, `_` or `-`. It is unique ignoring case.
   - `hg_round_submit(token uuid, r jsonb) → {ok:true, week:{total, best, rounds, rank}}`, or `{error:'too_fast'|'bad_round'|'no_profile'}`.
-    `r = {god, banked, rank, heroes, robs, lost, minted, day}`. The server refuses a round less than 120 s after the same player's previous one,
-    and refuses `banked` outside 0..min(minted, 1500).
+    `r = {god, banked, rank, heroes, robs, lost, minted, day}`. The server refuses:
+    - a round less than 140 s after the same player's previous one, or a 101st round within 24 h;
+    - heroes other than 8;
+    - minted above 812 (1218 with day 'freya' on a UTC Friday);
+    - banked outside 0..minted, or banked × rank > minted.
+    Names are NFKC-normalised, with no invisible fillers, no Latin mixed with Cyrillic or Greek, and no word from `chat_words`. The country must be in the ISO list.
   - `hg_board(token uuid, scope text) → {scope, since, players:[{name, country, total, best, rounds, mine}], me:{rank, total, best, rounds} | null,
     countries:[{country, players, rounds, gold}], totals:{players, rounds}}`.
     `scope` is `'week'` (since Monday 00:00 UTC), `'last'` (the previous full week, Monday to Monday UTC, with `until`) or `'all'`. The list holds the top 20 players by total banked, and every country. The token may be null, giving `me` = null.
