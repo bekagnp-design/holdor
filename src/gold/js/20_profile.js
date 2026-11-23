@@ -9,7 +9,8 @@
      (G.on('net')), hg_profile_get first: a server profile wins; with none on the server, the local one is sent.
    - Fills G.profile (the same object) and emits G.emit('profile', G.profile). An icon button in #titleLinks edits it:
      .ib #hgMe = <i>flag</i><span>name</span> (👤 "You" with no profile; a red "!" badge when the server refused the name).
-   - The screen (UI rules: no explanations): YOU, the name field, the chosen country as a chip, the search + grid, SAVE, Back.
+   - The screen (UI rules: no explanations): YOU + a ✕ icon (#hgBack), the name field, the country, SAVE (the only big button).
+     The country: with one picked, only its chip (#hgSel, "🇬🇪 Georgia 🔍"); a tap on it opens the search + grid; a pick closes them again.
      The name rule ("3–16 letters, digits, _ -") shows only as an error after a bad try.
    - Also public: G.COUNTRIES ([code, name] sorted by name), G.flag(code), G.countryName(code), G.profileUI {open, close, valid, sync}. */
 (function () {
@@ -74,34 +75,38 @@
     '.hgScr{background:var(--bg,#070c16);z-index:20}',
     '.hgP{flex:1 1 auto;min-height:0;width:min(100%,640px);display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"head" "list" "foot";gap:10px}',
     '.hgPhead{grid-area:head;display:flex;flex-direction:column;gap:6px}',
+    '.hgPtop{display:flex;align-items:center;gap:8px}.hgPtop .hgH{flex:1 1 auto;padding-left:60px}.hgPtop .ib{flex:none}',
+    '.hgPlist.pk #hgSearch,.hgPlist.pk .hgList{display:none}.hgPlist:not(.pk) .hgSel{display:none}',
+    '#hgMe span{max-width:46px}',
     '.hgPlist{grid-area:list;display:flex;flex-direction:column;gap:6px;min-height:0}',
     '.hgPfoot{grid-area:foot;display:flex;flex-direction:column;align-items:center;gap:8px}',
     '.hgH{margin:0;font:900 20px/1.2 Georgia,serif;letter-spacing:.08em;color:var(--gold,#e8b84a);text-align:center}',
     '.hgIn{width:100%;min-height:48px;border-radius:12px;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:var(--ink,#f3e7c4);font:700 18px Georgia,serif;padding:0 14px;outline:none;user-select:text;-webkit-user-select:text;touch-action:manipulation}',
     '.hgIn:focus{border-color:var(--gold,#e8b84a)}.hgIn::placeholder{color:#6f7d92;font-weight:400}',
     '.hgMsg{font:700 13px/1.3 Georgia,serif;color:#ff8a7a;text-align:center}.hgMsg:empty{display:none}',
-    '.hgSel{align-self:center;display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:4px 12px;border-radius:999px;border:2px solid var(--gold,#e8b84a);background:rgba(232,184,74,.12);font:700 15px/1.3 Georgia,serif;color:var(--ink,#f3e7c4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hgSel:empty{display:none}',
+    '.hgSel{align-self:stretch;min-height:48px;display:flex;align-items:center;justify-content:center;gap:6px;max-width:100%;padding:4px 14px;border-radius:12px;border:2px solid var(--gold,#e8b84a);background:rgba(232,184,74,.12);font:700 17px/1.3 Georgia,serif;color:var(--ink,#f3e7c4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}.hgSel:empty{display:none}',
     '.hgList{flex:1 1 auto;min-height:92px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;align-content:start;padding:2px;border-radius:12px}',
     '.hgC{min-height:44px;display:flex;align-items:center;gap:8px;text-align:left;border-radius:10px;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--ink,#f3e7c4);font:14px/1.2 Georgia,serif;padding:4px 8px;cursor:pointer;touch-action:pan-y}',
     '.hgC .f{font-size:22px;line-height:1;flex:none}.hgC.sel{border-color:var(--gold,#e8b84a);background:rgba(232,184,74,.16)}.hgC[hidden],.hgLbl[hidden]{display:none}',
     '.hgLbl{grid-column:1/-1;font:12px Georgia,serif;color:var(--muted,#8d9bb0);letter-spacing:.08em;text-transform:uppercase;padding:4px 2px 0}',
     '.hgNone{grid-column:1/-1;font:14px Georgia,serif;color:var(--muted,#8d9bb0);text-align:center;padding:12px}',
     '#hgMe.bad::after{content:"!";position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#e0483a;color:#fff;font:900 12px/18px Georgia,serif;text-align:center}',
-    '@media (orientation:landscape) and (max-height:540px){.hgP{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"head list" "foot list";gap:8px 16px}.hgH{font-size:18px}.hgPfoot{justify-content:flex-start}}'
+    '.hgP.pk{grid-template-rows:auto auto auto;align-content:center}',
+    '@media (orientation:landscape) and (max-height:540px){.hgP{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"head list" "foot list";gap:8px 16px}.hgP.pk{grid-template-rows:auto auto}.hgH{font-size:18px}.hgPfoot{justify-content:flex-start}}'
   ].join('\n');
   document.head.appendChild(css);
 
   /* ---- the screen ---- */
   const scr = document.createElement('div'); scr.className = 'scr hgScr'; scr.id = 'hgProf';
-  scr.innerHTML = '<div class="hgP"><div class="hgPhead"><h2 class="hgH">YOU</h2>' +
+  scr.innerHTML = '<div class="hgP"><div class="hgPhead"><div class="hgPtop"><h2 class="hgH">YOU</h2><button class="ib" id="hgBack" type="button" aria-label="Back"><i>✕</i></button></div>' +
     '<input id="hgName" class="hgIn" type="text" maxlength="16" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" enterkeyhint="done" placeholder="Name" aria-label="Name">' +
-    '<div class="hgMsg" id="hgPErr" role="alert"></div><div class="hgSel" id="hgSel"></div></div>' +
-    '<div class="hgPlist"><input id="hgSearch" class="hgIn" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" placeholder="🔍 Country" aria-label="Search a country">' +
+    '<div class="hgMsg" id="hgPErr" role="alert"></div></div>' +
+    '<div class="hgPlist" id="hgPlist"><button class="hgSel" id="hgSel" type="button" aria-label="Change country"></button><input id="hgSearch" class="hgIn" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" placeholder="🔍 Country" aria-label="Search a country">' +
     '<div class="hgList" id="hgList"></div></div>' +
-    '<div class="hgPfoot"><button class="pri" id="hgSave">SAVE</button><button class="sec" id="hgBack">Back</button></div></div>';
+    '<div class="hgPfoot"><button class="pri" id="hgSave">SAVE</button></div></div>';
   document.body.appendChild(scr);
   const $q = id => scr.querySelector('#' + id);
-  const nameIn = $q('hgName'), searchIn = $q('hgSearch'), list = $q('hgList'), errEl = $q('hgPErr'), selEl = $q('hgSel'), saveB = $q('hgSave'), backB = $q('hgBack');
+  const boxP = scr.querySelector('.hgP'), plist = $q('hgPlist'), nameIn = $q('hgName'), searchIn = $q('hgSearch'), list = $q('hgList'), errEl = $q('hgPErr'), selEl = $q('hgSel'), saveB = $q('hgSave'), backB = $q('hgBack');
   /* the core's keydown (space / J = skill, WASD) must not eat the letters typed here */
   for (const el of [nameIn, searchIn]) for (const t of ['keydown', 'keyup', 'keypress']) el.addEventListener(t, e => e.stopPropagation());
 
@@ -124,10 +129,20 @@
   function pick(c) {
     if (!CC[c]) return; sel = c; touched = true;
     for (const b of list.querySelectorAll('.hgC')) b.classList.toggle('sel', b.dataset.cc === c);
-    paintSel(); if (errEl.dataset.code === 'bad_country') msg('');
+    paintSel(); fold_(true); if (errEl.dataset.code === 'bad_country') msg('');
   }
   /* the chosen country as a chip; nothing before one is picked */
-  function paintSel() { selEl.textContent = sel ? flag(sel) + ' ' + CC[sel] : ''; }
+  function paintSel() { selEl.textContent = sel ? flag(sel) + ' ' + CC[sel] + ' 🔍' : ''; }
+  /* folded: the chip only; unfolded: the search + grid (the chip hidden: the grid marks the pick) */
+  function fold_(on) {
+    on = !!(on && sel); plist.classList.toggle('pk', on); boxP.classList.toggle('pk', on);
+    if (!on) { searchIn.value = ''; filter(); scrollToSel(); }
+  }
+  function scrollToSel() {
+    list.scrollTop = 0;
+    if (sel) { const b = list.querySelector('.hgC:not(.hgSug)[data-cc="' + sel + '"]'); if (b) { try { list.scrollTop = Math.max(0, b.offsetTop - list.offsetTop - list.clientHeight / 2 + b.offsetHeight / 2); } catch (e) {} } }
+  }
+  selEl.addEventListener('click', () => fold_(false));
   function filter() {
     const q = fold(tidy(searchIn.value)); let n = 0;
     for (const b of list.querySelectorAll('.hgC')) { const show = !q ? true : (b.classList.contains('hgSug') ? false : (b._k.indexOf(q) >= 0)); b.hidden = !show; if (show && !b.classList.contains('hgSug')) n++; }
@@ -154,8 +169,7 @@
     for (const b of list.querySelectorAll('.hgC')) b.classList.toggle('sel', b.dataset.cc === sel);
     searchIn.value = ''; filter(); paintSel(); msg(needFix ? needFix : '');
     scr.classList.add('on');
-    list.scrollTop = 0;
-    if (sel) { const b = list.querySelector('.hgC:not(.hgSug)[data-cc="' + sel + '"]'); if (b) { try { list.scrollTop = Math.max(0, b.offsetTop - list.offsetTop - list.clientHeight / 2 + b.offsetHeight / 2); } catch (e) {} } }
+    fold_(true); scrollToSel();
   }
   function close() { scr.classList.remove('on'); try { nameIn.blur(); searchIn.blur(); } catch (e) {} pendingPlay = false; }
 
@@ -172,7 +186,7 @@
     busy = false; saveB.disabled = false; saveB.textContent = 'SAVE';
     if (res && res.error) { msg(res.error); return; }
     if (res && res.ok) { needFix = ''; apply(res.name || name, CC[res.country] ? res.country : country); }
-    else { needFix = ''; apply(name, country); if (online) G.toast('Offline · saved on this phone', 2400); }
+    else { needFix = ''; apply(name, country); if (online) G.toast('⚠️ Server error · saved on phone', 2400); }
     close();
     if (go) { const b = G.$('play'); if (b) b.click(); }
   }
@@ -189,7 +203,8 @@
     btn.setAttribute('aria-label', ok ? (needFix ? (MSG[needFix] || 'Name refused') + ': ' : '') + G.profile.name + ' · ' + G.countryName(G.profile.country) : 'Name & country');
   }
   btn.addEventListener('click', () => open(false));
-  const links = G.$('titleLinks'); if (links) links.appendChild(btn);
+  const links = G.$('titleLinks'), helpB = G.$('helpB');   // before Rules: Rules stays the last icon
+  if (links) { if (helpB && helpB.parentNode === links) links.insertBefore(btn, helpB); else links.appendChild(btn); }
 
   /* ---- the gate ---- */
   const prevGate = G.beforePlay;

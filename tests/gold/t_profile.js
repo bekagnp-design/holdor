@@ -76,10 +76,12 @@ async function fits(pg, w, h, label) {
   const f = await pg.evaluate(() => {
     const scr = document.getElementById('hgProf'), r = s => { const e = scr.querySelector(s).getBoundingClientRect(); return { x: e.x, y: e.y, w: e.width, h: e.height, b: e.bottom, r: e.right }; };
     const small = [...scr.querySelectorAll('button,input')].filter(e => e.offsetParent && !e.hidden).map(e => e.getBoundingClientRect()).filter(b => b.height > 0 && b.height < 44).length;
-    return { save: r('#hgSave'), list: r('#hgList'), name: r('#hgName'), search: r('#hgSearch'), scroll: scr.scrollHeight - scr.clientHeight, wide: document.documentElement.scrollWidth - window.innerWidth, small };
+    const folded = document.getElementById('hgPlist').classList.contains('pk');
+    return { folded, save: r('#hgSave'), list: r('#hgList'), name: r('#hgName'), search: r('#hgSearch'), chip: r('#hgSel'), scroll: scr.scrollHeight - scr.clientHeight, wide: document.documentElement.scrollWidth - window.innerWidth, small };
   });
-  ok(f.save.b <= h && f.save.y >= 0 && f.name.y >= 0 && f.list.h >= 80 && f.search.b <= h && f.scroll <= 1 && f.wide <= 0 && f.small === 0 && f.save.h >= 44,
-    label + ' ' + w + 'x' + h + ': the profile screen fits (name, search, a list ≥ 80 px, SAVE on screen, no scroll, every target ≥ 44 px)', f);
+  const area = f.folded ? f.chip.h >= 44 && f.chip.b <= h && f.chip.y >= 0 : f.list.h >= 80 && f.search.b <= h;
+  ok(f.save.b <= h && f.save.y >= 0 && f.name.y >= 0 && area && f.scroll <= 1 && f.wide <= 0 && f.small === 0 && f.save.h >= 44,
+    label + ' ' + w + 'x' + h + ': the profile screen fits (name, search + a list ≥ 80 px or the country chip, SAVE on screen, no scroll, every target ≥ 44 px)', f);
 }
 
 (async () => {
@@ -107,7 +109,9 @@ async function fits(pg, w, h, label) {
     await pg.screenshot({ path: path.join(SHOTS, 'gold_profile_390.png') });
     await fits(pg, 390, 844, 'portrait');
     const st0 = await shortTexts(pg);
-    ok(await msg(pg) === '' && st0.all.join('|') === 'YOU|Suggested|All|SAVE|Back' && !st0.long.length, 'the screen says YOU, no rule hint, no "Country:" line before a pick; every text ≤ 40 characters', st0);
+    ok(await msg(pg) === '' && st0.all.join('|') === 'YOU|✕|Suggested|All|SAVE' && !st0.long.length, 'the screen says YOU (✕ to go back), no rule hint, no country chip before a pick; SAVE the only big button; every text ≤ 40 characters', st0);
+    const bk = await pg.evaluate(() => { const b = document.getElementById('hgBack').getBoundingClientRect(), h = document.querySelector('#hgProf h2').getBoundingClientRect(); return { w: b.width, h: b.height, row: Math.abs((b.top + b.bottom) / 2 - (h.top + h.bottom) / 2) < 8, big: document.querySelectorAll('#hgProf .pri').length }; });
+    ok(bk.w >= 52 && bk.h >= 52 && bk.row && bk.big === 1, 'Back is a ✕ icon (≥ 52 px) next to the title; one primary button', bk);
     // validation
     await pg.locator('#hgName').fill('ab'); await pg.locator('#hgSave').tap(); await pg.waitForTimeout(100);
     ok(await msg(pg) === '3–16 letters, digits, _ -', 'a 2-letter name: the rule shows as the error "3–16 letters, digits, _ -"', await msg(pg));
@@ -126,7 +130,12 @@ async function fits(pg, w, h, label) {
     await pg.locator('#hgSearch').fill('geor'); await pg.waitForTimeout(80);
     await pg.locator('#hgList .hgC:not(.hgSug)[data-cc="GE"]').tap(); await pg.waitForTimeout(80);
     const selT = await pg.locator('#hgSel').textContent();
-    ok(selT === '\u{1F1EC}\u{1F1EA} Georgia' && await msg(pg) !== 'Pick a country', 'a tap on Georgia selects it: the chip shows the flag and the name', selT);
+    const fo = await pg.evaluate(() => ({ list: !!document.getElementById('hgList').offsetParent, search: !!document.getElementById('hgSearch').offsetParent, chip: !!document.getElementById('hgSel').offsetParent, h: document.getElementById('hgSel').getBoundingClientRect().height }));
+    ok(selT === '\u{1F1EC}\u{1F1EA} Georgia 🔍' && await msg(pg) !== 'Pick a country' && fo.chip && !fo.list && !fo.search && fo.h >= 44, 'a tap on Georgia selects it: the list folds to one chip "🇬🇪 Georgia 🔍" (≥ 44 px), no repeated country', { selT, fo });
+    await pg.locator('#hgSel').tap(); await pg.waitForTimeout(80);
+    const un = await pg.evaluate(() => ({ list: !!document.getElementById('hgList').offsetParent, chip: !!document.getElementById('hgSel').offsetParent, sel: [...document.querySelectorAll('#hgList .hgC.sel')].map(b => b.dataset.cc), q: document.getElementById('hgSearch').value }));
+    ok(un.list && !un.chip && un.sel.indexOf('GE') >= 0 && un.q === '', 'a tap on the chip opens the search and the list again (Georgia marked, the chip hidden)', un);
+    await pg.locator('#hgList .hgC:not(.hgSug)[data-cc="GE"]').tap(); await pg.waitForTimeout(80);
     // name_taken from the server
     await pg.locator('#hgName').fill('Taken'); await pg.locator('#hgSave').tap(); await pg.waitForTimeout(400);
     const tk = await pg.evaluate(() => ({ on: document.getElementById('hgProf').classList.contains('on'), name: G.profile.name, round: !!G.S }));
@@ -146,6 +155,8 @@ async function fits(pg, w, h, label) {
     const rl = await pg.evaluate(() => ({ p: Object.assign({}, G.profile), on: G.net.on, token: G.net.token }));
     const c1 = await chip(pg);
     ok(rl.p.name === 'Jaja Nino' && rl.p.country === 'GE' && c1.ib && c1.i === '\u{1F1EC}\u{1F1EA}' && c1.s === 'Jaja Nino' && !c1.bad, 'a reload keeps the profile; the title icon is the flag, its word the name', { rl, c1 });
+    const lw = await pg.evaluate(() => { const keep = G.profile.name; G.profile.name = 'Aleksandre Gogia'; G.emit('title'); const w = document.getElementById('hgMe').getBoundingClientRect().width; G.profile.name = keep; G.emit('title'); return w; });
+    ok(lw <= 64, 'a long name does not widen the profile icon (≤ 64 px, the name cut)', lw);
     ok(rl.on && rl.token === TOKEN && T.n('tg_login').length === 1, 'a reload in the same launch reuses the token from sessionStorage (no second tg_login)', { on: rl.on, logins: T.n('tg_login').length });
     await pg.locator('#play').tap(); await pg.waitForTimeout(250);
     ok(await pg.evaluate(() => !!G.S && !G.S.over) && !(await vis(pg, '#hgProf')), 'with a profile PLAY starts the round at once', null);
@@ -153,7 +164,14 @@ async function fits(pg, w, h, label) {
     await pg.reload(); await pg.waitForFunction(() => window.G && G.profileUI); await pg.waitForTimeout(300);
     await pg.locator('#hgMe').tap(); await pg.waitForTimeout(200);
     const ed = await pg.evaluate(() => ({ val: document.getElementById('hgName').value, sel: [...document.querySelectorAll('#hgList .hgC.sel')].map(b => b.dataset.cc) }));
-    ok(await vis(pg, '#hgProf') && ed.val === 'Jaja Nino' && ed.sel.indexOf('GE') >= 0, 'the flag + name button opens the screen with the saved name and country', ed);
+    const edc = await pg.locator('#hgSel').textContent();
+    ok(await vis(pg, '#hgProf') && ed.val === 'Jaja Nino' && ed.sel.indexOf('GE') >= 0 && edc === '\u{1F1EC}\u{1F1EA} Georgia 🔍', 'the flag + name button opens the screen with the saved name and the country chip', { ed, edc });
+    await fits(pg, 390, 844, 'portrait, folded');
+    await pg.screenshot({ path: path.join(SHOTS, 'gold_profile_folded_390.png') });
+    await pg.locator('#hgBack').tap(); await pg.waitForTimeout(80);
+    ok(!(await vis(pg, '#hgProf')), 'the ✕ closes the screen', null);
+    await pg.locator('#hgMe').tap(); await pg.waitForTimeout(150);
+    await pg.locator('#hgSel').tap(); await pg.waitForTimeout(80);
     await pg.locator('#hgSearch').fill('fran'); await pg.locator('#hgList .hgC[data-cc="FR"]').tap(); await pg.locator('#hgSave').tap(); await pg.waitForTimeout(400);
     const ed2 = await pg.evaluate(() => ({ on: document.getElementById('hgProf').classList.contains('on'), round: !!G.S, btn: document.getElementById('hgMe').querySelector('i').textContent + '|' + document.getElementById('hgMe').querySelector('span').textContent, c: G.profile.country }));
     const set2 = T.n('hg_profile_set').slice(-1)[0];
@@ -226,7 +244,7 @@ async function fits(pg, w, h, label) {
     await pg.screenshot({ path: path.join(SHOTS, 'gold_profile_' + w + '.png') });
     await fits(pg, w, h, 'landscape');
     const st = await shortTexts(pg);
-    ok(!st.long.length && st.all.join('|') === 'YOU|SAVE|Back', w + 'x' + h + ': the profile screen is short texts only (YOU, SAVE, Back)', st);
+    ok(!st.long.length && st.all.join('|') === 'YOU|✕|SAVE', w + 'x' + h + ': the profile screen is short texts only (YOU, ✕, SAVE)', st);
     await pg.locator('#hgName').fill('Local Hero'); await pg.locator('#hgSearch').fill('ital'); await pg.locator('#hgList .hgC[data-cc="IT"]').tap(); await pg.locator('#hgSave').tap(); await pg.waitForTimeout(300);
     const s = await pg.evaluate(() => ({ p: Object.assign({}, G.profile), ls: JSON.parse(localStorage.getItem('hg_profile') || 'null'), round: !!G.S }));
     ok(s.p.name === 'Local Hero' && s.p.country === 'IT' && s.ls && s.ls.country === 'IT' && s.round, w + 'x' + h + ' offline: SAVE keeps the profile locally and the round starts', s);

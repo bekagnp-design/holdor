@@ -1,7 +1,8 @@
 // tests/gold/t_board.js — Heavy Gold boards (UI rules: icons and numbers): a round end submits the right r (the round run out with G.step),
-// the one end line ("Connecting…" → "Week #rank · total 🪙", "Not counted · too soon", "Offline · saved on this phone"), the 🏆 Boards icons
+// the one end line ("Connecting…" → "🏆 #rank · total 🪙", "Not counted · too soon", "Offline · not counted", "Not counted · server" when the
+// login works but the hg_* functions are missing, "Not counted · no name"), the 🏆 Boards icons (before Rules)
 // in #titleLinks and #endLinks, the board tabs Week / Last week / All × Players / Countries with the mocked data (rows rank · flag · name ·
-// gold, me highlighted, my row pinned outside the top 20), the compact title podium (LAST WEEK 🥇 🥈 🥉, flags next to the names; the
+// gold, me highlighted, my row pinned outside the top 20), the compact title podium (LAST WEEK, 🥇 on #1 only, flags next to the names; the
 // fallback THIS WEEK; nothing when both are empty), offline texts, no Telegram id anywhere in the DOM, short texts only, and the layout at
 // 390x844, 844x390 and 640x360 (the title / end screens add no scroll; screenshots in .shots/).
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs');
@@ -33,7 +34,7 @@ async function setup(b, o) {
   o = o || {};
   const ctx = await b.newContext({ viewport: { width: o.w || 390, height: o.h || 844 }, hasTouch: true, deviceScaleFactor: 2 });
   const pg = await ctx.newPage();
-  const M = { calls: [], data: DATA[o.data || 'full'], submits: 0, loginFail: !!o.loginFail };
+  const M = { calls: [], data: DATA[o.data || 'full'], submits: 0, loginFail: !!o.loginFail, missing: !!o.missing };
   const errs = []; pg.on('pageerror', e => errs.push(e.message)); pg.on('console', m => { if (m.type() === 'error' && !/telegram|ERR_FAILED|Failed to load resource/i.test(m.text())) errs.push(m.text()); });
   await pg.route(/telegram\.org/, r => r.abort());
   await pg.route(/supabase\.co/, async route => {
@@ -45,6 +46,7 @@ async function setup(b, o) {
     const send = (j, st) => route.fulfill({ status: st || 200, contentType: 'application/json', headers: cors, body: JSON.stringify(j) });
     if (name === 'tg_login') { if (M.loginFail) { await new Promise(r => setTimeout(r, 600)); return send({ message: 'bad init data' }, 400); } return send({ token: TOKEN, tg_id: TGID, name: 'Nino Test' }); }
     if (!body || body.token !== TOKEN) return send({ message: 'bad session' }, 400);
+    if (M.missing && /^hg_/.test(name)) return send({ code: 'PGRST202', message: 'Could not find the function public.' + name }, 404);   // g1 not applied
     if (name === 'hg_profile_get') return send({ name: ME.name, country: ME.country });
     if (name === 'hg_profile_set') return send({ ok: true, name: body.name, country: body.country });
     if (name === 'hg_round_submit') { M.submits++; return send(M.submits === 1 ? { ok: true, week: { total: 345, best: 200, rounds: 3, rank: 7 } } : { error: 'too_fast' }); }
@@ -119,7 +121,7 @@ const rowsOf = pg => pg.evaluate(() => [...document.querySelectorAll('#hgBody .h
     const order = P.items ? P.items.map(i => i.rank).join() : '';
     ok(order === '1,2,3' && P.items[1].x > P.items[0].x && P.items[2].x > P.items[1].x && P.items.every(i => Math.abs(i.top - P.items[0].top) < 12), 'the podium is one row, 1 · 2 · 3 left to right', P.items && P.items.map(i => [i.rank, i.x, i.top]));
     const [p1, p2, p3] = P.items || [];
-    ok(p1 && p1.size > p2.size && p1.size > p3.size && p1.color === 'rgb(232, 184, 74)' && P.items.map(i => i.medal).join('') === '🥇🥈🥉', '#1 is the largest (gold); the medals 🥇 🥈 🥉', P.items && P.items.map(i => ({ r: i.rank, s: i.size, c: i.color, m: i.medal })));
+    ok(p1 && p1.size > p2.size && p1.size > p3.size && p1.color === 'rgb(232, 184, 74)' && P.items.map(i => i.medal).join('') === '🥇', '#1 is the largest (gold); only #1 has a medal (🥇)', P.items && P.items.map(i => ({ r: i.rank, s: i.size, c: i.color, m: i.medal })));
     ok(P.items && P.items.map(i => i.flag + ' ' + i.name).join(' | ') === '🇬🇪 Giorgi | 🇫🇷 Marie | 🇺🇸 Kenji' && P.items.every(i => i.sameLine && i.gap >= 0 && i.gap <= 10 && !i.cut),
       'each name has its flag right next to it, on the same line, not cut', P.items && P.items.map(i => ({ f: i.flag, n: i.name, gap: i.gap, cut: i.cut })));
     ok(P.items && P.items.map(i => i.total).join('|') === '3,000|2,889|2,778' && P.items.every(i => i.gBelow), 'the gold (a number only) under each name', P.items && P.items.map(i => i.total));
@@ -129,6 +131,8 @@ const rowsOf = pg => pg.evaluate(() => [...document.querySelectorAll('#hgBody .h
       'G.board.top3("title") returns the rows it rendered (rank, flag, name, total)', t3);
     const tb = await icon(pg, 'hgTitleBoard');
     ok(tb && tb.cls === 'ib' && tb.parent === 'titleLinks' && tb.text === '🏆Boards' && tb.w >= 52 && tb.h >= 52, 'the title link is an icon button 🏆 "Boards" in #titleLinks (≥ 52 px)', tb);
+    const ord = await pg.evaluate(() => { const ids = [...document.getElementById('titleLinks').children].map(e => e.id); return { ids, ok: ids.indexOf('hgTitleBoard') < ids.indexOf('helpB') && ids.indexOf('hgMe') < ids.indexOf('helpB') }; });
+    ok(ord.ok, 'Boards and the profile icon come before Rules in #titleLinks (Rules stays after them)', ord.ids);
     const tf = await screenFits(pg, 'title', 390, 844);
     ok(tf.ok, '390x844: the title with the podium and the icons fits, PLAY and every icon on screen', tf); fitNote('390x844 title', tf);
     await pg.screenshot({ path: path.join(SHOTS, 'gold_podium_390.png') });
@@ -136,12 +140,12 @@ const rowsOf = pg => pg.evaluate(() => [...document.querySelectorAll('#hgBody .h
     // a round
     const R = await playRound(pg);
     ok(R.line === 'Connecting…', 'the end line says "Connecting…" while the submit waits', R.line);
-    await pg.waitForFunction(() => /^Week/.test(document.getElementById('hgWeek').textContent), null, { timeout: 5000 }).catch(() => {});
+    await pg.waitForFunction(() => /^🏆/.test(document.getElementById('hgWeek').textContent), null, { timeout: 5000 }).catch(() => {});
     const sub = T.n('hg_round_submit')[0], res = R.res;
     const want = res && { god: res.god, banked: res.bank, rank: res.rank, heroes: res.of, robs: res.robs, lost: res.lost, minted: res.minted, day: 'thor' };
     ok(R.over && sub && sub.body.token === TOKEN && JSON.stringify(sub.body.r) === JSON.stringify(want) && res.bank >= 40, 'a round end submits hg_round_submit(token, r) with r = {god, banked, rank, heroes, robs, lost, minted, day}', { sent: sub && sub.body.r, want });
     const wk = await pg.locator('#hgWeek').textContent();
-    ok(wk === 'Week #7 · 345 🪙', 'the end line: "Week #rank · total 🪙"', wk);
+    ok(wk === '🏆 #7 · 345 🪙', 'the end line: "🏆 #rank · total 🪙"', wk);
     const ex = await pg.evaluate(() => ({ mine: [...document.querySelectorAll('#hgEnd *')].map(e => e.id || e.className), lines: document.getElementById('hgEnd').getBoundingClientRect().height, top3: G.board.top3('end').length }));
     ok(ex.mine.join() === 'hgWeek' && ex.lines <= 24 && ex.top3 === 0, '#endExtra holds one line from this module (no top 3, no button); top3("end") is []', ex);
     const eb = await icon(pg, 'hgEndBoard');
@@ -154,7 +158,7 @@ const rowsOf = pg => pg.evaluate(() => [...document.querySelectorAll('#hgBody .h
     const B1 = await pg.evaluate(() => ({ on: document.getElementById('hgBoard').classList.contains('on'), h2: document.querySelector('#hgBoard h2').textContent, scope: document.querySelector('#hgScope .on').textContent, kind: document.querySelector('#hgKind .on').textContent,
       tabs: [...document.querySelectorAll('#hgTabs button')].map(b => b.textContent).join('|'), me: [...document.querySelectorAll('#hgBody .hgRow.me')].map(r => r.dataset.rank), tot: document.getElementById('hgTot').textContent, pin: !document.getElementById('hgPin').hidden }));
     const rows1 = await rowsOf(pg);
-    ok(B1.on && B1.h2 === 'BOARDS' && B1.scope === 'Week' && B1.kind === 'Players' && B1.tabs === 'Week|Last week|All|Players|Countries' && rows1.length === 20, 'Boards opens Week · Players with 20 rows (tabs Week / Last week / All × Players / Countries)', { B1, n: rows1.length });
+    ok(B1.on && B1.h2 === 'BOARDS' && await pg.evaluate(() => document.querySelector('#hgBoard .hgU').textContent === '🪙') && B1.scope === 'Week' && B1.kind === 'Players' && B1.tabs === 'Week|Last week|All|Players|Countries' && rows1.length === 20, 'Boards opens Week · Players with 20 rows (BOARDS 🪙; tabs Week / Last week / All × Players / Countries)', { B1, n: rows1.length });
     ok(JSON.stringify(rows1[0]) === JSON.stringify(['1', '🇬🇪', 'Player A', '3,000']), 'a player row: rank, flag, name, gold (no header row, no extra columns)', rows1[0]);
     ok(B1.me.join() === '2' && rows1[1][2] === ME.name && !B1.pin, 'my row is highlighted; inside the top 20 nothing is pinned', { me: B1.me, pin: B1.pin });
     ok(B1.tot === '👤 57', 'the header shows the player count only ("👤 57", real server totals)', B1.tot);
@@ -211,13 +215,33 @@ const rowsOf = pg => pg.evaluate(() => [...document.querySelectorAll('#hgBody .h
     const P = await podInfo(pg);
     ok(!P.shown, 'offline: no podium', P);
     await pg.locator('#hgTitleBoard').tap(); await pg.waitForTimeout(200);
-    const t = await pg.evaluate(() => ({ body: document.getElementById('hgBody').textContent, tabs: document.getElementById('hgTabs').hidden }));
-    ok(t.body === 'Open in Telegram' && t.tabs, 'offline: the board says "Open in Telegram"', t);
+    const t = await pg.evaluate(() => ({ body: document.getElementById('hgBody').textContent, tabs: document.getElementById('hgTabs').hidden, bh: Math.round(document.getElementById('hgBody').getBoundingClientRect().height) }));
+    ok(t.body === 'Open in Telegram' && t.tabs && t.bh <= 90, 'offline: the board says "Open in Telegram" in a small box (no big empty panel)', t);
     await pg.locator('#hgClose').tap();
     const R = await playRound(pg); await pg.waitForTimeout(200);
     const w = await pg.evaluate(() => document.getElementById('hgWeek').textContent);
-    ok(R.over && w === 'Offline · saved on this phone' && T.M.calls.length === 0, 'offline: the end line says "Offline · saved on this phone", nothing sent', { w, calls: T.M.calls.length });
+    ok(R.over && w === 'Offline · not counted' && T.M.calls.length === 0, 'offline: the end line says "Offline · not counted", nothing sent', { w, calls: T.M.calls.length });
     ok(!T.errs.length && await errHidden(pg), 'offline: no page errors, #err hidden', T.errs);
+    await T.ctx.close();
+  }
+
+  /* ---------- 3a. in Telegram, logged in, but the hg_* functions are missing (g1 not applied): "server", never "offline" ---------- */
+  {
+    const T = await setup(b, { missing: true }); const { pg } = T;
+    const P = await podInfo(pg);
+    ok(!P.shown, 'no hg_board on the server: no podium', P);
+    await pg.locator('#hgTitleBoard').tap();
+    await pg.waitForFunction(() => !!document.getElementById('hgRetry'), null, { timeout: 4000 }).catch(() => {});
+    const t = await pg.evaluate(() => ({ on: G.net.on, body: document.getElementById('hgBody').textContent, retry: !!document.getElementById('hgRetry') }));
+    ok(t.on && /^Server error/.test(t.body) && t.retry, 'logged in but hg_board missing: the board says "Server error" + ↻ Retry (not "Offline")', t);
+    await pg.locator('#hgClose').tap();
+    const R = await playRound(pg);
+    await pg.waitForFunction(() => /server/.test(document.getElementById('hgWeek').textContent), null, { timeout: 5000 }).catch(() => {});
+    const w = await pg.evaluate(() => document.getElementById('hgWeek').textContent);
+    ok(R.over && w === 'Not counted · server' && T.n('hg_round_submit').length === 1, 'logged in but hg_round_submit missing: the end line says "Not counted · server"', w);
+    const np = await pg.evaluate(async () => { const keep = G.profile; G.profile = {}; G.emit('end', G.S, { god: 'thor', bank: 5, rank: 1, of: 8, robs: 0, lost: 0, minted: 5 }); await new Promise(r => setTimeout(r, 100)); const t = document.getElementById('hgWeek').textContent; G.profile = keep; return t; });
+    ok(np === 'Not counted · no name' && T.n('hg_round_submit').length === 1, 'no profile: "Not counted · no name", nothing sent', np);
+    ok(!T.errs.length && await errHidden(pg), 'missing functions: no page errors, #err hidden', T.errs);
     await T.ctx.close();
   }
 
@@ -248,7 +272,7 @@ const rowsOf = pg => pg.evaluate(() => [...document.querySelectorAll('#hgBody .h
     ok(tf.ok, tag + ': the title with the podium and the icons adds no scroll (none at all once the core fits); the icons share one row', tf); fitNote(tag + ' title', tf);
     await pg.screenshot({ path: path.join(SHOTS, 'gold_podium_' + w + '.png') });
     await playRound(pg);
-    await pg.waitForFunction(() => /^Week/.test(document.getElementById('hgWeek').textContent), null, { timeout: 5000 }).catch(() => {});
+    await pg.waitForFunction(() => /^🏆/.test(document.getElementById('hgWeek').textContent), null, { timeout: 5000 }).catch(() => {});
     const E = await pg.evaluate(() => { const r = s => { const e = document.querySelector(s).getBoundingClientRect(); return { t: Math.round(e.top), b: Math.round(e.bottom), l: Math.round(e.left), r: Math.round(e.right), h: Math.round(e.height) }; };
       return { box: r('#hgEnd'), wide: document.documentElement.scrollWidth - window.innerWidth }; });
     const ef = await screenFits(pg, 'end', w, h);

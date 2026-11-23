@@ -1,11 +1,12 @@
 /* Heavy Gold — boards (30_board.js): the round submit, the weekly / all-time boards, the title podium (src/gold/GOLD.md, UI rules).
    - On `end`, online and with a profile: hg_round_submit(token, r), r = {god, banked, rank, heroes, robs, lost, minted, day}.
-     #endExtra gets one short line (#hgWeek in #hgEnd): "Week #3 · 240 🪙" (the server's answer), "Connecting…" while it waits,
-     "Offline · saved on this phone" without the server, "Not counted · too soon" etc. for a refusal. Nothing else.
-   - #titleExtra: the podium, one compact row 🥇 🥈 🥉 (flag + name, the gold under it), headed "LAST WEEK" from hg_board(token, 'last');
+     #endExtra gets one short line (#hgWeek in #hgEnd): "🏆 #3 · 240 🪙" (this week's rank and total, the server's answer), "Connecting…"
+     while it waits, "Offline · not counted" without a login, "Not counted · server" when the login worked but the call failed (e.g. a
+     missing hg_* function), "Not counted · no name" without a profile, "Not counted · too soon" etc. for a refusal. Nothing else.
+   - #titleExtra: the podium, one compact row #1 #2 #3 (🥇 or 👑 on #1 only; flag + name, the gold under it), headed "LAST WEEK" from hg_board(token, 'last');
      "THIS WEEK" from 'week' when last week has no rounds; nothing when neither has rounds or the game is offline.
    - Icon buttons: 🏆 "Boards" in #titleLinks (#hgTitleBoard) and in #endLinks (#hgEndBoard).
-   - The board screen (#hgBoard): BOARDS + the player count, tabs Week / Last week / All × Players / Countries, rows rank · flag · name ·
+   - The board screen (#hgBoard): BOARDS 🪙 + the player count, tabs Week / Last week / All × Players / Countries, rows rank · flag · name ·
      gold (my row marked; my own row pinned under the list when I am outside the top 20), CLOSE.
    - Only server data is shown (never a Telegram id: only name, country, total, rounds, players, gold, crown are read).
    - Crowns (g2): a row with crown: true (the champion, last week's #1) gets 👑 right before the flag / name, on the board and the podium.
@@ -24,7 +25,7 @@
   const hasProfile = () => !!(G.profile && G.profile.name && G.profile.country);
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const ib = (id, icon, word) => { const b = el('button', 'ib'); b.id = id; b.type = 'button'; b.append(el('i', null, icon), el('span', null, word)); return b; };
-  const MEDAL = ['', '🥇', '🥈', '🥉'];
+  const MEDAL = ['', '🥇', '', ''];   // #1 only: bigger and gold already, left to right
 
   /* ---- styles ---- */
   const css = document.createElement('style');
@@ -32,12 +33,13 @@
     '.hgScr{background:var(--bg,#070c16);z-index:20}',
     '.hgB{flex:1 1 auto;min-height:0;width:min(100%,560px);display:flex;flex-direction:column;gap:8px}',
     '.hgBtop{display:flex;align-items:center;gap:4px 12px;flex-wrap:wrap}',
-    '.hgBtop h2{margin:0;font:900 20px/1.2 Georgia,serif;letter-spacing:.08em;color:var(--gold,#e8b84a)}',
+    '.hgBtop h2{margin:0;font:900 20px/1.2 Georgia,serif;letter-spacing:.08em;color:var(--gold,#e8b84a)}.hgU{font-size:18px;line-height:1}',
     '.hgTot{font:700 13px/1.3 Georgia,serif;color:var(--muted,#8d9bb0);margin-right:auto}',
     '.hgTabs{display:flex;gap:8px;flex-wrap:wrap}.hgTabs[hidden]{display:none}',
     '.hgSeg{display:flex;flex:1 1 220px;border:2px solid rgba(255,255,255,.18);border-radius:12px;overflow:hidden}#hgKind{flex:1 1 160px}',
     '.hgSeg button{flex:1 1 0;min-height:44px;min-width:44px;border:0;background:transparent;color:var(--ink,#f3e7c4);font:700 14px Georgia,serif;cursor:pointer;padding:0 6px;white-space:nowrap}',
     '.hgSeg button+button{border-left:2px solid rgba(255,255,255,.12)}.hgSeg button.on{background:rgba(232,184,74,.22);color:var(--gold,#e8b84a)}',
+    '.hgBody.nt{flex:0 0 auto;min-height:0}',
     '.hgBody{flex:1 1 auto;min-height:64px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;border-radius:12px;background:rgba(255,255,255,.03)}',
     '.hgRow{display:grid;grid-template-columns:30px 26px minmax(0,1fr) auto;align-items:center;gap:6px;padding:7px 10px;font:15px/1.25 Georgia,serif;border-bottom:1px solid rgba(255,255,255,.06)}',
     '.hgRow.c{grid-template-columns:30px 26px minmax(0,1fr) auto auto}',
@@ -112,7 +114,7 @@
       if (p.crown) nm.appendChild(crown());
       if (p.flag) nm.appendChild(el('span', 'f', p.flag));
       nm.appendChild(el('span', 'n', p.name));
-      const ln = el('div', 'ln'); ln.append(el('span', 'rk', MEDAL[p.rank]), nm); b.appendChild(ln);
+      const ln = el('div', 'ln'); if (MEDAL[p.rank]) ln.appendChild(el('span', 'rk', MEDAL[p.rank])); ln.appendChild(nm); b.appendChild(ln);
       b.appendChild(el('div', 'g', fmt(p.total)));
       row.appendChild(b);
     }
@@ -125,7 +127,7 @@
   const weekEl = el('div', 'hgWeek'); weekEl.id = 'hgWeek';
   endBox.appendChild(weekEl);
   const eEx = G.$('endExtra'); if (eEx) eEx.appendChild(endBox);
-  const OFF = 'Offline · saved on this phone';
+  const OFF = 'Offline · not counted', SRV = 'Not counted · server';
   const ERR = { too_fast: 'Not counted · too soon', bad_round: 'Not counted', no_profile: 'Not counted · no name' };
   const line = (t, soft) => { weekEl.textContent = t; weekEl.classList.toggle('soft', !!soft); };
   let endSeq = 0;
@@ -136,7 +138,8 @@
     if (!res || typeof res !== 'object') { line(OFF, true); return; }
     const r = { god: String(res.god || ''), banked: num(res.bank), rank: num(res.rank), heroes: num(res.of), robs: num(res.robs), lost: num(res.lost), minted: num(res.minted),
       day: G.dayGod && G.dayGod.key ? String(G.dayGod.key) : '' };
-    if (!hasProfile() || !G.net) { line(OFF, true); return; }
+    if (!G.net) { line(OFF, true); return; }
+    if (!hasProfile()) { line(ERR.no_profile, true); return; }
     line('Connecting…', true);
     let on = online(); if (!on && hasTG()) { try { on = await G.net.login(); } catch (e) { on = false; } }
     if (my !== endSeq) return;
@@ -144,16 +147,16 @@
     const x = await G.net.rpc('hg_round_submit', { token: null, r });
     try { G.emit('submitted', x, r); } catch (e) {}   // the server has answered (x: its answer, or null): the ladder's end line asks now
     if (my !== endSeq) return;
-    if (x && x.ok && x.week) { const w = x.week; line('Week #' + fmt(w.rank) + ' · ' + fmt(w.total) + ' 🪙'); delete cache.week; delete cache.all; }
+    if (x && x.ok && x.week) { const w = x.week; line('🏆 #' + fmt(w.rank) + ' · ' + fmt(w.total) + ' 🪙'); delete cache.week; delete cache.all; }
     else if (x && x.error) line(ERR[x.error] || 'Not counted', true);
-    else line(OFF, true);
+    else line(online() ? SRV : OFF, true);   // logged in but no answer (a missing hg_* function, a 5xx, a timeout): not "offline"
     if (scr.classList.contains('on')) { render(); fetchScope(true); }
   }
 
   /* ---- the board screen ---- */
   const scr = el('div', 'scr hgScr'); scr.id = 'hgBoard';
   const box = el('div', 'hgB');
-  const top = el('div', 'hgBtop'); const h2 = el('h2', null, 'BOARDS'); const tot = el('div', 'hgTot'); tot.id = 'hgTot'; top.append(h2, tot);
+  const top = el('div', 'hgBtop'); const h2 = el('h2', null, 'BOARDS'); const unit = el('span', 'hgU', '🪙'); unit.title = 'Gold'; const tot = el('div', 'hgTot'); tot.id = 'hgTot'; top.append(h2, unit, tot);
   const tabs = el('div', 'hgTabs'); tabs.id = 'hgTabs';
   const seg = (id, items) => { const s = el('div', 'hgSeg'); s.id = id; for (const [k, t] of items) { const b = el('button', null, t); b.type = 'button'; b.dataset.k = k; s.appendChild(b); } return s; };
   const segScope = seg('hgScope', [['week', 'Week'], ['last', 'Last week'], ['all', 'All']]), segKind = seg('hgKind', [['players', 'Players'], ['countries', 'Countries']]);
@@ -179,7 +182,8 @@
     r.append(cell('k', String(rank)), cell('fl', flag(p.country)), n, cell('v', fmt(p.total)));
     return r;
   }
-  function render() {
+  function render() { paint(); body.classList.toggle('nt', !body.querySelector('.hgRow')); }
+  function paint() {
     for (const b of segScope.children) b.classList.toggle('on', b.dataset.k === scope);
     for (const b of segKind.children) b.classList.toggle('on', b.dataset.k === kind);
     body.textContent = ''; pin.hidden = true; pin.textContent = ''; tot.textContent = '';
@@ -192,7 +196,7 @@
     }
     tabs.hidden = false;
     const c = cache[scope];
-    if (!c) { if (state[scope] === 'error') note('Offline', true); else note('Loading…'); return; }
+    if (!c) { if (state[scope] === 'error') note('Server error', true); else note('Loading…'); return; }
     const d = c.d, t = d.totals || {};
     tot.textContent = '👤 ' + fmt(t.players);
     if (kind === 'players') {
@@ -232,7 +236,8 @@
 
   /* ---- the icon buttons ---- */
   const tBtn = ib('hgTitleBoard', '🏆', 'Boards'), endBtn = ib('hgEndBoard', '🏆', 'Boards');
-  const links = G.$('titleLinks'); if (links) links.appendChild(tBtn);
+  const links = G.$('titleLinks'), helpB = G.$('helpB');   // before Rules: Rules stays the last icon
+  if (links) { if (helpB && helpB.parentNode === links) links.insertBefore(tBtn, helpB); else links.appendChild(tBtn); }
   const eLinks = G.$('endLinks'); if (eLinks) eLinks.appendChild(endBtn);
   tBtn.addEventListener('click', () => open()); endBtn.addEventListener('click', () => open());
 
