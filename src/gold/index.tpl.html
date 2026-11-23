@@ -12,14 +12,16 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 .scr{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));background:rgba(7,12,22,.9);z-index:10;overflow:auto}
 .scr.on{display:flex}
 .scr{justify-content:flex-start}.scr>:first-child{margin-top:auto}.scr>:last-child{margin-bottom:auto}
-@media (max-height:430px){.scr{gap:8px}.big{font-size:34px}.lines{font-size:13px;line-height:1.35}.sec{min-height:44px}h1{font-size:32px}.rule{font-size:14px}.god{min-height:88px}}
+@media (max-height:430px){.scr{gap:8px}.big{font-size:34px}.lines{font-size:13px;line-height:1.35}.sec{min-height:44px}h1{font-size:30px}.god{min-height:72px}}
 h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold);text-shadow:0 0 24px rgba(232,184,74,.35);text-align:center}
 .rule{margin:0;font:italic 16px/1.35 Georgia,serif;color:#cfd6e2;text-align:center;max-width:440px}
 .gods{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:min(100%,600px)}
-.god{min-height:104px;border-radius:14px;border:2px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:var(--ink);padding:8px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-family:inherit;cursor:pointer}
+.god{min-height:84px;position:relative;border-radius:14px;border:2px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:var(--ink);padding:8px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-family:inherit;cursor:pointer}
 .god b{font-size:16px}
 .god i{font:900 20px Georgia,serif;font-style:normal;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#081018}
-.god small{font-size:12px;color:var(--muted);line-height:1.2;text-align:center}
+.god small{font-size:11px;color:var(--muted);letter-spacing:.08em;line-height:1.2;text-align:center}
+.god.sel small{color:var(--gold)}
+.gdesc{font:14px/1.3 Georgia,serif;color:#cfd6e2;text-align:center;min-height:18px}
 .god.sel{border-color:var(--gold);background:rgba(232,184,74,.16)}
 @media (max-width:440px){.gods{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .pri{min-height:56px;width:min(100%,360px);border:0;border-radius:14px;background:linear-gradient(180deg,#f0c75e,#b8862b);color:#1c1207;font:900 19px Georgia,serif;letter-spacing:.1em;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.5)}
@@ -27,31 +29,43 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 .small{font-size:13px;color:var(--muted);text-align:center}
 #hud{position:fixed;inset:0;pointer-events:none;z-index:5;display:none}
 #hud.on{display:block}
-.tl{position:absolute;left:calc(10px + env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));font:700 15px/1.35 Georgia,serif;text-shadow:0 1px 3px #000}
+.tl{position:absolute;left:calc(10px + env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));font:700 17px/1.35 Georgia,serif;text-shadow:0 1px 3px #000}
 .tl .c{color:var(--gold)}
-.tc{position:absolute;left:50%;top:calc(6px + env(safe-area-inset-top));transform:translateX(-50%);text-align:center;font:12px/1.3 Georgia,serif;color:#cfd6e2;text-shadow:0 1px 3px #000;white-space:nowrap}
+.tc{position:absolute;left:50%;top:calc(6px + env(safe-area-inset-top));transform:translateX(-50%);text-align:center;font:13px/1.4 Georgia,serif;color:#cfd6e2;text-shadow:0 1px 3px #000;white-space:nowrap}
 .tc b{display:block;font-size:22px;color:var(--ink)}
 .tr{position:absolute;right:calc(10px + env(safe-area-inset-right));top:calc(8px + env(safe-area-inset-top));font:13px/1.4 Georgia,serif;text-align:right;text-shadow:0 1px 3px #000;min-width:120px}
 .tr .me{color:var(--gold);font-weight:700}
-#sk{position:fixed;right:calc(18px + env(safe-area-inset-right));bottom:calc(22px + env(safe-area-inset-bottom));width:88px;height:88px;border-radius:50%;border:3px solid var(--gold);background:rgba(10,16,28,.72);color:var(--ink);font:800 14px Georgia,serif;z-index:6;display:none;pointer-events:auto;touch-action:none}
-#sk.on{display:block}
+#sk{position:fixed;right:calc(18px + env(safe-area-inset-right));bottom:calc(22px + env(safe-area-inset-bottom));width:88px;height:88px;border-radius:50%;border:3px solid var(--gold);background:rgba(10,16,28,.72);color:var(--ink);font:900 26px Georgia,serif;z-index:6;display:none;pointer-events:auto;touch-action:none;padding:0}
+#sk.on{display:grid;place-items:center}#sk canvas{width:56px;height:56px;grid-area:1/1;pointer-events:none}#sk b{grid-area:1/1;text-shadow:0 1px 4px #000;pointer-events:none}#sk.cd canvas{opacity:.3}
+.coin{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#e8b84a;border:1.5px solid #8a6420;color:#3a2808;font:900 11px Georgia,serif;font-style:normal;vertical-align:-4px;margin-right:3px;text-shadow:none}
 #toast{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:7;pointer-events:none;font:700 16px Georgia,serif;color:var(--ink);text-shadow:0 2px 6px #000;text-align:center;width:max-content;max-width:calc(100vw - 32px);background:rgba(7,12,22,.78);padding:6px 12px;border-radius:10px;opacity:0;transition:opacity .25s}
 #err{position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#5a1414;color:#fff;font:12px monospace;padding:6px;border-radius:8px;display:none;white-space:pre-wrap}
 .big{font:900 46px/1 Georgia,serif;color:var(--gold)}
 .lines{font:15px/1.5 Georgia,serif;color:#cfd6e2;text-align:center}
 .extra{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(100%,600px)}.extra:empty,.links:empty{display:none}
+/* icon buttons (the owner, 2026-11-23: "too much text"): an icon, one short word under it; every target >= 52 px */
+.ib{min-width:56px;min-height:52px;padding:4px 8px;border-radius:14px;border:2px solid rgba(255,255,255,.18);background:rgba(255,255,255,.04);color:var(--ink);display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:700 10px Georgia,serif;letter-spacing:.04em;cursor:pointer;position:relative;flex:0 0 auto}
+.ib i{font-style:normal;font-size:22px;line-height:1;display:block}.ib canvas{width:24px;height:24px;display:block}.ib span{color:var(--muted);white-space:nowrap}
+.ib.on{border-color:var(--gold)}
+.hrows{display:flex;flex-direction:column;gap:12px;width:min(100%,380px)}.hrow{display:flex;align-items:center;gap:12px;font:16px/1.3 Georgia,serif;color:#e4e9f1}.hrow>i{flex:0 0 40px;height:40px;display:grid;place-items:center;font-style:normal;font-size:24px}
+.ring{width:34px;height:34px;border-radius:50%;background:#7b93ff;box-shadow:0 0 0 3px #070c16,0 0 0 6px #5be38a}.ring.red{box-shadow:0 0 0 3px #070c16,0 0 0 6px #ff5a5a}
+.vlt{width:36px;height:36px;border-radius:50%;border:3px dashed #e8b84a;background:rgba(232,184,74,.2)}
+.bk{font:900 40px/1 Georgia,serif;color:var(--gold)}
+.tiles{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.tile{min-width:76px;padding:6px 8px;border-radius:12px;background:rgba(255,255,255,.05);text-align:center}.tile b{display:block;font:900 20px/1.1 Georgia,serif;color:var(--ink)}.tile span{font-size:11px;color:var(--muted)}
+.win{font-size:14px;color:#cfd6e2}.nb{color:var(--gold);font-weight:700}
 /* a short landscape window (a phone held sideways): the title and end screens in two columns, so PLAY stays on screen */
 @media (max-height:430px) and (min-aspect-ratio:4/3){
   #title.on,#end.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);grid-auto-rows:min-content;column-gap:20px;row-gap:8px;align-content:safe center;align-items:start;justify-items:center}
   #title>*,#end>*{margin:0!important;width:100%}
-  #title>h1{grid-column:1;grid-row:1}#title>.rule{grid-column:1;grid-row:2}#titleExtra{grid-column:1;grid-row:3/7}
-  #gods{grid-column:2;grid-row:1/4}#play{grid-column:2;grid-row:4}#best{grid-column:2;grid-row:5}#titleLinks{grid-column:2;grid-row:6}
-  #end>.small{grid-column:1;grid-row:1}#eRank{grid-column:1;grid-row:2}#eLines{grid-column:1;grid-row:3/7}
-  #endExtra{grid-column:2;grid-row:1}#again{grid-column:2;grid-row:2}#share{grid-column:2;grid-row:3}#change{grid-column:2;grid-row:4}
+  #title>h1{grid-column:1;grid-row:1}#titleExtra{grid-column:1;grid-row:2/8}
+  #gods{grid-column:2;grid-row:1/3}#gdesc{grid-column:2;grid-row:3}#play{grid-column:2;grid-row:4}#best{grid-column:2;grid-row:5}#titleLinks{grid-column:2;grid-row:6}
+  #end>.small{grid-column:1;grid-row:1}#eRank{grid-column:1;grid-row:2}#eGold{grid-column:1;grid-row:3}#eLines{grid-column:1;grid-row:4/8}
+  #endExtra{grid-column:2;grid-row:1/3}#again{grid-column:2;grid-row:3}#endLinks{grid-column:2;grid-row:4}
   .pri,.sec{width:100%}
   #gods{grid-template-columns:repeat(2,minmax(0,1fr))}#gods .god{min-height:78px;padding:6px 6px}
 }
 .links{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;width:min(100%,600px)}.links .sec{width:auto;flex:1 1 140px}
+@media (max-height:430px) and (min-aspect-ratio:4/3){.links .ib{min-height:48px}#end>.links,#title>.links{width:auto}}
 </style>
 </head>
 <body>
@@ -61,21 +75,31 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
 <div id="toast"></div>
 <div class="scr on" id="title">
   <h1>HEAVY GOLD</h1>
-  <p class="rule">The lighter one robs the heavier one. Only gold in a vault is yours, and the vaults move.<br>One coin appears every second. Every 50 s a coin is worth half.<br>Drag anywhere to move. The round button is your god's skill.</p>
   <div class="gods" id="gods"></div>
+  <div class="gdesc" id="gdesc"></div>
   <div id="titleExtra" class="extra"></div>
   <button class="pri" id="play">PLAY</button>
   <div class="small" id="best"></div>
-  <div id="titleLinks" class="links"></div>
+  <div id="titleLinks" class="links"><button class="ib" id="helpB"><i>?</i><span>Rules</span></button></div>
 </div>
 <div class="scr" id="end">
   <div class="small">ROUND OVER</div>
   <div class="big" id="eRank"></div>
+  <div class="bk" id="eGold"></div>
   <div class="lines" id="eLines"></div>
   <div id="endExtra" class="extra"></div>
   <button class="pri" id="again">PLAY AGAIN</button>
-  <button class="sec" id="share">Challenge a friend</button>
-  <button class="sec" id="change">Change god</button>
+  <div id="endLinks" class="links"><button class="ib" id="share"><i>📤</i><span>Invite</span></button><button class="ib" id="change"><canvas width="48" height="48"></canvas><span>God</span></button></div>
+</div>
+<div class="scr" id="help">
+  <h1 style="font-size:26px">HOW TO PLAY</h1>
+  <div class="hrows">
+    <div class="hrow"><i><span class="coin" style="width:30px;height:30px;font-size:14px;margin:0">8</span></i>Grab gold. Every 50 s a coin is worth half.</div>
+    <div class="hrow"><i><span class="vlt"></span></i>Stand in a vault to bank it. Only banked gold counts.</div>
+    <div class="hrow"><i><span class="ring"></span></i>Green ring: lighter than them, you rob them.</div>
+    <div class="hrow"><i><span class="ring red"></span></i>Red ring: they rob you. Run.</div>
+  </div>
+  <button class="pri" id="helpOk">GOT IT</button>
 </div>
 <div id="err"></div>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -112,10 +136,10 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   const VAULT_N = 2, VAULT_R = 120, VAULT_MOVE = 20, VAULT_WARN = 3, NET_REACH = 12;
   const coinValue = t => Math.max(1, FIRST_VALUE >> Math.floor(t / HALVE_T));
   const GODS = {
-    hermes:  { n: 'Hermes',  c: '#5ad1e8', g: 'H', sk: 'DASH',    d: 'Winged dash, a little faster', cd: 4 },
-    thor:    { n: 'Thor',    c: '#7b93ff', g: 'T', sk: 'THUNDER', d: 'Richer rivals near you spill gold', cd: 9 },
-    loki:    { n: 'Loki',    c: '#7fd36a', g: 'L', sk: 'TRICK',   d: 'Vanish, leave a glowing decoy', cd: 10 },
-    amirani: { n: 'Amirani', c: '#ee6a4c', g: 'A', sk: 'CHAINS',  d: 'Cannot be robbed for 3 s', cd: 10 },
+    hermes:  { n: 'Hermes',  c: '#5ad1e8', g: 'H', sk: 'DASH',    d: 'Dash: a burst of speed', cd: 4 },
+    thor:    { n: 'Thor',    c: '#7b93ff', g: 'T', sk: 'THUNDER', d: 'Thunder: richer rivals near you spill gold', cd: 9 },
+    loki:    { n: 'Loki',    c: '#7fd36a', g: 'L', sk: 'TRICK',   d: 'Trick: vanish and leave a decoy', cd: 10 },
+    amirani: { n: 'Amirani', c: '#ee6a4c', g: 'A', sk: 'CHAINS',  d: 'Chains: nobody can rob you for 3 s', cd: 10 },
   };
   /* each god's sign inside his circle: Hermes a wing, Thor a hammer, Loki a serpent, Amirani a chain */
   function sym(c, g, x, y, s) {
@@ -139,6 +163,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
   const esc = s => String(s).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';');   // a name in innerHTML (online names come from other players)
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const nm = p => p.name + (S && S.online && p.bot ? ' (bot)' : '');   // a hero's name in a toast (online: bots say so)
   const radius = p => Math.min(58, 17 + Math.sqrt(Math.max(0, p.carry)) * 1.1);
   const speed = p => mod('speed', p, (p.god === 'hermes' ? 1.08 : 1) * 270 / Math.sqrt(1 + p.carry / 110));
 
@@ -180,12 +205,16 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     S.camX = me.x; S.camY = me.y;
     if (!S.client) for (let i = 0; i < START_COINS; i++) { addCoin(250 + mapRnd() * (WORLD - 500), 250 + mapRnd() * (WORLD - 500), FIRST_VALUE); S.minted += FIRST_VALUE; }
     $('title').classList.remove('on'); $('end').classList.remove('on'); $('hud').classList.add('on');
-    const sk = $('sk'); sk.classList.add('on'); sk.textContent = GODS[god].sk; sk.style.borderColor = GODS[god].c;
+    const sk = $('sk'); sk.classList.add('on'); sk.style.borderColor = GODS[me.god].c; skPaint(me.god);
     joy.on = false; keys.clear();
     emit('start', S);
-    toast(('ontouchstart' in window ? 'Drag anywhere to move. ' : 'WASD to move. ') + 'Bank gold in a VAULT.', 3000); setTimeout(() => { if (S && !S.over && S.t < 7) toast('Green ring: you can rob them. Red ring: they can rob you.', 3400); }, 3200);
+    let tips = 0; try { tips = +(localStorage.getItem('hg_tips') || 0); localStorage.setItem('hg_tips', String(tips + 1)); } catch (e) {}
+    if (tips < 3) { toast(('ontouchstart' in window ? 'Drag to move' : 'WASD to move') + ' · bank gold in a vault', 3000); setTimeout(() => { if (S && !S.over && S.t < 7) toast('Green ring: rob them · red ring: run', 3000); }, 3200); }
   }
 
+  /* the skill button: the god's sign; a number while it recharges */
+  function skPaint(g) { const sk = $('sk'); if (!sk.querySelector('canvas')) sk.innerHTML = '<canvas width="112" height="112"></canvas><b></b>';
+    const c = sk.querySelector('canvas').getContext('2d'); c.clearRect(0, 0, 112, 112); c.fillStyle = GODS[g].c; c.beginPath(); c.arc(56, 56, 54, 0, TAU); c.fill(); sym(c, g, 56, 56, 52); sk.dataset.god = g; sk.setAttribute('aria-label', GODS[g].sk); }
   function useSkill(p) {
     if (!S || S.over || p.cd > S.t) return false;
     const G = GODS[p.god];
@@ -200,8 +229,8 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
       const TR = mod('thorR', p, 170), TS = mod('thorShare', p, 0.25);
       fx({ kind: 'ring', x: p.x, y: p.y, r: TR, c: G.c, life: 0.6 });
       let hits = 0; for (const q of S.ps) { if (q === p || q.carry <= p.carry || q.imm > S.t || q.inv > S.t || dist(p, q) > TR) continue; hits++; const loss = Math.ceil(q.carry * TS); q.carry -= loss; q.lost += loss; q.bankT = 0; spill(q.x, q.y, loss, radius(q) + 26);
-        fx({ kind: 'text', x: q.x, y: q.y - 30, s: '-' + loss, c: '#9fb2ff' }); if (q === S.me) { toast(p.name + ' struck you: -' + loss); haptic('heavy'); } emit('thunder', p, q, loss); }
-      if (!hits) { p.cd = S.t + 1; if (p === S.me) toast('No richer rival in reach'); }
+        fx({ kind: 'text', x: q.x, y: q.y - 30, s: '-' + loss, c: '#9fb2ff' }); if (q === S.me) { toast('⚡ −' + loss + ' · ' + nm(p)); haptic('heavy'); } emit('thunder', p, q, loss); }
+      if (!hits) { p.cd = S.t + 1; if (p === S.me) toast('No richer rival near'); }
     }
     else if (p.god === 'loki') { const LT = mod('lokiT', p, 3); p.inv = S.t + LT; const da = Math.atan2(p.fy, p.fx) + (rnd() < 0.5 ? 1.57 : -1.57); S.decoys.push({ owner: p, x: p.x, y: p.y, vx: Math.cos(da) * 200, vy: Math.sin(da) * 200, carry: Math.max(p.carry, 40), until: S.t + LT }); fx({ kind: 'ring', x: p.x, y: p.y, r: 50, c: G.c }); }
     else if (p.god === 'amirani') { p.imm = S.t + mod('chainT', p, 3); fx({ kind: 'ring', x: p.x, y: p.y, r: 60, c: G.c }); }
@@ -222,8 +251,8 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     H.carry -= loss; H.lost += loss; H.bankT = 0; L.carry += take; L.robs++; L.best = Math.max(L.best, take);
     spill(H.x, H.y, loss - take, radius(H) + 24);
     fx({ kind: 'text', x: L.x, y: L.y - 34, s: '+' + take, c: '#ffd36a' }); fx({ kind: 'text', x: H.x, y: H.y - 34, s: '-' + loss, c: '#ff7a7a' });
-    if (L === S.me) { toast('You robbed ' + H.name + ': +' + take); haptic('light'); }
-    if (H === S.me) { toast(L.name + ' robbed you: -' + loss); haptic('heavy'); }
+    if (L === S.me) { toast('+' + take + ' from ' + nm(H)); haptic('light'); }
+    if (H === S.me) { toast('−' + loss + ' · ' + nm(L) + ' robbed you'); haptic('heavy'); }
     emit('rob', L, H, take, loss);
   }
 
@@ -272,11 +301,11 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     while (t >= S.nextCoin && S.nextCoin <= ROUND) {   // one coin a second; its worth halves every HALVE_T seconds
       const v = Math.max(1, Math.round(mod('coinValue', null, coinValue(S.nextCoin - COIN_T)))); S.nextCoin += COIN_T;
       if (!C) { const x = 120 + mapRnd() * (WORLD - 240), y = 120 + mapRnd() * (WORLD - 240); addCoin(x, y, v); S.minted += v; S.veins.push({ x, y, t, reward: v }); }
-      if (Math.abs(S.nextCoin - 1 - HALVE_T) < 0.01 || Math.abs(S.nextCoin - 1 - 2 * HALVE_T) < 0.01) toast('Halving! A coin is now worth ' + Math.max(1, Math.round(mod('coinValue', null, coinValue(S.nextCoin - COIN_T)))));
+      if (Math.abs(S.nextCoin - 1 - HALVE_T) < 0.01 || Math.abs(S.nextCoin - 1 - 2 * HALVE_T) < 0.01) toast('Halving · a coin is worth ' + Math.max(1, Math.round(mod('coinValue', null, coinValue(S.nextCoin - COIN_T)))));
     }
-    if (!S.warn && ROUND - t <= 20) { S.warn = true; toast('20 s left: bank your gold or lose it!', 3000); haptic('medium'); }
+    if (!S.warn && ROUND - t <= 20) { S.warn = true; toast('20 s left · bank it or lose it', 3000); haptic('medium'); }
     if (!C && t >= S.vNext - VAULT_WARN && S.vaults[0].nx == null) {   // the new spots show 3 s before the vaults move
-      const ns = spots(VAULT_N, S.vaults); S.vaults.forEach((v, i) => { v.nx = ns[i].x; v.ny = ns[i].y; }); toast('Vaults move in ' + VAULT_WARN + ' s');
+      const ns = spots(VAULT_N, S.vaults); S.vaults.forEach((v, i) => { v.nx = ns[i].x; v.ny = ns[i].y; }); toast('Vaults move · ' + VAULT_WARN + ' s');
     }
     if (!C && t >= S.vNext) { S.vNext += VAULT_MOVE; for (const v of S.vaults) { v.x = v.nx; v.y = v.ny; v.nx = v.ny = null; } for (const p of S.ps) { p.bankT = 0; if (p.bot) p.ai.t = 0; } }
     // input
@@ -297,7 +326,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     if (!C) for (const p of S.ps) {
       const v = S.vaults.find(v => dist(v, p) < v.r);
       if (v && p.carry > 0) { p.bankT += dt; if (p.bankT >= mod('bankT', p, BANK_T)) { const amt = p.carry; p.bank += p.carry; emit('bank', p, amt); fx({ kind: 'text', x: p.x, y: p.y - 40, s: 'banked ' + p.carry, c: '#e8b84a', life: 1.2 });
-        if (p === me) { toast('Banked ' + p.carry + ' gold'); haptic('medium'); } p.carry = 0; p.bankT = 0; } }
+        if (p === me) { toast('🏦 +' + p.carry); haptic('medium'); } p.carry = 0; p.bankT = 0; } }
       else p.bankT = 0;
     }
     // contacts
@@ -314,25 +343,24 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   /* ---------- end ---------- */
   let lastRank = 0;
   function end() {
-    S.over = true; const me = S.me; const order = S.ps.slice().sort((a, b) => b.bank - a.bank); lastRank = order.indexOf(me) + 1;
+    S.over = true; const me = S.me; const order = S.ps.slice().sort((a, b) => b.bank - a.bank); lastRank = order.indexOf(me) + 1; const prevBest = best();
     try { if (me.bank > best()) localStorage.setItem('hg_best', String(me.bank)); } catch (e) {}
     $('hud').classList.remove('on'); $('sk').classList.remove('on'); clearTimeout(toastT); $('toast').style.opacity = 0;
     $('eRank').textContent = '#' + lastRank + ' of ' + S.ps.length;
-    $('end').querySelector('.small').textContent = 'ROUND OVER · MAP #' + mapNo;
-    const lines = ['Banked <b>' + me.bank + '</b> gold as ' + GODS[me.god].n,
-      'Robberies: ' + me.robs + (me.best ? ' (best +' + me.best + ')' : '') + ' · stolen from you: ' + me.lost,
-      me.carry ? 'Not banked, lost at the bell: ' + me.carry : 'Nothing left unbanked',
-      'Winner: ' + (order[0] === me ? 'you' : esc(order[0].name) + (order[0].bot ? ' (bot)' : '')) + ' · ' + order[0].bank,
-      'All the gold that appeared this round: ' + S.minted + ' (a coin\'s worth halved every 50 s)',
-      'Your best: ' + Math.max(best(), me.bank), '<span class="small">' + others() + '</span>'];
-    $('eLines').innerHTML = lines.join('<br>');
+    $('end').querySelector('.small').textContent = 'MAP #' + mapNo;
+    $('eGold').innerHTML = '<small style="font-size:26px">🏦</small> ' + me.bank;
+    const tile = (v, l) => '<div class="tile"><b>' + v + '</b><span>' + l + '</span></div>';
+    $('eLines').innerHTML = '<div class="tiles">' + tile(me.robs, 'robs') + tile(me.lost ? '−' + me.lost : 0, 'stolen') + tile(me.carry ? '−' + me.carry : 0, 'unbanked') + '</div>'
+      + '<div class="win">' + (order[0] === me ? '<span class="nb">👑 You won</span>' : '👑 ' + esc(order[0].name) + (order[0].bot ? ' (bot)' : '') + ' · ' + order[0].bank)
+      + (me.bank > 0 && me.bank > prevBest ? ' · <span class="nb">New best!</span>' : '') + '</div>'
+      + (S.online ? '<div class="small">' + others() + '</div>' : '');
     $('end').classList.add('on');
     haptic('heavy');
     const res = { map: mapNo, rank: lastRank, of: S.ps.length, bank: me.bank, god: me.god, robs: me.robs, lost: me.lost, carry: me.carry, minted: S.minted, best: me.best };
     if (S.online) { res.mode = 'online'; res.players = S.ps.filter(p => !p.bot).length; }
     emit('end', S, res);
   }
-  /* "The other 7 heroes are bots." (solo) or "2 other players and 5 bots." (online) */
+  /* online only, on the end screen: "2 other players and 5 bots." */
   function others() { const nb = S.ps.filter(p => p.bot).length, np = S.ps.length - 1 - nb;
     return !np ? 'The other ' + nb + ' heroes are bots.' : np + ' other player' + (np === 1 ? '' : 's') + (nb ? ' and ' + nb + ' bot' + (nb === 1 ? '' : 's') : '') + '.'; }
   function share() {
@@ -362,29 +390,35 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
   /* ---------- screens ---------- */
   const gEl = $('gods');
   const drawGods = () => { gEl.innerHTML = ''; for (const k of GK) { const G = GODS[k]; const b = document.createElement('button'); b.className = 'god' + (k === god ? ' sel' : ''); b.dataset.god = k;
-    b.innerHTML = '<canvas width="80" height="80" style="width:40px;height:40px"></canvas><b>' + G.n + '</b><small>' + G.sk + ': ' + G.d + '</small>';
+    b.innerHTML = '<canvas width="80" height="80" style="width:40px;height:40px"></canvas><b>' + G.n + '</b><small>' + G.sk + '</small>';
     const c2 = b.querySelector('canvas').getContext('2d'); c2.fillStyle = G.c; c2.beginPath(); c2.arc(40, 40, 38, 0, TAU); c2.fill(); sym(c2, k, 40, 40, 34);
-    b.addEventListener('click', () => { god = k; drawGods(); }); gEl.appendChild(b); } };
-  drawGods();
-  $('best').textContent = 'Today: Map #' + mapNo + ' · ' + (best() ? 'your best ' + best() + ' · ' : '') + BOTS + ' bots · 2:30';
+    b.addEventListener('click', () => { god = k; drawGods(); }); gEl.appendChild(b); }
+    $('gdesc').textContent = GODS[god].d;
+    const cc = $('change').querySelector('canvas').getContext('2d'); cc.clearRect(0, 0, 48, 48); cc.fillStyle = GODS[god].c; cc.beginPath(); cc.arc(24, 24, 23, 0, TAU); cc.fill(); sym(cc, god, 24, 24, 22); };
+  const bestLine = () => { $('best').textContent = 'Map #' + mapNo + (best() ? ' · best ' + best() : ''); };
+  drawGods(); bestLine();
+  setTimeout(() => $('titleLinks').appendChild($('helpB')), 0);   // after the modules' links: Rules comes last
+  $('helpB').addEventListener('click', () => { $('title').classList.remove('on'); $('help').classList.add('on'); });
+  $('helpOk').addEventListener('click', () => { $('help').classList.remove('on'); $('title').classList.add('on'); });
   /* a module may hold PLAY back (the profile asks for a name and a country first): window.G.beforePlay() === false */
   const go = () => { if (window.G && typeof window.G.beforePlay === 'function' && window.G.beforePlay() === false) return; start(god); };
   $('play').addEventListener('click', go);
   $('again').addEventListener('click', go);
-  $('change').addEventListener('click', () => { $('end').classList.remove('on'); $('title').classList.add('on'); drawGods(); emit('title'); $('best').textContent = 'Today: Map #' + mapNo + ' · ' + (best() ? 'your best ' + best() + ' · ' : '') + BOTS + ' bots · 2:30'; });
+  $('change').addEventListener('click', () => { $('end').classList.remove('on'); $('title').classList.add('on'); drawGods(); emit('title'); bestLine(); });
   $('share').addEventListener('click', share);
 
   /* ---------- draw ---------- */
   function hud() {
     const me = S.me, left = Math.max(0, ROUND - S.t), mm = Math.floor(left / 60), ss = Math.floor(left % 60);
-    $('hTL').innerHTML = 'Carry <span class="c">' + me.carry + '</span><br>Banked ' + me.bank;
+    $('hTL').innerHTML = '<span class="c">💰 ' + me.carry + '</span><br>🏦 ' + me.bank;
     const cv_ = Math.max(1, Math.round(mod('coinValue', null, coinValue(S.t)))), toHalf = HALVE_T - (S.t % HALVE_T);
-    $('hTC').innerHTML = '<b' + (left <= 20 ? ' style="color:#ff6a5a"' : '') + '>' + mm + ':' + String(ss).padStart(2, '0') + '</b>Coin ' + cv_ + (cv_ > 2 ? ' · halves in ' + Math.ceil(toHalf) + ' s' : '') + '<br>Vaults move in ' + Math.max(0, Math.ceil(S.vNext - S.t)) + ' s';
-    const order = S.ps.slice().sort((a, b) => b.bank - a.bank).slice(0, 5);
-    if (!order.includes(me)) order[4] = me;
+    $('hTC').innerHTML = '<b' + (left <= 20 ? ' style="color:#ff6a5a"' : '') + '>' + mm + ':' + String(ss).padStart(2, '0') + '</b><i class="coin">' + cv_ + '</i>' + (S.t < 2 * HALVE_T ? '½ in ' + Math.ceil(toHalf) + ' s' : '');
+    const order = S.ps.slice().sort((a, b) => b.bank - a.bank).slice(0, 4);
+    if (!order.includes(me)) order[3] = me;
     $('hTR').innerHTML = order.map(p => '<div class="' + (p === me ? 'me' : '') + '">' + (p === me ? 'You' : (p.flag ? p.flag + ' ' : '') + esc(p.name) + (S.online && p.bot ? ' (bot)' : '')) + ' ' + p.bank + '</div>').join('');
     const sk = $('sk'), G = GODS[me.god], cd = Math.max(0, me.cd - S.t);
-    sk.textContent = cd > 0 ? Math.ceil(cd) + ' s' : G.sk;
+    if (sk.dataset.god !== me.god) skPaint(me.god);
+    sk.querySelector('b').textContent = cd > 0 ? Math.ceil(cd) : ''; sk.classList.toggle('cd', cd > 0);
     sk.style.background = cd > 0 ? 'conic-gradient(rgba(232,184,74,.35) ' + (360 * (1 - cd / (me.cdT || G.cd))) + 'deg, rgba(10,16,28,.72) 0)' : 'rgba(10,16,28,.72)';
   }
   function arrow(wx, wy, col, label, k) {
@@ -431,7 +465,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     ctx.strokeStyle = 'rgba(232,184,74,.5)'; ctx.lineWidth = 3; ctx.strokeRect(ox, oy, WORLD * k, WORLD * k);
     // vaults
     for (const v of S.vaults) if (v.nx != null) { const sx = ox + v.nx * k, sy = oy + v.ny * k, r = v.r * k; ctx.strokeStyle = 'rgba(232,184,74,' + (0.35 + 0.3 * Math.sin(S.t * 8)) + ')'; ctx.lineWidth = 2; ctx.setLineDash([4, 10]); ctx.beginPath(); ctx.arc(sx, sy, r, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle = 'rgba(243,231,196,.7)'; ctx.font = '700 ' + Math.round(13 * k + 3) + 'px Georgia'; ctx.textAlign = 'center'; ctx.fillText('NEXT VAULT ' + Math.max(0, Math.ceil(S.vNext - S.t)), sx, sy + 5); }
+      ctx.fillStyle = 'rgba(243,231,196,.7)'; ctx.font = '700 ' + Math.round(13 * k + 3) + 'px Georgia'; ctx.textAlign = 'center'; ctx.fillText('NEXT · ' + Math.max(0, Math.ceil(S.vNext - S.t)), sx, sy + 5); }
     for (const v of S.vaults) { const sx = ox + v.x * k, sy = oy + v.y * k, r = v.r * k;
       const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, r); g.addColorStop(0, 'rgba(232,184,74,.28)'); g.addColorStop(1, 'rgba(232,184,74,.06)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, r, 0, TAU); ctx.fill();
       ctx.strokeStyle = 'rgba(232,184,74,.85)'; ctx.lineWidth = 3; ctx.setLineDash([10, 8]); ctx.stroke(); ctx.setLineDash([]);
@@ -455,7 +489,7 @@ h1{margin:0;font:900 40px/1 Georgia,serif;letter-spacing:.12em;color:var(--gold)
     emit('draw', ctx, k, ox, oy);
     // arrows: the nearest vault while carrying, fresh veins
     if (me.carry > 0) { const bv = nearestVault(me); arrow(bv.x, bv.y, '#e8b84a', 'VAULT', k); }
-    if (!onScreen && S.coins.length) { let bc = S.coins[0], bd = 1e9; for (const c of S.coins) { const d = dist(c, me); if (d < bd) { bd = d; bc = c; } } arrow(bc.x, bc.y, '#ffd36a', 'gold', k); }
+    if (!onScreen && S.coins.length) { let bc = S.coins[0], bd = 1e9; for (const c of S.coins) { const d = dist(c, me); if (d < bd) { bd = d; bc = c; } } arrow(bc.x, bc.y, '#ffd36a', '', k); }
     // joystick
     if (joy.on) { ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(joy.x0, joy.y0, JR, 0, TAU); ctx.stroke(); ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(joy.x0 + joy.dx * JR, joy.y0 + joy.dy * JR, 22, 0, TAU); ctx.fill(); }
     if (!S.over && S.t - S.hudT > 0.1) { S.hudT = S.t; hud(); emit('hud', S); }

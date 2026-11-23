@@ -15,6 +15,27 @@ In a test, route `/telegram\.org|supabase\.co/` to abort unless the test mocks i
 - Gods: Hermes (dash), Thor (thunder: richer rivals in reach spill), Loki (vanish + decoy), Amirani (chains: unrobbable 3 s).
 - Gold is conserved: `G.total() === G.S.minted` at all times. A module that moves gold must keep that true (spill gold as coins, never delete it).
 
+## UI rules (the owner, 2026-11-23: "too much text")
+Every screen must read in one glance. These rules hold for the core and for every module.
+- **Icons and numbers, not sentences.** A label is 1–3 words. No line explains a rule (the core's Rules screen does that, once).
+  No breakdowns, no "why" lines, no repeated facts (the map number, the bots, the round length are not repeated on every screen).
+- **One dominant primary button per screen** (`.pri`). Other actions are icon buttons.
+- **Icon buttons** in the link rows (`#titleLinks` on the title, `#endLinks` on the end screen):
+  `<button class="ib"><i>ICON</i><span>Word</span></button>`: one emoji or symbol, one word under it, ≥ 52 px. `.ib.on` = a toggle that is on.
+  No `.sec` text buttons in those rows. A module may add a dot or a small number badge to its icon.
+- **Toasts** ≤ 6 words and start with the number or an icon: `+12 from Ares`, `−20 · Odin robbed you`, `🏦 +40`, `⚡ −8 · Thor`,
+  `Vaults move · 3 s`, `Halving · a coin is worth 4`, `20 s left · bank it or lose it`, `No richer rival near`.
+- **The end screen**: `#eRank` (#2 of 8), `#eGold` (🏦 banked, big), `#eLines` (three tiles: robs, stolen, unbanked, and the winner line).
+  A module adds at most **one short line** to `#endExtra` (e.g. `Week #3 · 240 🪙`, an XP bar), or an icon to `#endLinks`.
+- **Server state** in one short line: `Offline · saved on this phone`, never a paragraph.
+- **A module's own screen** (boards, ladder, chat, card, online lobby): a 1–2 word title, the rows (flag, name, number), one primary
+  button or Close, at most one short hint line.
+- **HUD**: `#hTL` 💰 carry / 🏦 banked; `#hTC` the clock, the coin's worth (`.coin`) and `½ in N s`; `#hTR` the top 4; `#sk` the god's
+  sign (a canvas) with the seconds left while it recharges. A HUD chip says at most 2 words.
+- Core elements: `#gdesc` (the picked god's one line), `#help` (the Rules screen) opened by `#helpB` (the last icon of `#titleLinks`),
+  `#endLinks` (the core's `#share` "Invite" and `#change` "God" icons; modules may append), `.coin`, `.tiles` / `.tile`, `.ib`.
+  The first 3 rounds show two tips (`hg_tips` in localStorage), later rounds none.
+
 ## window.G
 - State: `G.S` (round state: `t, ps[], me, coins[], vaults[], minted, over`; a hero has `name, god, bot, x, y, carry, bank, robs, lost, cd, imm, inv`),
   `G.god` (the picked god), `G.GODS` (`{n, c, sk, d, cd}` by key), `G.WORLD`, `G.ROUND`, `G.HALVE_T`, `G.BANK_T`, `G.ROB`, `G.BOTS`, `G.W` / `G.H` (viewport).
@@ -33,7 +54,7 @@ In a test, route `/telegram\.org|supabase\.co/` to abort unless the test mocks i
   - `view` (p = me; camera scale).
 - Slots, empty `<div>`s you may fill:
   - title screen: `#titleExtra` (above PLAY), `#titleLinks` (below PLAY: put `.sec` buttons there);
-  - end screen: `#endExtra`;
+  - end screen: `#endExtra` (one short line per module) and `#endLinks` (icon buttons);
   - HUD: `#hudExtra` (an absolutely positioned layer; give your element `pointer-events:auto` only if it is tapped).
 - Screens: a module that needs a full screen adds its own `<div class="scr">` to `document.body` and toggles `.on`. Use the core classes
   `.pri` (one per screen), `.sec`, `.small`, `.big`, `.lines`. The UI is English, every target is ≥ 44 px, and the palette is dark with gold `#e8b84a`.
