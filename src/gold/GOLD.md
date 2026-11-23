@@ -113,12 +113,12 @@ The owner chose:
 - **Country ladder:** weekly duels, Monday 00:00 UTC to Monday.
   - **The ladder** is a persistent order of countries.
   - **Joining:** a country enters at the bottom the first week one of its players banks a round.
-  - **Pairs:** each week the countries are paired by position. On even ISO weeks the pairs are (1-2) (3-4)…; on odd weeks (2-3) (4-5)…, and position 1 rests.
+  - **Pairs:** each week the countries are paired by position. Weeks alternate, counted from Monday 2026-11-23 (ISO week 48, even): on even weeks the pairs are (1-2) (3-4)…; on odd weeks (2-3) (4-5)…, and position 1 rests.
     So a country meets the one above it one week and the one below it the next. It cannot reach #1 without beating #1.
-  - **Score** = the average banked gold per active real member that week (a member who submitted at least one round). Bots never add gold.
+  - **Score** = gold banked that week by the country's real players ÷ max(5, active real members). Bots count as members but never add gold. Shown and stored at 2 decimals; the winner is decided on exact values.
   - **Winner:** the higher score wins. If they tie, the higher position stays. The winner takes the higher of the two positions.
   - **Rollover:** the week closes lazily: the first `hg_ladder` call after Monday 00:00 UTC closes every pending week, under an advisory lock, and stores the results.
-  - `hg_ladder(token uuid) → {week_start, week_end, ladder:[{pos, country, real, bots, score, rounds, opp, opp_score, side}], mine:{country, pos, opp, score, opp_score, ends_at} | null, last:[{week, a, b, a_score, b_score, winner}]}`.
+  - `hg_ladder(token uuid) → {iso_week, week_start, week_end, ladder:[{pos, country, real, bots, score, rounds, opp, opp_score, side}], mine:{country, pos, opp, score, opp_score, ends_at} | null, last:[{week, a, b, a_score, b_score, winner}]}`.
     - `side` is `'up'`, `'down'` or `'rest'`.
     - `bots` = the filler members shown with the country: `max(0, 5 - real)`, named `bot1`…`botN` by the client. They count as members but never as gold.
 - **Crowns:**
@@ -129,7 +129,7 @@ The owner chose:
   - `hg_card_put(token uuid, png text) → {id, url}`, or `{error:'auth'|'too_big'|'rate'|'bad_png'}`.
     `png` is base64 PNG data, at most 400 KB decoded, and must start with the PNG signature. Limit: 6 an hour per player.
   - The Edge Function `hg-card` (in `backend/edge/hg-card/index.ts`): `GET /functions/v1/hg-card?id=<uuid>` returns `image/png` (cache 1 day, 404 when missing).
-    It reads with the service role from the table `hg_cards(id uuid, tg_id, png bytea, at)`. Cards older than 30 days may be deleted.
+    It reads with the service role from the table `hg_cards(id uuid, tg_id, png bytea, at)`. A card lives 1 day; a player keeps the images of his newest 3; all cards together stay under 50 MB (a put past that answers 'rate'); the PNG frame (IHDR first, IEND last) is checked.
     `url` is that public function URL. Telegram's `shareToStory(url, {text, widget_link})` needs a public https image.
 - **Online:** no tables. The game uses Supabase Realtime broadcast and presence channels with the publishable key (public channels).
   Results still go through `hg_round_submit`, with `r.mode = 'online'` and `r.map`; the server ignores keys it does not know.
