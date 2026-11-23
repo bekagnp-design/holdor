@@ -522,9 +522,10 @@
     '.onLs{grid-area:ls;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;display:flex;flex-direction:column;gap:4px;padding:2px}',
     '.onP{display:flex;align-items:center;gap:8px;min-height:34px;padding:4px 10px;border-radius:10px;background:rgba(255,255,255,.05);font:15px/1.2 Georgia,serif}',
     '.onP .f{font-size:20px;flex:none;width:26px;text-align:center}.onP .n{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.onP .y{font:700 11px Georgia,serif;color:#1c1207;background:var(--gold,#e8b84a);border-radius:6px;padding:1px 6px}',
-    '.onP.bot{background:transparent;color:var(--muted,#8d9bb0);font-size:13px;min-height:28px}',
+    '.onP.bot{background:rgba(255,255,255,.03);color:var(--ink,#f3e7c4)}',
     '.onF{grid-area:ft;display:flex;flex-direction:column;align-items:center;gap:8px}.onF [hidden]{display:none!important}',
     '.onRow{display:flex;gap:6px;justify-content:center}',
+    '@media (orientation:portrait){.onB{grid-template-rows:auto auto auto auto;align-content:center}.onLs{max-height:52vh}}',
     '#onChip{position:absolute;left:calc(10px + env(safe-area-inset-left));bottom:calc(14px + env(safe-area-inset-bottom));display:none;padding:3px 9px;border-radius:999px;border:1px solid rgba(91,227,138,.6);background:rgba(7,12,22,.66);color:#cfe9d8;font:700 11px/1.2 Georgia,serif;letter-spacing:.06em;white-space:nowrap;pointer-events:none;text-shadow:0 1px 2px #000}',
     '#onChip.on{display:block}#onChip.bad{border-color:#ff8a7a;color:#ffc2b8}',
     '@media (orientation:landscape) and (max-height:540px){.onB{width:min(100%,760px);grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);grid-template-areas:"h ls" "st ls" "ft ls";gap:6px 18px}',
@@ -555,7 +556,7 @@
     if (ph === 'err') { st.append(O.err || 'Server unreachable'); bStart.hidden = false; bStart.textContent = 'TRY AGAIN'; bInv.hidden = true; bLeave.word.textContent = 'Back'; return; }
     if (ph === 'conn' || ph === 'lobby' || !R || !R.ch.joined) { st.append(wsUp ? 'Finding a room…' : (tries ? 'Reconnecting…' : 'Connecting…')); bInv.hidden = true; return; }
     const left = Math.max(0, Math.ceil((R.deadline - now()) / 1000));
-    const b = el('b', null, R.deadline ? left + ' s' : '…'); st.append(b, R.deadline ? (left ? ms.length + ' / ' + O.MAX + ' players' : 'Starting…') : 'Waiting for host');
+    const b = el('b', null, R.deadline ? left + ' s' : '…'); st.append(b); if (!R.deadline || !left) st.append(R.deadline ? 'Starting…' : 'Waiting for host');   // the seats below say who and how many
     for (const m of ms) { const r = el('div', 'onP' + (m.k === R.key ? ' me' : '')); r.dataset.u = m.u; r.append(el('span', 'f', flag(m.c)), el('span', 'n', m.n)); if (m.k === R.key) r.appendChild(el('span', 'y', 'YOU')); ls.appendChild(r); }
     const nb = Math.max(0, (G.BOTS + 1) - Math.min(ms.length, O.MAX));
     if (nb) { const r = el('div', 'onP bot'); r.append(el('span', 'f', '🤖'), el('span', 'n', '× ' + nb)); ls.appendChild(r); }

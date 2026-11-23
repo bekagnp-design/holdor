@@ -1,11 +1,12 @@
 /* Heavy Gold — share card (80_card.js), wave 5 of src/gold/GOLD.md.
    - The round: the biggest take of a 'rob' where the thief is G.S.me (the victim's name, whether he is a bot, the take).
    - On 'end': a 1080×1920 story card on an offscreen canvas: the arena's stone ground, the god's circle with his sign (G.sym),
-     the player's name, flag and country, "#rank of N" with the bots counted ("vs 7 bots"), the banked gold big in gold, the best
-     robbery ("Robbed Odin (bot) +45"), "Map #N · <the day god's rule>", t.me/HoldorTDBot/play. The 🖼 "Card" icon button (.ib)
+     the player's name, his flag, "#rank of N", the banked gold big in gold over a drawn vault (🏦), the best robbery
+     ("Robbed Odin (bot) +45", nothing when there was none), "Map #N · <the day god's rule>", t.me/HoldorTDBot/play. The 📤 "Share" icon button (.ib)
      takes the core's 📤 "Invite" slot in #endLinks: it replaces #share and takes its id (the card screen's Send / Copy do that
      button's job, with the card's URL).
-   - "Card" opens the card screen (the card big, one primary action, the rest as icon buttons with one word, a status line of
+   - A round with 0 banked and no robbery makes no card: the core's 📤 Invite stays in its slot.
+   - "Share" opens the card screen (the card big, one primary action, the rest as icon buttons with one word, a status line of
      at most 4 words; the owner, 2026-11-23: "too much text"):
        in Telegram the PNG goes up once per card with hg_card_put(token, base64), 30 s for the call (at most G.card.limit bytes; a plainer card
        without the stone texture is tried when the first one is too big), then TG.shareToStory(url, {text, widget_link}) where
@@ -51,8 +52,6 @@
       god, gname: GD[god] ? GD[god].n : '', gcol: GD[god] ? GD[god].c : GOLD, rank: num(res.rank), of: num(res.of) || ps.length, bots, real: others.length - bots,
       bank: Math.max(0, num(res.bank)), map: num(res.map) || num(G.mapNo) || 1, rule, rcol, best: best ? Object.assign({}, best) : null };
   }
-  const vsLine = d => { const b = d.bots, r = d.real, pl = (n, a, z) => n + ' ' + (n === 1 ? a : z);
-    return !b && !r ? '' : !r ? 'vs ' + pl(b, 'bot', 'bots') : !b ? 'vs ' + pl(r, 'player', 'players') : 'vs ' + pl(r, 'player', 'players') + ' and ' + pl(b, 'bot', 'bots'); };
   const robName = b => b.name + (b.bot ? ' (bot)' : '');
 
   /* ---------- drawing ---------- */
@@ -104,6 +103,13 @@
     c.fillStyle = '#ee6a4c'; for (const [dx, dy] of [[-w / 2, -h * 0.62], [0, -h], [w / 2, -h * 0.62]]) { c.beginPath(); c.arc(x + dx, y + dy, h * 0.11, 0, TAU); c.fill(); }
     c.restore();
   }
+  /* the vault, drawn (the 🏦 of the HUD; an emoji glyph is not in every canvas font): a pediment, three columns, a step; base at y */
+  function vault(c, x, y, s) {
+    c.save(); c.fillStyle = '#cfd6e2'; const w = s, h = s * 0.8, top = y - h;
+    c.beginPath(); c.moveTo(x - w / 2, top + h * 0.3); c.lineTo(x, top); c.lineTo(x + w / 2, top + h * 0.3); c.closePath(); c.fill();
+    const cw = w * 0.14; for (const k of [-1, 0, 1]) c.fillRect(x + k * w * 0.32 - cw / 2, top + h * 0.38, cw, h * 0.44);
+    c.fillRect(x - w / 2, y - h * 0.12, w, h * 0.12); c.restore();
+  }
   function draw(d, lite) {
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     const c = cv.getContext('2d'), lines = [], M = 28, CX = W / 2, MAXW = W - 2 * M - 120;
@@ -132,10 +138,9 @@
     if (d.gname) { const s = d.gname.toUpperCase(); c.font = font(800, 40); c.fillStyle = d.gcol; spaced(c, s, CX, 724, 10); lines.push(s); }
     // the player
     if (d.name) { const s = fit(c, d.name, 800, 86, 54, MAXW); c.fillStyle = INK; c.fillText(s, CX, 832); lines.push(s); }
-    if (d.country) { const s = fit(c, (d.flag ? d.flag + ' ' : '') + (d.cname || d.country), 400, 46, 30, MAXW); c.fillStyle = '#cfd6e2'; c.fillText(s, CX, 902); lines.push(s); }
+    if (d.country) { const s = fit(c, d.flag || d.cname || d.country, 400, d.flag ? 64 : 46, 30, MAXW); c.fillStyle = '#cfd6e2'; c.fillText(s, CX, 912); lines.push(s); }
     // the rank
-    if (d.rank > 0 && d.of > 0) { const s = '#' + d.rank + ' of ' + d.of; c.font = font(900, 124); c.fillStyle = d.rank === 1 ? GOLD : INK; c.fillText(s, CX, 1036); lines.push(s);
-      const v = vsLine(d); if (v) { c.font = font(400, 38); c.fillStyle = MUTED; c.fillText(v, CX, 1094); lines.push(v); } }
+    if (d.rank > 0 && d.of > 0) { const s = '#' + d.rank + ' of ' + d.of; c.font = font(900, 124); c.fillStyle = d.rank === 1 ? GOLD : INK; c.fillText(s, CX, 1036); lines.push(s); }
     // the banked gold, big
     for (const [x, y, r] of COINS) coin(c, x, y, r);
     { const s = fmt(d.bank), t = fit(c, s, 900, 250, 120, W - 2 * M - 300);
@@ -143,18 +148,17 @@
       c.lineWidth = 9; c.strokeStyle = '#2a1d06'; c.strokeText(t, CX, 1336);
       c.fillStyle = '#c8922e'; c.fillText(t, CX, 1336);                                                          // two flat tones: struck gold
       c.save(); c.beginPath(); c.rect(0, 0, W, 1262); c.clip(); c.fillStyle = '#f4cf6a'; c.fillText(t, CX, 1336); c.restore(); lines.push(t);
-      c.font = font(700, 40); c.fillStyle = '#cfd6e2'; spaced(c, 'GOLD BANKED', CX, 1406, 10); lines.push('GOLD BANKED'); }
+      vault(c, CX, 1430, 74); lines.push('🏦'); }
     // the best robbery
     if (d.best && d.best.take > 0) {
       const tail = ' +' + fmt(d.best.take); let nm = robName(d.best); c.font = font(700, 52);
       const wOf = n => c.measureText('Robbed ' + n + tail).width;
       if (wOf(nm) > MAXW) { const cp = [...d.best.name], bt = d.best.bot ? ' (bot)' : ''; while (cp.length > 1 && wOf(cp.join('') + '…' + bt) > MAXW) cp.pop(); nm = cp.join('') + '…' + bt; }
       runs(c, [['Robbed ', '#cfd6e2'], [nm, INK], [tail, '#ffd36a']], CX, 1506); lines.push('Robbed ' + nm + tail);
-    } else { c.font = font(400, 40, true); c.fillStyle = MUTED; c.fillText('No robbery', CX, 1506); lines.push('No robbery'); }
+    }   // no robbery: nothing drawn
     // the map of the day and the day god's rule
     { const a = 'Map #' + d.map, b = d.rule ? ' · ' + d.rule : ''; c.font = font(700, 42); runs(c, [[a, '#cfd6e2'], [b, d.rcol || INK]], CX, 1578); lines.push(a + b); }
     // where to play
-    c.font = font(800, 34); c.fillStyle = GOLD; spaced(c, 'PLAY HEAVY GOLD', CX, 1664, 8); lines.push('PLAY HEAVY GOLD');
     c.font = font(700, 52); c.fillStyle = INK; c.fillText(GAME_T, CX, 1730); lines.push(GAME_T);
     return { cv, lines, lite: !!lite };
   }
@@ -239,9 +243,9 @@
   ].join('\n');
   document.head.appendChild(css);
 
-  /* ---------- the end screen: a 🖼 "Card" icon button in the core's #share slot ---------- */
+  /* ---------- the end screen: a 📤 "Share" icon button in the core's #share slot ---------- */
   const ib = (icon, word) => { const b = el('button', 'ib'); b.type = 'button'; b.append(el('i', null, icon), el('span', null, word)); return b; };
-  const btn = ib('🖼', 'Card'); btn.classList.add('hgCardBtn');
+  const btn = ib('📤', 'Share'); btn.classList.add('hgCardBtn');
   let core = null;   // the core's 📤 "Invite": out of the DOM, its listener kept for a round without card data
   btn.addEventListener('click', () => { if (!data && core) { core.click(); return; } share(); });
   /* the card button takes #share's place and id in #endLinks; without a core #share it goes into #endLinks (or #endExtra) */
@@ -252,7 +256,9 @@
   G.on('end', (S, res) => {
     lastRes = res && typeof res === 'object' ? Object.assign({}, res) : {}; dropImg();
     data = snap(S, lastRes); card = null; P = null; up = null; st = 'idle'; err = '';
-    place();
+    /* a round with nothing to show (0 banked, no robbery): no card, the core's 📤 Invite stays */
+    const dead = !data.bank && !data.best;
+    if (dead) { if (core && btn.isConnected) btn.replaceWith(core); btn.hidden = !core; } else { btn.hidden = false; place(); }
     const my = seq; setTimeout(() => { if (my === seq && data) ensure(); }, 40);   // the end screen paints first
   });
 
@@ -311,7 +317,7 @@
     const sec = k => { const a = ACT[k], b = ib(a[0], a[1]); b.id = a[2]; b.addEventListener('click', a[3]); rowEl.appendChild(b); };
     let m = '';
     if (st === 'busy' || st === 'idle') m = busyMsg || 'Making card…';
-    else if (st === 'story') { pri('story'); sec('chat'); }
+    else if (st === 'story') { pri('story'); sec('chat'); sec('save'); }
     else if (st === 'chat') { pri('chat'); sec('save'); sec('copy'); }
     else if (st === 'fail') { m = FAIL[err] || FAIL.net; if (err === 'canvas') { pri('copy'); sec('chat'); } else { pri('save'); sec('chat'); sec('copy'); } }
     else if (st === 'local') { m = P && !P.ok && P.err === 'canvas' ? FAIL.canvas : ''; pri('save'); sec('copy'); }
@@ -324,10 +330,10 @@
 
   /* ---------- sharing ---------- */
   const cardUrl = () => (up && card && up.sig === card.sig ? up.url : '');
-  const line = () => { const d = data; if (!d) return 'Heavy Gold: the lighter one robs the heavier one.';
-    return 'I banked ' + fmt(d.bank) + ' gold as ' + d.gname + ' in Heavy Gold: #' + d.rank + ' of ' + d.of + (d.bots ? ' (' + d.bots + (d.bots === 1 ? ' bot' : ' bots') + ')' : '') + ', Map #' + d.map + '.'; };
+  const line = () => { const d = data; if (!d) return 'Heavy Gold';
+    return '🏦 ' + fmt(d.bank) + (d.rank > 0 && d.of > 0 ? ' · #' + d.rank + ' of ' + d.of : '') + ' · Heavy Gold — beat it?'; };
   const storyText = () => line().slice(0, 200);
-  const chatText = () => line() + (cardUrl() ? ' My card: ' + cardUrl() : '') + ' Can you beat it?';
+  const chatText = () => line() + (cardUrl() ? ' ' + cardUrl() : '');
   const chatLink = () => 'https://t.me/share/url?url=' + encodeURIComponent(GAME) + '&text=' + encodeURIComponent(chatText());
   function story() {
     const u = cardUrl(); if (!u || !storyOK()) { setState('chat'); return false; }

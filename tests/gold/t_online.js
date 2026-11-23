@@ -11,7 +11,7 @@
 // Hardening: the title links row at 844x390 / 640x360; console-edited skill numbers clamped on the host; a console teleport capped;
 // gold conserved on a client's page while it picks up coins; one rejoin after phx_error + a socket drop; no phantom skill after a
 // hand-over; a bot's robbery toast says "(bot)". Less text (the owner, 2026-11-23): the title icon, the lobby (ONLINE, the countdown,
-// "N / 8 players", 🤖 × N, START NOW, 📤 Invite, ✕ Leave; short text, no scroll), the chip "🌐 N", the core's toast texts.
+// the seats, 🤖 × N, START NOW, 📤 Invite, ✕ Leave; short text, no scroll), the chip "🌐 N", the core's toast texts.
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs'); const http = require('http'); const crypto = require('crypto');
 const EXE = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome';
 const FILE = path.resolve(process.env.GOLD_HTML || path.join(__dirname, '..', '..', 'beta', 'index.html'));
@@ -184,6 +184,9 @@ const titleFit = pg => pg.evaluate(() => { const T = document.getElementById('ti
     ok(f6.alone.scroll <= f6.alone.core && f6.alone.play && (f6.alone.core > 1 || (f6.alone.scroll <= 1 && f6.alone.on)), '640x360: the Online icon adds no height to the title (PLAY in view)', f6);
     if (f6.alone.core > 1) console.log('INFO 640x360: the core title alone scrolls ' + f6.alone.core + ' px (the links row ends at ' + f6.alone.box.b + ' of 360)');
     if (f6.all.scroll > 1 || !f6.all.on) console.log('INFO 640x360: with every module the title scrolls ' + f6.all.scroll + ' px (the other modules\' links)');
+    /* with every module: Online must be in view as soon as the core's short-landscape title fits (it does not yet: INFO, not FAIL) */
+    if (f6.alone.core <= 1) ok(f6.all.on && f6.all.play, '640x360: PLAY and the Online icon in view on the title with every module', f6.all);
+    else if (!f6.all.on) console.log('INFO 640x360: with every module the Online icon is off screen (the core title already scrolls ' + f6.alone.core + ' px alone)');
     await I6.pg.screenshot({ path: path.join(SHOTS, 'online_title_640.png') }); await I6.pg.screenshot({ path: path.join(AFTER, 'dc_card-online_title_640.png') }); await I6.ctx.close();
 
     const A = await mkPage(b, { name: 'Ann', cc: 'GE', w: 390, h: 844, url: URL_, god: 'thor', cfg: { WAIT: 60 } }); pages.push(A);
@@ -202,7 +205,7 @@ const titleFit = pg => pg.evaluate(() => { const T = document.getElementById('ti
     const code = await A.pg.evaluate(() => G.online.room);
     ok(/^[0-9a-z]{6}$/.test(code), 'a room code', code);
     const wA = await A.pg.evaluate(() => ({ list: [...document.querySelectorAll('#onList .onP')].map(e => e.textContent), st: document.getElementById('onSt').textContent, start: getComputedStyle(document.getElementById('onStart')).display }));
-    ok(wA.list[0] === '🇬🇪AnnYOU' && wA.list[1] === '🤖× 7' && /^\d+ s1 \/ 8 players$/.test(wA.st) && wA.start === 'none', 'the wait screen: her flag, name and YOU, "🤖 × 7", the countdown and "1 / 8 players"; no START NOW alone', wA);
+    ok(wA.list[0] === '🇬🇪AnnYOU' && wA.list[1] === '🤖× 7' && /^\d+ s$/.test(wA.st) && wA.start === 'none', 'the wait screen: her flag, name and YOU, "🤖 × 7", the countdown alone (no "1 / 8 players": the seats say it); no START NOW alone', wA);
     await A.pg.locator('#onInvite').tap(); await sleep(150);
     const links = await A.pg.evaluate(() => window.__links.slice());
     ok(links.length === 1 && links[0].indexOf('https://t.me/share/url?url=' + encodeURIComponent('https://t.me/HoldorTDBot/play?startapp=room_' + code)) === 0, '📤 Invite opens the Telegram share with t.me/HoldorTDBot/play?startapp=room_<code>', links[0]);
